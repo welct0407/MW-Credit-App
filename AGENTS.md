@@ -74,7 +74,29 @@ Before making any change, establish and record a rollback point:
 - For a change affecting both AppSheet and Looker Studio, complete both backup steps first.
 - If Codex cannot confirm that the required backup exists, it must stop before making the change and ask the user to create or confirm it.
 
-## 5. Change and verification workflow
+## 5. Mandatory documentation updates
+
+Documentation is part of the change itself, not an optional follow-up. Codex must complete the applicable documentation updates in the same task before reporting the change as complete.
+
+### 5.1 Change log for every change
+
+- After every implementation, configuration, dashboard, automation, governance, or documentation change, create or update a Markdown change-log file under `Change Logs/`.
+- Follow the existing `CHANGE_NOTES_<SUBJECT>_<YYYY-MM-DD>.md` naming pattern unless the change already has a corresponding change-log file.
+- Record the date, scope, purpose, files or AppSheet/Looker objects changed, rollback point, checks performed, manual testing required, status, and rollback instructions.
+- Update the same change-log file when manual testing, acceptance, deployment, rollback, or follow-up work changes the status.
+- Markdown files in `Change Logs/` are the authoritative change history. Do not use the Excel workbook's `Change Log` worksheet as the primary change log.
+
+### 5.2 Data-model documentation
+
+- Any change to the OLTP or OLAP data model, including shared base tables, physical columns, virtual columns, types, expressions, keys, labels, `Ref` relationships, slices, slice filters, slice permissions, slice-column membership, or app-specific availability, must be reflected in both:
+  - `Documents/AppSheet_Data_Model_Overview.md`; and
+  - `Documents/AppSheet_Data_Dictionary.xlsx`.
+- Keep the Markdown overview focused on architecture, purpose, ownership, relationships, assumptions, and governance. Keep the Excel workbook as the detailed row-level inventory.
+- Update both documents together and keep table names, column names, expressions, OLTP/OLAP availability, relationships, slices, and reconciliation status consistent between them.
+- If the live AppSheet configuration has not been reconciled, label the affected documentation as pending reconciliation rather than presenting it as verified.
+- A data-model change is incomplete until the overview, workbook, and applicable Markdown change log have all been updated and checked for consistency.
+
+## 6. Change and verification workflow
 
 Codex must:
 
@@ -82,8 +104,9 @@ Codex must:
 2. Confirm and record the required backup/version information.
 3. Make the smallest practical, reversible change and preserve unrelated work.
 4. Perform only safe checks available in the working environment, such as reviewing expressions, dependencies, and configuration consistency. Do not claim that the live app or dashboard has been fully tested when it has not.
-5. Give the user a concise manual testing checklist covering the changed workflow, important edge cases, permissions, calculations, and dashboard reconciliation as applicable.
-6. Wait for the user's manual testing feedback before treating the change as accepted or proceeding with production deployment.
-7. Finish with a summary of what changed, the recorded rollback point, possible downstream effects, checks performed, items requiring manual testing, and rollback instructions.
+5. Complete the mandatory documentation updates in Section 5 and verify that the documented names, scope, status, and rollback information match the implemented change.
+6. Give the user a concise manual testing checklist covering the changed workflow, important edge cases, permissions, calculations, and dashboard reconciliation as applicable.
+7. Wait for the user's manual testing feedback before treating the change as accepted or proceeding with production deployment.
+8. Finish with a summary of what changed, the recorded rollback point, documentation updated, possible downstream effects, checks performed, items requiring manual testing, and rollback instructions.
 
 When instructions conflict, prioritize data protection, financial correctness, auditability, least privilege, and reversibility. Ask the user before an irreversible, high-risk, or materially ambiguous change.
