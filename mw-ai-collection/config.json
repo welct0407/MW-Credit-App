@@ -1,0 +1,30 @@
+{
+  "build": 7,
+  "dailyBatch": { "enabled": true, "activationDate": "2026-09-09", "hour": 11, "recipientMode": "friend-forwarding", "manualCompletedDates": ["2026-09-08"] },
+  "exceptions": { "enabled": true, "activationAt": "2026-09-07T18:11:31Z" },
+  "receipts": { "enabled": true, "approvalRequired": false, "autoPostClear": true, "exceptionConfirmation": "instagram-friend" },
+  "master": { "enabled": true, "timezone": "Asia/Bangkok", "activationDate": "2026-09-07" },
+  "testMode": true,
+  "appId": "93844270-6aa5-420b-a960-bcdf08abd357",
+  "borrowerId": "OnzYScuVbP2NtFo9uGlecU",
+  "borrowerName": "Lisa",
+  "recipient": "__rxrisx__",
+  "authorizedResendRevisions": [
+    "2026-09-07-user-request-format-v2",
+    "2026-09-07-second-loan-overdue",
+    "2026-09-07-late-payment-terms",
+    "2026-09-07-closure-terms"
+  ],
+  "maxSnapshotAgeSeconds": 300,
+  "scheduledSendingEnabled": false,
+  "reminders": {
+    "sessionId": "lisa-build-2-2026-09-07",
+    "collectionDate": "2026-09-07",
+    "conversationUrl": "https://www.instagram.com/direct/t/17844184325948599/",
+    "timezone": "Asia/Bangkok",
+    "graceMinutes": 0,
+    "intervalMinutes": 120,
+    "maxTestReminders": 1,
+    "testExpiresAt": "2026-09-08T00:00:00+07:00"
+  }
+}

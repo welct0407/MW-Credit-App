@@ -1,0 +1,13 @@
+{
+  "unique_column_definitions": 365,
+  "scoped_changes": 36,
+  "preserved_sheets": [
+    "Slices",
+    "Slice Columns",
+    "Change Log",
+    "Payments Clone",
+    "Payments Clone Slices"
+  ],
+  "excel_errors": [],
+  "checks": "PASS"
+}
