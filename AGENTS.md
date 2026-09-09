@@ -1,5 +1,7 @@
 # AGENTS.md — AppSheet Development
 
+AI Collection software has moved to C:\GitHub\MW-AI-Collection. For any collection work, first read that project's AGENTS.md and SERVICE_CATALOGUE.md; the catalogue is a default-deny boundary for programs and AI sessions. The collection-agent and mw-ai-collection paths here are compatibility junctions, not independent runtimes. AppSheet and reporting configuration work remains governed by this file.
+
 This file governs Codex work on the shared AppSheet solution: the **OLTP Operations app**, the **OLAP Reporting app**, and the **Looker Studio dashboard**.
 
 ## 1. Project boundaries

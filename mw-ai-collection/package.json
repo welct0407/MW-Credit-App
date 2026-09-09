@@ -1,7 +1,0 @@
-{
-  "name": "mw-ai-collection",
-  "private": true,
-  "type": "module",
-  "scripts": { "test": "node --test" },
-  "engines": { "node": ">=24" }
-}
