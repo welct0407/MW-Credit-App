@@ -21,7 +21,7 @@ Starting working tree was clean at commit faddade8999cadd67c521900f1b7c87bcd61f8
 
 All 47 reference copies were hash-verified. Shared setup succeeded and a second run made no change. Importing artifact-tool through the root junction and creating an in-memory workbook succeeded. No historical migration script was executed, no workbook was changed and no live workflow was tested.
 
-Git index removal completed: 78,261 output paths untracked, zero local files missing afterwards, and zero output paths remaining in the index. Ignore checks passed for outputs, root dependencies and Python caches. PowerShell parsing reported zero errors. Owner explicitly authorized implementation, commit and push on 2026-09-10. Publication is proceeding; remote verification will be recorded after the push. Drive restore testing remains pending.
+Git index removal completed: 78,261 output paths untracked, zero local files missing afterwards, and zero output paths remaining in the index. Ignore checks passed for outputs, root dependencies and Python caches. PowerShell parsing reported zero errors. Owner explicitly authorized implementation, commit and push on 2026-09-10. Implementation committed as 363bb82 and pushed to origin/master on 2026-09-10. GitHub refs/heads/master was verified to match the implementation commit. This publication record is committed separately. Drive restore testing remains pending.
 
 Whitespace checking the preserved reference copies reports existing blank lines at EOF in inspect_backup.mjs and inspect_small.mjs under projected-monthly-profit-analysis. These are deliberately preserved to keep source hashes unchanged. Newly authored configuration and documentation pass the scoped whitespace check.
 
