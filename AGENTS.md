@@ -4,6 +4,13 @@ AI Collection software has moved to C:\GitHub\MW-AI-Collection. For any collecti
 
 This file governs Codex work on the shared AppSheet solution: the **OLTP Operations app**, the **OLAP Reporting app**, and the **Looker Studio dashboard**.
 
+## Repository tooling and generated files
+
+- Keep maintained scripts in `scripts/` and generated artifacts in `outputs/`. The owner backs up `outputs/` through Google Drive; it is intentionally excluded from Git.
+- Do not create dependency installations inside output folders. Use the single root `node_modules` junction configured by `scripts/setup-dependencies.ps1` and the bundled runtime recorded in `scripts/dependency-runtime.json`.
+- Historical scripts in `scripts/reference/` are preserved for reference, not approved for automatic replay. Review their paths and write effects before adapting them.
+- Existing output-local dependency folders are retained until separately authorized for deletion. Do not follow the root dependency junction when backing up or recursively cleaning this repository.
+
 ## 1. Project boundaries
 
 - Treat every file under `sources/` as read-only reference material. Do not edit, rename, move, or delete these files.
