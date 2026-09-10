@@ -19,7 +19,7 @@ HEAD before this change: 2814b2619f0df648979e321ac2ae7ef8ff1761f0. The pending d
 
 Before this change, outputs/ contained 301 files totaling 79,690,396 bytes, no node_modules folders and no reparse points. All 301 files matched their pre-cleanup hashes. The shared root dependency junction and an in-memory workbook smoke test passed during cleanup verification.
 
-Staging checks passed: 299 output files tracked, two Python bytecode files excluded, and zero dependency/cache/temporary/collection paths tracked. All seven ignore probes passed. New policy/documentation whitespace checks passed. Owner explicitly authorized commit and push. Publication is pending remote verification; Drive restore testing remains owner-managed and is not claimed complete.
+Staging checks passed: 299 output files tracked, two Python bytecode files excluded, and zero dependency/cache/temporary/collection paths tracked. All seven ignore probes passed. New policy/documentation whitespace checks passed. Owner explicitly authorized commit and push. Implementation committed as 2feca66 and pushed to origin/master on 2026-09-10. GitHub master was independently verified to match that commit. This publication record is committed separately. Drive restore testing remains owner-managed and is not claimed complete.
 
 ## Effects and rollback
 
