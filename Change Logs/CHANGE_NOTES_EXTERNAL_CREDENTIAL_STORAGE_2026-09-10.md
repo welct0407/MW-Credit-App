@@ -7,3 +7,4 @@ Scope is documentation/governance only. The designated folder already exists. No
 Rollback reference: HEAD 66ea0b31d9647ea860172b7dc5622a5ea4f82c4d plus the pre-existing local Drive-scope edits. Remove only the new Credential storage section and this log to reverse this rule; do not restore the whole file over prior or later work. No app/report backup is applicable.
 
 Checks: verified destination-folder existence, consistent policy in both project AGENTS.md files, and whitespace validation. Manual follow-up: confirm the external folder has owner-managed backup coverage before relying on it for disaster recovery. Status: rule implemented locally; not committed/pushed.
+Publication update, 2026-09-10: included in commit 03642b6, successfully pushed to origin/master. Earlier local-only status above is historical.
