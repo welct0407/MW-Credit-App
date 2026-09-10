@@ -6,10 +6,18 @@ This file governs Codex work on the shared AppSheet solution: the **OLTP Operati
 
 ## Repository tooling and generated files
 
-- Keep maintained scripts in `scripts/` and generated artifacts in `outputs/`. Track output documents, scripts and evidence in Git for recovery; Google Drive provides an additional owner-managed backup. Exclude installed dependencies, Python caches and .tmp directories.
+- Keep maintained scripts in `scripts/` and generated artifacts in `outputs/`. Track output documents, scripts and evidence in Git for recovery. The owner excluded C:\GitHub from Google Drive on 2026-09-10; do not assume uncommitted project files have a Drive backup. Exclude installed dependencies, Python caches and .tmp directories.
 - Do not create dependency installations inside output folders. Use the single root `node_modules` junction configured by `scripts/setup-dependencies.ps1` and the bundled runtime recorded in `scripts/dependency-runtime.json`.
 - Historical scripts in `scripts/reference/` are preserved for reference, not approved for automatic replay. Review their paths and write effects before adapting them.
 - The owner removed the ten old output-local dependency folders on 2026-09-10. Use the shared root dependency junction and do not recreate per-output installations. Do not follow the root dependency junction when backing up or recursively cleaning this repository.
+
+## Credential storage
+
+- Store project credentials that must not be published to GitHub under `C:\Users\MWCredit\Documents\ChatGPT`, preferably in a project-named subfolder. This includes API keys, access/refresh tokens, app secrets, private keys, recovery/encryption keys and exported authentication/session files.
+- Do not store these credentials anywhere under `C:\GitHub`, even in ignored local folders or .env files. Repository configuration may contain the external file path, but never the secret value. Examples and change logs use placeholders and paths only.
+- When creating or migrating a project credential, use the external location, update its consumers, and verify the references without printing its contents. Preserve existing credentials until migration is verified; do not overwrite or regenerate a recovery key as a substitute for a lost one.
+- Do not relocate application-managed sign-in stores such as Codex/GitHub/browser profiles as a side effect. Any project-owned credential export belongs in the external folder above.
+- The folder's existence does not prove backup coverage. Keep its recovery/backup status explicit; database-only backups do not cover credentials, and C:\GitHub is excluded from Drive.
 
 ## 1. Project boundaries
 
@@ -123,3 +131,11 @@ Codex must:
 8. Finish with a summary of what changed, the recorded rollback point, documentation updated, possible downstream effects, checks performed, items requiring manual testing, and rollback instructions.
 
 When instructions conflict, prioritize data protection, consistency with the user's defined prototype rules, dependency integrity, auditability, least privilege, and reversibility. In this project, financial correctness means faithfully implementing and reconciling the user's documented prototype logic; it does not automatically require compliance with external accounting standards or regulatory rules. Ask the user before an irreversible, high-risk, or materially ambiguous change.
+
+## Automatic commit and push — owner rule, 10 September 2026
+
+- After each completed user task or authorized automated development/maintenance run that changes repository files, complete the relevant checks and change-log updates, then commit and push the task's changes to the current branch's configured upstream before reporting completion. The owner gives standing permission; no additional commit/push confirmation is needed. An explicit instruction to leave changes local overrides this default.
+- Use completion of a coherent change as the trigger, not every message or tool call. Read-only requests and runs that change only ignored runtime data require no commit. Operational borrower/reviewer events do not authorize source changes or Git operations.
+- Inspect the working tree and staged diff. Stage only the task's intended files; preserve unrelated work. Keep credentials, private runtime data, databases, backups and installed dependencies excluded under the project's rules. Never force-add ignored files to satisfy this policy.
+- Use a descriptive commit message and a normal push. Do not force-push, rewrite published history, or overwrite unrelated changes. If checks fail or publishing is blocked, preserve the work, report the blocker and distinguish local commits from changes actually pushed. Do not claim GitHub recovery coverage until the push is verified.
+- This permission covers repository publication only; it does not authorize production deployment, live financial operations, notifications or expansion of service boundaries. In long tasks, a coherent, checked checkpoint may also be committed and pushed when useful.

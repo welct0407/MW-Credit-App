@@ -1,7 +1,7 @@
 # Project scripts and shared dependencies
 
 Maintained automation belongs in scripts/. Generated files belong in outputs/.
-Output documents, scripts and evidence are tracked by Git for recovery. Installed node_modules, Python caches and .tmp directories are ignored. The owner also manages Google Drive backup.
+Output documents, scripts and evidence are tracked by Git for recovery. Installed node_modules, Python caches and .tmp directories are ignored. The owner excluded C:\GitHub from Google Drive on 2026-09-10; uncommitted project files must not be assumed to have a Drive backup.
 
 ## Setup on this Windows VM or after recovery
 
@@ -22,4 +22,4 @@ The owner deleted the ten old output-local dependency installations on 2026-09-1
 
 ## Recovery
 
-Clone the Git repository to recover committed outputs, then rerun setup-dependencies.ps1 using the current bundled runtime. Use the existing Google Drive backup for any newer uncommitted files. Verify a representative read-only workflow before resuming modifications. Installed dependencies are not stored in the current Git tree. No new backup destination or schedule is configured by this change.
+Clone the Git repository to recover committed outputs, then rerun setup-dependencies.ps1 using the current bundled runtime. Commit and push work that must survive loss of the VM; the project folder is no longer covered by Drive sync. Verify a representative read-only workflow before resuming modifications. Installed dependencies are not stored in the current Git tree. The separate MW-AI-Collection database backup to Drive does not back up this project's uncommitted files.
