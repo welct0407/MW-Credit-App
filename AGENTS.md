@@ -6,10 +6,10 @@ This file governs Codex work on the shared AppSheet solution: the **OLTP Operati
 
 ## Repository tooling and generated files
 
-- Keep maintained scripts in `scripts/` and generated artifacts in `outputs/`. The owner backs up `outputs/` through Google Drive; it is intentionally excluded from Git.
+- Keep maintained scripts in `scripts/` and generated artifacts in `outputs/`. Track output documents, scripts and evidence in Git for recovery; Google Drive provides an additional owner-managed backup. Exclude installed dependencies, Python caches and .tmp directories.
 - Do not create dependency installations inside output folders. Use the single root `node_modules` junction configured by `scripts/setup-dependencies.ps1` and the bundled runtime recorded in `scripts/dependency-runtime.json`.
 - Historical scripts in `scripts/reference/` are preserved for reference, not approved for automatic replay. Review their paths and write effects before adapting them.
-- Existing output-local dependency folders are retained until separately authorized for deletion. Do not follow the root dependency junction when backing up or recursively cleaning this repository.
+- The owner removed the ten old output-local dependency folders on 2026-09-10. Use the shared root dependency junction and do not recreate per-output installations. Do not follow the root dependency junction when backing up or recursively cleaning this repository.
 
 ## 1. Project boundaries
 

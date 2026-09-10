@@ -1,7 +1,7 @@
 # Project scripts and shared dependencies
 
 Maintained automation belongs in scripts/. Generated files belong in outputs/.
-Both outputs/ and node_modules/ are ignored by Git. The owner manages Google Drive backup of output files; a Git clone alone does not recover them.
+Output documents, scripts and evidence are tracked by Git for recovery. Installed node_modules, Python caches and .tmp directories are ignored. The owner also manages Google Drive backup.
 
 ## Setup on this Windows VM or after recovery
 
@@ -16,10 +16,10 @@ The setup script checks artifact-tool 2.8.59, records bundle 26.909.12148 in dep
 
 reference/ preserves the 47 Python/JavaScript scripts previously tracked under outputs/, with the same subdirectory structure and unchanged bytes. Originals remain on disk under outputs/. Their hashes and original paths are in reference-manifest.json.
 
-These are historical recipes, not a batch of approved migrations to rerun. Some use hardcoded paths, script-relative companion files, or overwrite workbook/configuration documentation. Read and adapt a selected script before use; obtain its data/evidence from the owner's Drive backup. In particular, copying a script back to its original location may be necessary for its original relative paths. Do not execute historical update scripts as a dependency test.
+These are historical recipes, not a batch of approved migrations to rerun. Some use hardcoded paths, script-relative companion files, or overwrite workbook/configuration documentation. Read and adapt a selected script before use; its original output files are tracked in Git, with Google Drive as additional recovery coverage. In particular, use the original script location when its relative paths require companion files. Do not execute historical update scripts as a dependency test.
 
-Existing output-local dependency installations remain on disk by owner instruction and take precedence for scripts run from those folders. New maintained scripts under scripts/ use the shared root junction. Removing the old installations is a separate cleanup step.
+The owner deleted the ten old output-local dependency installations on 2026-09-10. Both maintained scripts and original output scripts now resolve the shared root dependency junction. A read-only artifact-tool import and in-memory workbook creation from an output directory passed; this is not a compatibility guarantee for every historical script.
 
 ## Recovery
 
-Clone the Git repository, restore outputs/ from the existing Google Drive backup, and rerun setup-dependencies.ps1 using the current bundled runtime. Verify a representative read-only workflow before resuming modifications. Git does not back up outputs/ or installed dependencies. No new backup destination or schedule is configured by this change.
+Clone the Git repository to recover committed outputs, then rerun setup-dependencies.ps1 using the current bundled runtime. Use the existing Google Drive backup for any newer uncommitted files. Verify a representative read-only workflow before resuming modifications. Installed dependencies are not stored in the current Git tree. No new backup destination or schedule is configured by this change.

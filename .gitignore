@@ -2,9 +2,6 @@
 /collection-agent/
 /mw-ai-collection/
 
-# Generated results and historical working files are backed up through Google Drive.
-/outputs/
-
 # Installed dependencies and generated Python caches are local only.
 node_modules/
 __pycache__/

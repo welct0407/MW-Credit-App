@@ -1,0 +1,146 @@
+{
+  "overview": "{\"kind\":\"workbook\",\"id\":\"wb/y16aqy\",\"sheets\":7}\n{\"kind\":\"sheet\",\"id\":\"ws/271c19\",\"name\":\"Manifest\",\"index\":0}\n{\"kind\":\"sheet\",\"id\":\"ws/lbvqgu\",\"name\":\"Statistics\",\"index\":1}\n{\"kind\":\"sheet\",\"id\":\"ws/yqg87w\",\"name\":\"Daily Analytics 30D\",\"index\":2}\n{\"kind\":\"sheet\",\"id\":\"ws/wt5lne\",\"name\":\"Borrowers\",\"index\":3}\n{\"kind\":\"sheet\",\"id\":\"ws/6wqqf0\",\"name\":\"Loans\",\"index\":4}\n{\"kind\":\"sheet\",\"id\":\"ws/6ahxg0\",\"name\":\"Charges\",\"index\":5}\n{\"kind\":\"sheet\",\"id\":\"ws/qjs0z8\",\"name\":\"Repayments 30D\",\"index\":6}",
+  "formulaErrors": "{\"kind\":\"notice\",\"message\":\"Cell search matched 0 entries.\"}",
+  "sheets": {
+    "Manifest": {
+      "rowCount": 0,
+      "columnCount": 1,
+      "headers": [
+        null
+      ],
+      "firstRows": [],
+      "formulaCount": 0,
+      "values": [
+        [
+          null
+        ]
+      ],
+      "formulas": [
+        [
+          ""
+        ]
+      ],
+      "previewPath": "D:\\GitHub\\AppSheet Project\\outputs\\daily-loan-analysis-test-2026-08-31\\previews\\Manifest.png"
+    },
+    "Statistics": {
+      "rowCount": 0,
+      "columnCount": 1,
+      "headers": [
+        null
+      ],
+      "firstRows": [],
+      "formulaCount": 0,
+      "values": [
+        [
+          null
+        ]
+      ],
+      "formulas": [
+        [
+          ""
+        ]
+      ],
+      "previewPath": "D:\\GitHub\\AppSheet Project\\outputs\\daily-loan-analysis-test-2026-08-31\\previews\\Statistics.png"
+    },
+    "Daily Analytics 30D": {
+      "rowCount": 0,
+      "columnCount": 1,
+      "headers": [
+        null
+      ],
+      "firstRows": [],
+      "formulaCount": 0,
+      "values": [
+        [
+          null
+        ]
+      ],
+      "formulas": [
+        [
+          ""
+        ]
+      ],
+      "previewPath": "D:\\GitHub\\AppSheet Project\\outputs\\daily-loan-analysis-test-2026-08-31\\previews\\Daily_Analytics_30D.png"
+    },
+    "Borrowers": {
+      "rowCount": 0,
+      "columnCount": 1,
+      "headers": [
+        null
+      ],
+      "firstRows": [],
+      "formulaCount": 0,
+      "values": [
+        [
+          null
+        ]
+      ],
+      "formulas": [
+        [
+          ""
+        ]
+      ],
+      "previewPath": "D:\\GitHub\\AppSheet Project\\outputs\\daily-loan-analysis-test-2026-08-31\\previews\\Borrowers.png"
+    },
+    "Loans": {
+      "rowCount": 0,
+      "columnCount": 1,
+      "headers": [
+        null
+      ],
+      "firstRows": [],
+      "formulaCount": 0,
+      "values": [
+        [
+          null
+        ]
+      ],
+      "formulas": [
+        [
+          ""
+        ]
+      ],
+      "previewPath": "D:\\GitHub\\AppSheet Project\\outputs\\daily-loan-analysis-test-2026-08-31\\previews\\Loans.png"
+    },
+    "Charges": {
+      "rowCount": 0,
+      "columnCount": 1,
+      "headers": [
+        null
+      ],
+      "firstRows": [],
+      "formulaCount": 0,
+      "values": [
+        [
+          null
+        ]
+      ],
+      "formulas": [
+        [
+          ""
+        ]
+      ],
+      "previewPath": "D:\\GitHub\\AppSheet Project\\outputs\\daily-loan-analysis-test-2026-08-31\\previews\\Charges.png"
+    },
+    "Repayments 30D": {
+      "rowCount": 0,
+      "columnCount": 1,
+      "headers": [
+        null
+      ],
+      "firstRows": [],
+      "formulaCount": 0,
+      "values": [
+        [
+          null
+        ]
+      ],
+      "formulas": [
+        [
+          ""
+        ]
+      ],
+      "previewPath": "D:\\GitHub\\AppSheet Project\\outputs\\daily-loan-analysis-test-2026-08-31\\previews\\Repayments_30D.png"
+    }
+  }
+}
