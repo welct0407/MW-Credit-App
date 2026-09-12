@@ -33,7 +33,7 @@
       "Payments",
       "Posted Amount",
       "VC / Price",
-      "Isolated test in progress; no production change.",
+      "Three Posted samples; restored and verified 1.000013. No production change.",
       "Use existing Related Repayments Ref list instead of full-table SELECT. Posting Difference depends on this value. Existing financial reconciliation action predicates unchanged.",
       "SUM([Related Repayments][Amount Received])"
     ],
@@ -196,6 +196,166 @@
       "Three Posted samples. Restored 1.000011; not accepted for production.",
       "Reuse stored helper values only after parent receipt is Posted. All Processing and Error calculations retain original expressions to avoid the P01b freeze-order failure.",
       "IF([Ref Payment].[Status] = \"Posted\", [Allocated Principal], MIN(LIST(MAX(LIST(DECIMAL(0), DECIMAL([Principal Remaining Snapshot]))), DECIMAL([Calculated Amount]) - DECIMAL([Calculated Interest]))))"
+    ],
+    [
+      "P02a rollback",
+      "1.000013",
+      "Payments",
+      "Posted Amount",
+      "VC / Price",
+      "Original formula restored and verified.",
+      "Restores baseline full-table SELECT; Posting Difference dependency unchanged.",
+      "SUM(SELECT(Repayments[Amount Received], [Ref Payment] = [_THISROW].[Row ID]))"
+    ],
+    [
+      "P04a",
+      "1.000014",
+      "Payment Allocations",
+      "Calculated Amount",
+      "VC / Price",
+      "Three Posted samples; original restored and verified at 1.000018.",
+      "Compare immutable snapshot date/row number directly instead of nested Calculated Order evaluation. Preserves newest-first and tie ordering, full allocation coverage, zero rows and posting guards.",
+      "MAX(LIST(DECIMAL(0), MIN(LIST(DECIMAL([Amount Remaining Snapshot]), DECIMAL([Ref Payment].[Amount Received]) - DECIMAL(SUM(SELECT(Payment Allocations[Amount Remaining Snapshot], AND([Ref Payment] = [_THISROW].[Ref Payment], OR([Charge Date Snapshot] > [_THISROW].[Charge Date Snapshot], AND([Charge Date Snapshot] = [_THISROW].[Charge Date Snapshot], [Charge Row Number Snapshot] > [_THISROW].[Charge Row Number Snapshot]))))))))))"
+    ],
+    [
+      "P06-cache",
+      "1.000015",
+      "App settings",
+      "Server caching",
+      "Setting",
+      "Verified ON in clone; API remains OFF.",
+      "Only caching changed; P04a retained. Delta OFF, Quick ON; warm explicit sync samples exclude initialization and editor preview.",
+      "ON (prior OFF)"
+    ],
+    [
+      "P06-delta",
+      "1.000016",
+      "App settings",
+      "Delta sync",
+      "Setting",
+      "Five idle syncs; direct note freshness and restoration passed. Restored OFF at 1.000017.",
+      "Cache ON and Quick ON retained; compare with 1.000015. Date-driven VC rollover and cross-table freshness not certified.",
+      "ON (prior OFF)"
+    ],
+    [
+      "P06-quick",
+      "1.000017",
+      "App settings",
+      "Quick sync",
+      "Setting",
+      "Five idle syncs; median 1.312s. Restored ON at 1.000018.",
+      "Delta restored OFF and cache remains ON. Compare to 1.000015, differing only in Quick sync.",
+      "OFF (prior ON)"
+    ],
+    [
+      "P04a rollback",
+      "1.000018",
+      "Payment Allocations",
+      "Calculated Amount",
+      "VC / Price",
+      "Original verified in saved appdoc.",
+      "Baseline formula restored; all earlier formula variants restored.",
+      "MAX(LIST(DECIMAL(0), MIN(LIST(DECIMAL([Amount Remaining Snapshot]), DECIMAL([Ref Payment].[Amount Received]) - DECIMAL(SUM(SELECT(Payment Allocations[Amount Remaining Snapshot], AND([Ref Payment] = [_THISROW].[Ref Payment], [Calculated Order] < [_THISROW].[Calculated Order]))))))))"
+    ],
+    [
+      "P06 rollback",
+      "1.000018",
+      "App settings",
+      "Sync settings",
+      "Settings",
+      "Isolation baseline restored.",
+      "Server cache OFF; delta OFF; quick ON. Start sync, delayed sync and automatic updates retained ON.",
+      "Cache OFF; Delta OFF; Quick ON"
+    ],
+    [
+      "P03b intermediate",
+      "1.000019",
+      "Statistics",
+      "App table availability",
+      "Table / 26 columns, 23 VC",
+      "Removed from test app; non-runnable until dependent views repaired.",
+      "Database table retained. Missing KPIs and Reporting App Shortcut caused load errors. No receipts submitted in this invalid version.",
+      "ABSENT from clone app; physical database unchanged"
+    ],
+    [
+      "P03b",
+      "1.000020",
+      "Statistics",
+      "App table availability",
+      "Table / 26 columns, 23 VC",
+      "Three Posted six-charge samples. Restored complete definition at verified 1.000022.",
+      "Diagnostic only. Associated format rules removed by editor; manual generation and reporting actions need review before any real migration. Full rollback 1.000018.",
+      "ABSENT from clone app; physical database unchanged"
+    ],
+    [
+      "P03b rollback",
+      "1.000022",
+      "Statistics",
+      "App table availability",
+      "Table / 26 columns, 23 VC",
+      "Restored complete 1.000018 using native version history.",
+      "Statistics, KPIs, Reporting App Shortcut verified present; configuration baseline restored before materialization.",
+      "PRESENT; original definitions restored"
+    ],
+    [
+      "P09 schema",
+      "1.000025",
+      "Charges",
+      "Perf Cached Principal Paid",
+      "Physical / Price",
+      "Test-only; hidden and nonsearchable; writable by refresh action.",
+      "Regenerated at 1.000023; all original 25 column key/type/label/formula/qualifier definitions verified unchanged. Initially hidden and readonly at 1.000024, then writable at 1.000025 for data-action assignment. No cache-reader changes yet.",
+      "No app formula; ledger-derived value populated by explicit refresh"
+    ],
+    [
+      "P09 schema",
+      "1.000025",
+      "Charges",
+      "Perf Cached Interest Paid",
+      "Physical / Price",
+      "Test-only; hidden and nonsearchable; writable by refresh action.",
+      "Regenerated at 1.000023; all original 25 column key/type/label/formula/qualifier definitions verified unchanged. Initially hidden and readonly at 1.000024, then writable at 1.000025 for data-action assignment. No cache-reader changes yet.",
+      "No app formula; ledger-derived value populated by explicit refresh"
+    ],
+    [
+      "P09 refresh",
+      "1.000025",
+      "Charges",
+      "Perf - Refresh Charge Paid Cache",
+      "Action / SET_COLUMN_VALUE",
+      "Verified hidden; only two cache assignments.",
+      "Recomputes both components from authoritative related repayment rows; idempotent.",
+      "Perf Cached Principal Paid = SUM([Related Repayments][Principal Paid]); Perf Cached Interest Paid = SUM([Related Repayments][Interest Paid])"
+    ],
+    [
+      "P09 backfill",
+      "1.000026",
+      "Statistics",
+      "Perf - Backfill All Charge Caches",
+      "Action / REF_ACTION",
+      "Verified target before execution; no cache reads changed.",
+      "One-time initialization over copied database only.",
+      "ReferencedTable Charges; ReferencedRows Charges[Row ID]; ReferencedAction Perf - Refresh Charge Paid Cache"
+    ],
+    [
+      "P09 bounded initialization",
+      "1.000027",
+      "Statistics / Charges",
+      "Perf - Initialize Charge Caches",
+      "Bot / REF_ACTION",
+      "UI Test execution in progress; no cache readers changed.",
+      "Replaces failed all-row client backfill. No notification task.",
+      "TOP(SELECT(Charges[Row ID], OR(ISBLANK([Perf Cached Principal Paid]), ISBLANK([Perf Cached Interest Paid]))), 100); action Perf - Refresh Charge Paid Cache"
+    ],
+    [
+      "P09 new GUI trigger",
+      "1.000028",
+      "Statistics",
+      "Perf - Initialize Next Cache Batch",
+      "Action / SET_COLUMN_VALUE",
+      "Replaces all-row client wrapper. First click outcome pending.",
+      "Non-key Statistics ID only; original MAIN must be restored. No references found in baseline inventory. New GUI only from this point.",
+      "Statistics ID = CONCATENATE(\"PERF-CACHE-INIT-\", UNIQUEID())"
     ]
   ]
 }
