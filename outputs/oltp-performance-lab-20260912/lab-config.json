@@ -1,0 +1,201 @@
+{
+  "appId": "8a96763c-d453-450b-ac00-a8dfb7dbb8a4",
+  "databaseId": "aWCGib003O4AyK85Q4_KZc",
+  "productionChanged": false,
+  "testingMethod": "UI only; API remains disabled by user instruction",
+  "frozenExperiments": [
+    {
+      "id": "P01c",
+      "version": "1.000010",
+      "gate": "[Ref Payment].[Status] = \"Posted\"",
+      "status": "Three Posted samples. Restored 1.000011; not accepted for production.",
+      "purpose": "Reuse stored helper values only after parent receipt is Posted. All Processing and Error calculations retain original expressions to avoid the P01b freeze-order failure."
+    },
+    {
+      "id": "P01b",
+      "version": "1.000008",
+      "gate": "[Allocation Order] > 0",
+      "status": "Rejected after failed receipt. Restored 1.000009.",
+      "purpose": "Attempted frozen-value reuse. Allocation Order became 1 while stored components remained zero. Receipt Error, no repayment. Not an improvement despite faster Add response."
+    },
+    {
+      "id": "P01b rollback",
+      "version": "1.000009",
+      "gate": null,
+      "status": "Original formulas restored and version verified.",
+      "purpose": "Recovery uses original calculation and existing Retry after resetting only the unposted synthetic allocation's order from 1 to 0."
+    }
+  ],
+  "definitions": [
+    [
+      "P02a",
+      "1.000012",
+      "Payments",
+      "Posted Amount",
+      "VC / Price",
+      "Isolated test in progress; no production change.",
+      "Use existing Related Repayments Ref list instead of full-table SELECT. Posting Difference depends on this value. Existing financial reconciliation action predicates unchanged.",
+      "SUM([Related Repayments][Amount Received])"
+    ],
+    [
+      "P03a",
+      "1.000006",
+      "Statistics",
+      "Security filter",
+      "Table filter",
+      "Clone-only diagnostic. Restored 1.000007.",
+      "FALSE excludes Statistics rows. Does not fully remove reporting definitions or all historical dependencies. No receipt-latency improvement demonstrated.",
+      "FALSE"
+    ],
+    [
+      "P03a rollback",
+      "1.000007",
+      "Statistics",
+      "Security filter",
+      "Table filter",
+      "Original empty filter restored and verified.",
+      "Restores original row population. No data rows deleted.",
+      ""
+    ],
+    [
+      "P01a",
+      "1.000004",
+      "Payments",
+      "Eligible Charges",
+      "VC / List Ref Charges",
+      "Test clone only. Restored at 1.000005.",
+      "Skip scans for Posted rows. Processing and Error eligibility unchanged. Eligible Outstanding consequently becomes zero on Posted rows. Freeze, Post and Reconcile checks retained.",
+      "IF([Status] = \"Posted\", LIST(), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], [Amount Remaining] > 0, IFS(IN([_THISROW].[Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge], [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = [_THISROW].[Ref Target Charge].[Ref Loans], IN([_THISROW].[Allocation Method], LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], TRUE, FALSE))))"
+    ],
+    [
+      "P01a rollback",
+      "1.000005",
+      "Payments",
+      "Eligible Charges",
+      "VC / List Ref Charges",
+      "Test clone current baseline. Production definition unchanged.",
+      "Original full eligibility expression restored for reversal controls.",
+      "SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], [Amount Remaining] > 0, IFS(IN([_THISROW].[Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge], [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = [_THISROW].[Ref Target Charge].[Ref Loans], IN([_THISROW].[Allocation Method], LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], TRUE, FALSE)))"
+    ],
+    [
+      "P01b",
+      "1.000008",
+      "Payment Allocations",
+      "Calculated Order",
+      "VC / Number",
+      "Rejected after failed receipt. Restored 1.000009.",
+      "Attempted frozen-value reuse. Allocation Order became 1 while stored components remained zero. Receipt Error, no repayment. Not an improvement despite faster Add response.",
+      "IF([Allocation Order] > 0, [Allocation Order], 1 + COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Ref Payment], OR([Charge Date Snapshot] > [_THISROW].[Charge Date Snapshot], AND([Charge Date Snapshot] = [_THISROW].[Charge Date Snapshot], [Charge Row Number Snapshot] > [_THISROW].[Charge Row Number Snapshot]))))))"
+    ],
+    [
+      "P01b",
+      "1.000008",
+      "Payment Allocations",
+      "Calculated Amount",
+      "VC / Price",
+      "Rejected after failed receipt. Restored 1.000009.",
+      "Attempted frozen-value reuse. Allocation Order became 1 while stored components remained zero. Receipt Error, no repayment. Not an improvement despite faster Add response.",
+      "IF([Allocation Order] > 0, [Allocated Amount], MAX(LIST(DECIMAL(0), MIN(LIST(DECIMAL([Amount Remaining Snapshot]), DECIMAL([Ref Payment].[Amount Received]) - DECIMAL(SUM(SELECT(Payment Allocations[Amount Remaining Snapshot], AND([Ref Payment] = [_THISROW].[Ref Payment], [Calculated Order] < [_THISROW].[Calculated Order])))))))))"
+    ],
+    [
+      "P01b",
+      "1.000008",
+      "Payment Allocations",
+      "Calculated Interest",
+      "VC / Price",
+      "Rejected after failed receipt. Restored 1.000009.",
+      "Attempted frozen-value reuse. Allocation Order became 1 while stored components remained zero. Receipt Error, no repayment. Not an improvement despite faster Add response.",
+      "IF([Allocation Order] > 0, [Allocated Interest], MIN(LIST(MAX(LIST(DECIMAL(0), DECIMAL([Interest Remaining Snapshot]))), DECIMAL([Calculated Amount]))))"
+    ],
+    [
+      "P01b",
+      "1.000008",
+      "Payment Allocations",
+      "Calculated Principal",
+      "VC / Price",
+      "Rejected after failed receipt. Restored 1.000009.",
+      "Attempted frozen-value reuse. Allocation Order became 1 while stored components remained zero. Receipt Error, no repayment. Not an improvement despite faster Add response.",
+      "IF([Allocation Order] > 0, [Allocated Principal], MIN(LIST(MAX(LIST(DECIMAL(0), DECIMAL([Principal Remaining Snapshot]))), DECIMAL([Calculated Amount]) - DECIMAL([Calculated Interest]))))"
+    ],
+    [
+      "P01b rollback",
+      "1.000009",
+      "Payment Allocations",
+      "Calculated Order",
+      "VC / Number",
+      "Original formulas restored and version verified.",
+      "Recovery uses original calculation and existing Retry after resetting only the unposted synthetic allocation's order from 1 to 0.",
+      "1 + COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Ref Payment], OR([Charge Date Snapshot] > [_THISROW].[Charge Date Snapshot], AND([Charge Date Snapshot] = [_THISROW].[Charge Date Snapshot], [Charge Row Number Snapshot] > [_THISROW].[Charge Row Number Snapshot])))))"
+    ],
+    [
+      "P01b rollback",
+      "1.000009",
+      "Payment Allocations",
+      "Calculated Amount",
+      "VC / Price",
+      "Original formulas restored and version verified.",
+      "Recovery uses original calculation and existing Retry after resetting only the unposted synthetic allocation's order from 1 to 0.",
+      "MAX(LIST(DECIMAL(0), MIN(LIST(DECIMAL([Amount Remaining Snapshot]), DECIMAL([Ref Payment].[Amount Received]) - DECIMAL(SUM(SELECT(Payment Allocations[Amount Remaining Snapshot], AND([Ref Payment] = [_THISROW].[Ref Payment], [Calculated Order] < [_THISROW].[Calculated Order]))))))))"
+    ],
+    [
+      "P01b rollback",
+      "1.000009",
+      "Payment Allocations",
+      "Calculated Interest",
+      "VC / Price",
+      "Original formulas restored and version verified.",
+      "Recovery uses original calculation and existing Retry after resetting only the unposted synthetic allocation's order from 1 to 0.",
+      "MIN(LIST(MAX(LIST(DECIMAL(0), DECIMAL([Interest Remaining Snapshot]))), DECIMAL([Calculated Amount])))"
+    ],
+    [
+      "P01b rollback",
+      "1.000009",
+      "Payment Allocations",
+      "Calculated Principal",
+      "VC / Price",
+      "Original formulas restored and version verified.",
+      "Recovery uses original calculation and existing Retry after resetting only the unposted synthetic allocation's order from 1 to 0.",
+      "MIN(LIST(MAX(LIST(DECIMAL(0), DECIMAL([Principal Remaining Snapshot]))), DECIMAL([Calculated Amount]) - DECIMAL([Calculated Interest])))"
+    ],
+    [
+      "P01c",
+      "1.000010",
+      "Payment Allocations",
+      "Calculated Order",
+      "VC / Number",
+      "Three Posted samples. Restored 1.000011; not accepted for production.",
+      "Reuse stored helper values only after parent receipt is Posted. All Processing and Error calculations retain original expressions to avoid the P01b freeze-order failure.",
+      "IF([Ref Payment].[Status] = \"Posted\", [Allocation Order], 1 + COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Ref Payment], OR([Charge Date Snapshot] > [_THISROW].[Charge Date Snapshot], AND([Charge Date Snapshot] = [_THISROW].[Charge Date Snapshot], [Charge Row Number Snapshot] > [_THISROW].[Charge Row Number Snapshot]))))))"
+    ],
+    [
+      "P01c",
+      "1.000010",
+      "Payment Allocations",
+      "Calculated Amount",
+      "VC / Price",
+      "Three Posted samples. Restored 1.000011; not accepted for production.",
+      "Reuse stored helper values only after parent receipt is Posted. All Processing and Error calculations retain original expressions to avoid the P01b freeze-order failure.",
+      "IF([Ref Payment].[Status] = \"Posted\", [Allocated Amount], MAX(LIST(DECIMAL(0), MIN(LIST(DECIMAL([Amount Remaining Snapshot]), DECIMAL([Ref Payment].[Amount Received]) - DECIMAL(SUM(SELECT(Payment Allocations[Amount Remaining Snapshot], AND([Ref Payment] = [_THISROW].[Ref Payment], [Calculated Order] < [_THISROW].[Calculated Order])))))))))"
+    ],
+    [
+      "P01c",
+      "1.000010",
+      "Payment Allocations",
+      "Calculated Interest",
+      "VC / Price",
+      "Three Posted samples. Restored 1.000011; not accepted for production.",
+      "Reuse stored helper values only after parent receipt is Posted. All Processing and Error calculations retain original expressions to avoid the P01b freeze-order failure.",
+      "IF([Ref Payment].[Status] = \"Posted\", [Allocated Interest], MIN(LIST(MAX(LIST(DECIMAL(0), DECIMAL([Interest Remaining Snapshot]))), DECIMAL([Calculated Amount]))))"
+    ],
+    [
+      "P01c",
+      "1.000010",
+      "Payment Allocations",
+      "Calculated Principal",
+      "VC / Price",
+      "Three Posted samples. Restored 1.000011; not accepted for production.",
+      "Reuse stored helper values only after parent receipt is Posted. All Processing and Error calculations retain original expressions to avoid the P01b freeze-order failure.",
+      "IF([Ref Payment].[Status] = \"Posted\", [Allocated Principal], MIN(LIST(MAX(LIST(DECIMAL(0), DECIMAL([Principal Remaining Snapshot]))), DECIMAL([Calculated Amount]) - DECIMAL([Calculated Interest]))))"
+    ]
+  ]
+}
