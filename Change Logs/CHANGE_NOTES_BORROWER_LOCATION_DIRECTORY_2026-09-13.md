@@ -44,3 +44,14 @@ After sharing, the friend should verify she can edit, fill missing city/workplac
 ## Rollback instructions
 
 Remove the friend's access and move only the new standalone directory to Drive Trash if it is no longer wanted. Keep the original AppSheet records intact. The newly created private folder can be removed if empty and no longer needed. Revert the generic builder and these notes with a normal Git revert if desired.
+
+## Active-borrower highlighting — 13 September 2026
+
+- Owner requested highlighting for borrowers having active loans.
+- Synced the deployed operations app and read all borrower groups under Loans → `ยังไม่ปิดยอด / Active`. Matched 20 distinct active borrowers to the existing 27-row directory. Status is based on the app's Active group, not payment-row existence or historical loan amounts.
+- Inspected the current shared sheet before editing; preserved the friend's intervening workplace update and all other cell values.
+- Added one pale-yellow conditional-format rule on `Sheet1!A2:D28`, using exact English-name matches with an anchored column and relative row. Name-based matching keeps the highlight with the borrower when sorted. Seven borrowers remain unhighlighted.
+- Added a bilingual note to `B1` explaining the meaning, verification date, and lack of automatic AppSheet status sync. No extra data column was added.
+- Verified the saved rule range, exact name set and color in the rule panel; visually checked both the top and bottom of the table, including unhighlighted rows and numbered name distinctions. Google reported the sheet saved to Drive.
+- Rollback point: the immediately preceding saved Google Sheets revision; the smallest rollback is to remove this conditional-format rule and the new B1 note. No AppSheet configuration, financial data or sharing permission was changed.
+- Status: implemented and verified; user/friend acceptance remains pending. Refresh the verified name set after loan openings/closures if current status is needed later.
