@@ -1,4 +1,4 @@
-# Proposed next structural experiment — copied database only
+# Materialized-balance experiment — approved plan and observed outcome
 
 Status: owner approved on 13 September 2026: “approve, and make whatever change you want to test.” Authorization applies to the isolated testing environment; production remains unchanged and testing remains UI-only. No columns created at the pre-experiment checkpoint and no speed claim. Pre-schema rollback app version: 1.000022, restored from the complete 1.000018 definition.
 
@@ -13,7 +13,7 @@ Add exactly two numeric stored columns to **Charges** in **Money Perf TEST 20260
 | Perf Cached Principal Paid | Price | Sum of valid source repayment Principal Paid for the charge |
 | Perf Cached Interest Paid | Price | Sum of valid source repayment Interest Paid for the charge |
 
-The names above are proposals, not existing columns. No table, production column, key or Ref relationship would change. No credentials or API access are needed; all configuration and data tests use the UI. Approval would cover these two columns in the copied database only.
+The names above were proposed at this planning checkpoint and were subsequently created in the copy; see the observed outcome below. No table, production column, key or Ref relationship would change. No credentials or API access are needed; all configuration and data tests use the UI. The owner approved these columns and further necessary isolated testing changes.
 
 ## Dependency and consistency design
 
@@ -35,3 +35,9 @@ Accept only an end-to-end improvement with correct recovery and source reconcili
 Before changes, record the then-current app version and exact original expressions. Restore that app definition to stop reading the new fields; keep synthetic ledger evidence. The two unused copied-database columns can remain for audit until the owner decides to retire the lab. App version restoration does not remove physical columns or reverse database records.
 
 This is an AppSheet-native materialization experiment. A separate transactional SQL posting service would need a provisioned test backend, an authorized integration and a much broader source-of-truth design; none is currently available or benchmarked. UI-only AppSheet tests cannot substantiate a SQL latency percentage.
+
+## Observed outcome — 13 September 2026
+
+The approved columns were created only in the copied database. Initialization eventually reconciled in the new GUI. The first maintained-cache variant (1.000034) left balances one payment behind and was rejected. The corrected direct-table refresh (1.000035) reconciled in the tested path but had median Save-to-visible-Posted time 26.350 seconds versus 23.102 seconds before and 21.801 seconds after rollback. No performance benefit was demonstrated.
+
+At final test version 1.000038 the original ledger readers and receipt sequence are restored. The initializer is disabled and hidden, Statistics ID is MAIN, and the two physical fields plus hidden helper actions remain as unused experiment evidence. Their values are no longer current balances. See PERFORMANCE_TEST_REPORT.md and new-gui-receipt-timings.csv. No production change, API enablement or production acceptance occurred.

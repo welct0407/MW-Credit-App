@@ -2,7 +2,7 @@
   "appId": "8a96763c-d453-450b-ac00-a8dfb7dbb8a4",
   "databaseId": "aWCGib003O4AyK85Q4_KZc",
   "productionChanged": false,
-  "testingMethod": "UI only; API remains disabled by user instruction",
+  "testingMethod": "UI only; new GUI required; API disabled. Legacy Table Data initialization use disclosed in report and discontinued.",
   "frozenExperiments": [
     {
       "id": "P01c",
@@ -333,7 +333,7 @@
       "Statistics",
       "Perf - Backfill All Charge Caches",
       "Action / REF_ACTION",
-      "Verified target before execution; no cache reads changed.",
+      "Client all-row attempt crashed; wrapper replaced. Do not replay.",
       "One-time initialization over copied database only.",
       "ReferencedTable Charges; ReferencedRows Charges[Row ID]; ReferencedAction Perf - Refresh Charge Paid Cache"
     ],
@@ -343,7 +343,7 @@
       "Statistics / Charges",
       "Perf - Initialize Charge Caches",
       "Bot / REF_ACTION",
-      "UI Test execution in progress; no cache readers changed.",
+      "Initialization completed; bot disabled at 1.000031. Legacy Test-page use discontinued.",
       "Replaces failed all-row client backfill. No notification task.",
       "TOP(SELECT(Charges[Row ID], OR(ISBLANK([Perf Cached Principal Paid]), ISBLANK([Perf Cached Interest Paid]))), 100); action Perf - Refresh Charge Paid Cache"
     ],
@@ -353,9 +353,138 @@
       "Statistics",
       "Perf - Initialize Next Cache Batch",
       "Action / SET_COLUMN_VALUE",
-      "Replaces all-row client wrapper. First click outcome pending.",
+      "New-GUI trigger executed; Statistics ID restored MAIN; trigger hidden 1.000038.",
       "Non-key Statistics ID only; original MAIN must be restored. No references found in baseline inventory. New GUI only from this point.",
       "Statistics ID = CONCATENATE(\"PERF-CACHE-INIT-\", UNIQUEID())"
+    ],
+    [
+      "P09 reconciliation",
+      "1.000030",
+      "Statistics / Charges",
+      "Perf - Initialize Next Cache Batch display name",
+      "Action display expression",
+      "New editor preview: missing 0; mismatched 0.",
+      "Compares cache fields with original paid VCs before changing readers. Synthetic components 0 and 3100 also verified.",
+      "CONCATENATE(\"Perf initialize | missing \", COUNT(SELECT(Charges[Row ID], OR(ISBLANK([Perf Cached Principal Paid]), ISBLANK([Perf Cached Interest Paid])))), \" | mismatched \", COUNT(SELECT(Charges[Row ID], OR([Perf Cached Principal Paid] <> [Principal Paid], [Perf Cached Interest Paid] <> [Interest Paid]))))"
+    ],
+    [
+      "P09 maintenance",
+      "1.000032",
+      "Payments",
+      "Perf - Refresh Borrower Charge Caches",
+      "Action / REF_ACTION",
+      "Hidden; now unused after receipt rollback.",
+      "Refreshes both components for all charges of the receipt borrower. Ledger recomputation is idempotent.",
+      "ReferencedTable Charges; ReferencedRows SELECT(Charges[Row ID], [Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower]); ReferencedAction Perf - Refresh Charge Paid Cache"
+    ],
+    [
+      "P09 receipt sequence",
+      "1.000033",
+      "Payments",
+      "Payment - Process Receipt",
+      "Action / COMPOSITE",
+      "Historical seven-step test sequence; original five steps restored 1.000037.",
+      "Includes refresh cost before snapshots and after posting. Original posting/reconciliation actions and predicates unchanged.",
+      "Perf - Refresh Borrower Charge Caches; Payment - Create Snapshots; Payment - Freeze Plan; Payment - Post Plan; Perf - Refresh Borrower Charge Caches; Payment - Reconcile; Payment - Close Paid Loans"
+    ],
+    [
+      "P09 cached reader",
+      "1.000034",
+      "Charges",
+      "Principal Paid",
+      "VC / Price",
+      "Rejected P09a cache lag; originals restored 1.000037. No production change.",
+      "Blank fallback retains original sum. Original formula SUM([Related Repayments][Principal Paid]); baseline rollback 1.000032.",
+      "IF(ISNOTBLANK([Perf Cached Principal Paid]), [Perf Cached Principal Paid], SUM([Related Repayments][Principal Paid]))"
+    ],
+    [
+      "P09 cached reader",
+      "1.000034",
+      "Charges",
+      "Interest Paid",
+      "VC / Price",
+      "Rejected P09a cache lag; originals restored 1.000037. No production change.",
+      "Blank fallback retains original sum. Original formula SUM([Related Repayments][Interest Paid]); baseline rollback 1.000032.",
+      "IF(ISNOTBLANK([Perf Cached Interest Paid]), [Perf Cached Interest Paid], SUM([Related Repayments][Interest Paid]))"
+    ],
+    [
+      "P09 independent reconciliation",
+      "1.000034",
+      "Statistics / Charges",
+      "Perf - Initialize Next Cache Batch display name",
+      "Action display expression",
+      "Independent ledger comparison verified; action hidden in final 1.000038.",
+      "Must not compare cached fields with cached-reader VCs; doing so would be tautological. Initialization bot disabled at 1.000031; Statistics ID restored MAIN.",
+      "CONCATENATE(\"Perf initialize | missing \", COUNT(SELECT(Charges[Row ID], OR(ISBLANK([Perf Cached Principal Paid]), ISBLANK([Perf Cached Interest Paid])))), \" | mismatched \", COUNT(SELECT(Charges[Row ID], OR([Perf Cached Principal Paid] <> SUM([Related Repayments][Principal Paid]), [Perf Cached Interest Paid] <> SUM([Related Repayments][Interest Paid])))))"
+    ],
+    [
+      "P09b direct refresh",
+      "1.000035",
+      "Charges",
+      "Perf - Refresh Charge Paid Cache",
+      "Action / SET_COLUMN_VALUE",
+      "Tested path reconciled; 14.06%/20.87% slower than before/after controls. Hidden and unused at 1.000038.",
+      "Direct table sum corrects observed same-sequence related-list lag. No concurrent or external-writer certification.",
+      "Perf Cached Principal Paid = SUM(SELECT(Repayments[Principal Paid], [Ref Charges] = [_THISROW].[Row ID])); Perf Cached Interest Paid = SUM(SELECT(Repayments[Interest Paid], [Ref Charges] = [_THISROW].[Row ID]))"
+    ],
+    [
+      "P09 final rollback",
+      "1.000037",
+      "Charges",
+      "Principal Paid",
+      "VC / Price",
+      "Original ledger reader restored and verified.",
+      "Cache column remains unused historical evidence.",
+      "SUM([Related Repayments][Principal Paid])"
+    ],
+    [
+      "P09 final rollback",
+      "1.000037",
+      "Charges",
+      "Interest Paid",
+      "VC / Price",
+      "Original ledger reader restored and verified.",
+      "Intermediate 1.000036 was incomplete; no receipts submitted there.",
+      "SUM([Related Repayments][Interest Paid])"
+    ],
+    [
+      "P09 final rollback",
+      "1.000037",
+      "Payments",
+      "Payment - Process Receipt",
+      "Action / COMPOSITE",
+      "Original five-step flow restored; three reversal controls Posted.",
+      "No cache maintenance remains in receipt path.",
+      "Payment - Create Snapshots; Payment - Freeze Plan; Payment - Post Plan; Payment - Reconcile; Payment - Close Paid Loans"
+    ],
+    [
+      "Final lab cleanup",
+      "1.000038",
+      "Statistics",
+      "Perf - Initialize Next Cache Batch",
+      "Action visibility",
+      "Hidden; initializer bot disabled; Statistics ID MAIN restored.",
+      "Retained for lab recovery only. Do not treat historical cache values as current balances.",
+      "Prominence Do_Not_Display"
     ]
-  ]
+  ],
+  "currentState": {
+    "appVersion": "1.000038",
+    "status": "Measured round ready for review; no production acceptance",
+    "productionChanged": false,
+    "originalPaidReadersRestored": true,
+    "originalReceiptSequenceRestored": true,
+    "earlierFormulaAndReportingVariantsRestored": true,
+    "initializerBotEnabled": false,
+    "initializerActionVisible": false,
+    "statisticsId": "MAIN",
+    "cacheColumns": "Retained hidden/nonsearchable/writable; unused historical data; no current-balance role",
+    "cacheHelpers": "Retained hidden and unused",
+    "syntheticReceiptCount": 44,
+    "syntheticReceiptAmountTotal": 4400,
+    "cacheSetting": false,
+    "deltaSync": false,
+    "quickSync": true,
+    "apiEnabled": false
+  }
 }

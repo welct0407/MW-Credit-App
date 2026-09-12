@@ -41,6 +41,8 @@ sheet.showGridLines=false; sheet.freezePanes.freezeRows(1);
 wb.recalculate();
 const preview=await wb.render({sheetName:sheet.name,range:'A1:H2',scale:1,format:'png'});
 await fs.writeFile(`${out}/dictionary-after.png`,new Uint8Array(await preview.arrayBuffer()));
+const finalPreview=await wb.render({sheetName:sheet.name,range:`A${Math.max(2,data.definitions.length-3)}:H${data.definitions.length+1}`,scale:1,format:'png'});
+await fs.writeFile(`${out}/dictionary-final-state.png`,new Uint8Array(await finalPreview.arrayBuffer()));
 await (await SpreadsheetFile.exportXlsx(wb)).save(`${out}/AppSheet_Data_Dictionary.xlsx`);
 const check=await SpreadsheetFile.importXlsx(await FileBlob.load(`${out}/AppSheet_Data_Dictionary.xlsx`));
 for(const [name,values] of baseline) if(JSON.stringify(check.worksheets.getItem(name).getUsedRange().values)!==values) throw Error(`Unexpected original sheet changes: ${name}`);

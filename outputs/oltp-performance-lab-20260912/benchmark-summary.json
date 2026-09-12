@@ -1,0 +1,269 @@
+{
+  "method": "Recorded browser-UI observations only; server Add, idle sync and Save-to-visible-Posted are distinct metrics.",
+  "serverAdd": {
+    "Baseline": {
+      "n": 3,
+      "values": [
+        16.166,
+        21.237,
+        16.568
+      ],
+      "median": 16.568,
+      "min": 16.166,
+      "max": 21.237
+    },
+    "P01a": {
+      "n": 3,
+      "values": [
+        14.165,
+        13.834,
+        13.012
+      ],
+      "median": 13.834,
+      "min": 13.012,
+      "max": 14.165
+    },
+    "Reversal": {
+      "n": 3,
+      "values": [
+        14.425,
+        15.181,
+        16.574
+      ],
+      "median": 15.181,
+      "min": 14.425,
+      "max": 16.574
+    },
+    "P03a": {
+      "n": 3,
+      "values": [
+        16.064,
+        15.108,
+        17.278
+      ],
+      "median": 16.064,
+      "min": 15.108,
+      "max": 17.278
+    },
+    "P01b-rejected": {
+      "n": 1,
+      "values": [
+        12.306
+      ],
+      "median": 12.306,
+      "min": 12.306,
+      "max": 12.306
+    },
+    "P01c": {
+      "n": 3,
+      "values": [
+        15.224,
+        13.461,
+        14.516
+      ],
+      "median": 14.516,
+      "min": 13.461,
+      "max": 15.224
+    },
+    "P02a": {
+      "n": 3,
+      "values": [
+        13.818,
+        16.052,
+        14.932
+      ],
+      "median": 14.932,
+      "min": 13.818,
+      "max": 16.052
+    },
+    "Fanout-baseline": {
+      "n": 3,
+      "values": [
+        17.355,
+        15.582,
+        14.097
+      ],
+      "median": 15.582,
+      "min": 14.097,
+      "max": 17.355
+    },
+    "P04a": {
+      "n": 3,
+      "values": [
+        15.876,
+        14.582,
+        14.435
+      ],
+      "median": 14.582,
+      "min": 14.435,
+      "max": 15.876
+    },
+    "Reporting-control": {
+      "n": 3,
+      "values": [
+        17.194,
+        13.699,
+        16.467
+      ],
+      "median": 16.467,
+      "min": 13.699,
+      "max": 17.194
+    },
+    "P03b": {
+      "n": 3,
+      "values": [
+        17.262,
+        15.365,
+        15.341
+      ],
+      "median": 15.365,
+      "min": 15.341,
+      "max": 17.262
+    }
+  },
+  "idleSync": {
+    "Cache-OFF": {
+      "n": 5,
+      "values": [
+        1.428,
+        1.437,
+        1.17,
+        2.271,
+        1.159
+      ],
+      "median": 1.428,
+      "min": 1.159,
+      "max": 2.271
+    },
+    "Cache-ON": {
+      "n": 5,
+      "values": [
+        1.185,
+        1.095,
+        1.319,
+        1.352,
+        1.268
+      ],
+      "median": 1.268,
+      "min": 1.095,
+      "max": 1.352
+    },
+    "Delta-ON": {
+      "n": 5,
+      "values": [
+        1.352,
+        1.539,
+        0.964,
+        1.305,
+        1.568
+      ],
+      "median": 1.352,
+      "min": 0.964,
+      "max": 1.568
+    },
+    "Quick-OFF": {
+      "n": 5,
+      "values": [
+        1.858,
+        1.061,
+        1.13,
+        1.312,
+        1.654
+      ],
+      "median": 1.312,
+      "min": 1.061,
+      "max": 1.858
+    }
+  },
+  "excludedServerAdd": [
+    {
+      "note": "PERF-P01B-UI-01",
+      "reason": "Receipt failed correctness; raw duration retained only, not a successful optimization benchmark."
+    }
+  ],
+  "newGui": {
+    "New-GUI control": {
+      "n": 3,
+      "values": [
+        23.102,
+        20.42,
+        23.457
+      ],
+      "median": 23.102,
+      "min": 20.42,
+      "max": 23.457
+    },
+    "P09b": {
+      "n": 3,
+      "values": [
+        27.909,
+        24.66,
+        26.35
+      ],
+      "median": 26.35,
+      "min": 24.66,
+      "max": 27.909
+    },
+    "New-GUI reversal": {
+      "n": 3,
+      "values": [
+        21.801,
+        22.216,
+        17.561
+      ],
+      "median": 21.801,
+      "min": 17.561,
+      "max": 22.216
+    }
+  },
+  "excludedGui": [
+    {
+      "note": "PERF-NEWGUI-CONTROL-01",
+      "outcome": "Posted",
+      "reason": "Observation gap; successful posting retained only"
+    },
+    {
+      "note": "PERF-NEWGUI-CONTROL-02",
+      "outcome": "Posted",
+      "reason": "Observation gap after wait error; successful posting retained only"
+    },
+    {
+      "note": "PERF-NEWGUI-CACHE-01",
+      "outcome": "Posted but stale charge cache",
+      "reason": "Invalid correctness outcome; source/cache mismatch after posting"
+    },
+    {
+      "note": "PERF-NEWGUI-CACHE-02",
+      "outcome": "Posted but stale charge cache",
+      "reason": "Invalid correctness outcome; native cache 3700 versus expected ledger 3800"
+    }
+  ],
+  "finalAppVersion": "1.000038",
+  "productionChanged": false,
+  "comparisons": {
+    "P01aVsInitial": {
+      "seconds": -2.7340000000000018,
+      "percent": -16.501690004828596
+    },
+    "P01aVsReversal": {
+      "seconds": -1.3469999999999995,
+      "percent": -8.872933271852968
+    },
+    "P04a": {
+      "seconds": -1,
+      "percent": -6.417661404184316
+    },
+    "P03b": {
+      "seconds": -1.1019999999999985,
+      "percent": -6.692172223234339
+    },
+    "P09bVsControl": {
+      "seconds": 3.248000000000001,
+      "percent": 14.059388797506722
+    },
+    "P09bVsReversal": {
+      "seconds": 4.549000000000003,
+      "percent": 20.866015320398155
+    }
+  }
+}

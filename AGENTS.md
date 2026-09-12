@@ -23,6 +23,7 @@ This file governs Codex work on the shared AppSheet solution: the **OLTP Operati
 
 - Treat every file under `sources/` as read-only reference material. Do not edit, rename, move, or delete these files.
 - Put new deliverables outside `sources/`.
+- Use the new AppSheet GUI for all testing, as reiterated by the owner on 13 September 2026. Use the current editor, new app interface, and current database UI; do not execute tests through the legacy editor or older Table Data / bot Test page. If a command opens an older testing page, close it and use a new-GUI workflow. Record any unavailable measurement rather than silently falling back to the old GUI.
 - Confirm the current AppSheet schema, app configuration, and dashboard setup before changing them. Do not invent table names, columns, expressions, metrics, app IDs, or test results.
 - Do not expose credentials, personal data, bank details, borrower documents, or unrestricted production data. Use redacted or synthetic examples.
 - Do not deploy to production, publish dashboards, send live notifications, or alter production financial records without the user's explicit approval.
