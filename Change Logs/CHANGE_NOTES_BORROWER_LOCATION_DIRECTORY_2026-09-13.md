@@ -31,7 +31,11 @@ This is a new standalone file; no pre-existing document is overwritten. AppSheet
 
 ## Status
 
-Local workbook prepared and visually checked. Chrome upload is blocked by the extension's local-file access setting. Owner has been asked to enable it. Google Sheets conversion, content/ownership verification and the requested friend editor access remain pending. No sharing success is claimed.
+Completed through direct Chrome GUI creation and table population, explicitly requested by the owner after file upload was blocked. Native spreadsheet title: `Borrower Locations - ข้อมูลผู้กู้`. Spreadsheet ID: `1EraUswJ7xnSUUE0Gw0Hsv3wgXr_jT7tlbzD1H5_wgBk`. Location: the newly created private `ChatGPT` folder.
+
+Created native table `BorrowerLocations` in `Sheet1!A1:D28`, with fitted columns, table filters and frozen header. Added source/blank-field guidance and the residence clarification as cell notes. Read back the entire range through the spreadsheet clipboard and visually checked the top and bottom of the table. Google displayed `Saved to Drive`.
+
+Reopened sharing and verified the confirmed business account as Owner, the exact friend requested in the conversation as Editor, and General access as Restricted. The Notify people checkbox was cleared before saving. No separate message was sent. Friend-side editing and location accuracy remain for manual acceptance.
 
 ## Manual acceptance and downstream effects
 
