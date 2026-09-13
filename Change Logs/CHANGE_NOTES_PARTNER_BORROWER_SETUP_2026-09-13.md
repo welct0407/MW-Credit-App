@@ -73,3 +73,9 @@ The earlier completion report was incomplete: OLAP owns partner management and i
 Review OLAP **Partners > partner > Edit** for the new controls, and **Borrowers > borrower** for locations. Keep integration disabled until the agent is implemented and accepted. A live save/activation, financial workflow execution and downstream export delivery were not tested and are not claimed accepted. Agent implementation still awaits owner go-ahead.
 
 Restore OLAP1.100028 for configuration rollback only; it reintroduces missing new fields, the schema warning and earlier defaults. Shared database location values and columns remain. The earlier OLTP/data rollback procedure remains applicable. Repository changes receive a scoped commit and normal verified push; no new repository or agent deployment is included in this corrective task.
+
+### Owner priority and final OLTP check
+
+Owner clarified that working OLTP and OLAP apps take priority and Data Studio reports are secondary, and explicitly requested this in project instructions. Added that priority to root AGENTS.md and the proposed partner project's AGENTS.md. Direct downstream impacts are still assessed; unrelated report audits do not block verified app work. Report backups remain required before report edits.
+
+After the OLAP correction, freshly opened the current OLTP client: dashboard and collection board loaded, last-sync indicator showed less than one minute, and the six shared displayed amounts (total profit, daily interest, realized MTD, remaining forecast interest, projected monthly profit, outstanding principal) matched the checked OLAP values. No financial action invoked. This completes the scoped app checks; live data-save acceptance remains with the owner. No additional Data Studio audit is required for this task. Instruction-only rollback is a normal Git revert; no app version changed in this final step.
