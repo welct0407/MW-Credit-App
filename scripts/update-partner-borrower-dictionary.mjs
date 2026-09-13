@@ -135,6 +135,24 @@ if (mode === 'inspect') {
   }
   await(await SpreadsheetFile.exportXlsx(wb)).save(`${outputDir}/AppSheet_Data_Dictionary.xlsx`);
   console.log(JSON.stringify({mode,missingMembershipsAdded:missing.length}));
+} else if (mode === 'language-enum') {
+  const cols=wb.worksheets.getItem('Columns');
+  if(cols.getRange('D395').values[0][0].includes('Enum'))throw Error('Language enum already documented');
+  cols.getRange('D395').values=[['Physical / Enum (base Text)']];
+  cols.getRange('H395').values=[['Native database Text; app Enum in both apps. Dropdown: English, ไทย. Other values and other-value autocomplete disabled. Optional; blank initial value. Partner data unchanged. Borrower drafts retain approved Thai.']];
+  cols.getRange('A395:H395').format.rowHeight=110;
+  cols.getRange('A2').values=[['13 September 2026: language enum verified in OLTP 3.000052 and OLAP 1.100033. Earlier partner/location and slice reconciliation retains its recorded scope. No messaging activation.']];
+  wb.worksheets.getItem('Tables').getRange('A2').values=[['13 September 2026: language enum updated in OLTP 3.000052 and OLAP 1.100033; table counts unchanged. Other tables retain dated verification scope.']];
+  const av=wb.worksheets.getItem('App Variances');
+  av.getRange('D229:F229').values=[['Yes — 3.000052','Yes — 1.100033','Both apps: Enum, base Text, Dropdown, exactly English and ไทย; custom values disabled. Partner management remains in OLAP.']];
+  const readme=wb.worksheets.getItem('README');
+  readme.getRange('B5').values=[['13 September 2026: language enum verified in OLTP 3.000052 and OLAP 1.100033. OLAP current partner form shows English and ไทย. Earlier partner/location fields and slices retain recorded reconciliation scope.']];
+  readme.getRange('B6').values=[['Language enum rollback: OLTP 3.000050; OLAP 1.100031. Earlier setup rollback: OLTP 3.000045; OLAP 1.100028. App restoration does not restore database data/schema. Owner acceptance pending.']];
+  wb.recalculate();
+  console.log((await wb.inspect({kind:'match',searchTerm:'#REF!|#DIV/0!|#VALUE!|#NAME\\?|#NUM!',options:{useRegex:true,maxResults:20},summary:'Formula error check'})).ndjson);
+  const img=await wb.render({sheetName:'Columns',range:'A394:H396',scale:1,format:'png'});
+  await fs.writeFile(`${outputDir}/language-enum-Columns.png`,new Uint8Array(await img.arrayBuffer()));
+  await(await SpreadsheetFile.exportXlsx(wb)).save(`${outputDir}/language-enum-dictionary.xlsx`);
 } else {
-  throw new Error('Use inspect, edit or reconcile-olap');
+  throw new Error('Use inspect, edit, reconcile-olap or language-enum');
 }
