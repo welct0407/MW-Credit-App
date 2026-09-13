@@ -13,6 +13,8 @@ Updated 13 September 2026 after the owner's third design round. Production table
 
 ## Implementation sequence
 
+Production setup is now reconciled across OLTP **3.000050** and OLAP **1.100031**. **Partner management belongs to OLAP**: its existing partner form/detail expose the new controls, while borrower locations are editable in OLTP and visible read-only in OLAP. Rollback versions are OLTP 3.000045 and OLAP 1.100028. Agent implementation remains deferred pending owner review.
+
 1. Establish the approved new project/repository and its instructions, service policy, documentation, tests and disabled runtime defaults.
 2. Inspect the live dashboard/slice, Partner fields, current app permissions and supported GUI workflows. Record verified data mappings and remaining limitations.
 3. Review completed production setup: OLTP 3.000050, rollback 3.000045; three Partner controls and two Borrower location fields are in place. Thirty location cells across 18 borrowers are loaded, both model documents updated, and all partner integration flags off. No additional table setup is required for these requested fields.

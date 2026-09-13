@@ -39,3 +39,37 @@ Restore app **3.000045** for configuration rollback; app versions do not restore
 Private evidence folder: `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\partner-borrower-setup-20260913`. Files: location-before-and-source.json, location-readback.json, AppSheet_Data_Dictionary.before.xlsx. Independent backup coverage is unverified. Private borrower data is excluded from Git.
 
 Repository recovery uses a scoped normal commit/push after checks. Git history records the publication commit; publication is separate from production acceptance.
+
+## OLAP corrective impact review — in progress
+
+Owner identified missed partner-management ownership after the initial completion report. OLAP is a required consumer of shared Partners/Borrowers changes; marking it pending was insufficient. Before any corrective app edits, the current new editor confirmed Loan Business Insights **1.100028** (Save disabled), app ID e74dd368-654f-44d7-bccf-83cf361d1cdb. This is the OLAP configuration rollback point. Borrowers currently reports an out-of-sync native database schema warning. Review partner management, borrower schema/slices/views, existing calculations and downstream reporting dependencies before saving corrective changes. No agent implementation or live data test is included.
+
+## OLAP corrective review completed — 13 September 2026
+
+The earlier completion report was incomplete: OLAP owns partner management and is a required shared-table consumer. The pending label did not satisfy impact analysis. Corrected in **Loan Business Insights 1.100031**, rollback **1.100028**. OLTP remains 3.000050. No database row, financial record, agent runtime or Looker report changed in this follow-up.
+
+### Impact and correction
+
+- Partners schema regenerated from17 to20 columns (8 stored including ordinal/key +12 VCs). Instagram Username, Language Preference and IG Integration Enabled now loaded. Flag initial FALSE and explanation aligned with OLTP. Existing Partners_Form automatic ordering exposes all three; appended all three to Partners_Detail manual order.
+- All17 previous Partner definitions compared: financial formulas, labels, key, role and other captured settings preserved. Native regeneration changed Email PII from FALSE to TRUE; retained this data-protection classification. Existing table add/update/delete mode preserved.
+- Borrowers schema regenerated from79 to81 (16 stored +65 VCs), clearing out-of-sync warning. Table remains read-only. Appended City/Working Location to Borrowers_Detail and aligned bilingual labels. Existing older Instagram Verified At NOW() default cleared and blank AI Collection Enabled/Late Penalty Enabled defaults set FALSE. These affect initial values only; no borrower flag/data writes.
+- All79 previous Borrower definitions compared: only the three stated initial expressions changed. All65 borrower VCs and12 partner VCs preserved. Existing OLAP conversation-link Text versus OLTP Url variance retained.
+- Four OLAP read-only slices automatically appended the two locations: Borrowers with Outstanding Loans72->74; Profit Contribution 30D72->74; Reporting Borrowers54->56; Todays Collection Board12->14. Filters, prior column order, actions and modes unchanged. Reporting Borrowers filter is blank (all rows), not the previously inventoried literal TRUE.
+- Downstream impact: additions do not alter keys, filters, metric expressions or row grain. Reporting Borrowers is a curated feed; retained name-based template references were inspected in the repository. No export/bot execution or live Looker refresh test performed. Consumers assuming fixed complete slice column counts may need adaptation; no such active consumer was verified. No Looker edit means no report-copy rollback was required.
+
+### Checks and evidence
+
+- New editor Version History confirms1.100031; Save disabled, **No issues found**.
+- Current production client synced successfully. Both Partner edit forms show username/language inputs and integration choices, preserving read-only financial fields and role behavior. Entered synthetic username/language in one form, canceled/discarded, reopened and verified both blank. No production save was submitted. Existing partner integration values were not altered.
+- Partner summaries before/after match for both records, including pool shares, total profit, completed and available settlement. Related settlement/contribution lists render. No financial actions executed.
+- Borrower sample with two populated location values matches the source sheet; a blank-source sample remains blank. Borrower detail has no edit action, consistent with OLAP ownership.
+- Seven displayed analytics monetary amounts match before/after. This is a scoped regression check, not independent recalculation or full app regression testing.
+- Sanitized configuration evidence: outputs/partner-borrower-setup-20260913/olap-schema-review.json. No borrower records or contact values included. Dictionary corrected for the five new fields, seven older loaded fields, relevant defaults/type variance, Email PII and exact slice membership. Forty-four missing inventory memberships added: eight newly added live location memberships plus36 previously existing undocumented memberships. All four resulting dictionary memberships match live capture exactly.
+- Workbook retains all12 sheets, native tables and both formulas; no formula errors found. Rendered inventory checked and row heights increased for readable updated text. Original pre-correction workbook privately retained as AppSheet_Data_Dictionary.before-olap.xlsx in the existing private evidence folder.
+- Root AGENTS.md now requires explicit workflow-owner and shared-consumer impact review before shared table changes, including post-regeneration comparisons and affected-app checks. Proposal instructions/design identify OLAP partner-management ownership.
+
+### Review and recovery
+
+Review OLAP **Partners > partner > Edit** for the new controls, and **Borrowers > borrower** for locations. Keep integration disabled until the agent is implemented and accepted. A live save/activation, financial workflow execution and downstream export delivery were not tested and are not claimed accepted. Agent implementation still awaits owner go-ahead.
+
+Restore OLAP1.100028 for configuration rollback only; it reintroduces missing new fields, the schema warning and earlier defaults. Shared database location values and columns remain. The earlier OLTP/data rollback procedure remains applicable. Repository changes receive a scoped commit and normal verified push; no new repository or agent deployment is included in this corrective task.
