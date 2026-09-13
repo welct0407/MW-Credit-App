@@ -65,3 +65,11 @@ Remove the friend's access and move only the new standalone directory to Drive T
 - Rollback point: the preceding saved Sheets revision and private before-values in `outputs/.tmp/borrower-locations-20260913/photo-update-rollback.json`. This ignored local file contains borrower information and is excluded from Git; repository publication covers this redacted change record only.
 - Rollback: restore only the listed cells from the private before-values to avoid overwriting later collaborator edits. No app-version or report-copy backup applies to this standalone sheet edit.
 - Status: implemented and verified. The friend should confirm the abbreviated building/bar names and supply fuller addresses where needed; location accuracy remains subject to that review. No downstream application changes or automated status refresh are introduced.
+
+## Full-row active highlighting refresh — 13 September 2026
+
+- Owner requested active-borrower highlighting again. Synced the current deployed Loan Manager GUI, selected Loans / Active and reviewed the complete borrower grouping. The same 20 distinct borrowers remain active; seven directory borrowers remain unhighlighted.
+- Inspected the existing conditional-format rule and confirmed its exact-name set matches the current Active population. Expanded its range from `A2:D28` to `A2:E28` so the newly added Address column receives the same pale-yellow highlight. Formula and color are unchanged; no borrower values or permissions were edited.
+- Verified the saved rule range and formula, visually confirmed highlighting through column E with inactive rows unhighlighted, and observed Saved to Drive.
+- Rollback point: preceding saved Sheets revision. Targeted rollback is to change this rule's range back to `A2:D28`. No AppSheet or Looker configuration changed; their backup requirements do not apply.
+- Status: implemented and verified. User can review the full-row yellow highlighting in the shared sheet. Active status remains a manually verified snapshot for this date, not an automatic sync.
