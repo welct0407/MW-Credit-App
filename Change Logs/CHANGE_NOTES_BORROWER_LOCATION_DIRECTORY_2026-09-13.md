@@ -73,3 +73,11 @@ Remove the friend's access and move only the new standalone directory to Drive T
 - Verified the saved rule range and formula, visually confirmed highlighting through column E with inactive rows unhighlighted, and observed Saved to Drive.
 - Rollback point: preceding saved Sheets revision. Targeted rollback is to change this rule's range back to `A2:D28`. No AppSheet or Looker configuration changed; their backup requirements do not apply.
 - Status: implemented and verified. User can review the full-row yellow highlighting in the shared sheet. Active status remains a manually verified snapshot for this date, not an automatic sync.
+
+## City colors — 13 September 2026
+
+- Owner requested distinct colors by city. Added conditional rules on `C2:E28`: city equal to Pattaya uses light blue 3; city equal to Korat uses green `#b7e1cd`. Blank cities retain the neutral table background. Rules reference column C and follow subsequent city edits.
+- Retained the existing active-name formula, narrowed its range to `A2:B28`, and added bold to its yellow names. This preserves the active-loan indicator alongside city colors without overlapping rules. Updated the B1 bilingual note with both legends and the status snapshot limitation.
+- Verified rule formulas/ranges and visually checked both cities, blank cities and inactive names. Borrower values, sharing and AppSheet configuration were unchanged.
+- Rollback point: preceding saved Sheets revision. Remove the two city rules, restore the active rule to `A2:E28` without bold, and restore the previous B1 note. No app/report backup applies.
+- Status: implemented; visual review completed. User can review city colors and active names in the sheet. No financial or downstream application changes.
