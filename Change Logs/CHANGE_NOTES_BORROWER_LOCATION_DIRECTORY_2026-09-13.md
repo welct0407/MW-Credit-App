@@ -81,3 +81,9 @@ Remove the friend's access and move only the new standalone directory to Drive T
 - Verified rule formulas/ranges and visually checked both cities, blank cities and inactive names. Borrower values, sharing and AppSheet configuration were unchanged.
 - Rollback point: preceding saved Sheets revision. Remove the two city rules, restore the active rule to `A2:E28` without bold, and restore the previous B1 note. No app/report backup applies.
 - Status: implemented; visual review completed. User can review city colors and active names in the sheet. No financial or downstream application changes.
+
+## Owner city clarification — 13 September 2026
+
+- Applied the owner's explicit city clarification to one matched directory row after reading its current name, city and workplace. Changed only `C10` from blank to the supplied city; the existing city-color rule applies automatically.
+- Verified the new cell value in the sheet. Existing workplace, address, active-name formatting and permissions remain unchanged. No AppSheet records changed.
+- Rollback point: preceding saved Sheets revision; targeted rollback is to clear `C10` if no later edit has superseded this correction. Status: implemented and verified.
