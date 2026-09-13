@@ -8,6 +8,14 @@ Migration continuity (2026-09-08): Lisa's existing late-penalty eligibility was 
 
 *Descriptive companion to [AppSheet_Data_Dictionary.xlsx](./AppSheet_Data_Dictionary.xlsx)*
 
+## Borrower cleanup — partial checkpoint, 13 September 2026
+
+The owner is abandoning MW AI Collection. MW Partner Operations is independent and remains in scope for dependency preservation. OLTP borrower settings were edited and the Save control completed: internal **Description** now displays **English Name**, internal **Borrower Name** displays **Borrower Name - Thai**, **Communication Name** and **City** have Require enabled, and **AI Collection Enabled** has initial `TRUE` for new rows. Existing row flags were not edited. Post-save version readback and end-user tests remain pending because Chrome control stopped responding. OLAP still retains the prior settings and must be reconciled before this shared-table task is complete. These partial settings supersede the earlier OLTP optional/default descriptions below only to the stated extent.
+
+No stored columns or tables have yet been removed, and Address has not been added or imported. The OLTP Collection Bank Accounts view deletion was observed with Undo available but has not been saved; the subsequent Collection Settings deletion attempt has an unknown outcome in the unsaved editor. Preserve the editor tab and inspect before continuing. Remaining views, obsolete helper columns, slice dependencies, both-app regeneration and the Partner Operations screen-label adapter remain pending. Column/table counts below are still the baseline, not final cleanup counts.
+
+Rollback points are OLTP **3.000052**, OLAP **1.100033**, and the native copy **Money BACKUP Borrower Cleanup 20260913** including table rows. See [the cleanup change log](../Change%20Logs/CHANGE_NOTES_BORROWER_COLLECTION_CLEANUP_2026-09-13.md) for status and recovery details. No Looker changes or financial test transactions were performed.
+
 ## Partner controls and borrower locations — production update, 13 September 2026
 
 OLTP **3.000050** adds five stored fields to the shared Money database. Configuration rollback is **3.000045**. The corrective OLAP review is complete at **1.100031**, rollback **1.100028**: both apps load the new fields. The initial report incorrectly treated OLAP reconciliation as optional follow-up despite OLAP owning partner management. This scoped update supersedes earlier Borrowers/Partners and affected slice counts below; other dated inventories retain their prior verification scope. No Looker report was changed.
