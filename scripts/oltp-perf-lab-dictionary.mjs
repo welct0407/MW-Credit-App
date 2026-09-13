@@ -1,7 +1,9 @@
 import fs from 'node:fs/promises';
 import {FileBlob, SpreadsheetFile} from '@oai/artifact-tool';
 const root='C:/GitHub/AppSheet-Loan-Project';
-const out=`${root}/outputs/oltp-performance-lab-20260912`;
+const combined=process.argv.includes('--combined');
+const labSheet=combined?'OLTP Combined Test':'OLTP Performance Lab';
+const out=`${root}/outputs/${combined?'oltp-combined-performance-20260913':'oltp-performance-lab-20260912'}`;
 await fs.mkdir(out,{recursive:true});
 const file=`${root}/Documents/AppSheet_Data_Dictionary.xlsx`;
 const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(file));
@@ -13,7 +15,7 @@ console.log(JSON.stringify({row:match+1,values:rows[match]}));
 const before=await wb.render({sheetName:'Columns',range:`A${match+1}:H${match+1}`,scale:1,format:'png'});
 await fs.writeFile(`${out}/dictionary-before.png`,new Uint8Array(await before.arrayBuffer()));
 if(!process.argv.includes('--edit')) process.exit(0);
-const baseline=new Map(wb.worksheets.items.filter(s=>s.name!=='OLTP Performance Lab').map(s=>[s.name,JSON.stringify(s.getUsedRange().values)]));
+const baseline=new Map(wb.worksheets.items.filter(s=>s.name!==labSheet).map(s=>[s.name,JSON.stringify(s.getUsedRange().values)]));
 const data=JSON.parse(await fs.readFile(`${out}/lab-config.json`,'utf8'));
 for(const experiment of data.frozenExperiments??[]){
  for(const [name,stored] of [['Calculated Order','Allocation Order'],['Calculated Amount','Allocated Amount'],['Calculated Interest','Allocated Interest'],['Calculated Principal','Allocated Principal']]){
@@ -28,7 +30,7 @@ for(const experiment of data.frozenExperiments??[]){
  }
 }
 await fs.writeFile(`${out}/lab-config.json`,JSON.stringify(data,null,2)+'\n');
-const sheet=wb.worksheets.items.find(s=>s.name==='OLTP Performance Lab')??wb.worksheets.add('OLTP Performance Lab');
+const sheet=wb.worksheets.items.find(s=>s.name===labSheet)??wb.worksheets.add(labSheet);
 sheet.getUsedRange().clear({applyTo:'contents'});
 sheet.getRange('A1:H1').values=[['Experiment','App version','Table','Column / setting','Type','Scope / status','Purpose / dependencies','Exact definition']];
 sheet.getRange(`A2:H${data.definitions.length+1}`).values=data.definitions;

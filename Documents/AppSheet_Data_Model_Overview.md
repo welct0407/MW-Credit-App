@@ -550,7 +550,7 @@ These are OLTP form-validity rules. The shared physical columns and stored data 
 
 ## OLTP performance test clone — 12–13 September 2026
 
-**Current verified test state: 1.000038; measured round complete for review, no production acceptance or implementation.**
+**Historical first-round state: 1.000038. The combined follow-up below supersedes the current-state statements in this section; no production acceptance or implementation.**
 
 LoanMgr Perf TEST 20260912 (8a96763c-d453-450b-ac00-a8dfb7dbb8a4) uses the separate Money Perf TEST 20260912 database (aWCGib003O4AyK85Q4_KZc). All ten OLTP table connections were verified against the copy before writes; four additional copied native tables remain outside OLTP. The production snapshot was 3.000045 before copying, and this work did not change production. The production inventory above remains unchanged.
 
@@ -590,3 +590,22 @@ The two cache columns increase the clone's Charges schema from 25 to 27 columns.
 - Rollback verification caught a partial intermediate restore at 1.000036; no receipt was submitted there. Both original paid VCs and the original receipt path were verified restored at 1.000037. The initializer button was hidden at final 1.000038.
 
 The workbook's **OLTP Performance Lab** sheet preserves exact experimental definitions separately from production. Full evidence and limitations are in outputs/oltp-performance-lab-20260912/PERFORMANCE_TEST_REPORT.md and lab-config.json; authoritative history is Change Logs/CHANGE_NOTES_OLTP_PERFORMANCE_LAB_2026-09-12.md. Forty-four synthetic receipts total 4400; source financial records remain authoritative. Broader modes, concurrency, external-writer freshness and interrupted cache recovery are not certified. No tested structural change demonstrated a large speedup.
+
+## Combined OLTP performance follow-up — 13 September 2026
+
+**Current verified clone configuration: 1.000044, P01a + P04a retained for owner review; production unchanged.** The app/database identity and isolation described above remain in force. Starting rollback version 1.000038 was verified before editing. A final comparison of the live appdoc property tables found exactly two changed App formula properties relative to that version:
+
+| Object | Current clone definition / dependency |
+| --- | --- |
+| Payments[Eligible Charges] | P01a: IF Status = Posted then LIST(), otherwise the entire original SELECT. Processing/Error/blank behavior is unchanged. |
+| Payment Allocations[Calculated Amount] | P04a: replace nested Calculated Order comparison with direct Charge Date Snapshot descending, then Charge Row Number Snapshot descending comparison. Other arithmetic and guards remain unchanged. |
+| Payments[Eligible Outstanding] | Definition unchanged; becomes zero for Posted because Eligible Charges is empty. |
+| Payments[Amount Received] description | Definition unchanged; live Posted edit form displays Current eligible outstanding: 0. Amount remains disabled. This visible consequence requires owner review. |
+| Payments[Visible Allocations] | Temporarily showed all rows at 1.000042 for zero-row validation; original positive-only SELECT restored at 1.000044. |
+| Borrowers action Receive All Charges | Temporarily Prominent at 1.000043 for new desktop UI testing; original Inline restored at 1.000044. |
+
+There are no new schema fields, keys, relationships, slices or loading changes in this follow-up. The historical unused physical cache fields and disabled initializer remain as documented above. The original five-step receipt action sequence is preserved. Exact candidate and rollback expressions are in the dictionary's **OLTP Combined Test** sheet and outputs/oltp-combined-performance-20260913/lab-config.json. All other workbook sheets preserve their prior inventory values.
+
+Median new-GUI Save-to-visible-Posted was 17.904 seconds combined versus 19.180 before and 18.830 after restoring originals (6.65% / 4.92% lower). Three runs each do not establish statistical significance. All six allocation methods were exercised; tested receipt plans and posted repayments reconciled. Local mathematical validation passed 10009 cases, 758965 allocation assertions and 56 eligibility assertions. A deliberate one-baht receipt mismatch was rejected by normal Retry without another repayment, then restored and successfully retried.
+
+The final synthetic borrower UI showed three Closed loans, principal 103000 and interest received 100560, matching the fixture roll-forward. Expected receipt inventory is 61 and repayment inventory 66 from starting and case counts; these are not independently exported aggregate row counts. Snapshot tuple uniqueness/comparability remains a correctness assumption. Concurrency, offline/interrupted posting and all permission profiles are not certified. An existing same-day Close Loan path with no charge was observed to do nothing; it was not changed. See outputs/oltp-combined-performance-20260913/COMBINED_PERFORMANCE_REPORT.md and Change Logs/CHANGE_NOTES_OLTP_COMBINED_PERFORMANCE_2026-09-13.md for evidence, caveats, owner checklist and rollback.
