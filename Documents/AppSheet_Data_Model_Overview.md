@@ -8,6 +8,20 @@ Migration continuity (2026-09-08): Lisa's existing late-penalty eligibility was 
 
 *Descriptive companion to [AppSheet_Data_Dictionary.xlsx](./AppSheet_Data_Dictionary.xlsx)*
 
+## Partner controls and borrower locations — production update, 13 September 2026
+
+OLTP **3.000050** adds five stored fields to the shared Money database. Configuration rollback is **3.000045**. This scoped update supersedes earlier Borrowers/Partners and affected slice counts below; other dated inventories retain their prior verification scope. No OLAP configuration or Looker report was changed. Loading these new fields into OLAP remains pending reconciliation.
+
+Partners adds optional editable Text **Instagram Username** and **Language Preference**, and Yes/No **IG Integration Enabled**, with initial value `FALSE`. Existing partner flags are off; usernames and languages remain blank for owner review. Existing Email is reused. Only explicit TRUE will permit the future agent to communicate with a partner, including email fallback; this field alone does not implement messaging. Partners now has **8 physical + 0 virtual** OLTP columns, counting source ordinal and key. Identity verification and effective partner permissions remain agent implementation work.
+
+Borrowers adds optional editable Text **City** and **Working Location**, displayed as **เมือง / City** and **สถานที่ทำงาน / Working Location**. Both have blank defaults and no formulas. The 27 source identities in the owner's Borrower Locations sheet matched uniquely against 28 live borrowers: **16 city cells and 14 workplace cells across 18 borrowers** were populated and verified after reload. Blank source values and uncertainty labels were preserved; the unmatched existing borrower was untouched. Private source/before-image evidence is outside GitHub; its independent backup coverage is unverified. All 28 existing **AI Collection Enabled** values were unchanged. **Instagram Verified At** retains its blank initial value.
+
+Borrowers now has **16 physical + 29 virtual = 45** OLTP columns, counting source ordinal and key. Regeneration includes the new fields in **Todays Collection Board (21)**, **Visible Borrowers (45)** and **Collection Setup Review (45)**. Their filters and update modes are unchanged: `ISNOTBLANK([Daily Collection Status])` / read-only; `NOT([Hidden Flag])` / adds, updates, deletes; and `AND([AI Collection Enabled], ISNOTBLANK([Collection Setup Issues]))` / updates only. Exact membership is recorded in the dictionary and sanitized setup evidence. City and Working Location are appended to the base and Visible Borrowers detail/form column orders.
+
+The future daily briefing reads Collection / Todays Collection Board and requires due-today or overdue eligibility **and** existing Borrowers[AI Collection Enabled] = TRUE. The partner flag gates both Instagram and email; partner text uses the chosen language, while borrower drafts retain approved Thai. These are design rules awaiting implementation and do not alter the existing collection runtime, slice filter, financial records or notifications.
+
+New-GUI checks confirmed saved version, no editor issues, app sync, location display and edit-form values; the form was canceled without changes. Owner acceptance remains pending. App version rollback does not restore shared database schema/data: retain and hide added fields if needed, keep integration off, and restore only task-written cells from the private before-image after checking subsequent edits. See [setup change notes](../Change%20Logs/CHANGE_NOTES_PARTNER_BORROWER_SETUP_2026-09-13.md).
+
 ## Collection settings — production update, 8 September 2026
 
 ### Current charge-generation flag update, 8 September 2026

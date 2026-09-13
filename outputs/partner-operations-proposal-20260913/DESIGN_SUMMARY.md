@@ -1,11 +1,11 @@
 # Partner Operations Agent — implementation design
 
-Updated 13 September 2026 after the owner's second design round. Requirements below describe the intended implementation, not a deployed system. Proposed project name: MW-Partner-Operations.
+Updated 13 September 2026 after the owner's third design round. Production table setup and location loading are authorized first; agent implementation remains deferred until review. Proposed project name: MW-Partner-Operations.
 
 ## Intended behavior
 
-1. **Collection source:** read the existing collection dashboard or its backing slice. Reuse its filtering and prepare messages only for borrowers with payment due today or overdue as of today. Verify the live object, full result retrieval and partner-specific visibility; do not maintain a second collection filter or enrollment list.
-2. **Partner identity:** add Instagram account information to the existing Partner table and bind verified Instagram sender identity to its stable partner key. Reuse the email already stored there. No separate partner list. Verify exact fields and the minimum account-binding storage during implementation.
+1. **Collection source:** read Collection / Todays Collection Board and reuse its filtering. Prepare messages only for borrowers with payment due today or overdue as of today AND existing AI Collection Enabled set to TRUE. Preserve existing flag values; no second borrower opt-in. City and Working Location come from the borrower record, initially loaded from the owner's Borrower Locations spreadsheet with blanks and uncertainty preserved.
+2. **Partner identity and preferences:** store Instagram Username, Language Preference and IG Integration Enabled in Partners and reuse its existing Email. No separate partner list. Only explicit TRUE enables any partner communication, including email fallback; defaults remain off. Partner communication uses the selected language while borrower drafts retain their approved Thai wording. Verify sender/account ownership before accepting operational commands.
 3. **Partner commands:** accept Instagram instructions for any supported end-user OLTP app GUI operation the partner is permitted to perform, including non-collection workflows. Prefer observed GUI controls. Keep app definitions, database administration, direct backend changes, credentials and privilege changes outside this channel. Preserve financial history and verify saved results before claiming completion.
 4. **Daily briefing:** prepare at 11:00 Asia/Bangkok. For each eligible borrower send a partner context message (name, city, workplace and collection amounts), then a clean Thai borrower draft for manual forwarding. Finish with names grouped by location, counts, subtotals and an overall total. Add sourced Pattaya afternoon/evening weather and useful local notices when available.
 5. **Physical collection:** remove bank-transfer details and all direct automated borrower interaction. Adapt the existing friendly Thai template. Deadline, fee and closure wording remain an explicit open business decision; do not silently inherit automatic fees from the old runtime.
@@ -15,7 +15,7 @@ Updated 13 September 2026 after the owner's second design round. Requirements be
 
 1. Establish the approved new project/repository and its instructions, service policy, documentation, tests and disabled runtime defaults.
 2. Inspect the live dashboard/slice, Partner fields, current app permissions and supported GUI workflows. Record verified data mappings and remaining limitations.
-3. Record rollback versions, implement the requested Partner Instagram account information, and update the AppSheet model overview, data dictionary and change log together. Do not add unrelated columns/tables.
+3. Review completed production setup: OLTP 3.000050, rollback 3.000045; three Partner controls and two Borrower location fields are in place. Thirty location cells across 18 borrowers are loaded, both model documents updated, and all partner integration flags off. No additional table setup is required for these requested fields.
 4. Implement partner authentication, GUI execution with durable action journals/readback, and the 11:00 briefing generator with source reconciliation.
 5. Implement Instagram primary delivery and one-email fallback using the same briefing content and a durable cross-channel journal. Add nonblocking weather enrichment.
 6. Run synthetic regression tests, then authorized new-GUI acceptance checks. Cover source parity, account mapping, permissions, financial duplicates/unknown saves, message order/totals, fallback completeness, partial/unknown sends and absence of borrower automation.
@@ -26,9 +26,9 @@ Every coherent repository change includes applicable documentation, a Markdown c
 ## Remaining implementation decisions
 
 - Confirm final project/repository identity and visibility when creating it.
-- Inspect actual schema, dashboard/slice names and partner permissions; these are not yet verified live.
+- Production schema and Collection / Todays Collection Board are inspected in the setup task; effective runtime partner permissions and verified account binding still require implementation checks.
 - Confirm physical-collection deadline/fee/closure wording and missed-run behavior.
 - Configure the email sender and verified Instagram bindings; existing Partner email is the destination source.
 - Agree safe acceptance recipients and old-runtime cutover before activation.
 
-Detailed rules: [AGENTS.md](AGENTS.md). This design revision changes no live schema, app workflow, schedule, account or financial record.
+Detailed rules: [AGENTS.md](AGENTS.md). The separate production setup task has added the requested fields and loaded borrower location data; owner acceptance is pending. It does not activate a schedule, agent communication or financial operations.
