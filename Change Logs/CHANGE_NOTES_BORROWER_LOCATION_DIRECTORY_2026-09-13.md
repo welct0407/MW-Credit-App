@@ -55,3 +55,13 @@ Remove the friend's access and move only the new standalone directory to Drive T
 - Verified the saved rule range, exact name set and color in the rule panel; visually checked both the top and bottom of the table, including unhighlighted rows and numbered name distinctions. Google reported the sheet saved to Drive.
 - Rollback point: the immediately preceding saved Google Sheets revision; the smallest rollback is to remove this conditional-format rule and the new B1 note. No AppSheet configuration, financial data or sharing permission was changed.
 - Status: implemented and verified; user/friend acceptance remains pending. Refresh the verified name set after loan openings/closures if current status is needed later.
+
+## Photo-based location update — 13 September 2026
+
+- Owner supplied a friend's photo and requested additional working-location and address information in the existing directory. Read the current table first and preserved intervening collaborator edits and the existing Address column.
+- Updated eight matched borrowers: seven address entries, one city entry and one workplace spelling correction (nine cells changed overall). Following the owner's clarification, the two bar entries use the street in Working location and the bar name in Address. One existing street value was retained.
+- Used the first location heading for the three immediately grouped entries; retained abbreviated condo names as supplied. No full street addresses were invented. Amounts and collection reminders in the photo were treated as source context, not instructions to modify financial records or schedules.
+- Read back `Sheet1!A1:F40` through the browser clipboard and compared against the pre-edit snapshot: exactly the nine intended cells changed. Visually checked address display and retained active-borrower highlighting. Google reported Saved to Drive. Sharing permissions and AppSheet data/configuration remain unchanged.
+- Rollback point: the preceding saved Sheets revision and private before-values in `outputs/.tmp/borrower-locations-20260913/photo-update-rollback.json`. This ignored local file contains borrower information and is excluded from Git; repository publication covers this redacted change record only.
+- Rollback: restore only the listed cells from the private before-values to avoid overwriting later collaborator edits. No app-version or report-copy backup applies to this standalone sheet edit.
+- Status: implemented and verified. The friend should confirm the abbreviated building/bar names and supply fuller addresses where needed; location accuracy remains subject to that review. No downstream application changes or automated status refresh are introduced.
