@@ -663,3 +663,41 @@ The final synthetic borrower UI showed three Closed loans, principal 103000 and 
 AFTER UPDATE trigger requires changed records to increment revision by one, sets projection to input_value*2, inserts an event, and rejects negative inputs after downstream writes to prove transactional rollback. Identical updates are no-ops. This is a synthetic connector rule, not loan business logic. The app has eight views, two actions, zero slices and zero workflow rules in the captured appdoc. SQL business effects require full sync in the tested configuration: cache/delta/quick/delayed sync OFF, automatic updates ON, sync on start OFF. New desktop GUI testing only.
 
 Same-originating-sync propagation, rollback, recovery, exact-case key preservation and AppSheet Ref navigation passed. Rejected writes remain optimistic pending client changes until recovered; database rollback alone does not clear the client queue. All three final source/projection pairs reconcile and five expected events are present. Loan migration, full key/Ref reconciliation, concurrency/offline validation and performance gains remain pending. Preserve original loan key/Ref strings as text/varchar, with no case normalization or uuid cast. See outputs/cloud-sql-poc-20260914/POC_TEST_REPORT.md and the matching Cloud SQL change log.
+# PostgreSQL migration trial checkpoint — 14 September 2026
+
+Production remains on the shared Money AppSheet database. Trial migration is incomplete; no production cutover or PostgreSQL feature/performance acceptance is claimed.
+
+- Source baselines: OLTP `93844270-6aa5-420b-a960-bcdf08abd357` version 3.000064; OLAP `e74dd368-654f-44d7-bccf-83cf361d1cdb` version 1.100041.
+- Shared native copy: **Money SQL Trial 20260914**, database `GhFoIWUelX4UMyCCNLda80`, all 12 source tables present (including Loan Assessment). Data values, keys and reference integrity await reconciliation.
+- OLTP copy **LoanMgr SQL Trial 20260914**, `885b0121-c550-4dcd-acf5-630e478b49bc`: rollback 1.000002, current 1.000003. All eight business-table Source IDs verified against the shared native copy. Three notification bots and Generate Daily Charges disabled only in this copy; operational receipt/first-day bots retained.
+- OLAP copy **LoanInsights SQL TEST 20260914**, `68e58980-ce5b-4a02-ae83-68905dde9f83`: rollback 1.000002, current 1.000004. All 12 native business tables repointed to the same copied database with matching qualifiers. Calendar remains a separate read-only Google Sheets helper (Calendar Help Table / Sheet1). All three bots disabled. Existing permissions retained. Formula/feature reconciliation pending.
+- Both copied definitions report Runnable Yes, Deployable No. Prototype deployment checks and full app validation remain pending. Native process/output tables are implementation artifacts, not additional business tables to migrate.
+- New target `appsheet-pg-prod-20260914`, project `clever-oasis-508610-n7`: PostgreSQL 18.6, Singapore, minimum db-f1-micro, 10 GB HDD, single zone, public IP 136.85.107.69, SSL-only. Instance creation completed 20:16:34 Bangkok; database `loan_manager_prod` created 20:20:31. SQL Studio verified zero public tables and existing admin authentication. AppSheet access and transfer pending.
+- Use AppSheet's official Copy App to SQL / Copy Data to New Source tools. Preserve keys/Refs exactly as text, review inferred SQL types and file paths, and reconcile both consumers to one shared SQL table set. The tools do not generate foreign-key constraints or triggers automatically. No migration SQL schema or optimized logic has been applied yet.
+
+Detailed checkpoint mappings are in the dictionary's **SQL Migration Trial** worksheet and `outputs/postgresql-migration-trial-20260914`. Restore each clone's 1.000002 version to undo app changes, but do not run the restored OLAP copy against production sources. Production app versions need no rollback. Downstream Looker checks remain separate and unperformed.
+
+
+## Cleanup ordered by owner — 14 September 2026
+
+This section supersedes the preceding migration checkpoint. The owner rejected the failed attempt and confirmed deletion of all three migration-copy apps, the native database copy, and both Cloud SQL instances (including disabling deletion protection).
+
+- LoanMgr SQL Trial 20260914 (885b0121-c550-4dcd-acf5-630e478b49bc), LoanInsights SQL TEST 20260914 (68e58980-ce5b-4a02-ae83-68905dde9f83), and LoanInsights PG TEST 20260914 (de4894fc-3108-497c-b872-020a1b2d57c9) deleted; all absent from refreshed My Apps. PG copy rollback version before deletion was 1.000002.
+- Money SQL Trial 20260914 (GhFoIWUelX4UMyCCNLda80) deleted; absent from active database list. AppSheet dialog states deleted databases can be restored from My Account > Database Info.
+- Cloud SQL appsheet-pg-prod-20260914 deletion completed. appsheet-pg-test-20260914 deletion submitted, completion verification pending at this checkpoint. Retain-backups and final-backup options disabled for requested cleanup; deletion dialog explicitly includes existing backups.
+- Production OLTP/OLAP and Money database remain in their active lists. Earlier performance test copies and backups were excluded. The separate SQL Sync POC app and database-1/database-2 account connections still exist but their deleted backends cannot serve them. Credentials remain outside Git; not erased. Project policy overrides remain recorded and unchanged by resource cleanup.
+
+### Correction of failed migration record
+The approved connection was successfully authorized as database-2 (30884713), SSL required, existing postgres account, after all 73 published AppSheet /32 addresses were saved. Copy App to SQL created 13 empty tables but did not switch the app connections. A read-only count query found zero rows in every table. Subsequent table-copy retry failed with relation-not-found naming the copied app. One empty Borrowers table was renamed _trial_empty_Borrowers_20260914 before the retry; instance deletion removes both empty versions. This does not establish the root cause of the failed app copy. No successful data migration or PostgreSQL performance result is claimed.
+
+For restart, follow https://support.google.com/appsheet/answer/10107300?hl=en: copy the app to the existing PostgreSQL source with both data and file copying enabled. Verify the dialog settings, copy completion, actual source connections, populated row counts, exact text keys/Refs, and app behavior before claiming success. Do not treat the appearance of empty SQL tables as completion or substitute unverified manual reconnection.
+
+Rollback: production needs no rollback. Deleted cloud instances/data are not a usable rollback point. Earlier clone version numbers are historical only. Rebuild the trial from the original source apps and database. SQL feature/correctness/performance validation remains unperformed.
+
+
+### Cleanup completion and fresh draft
+Both Cloud SQL operations now explicitly show Deleted: appsheet-pg-test-20260914 and appsheet-pg-prod-20260914. All six confirmed cleanup objects are removed from active service. POC test evidence is historical; its SQL backend no longer exists. Source production apps and database remain unchanged.
+
+A fresh, unsubmitted appsheet-pg-prod-20260914 creation form is prepared: Enterprise PostgreSQL 18, db-f1-micro (1 shared vCPU / 0.614 GB), Singapore, single zone, 10 GB HDD, public IP on, private IP/Data API off, SSL-only, Query Insights off. Password field empty; user handoff required for credential entry and submission. No new instance exists yet.
+
+Documentation checked: AppSheet Copy an existing app to an SQL database (10107300), Use data from PostgreSQL (10106598), and Migrate apps between SQL databases (10106310). The general copy article describes cloud-storage/spreadsheet sources and does not explicitly promise this particular native AppSheet Database source will transfer successfully; do not claim native-specific support or a root cause without evidence. PostgreSQL cloning uses public schema. Confirm both copy options in the new GUI, then verify tables contain data and the copied app uses SQL. Preserve key strings and their case; validate inferred SQL types and files.

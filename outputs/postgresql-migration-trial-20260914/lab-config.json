@@ -1,0 +1,284 @@
+{
+  "definitions": [
+    [
+      "OLTP trial",
+      "1.000003",
+      "Borrowers",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/Iya7C1Iv_z4ZmO0tyMrMme"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Loans",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/uhIsbxFaUV4P2yCFRPUWoa"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Repayments",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/TA6YmxJirY4Y2DSpa7aR17"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Statistics",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/MoJ3e9N4iC4rE7kW9wLSt9"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Charges",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/3EhKRaJBK64SAsNbtGBQU1"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Partners",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/cxkDtKcsOZ4vm4kMSHOr66"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Payment Allocations",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/MFKNswyWeK4HYkVSIutpvb"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Payments",
+      "Data source",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 3.000064; clone rollback 1.000002",
+      "ID=base/GhFoIWUelX4UMyCCNLda80/tables/ULg9Cchxjz4oyzeQgeF-59"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Borrowers",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Borrowers; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Loans",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Loans; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Repayments",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Repayments; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Statistics",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Statistics; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Charges",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Charges; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Loan Assessment",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Loan Assessment; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Cash Pool Contributions",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Cash Pool Contributions; ADDS_AND_UPDATES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Partners",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Partners; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Settlements",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Settlements; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Daily Analytics",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Daily Analytics; ALL_CHANGES"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Payment Allocations",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Payment Allocations; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Payments",
+      "Data source / permissions",
+      "AppSheet database",
+      "DELETED by owner request; historical configuration only",
+      "Shared native copy; source rollback 1.100041; clone rollback 1.000002",
+      "Database GhFoIWUelX4UMyCCNLda80; qualifier Payments; READ_ONLY"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Calendar",
+      "Data source",
+      "Google Sheets",
+      "DELETED by owner request; historical configuration only",
+      "Separate source outside shared native database",
+      "Calendar Help Table / Sheet1; READ_ONLY"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Automation",
+      "Notification - New Loan Created",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Prevent notifications or scheduled mutations during migration",
+      "Disabled; production unchanged"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Automation",
+      "Notification - Loan Closed",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Prevent notifications or scheduled mutations during migration",
+      "Disabled; production unchanged"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Automation",
+      "Notification - Charge Received",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Prevent notifications or scheduled mutations during migration",
+      "Disabled; production unchanged"
+    ],
+    [
+      "OLTP trial",
+      "1.000003",
+      "Automation",
+      "Generate Daily Charges",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Prevent notifications or scheduled mutations during migration",
+      "Disabled; production unchanged"
+    ],
+    [
+      "OLAP trial",
+      "1.000004",
+      "Automation",
+      "Refresh Daily Analytics Daily 2",
+      "Bot",
+      "DELETED by owner request; historical configuration only",
+      "Other two bots already disabled",
+      "All three OLAP bots disabled; production unchanged"
+    ],
+    [
+      "SQL POC cleanup",
+      "Historical",
+      "All three synthetic POC tables",
+      "Backend deleted",
+      "PostgreSQL",
+      "DELETED by owner request",
+      "Existing SQL Sync POC app remains; backend unavailable",
+      "appsheet-pg-test-20260914 deletion confirmed"
+    ],
+    [
+      "Fresh setup",
+      "Not created",
+      "No tables yet",
+      "Instance draft",
+      "PostgreSQL 18",
+      "UNSUBMITTED; password handoff pending",
+      "Copy original app using documented SQL copy workflow",
+      "appsheet-pg-prod-20260914; db-f1-micro; Singapore; single zone; 10 GB HDD; public IP; SSL-only"
+    ]
+  ]
+}
