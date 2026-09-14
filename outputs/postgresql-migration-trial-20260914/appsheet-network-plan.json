@@ -1,7 +1,7 @@
 {
   "source": "https://support.google.com/appsheet/answer/10104492?hl=en",
   "instance": "appsheet-pg-prod-20260914",
-  "status": "Historical: network saved and connection authorized during failed attempt; instance subsequently deleted by owner request. Fresh instance draft not submitted.",
+  "status": "Replacement instance: all 73 addresses saved; database-2 SSL connection tested, authorized, and stored IP re-read. Copy transfer failed separately.",
   "cidrs": [
     "34.30.208.22/32",
     "34.48.143.3/32",
@@ -80,5 +80,6 @@
   "missing": [],
   "datasource": "database-2",
   "authId": "30884713",
-  "sslRequired": true
+  "sslRequired": true,
+  "replacementPublicIp": "34.21.174.215"
 }

@@ -276,9 +276,149 @@
       "No tables yet",
       "Instance draft",
       "PostgreSQL 18",
-      "UNSUBMITTED; password handoff pending",
+      "CREATED; official copy transfer blocked",
       "Copy original app using documented SQL copy workflow",
-      "appsheet-pg-prod-20260914; db-f1-micro; Singapore; single zone; 10 GB HDD; public IP; SSL-only"
+      "34.21.174.215; loan_manager_prod; 13 empty SQL tables; SSL database-2 verified"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Borrowers",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Borrowers\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Calendar",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Calendar\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Cash Pool Contributions",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Cash Pool Contributions\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Charges",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Charges\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Daily Analytics",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Daily Analytics\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Loan Assessment",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Loan Assessment\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Loans",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Loans\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Partners",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Partners\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Payment Allocations",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Payment Allocations\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Payments",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Payments\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Repayments",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Repayments\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Settlements",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Settlements\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Statistics",
+      "SQL transfer status",
+      "PostgreSQL table",
+      "CREATED; 0 rows; not used by copied app",
+      "Schema types and data correctness not reconciled; preserve for diagnosis",
+      "public.\"Statistics\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+    ],
+    [
+      "Clean restart",
+      "1.000003",
+      "Automation",
+      "Refresh Daily Analytics Daily 2",
+      "Bot",
+      "DISABLED in copied app",
+      "Prevent scheduled writes to original sources; rollback 1.000002",
+      "Disabled; Refresh Daily Analytics Daily already disabled"
     ]
   ]
 }

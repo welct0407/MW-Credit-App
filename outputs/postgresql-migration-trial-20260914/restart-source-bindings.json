@@ -1,0 +1,67 @@
+[
+  {
+    "table": "Borrowers",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Loans",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Repayments",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Statistics",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Charges",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Calendar",
+    "source": "google",
+    "sourcePath": "Calendar Help Table"
+  },
+  {
+    "table": "Loan Assessment",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Cash Pool Contributions",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Partners",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Settlements",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Daily Analytics",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Payment Allocations",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  },
+  {
+    "table": "Payments",
+    "source": "google_tables",
+    "sourcePath": "Money database"
+  }
+]
