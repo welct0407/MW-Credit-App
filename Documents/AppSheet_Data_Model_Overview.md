@@ -8,7 +8,19 @@ Migration continuity (2026-09-08): Lisa's existing late-penalty eligibility was 
 
 *Descriptive companion to [AppSheet_Data_Dictionary.xlsx](./AppSheet_Data_Dictionary.xlsx)*
 
-## PostgreSQL production cutover — 15 September 2026
+## Borrower name reference — virtual column, 15 September 2026
+
+Current production versions are **OLTP 3.000069** and **OLAP 1.100046**. Loans **Borrower Name** is now a **Name virtual column** with app formula `[Ref Borrowers].[Borrower Name]`. Its same internal name, bilingual display label **ชื่อผู้กู้ / Borrower**, read-only, visible and searchable behavior are preserved. Existing expressions, loan labels, slices and views continue to reference it. Borrowers.Borrower Name remains stored and authoritative. The SQL Loans.Borrower Name column and the two name-maintenance triggers/functions have been removed with explicit owner confirmation, superseding the trigger implementation described below.
+
+The two SQL test copies were reconciled too: copied OLTP **1.000008**, copied OLAP **1.000013**. Loans now has **20 physical columns including AppSheet's ordinal**, plus **21 OLTP VCs / 31 OLAP VCs**; total app column counts are unchanged. All pre-existing business column settings, expressions, action definitions, permissions and slices match except the intended name conversion. Regeneration changed Row ID's inherited fixed-definition/initial-value-editability metadata; it remains hidden, read-only, Text, key, and initialized with `UNIQUEID("PackedUUID")`. No keys or Ref values changed. The 13 foreign keys and eight blank-reference triggers remain.
+
+All 62 existing loan names matched their referenced borrowers before removal and again through the AppSheet API after conversion. Both production clients loaded successfully, loan-name labels rendered, and an existing loan edit form opened and was cancelled without saving. A fresh borrower rename was not performed against live records; the VC now resolves the current referenced name during app calculation/sync. No SQL view depended on the deleted column. AppSheet consumers retain the same field name; direct SQL consumers must join Borrowers. Downstream Looker/export execution was not retested.
+
+AppSheet sent two sync alerts during the intermediate regeneration versions **OLTP 3.000068** and **OLAP 1.100045**, while the stored column was absent and the replacement VC not yet saved. The mailbox messages identify those exact non-runnable versions. Final versions above are runnable and load successfully. This was a temporary migration-sequence error, not a failed payment or data loss.
+
+Rollback definitions are OLTP **3.000067**, OLAP **1.100044**, copied OLTP **1.000006** and copied OLAP **1.000011**. Restore the SQL column and lookup triggers using the prepared rollback SQL, then reconcile/restore app schemas; restoring only the old app versions against the new schema would fail. Exact before-names and definitions are privately backed up. See [the change notes](../Change%20Logs/CHANGE_NOTES_BORROWER_NAME_VC_2026-09-15.md). Current dictionary entries are updated in Columns, Tables and SQL Production.
+
+## PostgreSQL production cutover — 15 September 2026 (historical cutover state)
 
 The production system of record is now **PostgreSQL `loan_manager_prod` on `appsheet-pg-prod-20260914`**, connected through AppSheet **database-2** over public IP with SSL. This section supersedes earlier statements that the production apps use Money. Original app IDs and app folders are preserved. OLAP **1.100044** was cut over and checked first, followed by OLTP **3.000067**. Money is retained as the frozen rollback source.
 
