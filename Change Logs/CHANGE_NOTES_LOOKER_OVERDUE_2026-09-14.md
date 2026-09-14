@@ -28,7 +28,7 @@
 - Implemented and verified in report view mode on 2026-09-14. User acceptance pending.
 - Immediately before correction the refreshed erroneous card was 79,840; after correction it was **17,370**.
 - Navigated to page 7 Borrower Insight and confirmed its refreshed Overdue Amount was also **17,370**, with matching outstanding principal 112,504 and lifetime interest 175,384 across pages. This verifies aggregate reconciliation at the observed refresh state, not row-level acceptance or synchronized source timestamps.
-- The corrected value was verified after leaving edit mode. The final **Past-Due Amount** label was confirmed in both the title property and editor canvas; the browser connection dropped during its final report-view refresh. Other charts and apps were not modified. Earlier audit values changed with live data and must not be treated as the current expected totals.
+- The corrected value and final **Past-Due Amount** label were verified together in a fresh report-view load; the title fits the mobile scorecard without clipping. Other charts and apps were not modified. Earlier audit values changed with live data and must not be treated as the current expected totals.
 - Daily rollover, timezone alignment and individual partial-payment edge cases remain for manual acceptance; no financial test records were created.
 
 ## Rollback instructions
