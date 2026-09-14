@@ -1,3 +1,7 @@
+Latest: all 12 native Money tables use PostgreSQL in trial version 1.000007. Calendar remains on Google Sheets. Data/read/display verification passed; write workflows, performance and owner acceptance pending. See MASTER_TABLE_MIGRATION.md.
+
+Latest: all 12 native-table snapshots are in SQL. Borrowers, Loans, Partners and Statistics use SQL in trial version 1.000006. See MASTER_TABLE_MIGRATION.md. Earlier status entries below are historical.
+
 # PostgreSQL migration trial
 
 Latest: Statistics manual copy and SQL binding passed in trial version 1.000004. One exact row; eight dashboard metrics match. Full migration remains incomplete. See STATISTICS_MANUAL_COPY.md.

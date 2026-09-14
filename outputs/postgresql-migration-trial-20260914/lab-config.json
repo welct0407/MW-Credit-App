@@ -282,13 +282,13 @@
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Borrowers",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Borrowers\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 29 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Borrowers\"; 11 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
@@ -302,103 +302,103 @@
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Cash Pool Contributions",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Cash Pool Contributions\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 5 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Cash Pool Contributions\"; 6 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Charges",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Charges\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 745 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Charges\"; 6 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Daily Analytics",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Daily Analytics\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 41 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Daily Analytics\"; 16 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Loan Assessment",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Loan Assessment\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 1 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Loan Assessment\"; 5 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Loans",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Loans\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 62 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Loans\"; 20 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Partners",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Partners\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 2 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Partners\"; 7 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Payment Allocations",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Payment Allocations\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 263 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Payment Allocations\"; 13 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Payments",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Payments\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 140 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Payments\"; 13 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Repayments",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Repayments\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 644 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Repayments\"; 10 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000007",
       "Settlements",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Settlements\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "COPIED AND VERIFIED; 2 rows",
+      "Trial now reads SQL; all stored fields and related membership verified",
+      "public.\"Settlements\"; 7 physical columns; exact keys and all fields matched"
     ],
     [
       "Clean restart",
@@ -439,6 +439,136 @@
       "Physical label; MAIN copied",
       "Nullable; no SQL default; unchanged app settings",
       "Label Yes; Read-Only No; one row"
+    ],
+    [
+      "Master switch",
+      "1.000006",
+      "Borrowers",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; existing schema, Refs, slices and calculations preserved",
+      "database-2; Source Path Borrowers; Table=public.Borrowers__Borrowers"
+    ],
+    [
+      "Master switch",
+      "1.000006",
+      "Loans",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; existing schema, Refs, slices and calculations preserved",
+      "database-2; Source Path Loans; Table=public.Loans__Loans"
+    ],
+    [
+      "Master switch",
+      "1.000006",
+      "Partners",
+      "Source binding",
+      "PostgreSQL table",
+      "ALL_CHANGES",
+      "Trial only; existing schema, Refs, slices and calculations preserved",
+      "database-2; Source Path Partners; Table=public.Partners__Partners"
+    ],
+    [
+      "Master switch",
+      "1.000005",
+      "Trial app",
+      "Cloud API",
+      "Integration",
+      "ENABLED with explicit owner confirmation",
+      "Extraction script uses Find only; access key itself is not read-only",
+      "Key and raw extracts stored outside Git; original app API settings unchanged"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Repayments",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Repayments; Table=public.Repayments__Repayments"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Charges",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Charges; Table=public.Charges__Charges"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Loan Assessment",
+      "Source binding",
+      "PostgreSQL table",
+      "ALL_CHANGES",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Loan Assessment; Table=public.Loan Assessment__Loan Assessment"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Cash Pool Contributions",
+      "Source binding",
+      "PostgreSQL table",
+      "ADDS_AND_UPDATES",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Cash Pool Contributions; Table=public.Cash Pool Contributions__Cash Pool Contributions"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Settlements",
+      "Source binding",
+      "PostgreSQL table",
+      "ALL_CHANGES",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Settlements; Table=public.Settlements__Settlements"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Daily Analytics",
+      "Source binding",
+      "PostgreSQL table",
+      "ALL_CHANGES",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Daily Analytics; Table=public.Daily Analytics__Daily Analytics"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Payment Allocations",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Payment Allocations; Table=public.Payment Allocations__Payment Allocations"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Payments",
+      "Source binding",
+      "PostgreSQL table",
+      "READ_ONLY",
+      "Trial only; schema and formulas unchanged",
+      "database-2; Source Path Payments; Table=public.Payments__Payments"
+    ],
+    [
+      "Remaining switch",
+      "1.000007",
+      "Charges / Repayments",
+      "Provider row order",
+      "System metadata",
+      "201 Charges and 144 Repayments row numbers changed",
+      "Business values unchanged; 4 related lists reordered with identical membership",
+      "Never treat _RowNumber or unsorted REF_ROWS order as stable; validate write workflows separately"
     ]
   ]
 }

@@ -1,0 +1,311 @@
+{
+  "version": "1.000007",
+  "rollback": "1.000006",
+  "initialRollback": "1.000004",
+  "unchangedColumnConfigurations": 374,
+  "configChanges": [
+    {
+      "table": "App",
+      "properties": [
+        "Version"
+      ]
+    },
+    {
+      "table": "Borrowers",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Loans",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Repayments",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Charges",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Loan Assessment",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Cash Pool Contributions",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Partners",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Settlements",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Daily Analytics",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Payment Allocations",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    },
+    {
+      "table": "Payments",
+      "properties": [
+        "Data locale",
+        "Source Path",
+        "Worksheet Name/Qualifier",
+        "Data Source"
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "table": "Borrowers",
+      "source": "database-2",
+      "path": "Borrowers",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Loans",
+      "source": "database-2",
+      "path": "Loans",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Repayments",
+      "source": "database-2",
+      "path": "Repayments",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Statistics",
+      "source": "database-2",
+      "path": "Statistics",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Charges",
+      "source": "database-2",
+      "path": "Charges",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Calendar",
+      "source": "google",
+      "path": "Calendar Help Table",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Loan Assessment",
+      "source": "database-2",
+      "path": "Loan Assessment",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Cash Pool Contributions",
+      "source": "database-2",
+      "path": "Cash Pool Contributions",
+      "permissions": "ADDS_AND_UPDATES"
+    },
+    {
+      "table": "Partners",
+      "source": "database-2",
+      "path": "Partners",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Settlements",
+      "source": "database-2",
+      "path": "Settlements",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Daily Analytics",
+      "source": "database-2",
+      "path": "Daily Analytics",
+      "permissions": "ALL_CHANGES"
+    },
+    {
+      "table": "Payment Allocations",
+      "source": "database-2",
+      "path": "Payment Allocations",
+      "permissions": "READ_ONLY"
+    },
+    {
+      "table": "Payments",
+      "source": "database-2",
+      "path": "Payments",
+      "permissions": "READ_ONLY"
+    }
+  ],
+  "results": [
+    {
+      "table": "Borrowers",
+      "rows": 29,
+      "afterRows": 29,
+      "comparedFields": 2204,
+      "rowNumberChanges": 0,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Cash Pool Contributions",
+      "rows": 5,
+      "afterRows": 5,
+      "comparedFields": 40,
+      "rowNumberChanges": 0,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Charges",
+      "rows": 745,
+      "afterRows": 745,
+      "comparedFields": 19370,
+      "rowNumberChanges": 201,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Daily Analytics",
+      "rows": 41,
+      "afterRows": 41,
+      "comparedFields": 902,
+      "rowNumberChanges": 0,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Loan Assessment",
+      "rows": 1,
+      "afterRows": 1,
+      "comparedFields": 21,
+      "rowNumberChanges": 0,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Loans",
+      "rows": 62,
+      "afterRows": 62,
+      "comparedFields": 3100,
+      "rowNumberChanges": 0,
+      "relatedListOrderOnly": {
+        "Related Repayments": 1,
+        "Related Charges": 3
+      },
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Partners",
+      "rows": 2,
+      "afterRows": 2,
+      "comparedFields": 38,
+      "rowNumberChanges": 0,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Payment Allocations",
+      "rows": 263,
+      "afterRows": 263,
+      "comparedFields": 3682,
+      "rowNumberChanges": 0,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Payments",
+      "rows": 140,
+      "afterRows": 140,
+      "comparedFields": 2100,
+      "rowNumberChanges": 0,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Repayments",
+      "rows": 644,
+      "afterRows": 644,
+      "comparedFields": 14812,
+      "rowNumberChanges": 144,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    },
+    {
+      "table": "Settlements",
+      "rows": 2,
+      "afterRows": 2,
+      "comparedFields": 14,
+      "rowNumberChanges": 0,
+      "relatedListOrderOnly": {},
+      "differences": [],
+      "passed": true
+    }
+  ],
+  "allBusinessValuesAndRelatedMembershipMatched": true,
+  "rowNumberDependencies": [],
+  "limitation": "Provider row numbers and unordered REF_ROWS lists are not stable across source migration. Financial write workflows and order-dependent allocation require separate validation before cutover."
+}
