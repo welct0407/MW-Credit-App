@@ -1,45 +1,55 @@
 # Cloud SQL PostgreSQL proof of concept
 
-Status: configuration prepared, awaiting owner credential entry and instance creation, 14 September 2026. No SQL instance or AppSheet SQL connection created yet. Production migration is planning only.
+Status, 14 September 2026: infrastructure and SQL prerequisites complete. AppSheet proof awaits restricted-user password handoff. No AppSheet performance gain established. Production unchanged.
 
 ## Authorized sequence
 
-1. Provision an isolated Google Cloud SQL PostgreSQL test instance.
-2. Use a new AppSheet test app to update one source record. A synchronous PostgreSQL trigger updates a second table and inserts a third. Verify all three after the originating sync without manually requesting another sync.
-3. After connector correctness passes, make another isolated loan-app/database copy, migrate to SQL and reconcile the app configuration and workflows.
-4. Compare storage-only performance first; evaluate SQL-side receipt processing separately.
-5. Prepare a production migration and rollback plan for owner review, without production cutover.
+1. Provision isolated Cloud SQL PostgreSQL — completed.
+2. New AppSheet app updates one source row, triggering an update and an insert in two other tables. Verify all three after the originating sync — SQL prerequisites passed; AppSheet test pending.
+3. Make another isolated loan-app/database copy, migrate and reconcile configuration/workflows after connector correctness passes.
+4. Compare storage-only performance, then separately evaluate SQL receipt processing.
+5. Plan production migration and rollback for owner review. No cutover authorized.
 
-## Environment discovery
+## Verified environment
 
-Google Cloud project selected in the authenticated console: My First Project, `clever-oasis-508610-n7`. Cloud console showed an active free trial with 90 days remaining. No existing instance was shown; the initial onboarding screen offered instance creation. Compute Engine API and Cloud SQL Admin API enablement completed sufficiently to unlock the creation form.
+Project clever-oasis-508610-n7 (My First Project), instance appsheet-pg-test-20260914, database appsheet_sync_poc. Creation completed 18:05:32 Bangkok; database created 18:06:28 on 14 September 2026. PostgreSQL 18.6 Enterprise, asia-southeast1-c Singapore, db-f1-micro, one shared vCPU, 628.74 MB RAM, 10 GB SSD/autogrow, single zone. Backups, PITR and deletion protection enabled. Query Insights disabled at this size. This is connectivity POC sizing, not validated loan-workload sizing.
 
-Prepared, not submitted: instance `appsheet-pg-test-20260914`, Enterprise edition, PostgreSQL 18, Singapore asia-southeast1, single zone, db-f1-micro shared core (0.614 GB), 10 GB SSD with automatic growth, automated backups and PITR, deletion protection, SSL-only, public IP with an empty authorized-network list, Data API off. Query Insights is disabled for this machine selection. Console summary estimates $0.02/hour rounded for compute/storage, approximately $14.60 per 730 hours in the displayed currency; backup and traffic are additional, and currency was not independently verified. This is a small connectivity POC size, not certified sizing for loan performance tests. Password remains blank for owner entry; creation not clicked. No paid-account activation requested.
+Endpoint 34.158.52.84:5432. Connection name clever-oasis-508610-n7:asia-southeast1:appsheet-pg-test-20260914. SSL-only enabled, trusted client certificates not mandatory. Data API/private IP off. IAM authentication flag and Knowledge Catalog integration observed as defaults; no IAM database user created. Compute Engine and Cloud SQL Admin APIs enabled during setup. AppSheet app API remains off; testing is UI-only in the new GUI.
 
-Draft executable schema is scripts/cloud-sql-poc-schema.sql. It has not been executed or validated by a PostgreSQL engine. It uses three separate public-schema tables, a synchronous AFTER UPDATE trigger and explicit revision/event uniqueness. An intentional exception occurs after both downstream writes to test rollback. Initial seed writes occur before trigger installation. Before execution, verify the target database is dedicated and empty, then configure a scoped app role separately.
+Owner explicitly approved restricted login creation, external credential storage, AppSheet server allowlisting and AppSheet authorization. All 73 published all-region AppSheet IPs were added individually as /32 entries. Update completed 18:16:51 Bangkok; reload confirmed all persisted with no unsaved entries. No unrestricted CIDR. Source: https://support.google.com/appsheet/answer/10104492?hl=en (checked 14 September 2026). Singapore DB placement does not establish AppSheet APAC residency.
 
-AppSheet remains UI-only for app testing, using the current editor/client. Cloud SQL service API enablement is infrastructure setup, not enabling the previously declined AppSheet app API. No production AppSheet version is changed in this preparation.
+Console estimate $0.02/hour rounded compute/storage (~$14.60/730h), backup/traffic extra. Display currency unconfirmed. Trial showed $381.35/90 days; paid account not activated.
 
-## Proposed synthetic schema and acceptance tests
+## Schema and access
 
-New objects, not claims about an existing schema:
+Standalone synthetic objects only, no production consumers. Exact DDL: scripts/cloud-sql-poc-schema.sql.
 
-- `poc_source`: stable text key, input value and requested revision. One synthetic row starts at revision 0.
-- `poc_projection`: same stable key, last applied revision and derived value. Seeded before testing, then updated by the source trigger.
-- `poc_events`: one record per source/revision, recording the applied value; a unique key prevents duplicate revision events.
+- poc_source: immutable varchar(64) primary key; integer input_value and nonnegative revision. Seed SYNC-001 starts at zero.
+- poc_projection: source key FK/PK; integer applied_revision; bigint derived_value.
+- poc_events: varchar(100) PK; source_id FK; integer revision/input_value; bigint derived_value; unique(source_id, revision).
 
-Source updates require revision to advance exactly one step when input changes. A duplicate save of the same revision/value has no new effects. A stale or conflicting revision fails. The trigger updates the projection and inserts an event within the source transaction. A deliberately invalid value raises an exception to verify complete rollback. AppSheet may edit only the source; projection/events are read-only app tables. No bots are used for propagation.
+AFTER UPDATE trigger doubles source input into projection and inserts an event atomically. Changed input must advance revision by exactly one; identical repeat is a no-op. Negative input raises an exception after downstream writes to test rollback. SECURITY DEFINER function, owner postgres, fixed pg_catalog search_path, fully qualified tables, PUBLIC execute revoked.
 
-Record initial and final values in all three tables for each test: successful update, repeat unchanged save, second revision, rejected invalid update, and recovery. Distinguish immediate optimistic client state, state after the originating sync, and state after an additional manual sync if one becomes necessary. A second sync needed for correctness is a failed same-sync result, not a pass. Test configured cache/sync settings explicitly; do not infer behavior from PostgreSQL commit alone.
+appsheet_poc has CONNECT, public schema USAGE, SELECT on the three tables, UPDATE only on source input_value/revision. No superuser, createdb, createrole, bypassrls, replication or inherited roles. Initially NOLOGIN, then LOGIN enabled; password not set. Access script: scripts/cloud-sql-poc-access.sql. Scoped permission tests used temporary membership rolled back with the test transaction.
+
+AppSheet account Enterprise Plus. PostgreSQL/Require SSL connection form prepared with test endpoint/database/role; no Test or Authorize submission. Restricted-user password dialog open for owner entry, as required by browser-control policy. Admin credential authenticated successfully without publishing it. No AppSheet app or table configuration has changed; existing model overview/dictionary remain unchanged. Update both with separate POC app inventory after creation and live version capture.
+
+## Remaining connector acceptance
+
+Create new-GUI POC app, source updates only and downstream read-only. Capture initial version before editing. Test input10/rev1, duplicate unchanged, input7/rev2, negative input/rev3 rejection and recovery. Record all three tables before and after originating sync, distinguishing optimistic display, completed sync and later manual sync. Requiring another sync is a failed same-sync result. Verify SQL column-update compatibility and app permissions; do not assume generated UPDATE shape.
+
+Engine timings in ENGINE_TEST_RESULTS.md are not AppSheet latency measurements.
 
 ## Migration and benchmark controls
 
-Before migrating loan tables, record current OLTP/OLAP versions and shared-table consumers. Preserve source keys, references, types, defaults, permissions, slice memberships and formulas. Keep notification/scheduled bots isolated. Partner management remains OLAP-owned. Check direct reporting/export dependencies without expanding into an unrelated report audit.
+Before loan migration capture current OLTP/OLAP versions and shared consumers. Preserve keys, references, types, defaults, permissions, slices and formulas. Isolate notifications/scheduled bots. Partner management stays OLAP-owned. Review direct export/report impacts without an unrelated report audit.
 
-Use separate control and SQL copies with the same synthetic fixture, equivalent configuration and unchanged business logic for the storage comparison. Measure Save-to-visible-Posted and normal sync latency with repeated interleaved runs; report median, range and slow cases. Then test SQL receipt processing as a separate candidate, including all six allocation methods, ordering, exact/partial balances, rejected input, duplicate/retry, concurrent same-borrower requests and rollback. Do not treat database query duration as end-to-end app latency.
+Compare separate control/SQL copies with identical synthetic fixtures and unchanged business logic. Measure save-to-visible-posted and normal sync in repeated interleaved runs, reporting median/range/slow cases. SQL receipt processing is a separate candidate: all six allocation methods, ordering, exact/partial balances, invalid input, duplicate/retry, concurrency and rollback.
 
-Production planning will include app acceptance, data reconciliation, a controlled write pause, final data copy, connection switch for both apps, verification, and a rollback procedure that accounts for any new SQL-side writes. A simple connection switch back is insufficient after new production writes. Cutover requires separate owner approval.
+Production plan includes acceptance, reconciliation, write pause, final copy, switching both apps, verification and rollback accounting for new SQL writes. A connection switch back is insufficient after new production writes. Cutover needs owner approval.
 
-## Credentials, documentation and recovery
+## Credentials and rollback
 
-Credentials belong outside Git under `C:\Users\MWCredit\Documents\ChatGPT`, never in this output directory. Cloud charges/access settings must be concrete and reviewed before consequential provisioning. No public unrestricted database access is proposed. Persist exact nonsecret settings and evidence as they become available. Update model overview/dictionary when the test app schema is implemented. No live test results are claimed at this stage.
+Admin file: C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\cloud-sql-poc-postgres-password.txt (owner saved, authentication verified). Restricted file to be saved by owner: C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\cloud-sql-poc-appsheet-password.txt. No secrets under Git. Credential backup coverage unknown.
+
+Existing apps/databases unchanged; no production version restore applies. Disconnect via ALTER ROLE appsheet_poc NOLOGIN, remove its AppSheet source if later created, and remove the 73 named AppSheet network entries. Check backup/deletion protection before destroying this isolated instance/database; no deletion performed. Do not blindly replay schema or role creation scripts against existing objects.

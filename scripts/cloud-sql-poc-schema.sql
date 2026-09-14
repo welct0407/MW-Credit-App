@@ -1,4 +1,4 @@
--- DRAFT: isolated synthetic database only. Not executed or PostgreSQL-tested yet.
+-- Applied and engine-tested 2026-09-14 in isolated appsheet_sync_poc, PostgreSQL 18.6.
 -- Run as the owner in a dedicated empty POC database, not the loan database.
 -- Deliberately fails if these objects already exist. No credentials or grants here.
 BEGIN;
@@ -24,7 +24,7 @@ INSERT INTO public.poc_source VALUES ('SYNC-001', 0, 0);
 INSERT INTO public.poc_projection VALUES ('SYNC-001', 0, 0);
 
 CREATE FUNCTION public.poc_apply_source_update() RETURNS trigger
-LANGUAGE plpgsql AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog AS $$
 BEGIN
   IF NEW.id IS DISTINCT FROM OLD.id THEN
     RAISE EXCEPTION 'POC keys are immutable';
@@ -52,6 +52,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+REVOKE ALL ON FUNCTION public.poc_apply_source_update() FROM PUBLIC;
 CREATE TRIGGER poc_source_update
 AFTER UPDATE ON public.poc_source
 FOR EACH ROW EXECUTE FUNCTION public.poc_apply_source_update();
