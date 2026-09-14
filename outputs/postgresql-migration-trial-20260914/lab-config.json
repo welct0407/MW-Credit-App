@@ -802,13 +802,13 @@
     ],
     [
       "OLTP SQL validation",
-      "1.000005",
+      "1.000006",
       "Loans",
       "Two charge actions",
       "Display only",
-      "Temporary; restoration pending",
-      "New GUI lifecycle testing",
-      "Generate Today's Charge and New Loan Payment - Create First-Day Charge: Prominent instead of Hide."
+      "Restored to baseline Hide",
+      "New GUI lifecycle testing complete",
+      "Generate Today's Charge and New Loan Payment - Create First-Day Charge: Hide. All 72 actions match copied baseline."
     ]
   ]
 }

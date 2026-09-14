@@ -1,4 +1,4 @@
-# OLTP PostgreSQL functional validation — in progress
+# OLTP PostgreSQL functional validation — core tests complete, cutover pending
 
 Database `loan_manager_prod` on `appsheet-pg-prod-20260914` is the intended future production database. Production apps still use Money; no cutover has occurred. Owner accepted retaining the 13 foreign keys on 14 September 2026.
 
@@ -7,7 +7,8 @@ Copied original OLTP 3.000064 through new editor Manage > Collaborate & Publish 
 - 1.000002: copied baseline; original sources. Do not use for financial testing.
 - 1.000003: disabled copied daily charge schedule and three notification bots.
 - 1.000004: all eight business tables use database-2; 196 business column definitions unchanged. App-managed user settings/process state stay native.
-- 1.000005: temporarily exposed existing first-day and daily-charge actions for new-GUI testing. Restore their hidden positions before final delivery.
+- 1.000005: temporarily exposed existing first-day and daily-charge actions for new-GUI testing.
+- 1.000006: restored hidden positions; all 72 actions match baseline.
 
 Enabled bots: Create First-Day Charge, Auto Receive First-Day Charge, Payments - Process Receipt. Disabled bots: Generate Daily Charges, Notification - New Loan Created, Notification - Loan Closed, Notification - Charge Received. No notification or external collection tests authorized.
 
@@ -32,6 +33,6 @@ Daily D1 closed after receipts 60, 20, 1030: principal 1000, interest/fees 110. 
 
 Found and restored Loans.Borrower Name native lookup using SQL triggers. Existing migrated names matched; new synthetic rows were blank. Tested insert and single-parent rename updating both related loans, original OLTP save refresh, and copied OLAP explicit sync. Tommy name restored. No app schema change required. Native reference-column inventory recorded.
 
-D2 synthetic default scenario is prepared with settled first-day charge and one unpaid charge. Default action permanently deletes that unpaid row, so execution awaits browser-policy confirmation. New daily first-day automation succeeded without the D1 input correction.
+D2 default completed after owner confirmation: unpaid charge removed, loss 1000, adjustment repayment 1000 principal/-1000 interest, loan closed. Two additional fixed-date loans verified Lump Sum and Receive All. All six allocation methods passed. Owner-approved cleanup removed all synthetic rows; original financial-table hashes match baseline. Detailed final results and remaining cutover conditions: OLTP_SQL_VALIDATION_REPORT.md.
 
 Not ready for cutover while remaining checks are incomplete. No performance gain claimed.

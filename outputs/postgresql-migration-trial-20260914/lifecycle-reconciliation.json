@@ -1,5 +1,5 @@
 {
-  "snapshot": "tommy-f1-final.json",
+  "snapshot": "tommy-all-final.json",
   "results": [
     {
       "tag": "PG-TOMMY-D1 synthetic daily-interest lifecycle",
@@ -21,10 +21,77 @@
       "interest": 100,
       "receipts": 2,
       "status": "PASS"
+    },
+    {
+      "tag": "PG-TOMMY-M1 multi-charge",
+      "principal": 100,
+      "interest": 10,
+      "receipts": 2,
+      "status": "PASS"
+    },
+    {
+      "tag": "PG-TOMMY-M2 multi-charge",
+      "principal": 100,
+      "interest": 10,
+      "receipts": 1,
+      "status": "PASS"
     }
   ],
-  "postedReceipts": 7,
-  "allocationRepaymentPairs": 7,
+  "defaultScenario": "PASS",
+  "postedReceipts": 10,
+  "allocationRepaymentPairs": 11,
+  "defaultAdjustments": 1,
+  "cashReceived": 3690,
+  "methods": [
+    "First-day Auto",
+    "Loan Close",
+    "Lump Sum",
+    "Receive All",
+    "Single Full",
+    "Single Partial"
+  ],
+  "timings": [
+    {
+      "method": "Single Full",
+      "seconds": 9
+    },
+    {
+      "method": "First-day Auto",
+      "seconds": 7
+    },
+    {
+      "method": "Single Partial",
+      "seconds": 36
+    },
+    {
+      "method": "Single Partial",
+      "seconds": 26
+    },
+    {
+      "method": "Single Full",
+      "seconds": 14
+    },
+    {
+      "method": "Loan Close",
+      "seconds": 8
+    },
+    {
+      "method": "First-day Auto",
+      "seconds": 6
+    },
+    {
+      "method": "First-day Auto",
+      "seconds": 5
+    },
+    {
+      "method": "Lump Sum",
+      "seconds": 44
+    },
+    {
+      "method": "Receive All",
+      "seconds": 7
+    }
+  ],
   "status": "PASS",
-  "limitations": "Three lifecycle scenarios only; broader readiness checks remain pending."
+  "limitations": "Single-session synthetic scenarios. Timing includes app/automation processing; no controlled native-database comparison or concurrent/offline test."
 }

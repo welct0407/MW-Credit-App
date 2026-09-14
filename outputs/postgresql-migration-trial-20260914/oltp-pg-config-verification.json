@@ -60,5 +60,7 @@
     "Auto Receive First-Day Charge",
     "Payments - Process Receipt"
   ],
-  "status": "Functional testing in progress; not ready for cutover"
+  "status": "Core functional scenarios passed; owner acceptance and final cutover refresh pending",
+  "finalVersion": "1.000006",
+  "actionsRestored": 72
 }
