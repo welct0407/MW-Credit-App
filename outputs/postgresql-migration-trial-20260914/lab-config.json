@@ -402,13 +402,13 @@
     ],
     [
       "Clean restart",
-      "1.000003",
+      "1.000004",
       "Statistics",
       "SQL transfer status",
       "PostgreSQL table",
-      "CREATED; 0 rows; not used by copied app",
-      "Schema types and data correctness not reconciled; preserve for diagnosis",
-      "public.\"Statistics\"; app 494cd013-0d9b-482f-9559-c9d83059de91 still uses original data sources"
+      "MANUAL COPY PASSED; 1 exact row",
+      "39 Statistics column configurations preserved; eight dashboard metrics match; other tables still original",
+      "database-2; Source Path Statistics; Table=public.Statistics__Statistics"
     ],
     [
       "Clean restart",
@@ -419,6 +419,26 @@
       "DISABLED in copied app",
       "Prevent scheduled writes to original sources; rollback 1.000002",
       "Disabled; Refresh Daily Analytics Daily already disabled"
+    ],
+    [
+      "Statistics manual",
+      "1.000004",
+      "Statistics",
+      "Row ID",
+      "Text / SQL text",
+      "Physical key; exact source key copied",
+      "Not nullable; no SQL default; unchanged app settings",
+      "Key Yes; Initial value UNIQUEID(\"PackedUUID\"); Read-Only Yes; no normalization"
+    ],
+    [
+      "Statistics manual",
+      "1.000004",
+      "Statistics",
+      "Statistics ID",
+      "Text / SQL text",
+      "Physical label; MAIN copied",
+      "Nullable; no SQL default; unchanged app settings",
+      "Label Yes; Read-Only No; one row"
     ]
   ]
 }

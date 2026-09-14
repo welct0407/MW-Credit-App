@@ -36,3 +36,7 @@ The general SQL-copy guide describes cloud-storage/spreadsheet sources and does 
 ## Next diagnostic step
 
 Provide the reproduction and copy-time error to AppSheet Support, asking why copying references the app name as a SQL relation after creating empty tables. **No support message has been sent**; owner authorization is needed to send one. Resolve the documented-copy failure before resuming migration. Do not create a fabricated app-named table to conceal the error.
+
+
+## Authorized Statistics manual-copy trial — passed
+Owner requested manual copying of Statistics and source rebinding. Copied its one MAIN row with exact existing text key into empty public.Statistics using SQL Studio, then selected that SQL table through the new editor in LoanInsights PG Trial 20260914. App 494cd013-0d9b-482f-9559-c9d83059de91: rollback 1.000003, saved 1.000004. Source database-2 / path Statistics / provider ID Table=public.Statistics__Statistics. SQL row count and exact matches both 1. All 374 compared rendered column configurations unchanged, including 39 Statistics columns. New desktop sync completed without visible error; eight dashboard metrics matched the original. Only Statistics uses SQL; other original sources remain, bots disabled, production untouched. No full migration, write-back or performance acceptance claimed. Details and rollback: outputs/postgresql-migration-trial-20260914/STATISTICS_MANUAL_COPY.md. Owner acceptance pending.
