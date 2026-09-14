@@ -1,0 +1,30 @@
+{
+  "snapshot": "tommy-f1-final.json",
+  "results": [
+    {
+      "tag": "PG-TOMMY-D1 synthetic daily-interest lifecycle",
+      "principal": 1000,
+      "interest": 110,
+      "receipts": 3,
+      "status": "PASS"
+    },
+    {
+      "tag": "PG-TOMMY-I1 installment 3 days interval 2",
+      "principal": 1000,
+      "interest": 210,
+      "receipts": 2,
+      "status": "PASS"
+    },
+    {
+      "tag": "PG-TOMMY-F1 fixed-date maturity",
+      "principal": 1000,
+      "interest": 100,
+      "receipts": 2,
+      "status": "PASS"
+    }
+  ],
+  "postedReceipts": 7,
+  "allocationRepaymentPairs": 7,
+  "status": "PASS",
+  "limitations": "Three lifecycle scenarios only; broader readiness checks remain pending."
+}

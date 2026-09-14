@@ -1,0 +1,99 @@
+{
+  "Allocations": [
+    {
+      "Allocated Amount": "$60.00",
+      "Allocated Interest": "$60.00",
+      "Allocated Principal": "$0.00",
+      "Allocation Order": 1,
+      "Amount Remaining Snapshot": "$60.00",
+      "Charge Date Snapshot": "2026-09-13",
+      "Charge Row Number Snapshot": 746,
+      "Created At": "2026-09-14T23:09:49",
+      "Interest Remaining Snapshot": "$60.00",
+      "Principal Remaining Snapshot": "$0.00",
+      "Ref Charge": "Bpu8lpQMHwW7Eeibi7rSa4",
+      "Ref Payment": "6xZLEniozQ4w2Woagflhk7",
+      "Row ID": "uXGHtikCTa4AQRQzgRHK76"
+    }
+  ],
+  "Borrowers": [
+    {
+      "AI Collection Enabled": false,
+      "Address": null,
+      "Borrower Name": "Tommy",
+      "City": "TEST ONLY",
+      "Communication Name": "Tommy",
+      "Creation Date": "2026-09-14",
+      "Description": "Tommy - PostgreSQL lifecycle test",
+      "Hidden Flag": false,
+      "Instagram Username": null,
+      "Row ID": "QeqkhidjbnTQO7RiZHchJ7",
+      "Working Location": "Synthetic migration validation"
+    }
+  ],
+  "Charges": [
+    {
+      "Charge Date": "2026-09-13",
+      "Interest Due": "$60.00",
+      "Notes": null,
+      "Principal Due": "$0.00",
+      "Ref Loans": "xiDl9eZYwjxGNv3Mg2nkbR",
+      "Row ID": "Bpu8lpQMHwW7Eeibi7rSa4"
+    }
+  ],
+  "Loans": [
+    {
+      "Auto Charge Enabled": true,
+      "Borrower Name": null,
+      "Close Date": null,
+      "Closed By": "",
+      "Created By": "<test operator>",
+      "Current Daily Interest": "$50.00",
+      "Daily Payment Amount": null,
+      "Default Loss Amount": "$0.00",
+      "Defaulted": false,
+      "Due Date": null,
+      "Fixed Interest": null,
+      "Interest Payment Interval": 1,
+      "Loan Arrangement": "PG-TOMMY-D1 synthetic daily-interest lifecycle",
+      "Loan Date": "2026-09-13",
+      "Loan Status": "ยังไม่ปิดยอด",
+      "Loan Type": "ดอกเบี้ยรายวัน",
+      "Principal Amount": "$1,000.00",
+      "Ref Borrowers": "QeqkhidjbnTQO7RiZHchJ7",
+      "Row ID": "xiDl9eZYwjxGNv3Mg2nkbR",
+      "Transfer Fee": "$10.00"
+    }
+  ],
+  "Payments": [
+    {
+      "Allocation Method": "First-day Auto",
+      "Amount Received": "$60.00",
+      "Bank Reference": null,
+      "Created At": "2026-09-14T23:09:47",
+      "Created By": "<test operator>",
+      "Notes": null,
+      "Payment Date": "2026-09-13",
+      "Payment Method": "Net-off at Disbursement",
+      "Processed At": "2026-09-14T23:09:54",
+      "Ref Borrower": "QeqkhidjbnTQO7RiZHchJ7",
+      "Ref Target Charge": "Bpu8lpQMHwW7Eeibi7rSa4",
+      "Row ID": "6xZLEniozQ4w2Woagflhk7",
+      "Status": "Posted"
+    }
+  ],
+  "Repayments": [
+    {
+      "Created By": "<test operator>",
+      "Interest Paid": "$60.00",
+      "Notes": null,
+      "Payment Date": "2026-09-13",
+      "Principal Paid": "$0.00",
+      "Ref Charges": "Bpu8lpQMHwW7Eeibi7rSa4",
+      "Ref Loans": "xiDl9eZYwjxGNv3Mg2nkbR",
+      "Ref Payment": "6xZLEniozQ4w2Woagflhk7",
+      "Ref Payment Allocation": "uXGHtikCTa4AQRQzgRHK76",
+      "Row ID": "SrByTbIX4m4Iahk_H3ynh9"
+    }
+  ]
+}

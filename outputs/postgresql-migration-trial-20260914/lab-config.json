@@ -709,6 +709,106 @@
       "Installed; 1,010 blanks normalized",
       "Future empty Ref values -> NULL; nonblank values untouched",
       "public.appsheet_normalize_blank_refs(); BEFORE INSERT OR UPDATE; 13 Ref columns only; no schema columns added"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Borrowers",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Borrowers"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Loans",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Loans"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Repayments",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Repayments"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Statistics",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Statistics"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Charges",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Charges"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Partners",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Partners"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Payment Allocations",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Payment Allocations"
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000004",
+      "Payments",
+      "Data source",
+      "SQL binding",
+      "Copied OLTP; testing in progress",
+      "Original OLTP 3.000064 remains on Money",
+      "database-2; Payments"
+    ],
+    [
+      "OLTP SQL validation",
+      "OLTP 1.000005; OLAP 1.000007",
+      "Loans",
+      "Borrower Name",
+      "SQL lookup triggers",
+      "Installed; insert and rename verified",
+      "Restores native Lookup on Borrowers.Borrower Name for both app consumers",
+      "BEFORE INSERT OR UPDATE Loans: resolve Borrower Name through Ref Borrowers; AFTER Borrower Name update: propagate to Loans. No added columns."
+    ],
+    [
+      "OLTP SQL validation",
+      "1.000005",
+      "Loans",
+      "Two charge actions",
+      "Display only",
+      "Temporary; restoration pending",
+      "New GUI lifecycle testing",
+      "Generate Today's Charge and New Loan Payment - Create First-Day Charge: Prominent instead of Hide."
     ]
   ]
 }
