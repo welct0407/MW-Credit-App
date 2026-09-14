@@ -1,3 +1,5 @@
+Latest: 13 validated foreign keys installed in the FUTURE PRODUCTION database loan_manager_prod; copied OLAP remains 1.000007. 91 SQL checks and app read/sync checks passed; app write acceptance pending. See FOREIGN_KEYS.md. Earlier entries are historical.
+
 Latest: all 12 native Money tables use PostgreSQL in trial version 1.000007. Calendar remains on Google Sheets. Data/read/display verification passed; write workflows, performance and owner acceptance pending. See MASTER_TABLE_MIGRATION.md.
 
 Latest: all 12 native-table snapshots are in SQL. Borrowers, Loans, Partners and Statistics use SQL in trial version 1.000006. See MASTER_TABLE_MIGRATION.md. Earlier status entries below are historical.

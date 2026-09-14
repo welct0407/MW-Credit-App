@@ -569,6 +569,146 @@
       "201 Charges and 144 Repayments row numbers changed",
       "Business values unchanged; 4 related lists reordered with identical membership",
       "Never treat _RowNumber or unsorted REF_ROWS order as stable; validate write workflows separately"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Loans",
+      "Ref Borrowers",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Borrowers.Row ID; app Ref unchanged",
+      "appsheet_ref_01: REFERENCES public.Borrowers(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Repayments",
+      "Ref Loans",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Loans.Row ID; app Ref unchanged",
+      "appsheet_ref_02: REFERENCES public.Loans(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Repayments",
+      "Ref Charges",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Charges.Row ID; app Ref unchanged",
+      "appsheet_ref_03: REFERENCES public.Charges(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Repayments",
+      "Ref Payment",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Payments.Row ID; app Ref unchanged",
+      "appsheet_ref_04: REFERENCES public.Payments(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Repayments",
+      "Ref Payment Allocation",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Payment Allocations.Row ID; app Ref unchanged",
+      "appsheet_ref_05: REFERENCES public.Payment Allocations(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Charges",
+      "Ref Loans",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Loans.Row ID; app Ref unchanged",
+      "appsheet_ref_06: REFERENCES public.Loans(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Loan Assessment",
+      "Ref Borrower",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Borrowers.Row ID; app Ref unchanged",
+      "appsheet_ref_07: REFERENCES public.Borrowers(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Cash Pool Contributions",
+      "Ref Partner",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Partners.Row ID; app Ref unchanged",
+      "appsheet_ref_08: REFERENCES public.Partners(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Settlements",
+      "Ref Partner",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Partners.Row ID; app Ref unchanged",
+      "appsheet_ref_09: REFERENCES public.Partners(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Payment Allocations",
+      "Ref Payment",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Payments.Row ID; app Ref unchanged",
+      "appsheet_ref_10: REFERENCES public.Payments(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Payment Allocations",
+      "Ref Charge",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Charges.Row ID; app Ref unchanged",
+      "appsheet_ref_11: REFERENCES public.Charges(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Payments",
+      "Ref Borrower",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Borrowers.Row ID; app Ref unchanged",
+      "appsheet_ref_12: REFERENCES public.Borrowers(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "Payments",
+      "Ref Target Charge",
+      "Foreign key",
+      "Validated; future production DB",
+      "Parent Charges.Row ID; app Ref unchanged",
+      "appsheet_ref_13: REFERENCES public.Charges(Row ID); UPDATE/DELETE NO ACTION; NOT DEFERRABLE; blank Ref text normalized to NULL"
+    ],
+    [
+      "SQL foreign keys",
+      "1.000007",
+      "8 child tables",
+      "appsheet_blank_refs",
+      "BEFORE trigger",
+      "Installed; 1,010 blanks normalized",
+      "Future empty Ref values -> NULL; nonblank values untouched",
+      "public.appsheet_normalize_blank_refs(); BEFORE INSERT OR UPDATE; 13 Ref columns only; no schema columns added"
     ]
   ]
 }

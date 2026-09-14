@@ -6,8 +6,9 @@ const root='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/postgresql
 const tables=['Borrowers','Loans','Repayments','Charges','Loan Assessment','Cash Pool Contributions','Partners','Settlements','Daily Analytics','Payment Allocations','Payments'];
 const after=process.argv.includes('--after');
 const full=process.argv.includes('--full');
-const requested=process.argv.slice(2).filter(v=>!['--after','--full'].includes(v));
-const folder=full?'bulk-full-after':after?'bulk-after':'bulk-source';
+const fk=process.argv.includes('--fk');
+const requested=process.argv.slice(2).filter(v=>!['--after','--full','--fk'].includes(v));
+const folder=fk?'fk-after':full?'bulk-full-after':after?'bulk-after':'bulk-source';
 if(requested.some(t=>!tables.includes(t)))throw Error('Table outside authorized native-database extraction');
 const key=(await fs.readFile(`${root}/appsheet-trial-api-key.txt`,'utf8')).trim();
 await fs.mkdir(`${root}/${folder}`,{recursive:true});

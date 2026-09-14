@@ -1,0 +1,50 @@
+{
+  "checks": 91,
+  "passed": true,
+  "scope": "SQL insert/update/null/empty-reference and parent-delete tests; successful probes rolled back",
+  "businessDataFingerprintsUnchanged": true,
+  "afterFingerprints": [
+    [
+      {
+        "normalized_hash": "da7e1619bc960daa6bbacdee776413a0",
+        "rows": 62,
+        "table_name": "Loans"
+      },
+      {
+        "normalized_hash": "b8d05331e9b5a27cf1c82734b775ab8f",
+        "rows": 644,
+        "table_name": "Repayments"
+      },
+      {
+        "normalized_hash": "1b8c534110da1bea6bfb0b6675592ccc",
+        "rows": 745,
+        "table_name": "Charges"
+      },
+      {
+        "normalized_hash": "e9bb45de5a45d8ae70bf58faf22e3727",
+        "rows": 1,
+        "table_name": "Loan Assessment"
+      },
+      {
+        "normalized_hash": "ca981773138e9158876950d0561bb007",
+        "rows": 5,
+        "table_name": "Cash Pool Contributions"
+      },
+      {
+        "normalized_hash": "1d2e9bf0544419f1b99aca648ea50587",
+        "rows": 2,
+        "table_name": "Settlements"
+      },
+      {
+        "normalized_hash": "bfa939c52df73c630db4d1508f5f25f9",
+        "rows": 263,
+        "table_name": "Payment Allocations"
+      },
+      {
+        "normalized_hash": "776b5615048a7bb5e15f939a86fa9878",
+        "rows": 140,
+        "table_name": "Payments"
+      }
+    ]
+  ]
+}

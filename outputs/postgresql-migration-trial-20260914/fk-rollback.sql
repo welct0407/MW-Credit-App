@@ -1,0 +1,25 @@
+DO $rollback$ BEGIN IF current_database()<>'loan_manager_prod' THEN RAISE EXCEPTION 'Wrong database'; END IF;
+ALTER TABLE public."Loans" DROP CONSTRAINT "appsheet_ref_01";
+ALTER TABLE public."Repayments" DROP CONSTRAINT "appsheet_ref_02";
+ALTER TABLE public."Repayments" DROP CONSTRAINT "appsheet_ref_03";
+ALTER TABLE public."Repayments" DROP CONSTRAINT "appsheet_ref_04";
+ALTER TABLE public."Repayments" DROP CONSTRAINT "appsheet_ref_05";
+ALTER TABLE public."Charges" DROP CONSTRAINT "appsheet_ref_06";
+ALTER TABLE public."Loan Assessment" DROP CONSTRAINT "appsheet_ref_07";
+ALTER TABLE public."Cash Pool Contributions" DROP CONSTRAINT "appsheet_ref_08";
+ALTER TABLE public."Settlements" DROP CONSTRAINT "appsheet_ref_09";
+ALTER TABLE public."Payment Allocations" DROP CONSTRAINT "appsheet_ref_10";
+ALTER TABLE public."Payment Allocations" DROP CONSTRAINT "appsheet_ref_11";
+ALTER TABLE public."Payments" DROP CONSTRAINT "appsheet_ref_12";
+ALTER TABLE public."Payments" DROP CONSTRAINT "appsheet_ref_13";
+DROP TRIGGER appsheet_blank_refs ON public."Loans";
+DROP TRIGGER appsheet_blank_refs ON public."Repayments";
+DROP TRIGGER appsheet_blank_refs ON public."Charges";
+DROP TRIGGER appsheet_blank_refs ON public."Loan Assessment";
+DROP TRIGGER appsheet_blank_refs ON public."Cash Pool Contributions";
+DROP TRIGGER appsheet_blank_refs ON public."Settlements";
+DROP TRIGGER appsheet_blank_refs ON public."Payment Allocations";
+DROP TRIGGER appsheet_blank_refs ON public."Payments";
+DROP FUNCTION public.appsheet_normalize_blank_refs();
+END $rollback$;
+-- Existing NULL references retain their equivalent blank meaning. App version restoration does not undo SQL DDL.

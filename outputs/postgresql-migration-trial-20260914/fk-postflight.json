@@ -1,0 +1,95 @@
+[
+  [
+    {
+      "blanks": 0,
+      "column_name": "Ref Borrowers",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Loans"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Loans",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Repayments"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Charges",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Repayments"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Payment",
+      "nulls": 448,
+      "orphans": 0,
+      "table_name": "Repayments"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Payment Allocation",
+      "nulls": 448,
+      "orphans": 0,
+      "table_name": "Repayments"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Loans",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Charges"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Borrower",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Loan Assessment"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Partner",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Cash Pool Contributions"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Partner",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Settlements"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Payment",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Payment Allocations"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Charge",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Payment Allocations"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Borrower",
+      "nulls": 0,
+      "orphans": 0,
+      "table_name": "Payments"
+    },
+    {
+      "blanks": 0,
+      "column_name": "Ref Target Charge",
+      "nulls": 114,
+      "orphans": 0,
+      "table_name": "Payments"
+    }
+  ]
+]
