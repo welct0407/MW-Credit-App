@@ -4,6 +4,22 @@ Migration continuity (2026-09-08): Lisa's existing late-penalty eligibility was 
 
 # **AppSheet Data Model Overview**
 
+## OLAP assessment SQL prototype — 15 September 2026
+
+Implemented only in **LoanInsights PG Trial 20260914**, app `494cd013-0d9b-482f-9559-c9d83059de91`, version **1.000022**; rollback **1.000013**. Production OLAP **1.100046**, production OLTP **3.000069**, and the OLTP test copy are unchanged. The dictionary's **OLAP Assessment SQL** sheet records all test-specific columns; production inventory sheets are preserved.
+
+The copied app's logical **Loan Assessment** uses `public."Loan Assessment SQL Lab View"` over the separate `public."Loan Assessment SQL Lab"` table. It preserves the copied text Row ID and original inputs, adds 18 stored result/metadata fields, and exposes one additional read-only view field, `SQL Source Current`. Including AppSheet's `_RowNumber`, it has 25 physical/provider fields and 16 VCs. Nine result VCs now read stored values with freshness guards. All SQL fields are read-only except the hidden refresh token; only the calculation timestamp is directly visible.
+
+`assessment_lab.forecast` uses numeric arithmetic, generated dates and cumulative window sums. `assessment_lab.inputs` gathers borrower-specific active loans, charges and repayments. Two BEFORE-row triggers calculate/stamp the assessment on insert/update. **Refresh Assessment** writes `UNIQUEID()` to `SQL Refresh Token`. No triggers were added to OLTP financial tables. The source view compares the stored fingerprint with current calculation inputs and checks the Bangkok as-of date. Source changes are detected after sync; explicit refresh recalculates. Unsynced input edits hide old results. Offline clients cannot detect unseen source changes.
+
+**Calendar** in the copied app now uses `public."OLAP Calendar SQL Lab"`, a generated view preserving 153 dates (2026-08-01–2026-12-31), its Date key, read-only permission and ten descriptive date VCs. Its 16 assessment VCs and obsolete borrower reverse reference/Ref action were removed. Affected slice membership and Calendar inline view were reconciled. Daily Analytics still uses the logical date table; its actions/bots are unchanged. The new assessment does not require a physical Calendar table or spreadsheet. Production OLAP retains its Calendar spreadsheet.
+
+Validation passed: 918 existing AppSheet forecast comparisons; 2,523 input comparisons across 45 active loans and 676 charges; 87,210 independent oracle comparisons across 95 cases; 1,683 date-dimension comparisons; 12 restored assessment result fields; new-GUI input/refresh, stale/invalid/no-eligible results; independent SQL rows and repeat-safe refresh. Eight analytics summary metrics match the control. Copied schedules remain disabled; no production analytics snapshots were overwritten. Existing 13 production foreign keys remain unchanged.
+
+Five interleaved full-sync pairs measured **6.734 → 5.613 seconds median (16.6% faster)** for the combined change. Trigger processing alone did not improve whole-app sync. Complete SQL refresh median: **15.072 ms**, ten runs. These are observed test results, not guaranteed production gains.
+
+Status: **test implementation verified; owner review and production rollout pending**. The fixed forecast window preserves comparison fidelity; rolling bounds and the shared MAIN versus per-user input workflow require review before cutover. SQL computation is already row-specific. Restore copied app version 1.000013 to return to the original sources/formulas; unused lab objects need not be deleted. No Looker source changed. See [report and evidence](../outputs/assessment-sql-20260915/REPORT.md). Raw exports and dictionary rollback copy remain outside Git under `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\assessment-sql-20260915`; private-folder backup coverage is not established.
+
 *Money database  |  Loan Manager ผู้จัดการสินเชื่อ  |  Loan Business Insights*
 
 *Descriptive companion to [AppSheet_Data_Dictionary.xlsx](./AppSheet_Data_Dictionary.xlsx)*
