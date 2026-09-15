@@ -27,15 +27,17 @@ Unknown or newly copied bots default to disabled until reviewed. A prototype lab
 
 This is the last verified baseline from the 15 September editor review, not an automatic guarantee for future copies. Repeat the checklist every time.
 
+Core payment V6 update: OLTP 1.000032 and OLAP 1.000033. The owner-authorized push workflow above now uses four reviewed notification-only bots, including the repurposed first-day-charge route; every task uses `LIST("welct0407@mw-credit.com")`. Owner confirmed tested receipt, closure-summary and first-day amounts. This replaces production-parity event/processing assumptions and the older three-bot count above. Financial processing is SQL-owned; do not re-enable its superseded AppSheet bots. This exception does not authorize other destinations or unrelated notifications.
+
 | App | Bot | Development state | Reason |
 | --- | --- | --- | --- |
-| OLTP | Create First-Day Charge | Enabled | Required loan-creation processing |
-| OLTP | Auto Receive First-Day Charge | Enabled | Required first-day receipt processing |
-| OLTP | Payments - Process Receipt | Enabled | Required receipt/allocation processing |
+| OLTP | Create First-Day Charge | Disabled | Superseded by SQL |
+| OLTP | Notification - First-Day Charge | Enabled, owner only | Repurposed Auto Receive First-Day Charge; notification only |
+| OLTP | Payments - Process Receipt | Disabled | Superseded by unified SQL payment engine |
 | OLTP | Generate Daily Charges | Disabled | Scheduled generation is not needed for the current controlled tests |
-| OLTP | Notification - New Loan Created | Disabled | User-facing notification |
-| OLTP | Notification - Loan Closed | Disabled | User-facing notification |
-| OLTP | Notification - Charge Received | Disabled | User-facing notification |
+| OLTP | Notification - New Loan Created | Enabled, owner only | Reviewed new-loan and SQL first-day receipt alerts |
+| OLTP | Notification - Loan Closed | Enabled, owner only | Reviewed immediate first-day/non-payment closure alerts |
+| OLTP | Notification - Charge Received | Enabled, owner only | Reviewed receipt and one summary of matching closed loans |
 | OLAP | Refresh Daily Analytics Daily | Disabled | Unnecessary scheduled snapshot processing |
 | OLAP | Refresh Daily Analytics Daily 2 | Disabled | Unnecessary scheduled snapshot processing |
 | OLAP | Daily Loan Analysis Export | Disabled | Unnecessary outward-facing export |
