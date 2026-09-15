@@ -6,8 +6,8 @@ Updated 15 September 2026. Production/development are separate Cloud SQL instanc
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000074 | database-2 | 8 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100051 | database-2 | 13 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000080 | database-2 | 8 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100055 | database-2 | 13 |
 | Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000025 | database-3 | 8 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000031 | database-3 | 13 |
 
@@ -29,7 +29,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V4 migrated and validated | V5 migrated and validated | V5 nullable interval anchor is development only; schemas intentionally differ |
+| Flyway | V5 migrated and validated | V5 migrated and validated | Exact tested V5 promoted; normalized schemas match |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
@@ -37,7 +37,7 @@ Passwords remain outside Git under Documents/ChatGPT/AppSheet-Loan-Project. Both
 
 ### Interval anchor verification — 15 September 2026
 
-Development versions above were freshly captured after Loans regeneration and schedule/form changes. Sources remain database-3, all existing keys/Refs/slices/permissions/calculations and companion-app links remain unchanged. Development Flyway V5 adds only Loans.Interest Schedule Anchor Date and its check constraint. Current-GUI synthetic generation, validation, duplicate prevention, unchanged accrual and OLAP readback passed. Daily generation and OLAP scheduled/export bots remain disabled; the three previously owner-authorized Dev pushes retain their sole owner recipient. No notification/export was intentionally triggered by these synthetic tests. Earlier inventory observations below retain their original scope and timestamps; they do not describe V5 schema equality with production. See [interval change notes](../Change%20Logs/CHANGE_NOTES_INTERVAL_ANCHOR_2026-09-15.md).
+All four versions above reflect the interval release. Production V5 applied at 17:16 Bangkok from tested commit b816d7f, after a successful local restore of the production backup and a V4 drift check. Both V5 schema hashes match: `888c78ec92780065a545bad8947e9874718ca3bb1da7d7db839efa60feebe194`. Production sources remain database-2 and development database-3. Existing keys/Refs/slices/permissions/calculations and companion-app links are unchanged. Production 00:05 SE Asia daily generation remains enabled; development daily generation and OLAP scheduled/export bots remain disabled. The three previously owner-authorized Dev pushes retain their owner-only recipients. No bot run, notification or financial transaction was forced during production verification. Both production apps loaded/synced, and the unsaved daily-interest form displayed the optional blank anchor. Earlier inventory observations below retain their original scope and timestamps. See [interval change notes](../Change%20Logs/CHANGE_NOTES_INTERVAL_ANCHOR_2026-09-15.md).
 
 ### Lump-sum release — 15 September 2026 (historical release snapshot)
 

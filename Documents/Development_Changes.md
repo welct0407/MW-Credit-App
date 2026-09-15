@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 for development OLTP **1.000025**, development OLAP **1.000031**, and development Flyway **V5**. Production remains OLTP **3.000074**, OLAP **1.100051**, Flyway **V4**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 for development OLTP **1.000025**, development OLAP **1.000031**, production OLTP **3.000080**, production OLAP **1.100055**, and Flyway **V5** in both environments. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -12,15 +12,15 @@ Updated 15 September 2026 for development OLTP **1.000025**, development OLAP **
 | Calendar | OLAP Calendar SQL Lab generated view | Same generated view | Promoted; fixed 153-day horizon retained |
 | Assessment outputs | Stored SQL outputs read through guarded VCs | Same column definitions | All 53 assessment/Calendar columns match; automatic production edit/readback/restoration passed |
 | Navigation | Production companion app | Other development copy | Keep environments isolated |
-| SQL schema | Flyway V4 | Flyway V5 | V5 interval anchor is development only |
-| Daily-interest schedule | Loan Date origin | Optional Interest Schedule Anchor Date; blank uses Loan Date | Development verified; owner acceptance and production release pending |
+| SQL schema | Flyway V5 | Flyway V5 | Exact tested migration promoted; normalized schemas match |
+| Daily-interest schedule | Optional Interest Schedule Anchor Date; blank uses Loan Date | Same field and expressions | Promoted; production daily bot enabled, development disabled |
 | Lump-sum receipt processing | SQL preparation; AppSheet finalization/closure | Same workflow | Promoted; notification recipients differ by environment |
 | Allocation snapshots | Funded rows only; immutable charge-key ties | Same semantics | SQL ls2: children only; historical rows retained |
 | Connections | 100 limit | 50 limit | Environment configuration; not a migration |
 
 The workbook's **Dev Differences** sheet contains the exact current table, business-column, slice, action and view differences. Full definitions are in the captured app-model.json. AppSheet-generated internal process schemas may differ when disabled processes are omitted; they are not PostgreSQL business tables. Captured differences are observed configuration, not automatic promotion instructions.
 
-### Interval anchor — 15 September 2026, development only
+### Interval anchor — promoted 15 September 2026
 
 `Loans.Interest Schedule Anchor Date` is an optional stored Date, without default, reset or formula. Its SQL check and AppSheet Valid_If require blank or a date on/after Loan Date. It is shown for daily-interest loans, editable in OLTP Loans_Form and displayed in both Loans_Detail views after Interest Payment Interval. OLAP remains read-only. Keys, Refs, slices and existing calculations are unchanged.
 
@@ -28,7 +28,7 @@ Individual charge eligibility, bulk referenced rows/visibility and the disabled 
 
 New-GUI synthetic tests passed for a future anchor, a due anchor, blank fallback, automatic charging off, repeat execution without duplicates, invalid anchor rejection and OLAP readback. Moving a synthetic anchor through the form changed eligibility while charging only interest since the previous charge. Scheduled midnight execution and actual 17 September execution were not run; the bot remains disabled. Synthetic records are retained, hidden at borrower level, with all four Auto Charge Enabled flags off. Production financial records are untouched.
 
-See [change notes](../Change%20Logs/CHANGE_NOTES_INTERVAL_ANCHOR_2026-09-15.md), [exact expressions](../outputs/interval-anchor-20260915/expressions.json) and the dictionary's Dev Differences sheet. Rollback app versions are OLTP **1.000021**, OLAP **1.000028**; retain the additive nullable SQL column when reverting app configuration. Owner acceptance is pending.
+The owner accepted promotion of tested commit b816d7f. Production now uses the same field/rules in OLTP **3.000080**, OLAP **1.100055**, Flyway **V5**. Production current-GUI loading/sync and an unsaved daily-interest form check passed. Existing production anchors remain blank; no existing loan or charge correction was performed. See [change notes](../Change%20Logs/CHANGE_NOTES_INTERVAL_ANCHOR_2026-09-15.md), [exact expressions](../outputs/interval-anchor-20260915/expressions.json) and the dictionary's reconciled field/rule inventory. Production rollback versions are OLTP **3.000075**, OLAP **1.100051**; development rollback remains OLTP **1.000021**, OLAP **1.000028**. Retain the additive nullable SQL column when reverting app configuration.
 
 ### Lump-sum release — 15 September 2026 (historical release snapshot)
 

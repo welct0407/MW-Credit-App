@@ -1,6 +1,9 @@
 import fs from 'node:fs/promises';
-const priv='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/interval-anchor-20260915';
-const out='outputs/interval-anchor-20260915';
+const production=process.argv.includes('--production');
+const folder=production?'interval-promotion-20260915':'interval-anchor-20260915';
+const priv='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/'+folder;
+const out='outputs/'+folder;
+await fs.mkdir(out,{recursive:true});
 const norm=v=>String(v??'').replace(/\s+/g,' ').trim();
 function objects(tables){
  let schema='';const map=new Map();

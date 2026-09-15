@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const out='outputs/interval-anchor-20260915';
+const out='outputs/'+(process.argv.includes('--production')?'interval-promotion-20260915':'interval-anchor-20260915');
 const d=JSON.parse(await fs.readFile(out+'/definition-comparison.json'));
-const e=JSON.parse(await fs.readFile(out+'/expressions.json'));
+const e=JSON.parse(await fs.readFile('outputs/interval-anchor-20260915/expressions.json'));
 const norm=s=>String(s??'').replace(/^=/,'').replace(/\s+/g,' ').trim();
 for(const [app,r]of Object.entries(d)){
  assert.equal(r.removed.length,0);
