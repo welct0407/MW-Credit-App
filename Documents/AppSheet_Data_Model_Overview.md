@@ -14,7 +14,13 @@ Production OLTP and OLAP share Cloud SQL PostgreSQL database **loan_manager_prod
 
 OLTP owns borrowers, loan operations, charges, receipts and allocation posting. OLAP owns partner management, contributions, settlement, portfolio analysis and loan assessment. Looker Studio is downstream presentation over governed feeds. Its source configuration has not been freshly reconciled in this task. External collection software remains governed in its separate repository; the presence of collection-related borrower fields here does not authorize changes to that system.
 
-### Lump-sum release — 15 September 2026
+### Development-only interval anchor — 15 September 2026
+
+Development Flyway **V5** adds optional `Loans.Interest Schedule Anchor Date` (Date, no default/backfill; blank or on/after Loan Date). Dev OLTP **1.000025** owns editing and scheduling; Dev OLAP **1.000031** displays the field read-only. The field appears after Interest Payment Interval in OLTP Loans_Form and both Loans_Detail views, only for daily-interest loans. It is neither a key nor a Ref and does not alter existing relationships, slices or accrual calculations.
+
+Individual/bulk daily-interest eligibility and the disabled daily schedule filter use the explicit anchor or fall back to Loan Date. Subsequent dates are anchor plus interval multiples: 14 September + 3 days gives 17 September. Users enter an agreed anchor when rescheduling; payments do not reset it automatically. Posted records are preserved. Both development apps were regenerated and reconciled, and synthetic current-GUI tests passed. Scheduled future execution and owner acceptance remain pending. Production remains on V4 and has no anchor field; the production inventory below remains unchanged. Exact field settings, expressions and view memberships are in the workbook's Dev Differences sheet and [development change notes](../Change%20Logs/CHANGE_NOTES_INTERVAL_ANCHOR_2026-09-15.md).
+
+### Lump-sum release — 15 September 2026 (historical release snapshot)
 
 Production OLTP **3.000074**, Dev OLTP **1.000019**, both databases **Flyway V4**. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
 

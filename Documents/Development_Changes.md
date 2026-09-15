@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 for production OLAP **1.100051**, development OLAP **1.000027**, and the lump-sum replacement in development OLTP **1.000019**. Production OLTP is **3.000074**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 for development OLTP **1.000025**, development OLAP **1.000031**, and development Flyway **V5**. Production remains OLTP **3.000074**, OLAP **1.100051**, Flyway **V4**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -12,14 +12,25 @@ Updated 15 September 2026 for production OLAP **1.100051**, development OLAP **1
 | Calendar | OLAP Calendar SQL Lab generated view | Same generated view | Promoted; fixed 153-day horizon retained |
 | Assessment outputs | Stored SQL outputs read through guarded VCs | Same column definitions | All 53 assessment/Calendar columns match; automatic production edit/readback/restoration passed |
 | Navigation | Production companion app | Other development copy | Keep environments isolated |
-| SQL schema | Flyway V4 | Flyway V4 | Exact tested migrations promoted |
+| SQL schema | Flyway V4 | Flyway V5 | V5 interval anchor is development only |
+| Daily-interest schedule | Loan Date origin | Optional Interest Schedule Anchor Date; blank uses Loan Date | Development verified; owner acceptance and production release pending |
 | Lump-sum receipt processing | SQL preparation; AppSheet finalization/closure | Same workflow | Promoted; notification recipients differ by environment |
 | Allocation snapshots | Funded rows only; immutable charge-key ties | Same semantics | SQL ls2: children only; historical rows retained |
 | Connections | 100 limit | 50 limit | Environment configuration; not a migration |
 
 The workbook's **Dev Differences** sheet contains the exact current table, business-column, slice, action and view differences. Full definitions are in the captured app-model.json. AppSheet-generated internal process schemas may differ when disabled processes are omitted; they are not PostgreSQL business tables. Captured differences are observed configuration, not automatic promotion instructions.
 
-### Lump-sum release — 15 September 2026
+### Interval anchor — 15 September 2026, development only
+
+`Loans.Interest Schedule Anchor Date` is an optional stored Date, without default, reset or formula. Its SQL check and AppSheet Valid_If require blank or a date on/after Loan Date. It is shown for daily-interest loans, editable in OLTP Loans_Form and displayed in both Loans_Detail views after Interest Payment Interval. OLAP remains read-only. Keys, Refs, slices and existing calculations are unchanged.
+
+Individual charge eligibility, bulk referenced rows/visibility and the disabled Daily 00:05 scheduled filter now use the explicit anchor, falling back to Loan Date. With anchor 14 September and interval 3, subsequent scheduled dates are 17, 20 and 23 September. Enter the agreed anchor explicitly when changing an existing schedule; changing the interval alone retains its existing origin. Payments do not automatically reset the anchor. The original loan date, daily accrual and existing charges remain unchanged.
+
+New-GUI synthetic tests passed for a future anchor, a due anchor, blank fallback, automatic charging off, repeat execution without duplicates, invalid anchor rejection and OLAP readback. Moving a synthetic anchor through the form changed eligibility while charging only interest since the previous charge. Scheduled midnight execution and actual 17 September execution were not run; the bot remains disabled. Synthetic records are retained, hidden at borrower level, with all four Auto Charge Enabled flags off. Production financial records are untouched.
+
+See [change notes](../Change%20Logs/CHANGE_NOTES_INTERVAL_ANCHOR_2026-09-15.md), [exact expressions](../outputs/interval-anchor-20260915/expressions.json) and the dictionary's Dev Differences sheet. Rollback app versions are OLTP **1.000021**, OLAP **1.000028**; retain the additive nullable SQL column when reverting app configuration. Owner acceptance is pending.
+
+### Lump-sum release — 15 September 2026 (historical release snapshot)
 
 Production OLTP **3.000074**, Dev OLTP **1.000019**, both databases **Flyway V4**. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
 
