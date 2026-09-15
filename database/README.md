@@ -37,17 +37,25 @@ The V1 migration is a schema-only export of the verified development/production 
 
 The runner rejects mismatched commits/hashes, dirty checkouts and missing approval/backup references. These are operator safeguards, not an authorization service: the agent must verify the referenced evidence. No push triggers production deployment. After promotion verify sync and affected workflows, capture results and update the change log. Failed migrations require investigation, not automatic `repair` or retries of financial backfills.
 
+## Current production release
+
+Phases 1–6 were explicitly authorized and promoted on 15 September 2026 from tested commit `33ed313f585311dcd0caffb1488ea8ac574bfb6e`. Both environments are **V10**. Production app versions are **3.000094 / 1.100062**; development remains **1.000042 / 1.000040**. See [release evidence and recovery](../outputs/core-promotion-20260915/REPORT.md).
+
+Production job `loan-daily-charges` is active for **00:05 Asia/Bangkok**. Read it with `Set-ProductionChargeSchedule.ps1 -Mode status`; enable/pause operations require the actual owner approval reference and exact tested release manifest. This runner changes only scheduler activation, not financial rows or DDL. `Get-CorePromotionAudit.ps1` returns aggregate fingerprints/catalog metadata without borrower data. Development fixture/scheduler runners remain pinned to development.
+
+AppSheet financial bots are disabled and notification-only routes use production partner recipients. The V6–V10 sections below retain development test and rollback checkpoints. Their former development-only scope is superseded by this release. Applied migrations are immutable; any correction now requires **V11 or higher**. Restore AppSheet and SQL together; an app version restore alone is unsafe.
+
 ## Recovery and limits
 
-### Atomic Default Loan V10 — development only
+### Atomic Default Loan V10 — promoted; development test evidence below
 
 The confirmed OLTP action updates existing Loans fields Defaulted, Close Date, Closed By and Loan Status in one request. `default_loan_transition` calls `post_loan_default`; SQL computes loss, writes off outstanding charge components, inserts one zero-cash loss charge/repayment and closes the loan atomically. Prior repayments/allocations and all charge keys are retained. Notes records original and written-off amounts; `df10:` postings and recorded default financial state are immutable. This preserves the owner's prototype positive-principal/negative-interest loss convention. No new columns or tables and no historical backfill.
 
-Current development versions: OLTP 1.000042, OLAP 1.000040; rollback both apps 1.000039 and database V9. Seven old Default sub-actions are disabled. Default alerts identify the loss and no cash received; OLAP's loss currency display is baht. Both-app synthetic losses 100/90/110/92 reconcile, with prior cash 0/30/0/15 preserved. Owner acceptance is pending; see the [phase 6 report](../outputs/default-loan-20260915/REPORT.md).
+Current development versions: OLTP 1.000042, OLAP 1.000040; rollback both apps 1.000039 and database V9. Seven old Default sub-actions are disabled. Default alerts identify the loss and no cash received; OLAP's loss currency display is baht. Both-app synthetic losses 100/90/110/92 reconcile, with prior cash 0/30/0/15 preserved. Owner authorized the subsequent production promotion; see the [phase 6 report](../outputs/default-loan-20260915/REPORT.md).
 
 Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-DefaultLoan.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency`. This includes earlier functional suites, default failure/duplicate/same-day tests and borrower-lock contention. `Invoke-DefaultLoanLab.ps1` seeds/verifies/hides only DF10GUI development fixtures; never replay seeding or snapshots automatically. V10 is applied and immutable; corrections require V11 or higher. Do not restore the old AppSheet financial chain independently of the database trigger.
 
-### Common charge generation V8/V9 — development only
+### Common charge generation V8/V9 — promoted; development test evidence below
 
 `generate_loan_charge(loan, business_date, manual_request)` owns ordinary daily-interest, fixed-date and installment generation. `generate_due_charges(business_date, optional_loan_ids)` calls it in a deterministic atomic batch. The approved nullable `Loans.Charge Generation Request` command invokes the same engine through `manual_charge_generation`; OLTP sends a dated nonce, with user editing blocked. Bangkok-stale/malformed requests fail; existing loan/date charges are skipped. First-day and final-close routines remain specialized SQL paths.
 
@@ -55,9 +63,9 @@ V9 installs pg_cron on Cloud SQL and creates an initially inactive 00:05 Asia/Ba
 
 At the phases 4–5 checkpoint, both development apps were 1.000039, rollback 1.000036. Generate Today's Charge sets only the hidden Text request field; Generate All Today's Charges keeps its existing routing/visibility. OLAP Reporting Loans includes the hidden field and remains read-only. The AppSheet Generate Daily Charges bot stays disabled. The V10 section above records the current app versions.
 
-Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-ChargeGeneration.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency` for the full functional and concurrency suite used by CI. Manual lock contention returns a sync/retry error promptly; the nightly batch rolls back on an invalid eligible loan. `Invoke-ChargeGenerationLab.ps1` is confined to the reviewed development fixtures; `Set-DevelopmentChargeSchedule.ps1` starts/status-checks/finishes the synthetic schedule and enables/pauses the primary development job. `Get-ChargeGenerationState.ps1` is read-only. Never replay fixture seeding or snapshots automatically. V8/V9 are applied and immutable; corrections require V10 or higher. Production remains V5 and requires separate release approval.
+Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-ChargeGeneration.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency` for the full functional and concurrency suite used by CI. Manual lock contention returns a sync/retry error promptly; the nightly batch rolls back on an invalid eligible loan. `Invoke-ChargeGenerationLab.ps1` is confined to the reviewed development fixtures; `Set-DevelopmentChargeSchedule.ps1` starts/status-checks/finishes the synthetic schedule and enables/pauses the primary development job. `Get-ChargeGenerationState.ps1` is read-only. Never replay fixture seeding or snapshots automatically. V8/V9 are applied and immutable; corrections require V10 or higher. Production now runs the same V10 schema under the release approval above.
 
-### Atomic Close Loan V7 — development only
+### Atomic Close Loan V7 — promoted; development test evidence below
 
 V7 extends the V6 engine so one `Payments` write with Allocation Method `Loan Close`, Status `Processing`, today's Bangkok Payment Date, matching Ref Borrower and **Ref Target Loan** prepares the final charge and posts the receipt atomically. The amount submitted by AppSheet is an estimate; SQL derives the actual amount from locked component balances. Existing blank-target legacy commands retain V6 behavior. The reserved `lc7:` charge prefix prevents final charges becoming first-day net-off receipts.
 
@@ -65,11 +73,11 @@ Use the matching OLTP/OLAP **1.000036** definitions in [V7 configuration](../out
 
 Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-AtomicLoanClose.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency` for the full V6/V7 functional and concurrency suite, also used by CI. `Invoke-AtomicLoanCloseLab.ps1` is limited to the pinned development AC7GUI fixtures; seed only once, verify after current-GUI actions, then close hides borrowers/disables auto-charge without deleting history. Preservation checks compare the private pre-task baseline, excluding only that fixture family and Payments.Ref Target Loan.
 
-V7 is applied and immutable; corrections require **V8 or higher**. Pause/reconcile outstanding commands before coordinated SQL/AppSheet fallback. Preserve references and financial history; an app restore alone cannot revert the database. [Verification, backup and rollback details](../outputs/atomic-close-20260915/REPORT.md). Production remains V5; no production release is authorized.
+V7 is applied and immutable; corrections require **V8 or higher**. Pause/reconcile outstanding commands before coordinated SQL/AppSheet fallback. Preserve references and financial history; an app restore alone cannot revert the database. [Verification, backup and rollback details](../outputs/atomic-close-20260915/REPORT.md). Production promotion is recorded above; these are historical V7 development checks.
 
-### Core payment V6 — development only
+### Core payment V6 — promoted; development test evidence below
 
-V6 moves all six payment methods, payment-caused closure and first-day charge/receipt creation into SQL. Production remains V5. Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-CorePayment.sql -CorePaymentConcurrency` for the functional and concurrency regression suite. `Invoke-CorePaymentLab.ps1` manages only the pinned development CP6GUI synthetic fixture family; its seed/prepare-close modes are setup, not replayable financial correction tools. `Test-CorePaymentPreservation.ps1` compares original-record fingerprints against the private pre-task baseline and excludes only that fixture family and the new nullable field.
+V6 moves all six payment methods, payment-caused closure and first-day charge/receipt creation into SQL. Production now runs V10. Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-CorePayment.sql -CorePaymentConcurrency` for the functional and concurrency regression suite. `Invoke-CorePaymentLab.ps1` manages only the pinned development CP6GUI synthetic fixture family; its seed/prepare-close modes are setup, not replayable financial correction tools. `Test-CorePaymentPreservation.ps1` compares original-record fingerprints against the private pre-task baseline and excludes only that fixture family and the new nullable field.
 
 Apply the matching AppSheet configuration in the [core payment report](../outputs/core-payment-20260915/REPORT.md): read-only closing Ref in both apps, disabled superseded financial bots/actions, reviewed owner-only notification routes. Standalone function invocation is not the supported AppSheet command path; new/retried Payments writes invoke the routing trigger. At the V6 checkpoint, the daily Close Loan final-charge wrapper remained outside the receipt transaction; V7 above supersedes that boundary. Applied migrations are immutable. No production release is authorized by this documentation or repository push.
 

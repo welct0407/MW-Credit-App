@@ -1,0 +1,11 @@
+{
+  "scope": "Per-column aggregate fingerprints; no record data output",
+  "changedAnalyticsFields": [
+    "Available Cash EOD",
+    "Generated At",
+    "Interest Received",
+    "Pending Charges EOD",
+    "Row ID",
+    "Unsettled Profit EOD"
+  ]
+}

@@ -1,5 +1,8 @@
 # Phase 6 — Default Loan in SQL
 
+**Subsequent release:** the owner accepted the implementation through the explicit request to promote phases 1–6 on 15 September 2026. Production promotion is complete at OLTP 3.000094 / OLAP 1.100062 / Flyway V10; see the core-promotion-20260915 release report. Separate phase-6 device notification feedback was not explicitly received. The development-only status and rollback checkpoints below are historical.
+
+
 Date: 15 September 2026. Development implementation and verification complete; owner acceptance pending. Production unchanged.
 
 ## Implemented behavior

@@ -1,5 +1,8 @@
 # Phase 6 — atomic Default Loan (2026-09-15)
 
+**Subsequent release:** the owner accepted the implementation through the explicit request to promote phases 1–6 on 15 September 2026. Production promotion is complete at OLTP 3.000094 / OLAP 1.100062 / Flyway V10; see the core-promotion-20260915 release report. Separate phase-6 device notification feedback was not explicitly received. The development-only status and rollback checkpoints below are historical.
+
+
 Status: implemented and verified in development; owner acceptance/notification feedback pending. Production unchanged. Implementation published to master as `6202997846fabfc7a5c175c383cdc6184bc4322a`; independent GitHub migration CI passed.
 
 ## Rollback and scope

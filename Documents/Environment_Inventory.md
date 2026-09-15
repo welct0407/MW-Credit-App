@@ -6,8 +6,8 @@ Updated 15 September 2026. Production/development are separate Cloud SQL instanc
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000080 | database-2 | 8 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100055 | database-2 | 13 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000094 | database-2 | 8 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100062 | database-2 | 13 |
 | Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000042 | database-3 | 8 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000040 | database-3 | 13 |
 
@@ -29,15 +29,21 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V5 migrated and validated | V10 migrated and validated | Core payment, atomic final-charge preparation, common generation and atomic default are development only; schemas intentionally differ |
+| Flyway | V10 migrated and validated | V10 migrated and validated | Exact tested V6–V10 promoted; normalized schemas match |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
-Passwords remain outside Git under Documents/ChatGPT/AppSheet-Loan-Project. Both environment configurations reference the existing external password file; values are never included here. Private credential/snapshot backup coverage is not established by Git or database backups. Backup/PITR/deletion-protection settings were recorded in prior instance logs; no restore was tested by this documentation task.
+Passwords remain outside Git under Documents/ChatGPT/AppSheet-Loan-Project. Both environment configurations reference the existing external password file; values are never included here. Private credential/snapshot backup coverage is not established by Git or database backups. The production core release below freshly confirmed backup/PITR/deletion protection and tested a full logical restore.
+
+### Core phases 1–6 production release — 15 September 2026
+
+Production app rollback versions were OLTP 3.000080 and freshly observed OLAP 1.100056. A full logical backup restored successfully, with all 14 original table fingerprints matching. Production V6–V10 applied at 22:07:33 Bangkok. Normalized V10 hash: `242404152af2760a046b1e628e7a4df1e56a1a7230e90839f8192d8e05217bba`. Both production apps saved and synced, with business bindings/permissions and unrelated formulas preserved. No financial test transaction was submitted. Original financial records remain unchanged; the existing hourly analytics refresh changed its snapshot.
+
+Production Cloud SQL flags saved/restarted 22:05:38–22:06:10 Bangkok: cloudsql.enable_pg_cron=on, cron.database_name=loan_manager_prod, cron.timezone=Asia/Bangkok, cron.max_running_jobs=1. Existing IAM authentication and max_connections=100 were preserved. Job loan-daily-charges was enabled at 22:50:48 for 00:05 Bangkok, first due 16 September. Development nightly generation remains active independently. No instance tier/network/credential change. [production release](../outputs/core-promotion-20260915/REPORT.md) records backups, exact hashes, consumers, verification and coordinated rollback.
 
 ### Interval anchor verification — 15 September 2026 (historical pre-V6 checkpoint)
 
-All four versions above reflect the interval release. Production V5 applied at 17:16 Bangkok from tested commit b816d7f, after a successful local restore of the production backup and a V4 drift check. Both V5 schema hashes match: `888c78ec92780065a545bad8947e9874718ca3bb1da7d7db839efa60feebe194`. Production sources remain database-2 and development database-3. Existing keys/Refs/slices/permissions/calculations and companion-app links are unchanged. Production 00:05 SE Asia daily generation remains enabled; development daily generation and OLAP scheduled/export bots remain disabled. The three previously owner-authorized Dev pushes retain their owner-only recipients. No bot run, notification or financial transaction was forced during production verification. Both production apps loaded/synced, and the unsaved daily-interest form displayed the optional blank anchor. Earlier inventory observations below retain their original scope and timestamps. See [interval change notes](../Change%20Logs/CHANGE_NOTES_INTERVAL_ANCHOR_2026-09-15.md).
+The following paragraph records the historical interval-release versions. Production V5 applied at 17:16 Bangkok from tested commit b816d7f, after a successful local restore of the production backup and a V4 drift check. Both V5 schema hashes match: `888c78ec92780065a545bad8947e9874718ca3bb1da7d7db839efa60feebe194`. Production sources remain database-2 and development database-3. Existing keys/Refs/slices/permissions/calculations and companion-app links are unchanged. Production 00:05 SE Asia daily generation remains enabled; development daily generation and OLAP scheduled/export bots remain disabled. The three previously owner-authorized Dev pushes retain their owner-only recipients. No bot run, notification or financial transaction was forced during production verification. Both production apps loaded/synced, and the unsaved daily-interest form displayed the optional blank anchor. Earlier inventory observations below retain their original scope and timestamps. See [interval change notes](../Change%20Logs/CHANGE_NOTES_INTERVAL_ANCHOR_2026-09-15.md).
 
 ### Lump-sum release — 15 September 2026 (historical release snapshot)
 
@@ -53,9 +59,9 @@ Rollback points: Dev OLTP **1.000014**, production OLTP **3.000071**, OLAP uncha
 
 ## Verification coverage
 
-Latest development checkpoint: V10, OLTP 1.000042 and OLAP 1.000040. Current editor/appdoc comparisons and current OLTP/OLAP default-loan financial readback passed; owner acceptance pending. The live normalized business schema equals the independent V10 rebuild (`242404152af2760a046b1e628e7a4df1e56a1a7230e90839f8192d8e05217bba`). [Default Loan report](../outputs/default-loan-20260915/REPORT.md) supersedes historical development entries below; production remains the previously verified V5 checkpoint. Both-app rollback versions are 1.000039; prior phases' acceptance remains recorded in their reports. Nightly development generation remains active at 00:05 Bangkok.
+Latest development checkpoint: V10, OLTP 1.000042 and OLAP 1.000040. Current editor/appdoc comparisons and current OLTP/OLAP default-loan financial readback passed. The owner subsequently accepted implementation through the phases 1–6 production request; separate phase-6 device push confirmation was not recorded. The normalized business schema equals the independent V10 rebuild (`242404152af2760a046b1e628e7a4df1e56a1a7230e90839f8192d8e05217bba`) and now matches production V10. The [Default Loan report](../outputs/default-loan-20260915/REPORT.md) retains its historical development test evidence and 1.000039 rollback versions. Nightly development generation remains active at 00:05 Bangkok.
 
-Development Cloud SQL flags saved/restarted at 20:35:07 Bangkok: cloudsql.enable_pg_cron=on, cron.database_name=loan_manager_prod, cron.timezone=Asia/Bangkok, cron.max_running_jobs=1; existing cloudsql.iam_authentication=on and max_connections=50 preserved. Actual pg_cron extension 1.6.7 uses background workers. Session TimeZone remains UTC. Job `loan-daily-charges` is active at 00:05 Bangkok by explicit owner approval after the successful synthetic run at 20:52. Temporary job 2 was removed; CG8GUI borrowers hidden and loan auto-charge disabled. AppSheet Generate Daily Charges remains disabled. No production flags/job were changed.
+Development Cloud SQL flags saved/restarted at 20:35:07 Bangkok: cloudsql.enable_pg_cron=on, cron.database_name=loan_manager_prod, cron.timezone=Asia/Bangkok, cron.max_running_jobs=1; existing cloudsql.iam_authentication=on and max_connections=50 preserved. Actual pg_cron extension 1.6.7 uses background workers. Session TimeZone remains UTC. Job `loan-daily-charges` is active at 00:05 Bangkok by explicit owner approval after the successful synthetic run at 20:52. Temporary job 2 was removed; CG8GUI borrowers hidden and loan auto-charge disabled. AppSheet Generate Daily Charges remains disabled. That statement describes the development checkpoint; the later production flags/job promotion is recorded above.
 
 | Area | Latest evidence | Status / limitation |
 | --- | --- | --- |
@@ -85,17 +91,17 @@ All four settings rows incorporate the earlier [PostgreSQL sync-options change](
 
 ## Current bot enablement
 
-Development rows below reflect the V6 core payment cutover at OLTP 1.000032 / OLAP 1.000033. Production rows retain the prior captured state. All four enabled development bots contain reviewed notification-only tasks to the owner account; first-day/payment financial work now runs in SQL. Both current apps synced the synthetic results. See [core payment verification](../outputs/core-payment-20260915/REPORT.md).
+Development rows below reflect the V6 core payment cutover at OLTP 1.000032 / OLAP 1.000033. Production rows reflect the phases 1–6 promotion at OLTP 3.000094 / OLAP 1.100062. All four enabled development bots contain reviewed notification-only tasks to the owner account; first-day/payment financial work now runs in SQL. Both current apps synced the synthetic results. See [core payment verification](../outputs/core-payment-20260915/REPORT.md).
 
 | App | Bot | Enabled |
 | --- | --- | --- |
-| production-oltp | Auto Receive First-Day Charge | Yes |
-| production-oltp | Create First-Day Charge | Yes |
-| production-oltp | Generate Daily Charges | Yes |
+| production-oltp | Notification - First-Day Charge | Yes |
+| production-oltp | Create First-Day Charge | No |
+| production-oltp | Generate Daily Charges | No |
 | production-oltp | Notification - New Loan Created | Yes |
 | production-oltp | Notification - Loan Closed | Yes |
 | production-oltp | Notification - Charge Received | Yes |
-| production-oltp | Payments - Process Receipt | Yes |
+| production-oltp | Payments - Process Receipt | No |
 | production-olap | Refresh Daily Analytics Daily | No |
 | production-olap | Refresh Daily Analytics Daily 2 | Yes |
 | production-olap | Daily Loan Analysis Export | No |
@@ -110,7 +116,7 @@ Development rows below reflect the V6 core payment cutover at OLTP 1.000032 / OL
 | development-olap | Refresh Daily Analytics Daily 2 | No |
 | development-olap | Daily Loan Analysis Export | No |
 
-Production Daily Loan Analysis Export remains disabled. The production OLAP Refresh Daily Analytics Daily 2 bot is enabled; its predecessor is disabled. All three development OLAP bots are disabled. Production OLTP retains seven enabled bots. Development uses SQL financial processing and four reviewed owner-only notification bots; generation remains disabled. Owner confirmed core payment receipt, two-loan closure summary and first-day alert amounts. Codex scheduler state is outside this change. The older evidence/rollback paragraphs below describe the earlier documentation reconciliation; current core payment rollback is OLTP 1.000025 / OLAP 1.000031 with a coordinated SQL forward-fix, as recorded in its report.
+Production Daily Loan Analysis Export remains disabled. The production OLAP Refresh Daily Analytics Daily 2 bot is enabled; its predecessor is disabled. All three development OLAP bots are disabled. Production OLTP has four enabled notification-only bots; all three superseded financial bots are disabled. Development uses SQL financial processing and four reviewed owner-only notification bots; AppSheet generation remains disabled. Owner confirmed development core payment receipt, two-loan closure summary and first-day alert amounts. Codex scheduler state is outside this change. The older evidence/rollback paragraphs below describe the earlier documentation reconciliation. Historical development V6 app rollback was OLTP 1.000025 / OLAP 1.000031; the current production release rollback is OLTP 3.000080 / OLAP 1.100056 with coordinated SQL recovery, as recorded above.
 
 ## Evidence and rollback
 

@@ -1,35 +1,30 @@
 # Development differences
 
-Updated 15 September 2026 for development OLTP **1.000042**, development OLAP **1.000040**, production OLTP **3.000080**, production OLAP **1.100055**. Development is Flyway **V10**, production **V5**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 for development OLTP **1.000042**, development OLAP **1.000040**, production OLTP **3.000094**, production OLAP **1.100062**. Both databases are Flyway **V10**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
-| Area | Production | Development | Promotion status |
+| Area | Production | Development | Status |
 | --- | --- | --- | --- |
-| Database instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Isolation is intentional; never promote the development host |
-| AppSheet source | database-2 | database-3 | All copied app SQL sources isolated |
-| Loan Assessment | Loan Assessment SQL Lab View over Loan Assessment SQL Lab | Same logical design on isolated DB | Promoted by owner authorization in production 1.100051 |
-| Calendar | OLAP Calendar SQL Lab generated view | Same generated view | Promoted; fixed 153-day horizon retained |
-| Assessment outputs | Stored SQL outputs read through guarded VCs | Same column definitions | All 53 assessment/Calendar columns match; automatic production edit/readback/restoration passed |
-| Navigation | Production companion app | Other development copy | Keep environments isolated |
-| SQL schema | Flyway V5 | Flyway V10 | Core payment, atomic final charge, common generation and atomic default development only; production approval pending |
-| Manual charge generation | AppSheet adds Charges | Loans request token invokes common SQL generator | Existing bulk route and eligibility retained |
-| Generation request | Absent | Loans.Charge Generation Request, hidden Text, no default/backfill | Owner-approved; OLTP Editable_If FALSE, OLAP read-only; Reporting Loans reconciled |
-| Nightly charge generation | AppSheet bot | pg_cron at 00:05 Asia/Bangkok, active | Owner approved development nightly runs; AppSheet generation bot remains disabled |
-| Daily-interest schedule | Optional Interest Schedule Anchor Date; blank uses Loan Date | Same field and expressions | Promoted; production daily bot enabled, development disabled |
-| Receipt processing | SQL lump-sum preparation; AppSheet finalization/closure | SQL posts all six methods and closes eligible loans atomically | Phases 1–3 implemented; overall acceptance pending |
-| Closing reference | Absent | Loans.Ref Closing Payment, read-only Ref in both apps; generated Payments.Related Loans | Owner-approved; no historical backfill; Reporting Loans slice reconciled |
-| First-day processing | AppSheet bots | SQL charge + receipt + ledger transaction | Daily/installment and no-auto cases tested |
-| Allocation snapshots | Funded rows only; immutable charge-key ties; ls2: children | Same financial semantics; new pc6: children | Historical rows retained; negative allocation-order snapshot |
-| Connections | 100 limit | 50 limit | Environment configuration; not a migration |
+| Database instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Isolation retained |
+| AppSheet source | database-2 | database-3 | Never promote the development host |
+| SQL schema | Flyway V10 | Flyway V10 | Exact migration hashes and normalized schemas match |
+| Core payments, final close, first day, default | Atomic SQL | Same SQL | Phases 1–6 promoted with owner approval |
+| Manual generation | Hidden dated Loans request | Same request | Same common SQL rules |
+| Nightly generation | pg_cron 00:05 Bangkok, active | pg_cron 00:05 Bangkok, active | Separate jobs; AppSheet generation disabled |
+| New fields | Closing-payment Ref, target-loan Ref, hidden generation request | Same model | Both consumers reconciled; no backfill |
+| Notification recipients | Existing Partners emails, excluding acting user | Approved owner account only | Intentional environment difference |
+| OLAP hourly analytics | Existing refresh enabled | Disabled | Preserved; phase 7 not included |
+| Connections | 100 | 50 | Capacity/settings remain separate |
+| Companion navigation | Production app | Development app | Isolation retained |
 
-The workbook's **Dev Differences** sheet contains the exact current table, business-column, slice, action and view differences. Full definitions are in the captured app-model.json. AppSheet-generated internal process schemas may differ when disabled processes are omitted; they are not PostgreSQL business tables. Captured differences are observed configuration, not automatic promotion instructions.
+Owner acceptance of the implementation was provided through the explicit request to promote phases 1–6. Production rollback versions are OLTP 3.000080 / OLAP 1.100056, with a coordinated SQL forward-fix or approved database recovery. See [production release](../outputs/core-promotion-20260915/REPORT.md). The workbook records current production columns/rules and the earlier development comparison history with promoted production values. The sections below retain development test checkpoints and their rollback versions; they do not supersede this current release status.
 
 ### Atomic Default Loan — development phase 6
 
 OLTP 1.000042 and OLAP 1.000040, rollback both 1.000039. V10 posts defaults atomically from one confirmed Loans update, without new columns/tables. Loss is SQL-calculated outstanding principal; positive-principal/negative-interest repayment preserves the zero-cash prototype convention. All earlier payment/allocation links survive. Unpaid charges are retained and reduced to paid components with an audit note; seven old Default sub-actions are FALSE. Default notifications show loss/no new cash, with the approved owner-only recipient. OLAP's Default Loss Amount now displays baht with zero decimals; read-only access and all other model settings are unchanged.
 
-Current-GUI losses 100/90/110/92 and preserved cash 0/30/0/15 reconcile in both apps. Original records in 14 tables are unchanged; owner acceptance pending. Retained charge rows may affect count-based downstream reports; Looker was not edited. [Phase 6 evidence and recovery](../outputs/default-loan-20260915/REPORT.md).
+Current-GUI losses 100/90/110/92 and preserved cash 0/30/0/15 reconcile in both apps. Original records in 14 tables were unchanged at that development checkpoint. The owner subsequently authorized production promotion; separate phase-6 device push confirmation was not recorded. Retained charge rows may affect count-based downstream reports; Looker was not edited. [Phase 6 evidence and recovery](../outputs/default-loan-20260915/REPORT.md).
 
 ### Common generation — development phases 4–5
 
