@@ -36,7 +36,7 @@ Atomic Close Loan V7 update: both apps **1.000036**. Fresh before/after definiti
 | OLTP | Create First-Day Charge | Disabled | Superseded by SQL |
 | OLTP | Notification - First-Day Charge | Enabled, owner only | Repurposed Auto Receive First-Day Charge; notification only |
 | OLTP | Payments - Process Receipt | Disabled | Superseded by unified SQL payment engine |
-| OLTP | Generate Daily Charges | Disabled | Scheduled generation is not needed for the current controlled tests |
+| OLTP | Generate Daily Charges | Disabled | Superseded in development by the reviewed pg_cron daily job |
 | OLTP | Notification - New Loan Created | Enabled, owner only | Reviewed new-loan and SQL first-day receipt alerts |
 | OLTP | Notification - Loan Closed | Enabled, owner only | Reviewed immediate first-day/non-payment closure alerts |
 | OLTP | Notification - Charge Received | Enabled, owner only | Reviewed receipt and one summary of matching closed loans |
@@ -45,6 +45,12 @@ Atomic Close Loan V7 update: both apps **1.000036**. Fresh before/after definiti
 | OLAP | Daily Loan Analysis Export | Disabled | Unnecessary outward-facing export |
 
 A future test may require different internal processing, such as controlled charge generation. Review its necessity and development-only effects before enabling it, and record the decision. Notifications and other confusing outward-facing bots remain disabled. No bot is granted permanent permission solely by appearing in an old baseline.
+
+## Database charge-generation schedule
+
+Phases 4–5 checkpoint: Flyway V9, both apps 1.000039. Owner explicitly approved nightly development generation. The database job `loan-daily-charges` runs at 00:05 Asia/Bangkok after a successful synthetic scheduled test. It writes development charges only through the common V8 generator; no new outward-facing task was added. Four owner-only AppSheet notification bots and all other disabled states remain unchanged.
+
+After a database/app refresh, inventory database jobs separately as well as AppSheet bots. Do not inherit an active scheduler without reviewing its target, necessity, timing and effects. Keep the old AppSheet Generate Daily Charges bot disabled to prevent a second generator. Do not disable payment/integrity triggers. Use `scripts/database/Get-ChargeGenerationState.ps1` and the reviewed development schedule runner to inspect/pause the current job. A future copy/instance requires a fresh identity review before adapting a pinned runner. See the [phase 4–5 report](../outputs/charge-generation-20260915/REPORT.md).
 
 ## Evidence and maintenance
 

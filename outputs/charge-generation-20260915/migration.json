@@ -1,0 +1,31 @@
+{
+  "database" : "loan_manager_prod",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "7",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "common charge generation",
+    "executionTime" : 518,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V8__common_charge_generation.sql",
+    "type" : "SQL",
+    "version" : "8"
+  }, {
+    "category" : "Versioned",
+    "description" : "daily charge schedule",
+    "executionTime" : 203,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V9__daily_charge_schedule.sql",
+    "type" : "SQL",
+    "version" : "9"
+  } ],
+  "migrationsExecuted" : 2,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "9",
+  "timestamp" : "2026-09-15T20:37:18.3635889+07:00",
+  "totalMigrationTime" : 721,
+  "warnings" : [ ]
+}

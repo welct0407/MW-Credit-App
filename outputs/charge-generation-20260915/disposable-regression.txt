@@ -1,0 +1,436 @@
+SET
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 2
+INSERT 0 3
+INSERT 0 5
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+ post_payment
+--------------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+INSERT 0 4
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ create_first_day_charge
+-------------------------
+
+(1 row)
+
+ first_day_receipt
+-------------------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+INSERT 0 1
+ assert
+--------
+
+(1 row)
+
+             result
+---------------------------------
+ Core payment regressions passed
+(1 row)
+
+ROLLBACK
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 2
+INSERT 0 11
+UPDATE 1
+UPDATE 1
+INSERT 0 6
+INSERT 0 1
+INSERT 0 1
+UPDATE 11
+DO
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+UPDATE 1
+ close_assert
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_reject
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+CREATE FUNCTION
+CREATE TRIGGER
+ close_reject
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+ close_assert
+--------------
+
+(1 row)
+
+                result
+--------------------------------------
+ Atomic Loan Close regressions passed
+(1 row)
+
+ROLLBACK
+BEGIN
+CREATE FUNCTION
+CREATE FUNCTION
+INSERT 0 1
+INSERT 0 11
+INSERT 0 7
+INSERT 0 1
+UPDATE 10
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+UPDATE 1
+UPDATE 1
+UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+                   result
+---------------------------------------------
+ Common charge generation regressions passed
+(1 row)
+
+ROLLBACK
+INSERT 0 2
+INSERT 0 2
+INSERT 0 2
+INSERT 0 1
+UPDATE 0
+DO
+{"competingOverpaymentRejected":true,"independentBorrowerCompletedBeforeLockRelease":true,"independentMilliseconds":117.3176}
+SET
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+DO
+{"concurrentDuplicateCloseRejected":true,"oneFinalChargeAndReceipt":true}
+SET
+INSERT 0 1
+INSERT 0 1
+UPDATE 1
+SET
+UPDATE 1
+DO
+{"manualBusyRequestRejectedWithoutDeadlock":true,"retryProducesNoDuplicate":true,"busyMilliseconds":106.1494}
+{"firstMigrations":9,"secondMigrations":0,"baselineRebuildMatch":false,"checksumTamperingRejected":true,"localPostgres":"18.6","flyway":"13.6.0"}

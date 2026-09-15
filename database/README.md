@@ -39,6 +39,16 @@ The runner rejects mismatched commits/hashes, dirty checkouts and missing approv
 
 ## Recovery and limits
 
+### Common charge generation V8/V9 — development only
+
+`generate_loan_charge(loan, business_date, manual_request)` owns ordinary daily-interest, fixed-date and installment generation. `generate_due_charges(business_date, optional_loan_ids)` calls it in a deterministic atomic batch. The approved nullable `Loans.Charge Generation Request` command invokes the same engine through `manual_charge_generation`; OLTP sends a dated nonce, with user editing blocked. Bangkok-stale/malformed requests fail; existing loan/date charges are skipped. First-day and final-close routines remain specialized SQL paths.
+
+V9 installs pg_cron on Cloud SQL and creates an initially inactive 00:05 Asia/Bangkok job. Set the reviewed instance flags before migration; see the [configuration and recovery report](../outputs/charge-generation-20260915/REPORT.md). Cloud SQL uses background workers, not libpq. Windows disposable testing intentionally skips extension/job installation, so an actual development Cloud SQL scheduled run is required. The current test ran successfully at 20:52 Bangkok, producing one synthetic charge 20. Owner approved nightly development activation; the primary job is now active, and the temporary test job was removed. Session TimeZone remains UTC; business date is explicit.
+
+Both development apps are 1.000039, rollback 1.000036. Generate Today's Charge now sets only the hidden Text request field; Generate All Today's Charges keeps its existing routing/visibility. OLAP Reporting Loans includes the hidden field and remains read-only. The AppSheet Generate Daily Charges bot stays disabled.
+
+Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-ChargeGeneration.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency` for the full functional and concurrency suite used by CI. Manual lock contention returns a sync/retry error promptly; the nightly batch rolls back on an invalid eligible loan. `Invoke-ChargeGenerationLab.ps1` is confined to the reviewed development fixtures; `Set-DevelopmentChargeSchedule.ps1` starts/status-checks/finishes the synthetic schedule and enables/pauses the primary development job. `Get-ChargeGenerationState.ps1` is read-only. Never replay fixture seeding or snapshots automatically. V8/V9 are applied and immutable; corrections require V10 or higher. Production remains V5 and requires separate release approval.
+
 ### Atomic Close Loan V7 — development only
 
 V7 extends the V6 engine so one `Payments` write with Allocation Method `Loan Close`, Status `Processing`, today's Bangkok Payment Date, matching Ref Borrower and **Ref Target Loan** prepares the final charge and posts the receipt atomically. The amount submitted by AppSheet is an estimate; SQL derives the actual amount from locked component balances. Existing blank-target legacy commands retain V6 behavior. The reserved `lc7:` charge prefix prevents final charges becoming first-day net-off receipts.

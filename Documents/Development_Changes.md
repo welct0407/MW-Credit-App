@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 for development OLTP **1.000036**, development OLAP **1.000036**, production OLTP **3.000080**, production OLAP **1.100055**. Development is Flyway **V7**, production **V5**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 for development OLTP **1.000039**, development OLAP **1.000039**, production OLTP **3.000080**, production OLAP **1.100055**. Development is Flyway **V9**, production **V5**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -12,7 +12,10 @@ Updated 15 September 2026 for development OLTP **1.000036**, development OLAP **
 | Calendar | OLAP Calendar SQL Lab generated view | Same generated view | Promoted; fixed 153-day horizon retained |
 | Assessment outputs | Stored SQL outputs read through guarded VCs | Same column definitions | All 53 assessment/Calendar columns match; automatic production edit/readback/restoration passed |
 | Navigation | Production companion app | Other development copy | Keep environments isolated |
-| SQL schema | Flyway V5 | Flyway V7 | Core payment and atomic final charge development only; production approval pending |
+| SQL schema | Flyway V5 | Flyway V9 | Core payment, atomic final charge and common generation development only; production approval pending |
+| Manual charge generation | AppSheet adds Charges | Loans request token invokes common SQL generator | Existing bulk route and eligibility retained |
+| Generation request | Absent | Loans.Charge Generation Request, hidden Text, no default/backfill | Owner-approved; OLTP Editable_If FALSE, OLAP read-only; Reporting Loans reconciled |
+| Nightly charge generation | AppSheet bot | pg_cron at 00:05 Asia/Bangkok, active | Owner approved development nightly runs; AppSheet generation bot remains disabled |
 | Daily-interest schedule | Optional Interest Schedule Anchor Date; blank uses Loan Date | Same field and expressions | Promoted; production daily bot enabled, development disabled |
 | Receipt processing | SQL lump-sum preparation; AppSheet finalization/closure | SQL posts all six methods and closes eligible loans atomically | Phases 1–3 implemented; overall acceptance pending |
 | Closing reference | Absent | Loans.Ref Closing Payment, read-only Ref in both apps; generated Payments.Related Loans | Owner-approved; no historical backfill; Reporting Loans slice reconciled |
@@ -21,6 +24,10 @@ Updated 15 September 2026 for development OLTP **1.000036**, development OLAP **
 | Connections | 100 limit | 50 limit | Environment configuration; not a migration |
 
 The workbook's **Dev Differences** sheet contains the exact current table, business-column, slice, action and view differences. Full definitions are in the captured app-model.json. AppSheet-generated internal process schemas may differ when disabled processes are omitted; they are not PostgreSQL business tables. Captured differences are observed configuration, not automatic promotion instructions.
+
+### Common generation — development phases 4–5
+
+Both-app definitions reconciled at 1.000039, rollback 1.000036. V8/V9 implement the common generator and database schedule; four notification-only routes are unchanged. Current-GUI manual charges 50/130/30 and actual scheduler charge20 reconcile; off-interval loan skipped and original rows across14 tables preserved. Owner approved nightly development activation, now active at00:05 Bangkok; overall workflow acceptance and the first natural overnight run remain pending. [Phase4–5 report and rollback](../outputs/charge-generation-20260915/REPORT.md).
 
 ### Interval anchor — promoted 15 September 2026
 

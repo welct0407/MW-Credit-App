@@ -8,8 +8,8 @@ Updated 15 September 2026. Production/development are separate Cloud SQL instanc
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000080 | database-2 | 8 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100055 | database-2 | 13 |
-| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000036 | database-3 | 8 |
-| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000036 | database-3 | 13 |
+| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000039 | database-3 | 8 |
+| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000039 | database-3 | 13 |
 
 Both OLAP apps use the SQL Calendar and assessment views after the authorized assessment promotion. Native internal tables are excluded from the SQL counts. There are 42 SQL bindings across the four apps. OLAP definitions were recaptured during promotion; unrelated app captures retain their original timestamps. The workbook records the exact logical-to-physical mapping.
 
@@ -29,7 +29,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V5 migrated and validated | V7 migrated and validated | Core payment and atomic final-charge preparation are development only; schemas intentionally differ |
+| Flyway | V5 migrated and validated | V9 migrated and validated | Core payment, atomic final-charge preparation and common generation are development only; schemas intentionally differ |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
@@ -53,7 +53,9 @@ Rollback points: Dev OLTP **1.000014**, production OLTP **3.000071**, OLAP uncha
 
 ## Verification coverage
 
-Latest development checkpoint: V7 and both apps 1.000036, current editor/appdoc schema/reference/action comparison and current OLTP/OLAP GUI financial readback passed. The live normalized schema equals the independent V7 rebuild (`0a1972cc1e8eb5a072da584d394cfc85b3b1b96fc991e11b6fba9c39a4480c98`). Owner confirmed new receipt/closure push amounts. [Atomic Close Loan report](../outputs/atomic-close-20260915/REPORT.md) supersedes historical development entries below; production remains the previously verified V5 checkpoint.
+Latest development checkpoint: V9 and both apps 1.000039, current editor/appdoc schema/reference/action comparison and current OLTP/OLAP GUI financial readback passed. The live normalized business schema equals the independent V9 rebuild (`49765db93df4c0851d171394d9e340f0b0f361d6e4160bc62861a6cd165aea91`). [Charge generation report](../outputs/charge-generation-20260915/REPORT.md) supersedes historical development entries below; production remains the previously verified V5 checkpoint. Both-app rollback versions are 1.000036; prior V7 owner push acceptance remains recorded in the atomic-close report.
+
+Development Cloud SQL flags saved/restarted at 20:35:07 Bangkok: cloudsql.enable_pg_cron=on, cron.database_name=loan_manager_prod, cron.timezone=Asia/Bangkok, cron.max_running_jobs=1; existing cloudsql.iam_authentication=on and max_connections=50 preserved. Actual pg_cron extension 1.6.7 uses background workers. Session TimeZone remains UTC. Job `loan-daily-charges` is active at 00:05 Bangkok by explicit owner approval after the successful synthetic run at 20:52. Temporary job 2 was removed; CG8GUI borrowers hidden and loan auto-charge disabled. AppSheet Generate Daily Charges remains disabled. No production flags/job were changed.
 
 | Area | Latest evidence | Status / limitation |
 | --- | --- | --- |
