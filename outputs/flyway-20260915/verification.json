@@ -12,5 +12,8 @@
   "productionBaselineStatus": "version 1; validated",
   "productionNoOpMigrations": 0,
   "finalSchemasUnchanged": true,
-  "finalTableFingerprintsUnchanged": true
+  "finalTableFingerprintsUnchanged": true,
+  "githubCiRun": "https://github.com/welct0407/AppSheet-Loan-Project/actions/runs/34931746245",
+  "githubCiConclusion": "success",
+  "releaseHashMismatchRejectedBeforeConnection": true
 }

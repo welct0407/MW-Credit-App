@@ -28,10 +28,11 @@ Owner requested Flyway and the existing GitHub repository for PostgreSQL DDL/fun
 - Checksum mutation correctly reported `CHECKSUM_MISMATCH`. This Flyway build returned process exit 0 with failed validation JSON, so runner/tests explicitly inspect JSON success/error fields as well as exit codes.
 - Development explicit baseline at version 1 and validation passed; development migrate was a no-op (0 migrations).
 - Production explicitly baselined at version 1 after a second fresh schema equality check. Release readiness recognizes Flyway 13.6.0's `Ignored (Baseline)` state only for V1 skipped by the baseline marker.
-- Tested release manifest creation and production promotion command: successful no-op, 0 migrations executed. Missing production approval reference was rejected. Both live databases validated successfully at version 1.
+- Tested release manifest creation and production promotion command: successful no-op, 0 migrations executed. Missing production approval reference was rejected; a modified release SQL hash was also rejected before database connection. Both live databases validated successfully at version 1.
 - Post-adoption schema exports still match V1 exactly after excluding history. All 14 table row-count/content fingerprints remained unchanged across final checks in both environments. Development's first aggregate fingerprint was captured after its initial baseline enrollment; production's was captured before enrollment. No business-table DML was issued by this task.
 - Production read-only inspection confirms PostgreSQL 18.6 and `max_connections=100` after the other session's capacity change. This task did not alter that setting.
-- GitHub workflow run on commit `ae3bff6` is running; final result will be recorded after completion.
+- GitHub CI passed independently on both `ae3bff6` and final tooling commit `f41716d`: pinned tool installation, immutable-migration check, disposable PostgreSQL rebuild, validation, no-op repeat and checksum rejection. [Verified run 34931746245](https://github.com/welct0407/AppSheet-Loan-Project/actions/runs/34931746245).
+- Status: implemented, tested and pushed to the existing repository. Both databases are enrolled at version 1. This authorizes no future production business release; each still requires its own accepted testing and explicit approval.
 - Tests validate migration mechanics and schema preservation. They do not establish functional acceptance of any future business change. This task makes no application behavior change; owner may optionally sync both apps as a smoke check. Future releases require affected OLTP/OLAP tests and owner acceptance before production promotion.
 
 ## Rollback and continuing workflow
