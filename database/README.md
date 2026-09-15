@@ -39,6 +39,14 @@ The runner rejects mismatched commits/hashes, dirty checkouts and missing approv
 
 ## Recovery and limits
 
+### Atomic Default Loan V10 — development only
+
+The confirmed OLTP action updates existing Loans fields Defaulted, Close Date, Closed By and Loan Status in one request. `default_loan_transition` calls `post_loan_default`; SQL computes loss, writes off outstanding charge components, inserts one zero-cash loss charge/repayment and closes the loan atomically. Prior repayments/allocations and all charge keys are retained. Notes records original and written-off amounts; `df10:` postings and recorded default financial state are immutable. This preserves the owner's prototype positive-principal/negative-interest loss convention. No new columns or tables and no historical backfill.
+
+Current development versions: OLTP 1.000042, OLAP 1.000040; rollback both apps 1.000039 and database V9. Seven old Default sub-actions are disabled. Default alerts identify the loss and no cash received; OLAP's loss currency display is baht. Both-app synthetic losses 100/90/110/92 reconcile, with prior cash 0/30/0/15 preserved. Owner acceptance is pending; see the [phase 6 report](../outputs/default-loan-20260915/REPORT.md).
+
+Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-DefaultLoan.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency`. This includes earlier functional suites, default failure/duplicate/same-day tests and borrower-lock contention. `Invoke-DefaultLoanLab.ps1` seeds/verifies/hides only DF10GUI development fixtures; never replay seeding or snapshots automatically. V10 is applied and immutable; corrections require V11 or higher. Do not restore the old AppSheet financial chain independently of the database trigger.
+
 ### Common charge generation V8/V9 — development only
 
 `generate_loan_charge(loan, business_date, manual_request)` owns ordinary daily-interest, fixed-date and installment generation. `generate_due_charges(business_date, optional_loan_ids)` calls it in a deterministic atomic batch. The approved nullable `Loans.Charge Generation Request` command invokes the same engine through `manual_charge_generation`; OLTP sends a dated nonce, with user editing blocked. Bangkok-stale/malformed requests fail; existing loan/date charges are skipped. First-day and final-close routines remain specialized SQL paths.

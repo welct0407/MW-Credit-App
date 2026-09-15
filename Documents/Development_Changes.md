@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 for development OLTP **1.000039**, development OLAP **1.000039**, production OLTP **3.000080**, production OLAP **1.100055**. Development is Flyway **V9**, production **V5**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 for development OLTP **1.000042**, development OLAP **1.000040**, production OLTP **3.000080**, production OLAP **1.100055**. Development is Flyway **V10**, production **V5**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -12,7 +12,7 @@ Updated 15 September 2026 for development OLTP **1.000039**, development OLAP **
 | Calendar | OLAP Calendar SQL Lab generated view | Same generated view | Promoted; fixed 153-day horizon retained |
 | Assessment outputs | Stored SQL outputs read through guarded VCs | Same column definitions | All 53 assessment/Calendar columns match; automatic production edit/readback/restoration passed |
 | Navigation | Production companion app | Other development copy | Keep environments isolated |
-| SQL schema | Flyway V5 | Flyway V9 | Core payment, atomic final charge and common generation development only; production approval pending |
+| SQL schema | Flyway V5 | Flyway V10 | Core payment, atomic final charge, common generation and atomic default development only; production approval pending |
 | Manual charge generation | AppSheet adds Charges | Loans request token invokes common SQL generator | Existing bulk route and eligibility retained |
 | Generation request | Absent | Loans.Charge Generation Request, hidden Text, no default/backfill | Owner-approved; OLTP Editable_If FALSE, OLAP read-only; Reporting Loans reconciled |
 | Nightly charge generation | AppSheet bot | pg_cron at 00:05 Asia/Bangkok, active | Owner approved development nightly runs; AppSheet generation bot remains disabled |
@@ -24,6 +24,12 @@ Updated 15 September 2026 for development OLTP **1.000039**, development OLAP **
 | Connections | 100 limit | 50 limit | Environment configuration; not a migration |
 
 The workbook's **Dev Differences** sheet contains the exact current table, business-column, slice, action and view differences. Full definitions are in the captured app-model.json. AppSheet-generated internal process schemas may differ when disabled processes are omitted; they are not PostgreSQL business tables. Captured differences are observed configuration, not automatic promotion instructions.
+
+### Atomic Default Loan — development phase 6
+
+OLTP 1.000042 and OLAP 1.000040, rollback both 1.000039. V10 posts defaults atomically from one confirmed Loans update, without new columns/tables. Loss is SQL-calculated outstanding principal; positive-principal/negative-interest repayment preserves the zero-cash prototype convention. All earlier payment/allocation links survive. Unpaid charges are retained and reduced to paid components with an audit note; seven old Default sub-actions are FALSE. Default notifications show loss/no new cash, with the approved owner-only recipient. OLAP's Default Loss Amount now displays baht with zero decimals; read-only access and all other model settings are unchanged.
+
+Current-GUI losses 100/90/110/92 and preserved cash 0/30/0/15 reconcile in both apps. Original records in 14 tables are unchanged; owner acceptance pending. Retained charge rows may affect count-based downstream reports; Looker was not edited. [Phase 6 evidence and recovery](../outputs/default-loan-20260915/REPORT.md).
 
 ### Common generation — development phases 4–5
 
