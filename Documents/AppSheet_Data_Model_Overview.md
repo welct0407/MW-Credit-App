@@ -4,6 +4,20 @@ Migration continuity (2026-09-08): Lisa's existing late-penalty eligibility was 
 
 # **AppSheet Data Model Overview**
 
+## Isolated PostgreSQL development environment — 15 September 2026
+
+The completed independent clone appsheet-pg-dev-20260915 serves both test apps through database-3, public IP 34.158.38.171, database loan_manager_prod. Production uses the separate appsheet-pg-prod-20260914 instance and database-2; the identical database name does not identify the environment. Production bindings were not changed by this task.
+
+LoanInsights PG Trial 20260914 (494cd013-0d9b-482f-9559-c9d83059de91), version 1.000025, uses development for all 13 SQL logical tables. Calendar maps to public."OLAP Calendar SQL Lab" and Loan Assessment to public."Loan Assessment SQL Lab View"; the other 11 keep their physical names. LoanMgr PG Test 20260914 (65faacd8-2b0d-43bf-9e0a-58eb915dcf9b), version 1.000011, uses development for Borrowers, Loans, Repayments, Statistics, Charges, Partners, Payment Allocations and Payments. Native user/process tables remain native. Cross-app shortcuts now link only to the other test copy. Existing disabled schedules/exports/notifications remain disabled; transactional test bots retain their prior configuration.
+
+The clone contains 14 public tables, two views, six functions, ten enabled application triggers and 13 validated foreign keys. Function hashes and trigger definitions match production. All eight blank-normalization triggers and all 13 foreign-key rejection tests passed with rollback; no existing orphan references or invalid indexes were found. Thirteen table fingerprints match current production; Daily Analytics retains 42 rows but differs in contents. This development snapshot is not a continuously updated replica. No claim is made that its reporting snapshot equals current production.
+
+All 21 saved bindings were verified without schema regeneration. Column definitions, formulas, keys, Refs, permissions, slices and views were preserved. AppSheet omitted the previous explicit table-level en-US locale metadata during rebinding; column locales remained unchanged. New-GUI sync, amounts/dates and assessment save/readback passed. The assessment input was restored to 2000 after testing 3000; development calculation timestamps changed as expected. Full lifecycle, sustained load and owner acceptance remain outside the completed smoke checks.
+
+Development initially reproduced connection exhaustion at the inherited max_connections=25. Its limit is now 50, verified after restart, on the same db-f1-micro machine and 10 GB HDD with unchanged public-IP/SSL/allowlist/backup settings. Concurrent test-app sync passed afterward. This is additional connection headroom, not a guarantee of memory capacity for 50 busy sessions. Production sizing is managed separately by the owner in another task.
+
+The dictionary's SQL Development worksheet records each binding; OLAP Assessment SQL records the current development source/version. Rollback: OLAP 1.000023 and OLTP 1.000009 precede the switches and reconnect the copies to production, so stop test writes before restoring them. Versions 1.000024 and 1.000010 precede only shortcut changes. Removing development's max_connections override returns to the small-machine default after restart and can reintroduce 53300. See Change Logs/CHANGE_NOTES_DEVELOPMENT_INSTANCE_2026-09-15.md and outputs/development-instance-20260915/verification.json. No Looker configuration was changed.
+
 ## OLAP assessment SQL prototype — 15 September 2026
 
 Implemented only in **LoanInsights PG Trial 20260914**, app `494cd013-0d9b-482f-9559-c9d83059de91`, version **1.000023**; full prototype rollback **1.000013**, workflow-message rollback **1.000022**. Production OLAP **1.100046**, production OLTP **3.000069**, and the OLTP test copy are unchanged. The dictionary's **OLAP Assessment SQL** sheet records all test-specific columns; production inventory sheets are preserved.

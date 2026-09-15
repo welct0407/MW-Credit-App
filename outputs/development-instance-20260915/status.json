@@ -1,23 +1,22 @@
 {
-  "date": "2026-09-15",
-  "status": "Waiting for Google Cloud clone completion; app isolation incomplete",
+  "status": "Development isolation and functional verification complete; owner acceptance pending",
+  "cloneCompleted": "2026-09-15 10:56:24 Asia/Bangkok",
   "instance": "appsheet-pg-dev-20260915",
-  "sourceInstance": "appsheet-pg-prod-20260914",
-  "publicIp": "34.158.38.171",
-  "database": "loan_manager_prod",
   "dataSource": "database-3",
-  "dataSourceId": "30899069",
-  "sslRequired": true,
-  "authorizedNetworkCount": 73,
-  "machine": "db-f1-micro",
-  "storage": "10 GB HDD",
-  "region": "asia-southeast1",
-  "cloneSubmittedBangkok": "10:19:43",
-  "initialBackupCompletedBangkok": "10:43:15",
-  "bindingsVerified": false,
-  "syncVerified": false,
-  "appChangesSaved": false,
-  "productionChanged": false,
-  "rollbackVersions": {"OLTP test": "1.000009", "OLAP test": "1.000023"},
-  "pending": ["clone completion", "SQL verification", "21 copied-app SQL bindings", "new-GUI sync verification", "isolated assessment readback", "overview and dictionary reconciliation"]
+  "database": "loan_manager_prod",
+  "apps": [
+    {
+      "name": "LoanInsights PG Trial 20260914",
+      "version": "1.000025",
+      "sqlBindings": 13
+    },
+    {
+      "name": "LoanMgr PG Test 20260914",
+      "version": "1.000011",
+      "sqlBindings": 8
+    }
+  ],
+  "maxConnections": 50,
+  "verification": "verification.json",
+  "productionChangesByThisTask": false
 }
