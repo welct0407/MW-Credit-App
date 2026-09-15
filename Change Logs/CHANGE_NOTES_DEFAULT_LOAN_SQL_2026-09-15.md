@@ -1,6 +1,6 @@
 # Phase 6 — atomic Default Loan (2026-09-15)
 
-Status: implemented and verified in development; owner acceptance/notification feedback pending. Production unchanged. Repository publication pending.
+Status: implemented and verified in development; owner acceptance/notification feedback pending. Production unchanged. Implementation published to master as `6202997846fabfc7a5c175c383cdc6184bc4322a`; independent GitHub migration CI passed.
 
 ## Rollback and scope
 - Starting Git commit: `8bc5e6243eae8cd75bd2e2f9f55f96592d96d063`.
@@ -28,3 +28,7 @@ Updated overview, XLSX dictionary (12 sheets; intended cells only, native featur
 Downstream limitation: retaining written-off charge rows may affect count-based reports. No Looker edit/audit or phase 7 analytics work. Existing OLAP hidden-column/unsearchable warning remains unrelated. No clean end-to-end app performance percentage was measured. Manual final check: sync both development apps, verify loss/zero principal/prior cash on DEV Default fixtures and confirm default notification wording.
 
 For rollback, stop new default requests and restore the recorded OLTP app version only with coordinated database compatibility review; do not replay the legacy six-step action against the new default trigger. Applied migrations remain immutable; use a forward fix or restore the isolated development snapshot. Never restore development financial data into production.
+
+## Publication verification
+
+Normal push verified local HEAD and origin/master equal `6202997846fabfc7a5c175c383cdc6184bc4322a`. [GitHub Database migrations run 11](https://github.com/welct0407/AppSheet-Loan-Project/actions/runs/34984089290) succeeded in 3m 37s, including migration immutability and disposable rebuild/default concurrency checks. The sole annotation is the pre-existing pinned checkout action's Node 20/24 compatibility warning. A documentation-only follow-up records this result and clarifies that the V8/V9 app versions in the README describe the earlier checkpoint; it does not change the tested migration or app configuration.

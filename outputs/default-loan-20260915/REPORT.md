@@ -57,6 +57,10 @@ Concurrent default behind scheduled generation fails promptly (initial measured 
 
 All original rows across 14 business tables match pre-task fingerprints after excluding only DF10GUI fixtures. Live normalized schema matches an independent V10 rebuild. See `schema-verification.json`, `original-row-preservation.json`, `gui-posting-results.txt`, `flyway-validation.json` and `regression-results.txt`.
 
+In the generic runner output, `baselineRebuildMatch: false` compares the full V10 rebuild with the original V1 schema and is expected after additive migrations. The separate live-versus-V10 comparison is true. Final local default contention time was 108.832 ms; the earlier 100.58 ms result above was from the initial isolated concurrency pass.
+
+Implementation commit `6202997846fabfc7a5c175c383cdc6184bc4322a` was pushed normally to master, with local/upstream equality verified. Independent [GitHub migration CI run 11](https://github.com/welct0407/AppSheet-Loan-Project/actions/runs/34984089290) passed in 3m 37s (rebuild/test step 32s). Its one warning concerns the existing pinned checkout action targeting Node 20 while the runner uses Node 24; there was no test failure. The publication follow-up changes documentation only; the tested migration hash is unchanged.
+
 ## Model documentation and limits
 
 The model overview, XLSX data dictionary, development difference register, environment inventory, preparation baseline, database README and change log are updated together. All 12 workbook sheets round-trip with only intended cell changes; existing formulas, merges, validations, conditional formatting, tables, drawings, links and panes are preserved. Changed dictionary views were rendered and checked.
