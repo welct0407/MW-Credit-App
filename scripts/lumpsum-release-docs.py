@@ -1,6 +1,6 @@
 """Update the bounded lump-sum release sections; preserve unrelated documentation."""
 from pathlib import Path
-import sys
+import sys, re
 root = Path(__file__).resolve().parents[1]
 prod = '--production' in sys.argv
 version = next((x.split('=', 1)[1] for x in sys.argv if x.startswith('--version=')), '3.000071')
@@ -28,8 +28,13 @@ start='### Lump-sum release' if '### Lump-sum release' in text else '### Develop
 write(p,replace_section(text,start,'## Production table catalog',section))
 p='Documents/Development_Changes.md'; text=(root/p).read_text(encoding='utf-8')
 text=text.replace('development OLTP **1.000014**','development OLTP **1.000019**').replace('Production OLTP retains its earlier **3.000070** capture.',f'Production OLTP is **{version}**.')
+text=re.sub(r'Production OLTP is \*\*[0-9.]+\*\*\.',f'Production OLTP is **{version}**.',text)
 text=text.replace('| SQL schema | Flyway baseline 1 | Flyway V3 | Intentional V2/V3 lump-sum functions, triggers and indexes; exact hashes in the review evidence |',f'| SQL schema | {"Flyway V4" if prod else "Flyway V1"} | Flyway V4 | Exact migration hashes in the release manifest |')
 text=text.replace('| Lump-sum receipt processing | Five AppSheet stages | Atomic SQL allocation/posting/closure; AppSheet conditions exclude Lump Sum | Implemented and tested in Dev; owner review pending |',f'| Lump-sum receipt processing | {"Same as Dev" if prod else "Five AppSheet stages"} | SQL preparation; existing AppSheet finalization/closure | {"Promoted" if prod else "Verified; authorized promotion pending"} |')
+if prod:
+    text=re.sub(r'^\| SQL schema \|.*$', '| SQL schema | Flyway V4 | Flyway V4 | Exact tested migrations promoted |',text,flags=re.M)
+    text=re.sub(r'^\| Lump-sum receipt processing \|.*$', '| Lump-sum receipt processing | SQL preparation; AppSheet finalization/closure | Same workflow | Promoted; notification recipients differ by environment |',text,flags=re.M)
+    text=re.sub(r'^\| Allocation snapshots \|.*$', '| Allocation snapshots | Funded rows only; immutable charge-key ties | Same semantics | SQL ls2: children only; historical rows retained |',text,flags=re.M)
 start='### Lump-sum release' if '### Lump-sum release' in text else '## Lump-sum development candidate'
 text=replace_section(text,start,'## Assessment prototype design',section)
 text=text.replace('Nonessential or confusing bots, especially notifications, must remain disabled.','Nonessential or confusing bots remain disabled, except the owner-authorized three Dev push bots routed exclusively to the owner account as documented above.')
@@ -38,6 +43,7 @@ p='Documents/Environment_Inventory.md'; text=(root/p).read_text(encoding='utf-8'
 text=text.replace('| 1.000014 | database-3 |','| 1.000019 | database-3 |')
 if prod:text=text.replace('| 3.000071 | database-2 |',f'| {version} | database-2 |')
 text=text.replace('| Flyway | Successful explicit baseline 1 | V2/V3 successfully migrated and validated | Lump-sum development evidence, 15 Sep; production baseline retains prior capture |',f'| Flyway | {"V4 migrated and validated" if prod else "Baseline V1"} | V4 migrated and validated | Lump-sum release report, 15 September |')
+if prod:text=re.sub(r'^\| Flyway \|.*$', '| Flyway | V4 migrated and validated | V4 migrated and validated | Exact tested release; schema hashes match |',text,flags=re.M)
 start='### Lump-sum release' if '### Lump-sum release' in text else '## Development update — lump-sum workflow'
 write(p,replace_section(text,start,'## Verification coverage',section))
 p='Change Logs/CHANGE_NOTES_DB_LUMPSUM_2026-09-15.md'; text=(root/p).read_text(encoding='utf-8')

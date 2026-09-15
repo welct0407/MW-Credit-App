@@ -4,6 +4,8 @@ Standing owner rule, 15 September 2026. Apply this checklist to every developmen
 
 ## Required automation policy
 
+**Later owner instruction, 15 September 2026:** preserve the existing push-notification workflow in both environments; production retains its current recipients and Dev sends exclusively to `welct0407@mw-credit.com`. This explicitly authorizes the three reviewed Dev OLTP bots Notification - New Loan Created, Notification - Loan Closed and Notification - Charge Received, including real Dev test pushes to that account. Their sole To expression is `LIST("welct0407@mw-credit.com")`; events, templates and processing logic follow production. This exception supersedes the blanket notification-disable/stub guidance below for these three bots. It does not enable unrelated reminders, scheduled exports or unreviewed destinations. Recheck the recipient restriction after every copy/refresh/restore. See [lump-sum release](../outputs/lumpsum-promotion-20260915/REPORT.md).
+
 Keep nonessential bots disabled. Notifications, reminders and outward-facing exports that could confuse users must remain disabled in development. Production parity is not a reason to enable them. An enabled business-processing bot must be necessary for the workflow under test and confined to development data and effects.
 
 Classify bots by behavior, not their name. Inspect their event, process, every task, called actions/processes, schedules and destinations. A calculation bot that also sends a message is not acceptable as-is. Keep it disabled until the business logic can be tested through a development-only path without the outward-facing task. Notification testing should use an isolated capture/stub rather than send messages to real users.

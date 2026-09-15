@@ -1,8 +1,8 @@
-# Database lump-sum workflow — development
+# Database lump-sum workflow — development and production promotion
 
-Date: 15 September 2026. Status: **implemented and tested in Dev; owner review pending; production not deployed**.
+Date: 15 September 2026. Status: **promoted through Flyway V4; production OLTP 3.000074; documentation and deployment checks complete**. Exact release commit: `8417b9bf5e950287a969fd5750985b5c9375d80b`. Receipt entry restored; all 14 production table fingerprints unchanged across cutover. Both production apps load/sync. Existing production notification settings retained; Dev pushes route only to the owner. See the V4 release section at the end and [release report](../outputs/lumpsum-promotion-20260915/REPORT.md). Earlier sections below are dated historical stages, not current status.
 
-## Production promotion follow-up — in progress
+## Historical promotion preflight — superseded by completed V4 release
 
 Owner approved promotion on 15 September 2026, then explicitly required retaining all current production notification features. Production remains unchanged at OLTP **3.000071**, OLAP **1.100051**, database V1 while the Dev implementation is revised. Fresh production schema matches V1. A private custom-format database backup was successfully restored locally; all 14 business-table fingerprints/counts and normalized schema matched. Backup SHA256 `ea880e8558eb06e3d8236cc1b5797218b87a97e9edd591bcac41cc957b498b18`, 132,556 bytes, in `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/lumpsum-promotion-20260915/production-before.dump`. Restore server stopped. Preflight found no Processing/Error receipts; recheck before actual cutover.
 
@@ -74,11 +74,14 @@ Pause receipt entry and reconcile in-flight work. For fallback, add a **new high
 
 Future production release requires owner acceptance and explicit deployment approval, verified restorable backup, fresh production rollback versions, schema drift and consumer/notification review, controlled pause/drain, exact tested commit/migration hashes and the repository release-manifest/Flyway runners. Apply SQL and the two app conditions within that controlled cutover; test both current apps before resuming entry. Promote configuration/schema only. Record release approval, verification and rollback in this same log. Repository publication is recovery coverage for source/evidence, not production authorization.
 
+
 ## V4 release status (supersedes historical sections)
+
+Deployment completed at final OLTP **3.000074** after restoring the exact Payments_Form field order that AppSheet reset during the temporary read-only pause. Temporary version **3.000072** was non-runnable while actions lacked write access; **3.000073** restored entry and the tested actions; final **3.000074** has no editor issues. SQL migrated at 16:04:37 Bangkok. The restored backup, exact manifest, successful production validation, schema parity, all 14 unchanged table fingerprints and both production GUI readbacks are recorded in the release report. Development Environment Preparation now records the owner's explicit real-push exception and owner-only Dev routing, preventing a future refresh from silently restoring production recipients or replacing the existing workflow with a stub. Production device delivery remains for review on the next ordinary payment; no production test receipt was inserted.
 
 ### Lump-sum release — 15 September 2026
 
-Dev OLTP **1.000019 / Flyway V4** verified; production **3.000071 / V1**, authorized cutover pending. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
+Production OLTP **3.000074**, Dev OLTP **1.000019**, both databases **Flyway V4**. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
 
 PostgreSQL prepares positive allocations and matching repayments atomically, newest eligible charge first with immutable-key ties and interest before principal. Existing AppSheet actions finalize the receipt and close paid loans, producing the existing notification events. Processing remains visible if finalization fails; prepared receipts cannot allocate twice and block another lump-sum receipt until reconciled. SQL validates the final Posted transition. Seven indexes, three functions and four triggers reuse existing tables and columns; no queue or new business field exists. New ls2: children retain negative Allocation Order in Charge Row Number Snapshot. Historical rows retain their prior interpretation.
 

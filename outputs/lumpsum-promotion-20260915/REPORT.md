@@ -2,7 +2,7 @@
 
 ## Release status
 
-Dev OLTP **1.000019**, Dev OLAP **1.000027**, Flyway **V4** tested. Production promotion explicitly authorized by the owner; cutover pending. Production rollback versions freshly captured: OLTP **3.000071**, OLAP **1.100051**. Production financial data has not been changed.
+**Promoted:** production OLTP **3.000074**, OLAP **1.100051**, Flyway **V4**. Dev OLTP **1.000019**, Dev OLAP **1.000027** remain on their isolated development instance. Owner explicitly authorized promotion and preserving notification features. Production rollback versions: OLTP **3.000071**, OLAP **1.100051**. Production financial data has not been changed.
 
 The earlier V3 assessment missed notification compatibility. V4 corrects that omission using the existing AppSheet bots and actions. No notification queue, new business table or column was created. Dev push recipients are exclusively `welct0407@mw-credit.com`; production retains its existing recipient expressions, templates, event conditions and links.
 
@@ -38,7 +38,9 @@ Private production backup: `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Pr
 
 At 16:01 Bangkok, production still had 152 receipts, zero Processing/Error and zero synthetic receipts. Thirteen table fingerprints still matched the restored backup; Daily Analytics had independently changed before cutover. Preserve current data during rollback and use forward fixes; do not overwrite newer analytics with the older full backup as a routine reversal. The fresh pre-cutover audit is the post-deployment comparison point.
 
-Promote the exact committed V1–V4 manifest after pausing receipt entry and checking that no Processing/Error receipts are in flight. Apply the five tested action-expression changes, retain production recipients and restore receipt entry. Record final versions, schema/hash validation and unchanged financial fingerprints below after cutover.
+Flyway promoted the exact tested release commit **8417b9bf5e950287a969fd5750985b5c9375d80b** at **16:04:37 Bangkok**: V2, V3 and V4 applied successfully, followed by successful validation. The [release manifest](release-manifest.json) contains all immutable hashes. Normalized production schema matches Dev V4 exactly. All **14 production table counts/fingerprints are unchanged across the cutover**, including Daily Analytics relative to the fresh pre-cutover snapshot.
+
+Receipt entry was briefly paused through Payments READ_ONLY in temporary version **3.000072**, with zero Processing/Error receipts. AppSheet marked that temporary version non-runnable because existing actions require writes. Version **3.000073** restored ALL_CHANGES and applied the five tested expressions. The pause also caused AppSheet to regenerate Payments_Form with automatic ordering; the original seven-field order was restored exactly in final **3.000074**. Final editor shows no issues. All five expressions match saved Dev, Payments uses database-2 and ALL_CHANGES, and both production apps loaded and synced through the current GUI. No production payment was submitted. Production notification configuration was not edited. [Deployment verification](production-verification.json) records these checks.
 
 ## Rollback and review
 

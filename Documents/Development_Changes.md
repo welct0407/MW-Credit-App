@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 for production OLAP **1.100051**, development OLAP **1.000027**, and the lump-sum replacement in development OLTP **1.000019**. Production OLTP is **3.000071**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 for production OLAP **1.100051**, development OLAP **1.000027**, and the lump-sum replacement in development OLTP **1.000019**. Production OLTP is **3.000074**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -12,16 +12,16 @@ Updated 15 September 2026 for production OLAP **1.100051**, development OLAP **1
 | Calendar | OLAP Calendar SQL Lab generated view | Same generated view | Promoted; fixed 153-day horizon retained |
 | Assessment outputs | Stored SQL outputs read through guarded VCs | Same column definitions | All 53 assessment/Calendar columns match; automatic production edit/readback/restoration passed |
 | Navigation | Production companion app | Other development copy | Keep environments isolated |
-| SQL schema | Flyway V1 | Flyway V4 | Exact migration hashes in the release manifest |
-| Lump-sum receipt processing | Five AppSheet stages | SQL preparation; existing AppSheet finalization/closure | Verified; authorized promotion pending |
-| Allocation snapshots | Includes unfunded eligible charges; row-ordinal ties | Funded rows only; charge-key ties; negative allocation order in row-number snapshot | Intentional documented semantics for new SQL receipts only |
+| SQL schema | Flyway V4 | Flyway V4 | Exact tested migrations promoted |
+| Lump-sum receipt processing | SQL preparation; AppSheet finalization/closure | Same workflow | Promoted; notification recipients differ by environment |
+| Allocation snapshots | Funded rows only; immutable charge-key ties | Same semantics | SQL ls2: children only; historical rows retained |
 | Connections | 100 limit | 50 limit | Environment configuration; not a migration |
 
 The workbook's **Dev Differences** sheet contains the exact current table, business-column, slice, action and view differences. Full definitions are in the captured app-model.json. AppSheet-generated internal process schemas may differ when disabled processes are omitted; they are not PostgreSQL business tables. Captured differences are observed configuration, not automatic promotion instructions.
 
 ### Lump-sum release — 15 September 2026
 
-Dev OLTP **1.000019 / Flyway V4** verified; production **3.000071 / V1**, authorized cutover pending. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
+Production OLTP **3.000074**, Dev OLTP **1.000019**, both databases **Flyway V4**. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
 
 PostgreSQL prepares positive allocations and matching repayments atomically, newest eligible charge first with immutable-key ties and interest before principal. Existing AppSheet actions finalize the receipt and close paid loans, producing the existing notification events. Processing remains visible if finalization fails; prepared receipts cannot allocate twice and block another lump-sum receipt until reconciled. SQL validates the final Posted transition. Seven indexes, three functions and four triggers reuse existing tables and columns; no queue or new business field exists. New ls2: children retain negative Allocation Order in Charge Row Number Snapshot. Historical rows retain their prior interpretation.
 

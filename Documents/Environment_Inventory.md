@@ -6,7 +6,7 @@ Updated 15 September 2026. Production/development are separate Cloud SQL instanc
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000071 | database-2 | 8 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000074 | database-2 | 8 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100051 | database-2 | 13 |
 | Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000019 | database-3 | 8 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000027 | database-3 | 13 |
@@ -29,7 +29,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | Baseline V1 | V4 migrated and validated | Lump-sum release report, 15 September |
+| Flyway | V4 migrated and validated | V4 migrated and validated | Exact tested release; schema hashes match |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
@@ -37,7 +37,7 @@ Passwords remain outside Git under Documents/ChatGPT/AppSheet-Loan-Project. Both
 
 ### Lump-sum release — 15 September 2026
 
-Dev OLTP **1.000019 / Flyway V4** verified; production **3.000071 / V1**, authorized cutover pending. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
+Production OLTP **3.000074**, Dev OLTP **1.000019**, both databases **Flyway V4**. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
 
 PostgreSQL prepares positive allocations and matching repayments atomically, newest eligible charge first with immutable-key ties and interest before principal. Existing AppSheet actions finalize the receipt and close paid loans, producing the existing notification events. Processing remains visible if finalization fails; prepared receipts cannot allocate twice and block another lump-sum receipt until reconciled. SQL validates the final Posted transition. Seven indexes, three functions and four triggers reuse existing tables and columns; no queue or new business field exists. New ls2: children retain negative Allocation Order in Charge Row Number Snapshot. Historical rows retain their prior interpretation.
 
