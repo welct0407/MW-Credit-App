@@ -4,7 +4,7 @@ param([Parameter(Mandatory)][string]$ValidationReference)
 Assert-CleanGit
 $null = & "$PSScriptRoot/Invoke-Flyway.ps1" -Environment development -Command validate
 $info = & "$PSScriptRoot/Invoke-Flyway.ps1" -Environment development -Command info | ConvertFrom-Json
-$unready = @($info.migrations | Where-Object state -notin @('Success','Baseline','Below Baseline'))
+$unready = @($info.migrations | Where-Object state -notin @('Success','Baseline','Below Baseline','Ignored (Baseline)'))
 if ($unready.Count) { throw 'Development contains unapplied or invalid migrations' }
 $release = [ordered]@{
     environment='development'; commit=(& git -C $DbRepoRoot rev-parse HEAD).Trim()

@@ -27,7 +27,7 @@ Owner requested Flyway and the existing GitHub repository for PostgreSQL DDL/fun
 - Local empty PostgreSQL rebuild: 1 migration applied; reconstructed schema matched baseline; validation passed; second migrate executed 0 migrations.
 - Checksum mutation correctly reported `CHECKSUM_MISMATCH`. This Flyway build returned process exit 0 with failed validation JSON, so runner/tests explicitly inspect JSON success/error fields as well as exit codes.
 - Development explicit baseline at version 1 and validation passed; development migrate was a no-op (0 migrations).
-- Production baseline and final post-enrollment checks pending at this checkpoint; updated below when completed.
+- Production explicitly baselined at version 1 after a second fresh schema equality check. Release readiness recognizes Flyway 13.6.0's `Ignored (Baseline)` state for the V1 script skipped by the baseline marker. Final post-enrollment checks are recorded below.
 - Tests validate migration mechanics and schema preservation. They do not establish functional acceptance of any future business change. This task makes no application behavior change; owner may optionally sync both apps as a smoke check. Future releases require affected OLTP/OLAP tests and owner acceptance before production promotion.
 
 ## Rollback and continuing workflow
