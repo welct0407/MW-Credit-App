@@ -1,5 +1,7 @@
 # Universal payments clone migration runbook
 
+**Historical procedure — 15 September 2026:** this is the earlier AppSheet-native migration procedure. Production now uses Cloud SQL PostgreSQL. Do not replay it as a current database migration or cutover plan. Use [current documentation](README.md), [Environment Inventory](Environment_Inventory.md) and [Flyway procedures](../database/README.md). The original steps remain below for traceability.
+
 Date: 6 September 2026. Configuration checkpoint: **v1.000068**. Data-model inventory checkpoint: **v1.000065** (unchanged by the subsequent temporary recovery test and receipt-card action selection). The user accepted the clone results and authorized production migration on 6 September 2026. Production is now deployed at v3.000002; the production change log records implementation, backup, validation and remaining coverage.
 
 ## Environments and rollback

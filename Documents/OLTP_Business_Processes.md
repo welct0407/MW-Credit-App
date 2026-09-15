@@ -1,5 +1,7 @@
 # OLTP business process diagram
 
+**Current reference annotation — 15 September 2026:** production OLTP is version **3.000070** and uses PostgreSQL through database-2. The current [model](AppSheet_Data_Model_Overview.md), [dictionary](AppSheet_Data_Dictionary.xlsx) and [environment inventory](Environment_Inventory.md) supersede historical source/version details below. The diagram remains a September 12 workflow synthesis; its three pages have not been recertified by executing a new loan lifecycle in this documentation task. Current actions and views are captured in outputs/documentation-reconciliation-20260915/app-model.json. Notification delivery and bot scheduling are not established by an action definition.
+
 Open [OLTP_Business_Processes.drawio](OLTP_Business_Processes.drawio) in draw.io / diagrams.net. All shapes, connectors, text and three page tabs are editable.
 
 1. **Loan lifecycle:** borrower setup, loan terms, automatic/manual charges, Collection, payments and loan outcomes.
@@ -8,7 +10,7 @@ Open [OLTP_Business_Processes.drawio](OLTP_Business_Processes.drawio) in draw.io
 
 ## Basis and interpretation
 
-Prepared 12 September 2026 from repository documentation. The latest recorded OLTP version is **3.000045**, recorded 11 September; this task did not inspect live AppSheet configuration or test transactions. The business sequence is a synthesis, not a newly implemented workflow or evidence of user acceptance. Later dated source sections supersede historical baselines.
+Prepared 12 September 2026 from repository documentation, using then-recorded OLTP version **3.000045**. That is the diagram's historical baseline, not the current app version. The business sequence is a synthesis, not a newly implemented workflow or evidence of user acceptance. Current configuration and later dated change logs supersede historical baselines.
 
 | Source | Diagram content |
 | --- | --- |

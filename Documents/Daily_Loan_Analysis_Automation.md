@@ -1,5 +1,7 @@
 # Daily Loan Analysis Automation
 
+**Status reviewed — 15 September 2026:** this document is the pilot contract. Production OLAP is **1.100046**, with PostgreSQL business tables and a Google Sheets Calendar. Current versions/sources are in [Environment Inventory](Environment_Inventory.md). The current editor confirms **Daily Loan Analysis Export is disabled** in production and development OLAP. Codex scheduler state and export delivery/acceptance have not been freshly verified. Do not treat this contract as evidence that the pilot is running successfully. No bot or scheduled task was changed here.
+
 ## Purpose
 
 This pilot produces a private daily loan-analysis workbook from the OLAP AppSheet app and uses that workbook as the governed input to a standalone Codex summary. It does not add an operational data-entry path, change financial records, or make Looker Studio responsible for business logic.
@@ -11,7 +13,7 @@ This pilot produces a private daily loan-analysis workbook from the OLAP AppShee
 3. A standalone Codex scheduled task locates the newest workbook, validates freshness and data quality, performs the analysis, and returns a personal summary in the scheduled task result.
 4. Email delivery is out of scope for the pilot. Outlook or Gmail can be added only after the private summary is accepted.
 
-Both the AppSheet bot and Codex automation are disabled/paused until the first production-data test and final timing are approved.
+The recorded pilot state is that both the AppSheet bot and Codex automation were disabled/paused pending the first production-data test and final timing approval. AppSheet's disabled state is freshly confirmed. Codex scheduler state and first-run acceptance require reconciliation before activation or a claim of delivery readiness.
 
 ## Workbook contract
 
