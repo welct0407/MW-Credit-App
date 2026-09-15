@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 for production OLAP **1.100051**, development OLAP **1.000027**, and the lump-sum replacement in development OLTP **1.000014**. Production OLTP retains its earlier **3.000070** capture. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 for production OLAP **1.100051**, development OLAP **1.000027**, and the lump-sum replacement in development OLTP **1.000019**. Production OLTP is **3.000071**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -12,20 +12,24 @@ Updated 15 September 2026 for production OLAP **1.100051**, development OLAP **1
 | Calendar | OLAP Calendar SQL Lab generated view | Same generated view | Promoted; fixed 153-day horizon retained |
 | Assessment outputs | Stored SQL outputs read through guarded VCs | Same column definitions | All 53 assessment/Calendar columns match; automatic production edit/readback/restoration passed |
 | Navigation | Production companion app | Other development copy | Keep environments isolated |
-| SQL schema | Flyway baseline 1 | Flyway V3 | Intentional V2/V3 lump-sum functions, triggers and indexes; exact hashes in the review evidence |
-| Lump-sum receipt processing | Five AppSheet stages | Atomic SQL allocation/posting/closure; AppSheet conditions exclude Lump Sum | Implemented and tested in Dev; owner review pending |
+| SQL schema | Flyway V1 | Flyway V4 | Exact migration hashes in the release manifest |
+| Lump-sum receipt processing | Five AppSheet stages | SQL preparation; existing AppSheet finalization/closure | Verified; authorized promotion pending |
 | Allocation snapshots | Includes unfunded eligible charges; row-ordinal ties | Funded rows only; charge-key ties; negative allocation order in row-number snapshot | Intentional documented semantics for new SQL receipts only |
 | Connections | 100 limit | 50 limit | Environment configuration; not a migration |
 
 The workbook's **Dev Differences** sheet contains the exact current table, business-column, slice, action and view differences. Full definitions are in the captured app-model.json. AppSheet-generated internal process schemas may differ when disabled processes are omitted; they are not PostgreSQL business tables. Captured differences are observed configuration, not automatic promotion instructions.
 
-## Lump-sum development candidate
+### Lump-sum release — 15 September 2026
 
-[Review report](../outputs/lumpsum-db-20260915/REPORT.md), [authoritative change log](../Change%20Logs/CHANGE_NOTES_DB_LUMPSUM_2026-09-15.md), and workbook Dev Differences record the exact configuration, migrations, consumer checks and rollback. Dev OLTP rollback is **1.000013**; Dev OLAP **1.000027** was not edited. Both remain on database-3. The receipt event and grouped action now use `AND([Status] = "Processing", [Allocation Method] <> "Lump Sum")`. No physical-field regeneration was needed.
+Dev OLTP **1.000019 / Flyway V4** verified; production **3.000071 / V1**, authorized cutover pending. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
 
-Measured server Add median fell from **14.438 to 5.370 seconds (62.8%)** in today's six-charge test; the historical original median was 15.582 seconds. Successful Save-to-ready/sync-complete median fell from **14.567 to 12.165 seconds (16.5%)**. Small sequential samples and differing historical environment limit the claim; see raw evidence and exclusions. Original Dev records are unchanged; synthetic LS26 fixtures remain for review. Current-GUI OLTP allocation/closure and OLAP readback passed, with local SQL regression/concurrency tests as supplements.
+PostgreSQL prepares positive allocations and matching repayments atomically, newest eligible charge first with immutable-key ties and interest before principal. Existing AppSheet actions finalize the receipt and close paid loans, producing the existing notification events. Processing remains visible if finalization fails; prepared receipts cannot allocate twice and block another lump-sum receipt until reconciled. SQL validates the final Posted transition. Seven indexes, three functions and four triggers reuse existing tables and columns; no queue or new business field exists. New ls2: children retain negative Allocation Order in Charge Row Number Snapshot. Historical rows retain their prior interpretation.
 
-Before production release, obtain owner acceptance/explicit deployment approval, review notification events bypassed by direct SQL child writes, and test multi-device stale/offline rejection recovery. Existing Closed Loan Principle labeling and component currency-display issues are documented separately; no report redesign was included. Never migrate synthetic financial data.
+The receipt event and group both use `[Status] = "Processing"`. Three allocation actions skip Lump Sum; two reconcile assignments select Posted/NOW() for Lump Sum and preserve original other-method expressions. [Exact action expressions](../outputs/lumpsum-promotion-20260915/action-expressions.json) are promotion evidence. Both apps read the same ledger, sources remain isolated (production database-2, Dev database-3), and no schema regeneration, Ref, slice or business-column change is required.
+
+Production notification events, templates and recipient expressions are retained. The owner explicitly authorized the three Dev push bots with `LIST("welct0407@mw-credit.com")` as their sole recipient expression. Other Dev scheduled/export bots remain disabled. Dev Payment Received and Loan Closed runs completed in AppSheet; device receipt is not independently confirmed. New-GUI Dev receipt allocation, finalization, closure and OLAP readback passed. V4 SQL regression and concurrency passed. Earlier V3 speed measurements remain historical; no new V4/production speed percentage is claimed. Offline multi-device recovery, scheduled exports and Looker remain unverified.
+
+Rollback points: Dev OLTP **1.000014**, production OLTP **3.000071**, OLAP unchanged. Production logical backup was restored successfully with all 14 business tables matching. Reconcile prepared receipts before fallback; use a higher migration to disable the processor and restore original action expressions, retaining ledger history and guards. App rollback alone does not undo SQL changes.
 
 ## Assessment prototype design
 
@@ -45,7 +49,7 @@ Promotion completed under owner authorization. The fixed horizon, shared MAIN in
 
 ## Automation isolation and maintenance
 
-**Standing preparation gate:** follow [Development Environment Preparation](Development_Environment_Preparation.md) for every future copy, refresh, replacement or version restore. Nonessential or confusing bots, especially notifications, must remain disabled. Review all new bots and embedded tasks before test writes; enable only essential processing confined to development. The rule is mandatory in AGENTS.md and is not limited to today's app copies.
+**Standing preparation gate:** follow [Development Environment Preparation](Development_Environment_Preparation.md) for every future copy, refresh, replacement or version restore. Nonessential or confusing bots remain disabled, except the owner-authorized three Dev push bots routed exclusively to the owner account as documented above. Review all new bots and embedded tasks before test writes; enable only essential processing confined to development. The rule is mandatory in AGENTS.md and is not limited to today's app copies.
 
 The earlier isolation checks confirmed transactional development OLTP bots retained, daily generation/notifications disabled, and all three development OLAP schedule/export bots disabled. Production OLAP performance settings were recaptured during promotion: server caching, delta, Quick Sync and delayed sync off; sync on start and automatic updates on. See Environment Inventory for dated values. Recheck development isolation before future write testing.
 

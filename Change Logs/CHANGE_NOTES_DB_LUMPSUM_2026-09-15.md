@@ -2,6 +2,14 @@
 
 Date: 15 September 2026. Status: **implemented and tested in Dev; owner review pending; production not deployed**.
 
+## Production promotion follow-up — in progress
+
+Owner approved promotion on 15 September 2026, then explicitly required retaining all current production notification features. Production remains unchanged at OLTP **3.000071**, OLAP **1.100051**, database V1 while the Dev implementation is revised. Fresh production schema matches V1. A private custom-format database backup was successfully restored locally; all 14 business-table fingerprints/counts and normalized schema matched. Backup SHA256 `ea880e8558eb06e3d8236cc1b5797218b87a97e9edd591bcac41cc957b498b18`, 132,556 bytes, in `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/lumpsum-promotion-20260915/production-before.dump`. Restore server stopped. Preflight found no Processing/Error receipts; recheck before actual cutover.
+
+Production inspection confirmed the existing receipt bot triggers other bots: Payment Posted listens for an AppSheet status update to Posted, and Loan Closed listens for an AppSheet loan-status transition. V2/V3's direct SQL finalization bypassed those events. Owner rejected an additional notification queue; that proposal was discarded and no queue was created in either shared environment. The correction keeps SQL allocation/ledger preparation and reuses existing AppSheet finalization/closure actions and notification bots. V4 is being prepared; it has not yet been applied or tested.
+
+**Explicit owner direction superseding the earlier notification-disable default for this work:** use the same workflow/notification behavior in Dev and production; production keeps current recipient expressions; Dev push notifications go only to `welct0407@mw-credit.com`. Owner explicitly requested a Dev test push to that account. Review recipient routing before enabling or sending; unrelated scheduled exports/reminders remain outside this test. Fresh Dev rollback version **1.000014** recorded from the current appdoc before edits; Dev OLAP remains **1.000027**. No push has been sent yet.
+
 ## Scope and rollback
 
 Owner requested an end-to-end database-backed replacement in Dev OLTP, complete testing, comparison with earlier performance assessment, and promotion-ready documentation. Owner confirmed newest eligible charge first; interest before principal remains the allocation rule.
@@ -65,3 +73,20 @@ Remaining release checks: owner acceptance, multi-device/offline stale-write rej
 Pause receipt entry and reconcile in-flight work. For fallback, add a **new higher Flyway migration** disabling only `process_lump_sum` on `public."Payments"`; retain guard functions/indexes and posted history. Restore both original `[Status] = "Processing"` app conditions and test legacy-path receipts before resuming. App rollback alone is insufficient. Do not edit V2/V3, use repair/clean, delete posted rows or restore a Dev app version reconnecting production.
 
 Future production release requires owner acceptance and explicit deployment approval, verified restorable backup, fresh production rollback versions, schema drift and consumer/notification review, controlled pause/drain, exact tested commit/migration hashes and the repository release-manifest/Flyway runners. Apply SQL and the two app conditions within that controlled cutover; test both current apps before resuming entry. Promote configuration/schema only. Record release approval, verification and rollback in this same log. Repository publication is recovery coverage for source/evidence, not production authorization.
+
+## V4 release status (supersedes historical sections)
+
+### Lump-sum release — 15 September 2026
+
+Dev OLTP **1.000019 / Flyway V4** verified; production **3.000071 / V1**, authorized cutover pending. OLAP versions remain production **1.100051** and development **1.000027**. The [release report](../outputs/lumpsum-promotion-20260915/REPORT.md) supersedes the historical V3 design and notification limitation.
+
+PostgreSQL prepares positive allocations and matching repayments atomically, newest eligible charge first with immutable-key ties and interest before principal. Existing AppSheet actions finalize the receipt and close paid loans, producing the existing notification events. Processing remains visible if finalization fails; prepared receipts cannot allocate twice and block another lump-sum receipt until reconciled. SQL validates the final Posted transition. Seven indexes, three functions and four triggers reuse existing tables and columns; no queue or new business field exists. New ls2: children retain negative Allocation Order in Charge Row Number Snapshot. Historical rows retain their prior interpretation.
+
+The receipt event and group both use `[Status] = "Processing"`. Three allocation actions skip Lump Sum; two reconcile assignments select Posted/NOW() for Lump Sum and preserve original other-method expressions. [Exact action expressions](../outputs/lumpsum-promotion-20260915/action-expressions.json) are promotion evidence. Both apps read the same ledger, sources remain isolated (production database-2, Dev database-3), and no schema regeneration, Ref, slice or business-column change is required.
+
+Production notification events, templates and recipient expressions are retained. The owner explicitly authorized the three Dev push bots with `LIST("welct0407@mw-credit.com")` as their sole recipient expression. Other Dev scheduled/export bots remain disabled. Dev Payment Received and Loan Closed runs completed in AppSheet; device receipt is not independently confirmed. New-GUI Dev receipt allocation, finalization, closure and OLAP readback passed. V4 SQL regression and concurrency passed. Earlier V3 speed measurements remain historical; no new V4/production speed percentage is claimed. Offline multi-device recovery, scheduled exports and Looker remain unverified.
+
+Rollback points: Dev OLTP **1.000014**, production OLTP **3.000071**, OLAP unchanged. Production logical backup was restored successfully with all 14 business tables matching. Reconcile prepared receipts before fallback; use a higher migration to disable the processor and restore original action expressions, retaining ledger history and guards. App rollback alone does not undo SQL changes.
+
+
+Maintained V4 artifacts: immutable V4 migration, Test-LumpSumAppFinalization.sql, updated concurrency test, release action expressions, report and dictionary/doc builders. Complete local V1–V4 regression, validation and concurrency passed. Dev appdoc version 1.000019 confirms saved configuration. Production promotion was explicitly authorized; this authorization also preserves existing production notification features. The queue proposal was discarded without a Dev/production table. Detailed backup, notification run IDs, test receipts and measurement limitations are in the release report. Model overview, canonical dictionary, development/environment registers and this log are updated together. Historical sections below/above describe earlier stages only.

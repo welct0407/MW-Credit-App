@@ -11,6 +11,8 @@ if($LASTEXITCODE){throw 'Concurrency fixture failed'}
 $first=@'
 BEGIN;
 INSERT INTO "Payments" ("Row ID","Ref Borrower","Amount Received","Payment Date","Status","Allocation Method") VALUES ('LS-CON-P1','LS-CON',70::money,current_date,'Processing','Lump Sum');
+-- V4 preserves this transition for AppSheet; emulate it within the lock test.
+UPDATE "Payments" SET "Status"='Posted' WHERE "Row ID"='LS-CON-P1' AND "Status"='Processing';
 \echo LOCK_READY
 SELECT pg_sleep(3);
 COMMIT;
@@ -26,6 +28,7 @@ while(-not ((Get-Content $out -Raw -ErrorAction SilentlyContinue) -match 'LOCK_R
 }
 $independent=@'
 INSERT INTO "Payments" ("Row ID","Ref Borrower","Amount Received","Payment Date","Status","Allocation Method") VALUES ('LS-CON-OTHER','LS-CON2',70::money,current_date,'Processing','Lump Sum');
+UPDATE "Payments" SET "Status"='Posted' WHERE "Row ID"='LS-CON-OTHER' AND "Status"='Processing';
 '@
 $timer=[Diagnostics.Stopwatch]::StartNew()
 $independent | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres

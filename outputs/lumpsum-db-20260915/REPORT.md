@@ -1,3 +1,5 @@
+> Superseded for release design by [V4 promotion report](../lumpsum-promotion-20260915/REPORT.md). Measurements below are historical V3 results. V4 retains existing AppSheet notification events; the benchmark loan was subsequently fully paid.
+
 # Database lump-sum workflow — Dev review
 
 15 September 2026. Implemented in Dev OLTP **1.000014**, PostgreSQL **Flyway V3**. Dev OLAP **1.000027** reads the results. **Owner acceptance and production promotion remain pending.**
