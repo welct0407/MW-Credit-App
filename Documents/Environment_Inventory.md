@@ -6,9 +6,9 @@ Updated 15 September 2026. Production/development are separate Cloud SQL instanc
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000070 | database-2 | 8 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000071 | database-2 | 8 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100051 | database-2 | 13 |
-| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000012 | database-3 | 8 |
+| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000014 | database-3 | 8 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000027 | database-3 | 13 |
 
 Both OLAP apps use the SQL Calendar and assessment views after the authorized assessment promotion. Native internal tables are excluded from the SQL counts. There are 42 SQL bindings across the four apps. OLAP definitions were recaptured during promotion; unrelated app captures retain their original timestamps. The workbook records the exact logical-to-physical mapping.
@@ -29,11 +29,19 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | Successful explicit baseline 1 | Successful explicit baseline 1 | Fresh schema-history query |
+| Flyway | Successful explicit baseline 1 | V2/V3 successfully migrated and validated | Lump-sum development evidence, 15 Sep; production baseline retains prior capture |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
 Passwords remain outside Git under Documents/ChatGPT/AppSheet-Loan-Project. Both environment configurations reference the existing external password file; values are never included here. Private credential/snapshot backup coverage is not established by Git or database backups. Backup/PITR/deletion-protection settings were recorded in prior instance logs; no restore was tested by this documentation task.
+
+## Development update — lump-sum workflow, 15 September 2026
+
+This update supersedes earlier development schema/version statements on this page: **Dev OLTP 1.000014**, **Dev OLAP 1.000027**, development database **Flyway V3**. Production captures remain unchanged. Pre-edit Dev OLTP rollback version was **1.000013**. The development database name remains `loan_manager_prod`; the verified destination is the separate **appsheet-pg-dev-20260915** instance at **34.158.38.171**, reached through database-3. Never identify the environment by database name alone.
+
+V2/V3 add seven indexes, three public trigger functions and four triggers across Payments, Payment Allocations and Repayments. No new business tables, columns, views or foreign keys were added. Dev schema validation and local V1–V3 reconstruction passed. The earlier V1 schema equality is historical, not the current development state. Exact migration hashes and current consumer definitions are in [lump-sum verification](../outputs/lumpsum-db-20260915/verification.json) and [consumer definitions](../outputs/lumpsum-db-20260915/consumer-definitions.json).
+
+Current-editor checks confirmed OLTP's three essential transactional bots enabled, daily generation and three notifications disabled, and all three OLAP bots disabled. Essential processes use development data actions; no notification/export task was enabled. Payment queued/retried and the receipt group now exclude Lump Sum, which the database processes. Current new-GUI OLTP submissions and OLAP readback passed. Original development records retain their pre-test fingerprints; synthetic LS26 fixtures remain for owner review. Read [the report](../outputs/lumpsum-db-20260915/REPORT.md) for measurement limitations, downstream notification event differences and rollback instructions. Production was not deployed by this task.
 
 ## Verification coverage
 
@@ -56,12 +64,12 @@ The browser's full accessibility extraction timed out on the large appdoc; bound
 
 | App | Server caching | Delta sync | Quick sync | Sync on start | Delayed sync | Automatic updates |
 | --- | --- | --- | --- | --- | --- | --- |
-| production-oltp | On | Off | On | On | On | On |
+| production-oltp | Off | Off | Off | On | Off | On |
 | production-olap | Off | Off | Off | On | Off | On |
-| development-oltp | Off | Off | On | On | On | On |
-| development-olap | Off | Off | On | On | On | On |
+| development-oltp | Off | Off | Off | On | Off | On |
+| development-olap | Off | Off | Off | On | Off | On |
 
-Production OLAP settings above were freshly observed during assessment promotion; no toggle was changed in that task. Its new-interface amount edit automatically saved, triggered SQL calculation and returned updated results, then restored successfully. Other app settings retain their earlier observation and were not rechecked here. Quick Sync alone is not proof of propagation of external database-trigger changes.
+All four settings rows incorporate the earlier [PostgreSQL sync-options change](../Change%20Logs/CHANGE_NOTES_POSTGRESQL_SYNC_OPTIONS_2026-09-15.md); production OLTP 3.000071 is its recorded saved version, not a fresh full-model capture here. Production OLAP was additionally observed during assessment promotion. No toggle was changed by the lump-sum task. Full post-write readback fetched the SQL-created children in Dev OLTP, and Dev OLAP loaded the matching shared ledger. Other users' changes still require a fresh sync; automatic updates do not guarantee immediate cross-app visibility.
 
 ## Current bot enablement
 

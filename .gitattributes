@@ -1,0 +1,3 @@
+# Applied migrations are immutable; preserve the exact tested bytes and SHA256
+# across Windows/Linux checkouts. Flyway release manifests hash file bytes.
+database/migrations/*.sql -text

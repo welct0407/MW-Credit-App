@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_prod",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "1",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "atomic lump sum",
+    "executionTime" : 521,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V2__atomic_lump_sum.sql",
+    "type" : "SQL",
+    "version" : "2"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "2",
+  "timestamp" : "2026-09-15T14:07:55.9864166+07:00",
+  "totalMigrationTime" : 521,
+  "warnings" : [ ]
+}

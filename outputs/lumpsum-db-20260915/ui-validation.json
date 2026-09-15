@@ -1,0 +1,22 @@
+[
+  {
+    "amount": "0",
+    "formRemains": true,
+    "validation": true
+  },
+  {
+    "amount": "-1",
+    "formRemains": true,
+    "validation": true
+  },
+  {
+    "amount": "0.5",
+    "formRemains": true,
+    "validation": true
+  },
+  {
+    "amount": "361",
+    "formRemains": true,
+    "validation": true
+  }
+]

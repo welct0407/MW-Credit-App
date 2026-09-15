@@ -14,6 +14,18 @@ Production OLTP and OLAP share Cloud SQL PostgreSQL database **loan_manager_prod
 
 OLTP owns borrowers, loan operations, charges, receipts and allocation posting. OLAP owns partner management, contributions, settlement, portfolio analysis and loan assessment. Looker Studio is downstream presentation over governed feeds. Its source configuration has not been freshly reconciled in this task. External collection software remains governed in its separate repository; the presence of collection-related borrower fields here does not authorize changes to that system.
 
+### Development lump-sum replacement — 15 September 2026
+
+Development has advanced to **Flyway V3 / Dev OLTP 1.000014**. The production schema/model inventory below remains V1; the earlier statement that both schemas matched V1 describes the pre-development capture. Dev OLAP remains **1.000027**. See the [review and measurements](../outputs/lumpsum-db-20260915/REPORT.md) and [development differences](Development_Changes.md) before promoting anything.
+
+The new processor reuses Payments as the receipt command, Payment Allocations as the frozen per-charge allocation and Repayments as the shared ledger. PostgreSQL atomically validates, allocates, posts, reconciles and closes eligible loans. Seven supporting indexes and three trigger functions were added through immutable V2/V3. No business tables, physical/virtual columns, keys, Refs, slices or permissions were added or regenerated. Existing app definitions for these consumers were captured in the review evidence; both current app interfaces read back the tested results.
+
+Newest eligible charge date wins; equal-date ties now use immutable charge key descending (C collation), replacing provider row ordinal. Interest is paid before principal. Only funded allocations are stored. For new `ls2:` child keys, Charge Row Number Snapshot means **negative Allocation Order**, not provider row number; this preserves existing AppSheet ordering calculations. Historical rows retain their original interpretation. SQL-generated children are immutable, and posted receipt monetary/date/borrower inputs are protected. Invalid or conflicting receipt commands roll back atomically. Metadata retries remain Posted without creating duplicate results.
+
+OLTP owns the entry and processing conditions. Both apps read Payments, Payment Allocations, Repayments, Charges and Loans; OLAP retains read-only financial access. Other payment methods retain the AppSheet processor. The workbook's **Dev Differences**, explicitly marked development rows in **DB Logic**, and **Guide** record these semantics separately from the production inventory. User review is pending. Notification-event parity and offline rejection recovery remain release checks; scheduled/export/Looker outputs were not run.
+
+The test also exposed the existing borrower Closed Loan Principle label: its formula subtracts outstanding principal from all amount loaned, so it includes principal repaid on still-open loans. Both apps retain that existing formula. Use actual loan status and repayment components for closure reconciliation; see the report for this separate reporting issue.
+
 ## Production table catalog
 
 Counts below are provider/physical fields followed by virtual columns. Provider counts include AppSheet's _RowNumber where present; they must not be treated as SQL column counts. Exact PostgreSQL types/defaults/nullability are in the workbook's DB Columns sheet.

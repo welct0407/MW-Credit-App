@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 for production OLAP **1.100051** and development OLAP **1.000027** after assessment promotion. OLTP inventory retains its earlier production 3.000070 / development 1.000012 capture; concurrent OLTP development is outside this promotion. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 for production OLAP **1.100051**, development OLAP **1.000027**, and the lump-sum replacement in development OLTP **1.000014**. Production OLTP retains its earlier **3.000070** capture. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -12,10 +12,20 @@ Updated 15 September 2026 for production OLAP **1.100051** and development OLAP 
 | Calendar | OLAP Calendar SQL Lab generated view | Same generated view | Promoted; fixed 153-day horizon retained |
 | Assessment outputs | Stored SQL outputs read through guarded VCs | Same column definitions | All 53 assessment/Calendar columns match; automatic production edit/readback/restoration passed |
 | Navigation | Production companion app | Other development copy | Keep environments isolated |
-| SQL schema | Flyway baseline 1 | Identical Flyway baseline 1 | No schema drift at current capture; schema equality does not mean equal app behavior or data |
+| SQL schema | Flyway baseline 1 | Flyway V3 | Intentional V2/V3 lump-sum functions, triggers and indexes; exact hashes in the review evidence |
+| Lump-sum receipt processing | Five AppSheet stages | Atomic SQL allocation/posting/closure; AppSheet conditions exclude Lump Sum | Implemented and tested in Dev; owner review pending |
+| Allocation snapshots | Includes unfunded eligible charges; row-ordinal ties | Funded rows only; charge-key ties; negative allocation order in row-number snapshot | Intentional documented semantics for new SQL receipts only |
 | Connections | 100 limit | 50 limit | Environment configuration; not a migration |
 
 The workbook's **Dev Differences** sheet contains the exact current table, business-column, slice, action and view differences. Full definitions are in the captured app-model.json. AppSheet-generated internal process schemas may differ when disabled processes are omitted; they are not PostgreSQL business tables. Captured differences are observed configuration, not automatic promotion instructions.
+
+## Lump-sum development candidate
+
+[Review report](../outputs/lumpsum-db-20260915/REPORT.md), [authoritative change log](../Change%20Logs/CHANGE_NOTES_DB_LUMPSUM_2026-09-15.md), and workbook Dev Differences record the exact configuration, migrations, consumer checks and rollback. Dev OLTP rollback is **1.000013**; Dev OLAP **1.000027** was not edited. Both remain on database-3. The receipt event and grouped action now use `AND([Status] = "Processing", [Allocation Method] <> "Lump Sum")`. No physical-field regeneration was needed.
+
+Measured server Add median fell from **14.438 to 5.370 seconds (62.8%)** in today's six-charge test; the historical original median was 15.582 seconds. Successful Save-to-ready/sync-complete median fell from **14.567 to 12.165 seconds (16.5%)**. Small sequential samples and differing historical environment limit the claim; see raw evidence and exclusions. Original Dev records are unchanged; synthetic LS26 fixtures remain for review. Current-GUI OLTP allocation/closure and OLAP readback passed, with local SQL regression/concurrency tests as supplements.
+
+Before production release, obtain owner acceptance/explicit deployment approval, review notification events bypassed by direct SQL child writes, and test multi-device stale/offline rejection recovery. Existing Closed Loan Principle labeling and component currency-display issues are documented separately; no report redesign was included. Never migrate synthetic financial data.
 
 ## Assessment prototype design
 

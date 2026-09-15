@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param()
+param([string]$TestSqlFile,[switch]$LumpSumConcurrency)
 . "$PSScriptRoot/Common.ps1"
 $null = @(Get-MigrationManifest)
 $bin = Get-PgBin
@@ -35,6 +35,13 @@ try {
         if ($LASTEXITCODE) { throw 'Second migration failed' }
         $second = ($second -join "`n") | ConvertFrom-Json
         if (-not $second.success -or $second.migrationsExecuted -ne 0) { throw 'Second run was not a successful no-op' }
+        if ($TestSqlFile) {
+            & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres -f $TestSqlFile
+            if ($LASTEXITCODE) { throw 'Supplemental SQL regression failed' }
+        }
+        if ($LumpSumConcurrency) {
+            & "$PSScriptRoot/Test-LumpSumConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+        }
         $dump = Join-Path $testRoot 'rebuilt.sql'
         & (Join-Path $bin 'pg_dump.exe') -h 127.0.0.1 -p $port -U postgres -d postgres --schema-only --no-owner --no-privileges --schema=public --schema=assessment_lab --exclude-table=public.flyway_schema_history --file=$dump
         if ($LASTEXITCODE) { throw 'Rebuilt schema export failed' }

@@ -1,0 +1,182 @@
+- banner:
+  - button "Toggle menu":
+  - heading "Loan Manager — DEV" [level=6]
+  - textbox "ค้นหา ผู้กู้": LS26
+  - button "Clear search":
+  - status: ซิงค์เสร็จสิ้น
+  - button "ซิงค์":
+  - button "ดูสถานะแอป":
+    - button
+  - button "account menu":
+    - generic: W
+- navigation:
+  - button " ภาพรวม":
+    - generic: 
+    - generic: ภาพรวม
+  - button " เก็บเงินวันนี้":
+    - generic: 
+    - generic: เก็บเงินวันนี้
+  - button " รับชำระ":
+    - generic: 
+    - generic: รับชำระ
+  - button " ผู้กู้":
+    - generic: 
+    - generic: ผู้กู้
+  - button " สินเชื่อ":
+    - generic: 
+    - generic: สินเชื่อ
+  - button " รายงาน / Reporting App":
+    - generic: 
+    - generic: รายงาน / Reporting App
+  - separator
+  - button "เกี่ยวกับ":
+    - generic: เกี่ยวกับ
+  - button "Feedback":
+    - generic: Feedback
+  - separator
+  - button "App Gallery":
+    - generic: App Gallery
+- region "ผู้กู้":
+  - heading "ผู้กู้" [level=2]
+  - button "เพิ่ม":
+    - generic: 
+    - generic "เพิ่ม"
+  - separator
+  - button "ตัวกรอง":
+  - button "เลือกรายการ":
+  - button "ขยาย":
+    - generic: 
+  - button "LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details ฿1,410 ฿100,000 สร้างเงินกู้ใหม่":
+    - generic: LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details
+    - generic: 
+    - text: ฿1,410
+    - generic: ฿100,000
+    - button "สร้างเงินกู้ใหม่":
+      - generic: 
+      - generic: สร้างเงินกู้ใหม่
+  - button "LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details ฿60 ฿300 สร้างเงินกู้ใหม่":
+    - generic: LS26 CORRECTNESS SYNTHETIC - Lump-sum Dev review; no contact details
+    - generic: 
+    - text: ฿60
+    - generic: ฿300
+    - button "สร้างเงินกู้ใหม่":
+      - generic: 
+      - generic: สร้างเงินกู้ใหม่
+- tablist:
+  - tab "LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details":
+    - paragraph: LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details
+  - tab "LS26 BENCHMARK SYNTHETIC-฿100,000-05/09-0.00%" [selected]:
+    - paragraph: LS26 BENCHMARK SYNTHETIC-฿100,000-05/09-0.00%
+    - button "ปิด LS26 BENCHMARK SYNTHETIC-฿100,000-05/09-0.00%":
+- tabpanel:
+  - region "LS26 BENCHMARK SYNTHETIC-฿100,000-05/09-0.00%":
+    - button "แก้ไข":
+      - generic: 
+      - generic "แก้ไข"
+    - separator
+    - button "ขยาย":
+      - generic: 
+    - generic: วันที่ให้กู้ / Loan Date
+    - generic: 9/5/2026
+    - generic: เงินต้น / Principal Amount
+    - generic: ฿100,000
+    - generic: ประเภทเงินกู้ / Loan Type
+    - generic: ดอกเบี้ยรายวัน / Daily Interest
+    - generic: ดอกเบี้ยต่อวันปัจจุบัน / Current Daily Interest
+    - generic: ฿0
+    - generic: รอบการชำระ (วัน) / Payment Interval (Days)
+    - generic: "1"
+    - generic: ชื่อผู้กู้ / Borrower
+    - generic: LS26 BENCHMARK SYNTHETIC - Lump-sum Dev benchmark; no contact details
+    - generic: สถานะ / Loan Status
+    - generic: ยังไม่ปิดยอด / Active
+    - generic: 📊 สถิติการกู้ / Statistics
+    - generic: เงินต้นคงเหลือ / Outstanding Principal
+    - generic: ฿100,000
+    - generic: ค่าธรรมเนียมการโอน / Transfer Fee
+    - generic: ฿0
+    - generic: เงินต้นที่ได้รับคืนทั้งหมด / Total Principal Received
+    - generic: ฿0
+    - generic: ยอดเงินที่ได้รับทั้งหมด / Total Amount Received
+    - generic: ฿1,410
+    - generic: ดอกเบี้ยที่ได้รับทั้งหมด / Total Interest Received
+    - generic: 
+    - text: ฿1,410
+    - generic: คืนทุนจากดอกเบี้ย % / Principal Recovered by Interest %
+    - generic: 1%
+    - region "Related Charges":
+      - generic: Related Charges
+      - generic: "6"
+      - separator
+      - button "9/15/2026 ฿1,400 ฿198,600 รับชำระบางส่วน รับชำระ":
+        - generic: 9/15/2026
+        - generic: ฿1,400
+        - generic: 
+        - text: ฿198,600
+        - button "รับชำระบางส่วน":
+          - generic: 
+          - generic: รับชำระบางส่วน
+        - button "รับชำระ":
+          - generic: 
+          - generic: รับชำระ
+      - button "9/14/2026 ฿10 ฿90 รับชำระบางส่วน รับชำระ":
+        - generic: 9/14/2026
+        - generic: ฿10
+        - generic: 
+        - text: ฿90
+        - button "รับชำระบางส่วน":
+          - generic: 
+          - generic: รับชำระบางส่วน
+        - button "รับชำระ":
+          - generic: 
+          - generic: รับชำระ
+      - button "9/13/2026 ฿0 ฿100 รับชำระบางส่วน รับชำระ":
+        - generic: 9/13/2026
+        - generic: ฿0
+        - generic: 
+        - text: ฿100
+        - button "รับชำระบางส่วน":
+          - generic: 
+          - generic: รับชำระบางส่วน
+        - button "รับชำระ":
+          - generic: 
+          - generic: รับชำระ
+      - button "9/12/2026 ฿0 ฿100 รับชำระบางส่วน รับชำระ":
+        - generic: 9/12/2026
+        - generic: ฿0
+        - generic: 
+        - text: ฿100
+        - button "รับชำระบางส่วน":
+          - generic: 
+          - generic: รับชำระบางส่วน
+        - button "รับชำระ":
+          - generic: 
+          - generic: รับชำระ
+      - button "9/11/2026 ฿0 ฿100 รับชำระบางส่วน รับชำระ":
+        - generic: 9/11/2026
+        - generic: ฿0
+        - generic: 
+        - text: ฿100
+        - button "รับชำระบางส่วน":
+          - generic: 
+          - generic: รับชำระบางส่วน
+        - button "รับชำระ":
+          - generic: 
+          - generic: รับชำระ
+      - button "9/10/2026 ฿0 ฿100 รับชำระบางส่วน รับชำระ":
+        - generic: 9/10/2026
+        - generic: ฿0
+        - generic: 
+        - text: ฿100
+        - button "รับชำระบางส่วน":
+          - generic: 
+          - generic: รับชำระบางส่วน
+        - button "รับชำระ":
+          - generic: 
+          - generic: รับชำระ
+      - button "ขยาย"
+    - generic: Auto Charge Enabled
+    - generic: "N"
+- generic: 
+- text:   
+- status: 1Password menu is available. Press down arrow to select.
