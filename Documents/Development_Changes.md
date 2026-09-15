@@ -35,6 +35,8 @@ Before promotion: review the fixed forecast horizon, the shared MAIN input row v
 
 ## Automation isolation and maintenance
 
+**Standing preparation gate:** follow [Development Environment Preparation](Development_Environment_Preparation.md) for every future copy, refresh, replacement or version restore. Nonessential or confusing bots, especially notifications, must remain disabled. Review all new bots and embedded tasks before test writes; enable only essential processing confined to development. The rule is mandatory in AGENTS.md and is not limited to today's app copies.
+
 Fresh current-editor checks confirm transactional OLTP bots retained, daily generation/notifications disabled, and all three OLAP schedule/export bots disabled. Production server caching is on while development server caching is off. Other observed sync toggles match: Delta off; Quick Sync, sync on start, delayed sync and automatic updates on. See Environment Inventory for all current values. Recheck isolation before future write testing; this read-only review did not execute bots.
 
 For a new change, record its migration/version, consumers, exact expressions, tests, measured results, owner decision and rollback. After an approved production deployment, update the production overview and dictionary and close the corresponding difference. Preserve earlier decisions in Change Logs. App rollback versions that restore database-2 would reconnect development apps to production; do not use them casually.

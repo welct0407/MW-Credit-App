@@ -34,6 +34,14 @@ This file governs Codex work on the shared AppSheet solution: the **OLTP Operati
 
 The production OLTP and OLAP apps use the shared PostgreSQL database on Cloud SQL. Development apps use the separate development instance. The original AppSheet database is historical migration reference, not the current write target.
 
+### Development automation isolation — owner rule, 15 September 2026
+
+- This rule applies to every development app/environment, including future copies, refreshes, replacements and version restores. Never inherit production bot enablement without review.
+- Bots that are not essential to the business process being tested, or could confuse users through notifications or other outward-facing activity, must remain disabled in development. This includes email/push/chat notifications, reminders and unsolicited exports. Do not enable them merely to match production.
+- Before any test write or making a refreshed development app available, inventory every bot and its event, process, tasks and destinations. Enable only explicitly reviewed essential business-processing bots whose effects are confined to development. New, unknown or unreviewed bots default to disabled. Review essential bots for embedded notification/export tasks as well; an essential calculation does not authorize user-facing side effects.
+- Apply the preparation checklist in `Documents/Development_Environment_Preparation.md` after every copy/refresh/restore, and after adding or changing a development bot. Save and verify disabled states in the current AppSheet editor, record app versions and evidence in the change log, and verify development sources and cross-app links before testing.
+- Preparation is incomplete while a nonessential/confusing bot is enabled or its state/destination is unverified. A production cutover or app-version restore does not waive this gate. These are AppSheet configuration controls, separate from Flyway; do not disable essential database integrity or calculation triggers as a substitute.
+
 ### Database development and promotion — owner rule, 15 September 2026
 
 - Manage all PostgreSQL DDL, indexes, constraints, views, functions, triggers and approved data backfills through Flyway and this GitHub repository. Use `database/migrations/V<version>__<description>.sql` and the runners in `scripts/database/`; follow `database/README.md`.

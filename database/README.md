@@ -1,5 +1,7 @@
 # PostgreSQL development with Flyway
 
+After an app/database copy or refresh, also complete [Development Environment Preparation](../Documents/Development_Environment_Preparation.md) before test writes. Flyway does not manage AppSheet bot enablement. Nonessential/confusing bots must remain disabled; essential processing requires development-only effects and saved-state verification.
+
 Flyway Open Source 13.6.0 manages the database schema in this repository. PostgreSQL 18.6 is the tested engine. Both Cloud SQL instances use database name `loan_manager_prod`; the **host/instance**, not that database name, identifies the environment. See `environments.json`.
 
 ## Setup and initial adoption
