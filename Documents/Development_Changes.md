@@ -27,7 +27,7 @@ The workbook's **Dev Differences** sheet contains the exact current table, busin
 
 ### Common generation — development phases 4–5
 
-Both-app definitions reconciled at 1.000039, rollback 1.000036. V8/V9 implement the common generator and database schedule; four notification-only routes are unchanged. Current-GUI manual charges 50/130/30 and actual scheduler charge20 reconcile; off-interval loan skipped and original rows across14 tables preserved. Owner approved nightly development activation, now active at00:05 Bangkok; overall workflow acceptance and the first natural overnight run remain pending. [Phase4–5 report and rollback](../outputs/charge-generation-20260915/REPORT.md).
+Both-app definitions reconciled at 1.000039, rollback 1.000036. V8/V9 implement the common generator and database schedule; four notification-only routes are unchanged. Current-GUI manual charges 50/130/30 and actual scheduler charge 20 reconcile; the off-interval loan was skipped and original rows across 14 tables preserved. Owner approved nightly development activation, now active at 00:05 Bangkok; owner accepted phases 4–5 on 15 September 2026; the first natural overnight run remains pending. [Phase 4–5 report and rollback](../outputs/charge-generation-20260915/REPORT.md).
 
 ### Interval anchor — promoted 15 September 2026
 

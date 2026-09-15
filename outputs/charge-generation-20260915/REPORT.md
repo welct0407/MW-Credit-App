@@ -1,6 +1,6 @@
 # Phases 4–5: common charge generation
 
-15 September 2026. Implemented and verified in development; owner workflow acceptance pending. Production remains Flyway V5 / OLTP 3.000080 / OLAP 1.100055. No production deployment or Looker edit occurred.
+15 September 2026. Implemented, verified and owner-accepted in development on 15 September 2026. Production remains Flyway V5 / OLTP 3.000080 / OLAP 1.100055. No production deployment or Looker edit occurred.
 
 ## Result
 
@@ -53,4 +53,6 @@ Promote only an exact tested commit and migration hashes after a restorable prod
 
 ## Owner check
 
-In development, sync both apps and check a due daily-interest, fixed-date and installment loan: use Generate All Today's Charges where eligible, confirm component totals and one charge per loan/date; verify auto-off/off-interval loans are skipped. The request field should be absent from forms/details and OLAP remain read-only. After the first natural nightly run, check cron.job_run_details and corresponding charges. Owner acceptance of this phase's workflow is still pending; nightly activation itself was explicitly approved.
+Implementation commit `61857288fbbf7864e7fc56a9909aca7de7a29482` was pushed to origin/master. [GitHub Database migrations run 10](https://github.com/welct0407/AppSheet-Loan-Project/actions/runs/34979346262) passed in 2m35s on a fresh Windows runner. Its only annotation was the existing checkout action's Node20 deprecation/runtime24 warning; no test failed. Owner subsequently accepted phases 4–5; this acceptance update changes documentation only, not the tested SQL or app configuration.
+
+In development, sync both apps and check a due daily-interest, fixed-date and installment loan: use Generate All Today's Charges where eligible, confirm component totals and one charge per loan/date; verify auto-off/off-interval loans are skipped. The request field should be absent from forms/details and OLAP remain read-only. After the first natural nightly run, check cron.job_run_details and corresponding charges. Owner confirmed: Looks correct — accept phases 4–5. The first natural nightly run remains pending; nightly activation was explicitly approved.

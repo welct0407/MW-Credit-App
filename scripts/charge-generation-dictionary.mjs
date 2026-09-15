@@ -3,6 +3,17 @@ import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
 const file='Documents/AppSheet_Data_Dictionary.xlsx',out='outputs/charge-generation-20260915';
 const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(file));
 const before=Object.fromEntries(wb.worksheets.items.map(s=>[s.name,s.getUsedRange().values]));
+if(process.argv.includes('--accept')){
+ const i=before.Guide.findIndex(r=>r[0]==='Development charge generation');if(i<0)throw Error('Generation entry missing');
+ const row=[...before.Guide[i]];row[2]=String(row[2]).replace('user workflow acceptance pending','owner accepted phases 4–5 on 15 September 2026; first natural nightly run pending');
+ wb.worksheets.getItem('Guide').getRangeByIndexes(i,0,1,row.length).values=[row];wb.recalculate();
+ const p=await wb.render({sheetName:'Guide',range:`A${i+1}:C${i+1}`,scale:1,format:'png'});await fs.writeFile(out+'/dictionary-after-Guide.png',new Uint8Array(await p.arrayBuffer()));
+ const scan=await wb.inspect({kind:'match',searchTerm:'#REF!|#DIV/0!|#VALUE!|#NAME\\?|#NUM!|#SPILL!|#CALC!',options:{useRegex:true,maxResults:20},summary:'Accepted generation dictionary error scan'});await fs.writeFile(out+'/dictionary-error-scan.jsonl',scan.ndjson);
+ const staged=out+'/dictionary-staged.xlsx';await(await SpreadsheetFile.exportXlsx(wb)).save(staged);const check=await SpreadsheetFile.importXlsx(await FileBlob.load(staged));before.Guide[i]=row;
+ for(const s of check.worksheets.items){if(JSON.stringify(before[s.name])!==JSON.stringify(s.getUsedRange().values))throw Error('Acceptance changed unexpected values '+s.name);}
+ const log=JSON.parse(await fs.readFile(out+'/dictionary-changes.json','utf8'));log.changes.find(c=>c.sheet==='Guide'&&c.row===i+1).values=row;log.ownerAcceptance='15 September 2026: Looks correct — accept phases 4–5';
+ await fs.copyFile(staged,file);await fs.unlink(staged);await fs.unlink(staged+'.inspect.ndjson').catch(()=>{});await fs.writeFile(out+'/dictionary-changes.json',JSON.stringify(log,null,2));console.log({accepted:true,allSheetsRoundtrip:true});process.exit(0);
+}
 if(!process.argv.includes('--edit')){
  if(process.argv.includes('--verify-render')){
   const log=JSON.parse(await fs.readFile(out+'/dictionary-changes.json','utf8'));

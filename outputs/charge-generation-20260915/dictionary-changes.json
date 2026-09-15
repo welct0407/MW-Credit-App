@@ -665,8 +665,9 @@
       "values": [
         "Development charge generation",
         "OLTP 1.000039 / OLAP 1.000039; Flyway V9",
-        "Manual and nightly generation use one SQL engine. New hidden nullable Loans request field. Current-GUI and actual scheduler tests pass. Nightly development job enabled; user workflow acceptance pending. See outputs/charge-generation-20260915/REPORT.md."
+        "Manual and nightly generation use one SQL engine. New hidden nullable Loans request field. Current-GUI and actual scheduler tests pass. Nightly development job enabled; owner accepted phases 4–5 on 15 September 2026; first natural nightly run pending. See outputs/charge-generation-20260915/REPORT.md."
       ]
     }
-  ]
+  ],
+  "ownerAcceptance": "15 September 2026: Looks correct — accept phases 4–5"
 }
