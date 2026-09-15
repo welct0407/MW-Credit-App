@@ -33,4 +33,4 @@ jobs:
         run: ./scripts/database/Install-Tools.ps1
       - name: Rebuild and validate disposable database
         shell: pwsh
-        run: ./scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-DefaultLoan.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency
+        run: ./scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-AnalyticsRefresh.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency

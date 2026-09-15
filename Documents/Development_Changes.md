@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 for development OLTP **1.000042**, development OLAP **1.000040**, production OLTP **3.000094**, production OLAP **1.100062**. Both databases are Flyway **V10**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15–16 September 2026 for development OLTP **1.000048**, development OLAP **1.000050**, production OLTP **3.000094**, production OLAP **1.100062**. Development is Flyway **V11**, production **V10**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -8,13 +8,16 @@ Updated 15 September 2026 for development OLTP **1.000042**, development OLAP **
 | --- | --- | --- | --- |
 | Database instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Isolation retained |
 | AppSheet source | database-2 | database-3 | Never promote the development host |
-| SQL schema | Flyway V10 | Flyway V10 | Exact migration hashes and normalized schemas match |
+| SQL schema | Flyway V10 | Flyway V11 | V11 analytics command/upsert is development only |
 | Core payments, final close, first day, default | Atomic SQL | Same SQL | Phases 1–6 promoted with owner approval |
 | Manual generation | Hidden dated Loans request | Same request | Same common SQL rules |
-| Nightly generation | pg_cron 00:05 Bangkok, active | pg_cron 00:05 Bangkok, active | Separate jobs; AppSheet generation disabled |
+| Nightly generation | pg_cron 00:05 Bangkok, active | AppSheet bot 00:05 Bangkok; pg_cron paused | Same SQL generator; monitored failure and retry passed |
 | New fields | Closing-payment Ref, target-loan Ref, hidden generation request | Same model | Both consumers reconciled; no backfill |
 | Notification recipients | Existing Partners emails, excluding acting user | Approved owner account only | Intentional environment difference |
-| OLAP hourly analytics | Existing refresh enabled | Disabled | Preserved; phase 7 not included |
+| OLAP hourly analytics | Existing Calendar refresh | Hourly :00 Bangkok Statistics request → SQL | Recent/full manual actions tested; 42/42 dates reconcile |
+| Statistics request | Absent | Hidden nullable Analytics Refresh Request | Approved; both apps reconciled; excluded from reporting slice |
+| Calendar | SQL date-view binding | Removed from app | No Calendar appdoc references; historical SQL objects retained |
+| Daily Analytics writes | AppSheet delete/create | SQL upsert; app READ_ONLY | Existing keys and Model 2 metrics preserved |
 | Connections | 100 | 50 | Capacity/settings remain separate |
 | Companion navigation | Production app | Development app | Isolation retained |
 
@@ -79,3 +82,8 @@ Promotion completed under owner authorization. The fixed horizon, shared MAIN in
 The earlier isolation checks confirmed transactional development OLTP bots retained, daily generation/notifications disabled, and all three development OLAP schedule/export bots disabled. Production OLAP performance settings were recaptured during promotion: server caching, delta, Quick Sync and delayed sync off; sync on start and automatic updates on. See Environment Inventory for dated values. Recheck development isolation before future write testing.
 
 For a new change, record its migration/version, consumers, exact expressions, tests, measured results, owner decision and rollback. After an approved production deployment, update the production overview and dictionary and close the corresponding difference. Preserve earlier decisions in Change Logs. App rollback versions that restore database-2 would reconnect development apps to production; do not use them casually.
+
+
+### Monitored jobs acceptance — 16 September 2026
+
+Owner accepted development V11 / OLTP 1.000048 / OLAP 1.000050 after syncing and checking both apps. Natural hourly analytics at 00:00:05 and all 24 daily charge runs at 00:05:03 Bangkok completed. Error-email delivery remains unverified. This supersedes earlier development scheduler pending status; production is outside this change. [Evidence and rollback](../outputs/monitored-jobs-20260915/REPORT.md).

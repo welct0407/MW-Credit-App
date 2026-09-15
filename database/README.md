@@ -39,13 +39,23 @@ The runner rejects mismatched commits/hashes, dirty checkouts and missing approv
 
 ## Current production release
 
-Phases 1–6 were explicitly authorized and promoted on 15 September 2026 from tested commit `33ed313f585311dcd0caffb1488ea8ac574bfb6e`. Both environments are **V10**. Production app versions are **3.000094 / 1.100062**; development remains **1.000042 / 1.000040**. See [release evidence and recovery](../outputs/core-promotion-20260915/REPORT.md).
+Phases 1–6 were explicitly authorized and promoted on 15 September 2026 from tested commit `33ed313f585311dcd0caffb1488ea8ac574bfb6e`. Production remains **V10**, app versions **3.000094 / 1.100062**. Development subsequently advanced to **V11 / 1.000048 / 1.000050** for monitored jobs below. See [production release evidence and recovery](../outputs/core-promotion-20260915/REPORT.md).
 
 Production job `loan-daily-charges` is active for **00:05 Asia/Bangkok**. Read it with `Set-ProductionChargeSchedule.ps1 -Mode status`; enable/pause operations require the actual owner approval reference and exact tested release manifest. This runner changes only scheduler activation, not financial rows or DDL. `Get-CorePromotionAudit.ps1` returns aggregate fingerprints/catalog metadata without borrower data. Development fixture/scheduler runners remain pinned to development.
 
 AppSheet financial bots are disabled and notification-only routes use production partner recipients. The V6–V10 sections below retain development test and rollback checkpoints. Their former development-only scope is superseded by this release. Applied migrations are immutable; any correction now requires **V11 or higher**. Restore AppSheet and SQL together; an app version restore alone is unsafe.
 
 ## Recovery and limits
+
+### Monitored development jobs and analytics V11
+
+V11 adds the owner-approved nullable Statistics.Analytics Refresh Request and an atomic Model 2 snapshot upsert. Requests are `Bangkok-date|Recent or Full|nonce`. Recent refreshes yesterday/today; Full refreshes from the first loan date through today. A unique Snapshot Date index and transaction advisory lock prevent duplicate/overlapping snapshots; existing Row IDs are retained. SQL generates dates without Calendar. Daily Analytics is read-only in development OLAP; Calendar and its old app actions/views are removed. Historical SQL Calendar objects remain unused for recovery.
+
+Development AppSheet schedules the existing SQL charge request at 00:05 Bangkok and analytics at :00 hourly. Both development apps are deployed for scheduling, development pg_cron is paused, and nonessential export remains disabled. SQL errors propagate to Automation Monitor; tested charge error and retry plus analytics success are recorded. Audit History Alerts are enabled, but owner email delivery was not observed. [Evidence, metric contract and rollback](../outputs/monitored-jobs-20260915/REPORT.md).
+
+Run `Test-Migrations.ps1 -TestSqlFile scripts/database/Test-AnalyticsRefresh.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency`. The analytics SQL includes preceding suites and tests preserved IDs, duplicate/no-op requests, malformed commands, partial/default-compatible semantics and full rollback on a later-date failure. `Verify-AnalyticsSnapshots.ps1` independently reconciles the current development snapshots against the old AppSheet expressions without writing records. V11 is applied and immutable; further changes require **V12 or higher**.
+
+For charge rollback, disable the AppSheet schedule before re-enabling development pg_cron. For analytics rollback, disable the hourly bot and stop request writes before restoring OLAP 1.000040 / OLTP 1.000042; retain the additive SQL column/index/functions or use a reviewed higher migration if removal is required. A database restore discards later development writes and requires explicit recovery approval. Never run old and new schedules together. Do not replay fixture seeds or overwrite the private before snapshot.
 
 ### Atomic Default Loan V10 — promoted; development test evidence below
 
