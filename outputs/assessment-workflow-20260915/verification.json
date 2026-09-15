@@ -14,9 +14,10 @@
     "automaticSyncReturnedNewResult": true,
     "restoration": {
       "restored2000": true,
-      "originalDate": false,
-      "pending": true,
-      "refreshAction": false
+      "originalDate": true,
+      "pending": false,
+      "refreshAction": false,
+      "verifiedAfterRestart": true
     }
   }
 }
