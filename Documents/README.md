@@ -7,7 +7,7 @@ Updated 15 September 2026. Start with the production reference below. Keep one p
 | [Production data model](AppSheet_Data_Model_Overview.md) | Architecture, ownership, tables, relationships and current calculation boundaries | Reconciled to live app definitions and SQL schema on 15 September |
 | [Data dictionary](AppSheet_Data_Dictionary.xlsx) | Exact production business columns, rules, references, slices, SQL catalog and development differences | Rebuilt from current definitions; see Guide for scope |
 | [Environment inventory](Environment_Inventory.md) | App IDs/versions, database hosts, connection limits, evidence timestamps and limitations | Current read-only app/SQL checks; other configuration has dated evidence |
-| [Development differences](Development_Changes.md) | Unpromoted assessment design, isolation, tests and promotion requirements | Loan Business Insights — DEV 1.000026 / Loan Manager — DEV 1.000012 |
+| [Development differences](Development_Changes.md) | Environment isolation, remaining differences and promotion history | Assessment promoted to production OLAP 1.100051 from DEV 1.000027 |
 | [Database migrations](../database/README.md) | Flyway baseline, development workflow and production promotion | Authoritative SQL change procedure |
 | [Development preparation](Development_Environment_Preparation.md) | Mandatory source/navigation isolation and bot review after every copy/refresh/restore | Nonessential and confusing bots must remain disabled |
 | [OLTP business processes](OLTP_Business_Processes.md) | Business workflow narrative and editable diagram | Historical workflow synthesis with current source/version annotation; not a fresh lifecycle test |

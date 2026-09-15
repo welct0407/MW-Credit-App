@@ -7,11 +7,11 @@ Updated 15 September 2026. Production/development are separate Cloud SQL instanc
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000070 | database-2 | 8 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100046 | database-2 | 12 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100051 | database-2 | 13 |
 | Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000012 | database-3 | 8 |
-| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000026 | database-3 | 13 |
+| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000027 | database-3 | 13 |
 
-Production OLAP additionally uses Google Sheets Calendar; development OLAP uses the SQL Calendar view. Native internal tables are excluded from the SQL counts. All 41 SQL bindings across the four apps were captured. The workbook records the exact logical-to-physical mapping.
+Both OLAP apps use the SQL Calendar and assessment views after the authorized assessment promotion. Native internal tables are excluded from the SQL counts. There are 42 SQL bindings across the four apps. OLAP definitions were recaptured during promotion; unrelated app captures retain their original timestamps. The workbook records the exact logical-to-physical mapping.
 
 Cleanup on 15 September leaves exactly these four owned AppSheet apps and one AppSheet database, **Money database**, retained as historical reference. Three obsolete apps and five copied AppSheet databases were deleted with explicit owner confirmation. Both Cloud SQL instances were retained. Development display names changed; internal app names, UUIDs, source bindings, columns, actions and cross-app link expressions were verified unchanged. Details and deleted-object names are in [cleanup notes](../Change%20Logs/CHANGE_NOTES_APPSHEET_CLEANUP_2026-09-15.md). The old backup apps/databases are no longer available rollback targets.
 
@@ -57,11 +57,11 @@ The browser's full accessibility extraction timed out on the large appdoc; bound
 | App | Server caching | Delta sync | Quick sync | Sync on start | Delayed sync | Automatic updates |
 | --- | --- | --- | --- | --- | --- | --- |
 | production-oltp | On | Off | On | On | On | On |
-| production-olap | On | Off | On | On | On | On |
+| production-olap | Off | Off | Off | On | Off | On |
 | development-oltp | Off | Off | On | On | On | On |
 | development-olap | Off | Off | On | On | On | On |
 
-These are observed settings, not a recommendation to enable them. In particular, Quick Sync is on in all four apps and delayed sync is also on. Do not assume that an input is submitted immediately or that external database-trigger changes propagate through Quick Sync alone. Verification of automatic save/readback behavior remains a functional test, separate from this configuration inventory.
+Production OLAP settings above were freshly observed during assessment promotion; no toggle was changed in that task. Its new-interface amount edit automatically saved, triggered SQL calculation and returned updated results, then restored successfully. Other app settings retain their earlier observation and were not rechecked here. Quick Sync alone is not proof of propagation of external database-trigger changes.
 
 ## Current bot enablement
 

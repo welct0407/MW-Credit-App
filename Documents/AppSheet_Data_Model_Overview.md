@@ -6,11 +6,11 @@ Reconciled 15 September 2026. This is the current production architecture refere
 
 Production app definitions were freshly captured from the read-only AppSheet documentation pages: OLTP **3.000070**, OLAP **1.100046**. Captures cover tables, source bindings, column properties/formulas, references, slices and their membership, actions and views. Both database schemas were exported read-only and exactly match Flyway V1 after normalization. Runtime PostgreSQL version and connection limits were queried separately. Sync toggles and bot enablement were then checked in the current editor for all four apps. This reconciliation did not execute financial transactions or prove notification delivery, scheduled execution or Looker behavior.
 
-The workbook contains all **555 production business-column entries** (196 OLTP, 359 OLAP), **14 slices**, their **440 membership entries**, and the live SQL catalog. Internal AppSheet process/user tables are identified in Prod Tables; their full generated schemas are retained in the [sanitized definition snapshot](../outputs/documentation-reconciliation-20260915/app-model.json), rather than mixed into the business dictionary. Counts are app-specific, not unique physical database columns.
+After the assessment promotion, the workbook contains **557 production business-column entries** (196 OLTP, 361 OLAP), **14 slices**, their **438 membership entries**, and the SQL catalog. Internal AppSheet process/user tables are identified in Prod Tables; their generated schemas are retained in the [updated definition snapshot](../outputs/assessment-promotion-20260915/app-model.json), rather than mixed into the business dictionary. Counts are app-specific, not unique physical database columns. OLAP was recaptured at **1.100051**; unrelated captures retain the original verification dates.
 
 ## Architecture and ownership
 
-Production OLTP and OLAP share Cloud SQL PostgreSQL database **loan_manager_prod** on **appsheet-pg-prod-20260914**, through AppSheet connection **database-2**. The original Money AppSheet database is historical migration reference. Production OLAP still reads its Calendar from **Calendar Help Table / Sheet1** through Google Sheets. AppSheet internal user/process tables remain native.
+Production OLTP and OLAP share Cloud SQL PostgreSQL database **loan_manager_prod** on **appsheet-pg-prod-20260914**, through AppSheet connection **database-2**. The original Money AppSheet database is historical migration reference. Production OLAP now reads Calendar from **OLAP Calendar SQL Lab**, a PostgreSQL generated-date view. AppSheet internal user/process tables remain native.
 
 OLTP owns borrowers, loan operations, charges, receipts and allocation posting. OLAP owns partner management, contributions, settlement, portfolio analysis and loan assessment. Looker Studio is downstream presentation over governed feeds. Its source configuration has not been freshly reconciled in this task. External collection software remains governed in its separate repository; the presence of collection-related borrower fields here does not authorize changes to that system.
 
@@ -20,7 +20,7 @@ Counts below are provider/physical fields followed by virtual columns. Provider 
 
 | Table | Consumers | Source | OLTP provider / VC | OLAP provider / VC | Purpose |
 | --- | --- | --- | --- | --- | --- |
-| Borrowers | OLTP + OLAP | PostgreSQL | 12 / 26 | 12 / 65 | Borrower master; operational and reporting indicators |
+| Borrowers | OLTP + OLAP | PostgreSQL | 12 / 26 | 12 / 64 | Borrower master; operational and reporting indicators |
 | Loans | OLTP + OLAP | PostgreSQL | 20 / 21 | 20 / 31 | Loan terms, lifecycle and balances |
 | Repayments | OLTP + OLAP | PostgreSQL | 11 / 5 | 11 / 13 | Posted principal/interest entries and receipt/allocation trace |
 | Statistics | OLTP + OLAP | PostgreSQL | 3 / 23 | 3 / 36 | Control row and app-level KPI virtual columns |
@@ -28,8 +28,8 @@ Counts below are provider/physical fields followed by virtual columns. Provider 
 | Partners | OLTP + OLAP | PostgreSQL | 8 / 0 | 8 / 12 | Partner master; management owned by OLAP |
 | Payment Allocations | OLTP + OLAP | PostgreSQL | 14 / 5 | 14 / 1 | Receipt-to-charge allocation snapshots; workflow owned by OLTP |
 | Payments | OLTP + OLAP | PostgreSQL | 14 / 9 | 14 / 2 | Receipt and processing state; workflow owned by OLTP |
-| Calendar | OLAP | Google Sheets | — | 2 / 26 | Date spine and assessment forecast calculations |
-| Loan Assessment | OLAP | PostgreSQL | — | 6 / 16 | Proposed-loan inputs and app-calculated assessment outputs |
+| Calendar | OLAP | PostgreSQL view | — | 2 / 10 | Generated date spine and descriptive date fields |
+| Loan Assessment | OLAP | PostgreSQL view | — | 25 / 16 | Inputs and stored SQL results with guarded presentation VCs |
 | Cash Pool Contributions | OLAP | PostgreSQL | — | 7 / 2 | Partner capital contributions |
 | Settlements | OLAP | PostgreSQL | — | 8 / 0 | Partner settlement records |
 | Daily Analytics | OLAP | PostgreSQL | — | 17 / 6 | Persisted daily portfolio snapshots |
@@ -56,7 +56,6 @@ Preserve existing text **Row ID** keys byte-for-byte, including case. Do not cas
 | OLAP | Repayments | Ref Payment | Payments | Row ID | No |
 | OLAP | Repayments | Ref Payment Allocation | Payment Allocations | Row ID | No |
 | OLAP | Charges | Ref Loans | Loans | Row ID | Yes |
-| OLAP | Calendar | Assessment Borrower | Borrowers | Row ID | No |
 | OLAP | Loan Assessment | Ref Borrower | Borrowers | Row ID | No |
 | OLAP | Cash Pool Contributions | Ref Partner | Partners | Row ID | No |
 | OLAP | Settlements | Ref Partner | Partners | Row ID | No |
@@ -73,7 +72,9 @@ Loans[Borrower Name] is a **Name virtual column** in both production apps, with 
 
 Payments represent receipts; Payment Allocations represent receipt-to-charge processing snapshots; Repayments record posted principal/interest and optional payment/allocation trace. The existing OLTP action definitions and guards are captured exactly in app-model.json. Operational correctness depends on posted amounts and processing state, not merely the existence of a row. Read-only configuration capture does not establish atomicity across separate AppSheet writes.
 
-Production loan assessment retains its **Loan Assessment input/control table**, app virtual output columns and the Google Sheets Calendar forecast path. Statistics remains a KPI/control table. The trigger-based assessment is a **development app design**, not the production app's assessment source. Lab tables/functions also exist physically in production because they were present before cloning and Flyway adoption; physical presence is not deployment in the production app.
+Production OLAP **1.100051** uses logical **Loan Assessment** bound to **Loan Assessment SQL Lab View**, over the stored **Loan Assessment SQL Lab** table. Saving inputs fires the existing SQL calculation/stamp triggers. Nineteen added provider fields expose results and freshness metadata; eleven presentation VCs were changed to read these results or show waiting/out-of-date messages. Statistics remains a KPI/control table and does not own the assessment outputs. No Refresh Assessment action is used. Normal sync retrieves outputs but does not recalculate an unchanged row. The shared input row and forecast horizon through **31 December 2026** remain existing design limits.
+
+The owner authorized promotion on 15 September. All 41 assessment and 12 Calendar column definitions match development 1.000027 exactly. Production keeps database-2. Sixteen obsolete Calendar calculation VCs, Borrowers[Related Calendars], its two slice memberships and generated Calendar_Inline/View Ref dependencies were removed. Original production assessment inputs were preserved. A new-interface amount edit, automatic trigger/readback and restoration passed; pending status was observed. Rollback is production OLAP **1.100047**. See the [promotion record](../Change%20Logs/CHANGE_NOTES_ASSESSMENT_PROMOTION_2026-09-15.md) and [current OLAP snapshot](../outputs/assessment-promotion-20260915/app-model.json). Other app captures retain their earlier dates.
 
 The existing three loan types, whole-baht daily-installment allocation, first-day receipt behavior, duplicate-charge guards, early-closure/default guards and receipt retry/reconciliation rules are preserved. Detailed rule history and prior tests are retained in [model history](AppSheet_Data_Model_History.md) and the dated Change Logs. The fresh dictionary is authoritative for current exact expressions; historical narrative is not a new test result.
 
@@ -87,4 +88,4 @@ Changes must be tested in development, with affected OLTP/OLAP consumers checked
 
 Update this overview and the dictionary together with the applicable Markdown change log. Keep one production baseline and a development difference register. On promotion, update production documentation and close the promoted development differences. Re-export app definitions and database catalogs after model changes; a Flyway checksum validation alone is not a live drift check.
 
-No manual financial test is needed for this documentation-only change. Owner review should confirm the environment labels and prototype scope. Bot enablement and six sync toggles are freshly recorded; scheduled execution, report/export delivery and sustained capacity behavior were not retested. See [verification coverage](Environment_Inventory.md#verification-coverage). Historical source notes remain preserved and explicitly dated.
+For acceptance of the assessment promotion, open/sync OLAP, change an assessment input and confirm the waiting message becomes a timestamped result. Confirm ordinary dashboard/partner navigation. No new loan or payment transaction is needed for this check. Scheduled execution, report/export delivery and sustained capacity behavior were not retested. See [verification coverage](Environment_Inventory.md#verification-coverage). Historical source notes remain preserved and explicitly dated.
