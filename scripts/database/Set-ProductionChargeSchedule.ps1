@@ -11,19 +11,21 @@ if($Mode -ne 'status'){
  if([string]::IsNullOrWhiteSpace($ApprovalReference)){throw 'Explicit owner approval reference required; this parameter does not grant approval'}
  if(-not $ReleaseManifest){throw 'Tested release manifest required'}
  $release=Get-Content -LiteralPath $ReleaseManifest -Raw | ConvertFrom-Json
- if($release.commit -ne '33ed313f585311dcd0caffb1488ea8ac574bfb6e'){throw 'This runner is limited to the reviewed phases 1-6 release'}
+ $head=(& git -C $DbRepoRoot rev-parse HEAD).Trim()
+ if($release.commit -ne $head -or $release.environment -ne 'development' -or -not $release.validationReference){throw 'Current tested development release required'}
  if((Get-MigrationManifest | ConvertTo-Json -Compress) -ne ($release.migrations | ConvertTo-Json -Compress)){throw 'Migration hashes differ from tested release'}
 }
 $sql=@'
 BEGIN;
 DO $$ BEGIN
  IF current_database()<>'loan_manager_prod' OR current_setting('cron.timezone')<>'Asia/Bangkok' THEN RAISE EXCEPTION 'Unexpected scheduler target'; END IF;
- IF NOT EXISTS(SELECT FROM public.flyway_schema_history WHERE version='10' AND success) THEN RAISE EXCEPTION 'V10 required'; END IF;
+ IF NOT EXISTS(SELECT FROM public.flyway_schema_history WHERE version='__REQUIRED_VERSION__' AND success) THEN RAISE EXCEPTION 'Required production migration is missing'; END IF;
  IF (SELECT count(*) FROM cron.job WHERE jobname='loan-daily-charges')<>1 THEN RAISE EXCEPTION 'Expected exactly one nightly job'; END IF;
  IF NOT EXISTS(SELECT FROM cron.job WHERE jobname='loan-daily-charges' AND schedule='5 0 * * *' AND database=current_database()
  AND command=$command$SELECT public.generate_due_charges((statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date);$command$) THEN RAISE EXCEPTION 'Unexpected nightly command'; END IF;
 END $$;
 '@
+$sql=$sql.Replace('__REQUIRED_VERSION__',$(if($Mode -eq 'status'){'10'}else{'11'}))
 if($Mode -eq 'enable-nightly'){$sql+="`nSELECT cron.alter_job(jobid,active:=true) FROM cron.job WHERE jobname='loan-daily-charges';"}
 if($Mode -eq 'pause-nightly'){$sql+="`nSELECT cron.alter_job(jobid,active:=false) FROM cron.job WHERE jobname='loan-daily-charges';"}
 $sql+=@'

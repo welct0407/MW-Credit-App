@@ -1,6 +1,12 @@
 # Monitored development jobs and phase 7
 
-Status: **implemented, verified and owner-accepted on 16 September 2026**. Scope authorized 15 September: development AppSheet charge scheduling, phase 7 SQL analytics and removal of the external Calendar dependency. Production was not changed by this task.
+Status: development implementation accepted; **production promotion authorized and in progress on 16 September 2026**. Scope includes production AppSheet charge scheduling, phase 7 SQL analytics and removal of the production OLAP Calendar dependency.
+
+## Production promotion — 16 September 2026
+
+The owner explicitly requested “move these changes into production.” Pre-change rollback points are production OLTP **3.000094**, OLAP **1.100062**, and database **V10**. The production schema hash `242404152af2760a046b1e628e7a4df1e56a1a7230e90839f8192d8e05217bba` exactly matches the accepted V10 development baseline. A fresh private logical dump has SHA256 `9c193e5ee7161d793a604e4a51cac8a2bdbdf5a29ffa2e9466bca76286b37224`; its 14 business tables and normalized schema restored successfully in an isolated local PostgreSQL instance. Only Cloud SQL-owned pg_cron extension metadata was excluded from the local restore because the workstation build does not provide that extension.
+
+The production scheduler runner now accepts the current tested release manifest instead of one historical hard-coded commit, while retaining exact commit, migration-hash, environment, validation, target-host, command and approval checks. Promotion results and final rollback instructions will be recorded below before completion.
 
 ## Changes and ownership
 
