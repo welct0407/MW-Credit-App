@@ -9,5 +9,8 @@
   "checksumMutationRejected": true,
   "validationJsonCheckedIndependentlyOfExitCode": true,
   "developmentBaselineVersion": "1",
-  "productionBaselineStatus": "pending"
+  "productionBaselineStatus": "version 1; validated",
+  "productionNoOpMigrations": 0,
+  "finalSchemasUnchanged": true,
+  "finalTableFingerprintsUnchanged": true
 }
