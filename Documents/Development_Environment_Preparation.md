@@ -29,6 +29,8 @@ This is the last verified baseline from the 15 September editor review, not an a
 
 Core payment V6 update: OLTP 1.000032 and OLAP 1.000033. The owner-authorized push workflow above now uses four reviewed notification-only bots, including the repurposed first-day-charge route; every task uses `LIST("welct0407@mw-credit.com")`. Owner confirmed tested receipt, closure-summary and first-day amounts. This replaces production-parity event/processing assumptions and the older three-bot count above. Financial processing is SQL-owned; do not re-enable its superseded AppSheet bots. This exception does not authorize other destinations or unrelated notifications.
 
+Atomic Close Loan V7 update: both apps **1.000036**. Fresh before/after definitions confirm the same four notification-only bots and owner-only destinations, with financial/scheduled/export disabled states retained. No new bots or destinations. Current-GUI tests use only the AC7GUI synthetic family; owner confirmed receipt and closure amounts 130/150/100/70 and partial receipt 50. Test borrowers are hidden and loan auto-charge flags disabled. See the atomic-close report and change log for schema, app reconciliation and recovery evidence.
+
 | App | Bot | Development state | Reason |
 | --- | --- | --- | --- |
 | OLTP | Create First-Day Charge | Disabled | Superseded by SQL |

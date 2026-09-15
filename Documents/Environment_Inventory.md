@@ -8,8 +8,8 @@ Updated 15 September 2026. Production/development are separate Cloud SQL instanc
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000080 | database-2 | 8 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100055 | database-2 | 13 |
-| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000032 | database-3 | 8 |
-| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000033 | database-3 | 13 |
+| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000036 | database-3 | 8 |
+| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000036 | database-3 | 13 |
 
 Both OLAP apps use the SQL Calendar and assessment views after the authorized assessment promotion. Native internal tables are excluded from the SQL counts. There are 42 SQL bindings across the four apps. OLAP definitions were recaptured during promotion; unrelated app captures retain their original timestamps. The workbook records the exact logical-to-physical mapping.
 
@@ -29,7 +29,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V5 migrated and validated | V6 migrated and validated | Core payment phases 1–3 are development only; schemas intentionally differ |
+| Flyway | V5 migrated and validated | V7 migrated and validated | Core payment and atomic final-charge preparation are development only; schemas intentionally differ |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
@@ -52,6 +52,8 @@ Production notification events, templates and recipient expressions are retained
 Rollback points: Dev OLTP **1.000014**, production OLTP **3.000071**, OLAP unchanged. Production logical backup was restored successfully with all 14 business tables matching. Reconcile prepared receipts before fallback; use a higher migration to disable the processor and restore original action expressions, retaining ledger history and guards. App rollback alone does not undo SQL changes.
 
 ## Verification coverage
+
+Latest development checkpoint: V7 and both apps 1.000036, current editor/appdoc schema/reference/action comparison and current OLTP/OLAP GUI financial readback passed. The live normalized schema equals the independent V7 rebuild (`0a1972cc1e8eb5a072da584d394cfc85b3b1b96fc991e11b6fba9c39a4480c98`). Owner confirmed new receipt/closure push amounts. [Atomic Close Loan report](../outputs/atomic-close-20260915/REPORT.md) supersedes historical development entries below; production remains the previously verified V5 checkpoint.
 
 | Area | Latest evidence | Status / limitation |
 | --- | --- | --- |

@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 for development OLTP **1.000032**, development OLAP **1.000033**, production OLTP **3.000080**, production OLAP **1.100055**. Development is Flyway **V6**, production **V5**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 for development OLTP **1.000036**, development OLAP **1.000036**, production OLTP **3.000080**, production OLAP **1.100055**. Development is Flyway **V7**, production **V5**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -12,7 +12,7 @@ Updated 15 September 2026 for development OLTP **1.000032**, development OLAP **
 | Calendar | OLAP Calendar SQL Lab generated view | Same generated view | Promoted; fixed 153-day horizon retained |
 | Assessment outputs | Stored SQL outputs read through guarded VCs | Same column definitions | All 53 assessment/Calendar columns match; automatic production edit/readback/restoration passed |
 | Navigation | Production companion app | Other development copy | Keep environments isolated |
-| SQL schema | Flyway V5 | Flyway V6 | Core payment development only; production approval pending |
+| SQL schema | Flyway V5 | Flyway V7 | Core payment and atomic final charge development only; production approval pending |
 | Daily-interest schedule | Optional Interest Schedule Anchor Date; blank uses Loan Date | Same field and expressions | Promoted; production daily bot enabled, development disabled |
 | Receipt processing | SQL lump-sum preparation; AppSheet finalization/closure | SQL posts all six methods and closes eligible loans atomically | Phases 1–3 implemented; overall acceptance pending |
 | Closing reference | Absent | Loans.Ref Closing Payment, read-only Ref in both apps; generated Payments.Related Loans | Owner-approved; no historical backfill; Reporting Loans slice reconciled |
@@ -24,7 +24,9 @@ The workbook's **Dev Differences** sheet contains the exact current table, busin
 
 ### Interval anchor — promoted 15 September 2026
 
-The core payment release supersedes development parity below: four notification-only bots route to the owner, Create First-Day Charge and Payments - Process Receipt bots are disabled, and the two obsolete payment processing/closure actions are hidden with FALSE conditions. All six methods passed current-GUI OLTP and SQL checks; OLAP loaded matching read-only balances. Owner confirmed tested push amounts. Five synthetic borrowers are hidden and all ten fixture loans' auto-charge flags are off. The existing daily Close Loan final-charge wrapper remains in AppSheet before the unified payment transaction. See [current evidence, limits and rollback](../outputs/core-payment-20260915/REPORT.md). No production data or app was changed.
+The core payment release supersedes development parity below: four notification-only bots route to the owner, Create First-Day Charge and Payments - Process Receipt bots are disabled, and the two obsolete payment processing/closure actions are hidden with FALSE conditions. All six methods passed current-GUI OLTP and SQL checks; OLAP loaded matching read-only balances. Owner confirmed tested push amounts. Five V6 synthetic borrowers are hidden and all ten fixture loans' auto-charge flags are off. See [V6 evidence](../outputs/core-payment-20260915/REPORT.md).
+
+V7 moves daily Close Loan final-charge preparation into the same SQL transaction. New Payments.Ref Target Loan is Ref Loans.Row ID in both apps; user-read-only via Editable_If FALSE in OLTP, Read-Only Yes in OLAP. Generated Loans.Related Payments is included in OLAP Reporting Loans. The wrapper now submits only Receive All Remaining Charges, with the three obsolete preparation actions hidden/FALSE. Two OLTP payment validation expressions support the target-loan command. Forms/details, sources and other financial methods are preserved. Regenerated Payments.Row ID metadata changed, while key/read-only/UNIQUEID remain intact. Four further synthetic loans passed GUI/ledger/OLAP checks and their borrowers are hidden/auto-charge disabled. Owner confirmed all five new receipt/closure push amounts. See [V7 evidence, limits and rollback](../outputs/atomic-close-20260915/REPORT.md). No production data or app was changed.
 
 `Loans.Interest Schedule Anchor Date` is an optional stored Date, without default, reset or formula. Its SQL check and AppSheet Valid_If require blank or a date on/after Loan Date. It is shown for daily-interest loans, editable in OLTP Loans_Form and displayed in both Loans_Detail views after Interest Payment Interval. OLAP remains read-only. Keys, Refs, slices and existing calculations are unchanged.
 

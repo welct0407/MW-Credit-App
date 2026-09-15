@@ -39,11 +39,21 @@ The runner rejects mismatched commits/hashes, dirty checkouts and missing approv
 
 ## Recovery and limits
 
+### Atomic Close Loan V7 — development only
+
+V7 extends the V6 engine so one `Payments` write with Allocation Method `Loan Close`, Status `Processing`, today's Bangkok Payment Date, matching Ref Borrower and **Ref Target Loan** prepares the final charge and posts the receipt atomically. The amount submitted by AppSheet is an estimate; SQL derives the actual amount from locked component balances. Existing blank-target legacy commands retain V6 behavior. The reserved `lc7:` charge prefix prevents final charges becoming first-day net-off receipts.
+
+Use the matching OLTP/OLAP **1.000036** definitions in [V7 configuration](../outputs/atomic-close-20260915/appsheet-configuration.md). The Close wrapper submits one command and its three old charge-preparation actions are disabled. The additive field is user-read-only in both apps, using Editable_If FALSE in OLTP to permit action assignment.
+
+Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-AtomicLoanClose.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency` for the full V6/V7 functional and concurrency suite, also used by CI. `Invoke-AtomicLoanCloseLab.ps1` is limited to the pinned development AC7GUI fixtures; seed only once, verify after current-GUI actions, then close hides borrowers/disables auto-charge without deleting history. Preservation checks compare the private pre-task baseline, excluding only that fixture family and Payments.Ref Target Loan.
+
+V7 is applied and immutable; corrections require **V8 or higher**. Pause/reconcile outstanding commands before coordinated SQL/AppSheet fallback. Preserve references and financial history; an app restore alone cannot revert the database. [Verification, backup and rollback details](../outputs/atomic-close-20260915/REPORT.md). Production remains V5; no production release is authorized.
+
 ### Core payment V6 — development only
 
 V6 moves all six payment methods, payment-caused closure and first-day charge/receipt creation into SQL. Production remains V5. Run `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-CorePayment.sql -CorePaymentConcurrency` for the functional and concurrency regression suite. `Invoke-CorePaymentLab.ps1` manages only the pinned development CP6GUI synthetic fixture family; its seed/prepare-close modes are setup, not replayable financial correction tools. `Test-CorePaymentPreservation.ps1` compares original-record fingerprints against the private pre-task baseline and excludes only that fixture family and the new nullable field.
 
-Apply the matching AppSheet configuration in the [core payment report](../outputs/core-payment-20260915/REPORT.md): read-only closing Ref in both apps, disabled superseded financial bots/actions, reviewed owner-only notification routes. Standalone function invocation is not the supported AppSheet command path; new/retried Payments writes invoke the routing trigger. The daily Close Loan final-charge wrapper remains outside the receipt transaction. V6 is applied and immutable; use V7 or higher for corrections. No production release is authorized by this documentation or repository push.
+Apply the matching AppSheet configuration in the [core payment report](../outputs/core-payment-20260915/REPORT.md): read-only closing Ref in both apps, disabled superseded financial bots/actions, reviewed owner-only notification routes. Standalone function invocation is not the supported AppSheet command path; new/retried Payments writes invoke the routing trigger. At the V6 checkpoint, the daily Close Loan final-charge wrapper remained outside the receipt transaction; V7 above supersedes that boundary. Applied migrations are immutable. No production release is authorized by this documentation or repository push.
 
 Use a new reviewed forward-fix migration for ordinary reversals. A destructive/data change may require restoring a verified backup with an agreed write-freeze/reconciliation plan. Flyway history is not a data backup and the free edition does not provide automatic business rollback. Never run `clean` on either Cloud SQL instance; the repository disables it and does not expose it in the runner.
 

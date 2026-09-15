@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$TestSqlFile,[switch]$LumpSumConcurrency,[switch]$CorePaymentConcurrency)
+param([string]$TestSqlFile,[switch]$LumpSumConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency)
 . "$PSScriptRoot/Common.ps1"
 $null = @(Get-MigrationManifest)
 $bin = Get-PgBin
@@ -44,6 +44,9 @@ try {
         }
         if ($CorePaymentConcurrency) {
             & "$PSScriptRoot/Test-CorePaymentConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+        }
+        if ($AtomicLoanCloseConcurrency) {
+            & "$PSScriptRoot/Test-AtomicLoanCloseConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
         }
         $dump = Join-Path $testRoot 'rebuilt.sql'
         & (Join-Path $bin 'pg_dump.exe') -h 127.0.0.1 -p $port -U postgres -d postgres --schema-only --no-owner --no-privileges --schema=public --schema=assessment_lab --exclude-table=public.flyway_schema_history --file=$dump
