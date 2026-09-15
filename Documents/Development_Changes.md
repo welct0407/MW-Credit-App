@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15 September 2026 against production OLTP 3.000070 / OLAP 1.100046. Development versions are OLTP 1.000011 / OLAP 1.000025. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 15 September 2026 against production OLTP 3.000070 / OLAP 1.100046. Development apps are **Loan Manager — DEV 1.000012** and **Loan Business Insights — DEV 1.000026**. Their display-name cleanup changed no schema, source, action or link expression. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 

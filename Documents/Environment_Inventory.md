@@ -8,10 +8,12 @@ Updated 15 September 2026. Production/development are separate Cloud SQL instanc
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000070 | database-2 | 8 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100046 | database-2 | 12 |
-| Development OLTP | LoanMgr PG Test 20260914 | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000011 | database-3 | 8 |
-| Development OLAP | LoanInsights PG Trial 20260914 | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000025 | database-3 | 13 |
+| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000012 | database-3 | 8 |
+| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000026 | database-3 | 13 |
 
 Production OLAP additionally uses Google Sheets Calendar; development OLAP uses the SQL Calendar view. Native internal tables are excluded from the SQL counts. All 41 SQL bindings across the four apps were captured. The workbook records the exact logical-to-physical mapping.
+
+Cleanup on 15 September leaves exactly these four owned AppSheet apps and one AppSheet database, **Money database**, retained as historical reference. Three obsolete apps and five copied AppSheet databases were deleted with explicit owner confirmation. Both Cloud SQL instances were retained. Development display names changed; internal app names, UUIDs, source bindings, columns, actions and cross-app link expressions were verified unchanged. Details and deleted-object names are in [cleanup notes](../Change%20Logs/CHANGE_NOTES_APPSHEET_CLEANUP_2026-09-15.md). The old backup apps/databases are no longer available rollback targets.
 
 ## Cloud SQL
 
