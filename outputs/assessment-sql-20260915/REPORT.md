@@ -1,5 +1,7 @@
 # OLAP assessment in PostgreSQL — test result
 
+**Workflow update, 15 September 2026:** version 1.000023 removes Refresh Assessment at the owner's request. Input updates and normal sync remain the calculation flow. Pending input results now show a waiting message; source/date-stale results have a separate Out of date message. The results below document the earlier measured 1.000022 prototype; action-specific tests are historical. See `Change Logs/CHANGE_NOTES_ASSESSMENT_SAVE_WORKFLOW_2026-09-15.md` for current behavior and checks.
+
 15 September 2026. **Implemented and verified in LoanInsights PG Trial 20260914, version 1.000022. Production apps are unchanged.** The lab uses separate assessment objects in loan_manager_prod; it reads existing business tables but does not modify their financial records.
 
 The combined change reduced median full-sync time by **16.6% (1.121 seconds)** in five interleaved control/test pairs. All five combined test runs were faster than their adjacent control. Moving the assessment calculation alone did **not** improve whole-app sync. Removing the separate Google Sheets Calendar read was material to the measured combined result.
