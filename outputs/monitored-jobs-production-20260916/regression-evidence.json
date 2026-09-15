@@ -1,0 +1,9 @@
+{
+  "checkedAtBangkok": "2026-09-16T01:12:00+07:00",
+  "command": "Test-Migrations.ps1 -TestSqlFile scripts/database/Test-AnalyticsRefresh.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency",
+  "exitCode": 0,
+  "migrationRebuild": "passed",
+  "flywayNoOpAndChecksumTamperChecks": "passed",
+  "functionalSuites": ["core payment", "atomic loan close", "charge generation", "atomic default loan", "analytics refresh"],
+  "concurrencySuites": ["core payment", "atomic loan close", "charge generation", "default loan"]
+}

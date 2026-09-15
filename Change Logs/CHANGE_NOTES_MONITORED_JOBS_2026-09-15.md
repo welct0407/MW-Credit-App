@@ -1,40 +1,43 @@
-# Monitored development jobs and phase 7
+# Monitored jobs and phase 7
 
-Status: development implementation accepted; **production promotion authorized and in progress on 16 September 2026**. Scope includes production AppSheet charge scheduling, phase 7 SQL analytics and removal of the production OLAP Calendar dependency.
+Status: development accepted; production implemented and verified on 16 September 2026. Owner post-promotion device acceptance remains pending.
 
-## Production promotion — 16 September 2026
+## Purpose and scope
 
-The owner explicitly requested “move these changes into production.” Pre-change rollback points are production OLTP **3.000094**, OLAP **1.100062**, and database **V10**. The production schema hash `242404152af2760a046b1e628e7a4df1e56a1a7230e90839f8192d8e05217bba` exactly matches the accepted V10 development baseline. A fresh private logical dump has SHA256 `9c193e5ee7161d793a604e4a51cac8a2bdbdf5a29ffa2e9466bca76286b37224`; its 14 business tables and normalized schema restored successfully in an isolated local PostgreSQL instance. Only Cloud SQL-owned pg_cron extension metadata was excluded from the local restore because the workstation build does not provide that extension.
+Move daily charge scheduling from unmonitored pg_cron to AppSheet Automation Monitor, move Daily Analytics refresh into an atomic SQL request/upsert, and remove the external Calendar dependency. The SQL charge and analytics engines remain the business-rule owners; AppSheet supplies monitored schedule and manual commands.
 
-The production scheduler runner now accepts the current tested release manifest instead of one historical hard-coded commit, while retaining exact commit, migration-hash, environment, validation, target-host, command and approval checks. Promotion results and final rollback instructions will be recorded below before completion.
+## Production implementation — 16 September 2026
 
-## Changes and ownership
-
-- DEV OLTP 1.000048 owns daily charge requests at 00:05 Bangkok. Existing eligibility and SQL generation rules retained; development pg_cron job 1 paused.
-- DEV OLAP 1.000050 owns hourly :00 analytics and Dashboard Recent/Full requests. Applied immutable Flyway V11 adds the approved nullable Statistics[Analytics Refresh Request], atomic date-range upserts, unique date index and request trigger.
-- Both apps use development database-3, host 34.158.38.171. Shared Statistics field reconciled in both apps; all 12 OLAP slices preserved. Daily Analytics is read-only, Calendar binding/views/actions and duplicate bot removed. Historical SQL Calendar objects remain unused for recovery.
-- Both apps deployed solely for scheduled execution. Nonessential export/financial bots remain disabled; no new notification task enabled. Existing reviewed owner-only notification routes retained.
-- SQL preserves Model 2 metric definitions and snapshot IDs. Pending Charges EOD still excludes a whole charge after its first payment, including partial payment. Full refresh is required for older backdated edits.
+- Owner authorization: “move these changes into production.” The subsequent “Yes go ahead” authorized deletion of the obsolete production Calendar objects in AppSheet.
+- Applied exact immutable Flyway V11 from reviewed commit `99839565b27744141417ddb9b4b504fecaeee540`. Production migrated V10→V11 and all 12 migrations validate.
+- OLTP saved as 3.000098. Statistics includes hidden, read-only `Analytics Refresh Request`. `Generate Daily Charges` is enabled daily at 00:05 Bangkok; the old first-day/payment processing bots remain disabled and notification bots remain enabled.
+- OLAP saved as 1.100081. Statistics includes the hidden request field; Recent/Full Dashboard actions write dated request tokens. Daily Analytics is read only. Hourly `Refresh Daily Analytics Daily` is enabled at :00 Bangkok with one inline request step.
+- Removed duplicate `Refresh Daily Analytics Daily 2`, Calendar table binding, `Calendar Detail View`, `Sheet1_Detail`, and the three obsolete Calendar analytics actions. Historical SQL Calendar objects remain for recovery.
+- Paused production pg_cron `loan-daily-charges`. No instance, network, credential, notification-recipient or Looker change was made.
 
 ## Rollback points
 
-Before editing: DEV OLTP **1.000042**, OLAP **1.000040**, database **V10**. Private logical dump and normalized schema recorded under Documents/ChatGPT/AppSheet-Loan-Project/monitored-jobs-20260915; dump listing verified, full restore not tested. Hashes and paths are in the [report](../outputs/monitored-jobs-20260915/REPORT.md).
+Before production editing: OLTP **3.000094**, OLAP **1.100062**, database **V10**. The normalized V10 schema hash was `242404152af2760a046b1e628e7a4df1e56a1a7230e90839f8192d8e05217bba`.
 
-To revert charge scheduling, disable/save/verify the AppSheet bot before re-enabling development pg_cron. Never overlap them. To revert analytics, disable its bot and command actions, then restore the recorded app versions; additive SQL can remain dormant. SQL corrections/removal require V12+; never edit applied V11 or Flyway history. Restoring data requires reconciliation of later development writes.
+Private dump `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/monitored-jobs-production-20260916/production-before.dump` has SHA256 `9c193e5ee7161d793a604e4a51cac8a2bdbdf5a29ffa2e9466bca76286b37224`. Its normalized schema and 14 business tables restored in an isolated local PostgreSQL instance; only unavailable Cloud SQL pg_cron extension metadata was excluded.
 
-## Checks and acceptance
+For rollback, first disable and verify both AppSheet schedules. Restore both app versions together. Additive V11 may remain dormant; SQL removal/correction requires V12+. Before a database restore, reconcile all later production writes. Never overlap the AppSheet and pg_cron schedules.
 
-- Local V1–V11 rebuild; prior payment, atomic close, generation and default regressions/concurrency tests passed. Analytics regression passed parity, repeat/no-op, stable keys, malformed requests and transaction rollback. Flyway development apply/validate passed.
-- Current AppSheet GUI charge failure appeared in Automation Monitor; both selected updates rolled back. Corrected retry completed with synthetic charges 125/130. Original eligibility restored and fixture auto-generation disabled.
-- Current GUI Full and Recent refreshes passed; independent old-expression comparison matched all 42 dates and 12 stored metrics. Original 42 IDs remained unchanged through midnight addition of date 43.
-- Natural hourly run at 00:00:05 Bangkok, 16 September completed. All 24 natural daily runs at 00:05:03 completed; SQL confirms 24 generated charges and zero duplicate generated loan/date pairs. Midnight analytics precedes daily generation; next hourly/manual refresh incorporates it.
-- Before natural daily generation, original records in 13 nonanalytics tables matched the baseline, excluding named synthetic fixtures and the new request field. Subsequent scheduled writes are expected.
-- Both-app schema/settings and OLAP slices reconciled; owner synced both apps and answered **“Looks correct — accept development changes.”** The requested manual checks are accepted.
-- Audit History Alerts are enabled in both apps; owner received no error email. **Automatic error-email delivery remains unverified.** No Looker edit/audit or offline/multiple-device test was performed; curated reporting fields are unchanged.
-- Dictionary roundtrip preserved expected values across 12 sheets, zero spreadsheet errors, native OOXML features preserved, and changed ranges visually checked.
+## Checks
 
-## Deliverables and recovery
+- Flyway production migrate and validate passed; pg_cron reports inactive.
+- Clean local V1–V11 rebuild, no-op/checksum controls, and core payment, atomic close, charge generation, default and analytics functional/concurrency regressions passed.
+- Both production apps loaded and synced in the current AppSheet GUI after regeneration. Shared Statistics configuration reconciles. OLAP Dashboard loads and Calendar is absent.
+- Manual Recent and confirmed Full analytics actions completed. The first natural hourly run completed at 01:00:04 Bangkok in Automation Monitor.
+- Independent SQL comparison matched 43/43 dates and 12 stored metrics against the former Model 2 expressions. Existing 42 snapshot IDs remained stable. No duplicate/null dates exist.
+- No production financial test transaction was submitted. The 22 daily charges for 16 September predate scheduler cutover and contain no duplicate loan/date pairs.
+- The first natural production AppSheet daily-charge run at 00:05 remains pending. Error-email delivery, offline/multiple-device behavior and Looker were not tested.
+- Data-model overview and dictionary, development difference register, environment inventory, database README, maintained audit scripts and aggregate release evidence were updated together.
 
-Updated model overview and dictionary, development changes, environment inventory, database README, CI regression entry, V11 migration, maintained audit/test/dictionary scripts, and aggregate evidence in outputs/monitored-jobs-20260915. Sources and credentials are excluded. Private backup coverage is separate from repository publication.
+## Development acceptance
 
-Repository checkpoint: task-only commit and normal upstream push required after final diff checks; the completion response records the verified commit. Repository publication does not authorize production deployment.
+Development remains V11 / OLTP 1.000048 / OLAP 1.000050. The owner accepted both apps after sync. Natural hourly analytics and 24 daily charge runs completed; 42 original dates reconciled with stable IDs. Error-email delivery was not observed. Full evidence remains in [the development report](../outputs/monitored-jobs-20260915/REPORT.md).
+
+## Manual production acceptance
+
+On the owner's device, sync both production apps, confirm Calendar is absent and OLAP Dashboard charts load, confirm Recent/Full actions remain visible only on Dashboard, and review the next natural OLTP 00:05 and OLAP hourly run in Automation Monitor. Report any push, sync or metric discrepancy before marking the release accepted.

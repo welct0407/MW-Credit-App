@@ -1,6 +1,6 @@
 # Development differences
 
-Updated 15–16 September 2026 for development OLTP **1.000048**, development OLAP **1.000050**, production OLTP **3.000094**, production OLAP **1.100062**. Development is Flyway **V11**, production **V10**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 16 September 2026 for development OLTP **1.000048**, development OLAP **1.000050**, production OLTP **3.000098**, production OLAP **1.100081**. Both environments are Flyway **V11**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 ## Current differences
 
@@ -8,16 +8,16 @@ Updated 15–16 September 2026 for development OLTP **1.000048**, development OL
 | --- | --- | --- | --- |
 | Database instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Isolation retained |
 | AppSheet source | database-2 | database-3 | Never promote the development host |
-| SQL schema | Flyway V10 | Flyway V11 | V11 analytics command/upsert is development only |
+| SQL schema | Flyway V11 | Flyway V11 | Exact V11 analytics migration promoted 16 September 2026 |
 | Core payments, final close, first day, default | Atomic SQL | Same SQL | Phases 1–6 promoted with owner approval |
 | Manual generation | Hidden dated Loans request | Same request | Same common SQL rules |
-| Nightly generation | pg_cron 00:05 Bangkok, active | AppSheet bot 00:05 Bangkok; pg_cron paused | Same SQL generator; monitored failure and retry passed |
+| Nightly generation | AppSheet bot 00:05 Bangkok; pg_cron paused | AppSheet bot 00:05 Bangkok; pg_cron paused | Same SQL generator; first natural production AppSheet run pending |
 | New fields | Closing-payment Ref, target-loan Ref, hidden generation request | Same model | Both consumers reconciled; no backfill |
 | Notification recipients | Existing Partners emails, excluding acting user | Approved owner account only | Intentional environment difference |
-| OLAP hourly analytics | Existing Calendar refresh | Hourly :00 Bangkok Statistics request → SQL | Recent/full manual actions tested; 42/42 dates reconcile |
-| Statistics request | Absent | Hidden nullable Analytics Refresh Request | Approved; both apps reconciled; excluded from reporting slice |
-| Calendar | SQL date-view binding | Removed from app | No Calendar appdoc references; historical SQL objects retained |
-| Daily Analytics writes | AppSheet delete/create | SQL upsert; app READ_ONLY | Existing keys and Model 2 metrics preserved |
+| OLAP hourly analytics | Hourly :00 Bangkok Statistics request → SQL | Hourly :00 Bangkok Statistics request → SQL | Production natural 01:00 run Complete; development natural 00:00 run Complete |
+| Statistics request | Hidden nullable Analytics Refresh Request | Hidden nullable Analytics Refresh Request | Both apps reconciled in each environment; excluded from reporting slice |
+| Calendar | Removed from app | Removed from app | No app references; historical SQL objects retained |
+| Daily Analytics writes | SQL upsert; app READ_ONLY | SQL upsert; app READ_ONLY | Production 43/43 dates reconcile; existing keys preserved |
 | Connections | 100 | 50 | Capacity/settings remain separate |
 | Companion navigation | Production app | Development app | Isolation retained |
 
@@ -86,4 +86,6 @@ For a new change, record its migration/version, consumers, exact expressions, te
 
 ### Monitored jobs acceptance — 16 September 2026
 
-Owner accepted development V11 / OLTP 1.000048 / OLAP 1.000050 after syncing and checking both apps. Natural hourly analytics at 00:00:05 and all 24 daily charge runs at 00:05:03 Bangkok completed. Error-email delivery remains unverified. This supersedes earlier development scheduler pending status; production is outside this change. [Evidence and rollback](../outputs/monitored-jobs-20260915/REPORT.md).
+Owner accepted development V11 / OLTP 1.000048 / OLAP 1.000050 after syncing and checking both apps. Natural hourly analytics at 00:00:05 and all 24 daily charge runs at 00:05:03 Bangkok completed. Error-email delivery remains unverified. This supersedes the earlier development scheduler pending status; the production promotion is recorded below. [Evidence and rollback](../outputs/monitored-jobs-20260915/REPORT.md).
+
+Production caught up on 16 September at V11 / OLTP 3.000098 / OLAP 1.100081. Its Calendar dependency and duplicate bot are removed, Daily Analytics is read only, and AppSheet owns both monitored schedules while production pg_cron remains paused. Manual Recent/Full requests and the first natural 01:00 analytics run completed; 43/43 dates reconcile. The first natural production 00:05 charge run remains pending. [Production evidence and rollback](../outputs/monitored-jobs-production-20260916/REPORT.md).
