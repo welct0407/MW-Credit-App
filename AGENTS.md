@@ -32,7 +32,17 @@ This file governs Codex work on the shared AppSheet solution: the **OLTP Operati
 
 ## 2. Architecture and ownership
 
-The solution uses one shared AppSheet database as the operational system of record.
+The production OLTP and OLAP apps use the shared PostgreSQL database on Cloud SQL. Development apps use the separate development instance. The original AppSheet database is historical migration reference, not the current write target.
+
+### Database development and promotion — owner rule, 15 September 2026
+
+- Manage all PostgreSQL DDL, indexes, constraints, views, functions, triggers and approved data backfills through Flyway and this GitHub repository. Use `database/migrations/V<version>__<description>.sql` and the runners in `scripts/database/`; follow `database/README.md`.
+- Capture existing schema before adoption. Explicitly baseline an existing database only after its normalized schema matches the reviewed baseline. Never enable automatic baselining or run a schema creation script against populated production tables.
+- Applied migration files are immutable. Add a higher version for every change, including function or trigger revisions. Do not use `repair`, `clean`, checksum edits or out-of-order migrations to conceal drift. Emergency manual changes must be documented and reconciled into a reviewed migration before ordinary development resumes.
+- Apply and test changes in development first, using the new AppSheet GUI for affected OLTP/OLAP workflows. Record data correctness, performance measurements where relevant, and owner acceptance. Promote the exact tested commit and migration hashes; never copy development financial data into production as part of schema promotion.
+- Before production writes, verify a restorable backup, review schema drift and consumer dependencies, record rollback/forward-fix instructions, and obtain explicit owner approval for that release. A command-line approval reference records approval; it does not grant it. Repository push or CI success does not authorize production deployment.
+- Keep credentials outside Git in the established Documents/ChatGPT folder. Use the configured direct public-IP SSL connection; no proxy or instance upgrade is required by this workflow. Instance sizing, network policy, users/credentials and AppSheet editor configuration are separate from Flyway migrations and must be documented separately.
+- Flyway's `public.flyway_schema_history` is deployment metadata, not an AppSheet business table. Do not add it to either app. Complete the existing model-documentation and change-log requirements for any business-model changes.
 
 ### OLTP Operations app
 Name: Loan Manager ผู้จัดการสินเชื่อ

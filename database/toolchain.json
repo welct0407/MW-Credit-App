@@ -1,0 +1,13 @@
+{
+  "flywayVersion": "13.6.0",
+  "windows": {
+    "url": "https://github.com/flyway/flyway/releases/download/flyway-13.6.0/flyway-commandline-13.6.0-windows-x64.zip",
+    "sha256": "b70b74b8d81311c601678b2e5f8f67d07f98a3a9bde1a8436ca45aa638cc383e"
+  },
+  "linux": {
+    "url": "https://github.com/flyway/flyway/releases/download/flyway-13.6.0/flyway-commandline-13.6.0-linux-x64.tar.gz",
+    "sha256": "7c94a0d27025b9d18d414c90efeb0ac6c3d3cdade82ab41471b3c1c31781331e"
+  },
+  "postgresqlVersion": "18.6",
+  "postgresqlWindowsUrl": "https://get.enterprisedb.com/postgresql/postgresql-18.6-3-windows-x64-binaries.zip"
+}

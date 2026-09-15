@@ -1,0 +1,36 @@
+name: Database migrations
+on:
+  push:
+    paths: ['database/**', 'scripts/database/**', '.github/workflows/database.yml']
+  pull_request:
+    paths: ['database/**', 'scripts/database/**', '.github/workflows/database.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rebuild:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Reject modifications to existing migrations
+        shell: pwsh
+        env:
+          BASE_COMMIT: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if ($env:BASE_COMMIT -and $env:BASE_COMMIT -notmatch '^0+$') {
+            $changes = @(git diff --name-status --no-renames $env:BASE_COMMIT HEAD -- database/migrations)
+            if ($LASTEXITCODE) { throw 'Cannot inspect migration history' }
+            if (@($changes | Where-Object { $_ -notmatch '^A\s' }).Count) {
+              throw 'Existing migrations are immutable; add a new version'
+            }
+          }
+      - name: Install pinned tools outside checkout
+        shell: pwsh
+        run: ./scripts/database/Install-Tools.ps1
+      - name: Rebuild and validate disposable database
+        shell: pwsh
+        run: ./scripts/database/Test-Migrations.ps1
