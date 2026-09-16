@@ -4,14 +4,14 @@ Established 16 September 2026. **Current recorded production baseline: R003. Nex
 
 ## Numbering and chat names
 
-- Use one project-wide sequence: **R001, R002, R003…** across OLTP, OLAP, SQL and related reporting. A release groups one coherent change, even when it affects multiple components or spans several chats.
+- Use one project-wide sequence: **R001, R002, R003…** across OLTP, OLAP, SQL and related reporting. A release groups related features/changes promoted as one batch, even when it affects multiple components or spans several chats. Record dependencies on other releases.
 - Suggested chat title: **R002 — Short feature name**. A continuation keeps the same number. Independent work reserves a different number.
 - Before starting a new release, read this tracker, reserve the next number with its actual scope and status, and advance the next-available number. Commit/push the reservation before parallel sessions depend on it. Re-read the latest tracker before allocation to avoid duplicate numbers.
 - Never reuse or renumber a reserved release, including cancelled releases. Use the highest allocated number plus one; minimum three digits. Production deployment order may differ from allocation order, so record deployment dates explicitly.
-- Use statuses **Planned**, **In development**, **Ready for review**, **Approved**, **Released**, **Rolled back**, or **Cancelled**. Record user acceptance separately from test completion. A release number or Git push is not production approval.
+- Use statuses **Planned**, **In development**, **Ready for review**, **Approved**, **Deployment applied; verification incomplete**, **Released**, **Rolled back**, or **Cancelled**. Ready for review means development results and a promotion-readiness recommendation are available; Approved records explicit production authorization for the frozen package revision. Released requires package-based production validation and documentation closure, with any owner-approved exceptions visible. Record user acceptance separately from test completion. A release number or Git push is not production approval.
 - AppSheet versions, Flyway versions and Git commits remain independent technical identifiers. Record them under the release; do not rename existing migrations or infer that R002 means Flyway V2.
-- Update the summary, scope, status, tests, approval reference, deployed versions/commit and rollback links as the release progresses. Link detailed Markdown change logs rather than duplicating all evidence here. Include the release number in future change logs and completion messages.
-- Documentation-only maintenance of this tracker stays outside the product release sequence. Do not allocate R002 merely for setting up numbering. Do not rename a chat automatically unless requested.
+- Update the summary, scope, status, tests, approval reference, deployed versions/commit and rollback links as the release progresses. Link the release change log/checklist and its frozen revision, exact tested app definitions/versions and Git/Flyway manifest; later DEV work does not alter that promotion baseline. Follow [AGENTS.md, Section 6](../AGENTS.md) rather than duplicating the workflow here. Include the release number in future change logs and completion messages.
+- Documentation-only governance/tracker maintenance stays outside the product release sequence. Do not rename a chat automatically unless requested.
 
 ## Releases
 
@@ -37,4 +37,4 @@ R001 is a composite baseline, not a single deployable migration or universal res
 
 ## New release entry checklist
 
-When reserving R002 (or the next available number), add a row with a concise title, included components, status and reservation date. Link its change log and record development versions, tests/performance where relevant, owner decision, exact release commit/database manifest, production versions/date, known limitations and rollback reference as they become available. Use “pending” for unknown evidence; never label a planned release as deployed.
+When reserving the next available number, add a row with a concise title, included components, status and reservation date. Link its change log/checklist and record dependencies, frozen package revision, development versions, tests/performance where relevant, readiness recommendation, owner acceptance/production approval, exact release commit/database manifest, production versions/date, verification results, known limitations and rollback reference as they become available. Use “pending” for unknown evidence; never label a planned release as deployed. These workflow rules do not retrospectively revalidate or change the recorded status of earlier releases.

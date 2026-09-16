@@ -84,7 +84,7 @@ Promotion completed under owner authorization. The fixed horizon, shared MAIN in
 
 ## Automation isolation and maintenance
 
-**Standing preparation gate:** follow [Development Environment Preparation](Development_Environment_Preparation.md) for every future copy, refresh, replacement or version restore. Nonessential or confusing bots remain disabled, except the owner-authorized three Dev push bots routed exclusively to the owner account as documented above. Review all new bots and embedded tasks before test writes; enable only essential processing confined to development. The rule is mandatory in AGENTS.md and is not limited to today's app copies.
+**Standing preparation gate, revised 16 September 2026:** follow [Development Environment Preparation](Development_Environment_Preparation.md) after copies, refreshes, replacements, restores and automation changes. DEV follows released PROD automation/schedules with DEV-only effects and all notifications exclusively to `welct0407@mw-credit.com`; record release-owned differences. Earlier blanket-disable instructions and three-bot exceptions in this document are historical. Current states must be verified and parity gaps resolved under AGENTS.md; this policy update did not enable or test any bot.
 
 The earlier isolation checks confirmed transactional development OLTP bots retained, daily generation/notifications disabled, and all three development OLAP schedule/export bots disabled. Production OLAP performance settings were recaptured during promotion: server caching, delta, Quick Sync and delayed sync off; sync on start and automatic updates on. See Environment Inventory for dated values. Recheck development isolation before future write testing.
 

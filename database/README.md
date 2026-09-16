@@ -1,6 +1,6 @@
 # PostgreSQL development with Flyway
 
-After an app/database copy or refresh, also complete [Development Environment Preparation](../Documents/Development_Environment_Preparation.md) before test writes. Flyway does not manage AppSheet bot enablement. Nonessential/confusing bots must remain disabled; essential processing requires development-only effects and saved-state verification.
+After an app/database copy or refresh, also complete [Development Environment Preparation](../Documents/Development_Environment_Preparation.md) before test writes. Flyway does not manage AppSheet bot enablement. DEV follows released PROD automation and schedules with DEV-only effects and owner-only notifications; verify saved states/routes and prevent duplicate schedulers. [AGENTS.md, Section 6](../AGENTS.md) governs the complete release batch and frozen promotion baseline.
 
 Flyway Open Source 13.6.0 manages the database schema in this repository. PostgreSQL 18.6 is the tested engine. Both Cloud SQL instances use database name `loan_manager_prod`; the **host/instance**, not that database name, identifies the environment. See `environments.json`.
 
@@ -23,7 +23,7 @@ The V1 migration is a schema-only export of the verified development/production 
 2. Run `scripts/database/Test-Migrations.ps1`. It starts a temporary, empty PostgreSQL server bound only to loopback, rebuilds migrations, validates, checks repeat execution is a no-op and verifies checksum mutation is rejected. It stops the server and leaves diagnostic files outside Git. No production data is used.
 3. Apply in development with `Invoke-Flyway.ps1 -Environment development -Command migrate`, then `validate`. Test affected OLTP/OLAP flows in their test apps. Cover changed calculations, refs, permissions, trigger-generated results after sync and financial reconciliation; record results and obtain user acceptance.
 4. Update the Markdown change log and model documents when applicable; commit and push the exact intended files. CI rebuilds against disposable PostgreSQL, never Cloud SQL.
-5. From the clean tested commit, run `New-Release.ps1 -ValidationReference 'path or link to accepted test evidence'`. This requires development validation and no pending/invalid migrations, and writes a release manifest outside Git. A reference must describe actual completed validation, not a placeholder.
+5. From the clean tested commit, run `New-Release.ps1 -ValidationReference 'path or link to accepted test evidence'` before later migrations advance DEV. This requires development validation and no pending/invalid migrations, and writes a release manifest outside Git. A reference must describe actual completed validation, not a placeholder. Pin this commit/manifest and target version in the frozen release package, retaining a sanitized manifest/hash record in Git. Later documentation commits do not replace the deployment commit. The runner uses the complete migration set in that checkout: every pending migration through its target must be in the approved batch or an explicitly approved prerequisite; it does not select migrations by R-number.
 6. Before promotion, compare current production schema with the expected pre-release schema (export via `Export-Schema.ps1`; inspect drift). Verify a restorable backup, review migration files and application dependencies, and obtain explicit owner approval. Flyway `validate` checks migration history/checksums, **not** arbitrary live-schema drift or business correctness.
 7. Promote the same clean commit:
 
@@ -35,7 +35,7 @@ The V1 migration is a schema-only export of the verified development/production 
 ./scripts/database/Invoke-Flyway.ps1 -Environment production -Command validate
 ```
 
-The runner rejects mismatched commits/hashes, dirty checkouts and missing approval/backup references. These are operator safeguards, not an authorization service: the agent must verify the referenced evidence. No push triggers production deployment. After promotion verify sync and affected workflows, capture results and update the change log. Failed migrations require investigation, not automatic `repair` or retries of financial backfills.
+The runner rejects mismatched commits/hashes, dirty checkouts and missing approval/backup references. These are operator safeguards, not an authorization service: the agent must verify the referenced evidence. No push triggers production deployment. Use a clean checkout of the pinned commit when the working branch has advanced; do not bypass manifest checks or disturb later DEV work. After promotion verify SQL history/schema and affected app workflows against the frozen package, not current DEV; capture results and update the release checklist/change log. Failed migrations require investigation, not automatic `repair` or retries of financial backfills.
 
 ## Current production release
 
