@@ -1,11 +1,10 @@
 {
-  "pending": [
-    "Delete retired Borrower Name - Collection VC after required UI confirmation"
-  ],
+  "pending": [],
   "release": "R002",
   "checks": [
     "Collection row opens existing detail",
     "Collection native Ref opens matching borrower",
+    "retired Borrower Name - Collection VC absent after confirmed deletion",
     "over-limit principal warns before Save",
     "Loans/Charges/Repayments borrower links saved in both apps"
   ],
@@ -15,7 +14,7 @@
     "olap": "1.100101"
   },
   "after": {
-    "oltp": "3.000134",
+    "oltp": "3.000135",
     "olap": "1.100106"
   }
 }
