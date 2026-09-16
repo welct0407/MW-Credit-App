@@ -1,6 +1,6 @@
 # R002 — Loan cashpool safeguard and borrower navigation
 
-Date: 2026-09-16. Status: **Approved for production as frozen package R002-P1; promotion in progress.**
+Date: 2026-09-16. Status: **Deployment applied; verification incomplete. SQL and intended AppSheet objects are live; retired duplicate VC deletion awaits required UI confirmation.**
 
 ## Scope and authorization
 
@@ -92,3 +92,17 @@ The revised AGENTS.md Section 6 requires a frozen package and stable object chec
 The owner accepted and authorized this exact package by instructing: “update the current release document to match with the requirements in AGENTS.md. then go ahead to promote R002 to prod.” The owner also confirmed R003 was already in production; R002 must preserve that intervening release. Current production prerequisite and AppSheet rollback points are therefore **R003 / OLTP 3.000121 / OLAP 1.100101 / SQL V16**.
 
 Before production SQL writes, a fresh logical backup was captured outside Git and restored into an isolated local PostgreSQL instance. All **15** business-table fingerprints and the normalized V16 schema matched. Backup SHA-256: `315af2048f70cdf26ed37d34a01b383f4da60bdf780e8b992375e4405a5ae7e7`. The production V16 schema also matches the reviewed pre-R002 development V16 schema. No report object changes, so no Looker backup is required. Deployment and checklist outcomes will be appended after execution; the release is not Released while any required item remains Pending or Blocked.
+
+## Production deployment — 16 September 2026
+
+The owner explicitly authorized R002-P1 production promotion. The release preserved the intervening R003 production state. Rollback points recorded before editing were OLTP **3.000121**, OLAP **1.100101**, SQL **V16**, plus the private logical dump `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r002-production-20260916/production-before.dump` with SHA-256 `315af2048f70cdf26ed37d34a01b383f4da60bdf780e8b992375e4405a5ae7e7`. An isolated restore matched all 15 business-table fingerprints and the normalized schema.
+
+Flyway applied immutable **V17** and **V18** from pinned implementation commit `f3a0d6616fad483f5e05e234b3608873cc427739`; release manifest SHA-256 is `b207731f69b0eb8697f2a764fa8c2b15b0f2cd00ae6c57654357bc2df53f1ac9`. Both migrations completed in 265 ms total. Flyway validation and production read-only reconciliation passed. Production context after migration: contributed capital **฿120,000**, outstanding principal **฿116,394**, available cashpool **฿3,606**, partner shares **0.60 / 0.40**. No development financial rows were copied.
+
+Production AppSheet saves ended at OLTP **3.000134** and OLAP **1.100106**. OLTP imports Loan Form Context from database-2 as READ_ONLY and applies the short bracketed principal title, frozen Valid_If and bilingual form-level error. Both apps have borrower navigation on Loans, Charges and Repayments using stable Row ID references. OLTP Collection retains its original row-to-detail behavior and Receive All Charges action bar; Borrower Name TE is the deck header, Borrower Reference TE is the clickable native Ref inside the existing detail, and the original status colors are applied to both displayed name fields. The old Borrower Name - Collection VC has no active dependency, but its final deletion is pending the required action-time UI confirmation. Production bots, schedules, recipients, app IDs, sources and cross-app links were otherwise preserved.
+
+Current production checks used the new editor/app and did not save a financial row. The Collection row opened the existing Todays Collection Board_Detail; its native Ref opened the matching Borrowers_Detail. A new-loan form displayed the bracketed available amount and rejected an excessive amount with the frozen bilingual warning before Save; the form was cancelled. SQL write rejection relies on accepted development and isolated regression/concurrency tests because no production financial test write was authorized. Green/orange Collection rules were verified in saved configuration without manufacturing financial fixtures.
+
+The GitHub migration failure emails were caused by CI fixtures that inserted test loans without contributed capital after V17 became active. Production migration history and read-only reconciliation were successful. The fixtures now seed sufficient capital and the CorePayment concurrency expectation accounts for the global cashpool lock. The exact full workflow and the R002-specific workflow pass locally; a fresh GitHub run will be checked after the corrective commit is pushed.
+
+Release status is **Deployment applied; verification incomplete** until the retired Borrower Name - Collection virtual column is deleted after the required UI confirmation and the fresh GitHub workflow is green. App rollback restores OLTP 3.000121 and OLAP 1.100101. SQL rollback should use a reviewed higher Flyway forward-fix that removes V18/V17 objects after app references are removed. Restoring the dump over later production writes requires separate recovery authorization and reconciliation.

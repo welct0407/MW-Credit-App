@@ -3,7 +3,9 @@ $ErrorActionPreference='Stop'
 $psql=Join-Path $PgBin 'psql.exe'
 $setup=@'
 INSERT INTO "Borrowers" ("Row ID","Borrower Name") VALUES ('CP6-CON','SYNTHETIC CONCURRENCY'),('CP6-CON2','SYNTHETIC INDEPENDENT');
-INSERT INTO "Loans" ("Row ID","Ref Borrowers") VALUES ('CP6-CON-L','CP6-CON'),('CP6-CON-L2','CP6-CON2');
+INSERT INTO "Partners"("Row ID","Partner Role") VALUES('CP6-CON-PARTNER','A');
+INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('CP6-CON-CAPITAL','CP6-CON-PARTNER',current_date,'Contribution',1000::money);
+INSERT INTO "Loans" ("Row ID","Ref Borrowers","Principal Amount") VALUES ('CP6-CON-L','CP6-CON',100::money),('CP6-CON-L2','CP6-CON2',100::money);
 INSERT INTO "Charges" ("Row ID","Ref Loans","Charge Date","Interest Due","Principal Due") VALUES ('CP6-CON-C','CP6-CON-L',current_date,100::money,0::money),('CP6-CON-C2','CP6-CON-L2',current_date,100::money,0::money);
 '@
 $setup | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
@@ -31,9 +33,10 @@ INSERT INTO "Payments" ("Row ID","Ref Borrower","Amount Received","Payment Date"
 UPDATE "Payments" SET "Status"='Posted' WHERE "Row ID"='CP6-CON-OTHER' AND "Status"='Processing';
 '@
 $timer=[Diagnostics.Stopwatch]::StartNew()
-$independent | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+$independentResult=$independent | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
 $timer.Stop()
-if($LASTEXITCODE -or $process.HasExited){throw 'Different borrower did not complete independently while first lock was held'}
+if($LASTEXITCODE -eq 0 -or ($independentResult -join "`n") -notmatch 'Cashpool is busy'){throw 'Concurrent repayment did not fail safely behind the R002 cashpool lock'}
+if($timer.Elapsed.TotalSeconds -ge 2){throw 'Concurrent repayment waited instead of failing promptly behind the cashpool lock'}
 $competing=@'
 INSERT INTO "Payments" ("Row ID","Ref Borrower","Amount Received","Payment Date","Status","Allocation Method") VALUES ('CP6-CON-P2','CP6-CON',70::money,current_date,'Processing','Lump Sum');
 '@
@@ -41,6 +44,8 @@ $result=$competing | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U post
 if($LASTEXITCODE -eq 0 -or ($result -join "`n") -notmatch 'current eligible balance'){throw 'Competing overpayment was not rejected after balance refresh'}
 $process.WaitForExit()
 if($process.ExitCode){throw 'First concurrent receipt failed'}
+$independent | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+if($LASTEXITCODE){throw 'Different borrower retry failed after cashpool lock release'}
 $check=@'
 DO $$ BEGIN
  ASSERT (SELECT count(*)=1 FROM "Payments" WHERE "Ref Borrower"='CP6-CON'),'one successful competing receipt';
@@ -50,4 +55,4 @@ END $$;
 '@
 $check | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
 if($LASTEXITCODE){throw 'Concurrency assertions failed'}
-[pscustomobject]@{competingOverpaymentRejected=$true;independentBorrowerCompletedBeforeLockRelease=$true;independentMilliseconds=$timer.Elapsed.TotalMilliseconds}
+[pscustomobject]@{competingOverpaymentRejected=$true;cashpoolLockFailsPromptly=$true;differentBorrowerRetrySucceeded=$true;busyMilliseconds=$timer.Elapsed.TotalMilliseconds}

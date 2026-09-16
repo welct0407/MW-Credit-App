@@ -10,6 +10,9 @@ BEGIN
   RAISE EXCEPTION 'Expected rejection: %',expected;
 END $$;
 INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('CG8-B','SYNTHETIC GENERATION');
+INSERT INTO "Partners"("Row ID","Partner Role") VALUES('CG8-PARTNER','A');
+INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
+VALUES('CG8-CAPITAL','CG8-PARTNER',current_date,'Contribution',5000::money);
 INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Fixed Interest","Daily Payment Amount","Interest Payment Interval","Due Date","Interest Schedule Anchor Date")
 VALUES
 ('CG8-D','CG8-B',current_date-6,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,10::money,0::money,0::money,3,NULL,current_date-3),

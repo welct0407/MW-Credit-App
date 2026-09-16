@@ -1,5 +1,11 @@
 # AppSheet production data model
 
+## R002 production deployment — 16 September 2026
+
+Production now runs Flyway **V18**, OLTP **3.000134** and OLAP **1.100106**, preserving R003. V17 enforces the new-loan capacity rule against signed contributed capital less outstanding principal; V18 exposes the one-row read-only Loan Form Context on database-2. The OLTP form shows the short original principal title with the synced available amount in brackets and warns before Save; SQL is the concurrent/stale-data backstop. Production readback after migration was 120,000 capital, 116,394 outstanding and 3,606 available, with 0.60 / 0.40 shares.
+
+Stable Row ID keys remain unchanged. Loans, Charges and Repayments now expose borrower navigation in both production apps from Borrower Name TE. Collection keeps its existing row-to-Collection-detail behavior and original payment action bar. The deck header uses the Text Borrower Name TE, while the approved Borrower Reference TE Ref appears inside Todays Collection Board_Detail and opens the matching Borrowers_Detail through native Ref navigation. Four Collection status rules target both name fields. The duplicate Borrower Name - Collection VC is no longer referenced; final deletion is pending required action-time UI confirmation. No Looker object, report grain, production notification route or financial row changed. [R002 production evidence](../outputs/r002-production-20260916/REPORT.md).
+
 ## R002 development checkpoint — 16 September 2026
 
 Dev now uses Flyway **V18**, OLTP **1.000108**, OLAP **1.000096**. R001 production remains unchanged. Owner chose signed contributed capital minus outstanding principal as new-loan capacity, excluding retained profit. V17 checks positive gross principal on every Loans insert at sync and serializes Loans, Repayments and Cash Pool Contributions writes with an advisory try-lock; busy writes fail for retry. It reads canonical loan/repayment rows rather than deferred balance caches. Existing loan edits and capital withdrawals are outside the new-loan limit; a resulting deficit blocks subsequent loans. No new base tables/columns or historical backfill.

@@ -3,6 +3,8 @@ $ErrorActionPreference='Stop';$psql=Join-Path $PgBin 'psql.exe'
 @'
 SET TIME ZONE 'Asia/Bangkok';
 INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('DF10-CON','SYNTHETIC DEFAULT CONCURRENCY');
+INSERT INTO "Partners"("Row ID","Partner Role") VALUES('DF10-CON-PARTNER','A');
+INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('DF10-CON-CAPITAL','DF10-CON-PARTNER',current_date,'Contribution',1000::money);
 INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Current Daily Interest","Auto Charge Enabled","Interest Payment Interval")
 VALUES('DF10-CON-L','DF10-CON',current_date-2,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',10::money,false,1);
 UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='DF10-CON-L';

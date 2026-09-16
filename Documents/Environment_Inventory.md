@@ -139,3 +139,7 @@ Production V11 / OLTP 3.000098 / OLAP 1.100081 was promoted on 16 September. Man
 ## R002 development checkpoint — 16 September 2026
 
 Latest R002 Dev versions: OLTP **1.000108**, OLAP **1.000096**, SQL **V18**, database-3 on development host 34.158.38.171. Full R002 rollback app versions: 1.000088 / 1.000090. UI refinement-only rollback: OLTP 1.000098; OLAP and V18 unchanged. Production is unchanged by R002. Four Dev notification bots remain disabled; owner-only notification policy is now permitted after route review, not an enablement claim. Existing essential SQL schedules remain enabled, superseded financial processing and export disabled. See [R002 change log](../Change%20Logs/CHANGE_NOTES_R002_2026-09-16.md) for backup, checks and acceptance limits. This checkpoint supersedes older Dev version and notification-state entries below.
+
+## R002 production checkpoint — 16 September 2026
+
+Production database-2 is at Flyway V18. Production OLTP 3.000134 and OLAP 1.100106 contain the R002-P1 form guard, context import, borrower navigation and Collection native Ref correction while preserving the R003 app identities and production-local links. Pre-edit rollback versions are OLTP 3.000121 / OLAP 1.100101; the private V16 dump SHA-256 is `315af2048f70cdf26ed37d34a01b383f4da60bdf780e8b992375e4405a5ae7e7`. R002 changed no production bot enablement, schedule or recipient. The retired Borrower Name - Collection VC has no active dependency and awaits confirmed deletion. [Evidence and rollback](../outputs/r002-production-20260916/REPORT.md).

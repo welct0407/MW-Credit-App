@@ -11,6 +11,9 @@ BEGIN
 END $$;
 SET LOCAL TIME ZONE 'Asia/Bangkok';
 INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('DF10-B','SYNTHETIC DEFAULT');
+INSERT INTO "Partners"("Row ID","Partner Role") VALUES('DF10-PARTNER','A');
+INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
+VALUES('DF10-CAPITAL','DF10-PARTNER',current_date,'Contribution',5000::money);
 INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest")
 SELECT 'DF10-'||n,'DF10-B',current_date-5,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,10::money FROM generate_series(1,5) n;
 INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes") VALUES

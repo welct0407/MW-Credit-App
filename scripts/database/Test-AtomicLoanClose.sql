@@ -12,6 +12,9 @@ BEGIN
   RAISE EXCEPTION 'Expected rejection: %',expected;
 END $$;
 INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('AC7-B','SYNTHETIC ATOMIC CLOSE'),('AC7-OTHER','SYNTHETIC OTHER');
+INSERT INTO "Partners"("Row ID","Partner Role") VALUES('AC7-PARTNER','A');
+INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
+VALUES('AC7-CAPITAL','AC7-PARTNER',current_date,'Contribution',5000::money);
 -- Seed with auto false so fixture setup does not create first-day receipts.
 INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest")
 SELECT 'AC7-'||n,'AC7-B',current_date-5,100::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money

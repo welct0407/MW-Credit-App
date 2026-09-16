@@ -12,6 +12,12 @@ BEGIN
   IF NOT failed THEN RAISE EXCEPTION 'Expected rejection: %',expected; END IF;
 END $$;
 INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES ('CP6-B','Synthetic core payment'),('CP6-OTHER','Synthetic unrelated');
+-- The R002 safeguard requires contributed capital before synthetic loans can be
+-- created. Keep this fixture inside the surrounding transaction so the test
+-- remains isolated and rolls back with the rest of the synthetic data.
+INSERT INTO "Partners"("Row ID","Partner Role") VALUES ('CP6-PARTNER','A');
+INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
+VALUES ('CP6-CAPITAL','CP6-PARTNER',current_date,'Contribution',10000::money);
 INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled") VALUES
 ('CP6-L1','CP6-B',current_date-10,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false),
 ('CP6-L2','CP6-B',current_date-10,200::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false),
