@@ -11,6 +11,7 @@ Updated 15 September 2026. Start with the production reference below. Keep one p
 | [Development differences](Development_Changes.md) | Environment isolation, remaining differences and promotion history | Assessment promoted to production OLAP 1.100051 from DEV 1.000027 |
 | [Database migrations](../database/README.md) | Flyway baseline, development workflow and production promotion | Authoritative SQL change procedure |
 | [Development preparation](Development_Environment_Preparation.md) | Mandatory source/navigation isolation and automation review after copies/restores and relevant edits | Released PROD automation parity, DEV-only effects and owner-only notifications; verify live state |
+| [DEV refresh from PROD](Development_Refresh_Runbook.md) | Apps-only, database-only or combined refresh; preservation, validation and old-app cleanup | Run only on owner request; retain DEV themes, links and owner-only notification routing |
 | [OLTP business processes](OLTP_Business_Processes.md) | Business workflow narrative and editable diagram | Historical workflow synthesis with current source/version annotation; not a fresh lifecycle test |
 | [Daily analysis automation](Daily_Loan_Analysis_Automation.md) | Export/analysis contract and pilot design | Deployment/delivery verification remains explicitly pending |
 | [Markdown change logs](../Change%20Logs/) | Dated changes, approvals, rollback and test results | Authoritative change history |

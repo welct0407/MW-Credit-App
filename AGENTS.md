@@ -44,6 +44,10 @@ There are two environments, DEV and PROD. Each contains one PostgreSQL database 
 
 Verify app IDs and database host/instance bindings against `Documents/Environment_Inventory.md`; a database name alone does not establish environment identity. Cross-app links in either direction must stay within the environment: DEV OLAP ↔ DEV OLTP and PROD OLAP ↔ PROD OLTP. Check navigation actions, expressions, deep links and notification links after copies/restores and relevant edits, and in every promotion preflight/final check.
 
+### DEV refresh from PROD
+
+When the owner requests a DEV refresh, follow [Documents/Development_Refresh_Runbook.md](Documents/Development_Refresh_Runbook.md) for apps only, database only or both. Establish the scope, preserve unreleased work and record recovery before replacement. App refreshes copy PROD definitions, use DEV sources and companion links, retain current DEV theme colors and owner-only notification routing, and delete the old DEV apps only after replacement validation and recovery checks pass. Database refreshes use a logical PROD dump/restore into the existing DEV instance, including PROD Flyway history, then reapply only reviewed retained migrations. Complete the preparation checklist below and the runbook's validation/documentation gates. A reference to this procedure does not itself request or authorize a refresh.
+
 ### Development automation parity and isolation — owner rule, 16 September 2026
 
 - DEV must have the same scheduled bots and automations as the released PROD baseline: definitions, events/conditions, schedules/time zones, processing and enabled/disabled states, except environment bindings and owner-only notifications. Changes under development are recorded against their release until promoted; do not overwrite them to force parity. Superseded processing and bots disabled in PROD stay disabled in DEV unless the release intentionally changes them.

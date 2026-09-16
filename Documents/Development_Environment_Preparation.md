@@ -6,6 +6,8 @@ Apply this checklist after every app/database copy, refresh, replacement or rest
 
 ## Preparation checklist
 
+For a requested replacement from PROD, start with the [DEV refresh runbook](Development_Refresh_Runbook.md) to select apps/database/both, preserve unreleased work and manage recovery and old-app deletion. This checklist supplies its automation/source isolation gate.
+
 1. **Record the starting point.** Use [Environment Inventory](Environment_Inventory.md) to identify both DEV app UUIDs, versions and database host/instance. Capture rollback versions before edits. Old deleted apps and versions bound to PROD are not safe DEV rollback targets. Record the PROD baseline version used for automation parity and any active release differences.
 2. **Prevent premature execution.** Before copied/restored automation can execute, pause affected bots/schedules until their routes are reviewed. Review schedules immediately; never assume a copy disables them. Do not run processes or make test writes through unverified paths. Record temporary pauses and intended final states.
 3. **Verify sources and navigation.** Confirm every business table uses DEV and test companion navigation in both directions: DEV OLAP ↔ DEV OLTP. Inspect expressions/actions and notification/deep links for embedded PROD app IDs. Review exports, webhooks and external tasks for DEV destinations; a DEV database alone does not isolate their effects.
