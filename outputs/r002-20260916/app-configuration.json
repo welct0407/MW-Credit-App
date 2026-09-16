@@ -1,7 +1,7 @@
 {
   "release": "R002",
   "environment": "development",
-  "oltpVersion": "1.000106",
+  "oltpVersion": "1.000108",
   "olapVersion": "1.000096",
   "rollback": {
     "oltp": "1.000088",
@@ -31,7 +31,7 @@
     "condition": "ISNOTBLANK([Ref Loans].[Ref Borrowers])",
     "displayName": "เปิดข้อมูลผู้กู้ / Open Borrower",
     "detailViews": "Repayments_Detail appends Borrower Name TE in both apps; OLAP Charges_Detail replaces plain Borrower Name with Borrower Name TE",
-    "collection": "Open Borrower from Collection: Inline Borrower Name TE; LINKTOROW([Row ID], \"Borrowers_Detail\"); condition IN(CONTEXT(\"View\"), LIST(\"Collection\", \"Todays Collection Board_Detail\")); navigation only"
+    "collection": "Collection row uses original auto detail navigation. Inside Todays Collection Board_Detail, Borrower Reference TE is a read-only Ref to Borrowers by [Row ID], displayed as Borrower Name TE. Custom Open Borrower action and button removed."
   },
   "guiTests": {
     "interface": "Current desktop AppSheet",

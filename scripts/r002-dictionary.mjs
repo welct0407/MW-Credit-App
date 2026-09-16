@@ -7,10 +7,10 @@ const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(file));
 const before=Object.fromEntries(wb.worksheets.items.map(s=>[s.name,s.getUsedRange().values]));
 if(!process.argv.includes('--edit')){
  console.log(JSON.stringify(Object.fromEntries(Object.entries(before).map(([n,r])=>[n,{head:r[0],rows:r.length}]))));
- const linkReview=process.argv.includes('--review-link'),review=process.argv.includes('--review-refinement')||linkReview;
- const row=before['Dev Differences'].findIndex(r=>linkReview?r[1]==='Borrowers.Open Borrower from Collection':r[1]==='Loans.Principal Amount'&&r[2]==='Display name')+1;
+ const refReview=process.argv.includes('--review-ref'),linkReview=process.argv.includes('--review-link')||refReview,review=process.argv.includes('--review-refinement')||linkReview;
+ const row=before['Dev Differences'].findIndex(r=>refReview?r[1]==='Borrowers.Borrower Reference TE':linkReview?r[1]==='Borrowers.Open Borrower from Collection':r[1]==='Loans.Principal Amount'&&r[2]==='Display name')+1;
  const png=await wb.render({sheetName:'Dev Differences',range:review?`A${row}:E${row+(linkReview?1:3)}`:'A1:E4',scale:1,format:'png'});
- await fs.writeFile(out+(linkReview?'/dictionary-collection-link.png':review?'/dictionary-refinement.png':'/dictionary-before.png'),new Uint8Array(await png.arrayBuffer()));process.exit(0);
+ await fs.writeFile(out+(refReview?'/dictionary-native-ref.png':linkReview?'/dictionary-collection-link.png':review?'/dictionary-refinement.png':'/dictionary-before.png'),new Uint8Array(await png.arrayBuffer()));process.exit(0);
 }
 const sh=wb.worksheets.getItem('Dev Differences'),old=before['Dev Differences'];
 const additions=[];
@@ -38,9 +38,16 @@ for(const [status,color] of Object.entries(refinement.statusColors)) {
  additions.push(['OLTP','Collection Borrower TE - '+status,'Format rule','Absent',`Borrower Name TE only; AND(IN(CONTEXT("View"), LIST("Collection", "Todays Collection Board_Detail")), [Daily Collection Status] = "${status}"); ${color}; text size 1; no icon/bold/italic/underline/strike/uppercase.`]);
 }
 additions.push(['OLTP','Borrower with outstanding loans','Format rule','[Total Outstanding Principal] > 0',refinement.formatRules.outstanding+'; targets Borrower Name and Borrower Name TE; pink style preserved.']);
-additions.push(['OLTP','R002 / Collection refinement','Reconciliation','Rollback OLTP 1.000098; OLAP 1.000096','OLTP 1.000106; no editor issues. Red/purple list and red detail colors, direct borrower viewer navigation and pink outside Collection verified. Green/orange have no visible fixtures; saved rules verified. OLAP unchanged. Owner acceptance pending.']);
-additions.push(['OLTP','Borrowers.Open Borrower from Collection','Navigation','Absent','Inline on Borrower Name TE; LINKTOROW([Row ID], "Borrowers_Detail"); condition IN(CONTEXT("View"), LIST("Collection", "Todays Collection Board_Detail")); display เปิดข้อมูลผู้กู้ / Open Borrower; address-book icon. Navigation only; no confirmation or data modification.']);
-additions.push(['OLTP','Collection','Navigation','Row Selected auto; action bar Receive All Charges','Row Selected Open Borrower from Collection; action bar retains Receive All Charges and adds Open Borrower from Collection. Name tap opens full Borrowers_Detail (desktop and current mobile preview verified); viewer button also verified for matching borrower.']);
+additions.push(['OLTP','R002 / Collection refinement','Reconciliation','Rollback OLTP 1.000098; OLAP 1.000096','OLTP 1.000108. Original Collection row-to-detail behavior restored. Native Ref inside detail opens matching Borrowers_Detail. Red/purple Ref colors and preserved charges panel verified. Green/orange saved rules verified without fixtures. Owner acceptance pending.']);
+additions.push(['OLTP','Borrowers.Open Borrower from Collection','Navigation','Absent','Removed after owner rejected the custom action/button and Collection navigation override.']);
+additions.push(['OLTP','Collection','Navigation','Row Selected auto; action bar Receive All Charges','Restored original Row Selected **auto** and action bar Receive All Charges only. Row opens Todays Collection Board_Detail, not Borrowers_Detail.']);
+additions.push(['OLTP','Collection','Collection display','Borrower Name - Collection','Borrower Name TE Text deck header with original status colors. Original Collection detail navigation and Receive All Charges-only action bar restored.']);
+additions.push(['OLTP','Borrowers.Borrower Reference TE','Definition','Absent','Approved read-only VC: Ref to Borrowers, key Row ID, App formula [Row ID], display name "Borrower Name TE", Show_If CONTEXT("View") = "Todays Collection Board_Detail". Not key/label/IsPartOf. Existing Borrower Name TE Text label unchanged.']);
+additions.push(['OLTP','Todays Collection Board_Detail','Collection display','Borrower Name - Collection','Second field Borrower Reference TE, displayed Borrower Name TE, native Ref link. Status, due/collected/remaining amounts and Todays Collection Charges retain original order/layout.']);
+additions.push(['OLTP','Todays Collection Board','Slice columns','Original Collection columns','Duplicate Text VC removed; Borrower Name TE used by deck header; approved Borrower Reference TE added for detail. Original filter, READ_ONLY and actions preserved.']);
+additions.push(['OLTP','Visible Borrowers','Slice columns','Original borrower-list columns','Duplicate Text VC removed. AppSheet appended Borrower Reference TE; Show_If hides it outside Collection detail. Existing Text label, filter, permissions and actions preserved.']);
+for(const [status,color] of Object.entries(refinement.statusColors)) additions.push(['OLTP','Collection Borrower TE - '+status,'Format rule','Absent',`Borrower Name TE and Borrower Reference TE; AND(IN(CONTEXT("View"), LIST("Collection", "Todays Collection Board_Detail")), [Daily Collection Status] = "${status}"); ${color}; original style attributes retained.`]);
+additions.push(['OLTP','Borrowers.View Ref (Borrower Reference TE)','Navigation','Absent','AppSheet-generated native Ref navigation attached to Borrower Reference TE. Resolves current Row ID to Borrowers_Detail. No custom Open Borrower button or row override.']);
 additions.push(['OLTP','Loan Form Context','Table / source','Absent','V18 SQL view; database-3; READ_ONLY; one row cashpool. No filter, menu or editing workflow. Base contribution ledger is not imported.']);
 for(const [name,type,rule]of [
  ['Row ID','Text / key','Constant cashpool; immutable; no initial/App formula'],
