@@ -7,10 +7,10 @@ const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(file));
 const before=Object.fromEntries(wb.worksheets.items.map(s=>[s.name,s.getUsedRange().values]));
 if(!process.argv.includes('--edit')){
  console.log(JSON.stringify(Object.fromEntries(Object.entries(before).map(([n,r])=>[n,{head:r[0],rows:r.length}]))));
- const review=process.argv.includes('--review-refinement');
- const row=before['Dev Differences'].findIndex(r=>r[1]==='Loans.Principal Amount'&&r[2]==='Display name')+1;
- const png=await wb.render({sheetName:'Dev Differences',range:review?`A${row}:E${row+3}`:'A1:E4',scale:1,format:'png'});
- await fs.writeFile(out+(review?'/dictionary-refinement.png':'/dictionary-before.png'),new Uint8Array(await png.arrayBuffer()));process.exit(0);
+ const linkReview=process.argv.includes('--review-link'),review=process.argv.includes('--review-refinement')||linkReview;
+ const row=before['Dev Differences'].findIndex(r=>linkReview?r[1]==='Borrowers.Open Borrower from Collection':r[1]==='Loans.Principal Amount'&&r[2]==='Display name')+1;
+ const png=await wb.render({sheetName:'Dev Differences',range:review?`A${row}:E${row+(linkReview?1:3)}`:'A1:E4',scale:1,format:'png'});
+ await fs.writeFile(out+(linkReview?'/dictionary-collection-link.png':review?'/dictionary-refinement.png':'/dictionary-before.png'),new Uint8Array(await png.arrayBuffer()));process.exit(0);
 }
 const sh=wb.worksheets.getItem('Dev Differences'),old=before['Dev Differences'];
 const additions=[];
@@ -38,7 +38,9 @@ for(const [status,color] of Object.entries(refinement.statusColors)) {
  additions.push(['OLTP','Collection Borrower TE - '+status,'Format rule','Absent',`Borrower Name TE only; AND(IN(CONTEXT("View"), LIST("Collection", "Todays Collection Board_Detail")), [Daily Collection Status] = "${status}"); ${color}; text size 1; no icon/bold/italic/underline/strike/uppercase.`]);
 }
 additions.push(['OLTP','Borrower with outstanding loans','Format rule','[Total Outstanding Principal] > 0',refinement.formatRules.outstanding+'; targets Borrower Name and Borrower Name TE; pink style preserved.']);
-additions.push(['OLTP','R002 / Collection refinement','Reconciliation','Rollback OLTP 1.000098; OLAP 1.000096','OLTP 1.000103; no editor issues. Red/purple list and red detail colors, matching row navigation and pink outside Collection verified. Green/orange have no visible fixtures; saved rules verified. OLAP unchanged. Owner acceptance pending.']);
+additions.push(['OLTP','R002 / Collection refinement','Reconciliation','Rollback OLTP 1.000098; OLAP 1.000096','OLTP 1.000106; no editor issues. Red/purple list and red detail colors, direct borrower viewer navigation and pink outside Collection verified. Green/orange have no visible fixtures; saved rules verified. OLAP unchanged. Owner acceptance pending.']);
+additions.push(['OLTP','Borrowers.Open Borrower from Collection','Navigation','Absent','Inline on Borrower Name TE; LINKTOROW([Row ID], "Borrowers_Detail"); condition IN(CONTEXT("View"), LIST("Collection", "Todays Collection Board_Detail")); display เปิดข้อมูลผู้กู้ / Open Borrower; address-book icon. Navigation only; no confirmation or data modification.']);
+additions.push(['OLTP','Collection','Navigation','Row Selected auto; action bar Receive All Charges','Row Selected Open Borrower from Collection; action bar retains Receive All Charges and adds Open Borrower from Collection. Name tap opens full Borrowers_Detail (desktop and current mobile preview verified); viewer button also verified for matching borrower.']);
 additions.push(['OLTP','Loan Form Context','Table / source','Absent','V18 SQL view; database-3; READ_ONLY; one row cashpool. No filter, menu or editing workflow. Base contribution ledger is not imported.']);
 for(const [name,type,rule]of [
  ['Row ID','Text / key','Constant cashpool; immutable; no initial/App formula'],

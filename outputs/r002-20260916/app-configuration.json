@@ -1,7 +1,7 @@
 {
   "release": "R002",
   "environment": "development",
-  "oltpVersion": "1.000103",
+  "oltpVersion": "1.000106",
   "olapVersion": "1.000096",
   "rollback": {
     "oltp": "1.000088",
@@ -30,7 +30,8 @@
     "chargeAndRepaymentTarget": "LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
     "condition": "ISNOTBLANK([Ref Loans].[Ref Borrowers])",
     "displayName": "เปิดข้อมูลผู้กู้ / Open Borrower",
-    "detailViews": "Repayments_Detail appends Borrower Name TE in both apps; OLAP Charges_Detail replaces plain Borrower Name with Borrower Name TE"
+    "detailViews": "Repayments_Detail appends Borrower Name TE in both apps; OLAP Charges_Detail replaces plain Borrower Name with Borrower Name TE",
+    "collection": "Open Borrower from Collection: Inline Borrower Name TE; LINKTOROW([Row ID], \"Borrowers_Detail\"); condition IN(CONTEXT(\"View\"), LIST(\"Collection\", \"Todays Collection Board_Detail\")); navigation only"
   },
   "guiTests": {
     "interface": "Current desktop AppSheet",
