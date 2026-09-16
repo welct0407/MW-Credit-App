@@ -63,3 +63,5 @@ Added Borrowers action **Open Borrower from Collection**, navigation-only, Inlin
 Verified actual name taps from daily Collection open **Borrowers_Detail** with the matching name in the current desktop app and mobile editor preview. The visible Open Borrower button also opened the matching full viewer on desktop. Saved appdoc diff from 1.000103 contains only the new action, Collection event/action bar and metadata. The action modifies no data; no payment or loan was submitted. Status format rules remain unchanged. Updated model overview, workbook, app configuration and refinement evidence record the final behavior.
 
 Owner check: sync Dev, tap a borrower name directly in daily Collection and confirm the full borrower viewer; also try its Open Borrower button. Direct-link-only rollback: restore OLTP **1.000103** and rerun development preparation; full UI refinement rollback remains **1.000098**. Owner acceptance and production deployment remain pending.
+
+Final UI refinement source checkpoint: `81706ae` (includes prior label/color checkpoint `768857c`). SQL migration manifest remains unchanged. This follow-up records the tested commit only.
