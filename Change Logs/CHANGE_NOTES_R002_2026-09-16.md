@@ -1,6 +1,6 @@
 # R002 — Loan cashpool safeguard and borrower navigation
 
-Date: 2026-09-16. Status: development implemented, ready for owner review; owner acceptance and production deployment not approved.
+Date: 2026-09-16. Status: **Approved for production as frozen package R002-P1; promotion in progress.**
 
 ## Scope and authorization
 
@@ -84,3 +84,11 @@ Current-GUI verification: zero custom Open Borrower buttons; Collection row open
 Owner review: sync Dev; click a Collection row to see the existing Collection detail; then click the colored Borrower Name TE field inside it to open the borrower page. Check green/orange when those statuses are present. Acceptance remains pending. Recovery: restore **1.000107** for original Collection navigation without the new Ref, or **1.000106** for the pre-correction rejected state only if specifically required; rerun development preparation before writes. SQL V18 and OLAP 1.000096 require no rollback for this correction.
 
 Native Ref correction tested source checkpoint: `f3a0d66`. This tracking entry supersedes the rejected direct-viewer checkpoint; no production approval is implied.
+
+## SDLC package and production authorization — 16 September 2026
+
+The revised AGENTS.md Section 6 requires a frozen package and stable object checklist. R002-P1 is now recorded in [the promotion checklist](../outputs/r002-20260916/PROMOTION_CHECKLIST.md), covering every SQL, table, column, validation, action, slice, view, format-rule, environment and automation item. The package pins Dev OLTP **1.000108**, Dev OLAP **1.000096**, SQL **V18**, implementation commit `f3a0d6616fad483f5e05e234b3608873cc427739`, and the sanitized release manifest `outputs/r002-20260916/release-manifest-f3a0d66.json`.
+
+The owner accepted and authorized this exact package by instructing: “update the current release document to match with the requirements in AGENTS.md. then go ahead to promote R002 to prod.” The owner also confirmed R003 was already in production; R002 must preserve that intervening release. Current production prerequisite and AppSheet rollback points are therefore **R003 / OLTP 3.000121 / OLAP 1.100101 / SQL V16**.
+
+Before production SQL writes, a fresh logical backup was captured outside Git and restored into an isolated local PostgreSQL instance. All **15** business-table fingerprints and the normalized V16 schema matched. Backup SHA-256: `315af2048f70cdf26ed37d34a01b383f4da60bdf780e8b992375e4405a5ae7e7`. The production V16 schema also matches the reviewed pre-R002 development V16 schema. No report object changes, so no Looker backup is required. Deployment and checklist outcomes will be appended after execution; the release is not Released while any required item remains Pending or Blocked.
