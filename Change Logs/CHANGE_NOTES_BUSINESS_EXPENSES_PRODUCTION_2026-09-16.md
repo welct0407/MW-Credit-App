@@ -1,6 +1,6 @@
 # Business expenses production promotion — 16 September 2026
 
-Status: production promotion applied with explicit owner authorization: “ok promote to production”; **post-release AppSheet reconciliation failed on 16 September 2026 and a corrective release is required**. Scope was the DEV-tested V15/V16 business-expense implementation and saved AppSheet refinements from commits e75a5fd and 88df80b. No development financial data, synthetic fixtures or Looker changes were included.
+Status: production promotion applied with explicit owner authorization: “ok promote to production”. The post-release AppSheet reconciliation failed at OLTP 3.000118 / OLAP 1.100098 and was **resolved by corrective release R003** at OLTP 3.000121 / OLAP 1.100101 on 16 September 2026. Scope was the DEV-tested V15/V16 business-expense implementation and saved AppSheet refinements from commits e75a5fd and 88df80b. No development financial data, synthetic fixtures or Looker changes were included.
 
 ## Rollback and release gate
 
@@ -26,9 +26,9 @@ The current AppSheet editor and preview were used. Both app dashboards displayed
 
 ## Post-release correction to this record — 16 September 2026
 
-A later mandatory object-by-object audit found that the production AppSheet state does not support several assertions above. The dashboards contain the net KPI sections, but production still has incorrect Referrer columns, missing borrower form/detail fields and OLAP referral VCs, unreconciled OLAP Business Expenses key/Ref metadata, missing expense format rules, incorrect expense/analytics formatting, a wrong Daily Analytics Business Expenses Ref, gross partner detail fields, the earlier settlement validation and missing Analytics Data net fields.
+A later mandatory object-by-object audit found that the production AppSheet state did not support several assertions above. The dashboards contained the net KPI sections, but production still had incorrect Referrer columns, missing borrower form/detail fields and OLAP referral VCs, unreconciled OLAP Business Expenses key/Ref metadata, missing OLAP expense format rules, incorrect expense/analytics formatting, a wrong Daily Analytics Business Expenses Ref, gross partner detail fields, the earlier settlement validation and missing Analytics Data net fields. The audit originally overstated the format-rule gap for OLTP: two equivalent OLTP rules already existed under different names and were retained.
 
-No live configuration was changed by the audit. Treat the production promotion as applied but incompletely reconciled. The authoritative discrepancy list is [the R001 AppSheet reconciliation report](../outputs/r001-appsheet-reconciliation-20260916/REPORT.md). A new corrective release and explicit production approval are required.
+No live configuration was changed by the audit. The owner then explicitly authorized R003 with “fix all the gaps in prod”. R003 corrected every listed discrepancy, added the two genuinely missing OLAP expense rules and verified saved/current-GUI behavior at production OLTP 3.000121 and OLAP 1.100101. See the [R001 audit resolution](../outputs/r001-appsheet-reconciliation-20260916/REPORT.md) and [R003 evidence](../outputs/r003-production-appsheet-reconciliation-20260916/REPORT.md).
 
 ## Rollback
 

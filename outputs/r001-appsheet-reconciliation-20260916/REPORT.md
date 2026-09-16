@@ -2,7 +2,9 @@
 
 ## Result
 
-**Failed. R001 is deployed, but its AppSheet configuration is not fully reconciled in production.** The production database/Flyway state was not changed or retested in this audit. The affected production versions remain OLTP **3.000118** and OLAP **1.100098**, both runnable/deployable and bound to `database-2`.
+**Failed at the audited versions, then resolved by R003.** R001 was deployed but its AppSheet configuration was not fully reconciled at production OLTP **3.000118** and OLAP **1.100098**. The production database/Flyway state was not changed or retested in this audit.
+
+On 16 September 2026, the owner authorized “fix all the gaps in prod”. Corrective release R003 reconciled every object below and saved production OLTP **3.000121** and OLAP **1.100101**, both runnable/deployable on `database-2`. Flyway remains V16. The correction evidence is in the [R003 report](../r003-production-appsheet-reconciliation-20260916/REPORT.md).
 
 The earlier R001 AppSheet scopes reconcile. The failures are concentrated in the Business Expenses, borrower-referral and net-reporting promotion. The most visible confirmed defect is that production OLTP does not show Referrer in the borrower form, and production OLAP does not show Referrer or referral-rebate totals in borrower detail.
 
@@ -53,7 +55,7 @@ No production record, configuration or bot was changed. Runtime forms were opene
 - Production OLTP `Business Expenses.Amount` has no R001 nonzero/whole-baht/negative-note validation and displays `$` with two decimals instead of `฿` with zero decimals.
 - Gross Profit Basis, Partner A Expense and Partner B Expense also use `$`/two decimals in production; partner shares are Decimal instead of Percent in both production apps.
 - Production OLAP expense and net-analytics money fields retain `$`/two-decimal formatting.
-- The positive-red and negative-green Business Expenses format rules are absent from both production apps.
+- Production OLAP lacks the positive-red and negative-green Business Expenses format rules. The audit originally also reported these absent in OLTP; later name-independent inspection proved OLTP already had equivalent enabled rules (`Expense Amount - Positive` and `Expense Amount - Negative Offset`) with the correct conditions, target and colors. R003 retained those OLTP rules and added the two missing OLAP rules under the development names.
 - The OLTP Business Expenses deck uses Expense Category as the primary header; the accepted R001 refinement uses automatic primary header.
 
 ### R001-APP-04 — Daily Analytics has a wrong production relationship
@@ -77,8 +79,8 @@ No production record, configuration or bot was changed. Runtime forms were opene
 - OLTP Business Expenses menu and form loaded with Expense Date, Expense Category, Amount, Payee Name and optional related borrower/loan fields; the form was cancelled.
 - No production save, financial test write, bot execution or notification was triggered.
 
-## Release decision and required follow-up
+## Release decision and follow-up
 
-R001 must remain recorded as released because its SQL and app versions are already in production, but its post-release reconciliation status is **failed**. Do not treat the business-expense/referral AppSheet portion as accepted production parity.
+At the audited versions, R001 remained released with a **failed** post-release reconciliation. R003 subsequently corrected the AppSheet discrepancies without a database or financial-record write.
 
-A corrective release must use a new release number, preserve current production data and bots, record fresh OLTP/OLAP rollback versions, compare every listed object against the intended R001 definition, and repeat the current-GUI entry-point checks before it can be marked reconciled. Production correction still requires explicit owner approval under `AGENTS.md`.
+R003 used a new release number, preserved current production data, sources, cross-app links and bots, recorded rollback versions OLTP 3.000118 / OLAP 1.100098, compared every listed object against the intended R001 definition and repeated the current-GUI entry points. R001 is now recorded as **released — reconciled by R003**.
