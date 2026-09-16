@@ -61,3 +61,5 @@ Status values are Pending, Verified, Blocked or Owner-approved exception. Exact 
 ## Production verification limits
 
 Production validation may inspect new forms and navigation without saving. No production loan, repayment, charge, payment, bot run or forced notification is authorized by this release. The V17 trigger is verified in production through migration history, object inspection and read-only context reconciliation; write rejection remains supported by the accepted DEV tests. Mobile/offline behavior and green/orange Collection rows require naturally available production states or later owner observation and must not be manufactured with financial fixtures.
+
+GitHub Database migrations run #25 for corrective commit `8e244e9` completed successfully in 2m 23s. The earlier failure emails were caused by pre-fix disposable test fixtures, not by the production migration.

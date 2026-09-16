@@ -1,7 +1,6 @@
 {
   "pending": [
-    "Delete retired Borrower Name - Collection VC after required UI confirmation",
-    "Confirm fresh GitHub migration workflow is green"
+    "Delete retired Borrower Name - Collection VC after required UI confirmation"
   ],
   "release": "R002",
   "checks": [
