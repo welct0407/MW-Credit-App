@@ -2,12 +2,15 @@ import fs from 'node:fs/promises';
 import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
 const file='Documents/AppSheet_Data_Dictionary.xlsx',out='outputs/r002-20260916';
 const config=JSON.parse(await fs.readFile(out+'/app-configuration.json','utf8'));
+const refinement=JSON.parse(await fs.readFile(out+'/refinement-verification.json','utf8'));
 const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(file));
 const before=Object.fromEntries(wb.worksheets.items.map(s=>[s.name,s.getUsedRange().values]));
 if(!process.argv.includes('--edit')){
  console.log(JSON.stringify(Object.fromEntries(Object.entries(before).map(([n,r])=>[n,{head:r[0],rows:r.length}]))));
- const png=await wb.render({sheetName:'Dev Differences',range:'A1:E4',scale:1,format:'png'});
- await fs.writeFile(out+'/dictionary-before.png',new Uint8Array(await png.arrayBuffer()));process.exit(0);
+ const review=process.argv.includes('--review-refinement');
+ const row=before['Dev Differences'].findIndex(r=>r[1]==='Loans.Principal Amount'&&r[2]==='Display name')+1;
+ const png=await wb.render({sheetName:'Dev Differences',range:review?`A${row}:E${row+3}`:'A1:E4',scale:1,format:'png'});
+ await fs.writeFile(out+(review?'/dictionary-refinement.png':'/dictionary-before.png'),new Uint8Array(await png.arrayBuffer()));process.exit(0);
 }
 const sh=wb.worksheets.getItem('Dev Differences'),old=before['Dev Differences'];
 const additions=[];
@@ -26,6 +29,16 @@ additions.push(['OLAP','Charges_Detail','Column order','Plain Borrower Name','Bo
 additions.push(['OLTP','Loans.Principal Amount','Valid_If','Positive amount and daily installment whole-baht rule',config.principalValidIf]);
 additions.push(['OLTP','Loans.Principal Amount','Invalid value error','Positive amount message',config.principalInvalidError]);
 additions.push(['OLTP','Loans.Principal Amount','Description','Blank',config.principalDescription]);
+additions.push(['OLTP','Loans.Principal Amount','Display name','เงินต้น / Principal Amount',refinement.principalDisplayName]);
+additions.push(['OLTP','Borrowers.Borrower Name - Collection','Virtual column','Text VC replica of Borrower Name TE','Removed in Dev OLTP 1.000103 after Collection replacement verification. Row ID key and Borrower Name TE label/formula preserved.']);
+for(const [name,change] of Object.entries(refinement.sliceChanges)) additions.push(['OLTP',name,'Slice columns','R002 initial configuration',change]);
+for(const [name,change] of Object.entries(refinement.viewChanges)) additions.push(['OLTP',name,'Collection display','Borrower Name - Collection',change]);
+for(const [status,color] of Object.entries(refinement.statusColors)) {
+ additions.push(['OLTP','Borrower Name Collection - '+status,'Format rule','Todays Amount Remaining and Borrower Name - Collection',`Todays Amount Remaining only; [Daily Collection Status] = "${status}"; ${color}; all original style attributes retained.`]);
+ additions.push(['OLTP','Collection Borrower TE - '+status,'Format rule','Absent',`Borrower Name TE only; AND(IN(CONTEXT("View"), LIST("Collection", "Todays Collection Board_Detail")), [Daily Collection Status] = "${status}"); ${color}; text size 1; no icon/bold/italic/underline/strike/uppercase.`]);
+}
+additions.push(['OLTP','Borrower with outstanding loans','Format rule','[Total Outstanding Principal] > 0',refinement.formatRules.outstanding+'; targets Borrower Name and Borrower Name TE; pink style preserved.']);
+additions.push(['OLTP','R002 / Collection refinement','Reconciliation','Rollback OLTP 1.000098; OLAP 1.000096','OLTP 1.000103; no editor issues. Red/purple list and red detail colors, matching row navigation and pink outside Collection verified. Green/orange have no visible fixtures; saved rules verified. OLAP unchanged. Owner acceptance pending.']);
 additions.push(['OLTP','Loan Form Context','Table / source','Absent','V18 SQL view; database-3; READ_ONLY; one row cashpool. No filter, menu or editing workflow. Base contribution ledger is not imported.']);
 for(const [name,type,rule]of [
  ['Row ID','Text / key','Constant cashpool; immutable; no initial/App formula'],

@@ -1,15 +1,51 @@
 {
   "release": "R002",
   "environment": "development",
-  "oltpVersion": "1.000098",
+  "oltpVersion": "1.000103",
   "olapVersion": "1.000096",
-  "rollback": {"oltp": "1.000088", "olap": "1.000090", "sql": "V16 verified private backup"},
+  "rollback": {
+    "oltp": "1.000088",
+    "olap": "1.000090",
+    "sql": "V16 verified private backup"
+  },
   "principalValidIf": "AND([_THIS] > 0, OR([Loan Type] <> \"ผ่อนชำระรายวัน\", MOD([_THIS], 1) = 0), OR(IN([Row ID], Loans[Row ID]), AND(COUNT(Loan Form Context[Row ID]) = 1, [_THIS] <= ANY(Loan Form Context[Available Cashpool]))))",
-  "principalDescription": "IF(IN([Row ID], Loans[Row ID]), \"\", IF(COUNT(Loan Form Context[Row ID]) = 1, CONCATENATE(\"เงินทุนที่ให้กู้ได้ / Available cashpool: ฿\", ANY(Loan Form Context[Available Cashpool]), \" • ข้อมูลจากการซิงค์ล่าสุด / Last synced balance\"), \"กรุณาซิงค์เพื่อโหลดวงเงิน / Sync to load available cashpool\"))",
+  "principalDescription": "\"\"",
   "principalInvalidError": "IFS([_THIS] <= 0, \"เงินต้นต้องมากกว่า 0 / Principal must be greater than zero\", AND([Loan Type] = \"ผ่อนชำระรายวัน\", MOD([_THIS], 1) <> 0), \"เงินต้นผ่อนรายวันต้องเป็นจำนวนเต็มบาท / Daily installment principal must be whole baht\", COUNT(Loan Form Context[Row ID]) <> 1, \"กรุณาซิงค์เพื่อโหลดวงเงิน / Sync to load available cashpool\", TRUE, CONCATENATE(\"เงินต้นเกินเงินทุนคงเหลือ / Principal exceeds available cashpool: ฿\", ANY(Loan Form Context[Available Cashpool]), \". ลดเงินต้นหรือซิงค์หลังเพิ่มทุน / Reduce principal or sync after adding capital.\"))",
-  "context": {"name":"Loan Form Context", "source":"database-3", "permission":"READ_ONLY", "key":"Row ID", "rowId":"cashpool", "rows":1, "moneyType":"Price / THB / 2 decimals", "shareType":"Percent / 2 decimals", "initialAndAppFormulas":"None; SQL view", "securityFilter":"None", "availability":"OLTP only", "view":"Generated reference detail only; no menu or edit workflow"},
-  "navigation": {"loan":"Existing View Ref (Ref Borrowers), Inline on Borrower Name TE", "chargeAndRepaymentTarget":"LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")", "condition":"ISNOTBLANK([Ref Loans].[Ref Borrowers])", "displayName":"เปิดข้อมูลผู้กู้ / Open Borrower", "detailViews":"Repayments_Detail appends Borrower Name TE in both apps; OLAP Charges_Detail replaces plain Borrower Name with Borrower Name TE"},
-  "guiTests": {"interface":"Current desktop AppSheet", "formLimitBaht":3606, "exactLimitShowsNoCapacityError":true, "3606.01ShowsCapacityErrorBeforeSave":true, "3607ShowsCapacityErrorBeforeSave":true, "hintVisibleBeforeEntry":true, "formTestDiscardedWithoutSave":true, "borrowerLinks":"Loans, Charges, Repayments opened matching synthetic borrower in both apps", "fixture":"DEV Atomic Close None", "ownerAcceptance":"pending", "mobileOfflineAndPersistedGuiLoan":"not tested"},
-  "notifications":"Policy updated; disabled notification bots unchanged; no messages sent",
-  "production":"unchanged"
+  "context": {
+    "name": "Loan Form Context",
+    "source": "database-3",
+    "permission": "READ_ONLY",
+    "key": "Row ID",
+    "rowId": "cashpool",
+    "rows": 1,
+    "moneyType": "Price / THB / 2 decimals",
+    "shareType": "Percent / 2 decimals",
+    "initialAndAppFormulas": "None; SQL view",
+    "securityFilter": "None",
+    "availability": "OLTP only",
+    "view": "Generated reference detail only; no menu or edit workflow"
+  },
+  "navigation": {
+    "loan": "Existing View Ref (Ref Borrowers), Inline on Borrower Name TE",
+    "chargeAndRepaymentTarget": "LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\")",
+    "condition": "ISNOTBLANK([Ref Loans].[Ref Borrowers])",
+    "displayName": "เปิดข้อมูลผู้กู้ / Open Borrower",
+    "detailViews": "Repayments_Detail appends Borrower Name TE in both apps; OLAP Charges_Detail replaces plain Borrower Name with Borrower Name TE"
+  },
+  "guiTests": {
+    "interface": "Current desktop AppSheet",
+    "formLimitBaht": 3606,
+    "exactLimitShowsNoCapacityError": true,
+    "3606.01ShowsCapacityErrorBeforeSave": true,
+    "3607ShowsCapacityErrorBeforeSave": true,
+    "hintVisibleBeforeEntry": true,
+    "formTestDiscardedWithoutSave": true,
+    "borrowerLinks": "Loans, Charges, Repayments opened matching synthetic borrower in both apps",
+    "fixture": "DEV Atomic Close None",
+    "ownerAcceptance": "pending",
+    "mobileOfflineAndPersistedGuiLoan": "not tested"
+  },
+  "notifications": "Policy updated; disabled notification bots unchanged; no messages sent",
+  "production": "unchanged",
+  "principalDisplayName": "CONCATENATE(\"เงินต้น / Principal Amount\", IF(AND(CONTEXT(\"ViewType\") = \"Form\", NOT(IN([Row ID], Loans[Row ID])), COUNT(Loan Form Context[Row ID]) = 1), CONCATENATE(\" (฿\", ANY(Loan Form Context[Available Cashpool]), \")\"), \"\"))"
 }

@@ -1,0 +1,41 @@
+{
+  "release": "R002",
+  "date": "2026-09-16",
+  "environment": "development",
+  "oltpVersion": "1.000103",
+  "olapVersion": "1.000096",
+  "rollback": {"oltp": "1.000098", "olap": "1.000096", "git": "1c47f02"},
+  "principalDisplayName": "CONCATENATE(\"เงินต้น / Principal Amount\", IF(AND(CONTEXT(\"ViewType\") = \"Form\", NOT(IN([Row ID], Loans[Row ID])), COUNT(Loan Form Context[Row ID]) = 1), CONCATENATE(\" (฿\", ANY(Loan Form Context[Available Cashpool]), \")\"), \"\"))",
+  "principalDescription": "\"\"",
+  "collectionViews": ["Collection", "Todays Collection Board_Detail"],
+  "removedVirtualColumn": "Borrowers.Borrower Name - Collection",
+  "sliceChanges": {"Todays Collection Board": "Removed duplicate; added Borrower Name TE; filter, READ_ONLY and auto actions preserved", "Visible Borrowers": "Removed duplicate; existing TE, filter, ALL_CHANGES and auto actions preserved"},
+  "viewChanges": {"Collection": "PrimaryDeckHeaderColumn = Borrower Name TE; all other view settings preserved", "Todays Collection Board_Detail": "Replaced duplicate with Borrower Name TE at second position; all other settings preserved"},
+  "statusColors": {"Fully Paid": "green", "Not Paid": "red", "Overdue": "purple", "Partially Paid": "orange"},
+  "formatRules": {
+    "originalFour": "Borrower Name Collection - <status>: retains original status condition and style, now targets Todays Amount Remaining only",
+    "newFour": "Collection Borrower TE - <status>: targets Borrower Name TE only; AND(IN(CONTEXT(\"View\"), LIST(\"Collection\", \"Todays Collection Board_Detail\")), [Daily Collection Status] = \"<status>\")",
+    "outstanding": "AND([Total Outstanding Principal] > 0, NOT(IN(CONTEXT(\"View\"), LIST(\"Collection\", \"Todays Collection Board_Detail\"))))"
+  },
+  "verification": {
+    "currentGuiOnly": true,
+    "newFormTitle": "เงินต้น / Principal Amount (฿3606)",
+    "longDescriptionRemoved": true,
+    "3607WarnsBeforeSave": true,
+    "formDiscardedUnsaved": true,
+    "collectionNameColorsObserved": ["rgb(204, 11, 11)", "rgb(124, 0, 255)"],
+    "collectionDetailNameColorObserved": "rgb(204, 11, 11)",
+    "outsideCollectionPinkObserved": "rgb(251, 10, 130)",
+    "collectionNameClick": "Opens matching Todays Collection Board_Detail; Row Selected auto behavior preserved",
+    "greenOrangeGui": "No matching rows visible; saved rule conditions, target and original styles verified",
+    "deletedColumnDependencies": "None in saved schema, slices, views, rules or formulas; historical name appears only in cleanup comment",
+    "editorFinal": "No issues found; Save disabled",
+    "olapSavedAppdocDiff": [],
+    "principalValidationAndError": "Unchanged exact saved Type Qualifier",
+    "otherActionsAndModel": "Saved appdoc diff limited to principal display/description, deleted VC, two slices, two views and nine format rules",
+    "ownerAcceptance": "pending"
+  },
+  "database": "V18 unchanged; no SQL or financial writes",
+  "notifications": "No changes or messages",
+  "productionAndLooker": "Unchanged; no direct downstream field or grain impact"
+}
