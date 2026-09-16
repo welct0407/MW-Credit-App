@@ -156,6 +156,12 @@ Documentation is part of the change itself, not an optional follow-up. Codex mus
 
 Use one release change log with a linked checklist/evidence folder when needed; small releases may keep everything in that log. Maintain the record as work happens, not by reconstructing the release at deployment. Scale tests to the changed behavior and affected dependencies; do not create duplicate reports or audit unrelated features.
 
+**AppSheet warning-clearance gate — owner rule, 16 September 2026:** Both OLTP and OLAP must have **zero outstanding AppSheet warnings and errors** in the environment being finalized. Apply this gate after development/testing and before declaring DEV work complete or ready to promote, and after production saves/validation before declaring promotion complete or marking Released. It also applies to DEV refresh/preparation completion.
+
+- Inspect both apps' current-editor warning/error diagnostics and deployment checks at the start to capture existing issues, then save, reload and rerun the checks on the final versions. Include pre-existing warnings, even when unrelated to the changed feature; “unchanged”, “non-blocking” or Runnable/Deployable status is not clearance. Do not hide/dismiss warnings or disable checks merely to obtain a clean result.
+- Record each issue's app/environment, affected object, exact warning/error, correction and recheck result in the existing change log/checklist. Record final app versions, check time and evidence of zero warnings/errors for each app. Trace warning fixes through affected consumers, tests and model documentation; if they change the frozen release scope, revise the package and obtain approval for the changed scope under Sections 6.2–6.3 before production edits.
+- A remaining warning/error or unavailable diagnostic check blocks completion/readiness: report **Not ready** for DEV or **Deployment applied; verification incomplete** after production changes, with the unresolved items. General checklist exceptions do not satisfy this zero-warning gate. DEV evidence belongs to the frozen candidate; PROD must have its own final checks, without comparing to subsequently changed DEV.
+
 ### 6.1 Develop and capture the release
 
 1. Read/reserve the release number, define intended behavior and acceptance checks, and identify affected apps, shared consumers and prerequisites. Inspect current definitions/schema and record starting versions and rollback points under Section 4. Complete DEV preparation before test execution.
