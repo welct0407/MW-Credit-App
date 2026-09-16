@@ -4,6 +4,13 @@ AI Collection software has moved to C:\GitHub\MW-AI-Collection. For any collecti
 
 This file governs Codex work on the shared AppSheet solution: the **OLTP Operations app**, the **OLAP Reporting app**, and the **Looker Studio dashboard**.
 
+## Project release tracking — owner rule, 16 September 2026
+
+- Use `Documents/Release_Tracker.md` as the project-wide R001, R002, R003… release register and source of the next available number. Read it before starting release work; reserve one number for a coherent scope and advance the next number. Publish the reservation before parallel sessions rely on it, and check for existing reservations to avoid duplicates.
+- Keep the same release number across continuation chats. Independent releases get separate numbers. Never reuse cancelled numbers. Suggested owner chat title: `Rnnn — Feature name`; do not rename chats without a request.
+- Maintain each release's content summary, status, dates, component versions, tested Git commit/Flyway manifest, approval, tests and rollback/change-log links. Include its number in change logs and completion messages. Distinguish development completion, owner acceptance and actual production deployment.
+- Release numbers are separate from AppSheet versions and immutable Flyway migration numbers. A number, tracker entry or repository push does not authorize production changes. Documentation-only tracker maintenance does not consume a product release number.
+
 ## Repository tooling and generated files
 
 - Keep maintained scripts in `scripts/` and generated artifacts in `outputs/`. Track output documents, scripts and evidence in Git for recovery. The owner excluded C:\GitHub from Google Drive on 2026-09-10; do not assume uncommitted project files have a Drive backup. Exclude installed dependencies, Python caches and .tmp directories.

@@ -4,6 +4,7 @@ Updated 15 September 2026. Start with the production reference below. Keep one p
 
 | Document | Purpose | Current status |
 | --- | --- | --- |
+| [Release tracker](Release_Tracker.md) | Project release numbers, content summaries, status and chat-title convention | Current baseline R001; consult tracker for the next available number |
 | [Production data model](AppSheet_Data_Model_Overview.md) | Architecture, ownership, tables, relationships and current calculation boundaries | Reconciled to live app definitions and SQL schema on 15 September |
 | [Data dictionary](AppSheet_Data_Dictionary.xlsx) | Exact production business columns, rules, references, slices, SQL catalog and development differences | Rebuilt from current definitions; see Guide for scope |
 | [Environment inventory](Environment_Inventory.md) | App IDs/versions, database hosts, connection limits, evidence timestamps and limitations | Current read-only app/SQL checks; other configuration has dated evidence |
