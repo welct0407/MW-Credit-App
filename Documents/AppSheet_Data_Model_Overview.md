@@ -1,5 +1,9 @@
 # AppSheet production data model
 
+## R004 development candidate — 17 September 2026
+
+DEV V19 / OLTP 1.000110 / OLAP 1.000096 uses category `Referral Rebate / เงินคืนค่าแนะนำลูกค้า` for new automatic referral expenses and as a sixth manual expense choice. Automatic Source Type remains `Referral Rebate`; manually entered rebates remain `Manual`, with user-entered amount and normal date-based allocations. Old immutable automatic English categories remain valid. V19 includes the owner-requested manual backlog category correction only; amounts and all other fields are preserved. OLAP remains read-only Text with no category validation. No schema columns, references, calculation or reporting grains change. Exact rule and deployment status are in the [R004 log](../Change%20Logs/CHANGE_NOTES_R004_2026-09-17.md); PROD remains V18 / 3.000155 / 1.100106 pending promotion.
+
 ## R002 production deployment — 16 September 2026
 
 Production now runs Flyway **V18**, OLTP **3.000155** and OLAP **1.100106**, preserving R003. V17 enforces the new-loan capacity rule against signed contributed capital less outstanding principal; V18 exposes the one-row read-only Loan Form Context on database-2. The OLTP form shows the short original principal title with the synced available amount in brackets and warns before Save; SQL is the concurrent/stale-data backstop. Production readback after migration was 120,000 capital, 116,394 outstanding and 3,606 available, with 0.60 / 0.40 shares.

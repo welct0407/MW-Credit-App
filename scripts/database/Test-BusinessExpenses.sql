@@ -32,6 +32,7 @@ UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='EX15-DEFAULT';
 UPDATE "Loans" SET "Defaulted"=true,"Close Date"=current_date,"Closed By"='synthetic@example.invalid',"Loan Status"='ปิดยอดแล้ว' WHERE "Row ID"='EX15-DEFAULT';
 SET CONSTRAINTS ALL IMMEDIATE;
 SELECT pg_temp.exp_assert((SELECT count(*)=2 FROM "Business Expenses"),'only normal and cap eligible');
+SELECT pg_temp.exp_assert((SELECT bool_and("Expense Category"='Referral Rebate / เงินคืนค่าแนะนำลูกค้า' AND "Source Type"='Referral Rebate') FROM "Business Expenses"),'R004 bilingual category and stable source');
 SELECT pg_temp.exp_assert((SELECT "Amount"::numeric=660 AND "Partner A Expense"::numeric=396 AND "Partner B Expense"::numeric=264
  AND "Ref Payee Borrower"='EX15-REF' AND "Ref Related Borrower"='EX15-B' AND "Gross Profit Basis"::numeric=6600
  FROM "Business Expenses" WHERE "Ref Related Loan"='EX15-NORMAL'),'normal 660 and 396/264');

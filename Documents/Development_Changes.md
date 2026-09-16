@@ -1,5 +1,9 @@
 # Development differences
 
+## R004 candidate — 17 September 2026
+
+DEV SQL V19 and OLTP 1.000110 add the bilingual referral category to automatic expense creation and the manual dropdown. OLAP 1.000096 is unchanged. PROD remains V18 / OLTP 3.000155 / OLAP 1.100106. DEV manual-save, SQL automatic-generation and both-app readback passed; full-configuration export coverage remains a promotion gate. See [R004 exact scope, tests and recovery](../Change%20Logs/CHANGE_NOTES_R004_2026-09-17.md). Older dated sections below are historical checkpoints, not the current production/development version declaration.
+
 Updated 16 September 2026 for development OLTP **1.000088**, development OLAP **1.000090**, production OLTP **3.000108**, production OLAP **1.100090**. DEV is Flyway **V16**; production remains **V14**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 
 The later [expense/dashboard refinement](../Change%20Logs/CHANGE_NOTES_EXPENSE_DASHBOARD_REFINEMENT_2026-09-16.md) preserves the owner's OLTP deck, adds bilingual manual categories and optional-reference labels, colors signed amounts, and uses Total Net Profit plus a three-line Income Statement MTD in both dashboards. OLAP Cash Pool has four fields again, using net unsettled profit and net expected balance. Both partner cards reconcile with SQL net values. SQL stays V16; rollback for this UI-only follow-up is OLTP 1.000083 / OLAP 1.000084. Owner/mobile acceptance remains pending.
