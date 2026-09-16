@@ -6,8 +6,8 @@ Updated 16 September 2026. Production/development are separate Cloud SQL instanc
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000098 | database-2 | 8 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100081 | database-2 | 12 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000108 | database-2 | 8 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100090 | database-2 | 12 |
 | Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000061 | database-3 | 8 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000064 | database-3 | 12 |
 
@@ -29,7 +29,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V11 migrated and validated | V14 migrated and validated | DEV-only VC phases 1–4; production remains V11 |
+| Flyway | V14 migrated and validated | V14 migrated and validated | VC phases 1–4 promoted and both consumers reconciled |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
@@ -41,7 +41,9 @@ Production app rollback versions were OLTP 3.000080 and freshly observed OLAP 1.
 
 Production Cloud SQL flags saved/restarted 22:05:38–22:06:10 Bangkok: cloudsql.enable_pg_cron=on, cron.database_name=loan_manager_prod, cron.timezone=Asia/Bangkok, cron.max_running_jobs=1. Existing IAM authentication and max_connections=100 were preserved. The pg_cron loan-daily-charges job is now paused; OLTP AppSheet owns the 00:05 Bangkok schedule so failures appear in Automation Monitor. No instance tier/network/credential change. [production release](../outputs/core-promotion-20260915/REPORT.md) records the earlier phases 1–6 release.
 
-Latest production checkpoint: **V11 / OLTP 3.000098 / OLAP 1.100081**. Rollback is OLTP 3.000094 / OLAP 1.100062 plus a private V10 logical backup whose 14 business tables and normalized schema restored locally. The hidden Statistics request exists in both apps. OLAP owns Recent/Full actions and hourly :00 refresh; Calendar, its views/actions and the duplicate bot are removed, and Daily Analytics is read only. The first natural hourly run completed at 01:00:04 Bangkok and all 43 dates reconcile with stable IDs. The first natural OLTP 00:05 run under AppSheet remains pending. [Production monitored-jobs evidence](../outputs/monitored-jobs-production-20260916/REPORT.md).
+Latest production checkpoint: **V14 / OLTP 3.000108 / OLAP 1.100090**. All 48 SQL-owned app fields have blank App formulas; four obsolete OLTP VCs are removed. Production sources, slices and notification routes are preserved. Rollback is OLTP 3.000098 / OLAP 1.100081 with the verified private V11 backup; coordinated SQL/app recovery is required. See [production VC release](../outputs/vc-production-20260916/REPORT.md).
+
+Historical monitored-jobs checkpoint: **V11 / OLTP 3.000098 / OLAP 1.100081**. Rollback is OLTP 3.000094 / OLAP 1.100062 plus a private V10 logical backup whose 14 business tables and normalized schema restored locally. The hidden Statistics request exists in both apps. OLAP owns Recent/Full actions and hourly :00 refresh; Calendar, its views/actions and the duplicate bot are removed, and Daily Analytics is read only. The first natural hourly run completed at 01:00:04 Bangkok and all 43 dates reconcile with stable IDs. The first natural OLTP 00:05 run under AppSheet remains pending. [Production monitored-jobs evidence](../outputs/monitored-jobs-production-20260916/REPORT.md).
 
 ### Interval anchor verification — 15 September 2026 (historical pre-V6 checkpoint)
 
@@ -61,7 +63,7 @@ Rollback points: Dev OLTP **1.000014**, production OLTP **3.000071**, OLAP uncha
 
 ## Verification coverage
 
-Latest development checkpoint: **V14 / OLTP 1.000061 / OLAP 1.000064**. VC phases 1–4 are implemented and agent-verified; owner acceptance is pending. Rollback apps are 1.000048 / 1.000052 plus verified private V11 database backup; coordinate SQL/app recovery. [Evidence](../outputs/vc-materialization-20260916/REPORT.md). Both apps are deployed to allow scheduled events. AppSheet daily charge schedule is enabled at 00:05 Bangkok; development pg_cron is paused. OLAP analytics is enabled hourly at :00, with a first natural successful run at 00:00:05 on 16 September. Calendar is absent from the app; historical SQL objects remain. Both Statistics schemas and all OLAP slices reconcile. Manual/bot refresh preserves keys; all 42 original dates matched independent old-expression calculations. Audit History Alerts are enabled, but the owner received no test error email. See [monitored jobs](../outputs/monitored-jobs-20260915/REPORT.md). The V10 paragraphs below are historical checkpoints, superseded by this paragraph for development.
+Latest development checkpoint: **V14 / OLTP 1.000061 / OLAP 1.000064**. VC phases 1–4 are implemented and agent-verified; the owner accepted promotion on 16 September. Mobile/offline feedback remains unverified. Rollback apps are 1.000048 / 1.000052 plus verified private V11 database backup; coordinate SQL/app recovery. [Evidence](../outputs/vc-materialization-20260916/REPORT.md). Both apps are deployed to allow scheduled events. AppSheet daily charge schedule is enabled at 00:05 Bangkok; development pg_cron is paused. OLAP analytics is enabled hourly at :00, with a first natural successful run at 00:00:05 on 16 September. Calendar is absent from the app; historical SQL objects remain. Both Statistics schemas and all OLAP slices reconcile. Manual/bot refresh preserves keys; all 42 original dates matched independent old-expression calculations. Audit History Alerts are enabled, but the owner received no test error email. See [monitored jobs](../outputs/monitored-jobs-20260915/REPORT.md). The V10 paragraphs below are historical checkpoints, superseded by this paragraph for development.
 
 V10 checkpoint: OLTP 1.000042 and OLAP 1.000040. Current editor/appdoc comparisons and current OLTP/OLAP default-loan financial readback passed. The owner subsequently accepted implementation through the phases 1–6 production request; separate phase-6 device push confirmation was not recorded. At that checkpoint the normalized business schema equaled the independent V10 rebuild (`242404152af2760a046b1e628e7a4df1e56a1a7230e90839f8192d8e05217bba`) and production V10. The [Default Loan report](../outputs/default-loan-20260915/REPORT.md) retains its historical development test evidence and 1.000039 rollback versions.
 

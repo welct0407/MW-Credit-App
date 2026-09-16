@@ -1,5 +1,7 @@
 # DEV VC materialization — phases 1–4
 
+**Subsequent status, 16 September:** The owner explicitly authorized production promotion. Phases 1–4 are now production V14 / OLTP 3.000108 / OLAP 1.100090; see [release](../vc-production-20260916/REPORT.md). Further optimization opportunities are on hold. The original development checkpoint and pending device-test limitations below remain historical evidence.
+
 16 September 2026. Implementation and agent verification complete; owner acceptance pending. Development is **V14 / OLTP 1.000061 / OLAP 1.000064**, on appsheet-pg-dev-20260915 through database-3. Production remains V11 / OLTP 3.000098 / OLAP 1.100081, unchanged.
 
 ## Implemented scope

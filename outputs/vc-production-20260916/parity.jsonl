@@ -1,0 +1,44 @@
+{"check" : "charge_parity", "rows" : 849, "mismatches" : 0}
+{"check" : "loan_parity", "rows" : 68, "mismatches" : 0}
+{"check" : "borrower_parity", "rows" : 30, "mismatches" : 0}
+{"check" : "daily_helper_parity", "rows" : 68, "mismatches" : 0}
+{"check" : "payment_parity", "rows" : 166, "mismatches" : 0}
+{"table" : "Borrowers", "rows" : 30, "fingerprint" : "fdec95696b51bd1a6589e37739c9bb2b"}
+{"table" : "Calendar", "rows" : 0, "fingerprint" : "d41d8cd98f00b204e9800998ecf8427e"}
+{"table" : "Cash Pool Contributions", "rows" : 7, "fingerprint" : "4a0ea2e2054ebb824db4fc275ede7828"}
+{"table" : "Charges", "rows" : 849, "fingerprint" : "06c0d1a3ad8f7b509ec4dfbbb83b5b9b"}
+{"table" : "Daily Analytics", "rows" : 43, "fingerprint" : "519d797d34b674c5098b875d4efe8cbf"}
+{"table" : "Loan Assessment", "rows" : 1, "fingerprint" : "e1a92f437dd8ac2f86977479dbf9b221"}
+{"table" : "Loan Assessment SQL Lab", "rows" : 1, "fingerprint" : "188e74cd763b6c1463ecd08f5396fb3a"}
+{"table" : "Loans", "rows" : 68, "fingerprint" : "a277590867a91a6ee835c1e03da8c979"}
+{"table" : "Partners", "rows" : 2, "fingerprint" : "b801104305b8ae1edec225721a407831"}
+{"table" : "Payment Allocations", "rows" : 318, "fingerprint" : "b263d1944c098f28af544d5e657a3ce6"}
+{"table" : "Payments", "rows" : 166, "fingerprint" : "fd502aa20b8eac0333733878143fbbd2"}
+{"table" : "Repayments", "rows" : 697, "fingerprint" : "09a7f6d422f36cdd97b38265268af752"}
+{"table" : "Settlements", "rows" : 2, "fingerprint" : "4e29076692a21ac38ff18c29d0305081"}
+{"table" : "Statistics", "rows" : 1, "fingerprint" : "51e4e0dfa8c65ffb9cc098d1f0c4ec4e"}
+{"check" : "vc_column", "table" : "Borrowers", "name" : "Total Interest Earned", "position" : 12, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Borrowers", "name" : "Total Amount Loaned", "position" : 13, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Borrowers", "name" : "Total Number of Loans", "position" : 14, "type" : "integer"}
+{"check" : "vc_column", "table" : "Borrowers", "name" : "Total Outstanding Principal", "position" : 15, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Borrowers", "name" : "Active Loan Interest Earned", "position" : 16, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Borrowers", "name" : "Active Daily Interest", "position" : 17, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Borrowers", "name" : "Has Closed Loan", "position" : 18, "type" : "boolean"}
+{"check" : "vc_column", "table" : "Borrowers", "name" : "Has Active Loan", "position" : 19, "type" : "boolean"}
+{"check" : "vc_column", "table" : "Charges", "name" : "Principal Paid", "position" : 7, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Charges", "name" : "Interest Paid", "position" : 8, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Charges", "name" : "Total Paid", "position" : 9, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Charges", "name" : "Principal Remaining", "position" : 10, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Charges", "name" : "Interest Remaining", "position" : 11, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Charges", "name" : "Amount Remaining", "position" : 12, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Charges", "name" : "Payment Count", "position" : 13, "type" : "integer"}
+{"check" : "vc_column", "table" : "Charges", "name" : "Payment Status", "position" : 14, "type" : "text"}
+{"check" : "vc_column", "table" : "Charges", "name" : "Payment Date", "position" : 15, "type" : "date"}
+{"check" : "vc_column", "table" : "Loans", "name" : "Total Interest Received", "position" : 24, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Loans", "name" : "Total Principal Received", "position" : 25, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Loans", "name" : "Outstanding Principal", "position" : 26, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Loans", "name" : "Total Amount Received", "position" : 27, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Loans", "name" : "Expected Daily Interest Amount", "position" : 28, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Payments", "name" : "Payment Date", "position" : 10, "type" : "date"}
+{"check" : "vc_column", "table" : "Payments", "name" : "Planned Allocation Amount", "position" : 15, "type" : "numeric"}
+{"check" : "vc_column", "table" : "Payments", "name" : "Posted Amount", "position" : 16, "type" : "numeric"}

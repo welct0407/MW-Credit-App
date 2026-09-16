@@ -1,5 +1,7 @@
 # VC materialization phases 1–4 — DEV
 
+**Subsequent status, 16 September:** The owner explicitly authorized production promotion. Phases 1–4 are now production V14 / OLTP 3.000108 / OLAP 1.100090; see [production VC release](../outputs/vc-production-20260916/REPORT.md). Further optimization opportunities are on hold. The original development checkpoint and pending device-test limitations below remain historical evidence.
+
 16 September 2026. Status: implemented and agent-verified; owner acceptance pending. User authorized four phases in DEV, benchmarks and Chrome operation, then a read-only production performance review. No production changes.
 
 Development: V14 / OLTP 1.000061 / OLAP 1.000064. V12 adds 13 Charge/Loan rollups, phase 2 deletes four obsolete allocation VCs and disables their freeze action, V13 adds nine Borrower/Loan helper fields, V14 adds two Payment totals. All 24 OLTP replacements and corresponding OLAP fields are physical/read-only with blank App formulas. Amount Due remains virtual. Shared consumers, sources and permissions were reviewed; Reporting Charges retains its original 22-column read-only contract. Other formulas/types/defaults/refs are preserved except documented internal Row ID regeneration metadata. Looker/export definitions are unchanged; rendering not retested.
