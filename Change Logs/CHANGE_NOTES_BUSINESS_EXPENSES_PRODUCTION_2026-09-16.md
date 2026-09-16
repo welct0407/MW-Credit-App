@@ -1,6 +1,6 @@
 # Business expenses production promotion — 16 September 2026
 
-Status: production promotion in progress with explicit owner authorization: “ok promote to production”. Scope is the exact DEV-tested V15/V16 business-expense implementation and saved AppSheet refinements from commits e75a5fd and 88df80b. No development financial data, synthetic fixtures or Looker changes are included.
+Status: production promotion complete with explicit owner authorization: “ok promote to production”. Scope is the exact DEV-tested V15/V16 business-expense implementation and saved AppSheet refinements from commits e75a5fd and 88df80b. No development financial data, synthetic fixtures or Looker changes were included.
 
 ## Rollback and release gate
 
@@ -10,4 +10,19 @@ Private database rollback: `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Pr
 
 Production source bindings, current bot states/destinations and cross-app links must be preserved. The SQL migration creates no historical referral rebates. Production verification must remain read-only except the approved DDL/backfill and AppSheet configuration; do not seed DEV fixtures or force notifications.
 
-Final migration/app versions, reconciliation, documentation, commit and push are pending.
+## Production result
+
+- Flyway migrated production from **V14 to V16** and `validate` passed all 17 migrations with no invalid migrations.
+- Production AppSheet was saved at **OLTP 3.000117** and **OLAP 1.100098**. The rollback versions remain OLTP 3.000108 and OLAP 1.100090, coordinated with the pre-release database dump.
+- OLTP now includes the Business Expenses deck, bilingual category choices, optional manual borrower/loan context, red positive-expense and green negative-offset formatting, Total Net Profit and the Income Statement MTD section after Outstanding Loans.
+- OLAP loads Business Expenses read only, keeps the existing partner-card layout while sourcing Total Profit and Available to Settle from net values, validates settlements against net available balance, adds the same Income Statement MTD section and removes the extra expense fields from Cash Pool.
+- Daily Analytics was rebuilt for 43 dates. Independent read-only reconciliation reported **0 net-field mismatches**. The production expense ledger contained **0 rows**, as required by the no-backfill rule.
+- The latest SQL audit during release reported partner A gross/net profit 65,447 with settlements 30,960, and partner B gross/net profit 127,854 with settlements 84,510. Gross and net are equal only because no production expense existed at that audit point; allocated expenses will reduce both displayed partner values automatically.
+
+## Checks and limitations
+
+The current AppSheet editor and preview were used. Both app dashboards displayed Total Net Profit and the MTD income statement; expense values use the baht symbol. The OLAP Partner cards displayed the net-backed fields without changing the card layout. No production financial test row was created, no loan was closed for testing and no notification was forced. Referral creation, duplicate prevention and contribution-history recalculation therefore rely on the accepted DEV tests plus production schema/function/trigger validation until a real qualifying event occurs. Looker Studio was outside this requested release.
+
+## Rollback
+
+For AppSheet-only presentation problems, restore OLTP 3.000108 and OLAP 1.100090. For database or calculation problems, coordinate those app restores with restoring `production-before.dump` (or apply a reviewed higher Flyway forward fix); do not use Flyway repair, clean or checksum edits. Restoring the database discards legitimate production writes made after the backup and therefore requires a new owner-authorized recovery decision.

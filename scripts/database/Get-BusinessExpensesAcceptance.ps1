@@ -1,8 +1,11 @@
 [CmdletBinding()]
-param()
+param(
+ [ValidateSet('development','production')][string]$Environment='development'
+)
 . "$PSScriptRoot/Common.ps1"
-$target=Get-DbEnvironment development
-if($target.host -ne '34.158.38.171'){throw 'Reviewed development host required'}
+$target=Get-DbEnvironment $Environment
+$expectedHost = if($Environment -eq 'production'){'34.21.174.215'}else{'34.158.38.171'}
+if($target.host -ne $expectedHost){throw "Unexpected $Environment host: $($target.host)"}
 $sql=@'
 SELECT jsonb_build_object('kind','db_column','table',table_name,'name',column_name,'position',ordinal_position,'type',data_type,'nullable',is_nullable,'default',column_default) FROM information_schema.columns WHERE table_schema='public' AND (table_name='Business Expenses' OR (table_name='Borrowers' AND column_name='Ref Referrer') OR (table_name='Daily Analytics' AND column_name IN ('Business Expenses','Net Profit','Net Unsettled Profit EOD'))) ORDER BY table_name,ordinal_position;
 SELECT jsonb_build_object('kind','db_constraint','table',c.conrelid::regclass::text,'name',c.conname,'type',c.contype,'validated',c.convalidated,'definition',pg_get_constraintdef(c.oid)) FROM pg_constraint c WHERE c.conrelid='public."Business Expenses"'::regclass OR (c.conrelid='public."Borrowers"'::regclass AND (c.conname='borrower_not_own_referrer' OR c.conname LIKE '%Ref Referrer%'));

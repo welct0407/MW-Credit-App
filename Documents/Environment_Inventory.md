@@ -6,12 +6,12 @@ Updated 16 September 2026. Production/development are separate Cloud SQL instanc
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000108 | database-2 | 8 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100090 | database-2 | 12 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000117 | database-2 | 9 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100098 | database-2 | 13 |
 | Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000088 | database-3 | 9 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000090 | database-3 | 13 |
 
-Both OLAP apps use the assessment view and have removed Calendar for V11 SQL analytics. The historical SQL Calendar objects remain outside AppSheet for recovery. Native internal tables are excluded from the SQL counts. There are 42 SQL bindings across the four apps; Business Expenses is added only in DEV. The workbook records the exact logical-to-physical mapping and labels removed production history.
+Both OLAP apps use the assessment view and have removed Calendar for V11 SQL analytics. The historical SQL Calendar objects remain outside AppSheet for recovery. Native internal tables are excluded from the SQL counts. Business Expenses is loaded in both environments: editable for manual entries in OLTP and read only in OLAP. The workbook records the exact logical-to-physical mapping and labels removed production history.
 
 Cleanup on 15 September leaves exactly these four owned AppSheet apps and one AppSheet database, **Money database**, retained as historical reference. Three obsolete apps and five copied AppSheet databases were deleted with explicit owner confirmation. Both Cloud SQL instances were retained. Development display names changed; internal app names, UUIDs, source bindings, columns, actions and cross-app link expressions were verified unchanged. Details and deleted-object names are in [cleanup notes](../Change%20Logs/CHANGE_NOTES_APPSHEET_CLEANUP_2026-09-15.md). The old backup apps/databases are no longer available rollback targets.
 
@@ -29,7 +29,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V14 migrated and validated | V16 migrated and validated | Business expenses DEV only; both consumers reconciled; owner acceptance pending |
+| Flyway | V16 migrated and validated | V16 migrated and validated | Business expenses released to both environments; both consumers reconciled |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
@@ -41,7 +41,7 @@ Production app rollback versions were OLTP 3.000080 and freshly observed OLAP 1.
 
 Production Cloud SQL flags saved/restarted 22:05:38–22:06:10 Bangkok: cloudsql.enable_pg_cron=on, cron.database_name=loan_manager_prod, cron.timezone=Asia/Bangkok, cron.max_running_jobs=1. Existing IAM authentication and max_connections=100 were preserved. The pg_cron loan-daily-charges job is now paused; OLTP AppSheet owns the 00:05 Bangkok schedule so failures appear in Automation Monitor. No instance tier/network/credential change. [production release](../outputs/core-promotion-20260915/REPORT.md) records the earlier phases 1–6 release.
 
-Latest production checkpoint: **V14 / OLTP 3.000108 / OLAP 1.100090**. All 48 SQL-owned app fields have blank App formulas; four obsolete OLTP VCs are removed. Production sources, slices and notification routes are preserved. Rollback is OLTP 3.000098 / OLAP 1.100081 with the verified private V11 backup; coordinated SQL/app recovery is required. See [production VC release](../outputs/vc-production-20260916/REPORT.md).
+Latest production checkpoint: **V16 / OLTP 3.000117 / OLAP 1.100098**. Business Expenses and referral-rebate SQL logic are live; production had no historical expense backfill. Both dashboards use Total Net Profit and an Income Statement MTD section, and OLAP partner/settlement values use net profit. Production sources, bot states and notification routes are preserved. Rollback for this release is OLTP 3.000108 / OLAP 1.100090 plus the verified private V14 backup; coordinated SQL/app recovery is required. See [business-expense production release](../outputs/business-expenses-production-20260916/REPORT.md).
 
 Historical monitored-jobs checkpoint: **V11 / OLTP 3.000098 / OLAP 1.100081**. Rollback is OLTP 3.000094 / OLAP 1.100062 plus a private V10 logical backup whose 14 business tables and normalized schema restored locally. The hidden Statistics request exists in both apps. OLAP owns Recent/Full actions and hourly :00 refresh; Calendar, its views/actions and the duplicate bot are removed, and Daily Analytics is read only. The first natural hourly run completed at 01:00:04 Bangkok and all 43 dates reconcile with stable IDs. The first natural OLTP 00:05 run under AppSheet remains pending. [Production monitored-jobs evidence](../outputs/monitored-jobs-production-20260916/REPORT.md).
 
