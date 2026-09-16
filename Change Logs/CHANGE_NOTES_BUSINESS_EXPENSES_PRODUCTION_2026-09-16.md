@@ -13,7 +13,8 @@ Production source bindings, current bot states/destinations and cross-app links 
 ## Production result
 
 - Flyway migrated production from **V14 to V16** and `validate` passed all 17 migrations with no invalid migrations.
-- Production AppSheet was saved at **OLTP 3.000117** and **OLAP 1.100098**. The rollback versions remain OLTP 3.000108 and OLAP 1.100090, coordinated with the pre-release database dump.
+- Production AppSheet was saved at **OLTP 3.000118** and **OLAP 1.100098**. The rollback versions remain OLTP 3.000108 and OLAP 1.100090, coordinated with the pre-release database dump.
+- Final schema review corrected the regenerated Business Expenses key: `Row ID` is the sole Text key and `_RowNumber` is not a key. Reload verification showed the row-number warning cleared.
 - OLTP now includes the Business Expenses deck, bilingual category choices, optional manual borrower/loan context, red positive-expense and green negative-offset formatting, Total Net Profit and the Income Statement MTD section after Outstanding Loans.
 - OLAP loads Business Expenses read only, keeps the existing partner-card layout while sourcing Total Profit and Available to Settle from net values, validates settlements against net available balance, adds the same Income Statement MTD section and removes the extra expense fields from Cash Pool.
 - Daily Analytics was rebuilt for 43 dates. Independent read-only reconciliation reported **0 net-field mismatches**. The production expense ledger contained **0 rows**, as required by the no-backfill rule.
