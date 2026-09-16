@@ -39,11 +39,15 @@ The runner rejects mismatched commits/hashes, dirty checkouts and missing approv
 
 ## Current production release
 
-Phases 1–6 were explicitly authorized and promoted on 15 September 2026 from tested commit `33ed313f585311dcd0caffb1488ea8ac574bfb6e`. Monitored jobs and phase 7 were promoted on 16 September from reviewed commit `99839565b27744141417ddb9b4b504fecaeee540`. Production is now **V11**, app versions **3.000098 / 1.100081**; development remains **V11 / 1.000048 / 1.000050**. See [production V11 evidence and recovery](../outputs/monitored-jobs-production-20260916/REPORT.md).
+Phases 1–6 were explicitly authorized and promoted on 15 September 2026 from tested commit `33ed313f585311dcd0caffb1488ea8ac574bfb6e`. Monitored jobs and phase 7 were promoted on 16 September from reviewed commit `99839565b27744141417ddb9b4b504fecaeee540`. Production is now **V11**, app versions **3.000098 / 1.100081**; development is now **V14 / 1.000061 / 1.000064** after DEV-only VC phases 1–4. See [production V11 evidence and recovery](../outputs/monitored-jobs-production-20260916/REPORT.md).
 
 Production pg_cron job `loan-daily-charges` is paused. Read it with `Set-ProductionChargeSchedule.ps1 -Mode status`; enable/pause operations require the actual owner approval reference and exact tested release manifest. OLTP AppSheet now submits the same SQL request at **00:05 Asia/Bangkok**. This runner changes only scheduler activation, not financial rows or DDL. `Get-CorePromotionAudit.ps1` returns aggregate fingerprints/catalog metadata without borrower data. Development fixture/scheduler runners remain pinned to development.
 
-Superseded first-day/payment processing bots remain disabled and notification routes use production partner recipients. Production AppSheet now owns monitored daily-charge and hourly analytics scheduling. The V6–V10 sections below retain historical checkpoints. Applied migrations are immutable; any correction now requires **V12 or higher**. Restore AppSheet and SQL together; an app version restore alone is unsafe.
+Superseded first-day/payment processing bots remain disabled and notification routes use production partner recipients. Production AppSheet now owns monitored daily-charge and hourly analytics scheduling. The V6–V10 sections below retain historical checkpoints. Applied migrations are immutable; any new correction now requires **V15 or higher** (V12–V14 are already applied in DEV). Restore AppSheet and SQL together; an app version restore alone is unsafe.
+
+## Development VC materialization V12–V14
+
+Twenty-four physical derived columns replace OLTP VCs; both DEV apps read them without App formulas. Applied V12–V14 are immutable; further fixes require V15 or higher. The existing payment processor ignores cache-only updates, and old/new parent refreshes are transaction-deferred with borrower locks. Run `Test-Migrations.ps1 -TestSqlFile scripts/database/Test-PaymentRollups.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency` for the cumulative suite. `Verify-MaterializedBalances.ps1 -Phase 4` independently checks DEV parity. Fixture runners are pinned to DEV; never replay seed automatically. [Tests, benchmark, app settings and coordinated rollback](../outputs/vc-materialization-20260916/REPORT.md). Owner acceptance and production promotion are pending.
 
 ## Recovery and limits
 

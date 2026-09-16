@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_prod",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "13",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "payment materialized totals",
+    "executionTime" : 305,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project\\database\\migrations\\V14__payment_materialized_totals.sql",
+    "type" : "SQL",
+    "version" : "14"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "14",
+  "timestamp" : "2026-09-16T10:30:47.0601322+07:00",
+  "totalMigrationTime" : 305,
+  "warnings" : [ ]
+}

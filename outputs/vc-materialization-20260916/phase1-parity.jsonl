@@ -1,0 +1,16 @@
+{"check" : "charge_parity", "rows" : 844, "mismatches" : 0}
+{"check" : "loan_parity", "rows" : 94, "mismatches" : 0}
+{"table" : "Borrowers", "rows" : 52, "fingerprint" : "eba49b73fafd2319567c5602d624b493"}
+{"table" : "Calendar", "rows" : 0, "fingerprint" : "d41d8cd98f00b204e9800998ecf8427e"}
+{"table" : "Cash Pool Contributions", "rows" : 5, "fingerprint" : "a73f16dc9a36051a4327e776d741d873"}
+{"table" : "Charges", "rows" : 844, "fingerprint" : "4685286edfb8558a027a9ca7450e4fc8"}
+{"table" : "Daily Analytics", "rows" : 43, "fingerprint" : "15a7d50fa240dc8abb54ecc56cf2cf8b"}
+{"table" : "Loan Assessment", "rows" : 1, "fingerprint" : "e1a92f437dd8ac2f86977479dbf9b221"}
+{"table" : "Loan Assessment SQL Lab", "rows" : 1, "fingerprint" : "d976bd0d528e6c317b546d0dedc689e0"}
+{"table" : "Loans", "rows" : 94, "fingerprint" : "56fa04ee0bbb4dde8e07ecf6c979bcd2"}
+{"table" : "Partners", "rows" : 2, "fingerprint" : "b801104305b8ae1edec225721a407831"}
+{"table" : "Payment Allocations", "rows" : 368, "fingerprint" : "6f46c637c47b2a40c8df7c5fcf2e3a5e"}
+{"table" : "Payments", "rows" : 178, "fingerprint" : "9aa808c4760506cab83ca3085f62a54c"}
+{"table" : "Repayments", "rows" : 720, "fingerprint" : "680d12e2b0e3f5defe8c6298caa0626c"}
+{"table" : "Settlements", "rows" : 2, "fingerprint" : "4e29076692a21ac38ff18c29d0305081"}
+{"table" : "Statistics", "rows" : 1, "fingerprint" : "ec119100d6cc74bd23182eb5b3975f10"}

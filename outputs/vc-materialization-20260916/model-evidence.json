@@ -1,0 +1,1107 @@
+{
+  "versions": {
+    "OLTP": "1.000061",
+    "OLAP": "1.000064"
+  },
+  "columns": [
+    {
+      "app": "OLTP",
+      "table": "Charges",
+      "name": "Principal Paid",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Repayments][Principal Paid])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Charges",
+      "name": "Interest Paid",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Repayments][Interest Paid])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Charges",
+      "name": "Total Paid",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Principal Paid] + [Interest Paid]"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Charges",
+      "name": "Principal Remaining",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Principal Due] - [Principal Paid]"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Charges",
+      "name": "Interest Remaining",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Interest Due] - [Interest Paid]"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Charges",
+      "name": "Amount Remaining",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Principal Remaining] + [Interest Remaining]"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Charges",
+      "name": "Payment Count",
+      "type": "Number",
+      "hidden": "Yes",
+      "original": {
+        "Type": "Number",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "Yes",
+        "App formula": "=COUNT([Related Repayments])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Charges",
+      "name": "Payment Status",
+      "type": "Text",
+      "hidden": "No",
+      "original": {
+        "Type": "Text",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=IFS( [Ref Loans].[Loan Status] = \"ปิดยอดแล้ว\", \"ชำระแล้ว\", [Total Paid] = 0, \"รอชำระ\", [Amount Remaining] > 0, \"ชำระบางส่วน\", TRUE, \"ชำระแล้ว\" )"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Charges",
+      "name": "Payment Date",
+      "type": "Date",
+      "hidden": "No",
+      "original": {
+        "Type": "Date",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=IF([Payment Status] = \"ชำระแล้ว\", MAX([Related Repayments][Payment Date]), \"\")"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Loans",
+      "name": "Total Interest Received",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Repayments][Interest Paid])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Loans",
+      "name": "Total Principal Received",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Repayments][Principal Paid])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Loans",
+      "name": "Outstanding Principal",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Principal Amount] - [Total Principal Received]"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Loans",
+      "name": "Total Amount Received",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "= SUM([Related Repayments][Amount Received])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Loans",
+      "name": "Expected Daily Interest Amount",
+      "type": "Price",
+      "hidden": "Yes",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "Yes",
+        "App formula": "=IF([Auto Charge Enabled], IFS( [Loan Status] <> \"ยังไม่ปิดยอด\", 0, [Loan Type] = \"ดอกเบี้ยรายวัน\", [Current Daily Interest], AND( [Loan Type] = \"ผ่อนชำระรายวัน\", ISNOTBLANK([Loan Date]), ISNOTBLANK([Due Date]), [Due Date] >= [Loan Date], [Daily Payment Amount] > 0 ), ( ([Daily Payment Amount] * (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)) - [Principal Amount] ) / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1), TRUE, 0), 0)"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Borrowers",
+      "name": "Total Interest Earned",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Loans][Total Interest Received])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Borrowers",
+      "name": "Total Amount Loaned",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Loans][Principal Amount])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Borrowers",
+      "name": "Total Number of Loans",
+      "type": "Number",
+      "hidden": "No",
+      "original": {
+        "Type": "Number",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=COUNT([Related Loans])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Borrowers",
+      "name": "Total Outstanding Principal",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Loans][Outstanding Principal])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Borrowers",
+      "name": "Active Loan Interest Earned",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM( SELECT( Loans[Total Interest Received], AND([Ref Borrowers] = [_THISROW].[Row ID], [Loan Status] = \"ยังไม่ปิดยอด\") ) )"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Borrowers",
+      "name": "Active Daily Interest",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM(SELECT(Loans[Expected Daily Interest Amount], [Ref Borrowers] = [_THISROW].[Row ID]))"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Borrowers",
+      "name": "Has Closed Loan",
+      "type": "Yes/No",
+      "hidden": "Yes",
+      "original": {
+        "Type": "Yes/No",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "Yes",
+        "App formula": "=COUNT(SELECT([Related Loans][Row ID], [Loan Status] = \"ปิดยอดแล้ว\")) > 0"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Borrowers",
+      "name": "Has Active Loan",
+      "type": "Yes/No",
+      "hidden": "Yes",
+      "original": {
+        "Type": "Yes/No",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "Yes",
+        "App formula": "=COUNT(SELECT([Related Loans][Row ID], [Loan Status] = \"ยังไม่ปิดยอด\")) > 0"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Payments",
+      "name": "Planned Allocation Amount",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Payment Allocations][Allocated Amount])"
+      }
+    },
+    {
+      "app": "OLTP",
+      "table": "Payments",
+      "name": "Posted Amount",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM(SELECT(Repayments[Amount Received], [Ref Payment] = [_THISROW].[Row ID]))"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Charges",
+      "name": "Principal Paid",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Repayments][Principal Paid])"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Charges",
+      "name": "Interest Paid",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Repayments][Interest Paid])"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Charges",
+      "name": "Total Paid",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Principal Paid] + [Interest Paid]"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Charges",
+      "name": "Principal Remaining",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Principal Due] - [Principal Paid]"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Charges",
+      "name": "Interest Remaining",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Interest Due] - [Interest Paid]"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Charges",
+      "name": "Amount Remaining",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Principal Remaining] + [Interest Remaining]"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Charges",
+      "name": "Payment Count",
+      "type": "Number",
+      "hidden": "Yes",
+      "original": null
+    },
+    {
+      "app": "OLAP",
+      "table": "Charges",
+      "name": "Payment Status",
+      "type": "Text",
+      "hidden": "No",
+      "original": {
+        "Type": "Text",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=IFS( [Ref Loans].[Loan Status] = \"ปิดยอดแล้ว\", \"ชำระแล้ว\", [Total Paid] = 0, \"รอชำระ\", [Amount Remaining] > 0, \"ชำระบางส่วน\", TRUE, \"ชำระแล้ว\" )"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Charges",
+      "name": "Payment Date",
+      "type": "Date",
+      "hidden": "No",
+      "original": {
+        "Type": "Date",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=IF([Payment Status] = \"ชำระแล้ว\", MAX([Related Repayments][Payment Date]), \"\")"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "name": "Total Interest Received",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Repayments][Interest Paid])"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "name": "Total Principal Received",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Repayments][Principal Paid])"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "name": "Outstanding Principal",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=[Principal Amount] - [Total Principal Received]"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "name": "Total Amount Received",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "= SUM([Related Repayments][Amount Received])"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Loans",
+      "name": "Expected Daily Interest Amount",
+      "type": "Price",
+      "hidden": "Yes",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "Yes",
+        "App formula": "=IF([Auto Charge Enabled], IFS( [Loan Status] <> \"ยังไม่ปิดยอด\", 0, [Loan Type] = \"ดอกเบี้ยรายวัน\", [Current Daily Interest], AND( [Loan Type] = \"ผ่อนชำระรายวัน\", ISNOTBLANK([Loan Date]), ISNOTBLANK([Due Date]), [Due Date] >= [Loan Date], [Daily Payment Amount] > 0 ), ( ([Daily Payment Amount] * (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)) - [Principal Amount] ) / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1), TRUE, 0), 0)"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Borrowers",
+      "name": "Total Interest Earned",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Loans][Total Interest Received])"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Borrowers",
+      "name": "Total Amount Loaned",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Loans][Principal Amount])"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Borrowers",
+      "name": "Total Number of Loans",
+      "type": "Number",
+      "hidden": "No",
+      "original": {
+        "Type": "Number",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=COUNT([Related Loans])"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Borrowers",
+      "name": "Total Outstanding Principal",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM([Related Loans][Outstanding Principal])"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Borrowers",
+      "name": "Active Loan Interest Earned",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM( SELECT( Loans[Total Interest Received], AND([Ref Borrowers] = [_THISROW].[Row ID], [Loan Status] = \"ยังไม่ปิดยอด\") ) )"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Borrowers",
+      "name": "Active Daily Interest",
+      "type": "Price",
+      "hidden": "No",
+      "original": {
+        "Type": "Price",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "No",
+        "App formula": "=SUM( SELECT( Loans[Expected Daily Interest Amount], [Ref Borrowers] = [_THISROW].[Row ID] ) )"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Borrowers",
+      "name": "Has Closed Loan",
+      "type": "Yes/No",
+      "hidden": "Yes",
+      "original": {
+        "Type": "Yes/No",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "Yes",
+        "App formula": "=COUNT(SELECT([Related Loans][Row ID], [Loan Status] = \"ปิดยอดแล้ว\")) > 0"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Borrowers",
+      "name": "Has Active Loan",
+      "type": "Yes/No",
+      "hidden": "Yes",
+      "original": {
+        "Type": "Yes/No",
+        "Virtual": "Yes",
+        "Read-Only": "Yes",
+        "Hidden": "Yes",
+        "App formula": "=COUNT(SELECT([Related Loans][Row ID], [Loan Status] = \"ยังไม่ปิดยอด\")) > 0"
+      }
+    },
+    {
+      "app": "OLAP",
+      "table": "Payments",
+      "name": "Planned Allocation Amount",
+      "type": "Decimal",
+      "hidden": "Yes",
+      "original": null
+    },
+    {
+      "app": "OLAP",
+      "table": "Payments",
+      "name": "Posted Amount",
+      "type": "Decimal",
+      "hidden": "Yes",
+      "original": null
+    }
+  ],
+  "databaseColumns": [
+    {
+      "check": "vc_column",
+      "table": "Borrowers",
+      "name": "Total Interest Earned",
+      "position": 12,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Borrowers",
+      "name": "Total Amount Loaned",
+      "position": 13,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Borrowers",
+      "name": "Total Number of Loans",
+      "position": 14,
+      "type": "integer"
+    },
+    {
+      "check": "vc_column",
+      "table": "Borrowers",
+      "name": "Total Outstanding Principal",
+      "position": 15,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Borrowers",
+      "name": "Active Loan Interest Earned",
+      "position": 16,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Borrowers",
+      "name": "Active Daily Interest",
+      "position": 17,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Borrowers",
+      "name": "Has Closed Loan",
+      "position": 18,
+      "type": "boolean"
+    },
+    {
+      "check": "vc_column",
+      "table": "Borrowers",
+      "name": "Has Active Loan",
+      "position": 19,
+      "type": "boolean"
+    },
+    {
+      "check": "vc_column",
+      "table": "Charges",
+      "name": "Principal Paid",
+      "position": 7,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Charges",
+      "name": "Interest Paid",
+      "position": 8,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Charges",
+      "name": "Total Paid",
+      "position": 9,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Charges",
+      "name": "Principal Remaining",
+      "position": 10,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Charges",
+      "name": "Interest Remaining",
+      "position": 11,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Charges",
+      "name": "Amount Remaining",
+      "position": 12,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Charges",
+      "name": "Payment Count",
+      "position": 13,
+      "type": "integer"
+    },
+    {
+      "check": "vc_column",
+      "table": "Charges",
+      "name": "Payment Status",
+      "position": 14,
+      "type": "text"
+    },
+    {
+      "check": "vc_column",
+      "table": "Charges",
+      "name": "Payment Date",
+      "position": 15,
+      "type": "date"
+    },
+    {
+      "check": "vc_column",
+      "table": "Loans",
+      "name": "Total Interest Received",
+      "position": 24,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Loans",
+      "name": "Total Principal Received",
+      "position": 25,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Loans",
+      "name": "Outstanding Principal",
+      "position": 26,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Loans",
+      "name": "Total Amount Received",
+      "position": 27,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Loans",
+      "name": "Expected Daily Interest Amount",
+      "position": 28,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Payments",
+      "name": "Planned Allocation Amount",
+      "position": 15,
+      "type": "numeric"
+    },
+    {
+      "check": "vc_column",
+      "table": "Payments",
+      "name": "Posted Amount",
+      "position": 16,
+      "type": "numeric"
+    }
+  ],
+  "logic": [
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_charge_values",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_charge_row",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_loan_row",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "default_posting_guard",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_refresh_charge",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_refresh_loan",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_lock_parents",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_repayment_changed",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_loan_status_changed",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "trigger",
+      "table": "Charges",
+      "name": "zz_vc_charge_row on Charges",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Loans",
+      "name": "zz_vc_loan_row on Loans",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Repayments",
+      "name": "aa_vc_lock on Repayments",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Charges",
+      "name": "aa_vc_lock on Charges",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Loans",
+      "name": "aa_vc_lock on Loans",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Repayments",
+      "name": "vc_repayment_changed on Repayments",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Loans",
+      "name": "vc_loan_status_changed on Loans",
+      "version": "V12",
+      "description": "See immutable migration V12__charge_loan_materialized_balances.sql; source or derived-value event."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_daily_interest",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_daily_interest_row",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_borrower_values",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_borrower_row",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_refresh_borrower",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_borrower_changed",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_lock_daily_parent",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "trigger",
+      "table": "Loans",
+      "name": "zz_vc_daily_interest on Loans",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Borrowers",
+      "name": "zz_vc_borrower_row on Borrowers",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Loans",
+      "name": "vc_borrower_changed on Loans",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Repayments",
+      "name": "vc_borrower_changed on Repayments",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Loans",
+      "name": "aa_vc_daily_lock on Loans",
+      "version": "V13",
+      "description": "See immutable migration V13__borrower_materialized_rollups.sql; source or derived-value event."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_payment_row",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_refresh_payment",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_payment_changed",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "function",
+      "table": "public",
+      "name": "vc_lock_payment_parents",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; derived rollup ownership, refresh and transaction safety."
+    },
+    {
+      "kind": "trigger",
+      "table": "Payments",
+      "name": "zz_vc_payment_row on Payments",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Payments",
+      "name": "process_lump_sum on Payments",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Payment Allocations",
+      "name": "vc_payment_changed on Payment Allocations",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Repayments",
+      "name": "vc_payment_changed on Repayments",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Payment Allocations",
+      "name": "aa_vc_payment_lock on Payment Allocations",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."
+    },
+    {
+      "kind": "trigger",
+      "table": "Repayments",
+      "name": "aa_vc_payment_lock on Repayments",
+      "version": "V14",
+      "description": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."
+    }
+  ],
+  "removed": [
+    "Calculated Order",
+    "Calculated Amount",
+    "Calculated Interest",
+    "Calculated Principal"
+  ],
+  "verification": "Chrome saved appdoc: all 48 app fields physical, blank App formula, read-only; four obsolete VCs absent; SQL parity zero mismatches."
+}

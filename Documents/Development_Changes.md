@@ -1,6 +1,8 @@
 # Development differences
 
-Updated 16 September 2026 for development OLTP **1.000048**, development OLAP **1.000050**, production OLTP **3.000098**, production OLAP **1.100081**. Both environments are Flyway **V11**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 16 September 2026 for development OLTP **1.000061**, development OLAP **1.000064**, production OLTP **3.000098**, production OLAP **1.100081**. Production is Flyway **V11**; development is **V14**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+
+See [VC phases 1–4 implementation, benchmarks and rollback](../outputs/vc-materialization-20260916/REPORT.md). Current-GUI synthetic workflows and SQL parity/concurrency passed; owner mobile/offline acceptance is pending. Production was only inspected read-only for performance recommendations.
 
 ## Current differences
 
@@ -8,7 +10,8 @@ Updated 16 September 2026 for development OLTP **1.000048**, development OLAP **
 | --- | --- | --- | --- |
 | Database instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Isolation retained |
 | AppSheet source | database-2 | database-3 | Never promote the development host |
-| SQL schema | Flyway V11 | Flyway V11 | Exact V11 analytics migration promoted 16 September 2026 |
+| SQL schema | Flyway V11 | Flyway V14 | DEV-only VC materialization; owner acceptance pending |
+| Financial VCs | Existing AppSheet expressions | 24 physical SQL-owned fields; four obsolete allocation VCs deleted | Both DEV apps reconciled; Amount Due remains VC |
 | Core payments, final close, first day, default | Atomic SQL | Same SQL | Phases 1–6 promoted with owner approval |
 | Manual generation | Hidden dated Loans request | Same request | Same common SQL rules |
 | Nightly generation | AppSheet bot 00:05 Bangkok; pg_cron paused | AppSheet bot 00:05 Bangkok; pg_cron paused | Same SQL generator; first natural production AppSheet run pending |

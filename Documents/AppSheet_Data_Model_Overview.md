@@ -1,6 +1,16 @@
 # AppSheet production data model
 
-Reconciled 15 September 2026. This is the current production architecture reference. [Development differences](Development_Changes.md), [environment inventory](Environment_Inventory.md), and [documentation index](README.md) are maintained separately. The detailed inventory is in [AppSheet_Data_Dictionary.xlsx](AppSheet_Data_Dictionary.xlsx).
+Reconciled 16 September 2026. This is the current production architecture reference. [Development differences](Development_Changes.md), [environment inventory](Environment_Inventory.md), and [documentation index](README.md) are maintained separately. The detailed inventory is in [AppSheet_Data_Dictionary.xlsx](AppSheet_Data_Dictionary.xlsx).
+
+## Development VC materialization — 16 September 2026
+
+DEV V12–V14 materialize 24 OLTP fields: nine Charge paid/remaining/count/status/date values; four Loan financial totals plus Expected Daily Interest Amount; eight Borrower totals/active/closed indicators; two Payment planned/posted totals. All corresponding fields in both apps are physical, read-only and have blank App formulas. Four obsolete Payment Allocations Calculated Order/Amount/Interest/Principal VCs are deleted; the legacy freeze action is FALSE with self-assignments. Detailed names, types, original expressions and development differences are in the workbook.
+
+SQL owns derived values through transaction-deferred old/new parent refreshes and borrower locking. Existing signed default amounts, closed-loan charge status and unrounded helper arithmetic remain the formula contract. Payment processing still reads the authoritative ledger; cache updates cannot repost payments. Charges.Amount Due remains virtual for immediate unsaved form feedback. Other date-sensitive and eligibility VCs remain.
+
+OLTP owns operational writes. OLAP consumes the same values and retains permissions and original Reporting Charges slice columns; three newly present OLAP fields are hidden/read-only. Row ID regeneration metadata changed on Charges/Borrowers, preserving keys, initial expressions and read-only behavior. Both apps retain database-3; production and Looker are unchanged. All-row SQL parity, functional/concurrency tests, current-GUI partial/full/default and OLAP readback passed. Seven-sample final median sync was 4.819 s versus 5.293 s baseline (8.96% faster observed, noisy sequential measurements). Owner acceptance/mobile/offline testing remains pending.
+
+Rollback: DEV OLTP 1.000048 / OLAP 1.000052 plus verified private V11 backup. Coordinate both-app and SQL recovery; never restore the app alone over same-name physical fields. [Implementation, benchmark, exact scope and recovery](../outputs/vc-materialization-20260916/REPORT.md). Applied migrations are immutable.
 
 ## Verification basis
 
@@ -14,7 +24,7 @@ Both current production apps loaded and synced. No production financial test tra
 
 ### Phase 7 and monitored schedules — promoted 16 September 2026
 
-Production and development now both use **Flyway V11**. Production is OLTP 3.000098 / OLAP 1.100081; development remains OLTP 1.000048 / OLAP 1.000050. Production rollback points are OLTP 3.000094 / OLAP 1.100062 plus the restored private V10 database snapshot. [Production evidence](../outputs/monitored-jobs-production-20260916/REPORT.md) and [development evidence](../outputs/monitored-jobs-20260915/REPORT.md) supersede historical scheduling statements below.
+Production uses **Flyway V11 / OLTP 3.000098 / OLAP 1.100081**. Development now uses **V14 / OLTP 1.000061 / OLAP 1.000064** after the DEV-only VC materialization above. Production rollback points are OLTP 3.000094 / OLAP 1.100062 plus the restored private V10 database snapshot. [Production evidence](../outputs/monitored-jobs-production-20260916/REPORT.md) and [development evidence](../outputs/monitored-jobs-20260915/REPORT.md) supersede historical scheduling statements below.
 
 The owner-approved nullable `Statistics.Analytics Refresh Request` Text column has no default, backfill, formula, key, label or Ref. Both apps hide it and exclude it from search. OLAP owns command writes, with `Editable_If = FALSE` and static Read-Only No; OLTP uses static Read-Only Yes. Existing Statistics keys, formulas, defaults and display settings remain intact. Regeneration changes only internal Row ID fixed-definition/initial-value-editability metadata; Row ID remains hidden, read-only and `UNIQUEID("PackedUUID")`. Provider/virtual counts become **4 / 23 OLTP** and **4 / 36 OLAP**. Reporting Statistics excludes the command; all 12 OLAP slice definitions match their previous versions.
 
