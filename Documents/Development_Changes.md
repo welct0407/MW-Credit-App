@@ -1,8 +1,8 @@
 # Development differences
 
-## R004 candidate — 17 September 2026
+## R004 promoted — 17 September 2026
 
-DEV SQL V19 and OLTP 1.000110 add the bilingual referral category to automatic expense creation and the manual dropdown. OLAP 1.000096 is unchanged. PROD remains V18 / OLTP 3.000155 / OLAP 1.100106. DEV manual-save, SQL automatic-generation and both-app readback passed; full-configuration export coverage remains a promotion gate. See [R004 exact scope, tests and recovery](../Change%20Logs/CHANGE_NOTES_R004_2026-09-17.md). Older dated sections below are historical checkpoints, not the current production/development version declaration.
+R004's tested category rule and V19 migration are promoted: DEV OLTP 1.000110 / OLAP 1.000096; PROD OLTP 3.000156 / OLAP 1.100106, V19 in both. No R004 category-rule difference remains. DEV synthetic fixtures stay DEV-only. Existing unrelated environment/UI differences are preserved. See [R004 exact scope, tests, export-coverage exception and recovery](../Change%20Logs/CHANGE_NOTES_R004_2026-09-17.md). Older dated sections below are historical checkpoints, not the current production/development version declaration.
 
 Updated 16 September 2026 for development OLTP **1.000088**, development OLAP **1.000090**, production OLTP **3.000108**, production OLAP **1.100090**. DEV is Flyway **V16**; production remains **V14**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
 

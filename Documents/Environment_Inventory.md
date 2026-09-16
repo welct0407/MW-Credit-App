@@ -1,14 +1,14 @@
 # Environment inventory
 
-Updated 16 September 2026. Production/development are separate Cloud SQL instances. The development database retains the name loan_manager_prod because it was cloned; use instance/host, not the database name alone, to identify the environment.
+Updated 17 September 2026 for R004. Production/development are separate Cloud SQL instances. The development database retains the name loan_manager_prod because it was cloned; use instance/host, not the database name alone, to identify the environment.
 
 ## App identities and bindings
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000121 | database-2 | 9 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100101 | database-2 | 13 |
-| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000108 | database-3 | 9 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000156 | database-2 | 10 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100106 | database-2 | 13 |
+| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000110 | database-3 | 10 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000096 | database-3 | 13 |
 
 Both OLAP apps use the assessment view and have removed Calendar for V11 SQL analytics. The historical SQL Calendar objects remain outside AppSheet for recovery. Native internal tables are excluded from the SQL counts. Business Expenses is loaded in both environments: editable for manual entries in OLTP and read only in OLAP. A 16 September post-release audit found Business Expenses, borrower-referral and net-reporting gaps at production 3.000118 / 1.100098. R003 reconciled every listed AppSheet object at production 3.000121 / 1.100101; use the linked R001 audit and R003 report for the before/after evidence.
@@ -29,7 +29,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V16 migrated and validated | V18 migrated and validated | R003 resolved the production AppSheet consumer gaps; R002 remains development-only |
+| Flyway | V19 migrated and validated | V19 migrated and validated | R004 bilingual category and manual dropdown promoted after released R002/R003 |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
@@ -41,7 +41,7 @@ Production app rollback versions were OLTP 3.000080 and freshly observed OLAP 1.
 
 Production Cloud SQL flags saved/restarted 22:05:38–22:06:10 Bangkok: cloudsql.enable_pg_cron=on, cron.database_name=loan_manager_prod, cron.timezone=Asia/Bangkok, cron.max_running_jobs=1. Existing IAM authentication and max_connections=100 were preserved. The pg_cron loan-daily-charges job is now paused; OLTP AppSheet owns the 00:05 Bangkok schedule so failures appear in Automation Monitor. No instance tier/network/credential change. [production release](../outputs/core-promotion-20260915/REPORT.md) records the earlier phases 1–6 release.
 
-Latest production checkpoint: **V16 / OLTP 3.000121 / OLAP 1.100101**. R003 corrected the R001 AppSheet reconciliation gaps while preserving production sources, reviewed bot states, cross-app links and financial data. Business Expenses now uses the intended keys, Refs, validation, whole-baht/percent formats and color rules; Referrer and referral totals are present in the required borrower views; Daily Analytics, partner/settlement and Analytics Data definitions match the R001 development scope. R003 rollback is OLTP 3.000118 / OLAP 1.100098 and does not require a database restore. The earlier coordinated R001 database rollback remains OLTP 3.000108 / OLAP 1.100090 plus the verified private V14 backup. See the [R003 report](../outputs/r003-production-appsheet-reconciliation-20260916/REPORT.md), [business-expense production record](../outputs/business-expenses-production-20260916/REPORT.md) and [R001 AppSheet reconciliation](../outputs/r001-appsheet-reconciliation-20260916/REPORT.md).
+Latest production checkpoint: **R004 / V19 / OLTP 3.000156 / OLAP 1.100106**. The bilingual referral category is available for manual entry and new automatic rebates; the approved existing backlog category was corrected without changing any other field. Both apps show no editor issues and runtime readback passed. R004 rollback is OLTP 3.000155 plus a reviewed SQL forward fix; a verified private V18 backup exists. [R004 evidence, exception and recovery](../Change%20Logs/CHANGE_NOTES_R004_2026-09-17.md). The SQL table counts above include R002's Loan Form Context and exclude native internal tables. Earlier R003 was V16 / 3.000121 / 1.100101; its historical [report](../outputs/r003-production-appsheet-reconciliation-20260916/REPORT.md) does not replace R004's rollback baseline.
 
 Historical monitored-jobs checkpoint: **V11 / OLTP 3.000098 / OLAP 1.100081**. Rollback is OLTP 3.000094 / OLAP 1.100062 plus a private V10 logical backup whose 14 business tables and normalized schema restored locally. The hidden Statistics request exists in both apps. OLAP owns Recent/Full actions and hourly :00 refresh; Calendar, its views/actions and the duplicate bot are removed, and Daily Analytics is read only. The first natural hourly run completed at 01:00:04 Bangkok and all 43 dates reconcile with stable IDs. The first natural OLTP 00:05 run under AppSheet remains pending. [Production monitored-jobs evidence](../outputs/monitored-jobs-production-20260916/REPORT.md).
 

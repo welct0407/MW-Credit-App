@@ -1,8 +1,8 @@
 # AppSheet production data model
 
-## R004 development candidate — 17 September 2026
+## R004 production release — 17 September 2026
 
-DEV V19 / OLTP 1.000110 / OLAP 1.000096 uses category `Referral Rebate / เงินคืนค่าแนะนำลูกค้า` for new automatic referral expenses and as a sixth manual expense choice. Automatic Source Type remains `Referral Rebate`; manually entered rebates remain `Manual`, with user-entered amount and normal date-based allocations. Old immutable automatic English categories remain valid. V19 includes the owner-requested manual backlog category correction only; amounts and all other fields are preserved. OLAP remains read-only Text with no category validation. No schema columns, references, calculation or reporting grains change. Exact rule and deployment status are in the [R004 log](../Change%20Logs/CHANGE_NOTES_R004_2026-09-17.md); PROD remains V18 / 3.000155 / 1.100106 pending promotion.
+PROD V19 / OLTP 3.000156 / OLAP 1.100106 and tested DEV V19 / OLTP 1.000110 / OLAP 1.000096 use category `Referral Rebate / เงินคืนค่าแนะนำลูกค้า` for new automatic referral expenses and as a sixth manual expense choice. Automatic Source Type remains `Referral Rebate`; manually entered rebates remain `Manual`, with user-entered amount and normal date-based allocations. Old immutable automatic English categories remain valid. V19 includes the owner-requested manual backlog category correction only; amounts and all other fields are preserved. OLAP remains read-only Text with no category validation. No schema columns, references, calculation or reporting grains change. Exact rule, tests, owner-approved export-coverage exception and rollback are in the [R004 log](../Change%20Logs/CHANGE_NOTES_R004_2026-09-17.md). Earlier release sections below retain their historical versions.
 
 ## R002 production deployment — 16 September 2026
 
