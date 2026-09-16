@@ -58,6 +58,14 @@ for(const [name,type,rule]of [
  ['Partner B Profit Share','Percent / 2 decimals','Current all-date role B signed capital / total; 0 if total <= 0']])
  additions.push(['OLTP','Loan Form Context.'+name,'Definition','Absent',type+'; read-only; SQL-owned. '+rule]);
 additions.push(['SQL DEV','Loan Form Context','Metric contract','Absent','One aggregate row, no base-table writes. Current ratios are informational and do not replace historical repayment/expense shares. App values refresh on sync; V17 guards concurrent or stale submissions.']);
+additions.push(['OLTP PROD','R002 production correction','Reconciliation','OLTP 3.000135 displayed _RowNumber and warnings; intermediate 3.000147 colored names but removed remaining-amount colors','OLTP 3.000155. Stray number and warnings removed. Exact eight Dev rules restored: four amount rules plus four name/Ref rules. Live orange and purple names/amounts and green Fully Paid name verified. Immediate rollback 3.000147; full correction rollback 3.000135.']);
+additions.push(['OLTP PROD','Todays Collection Board_Detail','Header columns','_RowNumber','None. Manual order remains Daily Collection Status - Order, Borrower Reference TE, Todays Amount Due, Todays Amount Collected, Todays Amount Remaining, Todays Collection Charges.']);
+additions.push(['OLTP PROD','Visible Borrowers','Slice columns','Residual Borrower Name - Collection member after VC deletion','Deleted member persisted away in 3.000136; existing Borrower Name TE and hidden Borrower Reference TE behavior preserved.']);
+for(const [status,color] of Object.entries(refinement.statusColors)) {
+ additions.push(['OLTP PROD','Borrower Name Collection - '+status,'Format rule','Deleted duplicate field or intermediate name target',`Todays Amount Remaining only; [Daily Collection Status] = "${status}"; ${color}; exact Dev target, condition and style preserved.`]);
+ additions.push(['OLTP PROD','Collection Borrower TE - '+status,'Format rule','Absent before R002',`Borrower Name TE and Borrower Reference TE; Collection/detail scoped condition; ${color}; exact Dev target, condition and style preserved.`]);
+}
+additions.push(['OLTP PROD','Collection Borrower Name TE temporary rules','Format rule','Four lower-priority duplicates created during first repair','Deleted in OLTP 3.000147. OLTP 3.000155 uses the exact Dev split: original rules color Todays Amount Remaining and Collection Borrower TE rules color Borrower Name TE plus Borrower Reference TE.']);
 const updated=structuredClone(old),changed=[];
 for(let i=0;i<additions.length;i++){
  let ix=updated.findIndex(r=>r[0]===additions[i][0]&&r[1]===additions[i][1]&&r[2]===additions[i][2]);
@@ -74,6 +82,9 @@ await fs.writeFile(out+'/dictionary-error-scan.jsonl',scan.ndjson);
 const first=updated.findIndex(r=>r[0]==='OLTP'&&r[1]==='Loans.Principal Amount'&&r[2]==='Valid_If')+1;
 const png=await wb.render({sheetName:'Dev Differences',range:`A${first}:E${first+3}`,scale:1,format:'png'});
 await fs.writeFile(out+'/dictionary-after.png',new Uint8Array(await png.arrayBuffer()));
+const prodFirst=updated.findIndex(r=>r[0]==='OLTP PROD'&&r[1]==='R002 production correction'&&r[2]==='Reconciliation')+1;
+const prodPng=await wb.render({sheetName:'Dev Differences',range:`A${prodFirst}:E${prodFirst+11}`,scale:1,format:'png'});
+await fs.writeFile(out+'/dictionary-production-correction.png',new Uint8Array(await prodPng.arrayBuffer()));
 const stage=out+'/dictionary-staged.xlsx';await(await SpreadsheetFile.exportXlsx(wb)).save(stage);
 const check=await SpreadsheetFile.importXlsx(await FileBlob.load(stage));
 const norm=rows=>{const r=rows.map(x=>x.map(v=>v??''));while(r.length&&r.at(-1).every(v=>v===''))r.pop();return r;};

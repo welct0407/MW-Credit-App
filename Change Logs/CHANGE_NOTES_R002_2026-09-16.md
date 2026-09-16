@@ -1,6 +1,6 @@
 # R002 — Loan cashpool safeguard and borrower navigation
 
-Date: 2026-09-16. Status: **Released. SQL V18 and the complete AppSheet package are live; the retired duplicate VC was deleted after owner confirmation and final live navigation checks passed.**
+Date: 2026-09-16. Status: **Released. SQL V18 and the complete AppSheet package are live. Same-day production corrections removed the unintended Collection row-number header, cleared all residual editor warnings, and restored the Collection name and amount colors to the exact Dev rule definitions.**
 
 ## Scope and authorization
 
@@ -106,3 +106,36 @@ Current production checks used the new editor/app and did not save a financial r
 The GitHub migration failure emails were caused by CI fixtures that inserted test loans without contributed capital after V17 became active. Production migration history and read-only reconciliation were successful. The fixtures now seed sufficient capital and the CorePayment concurrency expectation accounts for the global cashpool lock. The exact full workflow and the R002-specific workflow pass locally; a fresh GitHub run will be checked after the corrective commit is pushed.
 
 Final live verification after deletion confirmed that a Collection row opens the existing Todays Collection Board_Detail and its native Borrower Reference TE opens the matching Borrowers_Detail. R002 is **Released**. App rollback restores OLTP 3.000121 and OLAP 1.100101. SQL rollback should use a reviewed higher Flyway forward-fix that removes V18/V17 objects after app references are removed. Restoring the dump over later production writes requires separate recovery authorization and reconciliation.
+
+## Post-deployment Collection correction — 16 September 2026
+
+The owner reported a large standalone number in the production Collection detail and instructed that the remaining warnings be fixed immediately as part of R002. Production rollback before the correction was **OLTP 3.000135**. Dev OLTP **1.000109** was the clean comparison: `Todays Collection Board_Detail` had no Header columns and no editor warnings.
+
+Production had `_RowNumber` under the detail view's Header columns, which rendered the selected Borrowers provider row number as the large standalone value. The Errors & Warnings panel also showed three residual dependencies from deleting `Borrower Name - Collection`: a stale `Visible Borrowers` slice member, an invalid target in `Borrower Name Collection - Overdue`, and no target in `Borrower Name Collection - Not Paid`. The final R002 verification had checked the visible workflow but failed to reopen this panel after the deletion save, so its clean-reconciliation claim was incorrect.
+
+Corrected production OLTP **3.000136** by removing only the `_RowNumber` header, allowing AppSheet to persist removal of the stale slice/rule reference, and restoring `Todays Amount Remaining` as the legacy Not Paid rule's target to match Dev. The Overdue legacy rule retained `Todays Amount Remaining`. AppSheet now reports **No issues found**. Live Puifai verification confirms the original Collection row still opens `Todays Collection Board_Detail`, no standalone row number appears, the status/name/amount/charges layout remains, and the native Borrower Reference TE field opens the matching `Borrowers_Detail`. No payment action or financial write was executed.
+
+This correction changed no SQL, OLAP, Looker, bot, notification destination, physical column or financial row. Correction-only rollback: restore OLTP **3.000135**, which reintroduces the defect and warnings; no database or OLAP rollback is required. Evidence: `outputs/r002-production-20260916/collection-correction.json` and the updated promotion checklist/report.
+
+## Production Collection color correction — 16 September 2026
+
+The owner reported that Puifai's Not Paid name was not red even though purple and green names were visible. Direct production DOM inspection confirmed the issue: `Borrower Name TE` rendered Puifai with the outstanding-loan color rather than the Not Paid red. The first color repair had added lower-priority duplicate rules and initially failed to persist some list-field targets, so those rules did not override the original rule order. The earlier statement that production color behavior was complete was incorrect.
+
+Production OLTP **3.000145** restored the original high-priority `Borrower Name Collection - Not Paid` rule target to `Borrower Name TE`; **3.000146** did the same for Overdue. Fully Paid already targeted `Borrower Name TE`, and Partially Paid retained its saved orange name/Ref targets. OLTP **3.000147** removed the four temporary `Collection Borrower Name TE - ...` duplicate rules. The separate four `Collection Borrower TE - ...` rules remain for the clickable `Borrower Reference TE` field in Collection detail.
+
+After syncing 3.000147, computed live styles were Puifai Not Paid red `rgb(204, 11, 11)`, Gift Overdue purple `rgb(124, 0, 255)`, and Jame Fully Paid green `rgb(0, 177, 31)`. No Partially Paid production row existed, so orange was verified from the saved rule without creating a financial fixture. Puifai's Collection row still opens `Todays Collection Board_Detail`; the detail has no standalone row number, displays the borrower name in red through the native Ref, and clicking it opens the matching `Borrowers_Detail`. No payment action or financial write was executed.
+
+This correction changed only production OLTP format-rule targets and removed redundant rules. SQL remains Flyway V18, OLAP remains 1.100106, and Looker, bots, notification destinations, physical columns and financial rows were unchanged. Cleanup-only rollback is OLTP **3.000146**. Restoring **3.000136** removes the final color fix; restoring **3.000135** also reintroduces the stray number and deleted-column warnings. Evidence: `outputs/r002-production-20260916/collection-correction.json`.
+
+## Final Dev-parity correction for Collection colors — 16 September 2026
+
+The owner then reported that the Collection amount colors had disappeared. The preceding 3.000145–3.000147 repair had incorrectly moved the four original `Borrower Name Collection - ...` rules from `Todays Amount Remaining` to `Borrower Name TE`. That removed the colored remaining amounts. It also left the separate `Collection Borrower TE - ...` rules targeting only the Ref in production, while Dev targeted both the visible text name and the Ref. The statements above describe the intermediate state and are superseded by this final correction.
+
+Dev OLTP **1.000109** was read rule by rule. Production OLTP **3.000148–3.000155** now matches all eight Dev definitions exactly:
+
+- `Borrower Name Collection - Fully Paid / Not Paid / Overdue / Partially Paid` each target only `Todays Amount Remaining`, with their existing status conditions and green/red/purple/orange text colors.
+- `Collection Borrower TE - Fully Paid / Not Paid / Overdue / Partially Paid` each target both `Borrower Name TE` and `Borrower Reference TE`, with the existing Collection/detail-scoped conditions and the same green/red/purple/orange colors.
+
+Every rule was reloaded from production and compared with Dev for condition, target list and color. A forced live-app refresh then confirmed colored amounts and names together: Puifai's current Partially Paid name and ฿2,000 remaining amount were orange, and Gift and Bell's Overdue names and remaining amounts were purple. Jame's Fully Paid name was green. There was no current Not Paid production row after a payment changed Puifai's status, so the red rule was verified from the saved production definition rather than by creating a financial fixture. The Collection row still opens `Todays Collection Board_Detail`; the detail still has no standalone row number; the displayed `Borrower Name TE` Ref is colored and opens the matching `Borrowers_Detail`. The production editor exposed no visible warning/error/invalid indicator. No payment or financial write was executed by Codex.
+
+Final production version: **OLTP 3.000155**. Immediate rollback point before this Dev-parity correction: **3.000147**. SQL remains Flyway V18 and OLAP remains 1.100106. The correction did not change Looker, bots, notification destinations, physical columns or financial records. Evidence: `outputs/r002-production-20260916/collection-correction.json`.
