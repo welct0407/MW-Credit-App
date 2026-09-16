@@ -1,6 +1,6 @@
 # Business expenses production promotion — 16 September 2026
 
-Status: production promotion complete with explicit owner authorization: “ok promote to production”. Scope is the exact DEV-tested V15/V16 business-expense implementation and saved AppSheet refinements from commits e75a5fd and 88df80b. No development financial data, synthetic fixtures or Looker changes were included.
+Status: production promotion applied with explicit owner authorization: “ok promote to production”; **post-release AppSheet reconciliation failed on 16 September 2026 and a corrective release is required**. Scope was the DEV-tested V15/V16 business-expense implementation and saved AppSheet refinements from commits e75a5fd and 88df80b. No development financial data, synthetic fixtures or Looker changes were included.
 
 ## Rollback and release gate
 
@@ -23,6 +23,12 @@ Production source bindings, current bot states/destinations and cross-app links 
 ## Checks and limitations
 
 The current AppSheet editor and preview were used. Both app dashboards displayed Total Net Profit and the MTD income statement; expense values use the baht symbol. The OLAP Partner cards displayed the net-backed fields without changing the card layout. No production financial test row was created, no loan was closed for testing and no notification was forced. Referral creation, duplicate prevention and contribution-history recalculation therefore rely on the accepted DEV tests plus production schema/function/trigger validation until a real qualifying event occurs. Looker Studio was outside this requested release.
+
+## Post-release correction to this record — 16 September 2026
+
+A later mandatory object-by-object audit found that the production AppSheet state does not support several assertions above. The dashboards contain the net KPI sections, but production still has incorrect Referrer columns, missing borrower form/detail fields and OLAP referral VCs, unreconciled OLAP Business Expenses key/Ref metadata, missing expense format rules, incorrect expense/analytics formatting, a wrong Daily Analytics Business Expenses Ref, gross partner detail fields, the earlier settlement validation and missing Analytics Data net fields.
+
+No live configuration was changed by the audit. Treat the production promotion as applied but incompletely reconciled. The authoritative discrepancy list is [the R001 AppSheet reconciliation report](../outputs/r001-appsheet-reconciliation-20260916/REPORT.md). A new corrective release and explicit production approval are required.
 
 ## Rollback
 
