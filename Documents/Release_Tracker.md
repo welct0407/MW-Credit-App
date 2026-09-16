@@ -1,6 +1,6 @@
 # Release tracker
 
-Established 16 September 2026. **Current recorded production baseline: R001. Next available release number: R003.**
+Established 16 September 2026. **Current recorded production baseline: R001. Next available release number: R004.**
 
 ## Numbering and chat names
 
@@ -18,7 +18,8 @@ Established 16 September 2026. **Current recorded production baseline: R001. Nex
 | Release | Title and content summary | Status | Date | Technical versions / evidence |
 | --- | --- | --- | --- | --- |
 | **R001** | **Existing production baseline.** PostgreSQL-backed OLTP/OLAP; SQL loan assessment; atomic payment, loan-close/default and charge processing; monitored schedules and SQL Daily Analytics without AppSheet Calendar; materialized operational balances; business expenses, referral rebates, net partner reporting and income-statement dashboards. | **Released — AppSheet reconciliation failed; corrective release required** | Recorded 2026-09-16; post-release audit 2026-09-16 | Production remains OLTP **3.000118**, OLAP **1.100098**, Flyway **V16**. Earlier AppSheet scopes reconcile; business-expense/referral/net-reporting configuration does not. [Audit](../outputs/r001-appsheet-reconciliation-20260916/REPORT.md). |
-| **R002** | **Development loan cashpool safeguard, owner-only Dev notification policy, and borrower-name navigation.** Row ID keys preserved; short bracketed principal limit and Collection label/color cleanup included. | **Ready for review** | Reserved 2026-09-16 by owner request | Dev OLTP **1.000108**, OLAP **1.000096**, Flyway **V18**, initial implementation **b040cb8**, final UI refinement **81706ae**; one-row form context and immediate warning implemented; SQL and current-GUI checks passed; owner acceptance pending. [Change log](../Change%20Logs/CHANGE_NOTES_R002_2026-09-16.md). Owner acceptance and production approval pending. |
+| **R002** | **Development loan cashpool safeguard, owner-only Dev notification policy, and borrower-name navigation.** Row ID keys preserved; short bracketed principal limit and Collection label/color cleanup included. | **Ready for review** | Reserved 2026-09-16 by owner request | Dev OLTP **1.000108**, OLAP **1.000096**, Flyway **V18**, initial implementation **b040cb8**, native Ref correction **f3a0d66** (supersedes rejected **81706ae**); one-row form context and immediate warning implemented; SQL and current-GUI checks passed; owner acceptance pending. [Change log](../Change%20Logs/CHANGE_NOTES_R002_2026-09-16.md). Owner acceptance and production approval pending. |
+| **R003** | **Correct R001 production AppSheet reconciliation gaps.** Repair borrower Referrer metadata/views, Business Expenses keys/Refs/types/formatting, expense and settlement validation, Daily Analytics expense metadata, referral reverse lists/VCs/slices, partner net presentation and Analytics Data fields. | **In development** | Reserved 2026-09-16; owner authorized production correction | Rollback: production OLTP **3.000118**, OLAP **1.100098**. No database migration. [Change log](../Change%20Logs/CHANGE_NOTES_R003_PRODUCTION_APPSHEET_RECONCILIATION_2026-09-16.md). |
 
 R002 is reserved for the owner's requested development scope. Earlier work did not carry these release numbers; R001 groups the existing state rather than inventing historical release IDs. The baseline inventory is based on checked-in deployment records, not a fresh live audit.
 
