@@ -1,6 +1,8 @@
 # Development differences
 
-Updated 16 September 2026 for development OLTP **1.000061**, development OLAP **1.000064**, production OLTP **3.000108**, production OLAP **1.100090**. Both databases are Flyway **V14**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+Updated 16 September 2026 for development OLTP **1.000081**, development OLAP **1.000084**, production OLTP **3.000108**, production OLAP **1.100090**. DEV is Flyway **V16**; production remains **V14**. Maintain this difference register alongside the single [production model](AppSheet_Data_Model_Overview.md); do not maintain a second independently edited full dictionary.
+
+Business expenses/referral rebates are implemented in DEV and pending owner acceptance. The ledger, borrower referrer, dynamic contribution-date allocations, net partner settlements/statistics and extended Daily Analytics are DEV only. All gross formulas remain; partner presentation retains its layout. The workbook contains the exact development inventory. See [business expenses report](../outputs/business-expenses-20260916/REPORT.md) and [change log](../Change%20Logs/CHANGE_NOTES_BUSINESS_EXPENSES_2026-09-16.md) for GUI/SQL coverage, retained synthetic data and coordinated rollback. Looker phase is deferred until acceptance.
 
 See [VC phases 1–4 implementation, benchmarks and rollback](../outputs/vc-materialization-20260916/REPORT.md). Current-GUI synthetic workflows and SQL parity/concurrency passed. The owner authorized production promotion on 16 September; see [production VC release](../outputs/vc-production-20260916/REPORT.md). Mobile/offline feedback remains unverified. Further performance opportunities are on hold.
 
@@ -10,13 +12,13 @@ See [VC phases 1–4 implementation, benchmarks and rollback](../outputs/vc-mate
 | --- | --- | --- | --- |
 | Database instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Isolation retained |
 | AppSheet source | database-2 | database-3 | Never promote the development host |
-| SQL schema | Flyway V14 | Flyway V14 | VC phases 1–4 promoted with owner approval |
+| SQL schema | Flyway V14 | Flyway V16 | Expenses/referrals/net settlement DEV only; owner acceptance pending |
 | Financial VCs | 24 physical SQL-owned fields; four obsolete allocation VCs deleted | Same implementation | Both apps reconciled in each environment; Amount Due remains VC |
 | Core payments, final close, first day, default | Atomic SQL | Same SQL | Phases 1–6 promoted with owner approval |
 | Manual generation | Hidden dated Loans request | Same request | Same common SQL rules |
 | Nightly generation | AppSheet bot 00:05 Bangkok; pg_cron paused | AppSheet bot 00:05 Bangkok; pg_cron paused | Same SQL generator; first natural production AppSheet run pending |
 | New fields | Closing-payment Ref, target-loan Ref, hidden generation request | Same model | Both consumers reconciled; no backfill |
-| Notification recipients | Existing Partners emails, excluding acting user | Approved owner account only | Intentional environment difference |
+| Notification recipients | Existing Partners emails, excluding acting user | Four bots disabled; prior owner-only destinations retained | Current task isolation rule; no notification testing |
 | OLAP hourly analytics | Hourly :00 Bangkok Statistics request → SQL | Hourly :00 Bangkok Statistics request → SQL | Production natural 01:00 run Complete; development natural 00:00 run Complete |
 | Statistics request | Hidden nullable Analytics Refresh Request | Hidden nullable Analytics Refresh Request | Both apps reconciled in each environment; excluded from reporting slice |
 | Calendar | Removed from app | Removed from app | No app references; historical SQL objects retained |

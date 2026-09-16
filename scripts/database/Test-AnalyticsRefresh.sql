@@ -16,7 +16,7 @@ INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Intere
  ('DA11-C','DA11-L',current_date-1,100::money,20::money);
 INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Payment Date","Principal Paid","Interest Paid") VALUES
  ('DA11-R','DA11-L','DA11-C',current_date,10::money,20::money);
-INSERT INTO "Settlements"("Row ID","Status","Transfer Date","Amount") VALUES ('DA11-S','Completed',current_date,5::money);
+INSERT INTO "Settlements"("Row ID","Ref Partner","Status","Transfer Date","Amount") VALUES ('DA11-S','DA11-A','Completed',current_date,5::money);
 INSERT INTO "Daily Analytics"("Row ID","Snapshot Date") VALUES ('preserve-this-key',current_date-1);
 SELECT pg_temp.check_ok(refresh_daily_analytics(current_date-2,current_date)=3,'Three daily rows expected');
 SELECT pg_temp.check_ok("Principal Issued"=100::money AND "Loans Issued"=1
