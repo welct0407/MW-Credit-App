@@ -1,0 +1,100 @@
+{
+  "release": "R005",
+  "app": "oltp",
+  "before": {
+    "file": "dev-oltp-save02-cash-holder-metadata.json",
+    "version": "1.000112"
+  },
+  "after": {
+    "file": "dev-oltp-save03-cash-holder-key.json",
+    "version": "1.000113"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 16269,
+    "after": 16269,
+    "changes": 5
+  },
+  "changes": [
+    {
+      "id": "R005-OLTP-10d4e392c175",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000112"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000113"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-aafc00047466",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Row ID/Key",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "No"
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-2204739302b6",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/Row ID/Part of Key?",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "No"
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-383aed6a87e5",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/_RowNumber/Key",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "Yes"
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLTP-64b8948ce0ee",
+      "app": "oltp",
+      "environment": "DEV",
+      "path": "Column/Cash Holders_Schema/_RowNumber/Part of Key?",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "Yes"
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}

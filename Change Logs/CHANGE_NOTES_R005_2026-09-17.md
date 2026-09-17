@@ -75,3 +75,47 @@ The overview and data dictionary were updated together with a clearly labeled **
 The initial checkpoint changed only the tracker/log. The continuation adds V20, maintained backup/test/evidence/dictionary scripts, sanitized baseline and test artifacts, and pending model documentation. The task started with a clean working tree. Live application/schema/financial records remain unmodified by this task. Observed DEV rollback versions are OLTP 1.000110 and OLAP 1.000096; recapture if they change before implementation. The verified DEV backup is recorded above.
 
 For this documentation checkpoint, recover prior text from Git while retaining the R005 number reservation; never reuse a cancelled/reserved number. Eventual SQL/app rollback must be coordinated, retain ledger evidence and use a higher Flyway migration or explicitly authorized restoration. Do not edit applied migration files or restore a database over newer writes.
+
+## Live DEV implementation in progress
+
+Owner approved the limited R005 AppSheet baseline-coverage exception on 17 September: “Approve the limited R005 coverage exception”. Per-save exported-property comparisons, exact changed-property editor verification and final zero-warning checks remain mandatory.
+
+At 22:46 Bangkok, V20 was applied to DEV by the repository Flyway runner from checkpoint commit `9756814`, SHA-256 `1FE5F4038E48371F52E3C31BF5F79C95CF4FB836A00785FB311AC2AD24F4FFE3`. One migration, 639 ms, no warnings; subsequent validate passed (21 entries). DEV readback: three holders, zero ledger rows, zero historical receiver/payer assignments or historical cash rows; cutover identities captured for 182 payments, 98 loans, five expenses and two completed settlements. Duplicate system sources and holder-balance mismatches are zero. The pg_cron daily-charge job remains disabled, leaving the reviewed AppSheet schedule as the active scheduler. Exact outputs are in `outputs/r005-20260917/dev-migration.json`, `dev-validate.json` and `dev-cutover-readback.jsonl`.
+
+AppSheet configuration is now being edited; no GUI test writes have been performed. Local-only statements in the earlier checkpoint report describe that historical checkpoint and are superseded by this live section. V20 is now immutable. Production remains V19 and is not authorized for changes.
+
+### AppSheet save batches — ongoing implementation
+
+DEV OLTP baseline 1.000110 is retained. Saved appdoc exports and exhaustive property differences are under `outputs/r005-20260917/dev-oltp-save*-diff.json`; stable property checklist IDs are embedded in each difference. All added-object properties are retained. Final intended PROD targets and final verification remain Pending until the candidate is reconciled.
+
+| Batch | Saved version | Change / observed result |
+|---|---|---|
+| save01 | 1.000111 | Added Cash Holders from DEV database-3, read-only. AppSheet inferred row-number key and LongText names; intermediate import retained. |
+| save02 | 1.000112 | Text holder ID/name, name label, physical fields noneditable, ID hidden. AppSheet retained row-number key; explicit key correction followed. Warning: `Column Name 'Row ID' in Schema 'Cash Holders_Schema' was set to be unsearchable because it is 'Hidden'`. |
+| save03 | 1.000113 | Explicitly cleared _RowNumber key and selected Row ID; saved export confirms stable key. Current editor: No issues found. |
+| save04 | 1.000114 | Regenerated Payments; imported nullable cash receiver. Existing exported property differences retained. |
+| save05 | 1.000115 | Receiver Ref to Cash Holders.Row ID, Dad/Lisa validity, new Dad default / first-day Lisa, first-day and Processing edit restrictions, historical-safe required condition, Thai/English label. Generated reverse reference and navigation action included in diff. Current editor: No issues found. |
+
+Regeneration transiently serialized `LocaleName` on generated daily-charge process/output columns and data locale on their generated tables; subsequent ordinary saves removed them again. Each occurrence remains in the per-save evidence and will be individually reconciled at candidate freeze. No user-defined loan financial formula was intentionally changed. UI workflow tests remain pending; definitions alone are not test execution.
+
+### Subsequent app implementation — 17 September 2026
+
+OLTP save06 1.000116 regenerated Business Expenses; save07 1.000117 configured payer Ref, Dad/Lisa/Tommy validity, no default, manual-only editing, positive/historical-safe requirement and Thai/English label. Both source field definitions have saved-export evidence; form order/quick-edit workflow tests remain pending.
+
+OLAP baseline 1.000096; save01 1.000097 added read-only Cash Holders. Browser interruption during metadata editing required a fresh editor and saved-definition readback. The next captured key-correction candidate was 1.000099; intermediate 1.000098 definition recovery remains Pending. Do not claim complete per-save coverage until resolved. No saved definition is inferred from attempted clicks.
+
+OLAP save03 1.000100 imported Cash Ledger read-only; save04 1.000101 configured immutable generated ID, movement-date default, movement-type validity and positive whole-baht Amount. Save05 1.000102 configured holder directions, source refs, manual entry origin/default, protected source metadata and manual notes. Generated source reverse lists and the Reporting Loans slice membership change are retained in the exhaustive diff for reconciliation. Save06 1.000103 regenerated expenses; save07 1.000104 configured read-only payer Ref. Save08 1.000105 regenerated payments; save09 1.000106 configured read-only receiver Ref. Current editor showed No issues found at the source-field saves. This is intermediate evidence, not the final warning gate.
+
+Intermediate warning observed after ledger Enum import: `Column Name 'Movement Type' in Schema 'Cash Ledger_Schema' of Column Type 'Enum' should have a list of allowed values or allow the user to add other values`. Movement validity now supplies choices; final diagnostics and executed form selection remain required. Ledger manual writing remains disabled while the workflow is assembled. No GUI financial test rows or notification tests have been submitted.
+
+### Cash interface and source views — continuation
+
+OLAP save10–20 (1.000107–1.000117) added read-only Cash Holder Balances with stable holder Ref key, whole-baht Price fields, protected ledger audit fields, ADDS_AND_UPDATES table permission, holder summary/recent ledger reference views and Cash Position menu dashboard. The transfer form contains Movement Date, Movement Type, From, To, Amount, optional expense and Notes, returns to Cash Position, and is titled Record Cash Transfer. The Add action uses that title; Edit is eligible only for Manual Cash Handover/Expense Reimbursement. System rows remain source-controlled with SQL enforcement. This supersedes the preceding temporary statement that manual writing remained disabled.
+
+Save16 (1.000113) temporarily introduced an unquoted dashboard display expression. Exact diagnostic: `View 'Cash Position' has an invalid Display Name 'Cash Position / สถานะเงินสด'. "/" called with wrong types: first argument is Text, but requires Decimal or Number second argument is Text, but requires Decimal or Number`. Save17 quoted the literal and cleared the error. All intermediate exports and diffs are retained. Save20 shows No issues found; final reload/deployment gate is still pending.
+
+OLTP save08 captured 1.000119: receiver added after Amount Received in Payments_Form and as the sole Payments_Detail quick-edit field. Business Expenses_Form automatic order already includes payer. The export also changes the generated payer View Ref action's Visible? from ADVANCED to ALWAYS; attribution/editor reconciliation remains pending. Version 1.000118 was not captured before the next saved readback and requires history recovery, alongside OLAP 1.000098.
+
+OLTP save09 (1.000120) restores four notification bots to the enabled PROD baseline: First-Day Charge, New Loan Created, Loan Closed and Charge Received. Previously captured task/called-branch evidence contains only LIST("welct0407@mw-credit.com") recipients. Superseded Create First-Day Charge and Payments - Process Receipt remain disabled. Daily charge scheduling remains enabled with duplicate pg_cron disabled. Final automation reload/parity reconciliation and execution/delivery checks remain pending. No GUI financial test writes had occurred at this checkpoint.
+
+All save batches link exact before/after values through `outputs/r005-20260917/dev-*-save*-diff.json`. Production remains unchanged; readiness is **Not ready** pending GUI tests, missing intermediate-version recovery, final property reconciliation, documentation and final diagnostics.

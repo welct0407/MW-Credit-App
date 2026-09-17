@@ -1,0 +1,605 @@
+{
+  "release": "R005",
+  "app": "olap",
+  "before": {
+    "file": "dev-olap-save11-balances-schema.json",
+    "version": "1.000108"
+  },
+  "after": {
+    "file": "dev-olap-save12-ledger-audit.json",
+    "version": "1.000109"
+  },
+  "coverage": "All exported properties; omitted export coverage subject to explicit owner-approved limited R005 exception.",
+  "counts": {
+    "before": 24254,
+    "after": 24275,
+    "changes": 36
+  },
+  "changes": [
+    {
+      "id": "R005-OLAP-67e007dc1e8e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Action icon",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": ""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-32e191f2e730",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Action name",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Compose Email (Created By)"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-0ebc8f4538b3",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Action order",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "1"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-7598cec18c3a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Attach to column",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Created By"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f9e156d74a39",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Bulk action?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f05e65219975",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Disable automatic updates?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-087ee49eb30a",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Do this",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "EMAIL"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-218daee1e719",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Does this action apply to the whole table?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-8e59080ae95b",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/For a record of this table",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Cash Ledger"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-35fe45d105a4",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Modifies data?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e12f11b1229c",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Needs confirmation?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "No"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-964f46ef2753",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Only if this condition is true",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "NOT(ISBLANK([Created By]))"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-e8d0edc3e2b5",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Prominence",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Display_Inline"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-067bb736fee6",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Set this column",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Created By"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-affc5ef492a9",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/Visible?",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "ADVANCED"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-d945739a7a15",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/With these properties/$shape",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "Body",
+            "BulkApplicable",
+            "ConfirmationMessage",
+            "EmailTo",
+            "ModifiesData",
+            "NeedsConfirmation",
+            "Prominence",
+            "Subject"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5327671b1ffa",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/With these properties/Body",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-ad002c8de10e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/With these properties/BulkApplicable",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-93ce79bdd631",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/With these properties/ConfirmationMessage",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": ""
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-190499736a61",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/With these properties/EmailTo",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "[Created By]"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-52587ef03c09",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/With these properties/ModifiesData",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-7c1820c2fcea",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/With these properties/NeedsConfirmation",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-5511bb776e04",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/With these properties/Prominence",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "Display_Inline"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f732f4fe4e80",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Action/Cash Ledger/Compose Email (Created By)/With these properties/Subject",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": null
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-10d4e392c175",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "App/Version",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "1.000108"
+      },
+      "after": {
+        "present": true,
+        "value": "1.000109"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-87474d07b850",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Created At/Read-Only",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "No"
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f4d8b9a26b81",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Created By/Initial value",
+      "operation": "add",
+      "before": {
+        "present": false
+      },
+      "after": {
+        "present": true,
+        "value": "=USEREMAIL()"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-bbdc0e35b532",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Created By/Read-Only",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "No"
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-3c4d7163d27e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Created By/Type",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "LongText"
+      },
+      "after": {
+        "present": true,
+        "value": "Email"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-280b552b7e6f",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Created By/Type Qualifier/$shape",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "Editable_If",
+            "Error_Message_If_Invalid",
+            "IsMulticolumnKey",
+            "LongTextFormatting",
+            "MaxLength",
+            "MinLength",
+            "Required_If",
+            "Reset_If",
+            "Show_If",
+            "Suggested_Values",
+            "Valid_If"
+          ]
+        }
+      },
+      "after": {
+        "present": true,
+        "value": {
+          "type": "object",
+          "keys": [
+            "Editable_If",
+            "Error_Message_If_Invalid",
+            "Required_If",
+            "Reset_If",
+            "Show_If",
+            "Suggested_Values",
+            "Valid_If"
+          ]
+        }
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-030055f755e8",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Created By/Type Qualifier/IsMulticolumnKey",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": false
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f0834d1c741b",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Created By/Type Qualifier/LongTextFormatting",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": "Plain Text"
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-47153c78a4ce",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Created By/Type Qualifier/MaxLength",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": null
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-4b841b89738e",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Created By/Type Qualifier/MinLength",
+      "operation": "remove",
+      "before": {
+        "present": true,
+        "value": null
+      },
+      "after": {
+        "present": false
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-f009267539b9",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Column/Cash Ledger_Schema/Updated At/Read-Only",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "No"
+      },
+      "after": {
+        "present": true,
+        "value": "Yes"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    },
+    {
+      "id": "R005-OLAP-6533d30a8c39",
+      "app": "olap",
+      "environment": "DEV",
+      "path": "Summary/Behavior Summary",
+      "operation": "change",
+      "before": {
+        "present": true,
+        "value": "65 Actions\n0 Workflow Rules"
+      },
+      "after": {
+        "present": true,
+        "value": "66 Actions\n0 Workflow Rules"
+      },
+      "status": "Pending editor verification and final target reconciliation"
+    }
+  ]
+}
