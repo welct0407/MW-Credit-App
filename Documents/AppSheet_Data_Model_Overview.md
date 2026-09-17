@@ -1,10 +1,10 @@
 # AppSheet production data model
 
-## R005 development draft — 17 September 2026
+## R005 development implementation — 18 September 2026
 
-**Pending live reconciliation.** R005 V20 is implemented and tested in isolated PostgreSQL and a restored DEV copy only. It has not been applied to Cloud SQL or either AppSheet app. The released production reference below is unchanged. [R005 status and evidence](../Change%20Logs/CHANGE_NOTES_R005_2026-09-17.md).
+**DEV implemented and GUI tested; Not ready to promote.** R005 V20 was applied to DEV Cloud SQL on 17 September, following isolated regression/concurrency tests and a restored-backup rehearsal. Saved configuration is OLTP 1.000120 / OLAP 1.000120. Current-GUI transfers, source corrections, first-day/normal receipts, expenses/rebate, both partner settlements and default passed with SQL readback. Both editors show No issues found; deployment-check rerun and notification delivery verification remain unavailable. The released production reference below is unchanged. [R005 test results and remaining gates](../outputs/r005-20260917/GUI_TEST_REPORT.md).
 
-The owner moved cash custody entry/presentation to **OLAP**: Cash Position, Cash Ledger and Record Cash Transfer. OLTP retains payment receiver and expense payer source entry. Planned Cash Holders access is read-only in both consuming apps; ledger/balance aggregation stays outside OLTP. Exact saved AppSheet values and consumer reconciliation remain pending.
+The owner moved cash custody entry/presentation to **OLAP**: Cash Position, Cash Ledger and Record Cash Transfer. OLTP retains payment receiver and expense payer source entry. Cash Holders is read-only in both apps; ledger/balance aggregation stays outside OLTP. Saved property values are in the linked release's exhaustive per-save exports/diffs; final consumer reconciliation remains pending.
 
 V20 defines three stable Cash Holders (`ch:dad`, `ch:lisa`, `ch:tommy`), a 17-column Cash Ledger with positive whole-baht numeric Amount and restrictive source/holder foreign keys, and a seven-column Cash Holder Balances view at one row per holder. Inflow minus outflow is Current Balance; positive balance is Business Cash Held and negative balance is Reimbursement / Advance Due. This custody model does not modify capital, partner profit entitlement or expense allocation.
 
@@ -14,7 +14,7 @@ The owner expressly approved SQL-only `r005_cash_cutover_sources` with composite
 
 Normal manual transfers are Dad/Lisa Cash Handover and Lisa/Tommy Expense Reimbursement. An optional reimbursement expense reference must identify a positive expense paid by Tommy. System rows are source-managed. Opening Balance and Manual Correction require controlled SQL administration with a transaction-local opt-in and explanatory notes; no actual opening amounts are authorized. Derived entries follow source qualification: an accounting-only negative expense has no cash movement, and a noncompleted settlement has no cash movement. Source records remain authoritative. No independent cash rows arise from capital contributions, charges, allocations, repayments, default or closure.
 
-The workbook's **Dev Differences** contains the pending row-level inventory, including exact SQL declarations and planned app availability. These rows describe the tested draft, not deployed objects. Production dictionary inventories remain unchanged.
+The workbook's **Dev Differences** contains 103 R005 inventory records, including SQL declarations and exact exported app column/table/view/slice properties. The 6,949 individually mapped baseline-to-candidate property changes are retained in `outputs/r005-20260917/configuration-checklist.json`, with complete per-save evidence. Appdoc omissions remain under the owner's limited R005 coverage exception; the candidate is not an accepted frozen production package. Production dictionary inventories remain unchanged.
 
 ## R004 production release — 17 September 2026
 

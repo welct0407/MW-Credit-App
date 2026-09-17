@@ -1,6 +1,6 @@
-# R005 local implementation checkpoint
+# R005 implementation evidence
 
-17 September 2026. **Not ready. No live DEV app edits or Cloud SQL migration applied.**
+Current status, 18 September 2026: **DEV V20 applied; OLTP and OLAP 1.000120 saved and GUI tested; Not ready to promote.** See [GUI tests, diagnostics, exact configuration checklist and remaining gates](GUI_TEST_REPORT.md). The sections below retain the earlier local SQL checkpoint and are not the current deployment status.
 
 ## Authorized scope
 

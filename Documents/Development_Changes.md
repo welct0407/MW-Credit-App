@@ -1,5 +1,9 @@
 # Development differences
 
+## R005 DEV implementation — 18 September 2026
+
+DEV V20 / OLTP 1.000120 / OLAP 1.000120 implement cash custody with no historical backfill. Cash Holders is read-only in both apps. OLAP owns Cash Ledger, manual Record Cash Transfer and Cash Position; OLTP owns receipt receiver and expense payer entry. Four existing owner-only notification bots were enabled to match the released baseline; obsolete financial-processing bots remain disabled. [Current-GUI tests and exact configuration evidence](../outputs/r005-20260917/GUI_TEST_REPORT.md) cover source receipts, corrections, expenses/rebate, transfers, both settlements and default. Both editors show No issues found; unavailable deployment-check rerun and notification delivery verification keep R005 **Not ready**. Owner acceptance and production authorization remain pending. PROD remains R004/V19. Both synthetic loans are closed; 14 synthetic cash movements remain DEV-only. See the [R005 change log](../Change%20Logs/CHANGE_NOTES_R005_2026-09-17.md) for coverage exception and rollback.
+
 ## R004 promoted — 17 September 2026
 
 R004's tested category rule and V19 migration are promoted: DEV OLTP 1.000110 / OLAP 1.000096; PROD OLTP 3.000156 / OLAP 1.100106, V19 in both. No R004 category-rule difference remains. DEV synthetic fixtures stay DEV-only. Existing unrelated environment/UI differences are preserved. See [R004 exact scope, tests, export-coverage exception and recovery](../Change%20Logs/CHANGE_NOTES_R004_2026-09-17.md). Older dated sections below are historical checkpoints, not the current production/development version declaration.

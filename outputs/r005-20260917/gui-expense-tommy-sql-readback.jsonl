@@ -1,0 +1,14 @@
+{"environment" : "development", "as_of" : "2026-09-18T00:02:37.431996+07:00", "version" : 20, "ledger_rows" : 2, "holders" : 3}
+{"cutover_type" : "Business Expense", "rows" : 5}
+{"cutover_type" : "Loan", "rows" : 98}
+{"cutover_type" : "Payment", "rows" : 182}
+{"cutover_type" : "Settlement", "rows" : 2}
+{"legacy_nonnull_receivers" : 0, "legacy_nonnull_payers" : 0, "historical_cash_rows" : 0}
+{"jobname":"loan-daily-charges","schedule":"5 0 * * *","active":false,"database":"loan_manager_prod","command_hash":"d1e47fe9cdab2128893581ce76f42d1a"}
+{"bad_system_source_duplicates" : 0}
+{"Row ID":"dvtdri6eQIC5QzDbkmt5VU","Movement Date":"2026-09-17","Movement Type":"Cash Handover","Amount":120,"Ref From Cash Holder":"ch:dad","Ref To Cash Holder":"ch:lisa","Entry Origin":"Manual","Source Type":"Manual","Notes":"R005 GUI synthetic handover corrected 100 to 120; no real cash moved"}
+{"Ref Cash Holder":"ch:dad","Holder Name":"Dad","Cash In":0,"Cash Out":120,"Current Balance":-120,"Business Cash Held":0,"Reimbursement / Advance Due":120}
+{"Ref Cash Holder":"ch:lisa","Holder Name":"Lisa","Cash In":120,"Cash Out":0,"Current Balance":120,"Business Cash Held":120,"Reimbursement / Advance Due":0}
+{"Ref Cash Holder":"ch:tommy","Holder Name":"Tommy","Cash In":0,"Cash Out":100.00,"Current Balance":-100.00,"Business Cash Held":0,"Reimbursement / Advance Due":100.00}
+{"Row ID":"b0f22f2d","Expense Date":"2026-09-18","Amount":"$100.00","Payee Name":"R005 GUI SYNTHETIC EXPENSE TOMMY","Ref Paid By Cash Holder":"ch:tommy","Partner A Expense":"$60.00","Partner B Expense":"$40.00"}
+{"holder_count" : 3, "balance_mismatch_count" : 0}

@@ -1,0 +1,226 @@
+- banner:
+  - button "Toggle menu":
+  - heading "Loan Business Insights — DEV" [level=6]
+  - button "ซิงค์":
+  - button "ดูสถานะแอป":
+    - button
+  - button "account menu":
+    - generic: W
+- navigation:
+  - button " ภาพรวม":
+    - generic: 
+    - generic: ภาพรวม
+  - button " การวิเคราะห์":
+    - generic: 
+    - generic: การวิเคราะห์
+  - button " ประเมินการปล่อยกู้เพิ่ม":
+    - generic: 
+    - generic: ประเมินการปล่อยกู้เพิ่ม
+  - button " หุ้นส่วน":
+    - generic: 
+    - generic: หุ้นส่วน
+  - button " ผู้กู้":
+    - generic: 
+    - generic: ผู้กู้
+  - button " Business Expenses":
+    - generic: 
+    - generic: Business Expenses
+  - button " Cash Position / สถานะเงินสด":
+    - generic: 
+    - generic: Cash Position / สถานะเงินสด
+  - button " งานสินเชื่อ / Operations App":
+    - generic: 
+    - generic: งานสินเชื่อ / Operations App
+  - button " สินเชื่อ":
+    - generic: 
+    - generic: สินเชื่อ
+  - button " Daily Analytics - Validation":
+    - generic: 
+    - generic: Daily Analytics - Validation
+  - separator
+  - button "เกี่ยวกับ":
+    - generic: เกี่ยวกับ
+  - button "Feedback":
+    - generic: Feedback
+  - separator
+  - button "App Gallery":
+    - generic: App Gallery
+- region "09/18/2026":
+  - heading "breadcrumbs" [level=2]:
+    - navigation "breadcrumbs":
+      - list:
+        - button "Cash Position / สถานะเงินสด": Cash Position / สถานะเงินสด
+        - button "09/18/2026" [disabled]
+  - button "ก่อนหน้า" [disabled]:
+    - generic: 
+  - button "ถัดไป":
+    - generic: 
+  - button "ขยาย":
+    - generic: 
+  - generic: Movement Date
+  - generic: 9/18/2026
+  - generic: Movement Type
+  - generic: Payment Receipt
+  - generic: Amount
+  - generic: ฿20
+  - generic: Ref To Cash Holder
+  - button "Ref To Cash Holder":
+    - generic: Lisa
+  - button "View Ref (Ref To Cash Holder)":
+    - generic: 
+    - generic: View Ref (Ref To Cash Holder)
+  - generic: Ref Payment
+  - button "Ref Payment":
+    - generic: 9/18/2026
+  - button "View Ref (Ref Payment)":
+    - generic: 
+    - generic: View Ref (Ref Payment)
+  - generic: Ref Business Expense
+  - generic: Entry Origin
+  - generic: System
+  - generic: Source Type
+  - generic: Payment
+  - generic: Source Key
+  - generic: PAYMENT:PNq6xWG7JQKy43bcYepSAg
+  - generic: Created At
+  - generic: 9/18/2026 12:34:02 AM
+  - generic: Created By
+  - button "Created By":
+    - text: [OWNER]
+    - text: "@[OWNER-DOMAIN]"
+  - button "Compose Email (Created By)":
+    - generic: 
+    - generic: Compose Email (Created By)
+  - generic: Updated At
+  - generic: 9/18/2026 12:34:03 AM
+- region "09/18/2026":
+  - heading "09/18/2026" [level=2]
+  - button "ก่อนหน้า":
+    - generic: 
+  - button "ถัดไป":
+    - generic: 
+  - button "ขยาย":
+    - generic: 
+  - button "ปิด":
+  - generic: Payment Date
+  - generic: 9/18/2026
+  - generic: Status
+  - generic: Posted
+  - generic: Ref Borrower
+  - button "Ref Borrower":
+    - generic: R005 GUI SYNTHETIC BORROWER - R005 GUI SYNTHETIC BORROWER
+  - button "View Ref (Ref Borrower)":
+    - generic: 
+    - generic: View Ref (Ref Borrower)
+  - generic: Amount Received
+  - generic: $20.00
+  - generic: Payment Method
+  - generic: Bank Transfer
+  - generic: Allocation Method
+  - generic: Single Partial
+  - generic: Notes
+  - generic: R005 GUI synthetic direct Lisa receipt; no real payment
+  - generic: Created By
+  - button "Created By":
+    - text: [OWNER]
+    - text: "@[OWNER-DOMAIN]"
+  - button "Compose Email (Created By)":
+    - generic: 
+    - generic: Compose Email (Created By)
+  - generic: Created At
+  - generic: 9/18/2026 12:33:28 AM
+  - generic: Processed At
+  - generic: 9/18/2026 12:34:03 AM
+  - generic: Ref Target Charge
+  - button "Ref Target Charge":
+    - generic: 9/18/2026
+  - button "View Ref (Ref Target Charge)":
+    - generic: 
+    - generic: View Ref (Ref Target Charge)
+  - generic: ผู้รับเงิน / Received By
+  - button "Ref Received By Cash Holder":
+    - generic: Lisa
+  - button "View Ref (Ref Received By Cash Holder)":
+    - generic: 
+    - generic: View Ref (Ref Received By Cash Holder)
+  - region "Related Repayments":
+    - generic: Related Repayments
+    - generic: "1"
+    - separator
+    - button "9/18/2026 ฿20":
+      - generic: 9/18/2026
+      - generic: ฿20
+    - button "ขยาย"
+  - region "Related Payment Allocations":
+    - generic: Related Payment Allocations
+    - generic: "1"
+    - separator
+    - button "Allocation Order"
+    - button "Resize column"
+    - button "Charge Date Snapshot"
+    - button "Resize column"
+    - button "Ref Payment"
+    - button "Resize column"
+    - button "Ref Charge"
+    - button "Resize column"
+    - button "Charge Row Number Snapshot"
+    - button "Resize column"
+    - button "Interest Remaining Snapshot"
+    - button "Resize column"
+    - button "Principal Remaining Snapshot"
+    - button "Resize column"
+    - button "Amount Remaining Snapshot"
+    - button "Resize column"
+    - button "Allocated Interest"
+    - button "Resize column"
+    - button "Allocated Principal"
+    - button "Resize column"
+    - button "Allocated Amount"
+    - button "Resize column"
+    - button "Created At"
+    - button "Resize column"
+    - button "Related Repayments"
+    - button "1 9/18/2026 9/18/2026 9/18/2026 -1 $20.00 $0.00 $20.00 $20.00 $0.00 $20.00 9/18/2026 12:34:02 AM Related Repayments (1) ":
+      - generic: "1"
+      - generic: 9/18/2026
+      - generic: 9/18/2026
+      - generic: 9/18/2026
+      - generic: "-1"
+      - generic: $20.00
+      - generic: $0.00
+      - generic: $20.00
+      - generic: $20.00
+      - generic: $0.00
+      - generic: $20.00
+      - generic: 9/18/2026 12:34:02 AM
+      - generic: Related Repayments (1)
+      - generic: 
+    - button "ขยาย"
+  - region "Related Cash Ledgers":
+    - generic: Related Cash Ledgers
+    - generic: "1"
+    - separator
+    - button "Movement Date arrow":
+      - text: Movement Date
+      - button "arrow":
+        - img "Descending sort arrow"
+    - button "Resize column"
+    - button "Movement Type"
+    - button "Resize column"
+    - button "Amount"
+    - button "Resize column"
+    - button "Ref From Cash Holder"
+    - button "Resize column"
+    - button "Ref To Cash Holder"
+    - button "Resize column"
+    - button "Entry Origin"
+    - button "9/18/2026 Payment Receipt ฿20 Lisa System ":
+      - generic: 9/18/2026
+      - generic: Payment Receipt
+      - generic: ฿20
+      - generic: Lisa
+      - generic: System
+      - generic: 
+    - button "ขยาย"
+- generic: 
+- text:   

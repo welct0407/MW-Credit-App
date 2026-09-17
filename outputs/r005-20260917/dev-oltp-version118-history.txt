@@ -1,0 +1,532 @@
+1.000118
+View
+	2026-09-17T16:51:10.9961999+00:00	System	Editor refresh	Automatic consistency check	
+Collapse
+LastModified = 2026-09-17T16:51:10.6034783Z
+Version = 1.000118
+AppData {
+  DataSets[12] {
+    UpdateMode = 8
+    SourcePartitionDefinition {
+      Partitions -= {}
+    }
+    WorksheetPartitionDefinition {
+      Partitions -= {}
+    }
+    DataAccessMode { Removed }
+    ComponentId { Removed }
+  }
+  DataSets[13] {
+    UpdateMode = 8
+    SourcePartitionDefinition {
+      Partitions -= {}
+    }
+    WorksheetPartitionDefinition {
+      Partitions -= {}
+    }
+    DataAccessMode { Removed }
+    ComponentId { Removed }
+  }
+  DataSchemas[11] {
+    Attributes[7] {
+InternalQualifier { System internal change - update to column metadata }
+      ComponentId = K3IDVKPZ2VBFGNIVHNAJYYVN5J4
+    }
+  }
+  DataSchemas[12] {
+    Attributes[0] {
+      TypeAuxData { Removed }
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[1] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[2] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[3] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[4] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[5] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[6] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[7] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[8] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[9] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[10] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[11] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[12] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[13] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[14] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[15] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[16] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[17] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[18] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[19] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[20] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[21] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[22] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[23] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[24] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[25] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[26] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[27] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[28] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[29] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[30] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[31] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[32] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[33] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[34] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[35] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[36] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[37] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[38] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[39] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[40] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[41] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[42] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[43] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[44] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[45] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[46] {
+      TypeAuxData = {"ReferencedTableName":"Generate Today's Charge Output","ReferencedRootTableName":null,"ReferencedType":"Text","ReferencedTypeQualifier":null,"ReferencedKeyColumn":"Instance Id","IsAPartOf":false,"RelationshipName":null,"InputMode":"Auto","Valid_If":null,"Error_Message_If_Invalid":null,"Show_If":null,"Required_If":null,"Editable_If":null,"Reset_If":null,"Suggested_Values":null}
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    AutoSchemaFrom { Removed }
+    ComponentId { Removed }
+  }
+  DataSchemas[13] {
+    Attributes[0] {
+      TypeAuxData { Removed }
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[1] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[2] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[3] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[4] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[5] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[6] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[7] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[8] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[9] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[10] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[11] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[12] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[13] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[14] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[15] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[16] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[17] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[18] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[19] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[20] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[21] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[22] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[23] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[24] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[25] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[26] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[27] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[28] {
+      IsReadOnly = False
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[29] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[30] {
+      IsReadOnly = False
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[31] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[32] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[33] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[34] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[35] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[36] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[37] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[38] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[39] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[40] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[41] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[42] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[43] {
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[44] {
+      IsReadOnly = False
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    Attributes[45] {
+      IsReadOnly = False
+      IsScannable { Removed }
+      Searchable { Removed }
+      ComponentId { Removed }
+    }
+    AutoSchemaFrom { Removed }
+    ComponentId { Removed }
+  }
+  DataActions[26] {
+    ColumnToEdit = Row ID
+  }
+  DataActions[70] {
+    ColumnToEdit = Row ID
+  }
+  DataActions[80] {
+    ColumnToEdit = Ref Loans
+  }
+  DataActions[81] {
+    ColumnToEdit = Ref Loans
+  }
+  DataActions[84] {
+    Visibility = ALWAYS
+    ComponentId = KPTWS2AVECFARVEXXZMDSSARCM4
+  }
+}	
