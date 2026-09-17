@@ -1,6 +1,8 @@
 # Project scripts and shared dependencies
 
 Maintained automation belongs in scripts/. Generated files belong in outputs/.
+
+For release delta validation, generated checklists/continuation notes, saved-value comparison and targeted dictionary updates, see [releases/README.md](releases/README.md). These local helpers complement the existing Flyway runners and current-GUI tests; they never deploy or approve releases.
 Output documents, scripts and evidence are tracked by Git for recovery. Installed node_modules, Python caches and .tmp directories are ignored. The owner excluded C:\GitHub from Google Drive on 2026-09-10; uncommitted project files must not be assumed to have a Drive backup.
 
 ## Setup on this Windows VM or after recovery
