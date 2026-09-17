@@ -1,5 +1,21 @@
 # AppSheet production data model
 
+## R005 development draft — 17 September 2026
+
+**Pending live reconciliation.** R005 V20 is implemented and tested in isolated PostgreSQL and a restored DEV copy only. It has not been applied to Cloud SQL or either AppSheet app. The released production reference below is unchanged. [R005 status and evidence](../Change%20Logs/CHANGE_NOTES_R005_2026-09-17.md).
+
+The owner moved cash custody entry/presentation to **OLAP**: Cash Position, Cash Ledger and Record Cash Transfer. OLTP retains payment receiver and expense payer source entry. Planned Cash Holders access is read-only in both consuming apps; ledger/balance aggregation stays outside OLTP. Exact saved AppSheet values and consumer reconciliation remain pending.
+
+V20 defines three stable Cash Holders (`ch:dad`, `ch:lisa`, `ch:tommy`), a 17-column Cash Ledger with positive whole-baht numeric Amount and restrictive source/holder foreign keys, and a seven-column Cash Holder Balances view at one row per holder. Inflow minus outflow is Current Balance; positive balance is Business Cash Held and negative balance is Reimbursement / Advance Due. This custody model does not modify capital, partner profit entitlement or expense allocation.
+
+Payments gains nullable `Ref Received By Cash Holder`; the SQL default applies only to new rows and is Dad, with new First-day Auto fixed Lisa. Business Expenses gains nullable `Ref Paid By Cash Holder`, with no manual default; new positive expenses require a payer and new referral rebates use Lisa. Existing receivers/payers remain blank. System ledger identity is deterministic by Source Type and Source Key. Receiver-only corrections preserve receipt allocations and repayments, as verified in sequential and concurrent isolated tests. Loan issuance is Lisa's gross outflow, separately offset by the first-day Lisa receipt. Completed settlements are Lisa outflows with no recipient Cash Holder, regardless of economic partner.
+
+The owner expressly approved SQL-only `r005_cash_cutover_sources` with composite key `(source_type, source_row_id)`. It contains identities only and must not be added to AppSheet. The migration atomically records pre-cutover Payments, Loans, Business Expenses and completed Settlements; later edits cannot infer historical cash. Existing Pending settlements remain eligible on actual completion. New backdated records and initially accounting-only negative expenses remain eligible for subsequent synchronization.
+
+Normal manual transfers are Dad/Lisa Cash Handover and Lisa/Tommy Expense Reimbursement. An optional reimbursement expense reference must identify a positive expense paid by Tommy. System rows are source-managed. Opening Balance and Manual Correction require controlled SQL administration with a transaction-local opt-in and explanatory notes; no actual opening amounts are authorized. Derived entries follow source qualification: an accounting-only negative expense has no cash movement, and a noncompleted settlement has no cash movement. Source records remain authoritative. No independent cash rows arise from capital contributions, charges, allocations, repayments, default or closure.
+
+The workbook's **Dev Differences** contains the pending row-level inventory, including exact SQL declarations and planned app availability. These rows describe the tested draft, not deployed objects. Production dictionary inventories remain unchanged.
+
 ## R004 production release — 17 September 2026
 
 PROD V19 / OLTP 3.000156 / OLAP 1.100106 and tested DEV V19 / OLTP 1.000110 / OLAP 1.000096 use category `Referral Rebate / เงินคืนค่าแนะนำลูกค้า` for new automatic referral expenses and as a sixth manual expense choice. Automatic Source Type remains `Referral Rebate`; manually entered rebates remain `Manual`, with user-entered amount and normal date-based allocations. Old immutable automatic English categories remain valid. V19 includes the owner-requested manual backlog category correction only; amounts and all other fields are preserved. OLAP remains read-only Text with no category validation. No schema columns, references, calculation or reporting grains change. Exact rule, tests, owner-approved export-coverage exception and rollback are in the [R004 log](../Change%20Logs/CHANGE_NOTES_R004_2026-09-17.md). Earlier release sections below retain their historical versions.

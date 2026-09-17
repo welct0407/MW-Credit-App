@@ -1,12 +1,12 @@
 # R005 — Cash custody, cash ledger and expense reimbursement
 
-Date: 17 September 2026. Status: **Planned — preflight blocked. Not ready.**
+Date: 17 September 2026. Status: **In development — baseline reconciliation in progress. Not ready.**
 
 ## Authorization and design
 
 Owner request: “based on the design document of release R005, implement these changes in dev env.” This authorizes the specified DEV schema/app implementation and synthetic testing, including the new tables and columns. The design document is the specification, not separate authorization for its production-promotion instructions. No production writes, opening balances or promotion are authorized.
 
-Source: `G:/My Drive/Loan Manager/R005 Design.md`. The source remains unchanged. Depends on the released R004 baseline, preserving R002/R003. R005 is reserved; next release number is R006. No migration version is reserved yet; repository currently contains V1–V19 and must be rechecked before creating the next migration.
+Source: `G:/My Drive/Loan Manager/R005 Design.md`. The source remains unchanged. Depends on the released R004 baseline, preserving R002/R003. R005 is reserved; next release number is R006. After rechecking V1–V19, V20 was authored for R005. It has only been applied to isolated local test/restore databases, not Cloud SQL.
 
 ## Intended scope and consumers
 
@@ -16,7 +16,8 @@ Source: `G:/My Drive/Loan Manager/R005 Design.md`. The source remains unchanged.
 - Expenses: deliberate payer for new positive manual expenses; SQL-owned referral rebate paid by Lisa; negative adjustment without payer creates no cash entry, with payer creates a refund inflow. Economic partner allocations remain unchanged.
 - Settlements: OLAP retains workflow ownership; Pending has no cash movement, actual completion creates Lisa outflow to the partner personally, never an inflow to Tommy Cash Holder. Existing Pending settlements completing after cutover qualify; old completed rows do not backfill.
 - Manual custody: Cash Handover and Expense Reimbursement through Record Cash Transfer; controlled opening/correction entries; SQL and AppSheet protect system rows. Cash Pool Contributions, charges, allocations, repayments, default and closure do not independently cash-post.
-- OLTP owns operational entry, Cash Position and ledger presentation; OLAP consumes cash tables read-only. Both apps consume the changed payment/expense metadata and references. Preserve existing Loans form and Business Expenses deck.
+- Owner refinement on 17 September: **OLAP owns Cash Ledger manual entry, Record Cash Transfer, Cash Position and ledger presentation.** OLTP retains payment receiver and expense payer source entry. Cash Holders remains read-only in both consuming apps. Preserve existing Loans form and Business Expenses deck.
+- Owner explicitly approved one SQL-only cutover metadata table storing source type and Row ID, with no amounts/personal details and no AppSheet exposure. It distinguishes pre-R005 sources from new backdated sources and new accounting-only expenses. Existing Pending settlements remain eligible when completed after cutover.
 - Review direct export/report dependencies; no Looker edit or unrelated dashboard audit is currently included.
 
 ## Preflight evidence and limits
@@ -40,6 +41,16 @@ AGENTS.md Section 6.1 requires complete saved definitions for **both** DEV apps 
 
 ## Continuation gates and acceptance
 
+### Resumed preflight, 17 September
+
+Browser access recovered. Both saved appdoc exports are now persisted privately, along with editor-only settings/security and partial automation captures. These are **not yet claimed to be complete app-definition coverage**; automation and omitted-property reconciliation remains in progress. Both current editors showed No issues found at starting versions OLTP 1.000110 / OLAP 1.000096. No app save has been made.
+
+Fresh DEV/PROD schema exports normalize to the same V19 SHA-256: `4A4BE3E9B4469F53CFB3F90074CD382B5D439047DF3119CCF88B3B94F0777D20`.
+
+DEV recovery captured using `scripts/database/Snapshot-R005.ps1`; isolated restore verified by `scripts/database/Test-R005Backup.ps1`. Private artifact root: `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917`. Dump `development-before.dump` SHA-256: `25AE0426F1F984AFACF2D662FD9706529EFC0C165A49DE26FFB21CFFEFA0C85C`. Restored public and assessment_lab, including Flyway history, successfully; normalized schema matches. Cloud SQL cron extension/settings are outside this restore-test scope. No schema/data changes were applied to Cloud SQL by the backup rehearsal.
+
+The initial browser-failure observations above are retained as history and superseded only by the specific successful checks in this continuation. Existing DEV notification enablement differs from the expected released baseline; compare live PROD definitions and verify every owner-only route before correcting parity or testing. No notification was sent by this task.
+
 1. Restore working browser control. Recheck current versions and capture both saved DEV definitions plus editor-only configuration. Inspect both initial diagnostics/deployment checks; compare released PROD baseline and DEV preparation/notification routes.
 2. Capture schema drift evidence and a verified recoverable DEV database backup before applying DDL. Recheck migration numbering and record affected consumers and rollback artifacts.
 3. Implement immutable Flyway migrations and isolated synthetic tests for all source types, historical cutover, source correction, system protection, retry/concurrency and transaction rollback. Preserve original financial calculations.
@@ -47,10 +58,20 @@ AGENTS.md Section 6.1 requires complete saved definitions for **both** DEV apps 
 5. Execute current-GUI scenarios in design Sections 38.8–38.10, including receiver correction, first-day net effect, three expense payers, handover/reimbursement, rebate, both settlement partners, default/closure, sync/readback and independent holder reconciliation. SQL-only tests do not replace GUI acceptance.
 6. Resolve all warnings/errors in both apps. Update overview/dictionary together, development differences and environment inventory from actual implementation evidence. Freeze the tested package only when complete; obtain owner acceptance separately from production authorization.
 
-No R005 functional tests were run. No model change has been made, so the current model overview/dictionary remain unchanged rather than claiming planned objects exist. Owner testing is not yet actionable; use the scenarios above after implementation.
+At the initial browser-blocked checkpoint, no R005 functional tests had run. The continuation now includes isolated SQL regressions/concurrency and a restored-DEV-copy migration rehearsal. No current-GUI acceptance or notification-delivery test has run. Owner testing is not yet actionable; use the scenarios above after live implementation.
+
+## Local implementation checkpoint
+
+The [checkpoint report](../outputs/r005-20260917/REPORT.md) records exact files, tests, remaining checklist IDs and recovery. V20 adds the approved SQL-only cutover table, new cash tables/view and source fields, deterministic transaction-owned synchronization, source/ledger identity guards and manual transfer rules. Existing financial allocation functions remain intact. Normal manual transfers belong to OLAP under the owner refinement; opening/correction entries require controlled SQL administration, with no opening amounts loaded.
+
+Executed checks passed on PostgreSQL 18.6/Flyway 13.6.0: V19 fixture then V20 cutover; financial/custody regression; simultaneous receiver changes; expense and settlement contention/retry; migration validation and repeat no-op; checksum-tampering detection in disposable copies. The real DEV backup also restored and migrated locally with unchanged source-table fingerprints, historical receiver/payer NULLs and zero initial ledger entries. See the report's linked transcripts; none of these are claimed as GUI tests.
+
+Both appdoc baselines now include DOM object identities (550 OLTP / 714 OLAP property tables), with private current-editor supplements. Full omitted-setting/unset/inherited coverage remains unproven. A specific limited **R005** exception was requested from the owner under AGENTS.md §6.1; **approved by owner on 17 September 2026: “Approve the limited R005 coverage exception”**. No live app or Cloud SQL edits were made while awaiting it. R004's exception is not applied to R005. Deployment Check on the already-deployed editor exposes deployed status without a separate rerun control; final zero-warning/deployment verification remains pending and is not waived by the requested coverage exception.
+
+The overview and data dictionary were updated together with a clearly labeled **pending R005 draft**; the workbook adds 34 row-level Dev Differences entries and preserves production inventories. Workbook export/reimport value comparison passed for all sheets; the error scan found no matching formula errors; representative changed rows were rendered and inspected. Exact AppSheet properties still require live reconciliation.
 
 ## Changes and rollback
 
-Only the release tracker and this change log were changed. The task started with a clean working tree. Application/schema/financial records remain unmodified by this task. Observed DEV rollback versions are OLTP 1.000110 and OLAP 1.000096; recapture if they change before implementation. No new database backup is claimed.
+The initial checkpoint changed only the tracker/log. The continuation adds V20, maintained backup/test/evidence/dictionary scripts, sanitized baseline and test artifacts, and pending model documentation. The task started with a clean working tree. Live application/schema/financial records remain unmodified by this task. Observed DEV rollback versions are OLTP 1.000110 and OLAP 1.000096; recapture if they change before implementation. The verified DEV backup is recorded above.
 
 For this documentation checkpoint, recover prior text from Git while retaining the R005 number reservation; never reuse a cancelled/reserved number. Eventual SQL/app rollback must be coordinated, retain ledger evidence and use a higher Flyway migration or explicitly authorized restoration. Do not edit applied migration files or restore a database over newer writes.

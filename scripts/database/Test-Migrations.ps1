@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$TestSqlFile,[switch]$LumpSumConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$R002Concurrency)
+param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency)
 . "$PSScriptRoot/Common.ps1"
 $null = @(Get-MigrationManifest)
 $bin = Get-PgBin
@@ -25,6 +25,13 @@ try {
     $env:FLYWAY_CONFIG_FILES=Join-Path $DbRepoRoot 'database/flyway.conf'
     Push-Location $DbRepoRoot
     try {
+        if ($PreMigrationSqlFile -or $PreMigrationTarget) {
+            if (-not $PreMigrationSqlFile -or $PreMigrationTarget -lt 1) { throw 'Pre-migration fixture requires both SQL file and target version' }
+            $pre = & (Get-FlywayPath) "-target=$PreMigrationTarget" '-outputType=json' migrate
+            if ($LASTEXITCODE) { throw 'Pre-fixture migration failed' }
+            & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres -f $PreMigrationSqlFile
+            if ($LASTEXITCODE) { throw 'Pre-migration fixture failed' }
+        }
         $first = & (Get-FlywayPath) '-outputType=json' migrate
         if ($LASTEXITCODE) { throw 'Empty database migration failed' }
         $first = ($first -join "`n") | ConvertFrom-Json
@@ -59,6 +66,9 @@ try {
         }
         if ($R002Concurrency) {
             & "$PSScriptRoot/Test-R002Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+        }
+        if ($R005Concurrency) {
+            & "$PSScriptRoot/Test-R005Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
         }
         $dump = Join-Path $testRoot 'rebuilt.sql'
         & (Join-Path $bin 'pg_dump.exe') -h 127.0.0.1 -p $port -U postgres -d postgres --schema-only --no-owner --no-privileges --schema=public --schema=assessment_lab --exclude-table=public.flyway_schema_history --file=$dump

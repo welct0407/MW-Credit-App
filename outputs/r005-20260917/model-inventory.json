@@ -1,0 +1,172 @@
+[
+  {
+    "object": "Cash Holders",
+    "property": "Row ID",
+    "value": "text PRIMARY KEY"
+  },
+  {
+    "object": "Cash Holders",
+    "property": "Holder Name",
+    "value": "text NOT NULL UNIQUE"
+  },
+  {
+    "object": "Cash Holders",
+    "property": "Active",
+    "value": "boolean NOT NULL DEFAULT true"
+  },
+  {
+    "object": "Cash Holders",
+    "property": "Sort Order",
+    "value": "integer NOT NULL"
+  },
+  {
+    "object": "Cash Holders",
+    "property": "Created At",
+    "value": "timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Row ID",
+    "value": "text PRIMARY KEY"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Movement Date",
+    "value": "date NOT NULL"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Movement Type",
+    "value": "text NOT NULL"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Amount",
+    "value": "numeric NOT NULL CHECK(\"Amount\">0 AND \"Amount\"<'Infinity'::numeric AND \"Amount\"=trunc(\"Amount\"))"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Ref From Cash Holder",
+    "value": "text REFERENCES public.\"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Ref To Cash Holder",
+    "value": "text REFERENCES public.\"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Ref Payment",
+    "value": "text REFERENCES public.\"Payments\"(\"Row ID\") ON DELETE RESTRICT"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Ref Loan",
+    "value": "text REFERENCES public.\"Loans\"(\"Row ID\") ON DELETE RESTRICT"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Ref Business Expense",
+    "value": "text REFERENCES public.\"Business Expenses\"(\"Row ID\") ON DELETE RESTRICT"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Ref Settlement",
+    "value": "text REFERENCES public.\"Settlements\"(\"Row ID\") ON DELETE RESTRICT"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Entry Origin",
+    "value": "text NOT NULL DEFAULT 'Manual' CHECK(\"Entry Origin\" IN ('System','Manual'))"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Source Type",
+    "value": "text NOT NULL DEFAULT 'Manual'"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Source Key",
+    "value": "text NOT NULL"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Notes",
+    "value": "text"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Created At",
+    "value": "timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Created By",
+    "value": "text NOT NULL DEFAULT 'SQL'"
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "Updated At",
+    "value": "timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')"
+  },
+  {
+    "object": "Payments",
+    "property": "Ref Received By Cash Holder",
+    "value": "text nullable FK to Cash Holders.Row ID, ON DELETE RESTRICT. New-row SQL default ch:dad; First-day Auto fixed ch:lisa. Historical NULLs preserved. Planned OLTP editable Dad/Lisa, OLAP read-only."
+  },
+  {
+    "object": "Business Expenses",
+    "property": "Ref Paid By Cash Holder",
+    "value": "text nullable FK to Cash Holders.Row ID, ON DELETE RESTRICT. No manual default. Required new positive manual expense; new Referral Rebate fixed ch:lisa. Planned OLTP source entry, OLAP read-only."
+  },
+  {
+    "object": "r005_cash_cutover_sources",
+    "property": "source_type",
+    "value": "text NOT NULL CHECK IN ('Payment','Loan','Business Expense','Settlement'); composite PK with source_row_id. Immutable SQL-only metadata, absent from both apps."
+  },
+  {
+    "object": "r005_cash_cutover_sources",
+    "property": "source_row_id",
+    "value": "text NOT NULL; composite PK with source_type. Pre-cutover source identity only. Old completed settlements excluded; old pending settlements remain eligible. Absent from both apps."
+  },
+  {
+    "object": "Cash Holder Balances",
+    "property": "Ref Cash Holder",
+    "value": "Cash Holders.Row ID; one row per holder; planned read-only Ref key. SQL view; planned OLAP read-only, no OLTP aggregation."
+  },
+  {
+    "object": "Cash Holder Balances",
+    "property": "Holder Name",
+    "value": "Cash Holders.Holder Name; planned label. SQL view; planned OLAP read-only, no OLTP aggregation."
+  },
+  {
+    "object": "Cash Holder Balances",
+    "property": "Cash In",
+    "value": "SUM(Cash Ledger.Amount WHERE Ref To Cash Holder = holder), or 0. SQL view; planned OLAP read-only, no OLTP aggregation."
+  },
+  {
+    "object": "Cash Holder Balances",
+    "property": "Cash Out",
+    "value": "SUM(Cash Ledger.Amount WHERE Ref From Cash Holder = holder), or 0. SQL view; planned OLAP read-only, no OLTP aggregation."
+  },
+  {
+    "object": "Cash Holder Balances",
+    "property": "Current Balance",
+    "value": "Cash In - Cash Out. SQL view; planned OLAP read-only, no OLTP aggregation."
+  },
+  {
+    "object": "Cash Holder Balances",
+    "property": "Business Cash Held",
+    "value": "GREATEST(Current Balance, 0). SQL view; planned OLAP read-only, no OLTP aggregation."
+  },
+  {
+    "object": "Cash Holder Balances",
+    "property": "Reimbursement / Advance Due",
+    "value": "GREATEST(-Current Balance, 0). SQL view; planned OLAP read-only, no OLTP aggregation."
+  },
+  {
+    "object": "Cash Ledger",
+    "property": "App ownership",
+    "value": "Owner refinement: OLAP owns manual transfers, Cash Position and ledger presentation. SQL owns automatic source synchronization. System rows read-only; normal manual types Cash Handover and Expense Reimbursement. Opening/Manual Correction require controlled SQL administration. No opening amounts authorized."
+  }
+]
