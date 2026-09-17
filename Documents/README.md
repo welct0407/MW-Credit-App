@@ -1,10 +1,11 @@
 # AppSheet documentation
 
-Updated 15 September 2026. Start with the production reference below. Keep one production model and a separate development difference register.
+Use [AGENTS.md's task routing](../AGENTS.md#working-method-and-task-routing) to select relevant documents; this index is not a required reading list. Keep one production model and a separate development difference register. Historical reconciliation dates below describe their evidence, not a fresh live check.
 
 | Document | Purpose | Current status |
 | --- | --- | --- |
-| [Release tracker](Release_Tracker.md) | Project release numbers, content summaries, status and chat-title convention | Current baseline R001; consult tracker for the next available number |
+| [Release tracker](Release_Tracker.md) | Project release numbers, content summaries, status and chat-title convention | Consult tracker for current release status and next available number |
+| [Solution design](Solution_Design.md) | Prototype scope, app ownership, financial-model principles and dashboard page order | Read the affected section for design/model/report work |
 | [Production data model](AppSheet_Data_Model_Overview.md) | Architecture, ownership, tables, relationships and current calculation boundaries | Reconciled to live app definitions and SQL schema on 15 September |
 | [Data dictionary](AppSheet_Data_Dictionary.xlsx) | Exact production business columns, rules, references, slices, SQL catalog and development differences | Rebuilt from current definitions; see Guide for scope |
 | [Environment inventory](Environment_Inventory.md) | App IDs/versions, database hosts, connection limits, evidence timestamps and limitations | Current read-only app/SQL checks; other configuration has dated evidence |

@@ -7,6 +7,8 @@ Output documents, scripts and evidence are tracked by Git for recovery. Installe
 
 ## Setup on this Windows VM or after recovery
 
+Use the existing runtime/junction when it works. These setup steps apply after recovery, missing dependencies or a verified runtime problem, not at the start of every task. Do not traverse the root dependency junction during repository backup or recursive cleanup.
+
 1. Ask Codex to call load_workspace_dependencies to locate the current bundled Node, Python and Node package directory.
 2. Run `powershell -NoProfile -File scripts/setup-dependencies.ps1 -DependencyRoot "<bundled Node node_modules directory>"` from the repository. The current host's default is provided by the script.
 3. Run maintained JavaScript scripts with the bundled Node executable. Node resolves imports through the single repository-root node_modules junction. Do not install or copy node_modules into output folders.
@@ -18,10 +20,19 @@ The setup script checks artifact-tool 2.8.59, records bundle 26.909.12148 in dep
 
 reference/ preserves the 47 Python/JavaScript scripts previously tracked under outputs/, with the same subdirectory structure and unchanged bytes. Originals remain on disk under outputs/. Their hashes and original paths are in reference-manifest.json.
 
-These are historical recipes, not a batch of approved migrations to rerun. Some use hardcoded paths, script-relative companion files, or overwrite workbook/configuration documentation. Read and adapt a selected script before use; its original output files are tracked in Git, with Google Drive as additional recovery coverage. In particular, use the original script location when its relative paths require companion files. Do not execute historical update scripts as a dependency test.
+These are historical recipes, not a batch of approved migrations to rerun. Some use hardcoded paths, script-relative companion files, or overwrite workbook/configuration documentation. Read and adapt a selected script before use; only verified Git publication establishes repository recovery coverage. Do not assume additional Google Drive coverage. Account for original script-relative paths when adapting a selected script. Do not execute historical update scripts as a dependency test.
 
 The owner deleted the ten old output-local dependency installations on 2026-09-10. Both maintained scripts and original output scripts now resolve the shared root dependency junction. A read-only artifact-tool import and in-memory workbook creation from an output directory passed; this is not a compatibility guarantee for every historical script.
 
 ## Recovery
 
 Clone the Git repository to recover committed outputs, then rerun setup-dependencies.ps1 using the current bundled runtime. Commit and push work that must survive loss of the VM; the project folder is no longer covered by Drive sync. Verify a representative read-only workflow before resuming modifications. Installed dependencies are not stored in the current Git tree. The separate MW-AI-Collection database backup to Drive does not back up this project's uncommitted files.
+
+## Credential maintenance
+
+Read this section when creating, migrating or recovering credentials; ordinary tasks using an established credential do not require a storage audit. The standing external-storage rule is in [AGENTS.md](../AGENTS.md).
+
+- Store project API keys, access/refresh tokens, app secrets, private keys, recovery/encryption keys and exported authentication/session files under `C:\Users\MWCredit\Documents\ChatGPT`, preferably a project subfolder. Never store secret values under `C:\GitHub`, even in ignored files. Configuration and change logs use paths/placeholders only.
+- On migration, update consumers and verify references without printing values. Preserve existing credentials until verified; never overwrite/regenerate a recovery key as a substitute for a lost key.
+- Leave application-managed Codex/GitHub/browser sign-in stores in place; do not relocate them as a side effect. Project-owned exports belong in the external folder.
+- Record actual credential recovery/backup coverage when credentials change. Folder existence proves no backup; database backups do not cover credentials, and the GitHub project folder is excluded from Drive.
