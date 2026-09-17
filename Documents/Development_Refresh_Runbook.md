@@ -2,6 +2,8 @@
 
 Established 16 September 2026. Use this runbook when the owner requests a future DEV refresh. It covers the existing two-environment architecture: one database and OLTP/OLAP apps per environment. This document does not execute or schedule a refresh and is not production deployment approval.
 
+The notification-routing and companion-link checks below establish the refresh baseline. Reuse that record in later development and production-promotion tasks; do not repeat these checks unless a relevant route changes or evidence of a routing problem triggers a targeted recheck under AGENTS.md Section 2. All refresh checks below remain required for the actual refresh.
+
 ## 1. Select scope and preserve work
 
 Record the requested mode in one dated refresh change log, with linked evidence under `outputs/` where useful. Reuse an existing release log if the refresh belongs to that release; a routine environment refresh does not itself need a new feature release number.

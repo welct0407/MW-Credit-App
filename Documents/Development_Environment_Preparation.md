@@ -2,7 +2,7 @@
 
 Updated 16 September 2026. The controlling policy is [AGENTS.md, Section 2](../AGENTS.md): DEV follows the released PROD automation baseline, with DEV sources/destinations and all notifications restricted to `welct0407@mw-credit.com`. Release-owned changes under development remain recorded differences until promotion. Earlier blanket disabling and release-specific notification exceptions are superseded.
 
-Apply this checklist after every app/database copy, refresh, replacement or restore, and after automation changes. Review the full inventory after a refresh; for an ordinary edit, reuse the last verified inventory and recheck changed paths and dependencies. This is an operating procedure, not an installed enforcement or monitoring service.
+Apply the full checklist during environment setup and after app/database copy, refresh, replacement or restore. Under the owner's 17 September 2026 rule in AGENTS.md Section 2, routine development and production promotion reuse established notification routing and companion links without repeating their validation. For ordinary automation edits, use only the steps relevant to changed behavior. Recheck recipients/links only when the affected expressions, app IDs, routing dependencies or called tasks change, or concrete evidence shows a routing problem; a schedule-only edit does not itself trigger recipient review. A new task/release/version is not a reason to rerun this checklist or request a coverage exception. This is an operating procedure, not an installed enforcement or monitoring service.
 
 ## Preparation checklist
 
