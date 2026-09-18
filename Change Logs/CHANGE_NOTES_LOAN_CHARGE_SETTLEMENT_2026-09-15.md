@@ -1,5 +1,23 @@
 # Loan charge settlement — 2026-09-15
 
+## Payment-plan refinement — 2026-09-18
+
+The owner replaced the single-date THB 36,000 settlement presentation with this future payment plan:
+
+| Payment date | Scheduled amount |
+| --- | ---: |
+| 2026-09-20 | THB 5,000 |
+| 2026-10-03 | THB 7,000 |
+| 2026-11-03 | THB 12,000 |
+| 2026-12-03 | THB 12,000 |
+| **Total** | **THB 36,000** |
+
+The four existing unpaid settlement-charge identities and loan links were retained. The THB 2,000 loan's charge changed from THB 4,800 to THB 5,000 by changing negotiated interest from THB 2,800 to THB 3,000. The THB 3,000 loan's charge changed from THB 7,200 to THB 7,000 by changing negotiated interest from THB 4,200 to THB 4,000. The two THB 5,000 loan charges remain THB 12,000 each. Total principal remains THB 15,000, total negotiated interest remains THB 21,000, and the plan total remains THB 36,000. None of the four charges had a repayment when rescheduled. Pond's separate 2026-09-18 THB 3,500 loan and its paid first-day charge are outside this plan and were not changed.
+
+A fresh private production backup was created before the refinement at `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917/pond-plan-before-20260918.dump`, SHA-256 `9334EE871A678D362A08D526E6A65214A106EC7FB702D1ADF0EFEAEDE9DA451F`. The dump restored successfully in isolation and all 19 public-table fingerprints matched production. The standard normalized-schema text comparison reported one redundant-parentheses rendering difference in `olap_borrowers_analytics`; direct diff confirmed that as the only difference.
+
+The update was rehearsed in a rolled-back transaction, then applied atomically with borrower lock, exact before-state checks, no-repayment checks, deferred refresh execution and a THB 36,000 postcondition. SQL readback confirmed four unpaid rows, zero paid, the requested dates and amounts, and unchanged THB 18,500 borrower outstanding principal. Production OLTP **3.000173** synced successfully: Pond is absent from today's collection, and the linked loan details visibly show 2026-09-20 / THB 5,000, 2026-10-03 / THB 7,000, 2026-11-03 / THB 12,000 and 2026-12-03 / THB 12,000. No schema, app definition, notification, payment, repayment or cash record changed.
+
 ## Scope and purpose
 
 Applied the owner's approved settlement to one borrower's four active production loans. The borrower will now have one open settlement charge on each loan, with the four open charges totaling THB 36,000. Existing posted payments and fully paid historical charges were preserved.
@@ -47,14 +65,14 @@ The exact before-image rows were exported before the transaction to the private 
 ## Manual testing requested
 
 1. Open the borrower in Loan Manager and confirm each of the four loans has only one charge with an outstanding amount.
-2. Confirm the four outstanding amounts are THB 7,200, THB 4,800, THB 12,000, and THB 12,000, totaling THB 36,000.
+2. Confirm the four outstanding installments are THB 5,000 on 20 September, THB 7,000 on 3 October, THB 12,000 on 3 November and THB 12,000 on 3 December, totaling THB 36,000.
 3. Confirm the THB 3,000 loan's 2026-09-11 historical charge shows THB 200 paid and zero remaining.
-4. Confirm historical received totals still equal THB 9,020 and no principal repayment was created.
+4. Confirm the settlement refinement created no payment or repayment and did not change historical received totals.
 5. After the next scheduled charge run, confirm no new daily charge is generated for any of the four loans.
 6. In Loan Business Insights, confirm the same four settlement amounts after sync and review any directly affected borrower or loan analysis.
 
 ## Status and rollback
 
-Status: implemented and technically verified; owner manual acceptance is pending.
+Status: the 2026-09-18 payment-plan refinement is implemented and verified in production; owner manual acceptance is pending.
 
 To roll back the data correction, use a transaction to restore the five modified charge rows and reinsert the seven removed charge rows and six removed zero-value allocation rows from the private before-image CSV files. Re-run the same one-open-charge, payment, allocation, and repayment reconciliation checks before committing, then sync both apps. App version restoration is unnecessary because no app definition changed; versions 3.000094 and 1.100062 remain the recorded configuration rollback references.
