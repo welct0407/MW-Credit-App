@@ -47,3 +47,7 @@ Both Prototype scheduling warnings are owner-excluded; no other editor issue rem
 - `outputs/r007-20260918/`: sanitized contract, exact delta/readback, comparisons, benchmarks, diagnostics, previews, report and freeze evidence.
 - `Documents/{Release_Tracker,Environment_Inventory,Development_Changes,AppSheet_Data_Model_Overview}.md`, `AppSheet_Data_Dictionary.xlsx`, `database/README.md`: current DEV difference, unchanged PROD reference and release status.
 - This log: decisions, implementation history, checks and rollback. Starting clean commit is recorded above. Publication commit/hash is recorded in the frozen package and final task response.
+
+## Candidate freeze
+
+Tested implementation commit: e714db3592831440c266aa737fc00c6b3a40b983. New-Release.ps1 completed from the clean commit after fresh DEV validation/info, and all 22 hashes in the sanitized Flyway manifest match the migration files. The frozen package pins V22 and AppSheet revision 1; subsequent evidence-only commits do not replace the deployment commit. Owner acceptance and production authorization are still pending.
