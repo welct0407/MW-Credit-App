@@ -9,11 +9,11 @@
     }
   },
   "continuation": {
-    "versions": "DEV OLTP 1.000134; OLAP 1.000129 observed, no R006 edits; SQL V21 unchanged. Rollback OLTP 1.000131.",
-    "done": "Four App formulas saved and independently read back in the reloaded current editor; six payment methods and collection parity checked. See DEV_REPORT.md.",
-    "next": "Owner DEV acceptance and scoped production authorization; fresh PROD identity/drift/rollback review before any promotion.",
-    "decisions": "DEV implementation only authorized. Both DEV apps remain Prototype. No production writes authorized.",
-    "evidence": "Change Logs/CHANGE_NOTES_R006_2026-09-18.md; outputs/r006-20260918/DEV_REPORT.md, benchmark.json, saved-editor-observations.json, fixture-readback.jsonl."
+    "versions": "DEV OLTP 1.000134; PROD OLTP 3.000173; PROD rollback 3.000172; OLAP 1.000129 observed, no R006 edits; SQL V21 unchanged. DEV apps remain Prototype.",
+    "done": "Four frozen App formulas were saved and independently read back in PROD version 3.000173; focused dashboard/Collection smoke checks loaded without writes. The PROD editor reports No issues found.",
+    "next": "Re-run the current PROD Deployment Check when AppSheet exposes a fresh Run control; until then the tracker remains Deployment applied; verification incomplete.",
+    "decisions": "User explicitly authorized move R006 to prod. No database or SQL change; no synthetic DEV data promoted.",
+    "evidence": "Change Logs/CHANGE_NOTES_R006_2026-09-18.md; outputs/r006-20260918/DEV_REPORT.md, prod-saved-observations.json, prod-readback-r1.json, prod-comparison-r1.json, benchmark.json."
   },
   "items": [
     {
