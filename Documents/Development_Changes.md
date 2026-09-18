@@ -1,5 +1,13 @@
 # Development differences
 
+Record each release's DEV checkpoint here and close its release-owned differences after promotion using the [documentation checklist](Promotion_Documentation_Checklist.md). Current closure entries supersede historical checkpoints below; historical deployment-check blockers do not reinstate requirements excluded by the current release workflow.
+
+## R006 promoted and differences closed — 18 September 2026
+
+Retrospective documentation repair from recorded R006 evidence; no new live verification. DEV OLTP **1.000134** staged four virtual-column App formula changes: Payments **Eligible Charges**, **Eligible Outstanding**, **Visible Allocations**, and Borrowers **Daily Collection Status**. Exact before/DEV/PROD targets are in the [R006 delta](../outputs/r006-20260918/release-delta.json); DEV tests, acceptance and recovery are in the [release log](../Change%20Logs/CHANGE_NOTES_R006_2026-09-18.md).
+
+All four differences were promoted to PROD OLTP **3.000173** on 18 September 2026 and are **closed**, supported by the [independent PROD comparison](../outputs/r006-20260918/prod-comparison-r1.json), [saved observations](../outputs/r006-20260918/prod-saved-observations.json) and closure checks in the log. Implementation **dad1b79**, production-evidence checkpoint **7683fd8**, package revision **1**; rollback PROD OLTP **3.000172**. SQL remains **V21**; OLAP was not changed by R006. Synthetic DEV data and environment-specific configuration remain DEV-only; this closes neither later work nor whole-environment differences. The absent fresh Deployment Check for the already-Deployed PROD app is not an outstanding difference or blocker under the current owner rule.
+
 ## R005 released — 18 September 2026
 
 PROD **OLTP 3.000172 / OLAP 1.100122 / SQL V21**, pinned implementation **2054384**, package R005-P1. Owner acceptance and production authorization are recorded; the latest instruction excludes deployment-check advisories and keeps DEV Prototype. All 2,408 core properties and 20 dashboard items match independent saved PROD readback. Both final PROD editors show No issues found; focused GUI and read-only SQL checks passed. No history backfill or DEV opening/test data was promoted. See [production verification and recovery](../outputs/r005-20260917/PRODUCTION_REPORT.md). Earlier readiness/authorization statements below are dated historical checkpoints, superseded by this release.

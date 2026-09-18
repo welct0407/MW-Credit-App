@@ -12,7 +12,9 @@ node scripts/releases/delta.mjs compare outputs/<release>/release-delta.json out
 node --test scripts/releases/delta.test.mjs
 ```
 
-`validate` checks record shape, unique IDs/paths, target states and substitution reasons. `render` generates a checklist and continuation section; edit the JSON, not generated Markdown. `compare` requires the matching candidate hash, revision, environment and app IDs, and compares every recorded item. Exit code 1 means an error, mismatch or missing observation. Output files must be new paths, so old frozen evidence is not overwritten. Generated Markdown is a readable view; JSON retains exact values and types, including newlines and ordered arrays.
+`validate` checks record shape, unique IDs/paths, target states and substitution reasons. `render` generates the configuration checklist, continuation section and **per-document promotion closure rows**. Edit configuration values in JSON; fill document dispositions/evidence in the release checklist or its linked log. Preserve filled rows when regenerating. `compare` requires the matching candidate hash, revision, environment and app IDs, and compares every recorded item. Exit code 1 means an error, mismatch or missing observation. Output files must be new paths, so old frozen evidence is not overwritten. Generated Markdown is a readable view; JSON retains exact values and types, including newlines and ordered arrays.
+
+Document rows come from [the canonical register](../../Documents/Promotion_Documentation_Checklist.md) and a fresh recursive Documents path inventory, including diagrams/workbooks/history. Newly discovered or missing registered paths stay visible for resolution; generation never marks a document verified. For an existing or SQL-only release use `node scripts/releases/documentation.mjs outputs/<release>/documentation-checklist.md`. Every promotion must complete these rows before Released; `compare` success covers configuration observations only. Verify the helpers with `node --test scripts/releases/delta.test.mjs scripts/releases/documentation.test.mjs`.
 
 ## Delta fields
 

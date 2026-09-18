@@ -118,7 +118,7 @@ Verify PROD identity and delta-related drift, preserve unrelated work, and confi
 
 Verify **every delta item against the frozen PROD target**, using independent saved readbacks, never current DEV or edit payloads. Run relevant read-only SQL checks and current-GUI smoke checks in both apps; inspect/cancel forms without unapproved financial writes or forced notifications. DEV behavioral evidence supports focused PROD checks, not a full repeated suite.
 
-Missing/mismatched/pending items prevent Released; report **Deployment applied; verification incomplete**. Explicit owner exceptions stay labeled and cannot waive zero warnings. Reconcile log/checklist/tracker and applicable model/environment records, closing only promoted differences. Complete publication below, then report release number, outcome/readiness, checks, evidence, rollback and remaining limitations.
+Missing/mismatched/pending items prevent Released; report **Deployment applied; verification incomplete**. Explicit owner exceptions stay labeled and cannot waive zero warnings. Complete the per-document [promotion documentation checklist](Documents/Promotion_Documentation_Checklist.md): every promotion updates/verifies `Release_Tracker.md`, `Environment_Inventory.md` and `Development_Changes.md`; resolve every other document's applicability explicitly. Close only promoted differences and reconcile the release log/evidence. Documentation closure is required before Released. Complete publication below, then report release number, outcome/readiness, checks, evidence, rollback and remaining limitations.
 
 ## Automatic commit and push — owner rule, 10 September 2026
 

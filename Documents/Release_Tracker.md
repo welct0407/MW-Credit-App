@@ -44,4 +44,6 @@ R001 is a composite baseline, not a single deployable migration or universal res
 
 ## New release entry checklist
 
+Every promotion must link a completed [per-document checklist](Promotion_Documentation_Checklist.md), including the release's closed `Development_Changes.md` entry. Runtime validation alone does not complete documentation closure. Keep unresolved documentation visible before marking Released; do not infer completion from a generic “docs updated” statement.
+
 When reserving the next available number, add a row with a concise title, included components, status and reservation date. Link its change log/checklist and record dependencies, frozen package revision, development versions, tests/performance where relevant, readiness recommendation, owner acceptance/production approval, exact release commit/database manifest, production versions/date, verification results, known limitations and rollback reference as they become available. Use “pending” for unknown evidence; never label a planned release as deployed. These workflow rules do not retrospectively revalidate or change the recorded status of earlier releases.

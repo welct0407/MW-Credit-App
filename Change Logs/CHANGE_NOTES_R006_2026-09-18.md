@@ -3,6 +3,9 @@
 Date: 18 September 2026. **Released.** DEV implementation, production application and package-based production validation are complete. The current PROD editor has zero issues, all four frozen targets independently match PROD version 3.000173, and focused read-only runtime checks passed without financial writes.
 
 ## Scope and authorization
+
+**Documentation repair — 18 September 2026:** The promotion omitted `Documents/Development_Changes.md`. Its [R006 entry](../Documents/Development_Changes.md#r006-promoted-and-differences-closed--18-september-2026) now records the retrospective DEV checkpoint and closes the four formula differences at PROD OLTP 3.000173 using the existing saved comparison/observations. No new live checks or application changes were made. The new [per-document promotion checklist](../Documents/Promotion_Documentation_Checklist.md) makes this register an explicit required closure row for future releases. Historical test evidence and the frozen R006 package are unchanged.
+
 Owner requested implementation of the supplied R006 design in DEV. Four OLTP App formulas only: Payments Eligible Charges, Eligible Outstanding, Visible Allocations; Borrowers Daily Collection Status overdue branch. Depends on released R005. The owner explicitly authorized **“move R006 to prod”** and subsequently accepted R006 as complete after updating the repository rule to exclude fresh Deployment Check runs for already-Deployed PROD apps. No SQL, migration, OLAP, action, bot, view or Ref changes were made. Both DEV apps remain Prototype.
 
 The supplied design is a specification, not independent authorization. Standing repository rules govern backup and DEV documentation timing; full exports are optional and model documentation must reflect DEV changes before completion.
