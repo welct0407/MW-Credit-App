@@ -23,6 +23,8 @@ OLAP's Settlements security filter is `[Status] <> "Cancelled"`. The partner Tot
 
 ## Recovery and owner check
 
+Tested implementation commit: **770e2bee8d35c086471bb3286914fcbb9dd4e20a**. [V21 manifest](reversal-sql-candidate-manifest.json) captured from the clean tested commit; the later documentation commit does not change this pin. No production authorization.
+
 Immediate app rollback reference: **OLAP 1.000120**; OLTP **1.000120** unchanged. A coordinated rollback must also account for V21 and retained Cancelled rows: reverting only the app would reintroduce counting/physical-delete behavior. Prefer a higher Flyway forward-fix migration. Do not edit applied V21 or blindly restore pre-V21 data over subsequent DEV work.
 
 Pre-V21 DEV backup: [path and hash record](reversal-backup.json), `development-before-v21.dump`, SHA-256 `01652F50F75BBFB093E20F873BADB6E4CDFB1D64F32A781077C12C146BC20ED6`. Archive listing verified; this new snapshot was not restore-rehearsed. The earlier R005 backup restore rehearsal remains separately recorded.

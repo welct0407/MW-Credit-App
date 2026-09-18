@@ -15,6 +15,8 @@ Established 16 September 2026. **Current recorded production baseline: R004, pre
 
 ## Releases
 
+R005 Delete refinement tested commit: **770e2bee8d35c086471bb3286914fcbb9dd4e20a**; [V21 SQL manifest](../outputs/r005-20260917/reversal-sql-candidate-manifest.json) captured from the clean candidate. AppSheet package remains unfrozen pending the recorded checks.
+
 **R005 current refinement, 18 September:** DEV **V21 / OLAP 1.000123 / OLTP 1.000120** adds the owner-requested settlement reversal through Delete. Completed and pending GUI tests with SQL readback passed; no separate Cancel Settlement action. [Refinement report and current complete exported-property checklist](../outputs/r005-20260917/REVERSAL_REPORT.md) supersede the V20 candidate in the row below. Status remains **In development / Not ready** with the existing diagnostic/delivery gates and an explicitly unverified intermediate AppSheet version capture. No owner acceptance or PROD authorization. Prior candidate commit/manifest below remains retained historical evidence.
 
 | Release | Title and content summary | Status | Date | Technical versions / evidence |
