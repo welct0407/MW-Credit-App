@@ -1,6 +1,6 @@
 # Environment inventory
 
-Updated 18 September 2026 after R006 production application. PROD is V21 / OLTP 3.000173 / OLAP 1.100122. DEV is V21 / live OLTP 1.000134 (R006) / OLAP 1.000129 (observed; no R006 edits), both Prototype; accepted business definitions were 1.000125 / 1.000123 before diagnostic-only mode transitions. The databases retain the same database name; instance/host establish identity. R006 production evidence and the deployed-state verification limitation are in [the R006 log](../Change%20Logs/CHANGE_NOTES_R006_2026-09-18.md).
+Updated 18 September 2026 after R006 release closure. PROD is V21 / OLTP 3.000173 / OLAP 1.100122. DEV is V21 / live OLTP 1.000134 (R006) / OLAP 1.000129 (observed; no R006 edits), both Prototype; accepted business definitions were 1.000125 / 1.000123 before diagnostic-only mode transitions. The databases retain the same database name; instance/host establish identity. R006 production evidence and rollback are in [the R006 log](../Change%20Logs/CHANGE_NOTES_R006_2026-09-18.md).
 
 ## App identities and bindings
 

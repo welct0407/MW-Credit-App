@@ -10,9 +10,9 @@
   },
   "continuation": {
     "versions": "DEV OLTP 1.000134; PROD OLTP 3.000173; PROD rollback 3.000172; OLAP 1.000129 observed, no R006 edits; SQL V21 unchanged. DEV apps remain Prototype.",
-    "done": "Four frozen App formulas were saved and independently read back in PROD version 3.000173; focused dashboard/Collection smoke checks loaded without writes. The PROD editor reports No issues found.",
-    "next": "Re-run the current PROD Deployment Check when AppSheet exposes a fresh Run control; until then the tracker remains Deployment applied; verification incomplete.",
-    "decisions": "User explicitly authorized move R006 to prod. No database or SQL change; no synthetic DEV data promoted.",
+    "done": "Released. Four frozen App formulas were saved and independently read back in PROD version 3.000173; the fresh closure validation reconfirmed exact targets, zero editor issues, Deployed status and Dashboard/Collection/Payments runtime behavior without writes.",
+    "next": "No R006 release work remains. A fresh Deployment Check is excluded for already-Deployed PROD apps under the current owner rule.",
+    "decisions": "User explicitly authorized move R006 to prod and accepted R006 as complete after updating AGENTS.md. No database or SQL change; no synthetic DEV data promoted.",
     "evidence": "Change Logs/CHANGE_NOTES_R006_2026-09-18.md; outputs/r006-20260918/DEV_REPORT.md, prod-saved-observations.json, prod-readback-r1.json, prod-comparison-r1.json, benchmark.json."
   },
   "items": [
