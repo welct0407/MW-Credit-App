@@ -1,5 +1,7 @@
 # R008 DEV implementation and verification
 
+**Current candidate: [revision 2 sync repair](r2/REPORT.md), DEV OLTP 1.000178.** The following revision-1 implementation/evidence is retained; unchanged tests are reused. Promote only the complete revision-2 delta after separate owner acceptance/authorization.
+
 DEV only, 18 September 2026. Owner acceptance and production authorization have not been given. The supplied design specifies the feature; it does not authorize production writes. Production remains R007: SQL V22 / OLTP 3.000173 / OLAP 1.100131.
 
 ## Implemented state

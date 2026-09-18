@@ -1,6 +1,6 @@
 # Environment inventory
 
-Updated 18 September 2026 for R008 DEV. PROD remains V22 / OLTP 3.000173 / OLAP 1.100131. DEV is V24 / OLTP 1.000176 / OLAP 1.000169, both Prototype. R008 adds Cash Accounts in both apps and Cash Account Balances in OLAP; account openings remain uninitialized. The databases retain the same database name; instance/host establish identity. [R008 DEV evidence and recovery](../outputs/r008-20260918/REPORT.md). R007 production evidence and rollback remain in [its report](../outputs/r007-20260918/REPORT.md).
+Updated 19 September 2026 for R008 DEV revision 2. PROD remains V22 / OLTP 3.000173 / OLAP 1.100131. DEV is V24 / OLTP 1.000178 / OLAP 1.000169, both Prototype. R008 adds Cash Accounts in both apps and Cash Account Balances in OLAP; account openings remain uninitialized. Revision 2 fixes manual charge generation's Bangkok date. The databases retain the same database name; instance/host establish identity. [R008 DEV evidence and recovery](../outputs/r008-20260918/r2/REPORT.md). R007 production evidence and rollback remain in [its report](../outputs/r007-20260918/REPORT.md).
 
 ## App identities and bindings
 
@@ -8,7 +8,7 @@ Updated 18 September 2026 for R008 DEV. PROD remains V22 / OLTP 3.000173 / OLAP 
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000173 | database-2 | 12 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100131 | database-2 | 17 |
-| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000176 | database-3 | 13 |
+| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000178 | database-3 | 13 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000169 | database-3 | 19 |
 
 Both OLAP apps use the assessment view and have removed Calendar for V11 SQL analytics. The historical SQL Calendar objects remain outside AppSheet for recovery. Native internal tables are excluded from the SQL counts. Business Expenses is loaded in both environments: editable for manual entries in OLTP and read only in OLAP. A 16 September post-release audit found Business Expenses, borrower-referral and net-reporting gaps at production 3.000118 / 1.100098. R003 reconciled every listed AppSheet object at production 3.000121 / 1.100101; use the linked R001 audit and R003 report for the before/after evidence.
