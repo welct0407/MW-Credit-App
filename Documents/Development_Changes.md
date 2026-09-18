@@ -1,5 +1,11 @@
 # Development differences
 
+## R007 DEV complete — 18 September 2026
+
+**SQL V22 / OLAP 1.000142 / unchanged OLTP 1.000134**, pending owner acceptance and production authorization. Five SQL analytics views replace 82 analytical VCs across the four existing read-only OLAP tables; a new read-only Portfolio Summary supplies 40 Statistics dereferences. The collection list now uses a hidden reverse Ref. Base financial tables, original slices, views, actions and format rules retain their contracts. Production remains V21 / OLAP 1.100122 / OLTP 3.000173.
+
+Exact targets and environment substitutions: [R007 revision 1 delta](../outputs/r007-20260918/release-delta.json). All 293 targets match independent saved DEV readback. All-row parity, synthetic SQL boundaries, GUI navigation, Recent/Full refresh and focused OLTP checks pass; median measured sync improves from 14.641 to 4.608 seconds. The owner excludes both existing Prototype scheduling execution warnings (OLAP Every Hour; OLTP Daily 00:05); preserve schedules and Prototype mode. [Evidence, limitations and coordinated recovery](../outputs/r007-20260918/REPORT.md); [release log](../Change%20Logs/CHANGE_NOTES_R007_2026-09-18.md). R007 remains an open DEV difference until authorized, verified promotion.
+
 Record each release's DEV checkpoint here and close its release-owned differences after promotion using the [documentation checklist](Promotion_Documentation_Checklist.md). Current closure entries supersede historical checkpoints below; historical deployment-check blockers do not reinstate requirements excluded by the current release workflow.
 
 ## R006 promoted and differences closed — 18 September 2026

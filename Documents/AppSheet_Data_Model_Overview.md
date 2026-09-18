@@ -1,5 +1,27 @@
 # AppSheet production data model
 
+## R007 DEV difference — 18 September 2026
+
+**DEV only: SQL V22 / OLAP 1.000142; OLTP remains 1.000134.** Production remains V21 / OLAP 1.100122 / OLTP 3.000173. R007 moves analytical computation into five ordinary PostgreSQL views without changing base tables, operational triggers, financial data or business rules. The production reference below remains authoritative for PROD; the workbook's appended R007 **Dev Differences** rows hold the exact changed properties and complete new-object inventory.
+
+| Existing OLAP logical table | DEV provider | Analytical fields moved |
+| --- | --- | --- |
+| Charges | public.olap_charges_analytics | 6 |
+| Repayments | public.olap_repayments_analytics | 10 |
+| Loans | public.olap_loans_analytics | 18 |
+| Borrowers | public.olap_borrowers_analytics | 48 |
+| Portfolio Summary (new, read only) | public.olap_portfolio_summary | 40 portfolio measures consumed by Statistics |
+
+The four rebound tables retain READ_ONLY, original Row IDs, labels, Ref targets, display/type/precision metadata and pass-through physical fields. Their 82 former analytical VCs are now physical provider fields with no App formulas. Lightweight presentation and reverse-reference VCs remain local. Repayments.Row ID loses the base provider's fixed-definition/initial-value-editability flags after rebinding; its immutable key value/type and read-only access remain intact.
+
+Charges gains hidden read-only Ref **Ref Collection Borrower → Borrowers** only for the existing collection population. Borrowers gains hidden **Related Charges = REF_ROWS("Charges", "Ref Collection Borrower")**; existing **Todays Collection Charges = [Related Charges]** retains List-of-Ref behavior. All 12 original slices retain exact ordered membership, filters and permissions, including reporting slices; regeneration's temporary appended helpers were removed.
+
+Portfolio Summary has the Statistics Row ID as its Text key and Statistics ID as Text label. Its 40 hidden metrics match existing Statistics types and precision. Statistics stays on the editable base table, including its Analytics Refresh Request and existing Recent/Full actions; hidden **Portfolio Summary Ref = [Row ID]** references the summary. Each of the 40 heavy Statistics VCs now dereferences that Ref; five local headers remain. Generated Portfolio Summary detail and Statistics inline views are `ref` only, with no new menu entry. The generated Related Statistics reverse list is captured in the exact inventory.
+
+One stable SQL reporting-date function uses Asia/Bangkok. Views preserve observed rounded intermediate column boundaries, integer-division behavior in matrix scores, empty-history date behavior, historical contribution-date partner allocations and the different Borrower/Statistics collection populations. No materialized-view refresh, broad caches, speculative indexes or new base columns were introduced. The existing SQL Daily Analytics engine remains unchanged; its GUI refresh actions still update base Statistics and preserve snapshot IDs. Reporting field names/grains, exports and Looker-facing slice contracts are unchanged; no dashboard publication occurred.
+
+[Exact R007 delta](../outputs/r007-20260918/release-delta.json), [independent DEV comparison](../outputs/r007-20260918/dev-comparison-r1.json), and [tests, limitations and recovery](../outputs/r007-20260918/REPORT.md). Both DEV apps remain Prototype. The owner expressly excludes their two scheduling execution warnings; no other editor issue remains. Acceptance and production authorization are pending.
+
 ## R006 released — 18 September 2026
 
 DEV OLTP **1.000134** and PROD OLTP **3.000173** contain the same four targeted virtual-column App formulas. Payments Eligible Charges/Eligible Outstanding evaluate only for Processing or Error and return an empty list/zero for Posted; the active eligibility body is preserved. Visible Allocations filters the existing Related Payment Allocations Ref list for positive amounts. Borrowers Daily Collection Status filters the existing Todays Collection Charges list in its overdue branch, retaining exact Thai statuses and priority. SQL V21 continues to own persisted financial results; no schema, type, key, Ref, action, bot, slice, view or reporting grain changed. The frozen target matched all four independent PROD readbacks and the fresh closure validation. The PROD editor has zero issues, the app remains Deployed, and Dashboard, Collection and Payments runtime checks passed without writes. A fresh Deployment Check is excluded for already-Deployed PROD apps under the current owner rule. Exact before/DEV/target expressions and evidence: [R006 delta](../outputs/r006-20260918/release-delta.json), [PROD comparison](../outputs/r006-20260918/prod-comparison-r1.json), [PROD observations](../outputs/r006-20260918/prod-saved-observations.json), and the [R006 log](../Change%20Logs/CHANGE_NOTES_R006_2026-09-18.md). Both DEV apps remain Prototype; OLAP was only inspected (final observed version 1.000129).

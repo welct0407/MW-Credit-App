@@ -1,6 +1,6 @@
 # Environment inventory
 
-Updated 18 September 2026 after R006 release closure. PROD is V21 / OLTP 3.000173 / OLAP 1.100122. DEV is V21 / live OLTP 1.000134 (R006) / OLAP 1.000129 (observed; no R006 edits), both Prototype; accepted business definitions were 1.000125 / 1.000123 before diagnostic-only mode transitions. The databases retain the same database name; instance/host establish identity. R006 production evidence and rollback are in [the R006 log](../Change%20Logs/CHANGE_NOTES_R006_2026-09-18.md).
+Updated 18 September 2026 after R007 DEV implementation. PROD remains V21 / OLTP 3.000173 / OLAP 1.100122. DEV is V22 / unchanged OLTP 1.000134 (R006) / OLAP 1.000142 (R007), both Prototype. The databases retain the same database name; instance/host establish identity. R007 is not promoted: [DEV evidence and rollback](../outputs/r007-20260918/REPORT.md). R006 production evidence remains in [the R006 log](../Change%20Logs/CHANGE_NOTES_R006_2026-09-18.md).
 
 ## App identities and bindings
 
@@ -9,7 +9,7 @@ Updated 18 September 2026 after R006 release closure. PROD is V21 / OLTP 3.00017
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000173 | database-2 | 12 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100122 | database-2 | 16 |
 | Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000134 | database-3 | 12 |
-| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000129 | database-3 | 16 |
+| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000142 | database-3 | 17 |
 
 Both OLAP apps use the assessment view and have removed Calendar for V11 SQL analytics. The historical SQL Calendar objects remain outside AppSheet for recovery. Native internal tables are excluded from the SQL counts. Business Expenses is loaded in both environments: editable for manual entries in OLTP and read only in OLAP. A 16 September post-release audit found Business Expenses, borrower-referral and net-reporting gaps at production 3.000118 / 1.100098. R003 reconciled every listed AppSheet object at production 3.000121 / 1.100101; use the linked R001 audit and R003 report for the before/after evidence.
 
@@ -29,7 +29,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V21 migrated and validated | V21 migrated and tested | R005 cash custody and settlement reversal; no DEV data copied |
+| Flyway | V21 migrated and validated | V22 migrated and tested | R007 DEV-only ordinary analytics views; no DEV data copied |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 

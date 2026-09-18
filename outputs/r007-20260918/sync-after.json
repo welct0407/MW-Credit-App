@@ -1,0 +1,16 @@
+{
+  "release": "R007",
+  "version": "1.000142",
+  "samplesSeconds": [
+    5.099,
+    4.113,
+    6.422,
+    4.608,
+    4.546
+  ],
+  "medianSeconds": 4.608,
+  "baselineMedianSeconds": 14.641,
+  "excluded": "Initial version-loading warmup and one ambiguous browser click timeout omitted",
+  "method": "Same Chrome desktop Analytics path; manual sync button until enabled; same data population",
+  "capturedUtc": "2026-09-18T10:44:03.228Z"
+}

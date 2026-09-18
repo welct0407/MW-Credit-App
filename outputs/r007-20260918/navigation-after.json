@@ -1,0 +1,8 @@
+{
+  "navTimes": {
+    "overview": 4.453,
+    "borrowers": 2.231,
+    "analytics": 2.08
+  },
+  "method": "Click until rendered DOM snapshot; one sample; includes automation overhead; exploratory only"
+}
