@@ -1,5 +1,15 @@
 # Loan charge settlement — 2026-09-15
 
+## Erroneous 18 September loan removal — 2026-09-18
+
+The owner confirmed that Pond's 2026-09-18 THB 3,500 loan was created accidentally and explicitly requested deletion of the loan and its payment. The complete self-contained transaction was removed atomically: loan `YczlTc4YwB0o6hb7IE5TCG`; THB 350 first-day charge; THB 350 Posted First-day Auto payment; its one allocation and one repayment; and the two derived Lisa cash movements (THB 3,500 loan disbursement out and THB 350 payment receipt in). No business expense referenced the loan.
+
+The immutable posted-payment, generated-child and system-cash guards were suspended only for the exact deletion transaction because the owner's requested outcome was removal of the wholly erroneous same-day transaction. Exact borrower, amount, date, status, receiver and dependency preconditions were checked before deletion. Deferred refreshes were forced before commit, all guards were re-enabled inside the transaction, and the commit asserted that all seven records were absent. This was rehearsed successfully in a rolled-back transaction first.
+
+Fresh private pre-write backup: `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917/pond-erroneous-loan-delete-before-20260918.dump`, SHA-256 `68F446BB6E15391954361E7B621853310649CDE41356EF336C5AD889F76DFA3E`. The dump restored successfully in isolation and all 19 public-table fingerprints matched production. The standard normalized-schema text comparison retained the already-documented redundant-parentheses rendering difference in `olap_borrowers_analytics`.
+
+Post-commit SQL and production OLTP **3.000173** confirm Pond now has four loans, THB 15,000 total/outstanding principal and THB 9,020 received interest. The 2026-09-18 THB 3,500 loan is absent from the live related-loans list. The four-row future settlement plan remains THB 36,000. Removing the two derived cash rows restored Lisa's current balance to THB 76,331. No other loan, payment, repayment, charge, cash movement, schema, app definition or notification changed.
+
 ## Payment-plan refinement — 2026-09-18
 
 The owner replaced the single-date THB 36,000 settlement presentation with this future payment plan:
@@ -73,6 +83,6 @@ The exact before-image rows were exported before the transaction to the private 
 
 ## Status and rollback
 
-Status: the 2026-09-18 payment-plan refinement is implemented and verified in production; owner manual acceptance is pending.
+Status: the 2026-09-18 payment-plan refinement and erroneous same-day loan removal are implemented and verified in production; owner manual acceptance is pending.
 
 To roll back the data correction, use a transaction to restore the five modified charge rows and reinsert the seven removed charge rows and six removed zero-value allocation rows from the private before-image CSV files. Re-run the same one-open-charge, payment, allocation, and repayment reconciliation checks before committing, then sync both apps. App version restoration is unnecessary because no app definition changed; versions 3.000094 and 1.100062 remain the recorded configuration rollback references.
