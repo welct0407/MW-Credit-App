@@ -1,5 +1,15 @@
 # Production business cash opening balance — 18 September 2026
 
+## Lisa reconciliation — completed 18 September
+
+Owner approved the model-derived 78,540-baht adjustment and then explicitly changed its effective date to **18 September 2026** before the write. Inserted `opening-lisa-20260918`, Opening Balance, inflow to `ch:lisa`, amount 78,540. No 17 September Lisa opening was inserted. This supersedes the earlier 900-baht suggestion below, which considered only post-cutover movements and was not an appropriate reconstruction of the opening cash position.
+
+Basis from production at 17 September close: partner A net available 37,689 + B 45,478 + available capital 8,634 = business cash 91,801; less Dad 15,870 gives Lisa 75,931. Lisa already had historical expense cash outflows of 2,609, so the required opening adjustment is 78,540. Today's additional loan outflow 1,000 and receipt 100 result in current Lisa balance **75,031**. Today's effective date intentionally leaves her historical 17 September ledger balance unreconciled; this is a current-date opening correction, not income or contributed capital.
+
+Verified production host and holder identity; locked cash ledger, rejected any prior Lisa opening/correction, checked pre-write balance -3,509, inserted using the existing controlled-adjustment guard, and asserted post-write 75,031 before commit. Saved SQL readback confirms date 18 September, amount 78,540, Lisa 75,031, Dad 15,870, Tommy zero and no reimbursement due. No app configuration or schema changed. GUI sync was not independently repeated for this entry.
+
+Fresh backup before mutation: private `r005-20260917/lisa-opening-before-20260918.dump`, SHA256 `E7F632DB4F630B26B0CF18EDE4F84D5949A6E9367321D4F7EEBF1070EAFB796B`. Isolated public/assessment_lab restore and normalized schema comparison passed. Initial rehearsal hit an empty inherited connect_timeout; explicit timeout fixed the local retry before production mutation. Recovery uses an owner-authorized counter-adjustment retaining history; do not restore over later financial writes. Starting Git 45d91e7; clean tree.
+
 Status: **Applied and verified.** The owner authorized one production data write: an initial business cash-on-hand entry of **฿15,870 for Dad dated 17 September 2026**. Lisa was read for a recommendation only; no Lisa opening row was written.
 
 ## Scope and target
