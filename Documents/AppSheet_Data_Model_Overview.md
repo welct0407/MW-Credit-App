@@ -1,8 +1,8 @@
 # AppSheet production data model
 
-## R008 DEV differences — 18 September 2026
+## R008 production model — 19 September 2026
 
-DEV is **SQL V24 / OLTP 1.000181 / OLAP 1.000170**, both Prototype. PROD remains the R007 reference below. Exact DEV properties are appended to the workbook's **Dev Differences** sheet and captured in the [R008 revision-4 delta](../outputs/r008-20260918/r4/release-delta.json); [verification, acceptance limits and recovery](../outputs/r008-20260918/r4/REPORT.md).
+PROD is **SQL V24 / OLTP 3.000216 / OLAP 1.100162**. DEV remains **SQL V24 / OLTP 1.000181 / OLAP 1.000170**, both Prototype. Exact promoted properties are captured in the [R008 revision-4 delta](../outputs/r008-20260918/r4/release-delta.json), and the workbook retains the exact DEV history plus a production closure inventory. [Production verification and recovery](../outputs/r008-20260918/production/REPORT.md) establish the current reference.
 
 Revision 4, 19 September: Charges and Repayments in both apps gain read-only virtual Borrower Reference TE, formula `[Ref Loans].[Ref Borrowers]`, Ref to Borrowers.Row ID, IsAPartOf false, display name Borrower Name TE, Show_If `CONTEXT("ViewType") = "Detail"`. Each replaces Text Borrower Name TE in the existing detail position; the Text VCs remain unchanged for labels/formulas. Loans_Detail uses existing Ref Borrowers and its native action is reattached to that Ref. Both custom Open Borrower actions are removed in each app. Four generated reverse lists and their ordered slice memberships/native actions are captured in the delta and dictionary: OLTP Borrowers.Related Repayments / Related Charges; OLAP Borrowers.Related Repayments / Related Charges By Borrower Reference TE. Existing OLAP Related Charges remains unchanged. No physical schema/metric change. Receive All now excludes every Detail view, including borrower details reached from charges, while remaining inline in Collection. This supersedes revision 3's narrower detail restriction.
 
@@ -20,7 +20,7 @@ For posted receipts, only a permitted receiving-account correction with an appen
 
 SQL-only **r008_cash_account_cutover** has Ref Cash Account (PK/FK), Cutover At, Opening Balance, Baseline Cash In/Out, Created At/By and Notes. It is excluded from both apps. The controlled initializer requires an exact allocation for all uninitialized accounts of one holder, locks the affected data and reconciles to the holder balance; openings are immutable. Live DEV accounts are intentionally uninitialized pending explicit allocation, so Current Balance is NULL and Initialized false. No historical split or fake zero is inferred. The isolated reconciliation test passed.
 
-Both apps' generated account Ref actions/views and changed ordered slice membership are recorded in the delta. Existing production reference sheets/sections remain unchanged; R008 is not promoted.
+Both apps' generated account Ref actions/views and changed ordered slice membership are recorded in the delta. The three production accounts are Dad TTB, Dad SCB and Lisa. Dad TTB and Lisa are the active defaults for their holders; all three account openings remain uninitialized. No synthetic DEV account or inferred opening balance was promoted.
 
 ## R007 promoted model — 18 September 2026
 

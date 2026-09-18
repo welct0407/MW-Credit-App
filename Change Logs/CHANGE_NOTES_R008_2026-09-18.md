@@ -1,6 +1,18 @@
 # R008 — Cash account tracking and payment account selection
 
-## Continue here
+## Production release — 19 September 2026
+
+Status: **Released**. The owner explicitly instructed promotion of all R008 revisions to PROD, then instructed creation of Dad TTB, Dad SCB and Lisa in the new Cash Accounts table and confirmed deletion of the four obsolete custom borrower actions. The promoted revision-4 package is **SQL V24 / PROD OLTP 3.000216 / PROD OLAP 1.100162**; implementation candidate `f0d2285`, 199-target delta SHA-256 `3a689c3d9a658f1927c57cb202ee06b0c74bdd10de0527a71783ca4a5cbfd656`.
+
+V23/V24 migrated and validated on the verified production instance. All app targets, dependent generated settings, exact-receipt notification bots and environment substitutions were applied. Both saved PROD editors report No issues found and remain Deployed. Charges, Repayments and Loans details use native borrower Refs in both apps; the four custom Open Borrower actions are absent. Receive All remains inline in Collection and is hidden in Collection and borrower detail views. No notification was sent during verification.
+
+The production account master contains Dad TTB, Dad SCB and Lisa. Dad TTB and Lisa are the active defaults for their respective holders. Account openings remain deliberately uninitialized, with no historical balance allocation inferred. SQL readback found 22 ledger rows, zero account/holder mismatches, zero missing active defaults and zero synthetic R008 accounts. Focused app runtime checks passed without writing a production financial transaction.
+
+Coordinated rollback is PROD OLTP 3.000173 / OLAP 1.100131 / SQL V22 plus private `production-before.dump`, SHA-256 `B4E9C5091B70B443456F8B198932FF25E04DF3D53F4771EC3FADF69AEC737F3D`. The final V24 recovery checkpoint SHA-256 is `0DEAA1284813CD5883FCF9A57EA7E9FBF7F821031CA9553C6676B4455DE62D18`. Both backups restored successfully in isolation with matching normalized schemas. Prefer a reviewed forward fix after later financial activity. [Production evidence](../outputs/r008-20260918/production/REPORT.md) and the [completed documentation checklist](../outputs/r008-20260918/production/documentation-checklist.md) close the release.
+
+## Historical development record
+
+The production release section above supersedes the readiness and authorization status in the dated development checkpoints below. They remain as implementation history.
 
 Revision-2 implementation/evidence is pinned to `3f1ab7d5ee1369805752f787f4f904f8557d4e7e`; [frozen candidate](../outputs/r008-20260918/r2/FROZEN.md). The release includes the reported sync repair. Publication remains separate from owner acceptance and production authorization.
 
