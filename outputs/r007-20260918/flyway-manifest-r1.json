@@ -1,8 +1,8 @@
 {
   "environment": "development",
   "commit": "e714db3592831440c266aa737fc00c6b3a40b983",
-  "createdUtc": "2026-09-18T11:11:03.8073282Z",
-  "validationReference": "R007 DEV validation: outputs/r007-20260918/REPORT.md; 122-field all-row parity, immutable V22 synthetic migration-chain tests, 293 saved AppSheet targets, current GUI and Recent/Full refresh checks passed. Owner acceptance and PROD authorization pending.",
+  "createdUtc": "2026-09-18T11:18:06.1416937Z",
+  "validationReference": "R007 DEV validation frozen in outputs/r007-20260918/REPORT.md; owner approved production promotion in task on 2026-09-18.",
   "migrations": [
     {
       "name": "V1__existing_schema.sql",
@@ -30,7 +30,7 @@
     },
     {
       "name": "V15__business_expenses_and_referrals.sql",
-      "sha256": "592165618f84f0a01d6224f35b01c946492b6e46db898d337bf9e1e3c5999f86"
+      "sha256": "cf4596295935e37eb032514e33bbeb593e21c8743c1a34f6e9213d8cf717029f"
     },
     {
       "name": "V16__align_partner_settlement_rounding.sql",

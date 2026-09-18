@@ -1,6 +1,6 @@
 # R007 — OLAP SQL optimization
 
-18 September 2026. **DEV implementation complete. Ready subject to owner acceptance and scoped production authorization.** Production has not been changed. Both DEV apps remain Prototype.
+18 September 2026. **Released to production after owner approval and verification.** Both DEV apps remain Prototype.
 
 ## Candidate
 
@@ -40,8 +40,18 @@ The owner explicitly said **“Exclude both Prototype scheduling warnings”**: 
 
 All original reporting slice names, filters, ordered membership, types and field values are preserved. No Looker dashboard/source or export route was changed or published. Direct downstream compatibility is supported by exact slice/field parity; no separate live Looker refresh/export delivery test was run. Mobile/offline performance and production load remain unmeasured. Owner acceptance is distinct from successful DEV validation.
 
+## Production promotion and verification
+
+The owner approved production promotion in the task on 18 September 2026. A fresh PROD logical backup was created and restore-tested before writes; its SHA-256 is recorded in [production-backup.json](production-backup.json). The pinned V22 manifest was applied successfully to PROD, then Flyway validate passed with no invalid migrations. See [production-migration.json](production-migration.json).
+
+The saved PROD OLAP editor is version **1.100131**, remains **Deployed**, and reads database-2 through the five promoted views. Borrowers, Charges, Repayments and Loans retain their logical identities; Portfolio Summary is read-only; Charges.Ref Collection Borrower and Borrowers.Related Charges are hidden; Statistics retains its base table, refresh actions and 40 Portfolio Summary dereferences. PROD OLTP remains **3.000173** and unchanged. The independent saved readback covers all 293 frozen revision-1 targets in [prod-readback-r1.json](prod-readback-r1.json) and [prod-comparison-r1.json](prod-comparison-r1.json).
+
+Both PROD editors show **No issues found**. Focused runtime smoke checks loaded OLAP Analytics and OLTP Dashboard/Collection with ready syncs, zero errors and no writes. Read-only PROD SQL confirms V22 and all five views with unique Row IDs; [production-sql-summary.json](production-sql-summary.json) contains sanitized counts only. No deployment check was run because both PROD apps were already Deployed under the current workflow. The two DEV Prototype scheduling execution warnings remain explicitly excluded and their schedules remain preserved.
+
+The promotion documentation checklist is closed with applicable links and reasons. R007 is **Released**; the DEV difference is closed after the saved PROD readback. Rollback points are PROD OLAP **1.100122**, PROD OLTP **3.000173** (unchanged), and the restore-tested PROD dump recorded above. Do not restore the database over newer writes without a coordinated recovery decision.
+
 ## Promotion and recovery
 
-Promote only after explicit owner acceptance/authorization for revision 1. Confirm actual PROD identity and delta-related drift against V21 / OLAP 1.100122, establish fresh PROD restorable backup/app version, and apply the pinned V22 migration first. Rebind four OLAP tables, regenerate and set exact metadata/provider flags, add the summary and hidden helpers, then apply Statistics formulas. Reconcile generated slice membership and view definitions. Use PROD database-2; preserve production routing, schedules and Deployed mode. The package includes all migrations through V22, with V1–V21 prerequisites already released; never copy DEV data. Independently read back every PROD target and verify both current editors and focused runtime/SQL checks before completing the promotion documentation checklist. A push is not a deployment.
+The completed promotion followed the frozen dependency order: fresh PROD backup, V22 migration, four OLAP table rebindings, Portfolio Summary and hidden relations, Statistics dereferences, generated-slice reconciliation, saved readback and focused runtime/SQL checks. PROD database-2, production routing, schedules and Deployed mode were preserved. The package includes all migrations through V22, with V1–V21 prerequisites already released; no DEV data was copied.
 
 Pre-R007 DEV OLAP rollback: restorable **1.000129**. Starting clean repository commit: `bef621c088dadc42a8c6c6fa221e3353a558431c`. Private dump: `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r007-20260918/development-before.dump`, SHA-256 `134e9959ebbf7b62fa2af600ab9b2cdfeb981d53be5bfcb20525ebbe45db5654`. A coherent app-version restore returns all rebindings/formulas/helpers together; additive SQL views can remain unused. SQL corrections/removals require a higher immutable migration. Do not restore the database over newer writes without a separate coordinated recovery decision. Private dumps/raw financial evidence are not published; Git recovery covers only the sanitized artifacts and implementation.

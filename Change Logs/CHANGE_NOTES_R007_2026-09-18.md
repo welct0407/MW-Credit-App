@@ -1,13 +1,13 @@
 # R007 — OLAP SQL analytics optimization
 
-Date: 18 September 2026. Status: DEV complete; **Ready subject to owner acceptance and scoped production authorization**.
+Date: 18 September 2026. Status: **Released** after owner approval, production deployment and independent verification.
 
 ## Continue here
 
-Implementation is complete in DEV **SQL V22 / OLAP 1.000142 / unchanged OLTP 1.000134**, both Prototype. Production remains V21 / OLAP 1.100122 / OLTP 3.000173 and is not authorized for change. Revision 1 has 293 exact AppSheet targets, all independently verified. All-row parity is zero mismatches across 122 fields; relevant synthetic SQL, GUI and refresh checks pass. Median sync 14.641 → 4.608 seconds. Overview, dictionary, inventory and DEV difference records are updated. [Complete report](../outputs/r007-20260918/REPORT.md) and [frozen package / tested commit / Flyway manifest](../outputs/r007-20260918/FROZEN.md) hold the stable evidence. Next step is owner acceptance and scoped production authorization, then the documented promotion prerequisites. Do not replay DEV edits or modify V22.
+Implementation completed in DEV **SQL V22 / OLAP 1.000142 / unchanged OLTP 1.000134**, both Prototype. The owner then approved production promotion. PROD is now **SQL V22 / OLAP 1.100131 / unchanged OLTP 3.000173**, both Deployed. Revision 1 has 293 exact AppSheet targets and zero recorded mismatches. All-row DEV parity, synthetic SQL, GUI, refresh and performance checks passed. [Complete report](../outputs/r007-20260918/REPORT.md), [frozen package](../outputs/r007-20260918/FROZEN.md), and the production evidence files hold the stable record. Do not replay DEV edits or modify V22.
 ## Scope and source
 
-Source: `G:\My Drive\Loan Manager\Design Documents\R007_OLAP_SQL_Optimization_Design.md`. Five ordinary PostgreSQL analytics views; preserve exact current semantics and provider metadata; rebind OLAP Charges, Repayments, Loans and Borrowers; add hidden Portfolio Summary and Statistics dereferences while retaining refresh commands. No physical base-table caches, semantic corrections, OLTP changes or production writes.
+Source: `G:\My Drive\Loan Manager\Design Documents\R007_OLAP_SQL_Optimization_Design.md`. Five ordinary PostgreSQL analytics views; preserve exact current semantics and provider metadata; rebind OLAP Charges, Repayments, Loans and Borrowers; add hidden Portfolio Summary and Statistics dereferences while retaining refresh commands. No physical base-table caches, semantic corrections, OLTP changes or production financial-row writes.
 
 ## Rollback
 
@@ -15,7 +15,7 @@ Local files: starting commit bef621c088dadc42a8c6c6fa221e3353a558431c, no pre-ex
 
 ## Owner clarification
 
-The owner first excluded OLAP's Every Hour Prototype execution warning, then explicitly answered **“Exclude both Prototype scheduling warnings”**, covering OLTP's existing Daily 00:05 warning. Final saved-state diagnostics show only these two messages. Keep both apps Prototype and preserve schedules; all other editor warnings/errors remain gated. This grants no production, notification or financial-write authorization.
+The owner first excluded OLAP's Every Hour Prototype execution warning, then explicitly answered **“Exclude both Prototype scheduling warnings”**, covering OLTP's existing Daily 00:05 warning. Final DEV saved-state diagnostics show only these two messages. Keep both DEV apps Prototype and preserve schedules; all other editor warnings/errors remain gated. The owner later authorized production promotion with **“Ok. approved and promote to production.”**
 ## SQL implementation and evidence
 
 - V22 creates the five specified views plus one shared Bangkok reporting-date function, with no base-table/trigger modifications or speculative indexes.
@@ -23,7 +23,7 @@ The owner first excluded OLAP's Every Hour Prototype execution warning, then exp
 - [Restored candidate parity](../outputs/r007-20260918/candidate-parity.json) and [live DEV SQL parity](../outputs/r007-20260918/sql-dev-parity.json): all 122 fields, zero mismatches against independently computed AppSheet baseline; keys/populations identical. As-of 18 September Bangkok. Row counts: Borrowers 64, Loans 108, Repayments 741, Charges 917, Statistics 1.
 - Observed semantics retained: integer division for matrix equal share/on-time rates and reliability scores; rounded Decimal/Price/Percent column boundaries; empty-history date behavior; matrix uses prior ten days excluding today; borrower exposure denominator uses Borrowers, while portfolio outstanding uses Loans.
 - `Test-Migrations.ps1 -TestSqlFile scripts/database/Test-R007.sql` passed: 22 migrations, second migrate no-op, checksum tampering rejected; synthetic future/due/overdue/partial/on-time/late charges, historical contribution/withdrawal rounding, rolling-date boundaries, collection priority, three loan types/installment day-by-day oracle, default forecast and timezone independence. Initial fixture used immediate deferred triggers during default update; corrected fixture deferral without changing application triggers. The runner reports baselineRebuildMatch=false when later migrations are present; this is not a V22 test failure.
-- DEV migrate applied only V22; subsequent Flyway validate succeeded with no invalid migrations. PROD read-only info confirms V21; no production mutation.
+- DEV migrate applied only V22; subsequent Flyway validate succeeded with no invalid migrations. The pre-promotion PROD read-only snapshot confirmed V21; the later authorized promotion applied V22 and is documented in the production closure below.
 - Private query plans captured locally and in DEV. Before/after end-to-end sync samples and measured limits are recorded in the report; median reduction 68.5%.
 
 ## App implementation and generated changes
@@ -38,7 +38,15 @@ The exact delta is derived from independent final saved documentation, supplemen
 
 The linked report contains all-row parity, original-field/list preservation, synthetic boundaries, five query plans, current GUI checks and diagnostics. Recent refresh regenerated two dates; Full regenerated 45 with stable keys. Six stale snapshots were corrected by the unchanged refresh engine; the resulting peak metric change reconciles, all 45 dates pass the independent oracle, and 40 post-refresh Statistics fields match SQL. No financial transaction or notification was forced. GUI assessment was inspected only; its existing stale-result message was left intact, and no lending decision was submitted.
 
-Both Prototype scheduling warnings are owner-excluded; no other editor issue remains. No DEV or PROD deployment check was run. Reporting slice contracts are unchanged; live Looker/export-delivery and mobile/offline performance were not measured. Owner acceptance and production authorization remain pending. Repository publication covers sanitized implementation/configuration/evidence, not private backups or financial captures.
+Both Prototype scheduling warnings are owner-excluded; no other editor issue remains. No DEV or PROD deployment check was run. Reporting slice contracts are unchanged; live Looker/export-delivery and mobile/offline performance were not measured. Owner acceptance and production authorization are complete. Repository publication covers sanitized implementation/configuration/evidence, not private backups or financial captures.
+
+## Production promotion closure — 18 September 2026
+
+- PROD backup `production-before.dump` was created and restore-tested; SHA-256 `584C4FCC7B95ECF3B95EF8397CBF7818A609714F915CD5D9D2889668FEAA3D28`.
+- V22 was applied from the corrected clean release manifest and validated. The migration target is schema version 22 with no warnings.
+- PROD OLAP saved at **1.100131** with database-2 sources for `olap_borrowers_analytics`, `olap_charges_analytics`, `olap_repayments_analytics`, `olap_loans_analytics` and `olap_portfolio_summary`; PROD OLTP remained **3.000173**.
+- Current saved editor diagnostics are **No issues found** for both apps. Runtime smoke checks loaded OLAP Analytics and OLTP Dashboard/Collection with ready syncs, zero errors and no writes. Read-only SQL found all five views, V22 and unique Row IDs.
+- Rollback: restore PROD OLAP **1.100122** and the pre-change database dump through the coordinated recovery procedure; OLTP rollback is its unchanged current version. Evidence: [backup](../outputs/r007-20260918/production-backup.json), [migration](../outputs/r007-20260918/production-migration.json), [readback](../outputs/r007-20260918/prod-readback-r1.json), [diagnostics](../outputs/r007-20260918/prod-diagnostics.json), [runtime](../outputs/r007-20260918/prod-runtime-smoke.json), [SQL](../outputs/r007-20260918/production-sql-summary.json).
 
 ## Changed files and recovery coverage
 
@@ -46,8 +54,8 @@ Both Prototype scheduling warnings are owner-excluded; no other editor issue rem
 - `scripts/r007-*.mjs`, `scripts/database/{Snapshot-R007,Test-R007Backup,Read-R007,Read-R007Refresh}.ps1`, `Test-R007.sql`: maintained capture, validation, delta and documentation tools; private rows/authentication stay outside Git.
 - `outputs/r007-20260918/`: sanitized contract, exact delta/readback, comparisons, benchmarks, diagnostics, previews, report and freeze evidence.
 - `Documents/{Release_Tracker,Environment_Inventory,Development_Changes,AppSheet_Data_Model_Overview}.md`, `AppSheet_Data_Dictionary.xlsx`, `database/README.md`: current DEV difference, unchanged PROD reference and release status.
-- This log: decisions, implementation history, checks and rollback. Starting clean commit is recorded above. Publication commit/hash is recorded in the frozen package and final task response.
+- This log: decisions, implementation history, checks and rollback. Starting clean commit is recorded above. The repository publication commit is reported with the final task response.
 
 ## Candidate freeze
 
-Tested implementation commit: e714db3592831440c266aa737fc00c6b3a40b983. New-Release.ps1 completed from the clean commit after fresh DEV validation/info, and all 22 hashes in the sanitized Flyway manifest match the migration files. The frozen package pins V22 and AppSheet revision 1; subsequent evidence-only commits do not replace the deployment commit. Owner acceptance and production authorization are still pending.
+Tested implementation commit: `e714db3592831440c266aa737fc00c6b3a40b983`. `New-Release.ps1` completed from the clean commit after fresh DEV validation/info, and all 22 hashes in the sanitized Flyway manifest match the migration files. The frozen package pins V22 and AppSheet revision 1; later evidence-only commits do not replace the deployment commit. Owner acceptance and production authorization are complete; the production closure above records the applied and verified release.

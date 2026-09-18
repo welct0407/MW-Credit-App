@@ -1,13 +1,13 @@
 # Environment inventory
 
-Updated 18 September 2026 after R007 DEV implementation. PROD remains V21 / OLTP 3.000173 / OLAP 1.100122. DEV is V22 / unchanged OLTP 1.000134 (R006) / OLAP 1.000142 (R007), both Prototype. The databases retain the same database name; instance/host establish identity. R007 is not promoted: [DEV evidence and rollback](../outputs/r007-20260918/REPORT.md). R006 production evidence remains in [the R006 log](../Change%20Logs/CHANGE_NOTES_R006_2026-09-18.md).
+Updated 18 September 2026 after R007 production promotion. PROD is V22 / OLTP 3.000173 / OLAP 1.100131. DEV is V22 / unchanged OLTP 1.000134 (R006) / OLAP 1.000142 (R007), both Prototype. The databases retain the same database name; instance/host establish identity. R007 production evidence and rollback are in [the report](../outputs/r007-20260918/REPORT.md). R006 production evidence remains in [the R006 log](../Change%20Logs/CHANGE_NOTES_R006_2026-09-18.md).
 
 ## App identities and bindings
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000173 | database-2 | 12 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100122 | database-2 | 16 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100131 | database-2 | 17 |
 | Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000134 | database-3 | 12 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000142 | database-3 | 17 |
 
@@ -29,7 +29,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V21 migrated and validated | V22 migrated and tested | R007 DEV-only ordinary analytics views; no DEV data copied |
+| Flyway | V22 migrated and validated | V22 migrated and tested | R007 ordinary analytics views; no DEV data copied; PROD backup and restore test in `outputs/r007-20260918/production-backup.json` |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 

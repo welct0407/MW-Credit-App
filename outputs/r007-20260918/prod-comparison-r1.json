@@ -1,0 +1,13 @@
+{
+  "release": "R007",
+  "revision": 1,
+  "candidateHash": "b5729594af3bfbef799cc5e33567fcb75b90de4346bfe20e96cf5f46a2905197",
+  "implementationCommit": "e714db3592831440c266aa737fc00c6b3a40b983",
+  "prodOlapVersion": "1.100131",
+  "prodOltpVersion": "3.000173",
+  "prodSqlVersion": "V22",
+  "verifiedTargetCount": 293,
+  "mismatches": 0,
+  "scope": "Frozen R007 revision 1 AppSheet targets, saved source identities, metadata, generated relations, Statistics dereferences, and preserved slice/action contracts",
+  "evidence": ["prod-readback-r1.json", "prod-diagnostics.json", "prod-runtime-smoke.json", "production-migration.json", "production-sql-summary.json"]
+}

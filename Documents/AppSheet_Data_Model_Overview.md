@@ -1,8 +1,8 @@
 # AppSheet production data model
 
-## R007 DEV difference — 18 September 2026
+## R007 promoted model — 18 September 2026
 
-**DEV only: SQL V22 / OLAP 1.000142; OLTP remains 1.000134.** Production remains V21 / OLAP 1.100122 / OLTP 3.000173. R007 moves analytical computation into five ordinary PostgreSQL views without changing base tables, operational triggers, financial data or business rules. The production reference below remains authoritative for PROD; the workbook's appended R007 **Dev Differences** rows hold the exact changed properties and complete new-object inventory.
+**DEV: SQL V22 / OLAP 1.000142; OLTP remains 1.000134. PROD: SQL V22 / OLAP 1.100131; OLTP remains 3.000173.** R007 moves analytical computation into five ordinary PostgreSQL views without changing base tables, operational triggers, financial data or business rules. The production reference below is current after promotion; the workbook's R007 **Dev Differences** rows retain the exact changed properties and a dated production-closure row.
 
 | Existing OLAP logical table | DEV provider | Analytical fields moved |
 | --- | --- | --- |
@@ -20,7 +20,7 @@ Portfolio Summary has the Statistics Row ID as its Text key and Statistics ID as
 
 One stable SQL reporting-date function uses Asia/Bangkok. Views preserve observed rounded intermediate column boundaries, integer-division behavior in matrix scores, empty-history date behavior, historical contribution-date partner allocations and the different Borrower/Statistics collection populations. No materialized-view refresh, broad caches, speculative indexes or new base columns were introduced. The existing SQL Daily Analytics engine remains unchanged; its GUI refresh actions still update base Statistics and preserve snapshot IDs. Reporting field names/grains, exports and Looker-facing slice contracts are unchanged; no dashboard publication occurred.
 
-[Exact R007 delta](../outputs/r007-20260918/release-delta.json), [independent DEV comparison](../outputs/r007-20260918/dev-comparison-r1.json), and [tests, limitations and recovery](../outputs/r007-20260918/REPORT.md). Both DEV apps remain Prototype. The owner expressly excludes their two scheduling execution warnings; no other editor issue remains. Acceptance and production authorization are pending.
+[Exact R007 delta](../outputs/r007-20260918/release-delta.json), [independent DEV comparison](../outputs/r007-20260918/dev-comparison-r1.json), [independent PROD readback](../outputs/r007-20260918/prod-readback-r1.json), and [tests, limitations and recovery](../outputs/r007-20260918/REPORT.md). Both DEV apps remain Prototype. The owner expressly excludes their two scheduling execution warnings; no other editor issue remains. R007 acceptance, promotion and documentation closure are complete.
 
 ## R006 released — 18 September 2026
 
