@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency)
+param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency,[switch]$R008Concurrency)
 . "$PSScriptRoot/Common.ps1"
 $null = @(Get-MigrationManifest)
 $bin = Get-PgBin
@@ -69,6 +69,9 @@ try {
         }
         if ($R005Concurrency) {
             & "$PSScriptRoot/Test-R005Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+        }
+        if ($R008Concurrency) {
+            & "$PSScriptRoot/Test-R008Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
         }
         $dump = Join-Path $testRoot 'rebuilt.sql'
         & (Join-Path $bin 'pg_dump.exe') -h 127.0.0.1 -p $port -U postgres -d postgres --schema-only --no-owner --no-privileges --schema=public --schema=assessment_lab --exclude-table=public.flyway_schema_history --file=$dump
