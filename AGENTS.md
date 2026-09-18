@@ -47,6 +47,8 @@ The tracker holds status and links; the release log holds history/decisions; the
 
 DEV and PROD each have one PostgreSQL database on their own Cloud SQL instance and two apps sharing that environment's database. Verify host/instance and app IDs against the environment inventory; database name alone is insufficient. The original AppSheet database is historical reference, not the write target.
 
+**DEV app mode — owner rule, 18 September 2026:** Both DEV apps remain in AppSheet **Prototype** mode, including replacement copies after refresh. Do not switch either to Deployed mode or run/require DEV deployment checks. Preserve bot/schedule definitions; record any execution limitation in prototype mode without deploying DEV to resolve it. This rule applies to current and future releases.
+
 OLTP owns operational entry and workflows; OLAP owns heavy analytics, partner management, allocations/settlements and assessments; Looker presents governed metrics. Keep heavy computation out of OLTP and duplicate editing out of OLAP. See Solution Design for details and dashboard page order.
 
 - Links stay within their environment: DEV OLAP ↔ DEV OLTP; PROD OLAP ↔ PROD OLTP. DEV notifications go exclusively to `welct0407@mw-credit.com`, including nested tasks/error alerts and all channels; push recipients use `LIST("welct0407@mw-credit.com")`. Reviewed owner-only DEV delivery/testing is authorized. Preserve PROD recipient logic unless its change is approved.
@@ -104,7 +106,7 @@ New releases use the [structured delta tools](scripts/releases/README.md); equiv
 
 Use the runbook's test tiers and existing runners/current GUI for changed behavior and affected consumers. Reuse passing evidence only while implementation, dependencies, environment and data assumptions still apply; label reuse. Rerun invalidated checks, not unrelated suites.
 
-**Both apps must have zero outstanding AppSheet warnings/errors** at DEV completion/readiness, PROD promotion completion and DEV refresh completion, including pre-existing issues. Final saved-state diagnostics/deployment checks must be available; never hide warnings or substitute Runnable/Deployable status. This gate cannot be waived by general exceptions.
+**Both apps must have zero outstanding editor configuration warnings/errors** at DEV completion/readiness and DEV refresh completion, including pre-existing issues; use final saved-state current-editor diagnostics and relevant functional tests. DEV deployment checks are not required: prototype status, deployment-only findings and unavailable/unrun deployment checks are not DEV blockers. PROD still requires zero outstanding warnings/errors through both editor diagnostics and deployment checks before promotion completion. Never hide warnings or substitute Runnable/Deployable status; general exceptions do not waive the applicable gate.
 
 Report Ready to promote, Ready subject to listed checks/owner decision, or Not ready with reasons. Freeze the complete tested delta/evidence/versions, implementation commit, Flyway manifest/hashes, dependencies and recovery plan. Later DEV work may continue; candidate changes require a revision, affected retesting and approval for changed scope.
 
