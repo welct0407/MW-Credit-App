@@ -56,6 +56,7 @@ INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Intere
  ('R008-C3','R008-LB',current_date,0::money,100::money),('R008-C4','R008-LC',current_date,0::money,100::money);
 UPDATE "Borrowers" SET "Payment Request Cash Account"='R008-D2',"Payment Request Token"=current_date||'|receiveall01' WHERE "Row ID"='R008-B1';
 SELECT pg_temp.check8((SELECT count(*)=1 AND sum("Amount Received"::numeric)=150 AND bool_and("Status"='Posted' AND "Ref Received By Cash Account"='R008-D2' AND "Ref Received By Cash Holder"='ch:dad') FROM "Payments" WHERE "Ref Borrower"='R008-B1'),'Receive All SQL exact amount/account/holder');
+SELECT pg_temp.check8(EXISTS(SELECT 1 FROM "Payments" WHERE "Row ID"='r008:Borrowers|7:R008-B1|'||current_date||'|receiveall01'),'exact AppSheet notification receipt lookup');
 UPDATE "Borrowers" SET "Payment Request Token"=current_date||'|receiveall01' WHERE "Row ID"='R008-B1';
 SELECT pg_temp.check8((SELECT count(*)=1 FROM "Payments" WHERE "Ref Borrower"='R008-B1'),'same token retry');
 SELECT pg_temp.reject8($q$UPDATE "Borrowers" SET "Payment Request Token"=current_date||'|receiveall02' WHERE "Row ID"='R008-B1'$q$,'No eligible balance');
