@@ -25,4 +25,4 @@ The final V24 recovery checkpoint is private `production-after-final.dump`, SHA-
 
 ## Closure
 
-The [documentation checklist](documentation-checklist.md) records every required disposition. Implementation candidate commit `f0d2285` contains the frozen release package. The release tracker and change log record the final repository publication commit after publication.
+The [documentation checklist](documentation-checklist.md) records every required disposition. Implementation candidate commit `f0d2285` contains the frozen release package; promotion-evidence commit `ce58ef9` contains the completed production evidence and closure records.

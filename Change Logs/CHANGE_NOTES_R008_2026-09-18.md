@@ -2,7 +2,7 @@
 
 ## Production release — 19 September 2026
 
-Status: **Released**. The owner explicitly instructed promotion of all R008 revisions to PROD, then instructed creation of Dad TTB, Dad SCB and Lisa in the new Cash Accounts table and confirmed deletion of the four obsolete custom borrower actions. The promoted revision-4 package is **SQL V24 / PROD OLTP 3.000216 / PROD OLAP 1.100162**; implementation candidate `f0d2285`, 199-target delta SHA-256 `3a689c3d9a658f1927c57cb202ee06b0c74bdd10de0527a71783ca4a5cbfd656`.
+Status: **Released**. The owner explicitly instructed promotion of all R008 revisions to PROD, then instructed creation of Dad TTB, Dad SCB and Lisa in the new Cash Accounts table and confirmed deletion of the four obsolete custom borrower actions. The promoted revision-4 package is **SQL V24 / PROD OLTP 3.000216 / PROD OLAP 1.100162**; implementation candidate `f0d2285`, promotion-evidence commit `ce58ef9`, 199-target delta SHA-256 `3a689c3d9a658f1927c57cb202ee06b0c74bdd10de0527a71783ca4a5cbfd656`.
 
 V23/V24 migrated and validated on the verified production instance. All app targets, dependent generated settings, exact-receipt notification bots and environment substitutions were applied. Both saved PROD editors report No issues found and remain Deployed. Charges, Repayments and Loans details use native borrower Refs in both apps; the four custom Open Borrower actions are absent. Receive All remains inline in Collection and is hidden in Collection and borrower detail views. No notification was sent during verification.
 
