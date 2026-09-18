@@ -2,6 +2,8 @@
 
 ## R005 DEV implementation — 18 September 2026
 
+Current refinement: **DEV V21 / OLTP 1.000120 / OLAP 1.000123**. Delete now reverses completed and pending settlements and retains source history; no separate Cancel Settlement action. Current-GUI tests plus SQL readback passed. Both new synthetic tests are reversed; the owner's settlement was left unchanged. [Exact configuration, tests, limitations and coordinated recovery](../outputs/r005-20260917/REVERSAL_REPORT.md). Both editors show No issues found; full R005 remains **Not ready**, with deployment-check rerun and delivery verification open. The V20 paragraph below records the prior checkpoint.
+
 DEV V20 / OLTP 1.000120 / OLAP 1.000120 implement cash custody with no historical backfill. Cash Holders is read-only in both apps. OLAP owns Cash Ledger, manual Record Cash Transfer and Cash Position; OLTP owns receipt receiver and expense payer entry. Four existing owner-only notification bots were enabled to match the released baseline; obsolete financial-processing bots remain disabled. [Current-GUI tests and exact configuration evidence](../outputs/r005-20260917/GUI_TEST_REPORT.md) cover source receipts, corrections, expenses/rebate, transfers, both settlements and default. Both editors show No issues found; unavailable deployment-check rerun and notification delivery verification keep R005 **Not ready**. Owner acceptance and production authorization remain pending. PROD remains R004/V19. Both synthetic loans are closed; 14 synthetic cash movements remain DEV-only. See the [R005 change log](../Change%20Logs/CHANGE_NOTES_R005_2026-09-17.md) for coverage exception and rollback.
 
 ## R004 promoted — 17 September 2026

@@ -1,6 +1,12 @@
 # R005 — Cash custody, cash ledger and expense reimbursement
 
-Started 17 September; updated 18 September 2026. Status: **DEV implemented and GUI tested; Not ready to promote.** Final saved OLTP **1.000120**, OLAP **1.000120**, SQL **V20**. [Current test report and remaining gates](../outputs/r005-20260917/GUI_TEST_REPORT.md). Earlier entries below are dated intermediate checkpoints, superseded by the final continuation entry.
+Started 17 September; updated 18 September 2026. Status: **DEV implemented and GUI tested; Not ready to promote.** Current saved OLTP **1.000120**, OLAP **1.000123**, SQL **V21**. [Delete reversal refinement, tests and recovery](../outputs/r005-20260917/REVERSAL_REPORT.md) supersedes the V20 candidate for settlement behavior. [Earlier cash-custody tests](../outputs/r005-20260917/GUI_TEST_REPORT.md) remain applicable. Earlier entries below are dated intermediate checkpoints.
+
+## Settlement Delete refinement — 18 September 2026
+
+Owner explicitly requested DEV implementation of full settlement reversal through **Delete**, without creating a separate Cancel Settlement action. Inspected the forwarded device operation and verified the restrictive source FK. Added immutable Flyway V21, saved OLAP 1.000123, and verified completed and pending synthetic create/Delete cycles in the current GUI plus SQL readback. Cash, partner availability and normal related lists restore exactly; source facts and the deletion note remain in SQL. The owner's reported record was left unchanged. Rollback baseline OLAP 1.000120 / SQL V20 captured before edits; coordinated recovery is described in the linked report.
+
+Changed objects: Settlements table update permission/security filter, Status Enum/validation, Partners Total Settlement Created formula, visible Delete replacement action, SQL reversal guard/settlement validation/historical refresh. OLTP unchanged; shared Daily Analytics consumers retain existing columns/grain. Both model documents are updated together. Current full export reconciliation is `reversal-configuration-checklist.json`; original V20 manifest/checklist remains historical evidence. The second assignment was corrected before testing; intermediate 1.000122 capture remains unverified, as recorded. Both editors show No issues found, but deployed-state diagnostic reruns remain unavailable. **Not ready** for full-release promotion; owner acceptance/production authorization pending.
 
 ## Authorization and design
 
