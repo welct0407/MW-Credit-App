@@ -1,5 +1,22 @@
 # R005 — Cash custody, cash ledger and expense reimbursement
 
+## R005 released — 18 September 2026
+
+PROD **OLTP 3.000172 / OLAP 1.100122 / SQL V21**, pinned implementation **2054384**, package R005-P1. Owner acceptance and production authorization are recorded; the latest instruction excludes deployment-check advisories and keeps DEV Prototype. All 2,408 core properties and 20 dashboard items match independent saved PROD readback. Both final PROD editors show No issues found; focused GUI and read-only SQL checks passed. No history backfill or DEV opening/test data was promoted. See [production verification and recovery](../outputs/r005-20260917/PRODUCTION_REPORT.md). Earlier readiness/authorization statements below are dated historical checkpoints, superseded by this release.
+
+
+## Historical production cutover checkpoint — 18 September 2026
+
+Owner clarified: do not follow deployment advisories; keep both DEV apps Prototype and proceed directly to PROD. Updated AGENTS.md/runbook read. This supersedes the advisory hold below. **V20 and V21 applied successfully to PROD at 10:36 Bangkok; Flyway validate passed. AppSheet edits in progress.** Immediate rollback remains OLTP 3.000156 / OLAP 1.100106 plus the verified V19 backup. No DEV financial fixtures copied. Do not report Released until exact app delta/readback and focused production GUI checks finish.
+
+## Production authorization and diagnostic preflight — 18 September 2026
+
+Owner accepted R005 and explicitly authorized promotion: **“everything looks fine. go ahead to promote into prod”**. This supersedes historical pending-approval statements below. Prepared [R005-P1 targets, SQL manifest, rollback and verified backup](../outputs/r005-20260917/PRODUCTION_PREFLIGHT.md). Production remains **V19 / OLTP 3.000156 / OLAP 1.100106**; no production mutation yet. DEV opening fixtures are excluded.
+
+The previously unavailable deployment checks were executed through the current GUI by temporarily returning DEV apps to prototype. They expose actual metadata, default-icon, server-cache and OLAP menu-size advisories, while definition, structure, security and account checks pass. **Not ready under the current zero-warning rule**. An explicit owner decision is pending on allowing exactly those advisory categories versus extending and retesting the scope. Promotion approval itself is already granted and is not being requested again. See the preflight for exact findings and the caching freshness tradeoff.
+
+Maintenance: parameterized the existing R005 snapshot/restore runners to select production and a named dump while preserving their original defaults, no-overwrite protection and isolated restore. Fresh production backup and isolated restoration both passed. Generated the consolidated promotion package from retained exact deltas and independent production appdoc observations; kept all raw private captures/backups outside Git. No migration file changed.
+
 ## Active dashboard refinement — 18 September 2026
 
 Published implementation/evidence commit **4ba73e8** to origin/master. OLTP 1.000125 is the tested app version; SQL hashes remain the retained V21 manifest. This publication is not owner acceptance, a frozen full-release package or production authorization.

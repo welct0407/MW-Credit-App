@@ -1,0 +1,5 @@
+{"environment" : "production", "as_of" : "2026-09-18T10:42:39.554294+07:00", "version" : 21, "ledger_rows" : 0, "holders" : 3}
+{"legacy_nonnull_receivers" : 0, "legacy_nonnull_payers" : 0, "historical_cash_rows" : 0}
+{"dev_opening_fixtures" : 0}
+{"bad_system_source_duplicates" : 0}
+{"holder_count" : 3, "balance_mismatch_count" : 0}

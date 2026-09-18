@@ -1,6 +1,10 @@
 # Development differences
 
-## R005 DEV implementation — 18 September 2026
+## R005 released — 18 September 2026
+
+PROD **OLTP 3.000172 / OLAP 1.100122 / SQL V21**, pinned implementation **2054384**, package R005-P1. Owner acceptance and production authorization are recorded; the latest instruction excludes deployment-check advisories and keeps DEV Prototype. All 2,408 core properties and 20 dashboard items match independent saved PROD readback. Both final PROD editors show No issues found; focused GUI and read-only SQL checks passed. No history backfill or DEV opening/test data was promoted. See [production verification and recovery](../outputs/r005-20260917/PRODUCTION_REPORT.md). Earlier readiness/authorization statements below are dated historical checkpoints, superseded by this release.
+
+## Historical R005 DEV checkpoints — 18 September 2026
 
 Latest dashboard refinement: **OLTP 1.000125 / OLAP 1.000123 / SQL V21**. Reuses Cash Holder Balances SQL view read-only in OLTP; nonzero cash deck follows KPIs/Income Statement MTD. Total Cash Pool uses the existing one-row capital limit, orange before principal. Collection due is collected plus remaining. Owner-authorized DEV openings 18,000/30,000 give current Dad/Lisa balances 17,890/29,109; Tommy zero is omitted. Saved readback and focused current-GUI checks passed in both apps. [Exact delta and test report](../outputs/r005-20260917/DASHBOARD_REPORT.md). No new SQL migration or PROD write. Old export-coverage gates are superseded by current methodology; unavailable deployment-check rerun still leaves R005 **Not ready**. The paragraphs below retain prior checkpoint history.
 
@@ -20,7 +24,7 @@ Business expenses/referral rebates are implemented in DEV and pending owner acce
 
 See [VC phases 1–4 implementation, benchmarks and rollback](../outputs/vc-materialization-20260916/REPORT.md). Current-GUI synthetic workflows and SQL parity/concurrency passed. The owner authorized production promotion on 16 September; see [production VC release](../outputs/vc-production-20260916/REPORT.md). Mobile/offline feedback remains unverified. Further performance opportunities are on hold.
 
-## Current differences
+## Historical differences — 16 September checkpoint
 
 | Area | Production | Development | Status |
 | --- | --- | --- | --- |

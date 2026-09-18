@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$RehearseMigration)
+param([switch]$RehearseMigration,[ValidatePattern('^[a-z0-9-]+$')][string]$Label='development-before')
 . "$PSScriptRoot/Common.ps1"
 $private='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917'
 $bin=Get-PgBin
@@ -14,13 +14,13 @@ try {
  $p=Start-Process -FilePath (Join-Path $bin 'pg_ctl.exe') -ArgumentList @('-D',('"'+$data+'"'),'-l',('"'+(Join-Path $root 'postgres.log')+'"'),'-o',('"-h 127.0.0.1 -p '+$port+'"'),'-w','start') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $root 'start.out') -RedirectStandardError (Join-Path $root 'start.err')
  $p.WaitForExit();if($p.ExitCode){throw 'Local server start failed'};$started=$true
  & (Join-Path $bin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres -c 'CREATE SCHEMA assessment_lab'
- & (Join-Path $bin 'pg_restore.exe') -h 127.0.0.1 -p $port -U postgres -d postgres --no-owner --no-privileges --exit-on-error --schema=public --schema=assessment_lab (Join-Path $private 'development-before.dump') 2> (Join-Path $root 'restore.err')
+ & (Join-Path $bin 'pg_restore.exe') -h 127.0.0.1 -p $port -U postgres -d postgres --no-owner --no-privileges --exit-on-error --schema=public --schema=assessment_lab (Join-Path $private "$Label.dump") 2> (Join-Path $root 'restore.err')
  if($LASTEXITCODE){throw "Restore failed; private diagnostic $root"}
  $dump=Join-Path $root 'restored.sql'
  & (Join-Path $bin 'pg_dump.exe') -h 127.0.0.1 -p $port -U postgres -d postgres --schema-only --no-owner --no-privileges --schema=public --schema=assessment_lab --exclude-table=public.flyway_schema_history --file=$dump
  if($LASTEXITCODE){throw 'Restored schema export failed'}
  & "$PSScriptRoot/Normalize-Schema.ps1" -InputFile $dump -OutputFile "$dump.normalized"
- if((Get-FileHash "$dump.normalized").Hash -ne (Get-FileHash (Join-Path $private 'development-before.normalized.sql')).Hash){throw 'Restored development schema differs'}
+ if((Get-FileHash "$dump.normalized").Hash -ne (Get-FileHash (Join-Path $private "$Label.normalized.sql")).Hash){throw 'Restored backup schema differs'}
  if($RehearseMigration){
   $audit=@'
 SELECT jsonb_object_agg(t,h) FROM (
@@ -60,5 +60,5 @@ END $$;
 '@ | & (Join-Path $bin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres
   if($LASTEXITCODE){throw 'R005 cutover assertions failed'}
  }
- [pscustomobject]@{restoreSucceeded=$true;normalizedSchemaMatches=$true;backupSha256=(Get-FileHash (Join-Path $private 'development-before.dump')).Hash;scope='public and assessment_lab including Flyway history; Cloud SQL cron extension/settings excluded';r005MigrationRehearsed=[bool]$RehearseMigration;existingSourceDataUnchanged=if($RehearseMigration){$true}else{$null}} | ConvertTo-Json
+ [pscustomobject]@{restoreSucceeded=$true;normalizedSchemaMatches=$true;backupSha256=(Get-FileHash (Join-Path $private "$Label.dump")).Hash;scope='public and assessment_lab including Flyway history; Cloud SQL cron extension/settings excluded';r005MigrationRehearsed=[bool]$RehearseMigration;existingSourceDataUnchanged=if($RehearseMigration){$true}else{$null}} | ConvertTo-Json
 }finally{if($started){& (Join-Path $bin 'pg_ctl.exe') -D $data -m fast -w stop | Out-Null}}
