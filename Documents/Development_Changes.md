@@ -1,5 +1,11 @@
 # Development differences
 
+## R008 DEV candidate — 18 September 2026
+
+DEV **SQL V24 / OLTP 1.000176 / OLAP 1.000169**, both Prototype; PROD remains released R007. Cash Accounts/defaults, 13 source/request account fields, compact quick-payment command forms, custody propagation, account balances and SQL-only controlled opening allocation are implemented. Three exact-receipt notification bots deliver only to the owner in DEV. R007 analytics providers append the new dimensions without changing metric semantics.
+
+The [R008 report](../outputs/r008-20260918/REPORT.md) links the complete target delta, saved readbacks, SQL/GUI checks, rollback and remaining acceptance. The overview and workbook retain the PROD baseline with labeled R008 DEV differences. No R008 production change is authorized. Recommendation is subject to owner acceptance of the design 9.3 form fallback/mobile UX, explicit opening allocations and promotion recipient-context review. Live openings remain uninitialized; no real bank account numbers are in repository evidence. The two existing Prototype scheduling execution limitations remain visible and excluded under the previously recorded specific owner decision; no other editor issues were found.
+
 ## R007 promoted and differences closed — 18 September 2026
 
 DEV completed **SQL V22 / OLAP 1.000142 / unchanged OLTP 1.000134** and the owner authorized promotion. PROD is now **SQL V22 / OLAP 1.100131 / unchanged OLTP 3.000173**. Five SQL analytics views replace 82 analytical VCs across the four existing read-only OLAP tables; a new read-only Portfolio Summary supplies 40 Statistics dereferences. The collection list now uses a hidden reverse Ref. Base financial tables, original slices, views, actions and format rules retain their contracts.

@@ -1,8 +1,26 @@
 # AppSheet production data model
 
+## R008 DEV differences — 18 September 2026
+
+DEV is **SQL V24 / OLTP 1.000176 / OLAP 1.000169**, both Prototype. PROD remains the R007 reference below. Exact DEV properties are appended to the workbook's **Dev Differences** sheet and captured in the [R008 delta](../outputs/r008-20260918/release-delta.json); [verification, acceptance limits and recovery](../outputs/r008-20260918/REPORT.md).
+
+**Cash Accounts** is a nine-field physical master: immutable Text Row ID key; Ref Cash Holder → Cash Holders; Account Label label; required Bank Name; optional sensitive Account Number; Default Account and Active booleans; integer Sort Order; Created At timestamp. SQL protects holder identity and defaults, prevents deletes and ensures one active default per holder. OLAP owns adds/updates, with quick editing disabled; OLTP loads the master read-only. Generated reverse Refs are inventoried: 17 total columns in OLTP and 21 in OLAP, including _RowNumber. Ref columns are not part-of relationships.
+
+Thirteen nullable physical fields preserve historical NULLs: Borrowers gains preferred receiving account plus request account/token; Charges gains request account/token; Loans gains disbursement account plus request account/token; Payments gains receiving account; Business Expenses gains payer account; Settlements gains paying account; Cash Ledger gains From/To accounts. All account references point to Cash Accounts. OLAP's R007 Borrowers/Loans/Charges SQL providers append the corresponding fields while preserving existing metrics and grain. Operational source fields remain read-only in OLAP; account administration, settlement and manual cash-transfer ownership remain OLAP responsibilities.
+
+The preferred receiving account is optional. A new prompt uses an active preference or the active Dad default. Loan disbursement and First-day Auto use the Lisa account selected on the loan; positive manual expenses use an active account matching their payer. The three quick-payment commands use a single form update containing account plus fresh token, with dedicated **R008 Borrower Commands / Charge Commands / Loan Commands** update-only slices. Their forms contain only Payment Request Cash Account. Request fields are context-scoped in OLTP and hidden/read-only in OLAP; they are not ordinary borrower/loan edits. V23/V24 recompute eligible amounts and use canonical posting and borrower locking. Retry identity is deterministic, and prior V23 identities remain valid. New originating-command notification bots link to that exact receipt; no financial work is delegated to notification tasks.
+
+For posted receipts, only a permitted receiving-account correction with an appended Notes reason changes custody. Holder derives from account. Allocations/repayments are not reposted. First-day receipt custody follows its loan; other posted financial-account dimensions are immutable. Historical NULL account rows retain their prior holder and remain compatible with metadata-only edits. Manual ledger From/To holder/account fields are new-row-only; same-holder/different-account transfers are supported. Settlements retain their chosen active Lisa account through Complete Transfer and the existing reversal projection semantics.
+
+**Cash Account Balances** is an OLAP read-only SQL view keyed by Ref Cash Account, with Ref Cash Holder, Holder Name, Account Label, Opening Balance, Cash In, Cash Out, Current Balance, Initialized, Business Cash Held and Reimbursement / Advance Due. Six money fields are Price with baht/two decimals. The new Cash Account Summary reference view is appended to Cash Position; existing holder summary remains. No broad per-account AppSheet aggregate VC was added.
+
+SQL-only **r008_cash_account_cutover** has Ref Cash Account (PK/FK), Cutover At, Opening Balance, Baseline Cash In/Out, Created At/By and Notes. It is excluded from both apps. The controlled initializer requires an exact allocation for all uninitialized accounts of one holder, locks the affected data and reconciles to the holder balance; openings are immutable. Live DEV accounts are intentionally uninitialized pending explicit allocation, so Current Balance is NULL and Initialized false. No historical split or fake zero is inferred. The isolated reconciliation test passed.
+
+Both apps' generated account Ref actions/views and changed ordered slice membership are recorded in the delta. Existing production reference sheets/sections remain unchanged; R008 is not promoted.
+
 ## R007 promoted model — 18 September 2026
 
-**DEV: SQL V22 / OLAP 1.000142; OLTP remains 1.000134. PROD: SQL V22 / OLAP 1.100131; OLTP remains 3.000173.** R007 moves analytical computation into five ordinary PostgreSQL views without changing base tables, operational triggers, financial data or business rules. The production reference below is current after promotion; the workbook's R007 **Dev Differences** rows retain the exact changed properties and a dated production-closure row.
+**At R007 closure, DEV: SQL V22 / OLAP 1.000142 / OLTP 1.000134. Current PROD: SQL V22 / OLAP 1.100131 / OLTP 3.000173.** R007 moves analytical computation into five ordinary PostgreSQL views without changing base tables, operational triggers, financial data or business rules. The production reference below is current after promotion; the workbook's R007 **Dev Differences** rows retain the exact changed properties and a dated production-closure row.
 
 | Existing OLAP logical table | DEV provider | Analytical fields moved |
 | --- | --- | --- |
