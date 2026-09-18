@@ -1,5 +1,9 @@
 # AppSheet production data model
 
+## R006 DEV difference — 18 September 2026
+
+DEV OLTP **1.000134** applies four targeted virtual-column App formulas, pending owner acceptance and production authorization. Payments Eligible Charges/Eligible Outstanding evaluate only for Processing or Error and return an empty list/zero for Posted; the active eligibility body is preserved. Visible Allocations filters the existing Related Payment Allocations Ref list for positive amounts. Borrowers Daily Collection Status filters the existing Todays Collection Charges list in its overdue branch, retaining exact Thai statuses and priority. SQL V21 continues to own persisted financial results; no schema, type, key, Ref, action, bot, slice, view or reporting grain changed. PROD retains the R005 formulas. Exact before/DEV/target expressions and evidence: [R006 delta](../outputs/r006-20260918/release-delta.json), [DEV report and coverage limits](../outputs/r006-20260918/DEV_REPORT.md), and the dictionary's four R006 Dev Differences rows. Both DEV apps remain Prototype; OLAP was only inspected (final observed version 1.000129).
+
 ## R005 released — 18 September 2026
 
 PROD **OLTP 3.000172 / OLAP 1.100122 / SQL V21**, pinned implementation **2054384**, package R005-P1. Owner acceptance and production authorization are recorded; the latest instruction excludes deployment-check advisories and keeps DEV Prototype. All 2,408 core properties and 20 dashboard items match independent saved PROD readback. Both final PROD editors show No issues found; focused GUI and read-only SQL checks passed. No history backfill or DEV opening/test data was promoted. See [production verification and recovery](../outputs/r005-20260917/PRODUCTION_REPORT.md). Earlier readiness/authorization statements below are dated historical checkpoints, superseded by this release.
