@@ -1,6 +1,12 @@
 # R005 — Cash custody, cash ledger and expense reimbursement
 
-Started 17 September; updated 18 September 2026. Status: **DEV implemented and GUI tested; Not ready to promote.** Current saved OLTP **1.000120**, OLAP **1.000123**, SQL **V21**. [Delete reversal refinement, tests and recovery](../outputs/r005-20260917/REVERSAL_REPORT.md) supersedes the V20 candidate for settlement behavior. [Earlier cash-custody tests](../outputs/r005-20260917/GUI_TEST_REPORT.md) remain applicable. Earlier entries below are dated intermediate checkpoints.
+## Active dashboard refinement — 18 September 2026
+
+Owner authorized continuing R005 under the revised delta methodology. Implemented all five refinements in **DEV OLTP 1.000125**, with **OLAP 1.000123 / SQL V21 unchanged**: existing SQL cash summary exposed read-only in OLTP, compact nonzero deck after KPIs/Income Statement MTD, orange Total Cash Pool before principal, Collection due = collected + remaining, and DEV opening entries Dad 18,000 / Lisa 30,000. Cash held is 17,890 / 29,109 after existing movements; Tommy zero is excluded. Starting Git `5858bcc`, rollback OLTP **1.000120**; pre-write DB snapshot `dashboard-seed-backup.json`. No automation route or production change. Opening fixtures never enter a production migration.
+
+Focused current-GUI checks passed in both apps, including the reported partial-payment case and fully paid synthetic boundary. Final saved definitions and 20 exact delta items include generated dependencies; overview and twelve workbook rows updated together. [Scope, tests, evidence, recovery and owner checks](../outputs/r005-20260917/DASHBOARD_REPORT.md). Both editors show No issues found; no fresh Deployment Check Run is exposed, so full R005 remains **Not ready**. Prior full-release delivery limitation remains separately recorded. Owner acceptance and production authorization pending. Old missing whole-app/intermediate-version coverage is superseded by current AGENTS.md and is not a gate. Earlier checkpoints below retain their historical versions and limitations.
+
+Started 17 September; updated 18 September 2026. Status: **DEV implemented and GUI tested; Not ready to promote.** Latest saved OLTP **1.000125**, OLAP **1.000123**, SQL **V21**. [Delete reversal refinement, tests and recovery](../outputs/r005-20260917/REVERSAL_REPORT.md) supersedes the V20 candidate for settlement behavior. [Earlier cash-custody tests](../outputs/r005-20260917/GUI_TEST_REPORT.md) remain applicable. Earlier entries below are dated intermediate checkpoints.
 
 ## Settlement Delete refinement — 18 September 2026
 

@@ -1,6 +1,6 @@
 # Environment inventory
 
-Updated 18 September 2026 for R005 DEV implementation and GUI tests. Production/development are separate Cloud SQL instances. The development database retains the name loan_manager_prod because it was cloned; use instance/host, not the database name alone, to identify the environment. R005 DEV is V21, OLTP 1.000120 / OLAP 1.000123, including tested settlement Delete reversal. Both editors show No issues found; deployment-check rerun and delivery verification remain unavailable, so R005 is Not ready. Production remains R004/V19. See the [refinement evidence](../outputs/r005-20260917/REVERSAL_REPORT.md).
+Updated 18 September 2026 for R005 dashboard/Collection refinement. Production/development are separate Cloud SQL instances. The development database retains the name loan_manager_prod because it was cloned; use instance/host to identify the environment. DEV is V21, OLTP 1.000125 / OLAP 1.000123. OLTP now imports the existing Cash Holder Balances view READ_ONLY; OLAP retains ledger entry. Both editors show No issues found; deployment-check rerun remains unavailable and the earlier full-release delivery check remains open, so R005 is Not ready. Production remains R004/V19. [Latest evidence](../outputs/r005-20260917/DASHBOARD_REPORT.md).
 
 ## App identities and bindings
 
@@ -8,7 +8,7 @@ Updated 18 September 2026 for R005 DEV implementation and GUI tests. Production/
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000156 | database-2 | 10 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100106 | database-2 | 13 |
-| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000120 | database-3 | 11 |
+| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000125 | database-3 | 12 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000123 | database-3 | 16 |
 
 Both OLAP apps use the assessment view and have removed Calendar for V11 SQL analytics. The historical SQL Calendar objects remain outside AppSheet for recovery. Native internal tables are excluded from the SQL counts. Business Expenses is loaded in both environments: editable for manual entries in OLTP and read only in OLAP. A 16 September post-release audit found Business Expenses, borrower-referral and net-reporting gaps at production 3.000118 / 1.100098. R003 reconciled every listed AppSheet object at production 3.000121 / 1.100101; use the linked R001 audit and R003 report for the before/after evidence.

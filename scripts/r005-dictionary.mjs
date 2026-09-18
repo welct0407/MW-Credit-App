@@ -14,7 +14,8 @@ if(mode==='inspect'){
  await fs.writeFile(`${out}/dictionary-before.png`,new Uint8Array(await blob.arrayBuffer()));
 }else{
  const reversal=mode==='reversal';
- const inventory=JSON.parse(await fs.readFile(`${out}/${reversal?'reversal-model-inventory':'model-inventory'}.json`,'utf8'));
+ const dashboard=mode==='dashboard';
+ const inventory=JSON.parse(await fs.readFile(`${out}/${dashboard?'dashboard-model-inventory':reversal?'reversal-model-inventory':'model-inventory'}.json`,'utf8'));
  const expected=Object.fromEntries(wb.worksheets.items.map(s=>[s.name,s.getUsedRange().values]));
  const start=rows.length;
  for(const item of inventory){
@@ -31,23 +32,28 @@ if(mode==='inspect'){
    }
    record[4]=concise+' Saved DEV OLAP 1.000123; OLTP 1.000120 unchanged. Exact complete object values: outputs/r005-20260917/reversal-model-inventory.json. Tests and limits: REVERSAL_REPORT.md. Supersedes prior R005 values for this object.';
   }
+  if(dashboard){
+   record[0]='R005 DEV dashboard / OLTP 1.000125';
+   record[3]='Production unchanged; absent or released formula retained. Exact prior DEV 1.000120 value/absence in dashboard-delta.json.';
+   record[4]=(item.value.startsWith('=')?'App formula: ':'')+item.value+' Saved readback and current-GUI checks: dashboard-delta.json / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object.';
+  }
   let idx=rows.findIndex(r=>String(r[0]).startsWith('R005 ')&&r[1]===record[1]&&r[2]===record[2]);
   if(idx<0){idx=rows.length;sh.getRangeByIndexes(idx,0,1,5).copyFrom(sh.getRangeByIndexes(Math.max(1,start-1),0,1,5),'all');}
   sh.getRangeByIndexes(idx,0,1,5).values=[record];rows[idx]=record;
   sh.getRangeByIndexes(idx,0,1,5).format.wrapText=true;
-  sh.getRangeByIndexes(idx,0,1,5).format.rowHeight=reversal?180:item.property.startsWith('Saved AppSheet')?180:90;
+  sh.getRangeByIndexes(idx,0,1,5).format.rowHeight=dashboard?200:reversal?180:item.property.startsWith('Saved AppSheet')?180:90;
  }
  expected['Dev Differences']=rows;
  wb.recalculate();
  const errors=await wb.inspect({kind:'match',searchTerm:'#REF!|#DIV/0!|#VALUE!|#NAME\\?|#NUM!|#SPILL!|#CALC!',options:{useRegex:true,maxResults:30}});
- await fs.writeFile(`${out}/dictionary-error-scan.jsonl`,errors.ndjson);
- const firstR005=reversal?rows.findIndex(r=>String(r[0]).startsWith('R005 DEV V21')):rows.findIndex(r=>String(r[0]).startsWith('R005 '));
+ await fs.writeFile(`${out}/${dashboard?'dictionary-dashboard-error-scan':'dictionary-error-scan'}.jsonl`,errors.ndjson);
+ const firstR005=dashboard?rows.findIndex(r=>String(r[0]).startsWith('R005 DEV dashboard')):reversal?rows.findIndex(r=>String(r[0]).startsWith('R005 DEV V21')):rows.findIndex(r=>String(r[0]).startsWith('R005 '));
  const blob=await wb.render({sheetName:'Dev Differences',range:`A${firstR005+1}:E${firstR005+3}`,scale:1,format:'png'});
- await fs.writeFile(`${out}/${reversal?'dictionary-reversal-after':'dictionary-after'}.png`,new Uint8Array(await blob.arrayBuffer()));
+ await fs.writeFile(`${out}/${dashboard?'dictionary-dashboard-after':reversal?'dictionary-reversal-after':'dictionary-after'}.png`,new Uint8Array(await blob.arrayBuffer()));
  await(await SpreadsheetFile.exportXlsx(wb)).save(file);
  const reopened=await SpreadsheetFile.importXlsx(await FileBlob.load(file));
  const norm=arr=>{const r=arr.map(row=>row.map(v=>v??''));while(r.length&&r.at(-1).every(v=>v===''))r.pop();return r;};
  for(const sheet of reopened.worksheets.items)if(JSON.stringify(norm(sheet.getUsedRange().values))!==JSON.stringify(norm(expected[sheet.name])))throw Error('Unexpected dictionary change '+sheet.name);
- await fs.writeFile(`${out}/${reversal?'dictionary-reversal-verification':'dictionary-verification'}.json`,JSON.stringify({pendingR005Rows:inventory.length,allSheetsValueRoundtrip:true,liveReconciled:false},null,2));
- console.log(JSON.stringify({pendingR005Rows:inventory.length,allSheetsValueRoundtrip:true,liveReconciled:false}));
+ await fs.writeFile(`${out}/${dashboard?'dictionary-dashboard-verification':reversal?'dictionary-reversal-verification':'dictionary-verification'}.json`,JSON.stringify({affectedR005Rows:inventory.length,allSheetsValueRoundtrip:true,liveReconciled:dashboard},null,2));
+ console.log(JSON.stringify({affectedR005Rows:inventory.length,allSheetsValueRoundtrip:true,liveReconciled:dashboard}));
 }
