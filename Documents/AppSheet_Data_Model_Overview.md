@@ -2,7 +2,9 @@
 
 ## R008 DEV differences — 18 September 2026
 
-DEV is **SQL V24 / OLTP 1.000178 / OLAP 1.000169**, both Prototype. PROD remains the R007 reference below. Exact DEV properties are appended to the workbook's **Dev Differences** sheet and captured in the [R008 revision-2 delta](../outputs/r008-20260918/r2/release-delta.json); [verification, acceptance limits and recovery](../outputs/r008-20260918/r2/REPORT.md).
+DEV is **SQL V24 / OLTP 1.000179 / OLAP 1.000169**, both Prototype. PROD remains the R007 reference below. Exact DEV properties are appended to the workbook's **Dev Differences** sheet and captured in the [R008 revision-3 delta](../outputs/r008-20260918/r3/release-delta.json); [verification, acceptance limits and recovery](../outputs/r008-20260918/r3/REPORT.md).
+
+Revision 3 changes only action presentation: Receive All is hidden in Todays Collection Board_Detail, retained inline and on ordinary Borrowers_Detail. No model inventory change; the dictionary remains valid.
 
 Revision 2, 19 September: manual Generate Today's Charge / Generate All Today's Charges use the Bangkok business date `DATE(UTCNOW() + "007:00:00")` for request tokens and eligibility. The dependent OLTP Loans.Last Interest Charge Date cutoff and Accrued Interest Days formula use the same date. SQL's existing stale-date guard and idempotency remain unchanged. This fixes UTC+8 devices submitting tomorrow's request before Bangkok midnight. OLAP's SQL providers already use Bangkok date; no OLAP model change. Exact before/after expressions are appended as revision-2 DEV differences in the dictionary; PROD formulas are unchanged.
 

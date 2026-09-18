@@ -1,0 +1,8 @@
+{
+  "appId": "65faacd8-2b0d-43bf-9e0a-58eb915dcf9b",
+  "version": "1.000179",
+  "observedAt": "2026-09-18T17:21:47.159Z",
+  "before": "AND(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] <= TODAY(), [Amount Remaining] > 0))) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Row ID], IN([Status], LIST(\"Processing\", \"Error\"))))) = 0)",
+  "condition": "AND(CONTEXT(\"View\") <> \"Todays Collection Board_Detail\", AND(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] <= TODAY(), [Amount Remaining] > 0))) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Row ID], IN([Status], LIST(\"Processing\", \"Error\"))))) = 0))",
+  "saveDisabled": true
+}
