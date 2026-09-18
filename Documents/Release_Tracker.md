@@ -15,6 +15,8 @@ Established 16 September 2026. **Current recorded production baseline: R004, pre
 
 ## Releases
 
+R005 dashboard refinement implementation/evidence: **4ba73e8**, published 18 September 2026; exact saved OLTP 1.000125 targets in `outputs/r005-20260917/dashboard-delta.json`. SQL V21 manifest below remains unchanged.
+
 **Latest R005 refinement, 18 September:** DEV **V21 / OLTP 1.000125 / OLAP 1.000123**. SQL-view cash deck in OLTP, orange capital limit, Collection due arithmetic and two DEV opening fixtures implemented; focused current-GUI/readback checks passed. [Additive delta, tests and recovery](../outputs/r005-20260917/DASHBOARD_REPORT.md). In development / **Not ready** because deployed-state diagnostic rerun is unavailable; earlier full-release delivery check remains open. No acceptance or PROD authorization. Current delta methodology supersedes historical whole-app/intermediate-capture gates in the older records below.
 
 R005 Delete refinement tested commit: **770e2bee8d35c086471bb3286914fcbb9dd4e20a**; [V21 SQL manifest](../outputs/r005-20260917/reversal-sql-candidate-manifest.json) captured from the clean candidate. AppSheet package remains unfrozen pending the recorded checks.
