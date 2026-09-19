@@ -1,6 +1,6 @@
 # Environment inventory
 
-Updated 19 September 2026 after R008 production closure. PROD is **V24 / OLTP 3.000216 / OLAP 1.100162**; DEV is **V24 / OLTP 1.000181 / OLAP 1.000170**, both Prototype. R008 adds Cash Accounts in both apps and Cash Account Balances in OLAP; all three live account openings remain deliberately uninitialized. Native borrower Refs replace custom navigation in affected details, and Receive All remains inline while hidden in detail views. The databases retain the same database name; instance/host establish identity. [R008 production evidence and recovery](../outputs/r008-20260918/production/REPORT.md).
+Updated 19 September 2026 after the R008 production correction audit. PROD is **V24 / OLTP 3.000228 / OLAP 1.100178**; DEV is **V24 / OLTP 1.000181 / OLAP 1.000170**, both Prototype. R008 adds Cash Accounts in both apps and Cash Account Balances in OLAP; all three live account openings remain deliberately uninitialized. Native borrower Refs replace custom navigation in affected details, Receive All remains inline while hidden in detail views, and OLAP Record Cash Transfer captures both holder and account endpoints. The databases retain the same database name; instance/host establish identity. [R008 correction audit](../outputs/r008-20260918/production-correction/REPORT.md).
 
 ## App identities and bindings
 
@@ -8,8 +8,8 @@ Updated 19 September 2026 after R008 production closure. PROD is **V24 / OLTP 3.
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000216 | database-2 | 13 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100162 | database-2 | 19 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000228 | database-2 | 13 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100178 | database-2 | 19 |
 | Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000181 | database-3 | 13 |
 | Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000170 | database-3 | 19 |
 
