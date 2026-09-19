@@ -31,6 +31,14 @@ The owner confirmed that Jame's ฿90 receipt dated 18 September 2026 belonged i
 
 At readback after this refinement and other intervening production activity, Dad SCB was ฿3,840 and Dad's total cash position was ฿27,260. These are current readback values, separate from the earlier point-in-time initialization and SCB-correction balances above.
 
+### Dad cash-in-hand initialization
+
+Initialized existing active account `1094306f`, **Dad เงินสดในมือ**, with a ฿0 opening dated 18 September 2026, one day before its first transaction. The existing 19 September ฿5,000 Cash Handover from Dad TTB remains unchanged and now appears as the account's current-period inflow, producing a ฿5,000 current cash-in-hand balance.
+
+The Jame ฿90 payment reclassification above had exposed a historical overlap: the payment was explicitly linked to SCB after its amount had already been incorporated into SCB's accountless opening snapshot. Reconciled SCB's protected cutover baseline from ฿0 to ฿90, with an appended audit note, so the payment remains assigned to SCB without being counted twice. The transaction temporarily paused only the cutover-protection trigger, restored it before commit and verified it active. No payment, repayment or cash-ledger row was changed by this initialization batch.
+
+Final current balances at this readback are Dad TTB ฿18,510, Dad SCB ฿3,750 and Dad เงินสดในมือ ฿5,000, totaling Dad's holder balance of ฿27,260 exactly.
+
 ## Backup and rollback
 
 Before the write, created the private production dump `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\dad-accounts-init-before-20260919.dump`, SHA-256 `BF6DE83E1155DC1D61F7CC0ACA1D5771079E1E46045BD24C0EB97C2A471199E9`. An isolated restore succeeded with normalized schema equivalence for `public`, `assessment_lab` and Flyway history. Cloud SQL instance settings and the cron extension remain outside this logical-backup scope.
@@ -38,6 +46,8 @@ Before the write, created the private production dump `C:\Users\MWCredit\Documen
 Before the later SCB correction, created and restore-tested `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\dad-scb-correction-before-20260919.dump`, SHA-256 `1018B7A2851E0F863F8009177ED40283F4AE9F1F2901BA001CB9046816131056`, with the same logical-backup scope.
 
 Before the Jame account refinement, created and restore-tested `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\jame-scb-reclass-before-20260919.dump`, SHA-256 `354FC1C932C3DE4A9A42DD7ED7C17107616B2668B8D46779896F452B7F2DF7B8`, with the same logical-backup scope.
+
+Before the cash-in-hand initialization, created and restore-tested `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\dad-cash-in-hand-init-before-20260919.dump`, SHA-256 `05A8F3B1DA3B10CF79D7BDB1FBEB06FA5DF029D4E324DE902E25E5F564BAB2DF`, with the same logical-backup scope.
 
 Account openings are immutable by design. Future balance differences should use documented account-specific compensating corrections. Changing the initialization metadata itself requires a separately authorized, coordinated database recovery; never restore the backup over later production activity without that recovery decision.
 
@@ -54,6 +64,9 @@ Account openings are immutable by design. Future balance differences should use 
 - Rehearsed the 18 September Jame payment account correction under a serializable transaction and rollback before repeating the guarded transaction and committing it.
 - Verified the payment and its system cash-ledger row both reference Dad SCB, with the original ฿90 amount, 18 September payment date, posted status and Dad holder preserved.
 - Synced the current production OLAP app after the refinement. Dad SCB displays opening ฿1,890, Cash In ฿2,530, Cash Out ฿580 and Current Balance ฿3,840; Dad's holder Current Balance remains ฿27,260 after intervening production activity.
+- Rehearsed the cash-in-hand initialization and SCB overlap reconciliation under a serializable transaction and rollback before repeating the guarded transaction and committing it.
+- Verified the cutover-protection trigger was active before commit, the existing ฿5,000 TTB-to-cash ledger row was unchanged and all three Dad accounts were initialized.
+- Synced the current production OLAP app. Cash Account Summary displays Dad เงินสดในมือ with Opening ฿0, Cash In ฿5,000, Cash Out ฿0, Current Balance ฿5,000 and Initialized Y. It displays Dad TTB ฿18,510 and Dad SCB ฿3,750; Cash Holder Summary displays Dad ฿27,260 with no reimbursement or advance due.
 
 ## Status
 
