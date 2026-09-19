@@ -73,3 +73,11 @@ Updated AGENTS, release/preparation/refresh/recovery procedures, tracker/invento
 Technical references: [scheduled event deployment requirement](https://www.appsheet.com/support/errormessages), [App Upgrade](https://support.google.com/appsheet/answer/10105386?hl=en) and [notification address/device resolution](https://support.google.com/appsheet/answer/11513089?hl=en). The documentation clarifies that using an email address as a push recipient does not convert the task to an email task.
 
 Verification: 11/11 release-helper/document-register tests passed; both JSON templates parsed; 227 local links and 13 heading anchors passed; intended-file and whitespace diffs reviewed. Commit/push publication is recorded in the final task response. No live tests are appropriate for this documentation-only change. Recovery is a normal reviewed revert of the publication commit, preserving later work.
+
+## Notification routing revision — owner decision, 19 September 2026
+
+Starting commit: `0a399bd2044556ff087be0de922d02c4525e0f21`; working tree clean. This revision supersedes the master-data/shared-recipient approach above. The owner deferred creator-exclusion changes: DEV notification settings point directly to `welct0407@mw-credit.com`; RC restores production recipient configuration; PROD remains as production.
+
+Updated AGENTS, preparation/refresh/promotion/recovery runbooks, current-policy notices in tracker/inventory/development differences, documentation index/checklist, database refresh guidance and release templates. Keep a compact DEV override → production configuration mapping; restore/read back copied overrides before RC freeze and reuse untouched routing evidence. No Partner email data edits, audit/identity changes, new release number, live app/DB changes or notifications are part of this documentation task. Deployment modes, scheduled guards, themes and other SDLC rules remain as previously agreed.
+
+Rollback: revert only this task's documentation/template changes using the starting commit; no live rollback needed. Validation: focused policy/diff review passed; both JSON templates parsed, 222 local Markdown links and the renamed recipient-procedure anchor resolved; release-helper tests passed 11/11; git diff --check passed. No live tests required for this policy edit.

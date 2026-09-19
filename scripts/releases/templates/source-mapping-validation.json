@@ -43,12 +43,13 @@
     }]
   },
   "externalAssets": [],
-  "coverage": { "companionLinks": "pending", "recipientAndNestedRoutes": "reuse established coverage; inspect changed routes/exceptions only", "accessAndEndpoints": "pending", "templatesAndFiles": "pending", "perAppThemes": "pending" },
+  "coverage": { "companionLinks": "pending", "recipientAndNestedRoutes": "verify DEV override restoration once in RC; reuse untouched route coverage", "accessAndEndpoints": "pending", "templatesAndFiles": "pending", "perAppThemes": "pending" },
   "notificationRouting": {
-    "strategy": "shared expressions; DEV master-data override; no routine recipient remapping",
+    "strategy": "DEV owner-only recipient settings; restore production configuration in RC; PROD unchanged",
     "establishedCoverageReference": null,
     "changedRouteOrException": null,
-    "creatorExclusionDisposition": null
+    "productionRecipientBaselineReference": null,
+    "devOverridesRestoredInRcEvidence": null
   },
   "productionVerification": {
     "level": "basic",

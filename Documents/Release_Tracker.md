@@ -1,6 +1,6 @@
 # Release tracker
 
-**Owner policy revision, 19 September 2026:** DEV/RC/PROD target Deployed; DEV/PROD scheduled business execution is enabled and RC is guard-blocked. DEV notification delivery uses owner-only DEV master data with shared recipient expressions; no routine recipient remapping. Keep concise release change records and basic PROD App Upgrade checks. Earlier Prototype states/exact-delta audits below are dated evidence, not current requirements. This documentation revision does not change observed live versions, modes or data. See [Release Workflow](Release_Workflow.md) and [DEV preparation](Development_Environment_Preparation.md).
+**Owner policy revision, 19 September 2026:** DEV/RC/PROD target Deployed; DEV/PROD scheduled business execution is enabled and RC is guard-blocked. DEV notification recipient settings point directly to `welct0407@mw-credit.com`; RC restores production recipient configuration before freeze and PROD retains it. No Partner email override or creator-exclusion redesign is part of this policy. Keep concise release change records and basic PROD App Upgrade checks. Earlier Prototype states/exact-delta audits below are dated evidence, not current requirements. This documentation revision does not change observed live versions, modes or data. See [Release Workflow](Release_Workflow.md) and [DEV preparation](Development_Environment_Preparation.md).
 
 Established 16 September 2026. **Current recorded production baseline: R008, preserving released R002/R003/R004/R005/R006/R007. Next available release number: R009.**
 
