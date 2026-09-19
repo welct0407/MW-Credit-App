@@ -48,10 +48,11 @@
         "internalName": "MW-OLTP-R009-RC1-578763613",
         "number": 1,
         "version": "1.000006",
-        "state": "ready-immutable",
+        "state": "retired-deleted",
         "createdAt": "2026-09-19",
         "frozenAt": "2026-09-19",
-        "mode": "Deployed",
+        "mode": "Deleted after release closure",
+        "deletedAt": "2026-09-19",
         "containmentEvidence": "outputs/r009-20260919/production/source-mapping-validation.json",
         "sourceEligibilityEvidence": "outputs/r009-20260919/production/REPORT.md"
       },
@@ -91,10 +92,11 @@
         "internalName": "MW-OLAP-R009-RC1-578763613",
         "number": 1,
         "version": "1.000006",
-        "state": "ready-immutable",
+        "state": "retired-deleted",
         "createdAt": "2026-09-19",
         "frozenAt": "2026-09-19",
-        "mode": "Deployed",
+        "mode": "Deleted after release closure",
+        "deletedAt": "2026-09-19",
         "containmentEvidence": "outputs/r009-20260919/production/source-mapping-validation.json",
         "sourceEligibilityEvidence": "outputs/r009-20260919/production/REPORT.md"
       },
@@ -177,12 +179,13 @@
   "rollback": {
     "databaseStrategy": "compatible expanded schema / reviewed forward-fix",
     "planReference": "outputs/r009-20260919/production/REPORT.md#recovery-and-retention",
-    "rcRetentionDecision": "Retain frozen owner-only guard-excluded RCs and private recovery evidence through 2026-10-19 minimum, and until replacement recovery coverage verified"
+    "rcRetentionDecision": "Owner explicitly retired and deleted both R009 RC apps on 2026-09-19 after release closure; preserve Git/private captures and use PROD version history plus database backup for recovery"
   },
   "timestamps": {
     "started": "2026-09-19",
     "promoted": "2026-09-19",
-    "validated": "2026-09-19"
+    "validated": "2026-09-19",
+    "rcRetired": "2026-09-19"
   },
   "publication": {
     "evidenceCommit": "Resolve from unique annotated R009 tag",
@@ -190,13 +193,13 @@
   },
   "operatingModel": {
     "devMode": "Deployed",
-    "rcMode": "Deployed",
+    "rcMode": "Historical R009 RCs deleted after release closure",
     "prodMode": "Deployed",
     "devRecipients": "DEV Partners.Email owner-only; distinct Partners.Login Email preserved",
     "rcAndProdRecipients": "Shared identity-based expressions read PROD Partner delivery data; no converted-task expression substitution",
     "scheduledBusinessExecution": {
       "dev": "enabled",
-      "rc": "blocked by canonical-app guard",
+      "rc": "retired/deleted; historical guard evidence retained",
       "prod": "enabled"
     },
     "prodValidation": "basic App Upgrade checks; targeted expansion only"

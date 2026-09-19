@@ -6,7 +6,7 @@
 
 ## R009 promoted and closed — 19 September 2026
 
-Integrated capture: **DEV V26 / OLTP 1.000033 / OLAP 1.000015**, including the owner's saved OLTP GUI refinements. Owner explicitly requested promotion. Both RC1 apps were frozen Deployed at **1.000006** with PROD sources/themes/links and guarded schedules. App Upgrade produced **PROD V26 / OLTP 3.000231 / OLAP 1.100181** in the existing app IDs.
+Integrated capture: **DEV V26 / OLTP 1.000033 / OLAP 1.000015**, including the owner's saved OLTP GUI refinements. Owner explicitly requested promotion. Both RC1 apps were frozen Deployed at **1.000006** with PROD sources/themes/links and guarded schedules. App Upgrade produced **PROD V26 / OLTP 3.000231 / OLAP 1.100181** in the existing app IDs. After validation and publication, the owner explicitly retired/deleted both RC apps; their identities and captured evidence remain in the manifest/report.
 
 All R009 product differences are **promoted and closed**: three positive-closure gates; V25 Login Email and 12 actor-ID recipient expressions; four Loan Key closure bodies; original OLTP rate VC and V26 OLAP rate calculation; complete captured owner GUI definition. Both PROD editors are clear, runtime smoke and SQL reconciliation passed. Environment-only differences remain intentional: DEV database, themes/links, owner-only Partner delivery data and synthetic fixtures. Later DEV work is not included or closed.
 

@@ -6,7 +6,7 @@ Source: Documents/Promotion_Documentation_Checklist.md. These rows belong to the
 | ID | Documents path | Rule | Disposition | Content/evidence link or reason |
 | --- | --- | --- | --- | --- |
 | DOC-001 | Documents/Release_Tracker.md | Always | Updated | R009: R009 row: final versions, RCs, report, recovery and tag. |
-| DOC-002 | Documents/Environment_Inventory.md | Always | Updated | R009: Canonical PROD/DEV versions, V26, retained RC pair, mappings, themes and containment. |
+| DOC-002 | Documents/Environment_Inventory.md | Always | Updated | R009: Canonical PROD/DEV versions, V26, historical RC mappings/themes/containment, and owner-authorized RC deletion. |
 | DOC-003 | Documents/Development_Changes.md | Always | Updated | R009: R009 complete integrated checkpoint and all product differences closed; environment data/fixtures retained. |
 | DOC-004 | Documents/AppSheet_Data_Model_Overview.md | Conditional | Updated | R009: R009 production identity schema, recipient rules and current effective-rate calculation. |
 | DOC-005 | Documents/AppSheet_Data_Dictionary.xlsx | Conditional | Updated | R009: Affected production rows, SQL constraints/logic and R009 Dev Differences reconciled; dictionary/verification.json. |
@@ -25,6 +25,6 @@ Source: Documents/Promotion_Documentation_Checklist.md. These rows belong to the
 | DOC-018 | Documents/AppSheet_Data_Model_History.md | Historical | Preserved history | R009: Archived model untouched; current model updated separately. |
 | DOC-019 | Documents/history/AppSheet_Data_Dictionary_before_reconciliation_2026-09-15.xlsx | Historical | Preserved history | R009: Historical workbook unchanged byte-for-byte in Git diff. |
 | DOC-020 | Documents/Promotion_Documentation_Checklist.md | Conditional | Verified current | R009: Fresh recursive Documents inventory matches all 21 registered paths. |
-| DOC-021 | Documents/Release_Recovery_Runbook.md | Conditional | Verified current | R009: Compatible SQL/app rollback and RC retention followed; release-specific recovery in report. |
+| DOC-021 | Documents/Release_Recovery_Runbook.md | Conditional | Verified current | R009: Owner-authorized RC retirement decision recorded; release-specific recovery now excludes the deleted RC apps. |
 
 Recheck the path inventory at closure if Documents changed after generation. Preserve later DEV differences. Reconcile the release log/delta, approval/test/recovery evidence and publication outside Documents too.

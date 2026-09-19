@@ -1,5 +1,9 @@
 # R009 — Partner identity and payment notifications
 
+## RC retirement — 19 September 2026
+
+After R009 release closure, the owner explicitly authorized deletion of both frozen RC apps. Deleted OLTP `MW-OLTP-R009-RC1-578763613` (`b21a5069-4897-4937-a62c-993563fcf572`) and OLAP `MW-OLAP-R009-RC1-578763613` (`5fce331d-68d5-49b8-923f-01dc1b524c9f`). Reloading each former editor redirected to My Apps; the owned inventory contains exactly the four canonical DEV/PROD apps. This removes the live RC definitions as recovery sources. The immutable Git/private captures, source mapping, PROD version-history rollback points and restore-tested V24 database backup remain. No DEV, PROD, database, notification or schedule configuration changed.
+
 ## Production promotion — 19 September 2026
 
 Owner explicitly requested promotion under the latest runbook. Captured integrated DEV **V26 / OLTP 1.000033 / OLAP 1.000015**, including the complete owner-edited OLTP GUI definition; this supersedes the earlier open checkpoint. Starting clean implementation commit **7fc856102101fdf93c54e5927a4b6ec36e1ffd6b**.
@@ -8,7 +12,7 @@ PROD backup restored successfully and V24 drift matched. Exact V25/V26 migrated 
 
 [Production report and recovery](../outputs/r009-20260919/production/REPORT.md), [manifest](../outputs/r009-20260919/release-manifest.json), [source mapping](../outputs/r009-20260919/production/source-mapping-validation.json), [all-document closure](../outputs/r009-20260919/production/documentation-checklist.md). Updated tracker, inventory, Development Changes, overview/dictionary, process annotation and documentation index. Exact affected model rows and retained environment differences are reconciled; historical records stay dated. Workbook and publication checks are recorded with final evidence. First natural post-upgrade PROD OLAP hourly run completed at 22:00 Bangkok with the analytics action successful; the RC event had empty data and no process steps. Final tag: **R009**.
 
-Rollback: restorable PROD **3.000228 / 1.100178**, private restore-tested V24 dump; normally retain compatible SQL V26 and forward-fix. RCs retained owner-only/guard-excluded at least through 19 October 2026. Physical-device receipt and actual Lisa-signed-in GUI transaction remain declared limitations, covered in part by prior SQL identity tests. Optional initial RC metadata/cache/menu recommendations were recorded without changing tested business behavior; final editor issues are zero.
+Rollback: restorable PROD **3.000228 / 1.100178**, private restore-tested V24 dump; normally retain compatible SQL V26 and forward-fix. The owner subsequently retired/deleted both RC apps, so they are no longer recovery sources. Physical-device receipt and actual Lisa-signed-in GUI transaction remain declared limitations, covered in part by prior SQL identity tests. Optional initial RC metadata/cache/menu recommendations were recorded without changing tested business behavior; final editor issues are zero.
 
 The remaining sections are historical implementation checkpoints; their earlier no-authorization/pending statements do not describe the completed production deployment.
 

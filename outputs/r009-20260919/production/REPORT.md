@@ -50,7 +50,7 @@ Physical-device notification receipt and an actual Lisa-signed-in GUI transactio
 
 Restorable app rollback points were visible in history: OLTP **3.000228**, OLAP **1.100178**. Follow the [recovery runbook](../../../Documents/Release_Recovery_Runbook.md); do not automatically restore over later work. V25 is additive and V26 preserves its view signature, so an app rollback normally retains SQL V26 and uses a reviewed forward fix. It cannot undo notifications or financial writes.
 
-Private V24 dump `prod-backup-before.dump` SHA256: `216b12a0b82a1f4968995a79adbca38e150c7ba8635938234a45c6ad17fa6e86`. Exact runner manifest SHA256: `994ddc9ea26f6b9e70f114450a80bb909ff04c716d2c5832c0addd9834a7392c`. Keep both frozen owner-only RCs and private backup/captures at least through **19 October 2026** and until a later release has verified replacement recovery coverage. No automatic deletion or disabling of copied business definitions.
+Private V24 dump `prod-backup-before.dump` SHA256: `216b12a0b82a1f4968995a79adbca38e150c7ba8635938234a45c6ad17fa6e86`. Exact runner manifest SHA256: `994ddc9ea26f6b9e70f114450a80bb909ff04c716d2c5832c0addd9834a7392c`. After release closure, the owner explicitly chose early RC retirement and confirmed deletion at action time. Both R009 RC apps were deleted on 19 September 2026; former editor URLs redirect to My Apps and the owned inventory contains only the four canonical DEV/PROD apps. This intentionally removes the live RC definitions as recovery sources. Preserve the Git/private definition captures, mapping evidence and backup. PROD rollback remains the recorded app version histories plus compatible SQL V26/forward-fix and the restore-tested V24 database backup; do not imply the deleted RCs are restorable.
 
 ## Closure
 
