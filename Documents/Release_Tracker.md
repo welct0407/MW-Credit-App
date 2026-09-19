@@ -4,6 +4,8 @@ Established 16 September 2026. **Current recorded production baseline: R008, pre
 
 ## Numbering and chat names
 
+**Future promotions from 19 September 2026:** [Release Workflow](Release_Workflow.md) requires integrated DEV → named PROD-mapped immutable RC → App Upgrade into existing PROD IDs, plus the existing Flyway process. Record the machine-readable manifest, RC internal names/UUIDs/versions, source/theme substitutions, PROD before/after/rollback versions and unique final Git tag. A delta is verification evidence, not a manual deployment recipe. This applies to remaining work in an existing release; historical rows below retain their actual method and evidence. No new release is reserved by this policy update.
+
 - Use one project-wide sequence: **R001, R002, R003…** across OLTP, OLAP, SQL and related reporting. A release groups related features/changes promoted as one batch, even when it affects multiple components or spans several chats. Record dependencies on other releases.
 - Suggested chat title: **R002 — Short feature name**. A continuation keeps the same number. Independent work reserves a different number.
 - Before starting a new release, read this tracker, reserve the next number with its actual scope and status, and advance the next-available number. Commit/push the reservation before parallel sessions depend on it. Re-read the latest tracker before allocation to avoid duplicate numbers.
@@ -46,6 +48,6 @@ R001 is a composite baseline, not a single deployable migration or universal res
 
 ## New release entry checklist
 
-Every promotion must link a completed [per-document checklist](Promotion_Documentation_Checklist.md), including the release's closed `Development_Changes.md` entry. Runtime validation alone does not complete documentation closure. Keep unresolved documentation visible before marking Released; do not infer completion from a generic “docs updated” statement.
+Every promotion must link a completed [per-document checklist](Promotion_Documentation_Checklist.md), including the release's closed `Development_Changes.md` entry. Runtime validation alone does not complete documentation closure. Keep unresolved documentation visible before marking Released; do not infer completion from a generic “docs updated” statement. Also link the manifest, immutable RC/mapping evidence, whole-definition App Upgrade results, recovery/containment and verified publication/final tag. For SQL-only releases record both apps unchanged and the justified RC/upgrade non-applicability.
 
 When reserving the next available number, add a row with a concise title, included components, status and reservation date. Link its change log/checklist and record dependencies, frozen package revision, development versions, tests/performance where relevant, readiness recommendation, owner acceptance/production approval, exact release commit/database manifest, production versions/date, verification results, known limitations and rollback reference as they become available. Use “pending” for unknown evidence; never label a planned release as deployed. These workflow rules do not retrospectively revalidate or change the recorded status of earlier releases.

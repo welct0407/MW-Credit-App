@@ -4,6 +4,8 @@ Updated 19 September 2026 after R008 production closure. PROD is **V24 / OLTP 3.
 
 ## App identities and bindings
 
+**Release metadata from 19 September 2026:** The four DEV/PROD identities remain the canonical pair per environment. Temporary named RCs are not a third database environment or replacements for these IDs. Each future release manifest records its actual RC internal names/UUIDs/versions, all PROD mappings, containment/retention and final App Upgrade results. Capture **each PROD app's exact theme separately** for its corresponding RC; no new theme values or RC identities were observed by this documentation update. DEV retains its own themes and Prototype mode. See [Release Workflow](Release_Workflow.md) and [templates](../scripts/releases/templates/README.md).
+
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000216 | database-2 | 13 |

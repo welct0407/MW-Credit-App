@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "release": null,
+  "revision": 1,
+  "rcVersions": { "OLTP": null, "OLAP": null },
+  "inventoryEvidence": null,
+  "inventoryReconciliation": "pending",
+  "sources": [
+    {
+      "app": null, "rcId": null, "table": null, "sourceKind": null,
+      "devSource": null,
+      "expectedProd": { "connection": null, "instance": null, "host": null, "database": null, "schema": null, "object": null },
+      "observedRc": null, "rcEvidence": null,
+      "observedProdAfterUpgrade": null, "prodEvidence": null,
+      "statusRc": "pending", "statusProd": "pending", "nonSqlDisposition": null
+    }
+  ],
+  "substitutions": [
+    {
+      "id": null, "app": null, "object": null, "property": null,
+      "category": null, "devValue": null, "expectedProdValue": null,
+      "prodBaselineVersion": null, "baselineEvidence": null, "reason": null,
+      "observedRcValue": null, "rcEvidence": null,
+      "observedProdValue": null, "prodEvidence": null,
+      "statusRc": "pending", "statusProd": "pending"
+    }
+  ],
+  "themeByApp": {
+    "OLTP": { "sourceProdId": null, "sourceProdVersion": null, "exactProperties": null, "rcSavedEvidence": null, "prodSavedEvidence": null, "appearanceEvidence": null },
+    "OLAP": { "sourceProdId": null, "sourceProdVersion": null, "exactProperties": null, "rcSavedEvidence": null, "prodSavedEvidence": null, "appearanceEvidence": null }
+  },
+  "containment": { "method": null, "scopeEvidence": null, "finalProdAutomationEvidence": null, "rcNonExecutionEvidence": null },
+  "externalAssets": [],
+  "coverage": { "companionLinks": "pending", "recipientAndNestedRoutes": "pending", "accessAndEndpoints": "pending", "templatesAndFiles": "pending", "perAppThemes": "pending" }
+}

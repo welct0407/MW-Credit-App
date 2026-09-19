@@ -1,5 +1,7 @@
 # Development differences
 
+**Capture/closure rule from 19 September 2026:** Record every future release's integrated DEV checkpoint and complete delta, then link its immutable PROD-mapped RC manifest/mapping and App Upgrade evidence. After validation, explicitly close each promoted difference against frozen targets and actual PROD versions; preserve later DEV work, owner-only notification routing and DEV themes. RC takes its corresponding PROD theme and normal PROD routes under execution containment. No manual PROD recreation is the normal process. [Workflow](Release_Workflow.md) and [documentation checklist](Promotion_Documentation_Checklist.md) govern closure; historical entries below retain their original deployment method.
+
 ## R008 promoted and differences closed — 19 September 2026
 
 DEV completed **SQL V24 / OLTP 1.000181 / OLAP 1.000170**, both Prototype. The owner accepted the release and authorized production promotion. PROD is now **SQL V24 / OLTP 3.000216 / OLAP 1.100162**. [Revision 4](../outputs/r008-20260918/r4/REPORT.md) uses native borrower Refs in Charges/Repayments/Loans details in both apps, removes the custom borrower actions, and hides Receive All in every borrower detail while preserving the inline action. Revision 2's Bangkok-date charge generation repair is included. Cash Accounts/defaults, 13 source/request account fields, compact quick-payment command forms, custody propagation, account balances and SQL-only controlled opening allocation are promoted. Three exact-receipt notification bots use production recipient logic.

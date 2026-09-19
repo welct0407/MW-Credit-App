@@ -2,7 +2,9 @@
 
 Local helpers for [the release workflow](../../Documents/Release_Workflow.md). They do not access live apps/databases, deploy, grant approval, discover unrecorded edits or certify release readiness. Use the bundled Node executable via the repository's shared dependency junction; no new installation is needed.
 
-New releases use one `outputs/<release>/release-delta.json`. Existing active releases can retain equivalent records; do not migrate them just for this tool. Start from [example-delta.json](example-delta.json), replace every synthetic value and use the already reserved release number. The example does not reserve R000. An SQL-only release uses its Flyway manifest and log without an empty AppSheet delta.
+From 19 September 2026, use [RC/App Upgrade promotion](../../Documents/Release_Workflow.md) for future work, including remaining work in an existing release. Start each release record from the [templates and field guide](templates/README.md): machine-readable manifest, per-table/source and substitution record, test results and promotion checklist. These are editable records, not live deployment tools or automatic gate validators. Preserve historical packages rather than converting them.
+
+Keep one `outputs/<release>/release-delta.json` for exact change evidence and PROD verification. Equivalent existing deltas remain usable alongside the new RC manifest. Start from [example-delta.json](example-delta.json), replace every synthetic value and use the reserved release number; it does not reserve R000. An SQL-only release uses the release manifest, Flyway manifest and checklist without an empty AppSheet delta. **Deploy whole definitions through App Upgrade from the recorded immutable PROD-mapped RC; do not treat delta rows as manual PROD implementation instructions.**
 
 ```powershell
 # Substitute the bundled Node executable when node is not on PATH.
@@ -25,7 +27,7 @@ Document rows come from [the canonical register](../../Documents/Promotion_Docum
 - `continuation` has short `versions`, `done`, `next`, `decisions`, `evidence` strings. The log remains the owner-decision/approval source. Candidate hashing includes release/revision, app identities and deployment target/operation fields, not narrative or dictionary patches. Freeze the complete package with its Git commit and evidence links; this hash is only the AppSheet delta fingerprint.
 - Keep source expressions literal and complete. Review artifacts before Git publication. Protected values require controlled external evidence and manual comparison; never insert secrets into this JSON or claim that matching redaction placeholders verifies private values. Such items stay explicitly pending/manual until the actual protected comparison is recorded.
 
-The running edit record/payloads and review of affected generated/dependent settings establish completeness. The validator only verifies recorded entries; a green result cannot detect an omitted live change. No full app export is required.
+The running edit record/payloads and review of affected generated/dependent settings establish completeness. The validator only verifies recorded entries; a green result cannot detect an omitted live change. No full app export is required. RC source-table/substitution inventory, matching PROD theme per app, source eligibility/containment, immutable versions and upgrade provenance are separate required evidence. The existing delta comparator accepts DEV/PROD observations only: record RC readbacks in the mapping/test records and link their evidence, never mislabel an RC UUID as DEV/PROD to make the comparator pass.
 
 ## Saved readback format
 
