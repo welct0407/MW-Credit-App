@@ -9,7 +9,7 @@
     "Block stale or ineligible Receive Full, Receive All and Loan Close command submissions in the GUI"
   ],
   "prerequisites": ["Released R009", "Canonical DEV replacement pair of 2026-09-19"],
-  "git": {"implementationCommit": null, "finalTag": null},
+  "git": {"implementationCommit": "eba6f4571fe86cbf3aa584c323e547933a8636fc", "finalTag": null},
   "records": {
     "log": "Change Logs/CHANGE_NOTES_R010_2026-09-19.md",
     "delta": null,
@@ -46,6 +46,6 @@
   "exceptions": [],
   "rollback": {"databaseStrategy":"No database change","planReference":"Change Logs/CHANGE_NOTES_R010_2026-09-19.md#baseline-and-rollback","rcRetentionDecision":null},
   "timestamps": {"started":"2026-09-19","promoted":null,"validated":"2026-09-20"},
-  "publication": {"evidenceCommit":"pending final development commit","verificationReference":"Git remote branch after R010 development publication"},
+  "publication": {"evidenceCommit":"eba6f4571fe86cbf3aa584c323e547933a8636fc","verificationReference":"Git remote master after R010 development publication"},
   "operatingModel": {"devMode":"Deployed","rcMode":"Deployed","prodMode":"Deployed","devRecipients":"DEV Partners.Email owner-only; distinct Login Email identities","rcAndProdRecipients":"PROD Partner contacts; shared R009 expressions","scheduledBusinessExecution":{"dev":"enabled","rc":"blocked by canonical-app guard","prod":"enabled"},"prodValidation":"basic App Upgrade checks; targeted expansion only"}
 }

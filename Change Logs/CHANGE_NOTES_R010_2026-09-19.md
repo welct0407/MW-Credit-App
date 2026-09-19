@@ -30,6 +30,7 @@ AppSheet rollback restores DEV OLTP version 1.000033 if needed. Repository rollb
 - Posted receipt account changed Dad → Lisa without changing Notes: Save stayed in the form and displayed the bilingual appended-reason error. The form was discarded; no row or ledger change was written.
 - Quick-command zero/ineligible guards were independently read back from the saved editor. A live stale-race write was intentionally not manufactured; the command account list becomes empty and its visible field supplies the message when the current row is ineligible.
 - The production model overview, DEV differences, environment inventory and workbook `Dev Differences` rows 2790–2811 are updated. Workbook export/reimport readback and rendered review passed.
+- Implementation checkpoint: `eba6f4571fe86cbf3aa584c323e547933a8636fc`.
 
 [Report](../outputs/r010-20260919/REPORT.md), [tests](../outputs/r010-20260919/TESTS.md), [saved readback](../outputs/r010-20260919/dev-saved-readback.json), [manifest](../outputs/r010-20260919/release-manifest.json).
 
