@@ -25,11 +25,19 @@ After the SCB correction, Dad's account balances sum exactly to his holder cash 
 
 The owner corrected Dad SCB's current balance from ฿3,880 to ฿3,300. Added account-specific manual-correction row `dad-scb-balance-correction-20260919`, dated 19 September 2026, as a ฿580 outflow from Dad SCB. The immutable opening snapshot and the earlier ฿590 initialization correction remain unchanged and auditable.
 
+### Jame payment account refinement
+
+The owner confirmed that Jame's ฿90 receipt dated 18 September 2026 belonged in Dad SCB. Payment `k9iBSTOeNfMQaEyEMZJM0u` was already posted to Dad but had no cash account, while Jame's separate 19 September ฿90 receipt was already correctly assigned to Dad SCB. Updated only the 18 September payment's receiving account and appended an audit note. The existing source trigger synchronized system cash-ledger row `cash:PAYMENT:k9iBSTOeNfMQaEyEMZJM0u` to Dad SCB. No repayment amount, allocation, payment date, holder or Dad total changed.
+
+At readback after this refinement and other intervening production activity, Dad SCB was ฿3,840 and Dad's total cash position was ฿27,260. These are current readback values, separate from the earlier point-in-time initialization and SCB-correction balances above.
+
 ## Backup and rollback
 
 Before the write, created the private production dump `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\dad-accounts-init-before-20260919.dump`, SHA-256 `BF6DE83E1155DC1D61F7CC0ACA1D5771079E1E46045BD24C0EB97C2A471199E9`. An isolated restore succeeded with normalized schema equivalence for `public`, `assessment_lab` and Flyway history. Cloud SQL instance settings and the cron extension remain outside this logical-backup scope.
 
 Before the later SCB correction, created and restore-tested `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\dad-scb-correction-before-20260919.dump`, SHA-256 `1018B7A2851E0F863F8009177ED40283F4AE9F1F2901BA001CB9046816131056`, with the same logical-backup scope.
+
+Before the Jame account refinement, created and restore-tested `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\jame-scb-reclass-before-20260919.dump`, SHA-256 `354FC1C932C3DE4A9A42DD7ED7C17107616B2668B8D46779896F452B7F2DF7B8`, with the same logical-backup scope.
 
 Account openings are immutable by design. Future balance differences should use documented account-specific compensating corrections. Changing the initialization metadata itself requires a separately authorized, coordinated database recovery; never restore the backup over later production activity without that recovery decision.
 
@@ -43,6 +51,9 @@ Account openings are immutable by design. Future balance differences should use 
 - Verified SCB is initialized with opening ฿1,890, Cash In ฿1,990, Cash Out ฿580 and Current Balance ฿3,300.
 - Verified Dad's holder Current Balance and Business Cash Held are both ฿22,110 and equal the sum of the two initialized account balances.
 - Synced the current production OLAP app. Cash Account Summary displays TTB ฿18,810 and SCB ฿3,300 as initialized; Cash Holder Summary displays Dad at ฿22,110 with no reimbursement or advance due. Cash Ledger Recent displays the dated ฿580 manual correction.
+- Rehearsed the 18 September Jame payment account correction under a serializable transaction and rollback before repeating the guarded transaction and committing it.
+- Verified the payment and its system cash-ledger row both reference Dad SCB, with the original ฿90 amount, 18 September payment date, posted status and Dad holder preserved.
+- Synced the current production OLAP app after the refinement. Dad SCB displays opening ฿1,890, Cash In ฿2,530, Cash Out ฿580 and Current Balance ฿3,840; Dad's holder Current Balance remains ฿27,260 after intervening production activity.
 
 ## Status
 
