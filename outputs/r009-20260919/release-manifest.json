@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
   "release": "R009",
-  "revision": 2,
-  "status": "DEV ready for owner review; production authorization pending",
+  "revision": 3,
+  "status": "In development; owner OLTP GUI edits and final version pending",
   "scope": [
     "Three quick-payment closure summaries run only when the exact receipt closes a loan",
     "Separate Partner login identity from database-driven notification delivery; exclude actor Partner ID across 12 push tasks",
-    "Flyway V25 and Partners regeneration in both apps; DEV owner-only delivery data and refresh/promotion policy"
+    "Flyway V25 and Partners regeneration in both apps; DEV owner-only delivery data and refresh/promotion policy",
+    "Additional owner OLTP GUI refinements; exact scope and final version pending completion"
   ],
   "prerequisites": [
     "R008 / Flyway V24",
@@ -33,7 +34,9 @@
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": "1.000014",
+        "version": null,
+        "lastVerifiedVersion": "1.000014",
+        "currentVersionStatus": "Owner GUI edits in progress; recapture after completion",
         "evidence": "outputs/r009-20260919/IDENTITY_TESTS.md"
       },
       "rc": {
@@ -144,7 +147,7 @@
     "productionWriteTests": null
   },
   "validation": {
-    "A_devIntegrated": "Passed scoped migration, saved-expression, both-editor and GUI checks; physical-device and actual Lisa-session delivery unverified",
+    "A_devIntegrated": "Prior checkpoint passed; reopened by ongoing owner OLTP GUI edits. Final scope/version, diagnostics and affected checks pending",
     "B_candidateCaptured": "pending",
     "C_databaseReady": "DEV V25 validated from clean tested commit; runner manifest pinned. PROD migration awaits authorization.",
     "D_rcReady": "pending",

@@ -12,10 +12,10 @@ Updated 19 September 2026 after the owner-requested apps-only DEV refresh and cl
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000228 | database-2 | 13 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100178 | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000014 | database-3 | 13 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | Pending owner edits; last verified 1.000014 | database-3 | 13 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000015 | database-3 | 19 |
 
-R009 now includes database-driven notification identities: DEV **V25 / OLTP 1.000014 / OLAP 1.000015**. Both editors No issues found. Both Partner delivery addresses are owner-only while login identities remain distinct; all 12 push tasks use shared identity-based selection. [R009 verification](../outputs/r009-20260919/IDENTITY_TESTS.md). PROD versions above are unchanged.
+R009's last verified checkpoint is DEV **V25 / OLTP 1.000014 / OLAP 1.000015**. The owner is making further OLTP GUI edits, so the current OLTP version and final readiness are pending recapture. At the checkpoint both editors showed No issues found, both Partner delivery addresses were owner-only while login identities remained distinct, and all 12 push tasks used shared identity-based selection. [R009 verification](../outputs/r009-20260919/IDENTITY_TESTS.md). PROD versions above are unchanged.
 
 Replacement internal names are `MW-OLTP-DEV-20260919-578763613` and `MW-OLAP-DEV-20260919-578763613`; their companion actions link to each other, verified in the runtime. Account Sources UI confirmed database-3 host **34.158.38.171**, database **loan_manager_prod**, Require SSL. Twelve OLTP push tasks target only the owner. Canonical scheduled guards allow the replacement DEV and existing corresponding PROD internal names. The prior Prototype UUIDs and temporary verification copy are deletion history in the refresh log, not current inventory.
 

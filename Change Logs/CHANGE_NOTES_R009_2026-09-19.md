@@ -1,8 +1,12 @@
 # R009 — Partner identity and payment notifications
 
+## Owner GUI work in progress — 19 September 2026
+
+The owner is making additional OLTP GUI changes directly in the DEV editor under R009. The changes and resulting AppSheet version are not yet final. OLTP **1.000014** remains the last verified R009 checkpoint, not the current release candidate. R009 is back **In development**; recapture the completed GUI scope, final saved version, editor diagnostics and affected checks before making a new readiness recommendation. PROD remains unchanged.
+
 ## Current extension — 19 September 2026
 
-Owner approved separate login/delivery identities and implementation under R009. This supersedes the first-stage deferral and direct DEV recipient overrides below. Starting commit 7b5d2606c97e7c77956407ac523edc5717e443b0; tree was clean. **DEV complete; ready for owner review.** Production promotion remains unauthorized.
+Owner approved separate login/delivery identities and implementation under R009. This supersedes the first-stage deferral and direct DEV recipient overrides below. Starting commit 7b5d2606c97e7c77956407ac523edc5717e443b0; tree was clean. This section records the verified **1.000014** checkpoint; later owner GUI work above has reopened development. Production promotion remains unauthorized.
 
 Implemented **V25 / OLTP 1.000014 / OLAP 1.000015**. V25 adds nullable, normalized-unique Partners.Login Email and backfills prior emails before the separate DEV delivery override. Existing Email remains the delivery column. Both DEV Email values are welct0407@mw-credit.com, with distinct login identities retained. Twelve push tasks exclude the actor Partner ID and deduplicate nonblank delivery addresses; unknown actors select nobody. Existing channels, content, event conditions and closure gates are retained. Both apps regenerate Partners; generated Compose Email (Login Email) action retained. OLAP edit form shows both fields and was cancelled without data changes.
 

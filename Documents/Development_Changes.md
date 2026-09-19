@@ -6,6 +6,8 @@
 
 ## R009 current DEV checkpoint — 19 September 2026
 
+**Open continuation:** the owner is making additional OLTP GUI changes directly in DEV. Final scope and version are pending. Treat OLTP 1.000014 as the last verified checkpoint only; R009 is In development until the completed GUI changes and affected validation are captured. PROD remains unchanged.
+
 DEV **V25 / OLTP 1.000014 / OLAP 1.000015**. Login identity and delivery address are separate; all 12 push tasks exclude actor Partner Row ID before deduplicating delivery addresses. Both DEV partners deliver to the owner. Both schemas regenerated and editors clear; SQL and current-GUI checks passed. PROD remains unchanged, so these differences and the earlier closure fixes stay open until promotion. [Current tests](../outputs/r009-20260919/IDENTITY_TESTS.md), [exact routing](../outputs/r009-20260919/identity-routing.json), [log](../Change%20Logs/CHANGE_NOTES_R009_2026-09-19.md).
 
 ### Earlier R009 checkpoint — superseded recipient approach
