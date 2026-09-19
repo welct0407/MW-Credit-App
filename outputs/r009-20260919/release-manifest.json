@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "release": "R009",
-  "revision": 5,
-  "status": "In development; owner OLTP GUI edits and final version pending",
+  "revision": 6,
+  "status": "Released",
   "scope": [
     "Three quick-payment closure summaries run only when the exact receipt closes a loan",
     "Separate Partner login identity from database-driven notification delivery; exclude actor Partner ID across 12 push tasks",
     "Flyway V25 and Partners regeneration in both apps; DEV owner-only delivery data and refresh/promotion policy",
-    "Additional owner OLTP GUI refinements; exact scope and final version pending completion",
+    "Owner OLTP GUI refinements included through complete saved DEV 1.000033",
     "Four loan-closure notification bodies display Loan Key instead of Row ID",
     "Loans Effective Daily Interest Rate uses outstanding principal in OLTP and OLAP; zero when fully repaid"
   ],
@@ -16,18 +16,18 @@
     "Refreshed canonical DEV pair of 2026-09-19"
   ],
   "git": {
-    "implementationCommit": "pending final R009 freeze",
-    "finalTag": null
+    "implementationCommit": "7fc856102101fdf93c54e5927a4b6ec36e1ffd6b",
+    "finalTag": "R009"
   },
   "records": {
     "log": "Change Logs/CHANGE_NOTES_R009_2026-09-19.md",
     "delta": null,
     "deltaHash": null,
-    "mapping": "outputs/r009-20260919/identity-routing.json",
-    "checklist": null,
+    "mapping": "outputs/r009-20260919/production/source-mapping-validation.json",
+    "checklist": "outputs/r009-20260919/production/REPORT.md",
     "tests": "outputs/r009-20260919/IDENTITY_TESTS.md",
-    "documentationChecklist": null,
-    "recovery": null,
+    "documentationChecklist": "outputs/r009-20260919/production/documentation-checklist.md",
+    "recovery": "outputs/r009-20260919/production/REPORT.md#recovery-and-retention",
     "effectiveRateTests": "outputs/r009-20260919/EFFECTIVE_RATE_TESTS.md"
   },
   "apps": {
@@ -37,41 +37,41 @@
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": null,
-        "lastVerifiedVersion": "1.000014",
-        "currentObservedVersion": "1.000032",
-        "currentVersionStatus": "Owner GUI edits in progress; Loan Key notification and outstanding-principal rate deltas verified, full scope requires recapture after completion",
+        "version": "1.000033",
+        "lastVerifiedVersion": "1.000033",
+        "currentObservedVersion": "1.000033",
+        "currentVersionStatus": "Integrated capture accepted by owner promotion request; later DEV not compared",
         "evidence": "outputs/r009-20260919/IDENTITY_TESTS.md"
       },
       "rc": {
-        "id": null,
-        "internalName": null,
-        "number": null,
-        "version": null,
-        "state": "not-created",
-        "createdAt": null,
-        "frozenAt": null,
-        "mode": null,
-        "containmentEvidence": null,
-        "sourceEligibilityEvidence": null
+        "id": "b21a5069-4897-4937-a62c-993563fcf572",
+        "internalName": "MW-OLTP-R009-RC1-578763613",
+        "number": 1,
+        "version": "1.000006",
+        "state": "ready-immutable",
+        "createdAt": "2026-09-19",
+        "frozenAt": "2026-09-19",
+        "mode": "Deployed",
+        "containmentEvidence": "outputs/r009-20260919/production/source-mapping-validation.json",
+        "sourceEligibilityEvidence": "outputs/r009-20260919/production/REPORT.md"
       },
       "prod": {
         "id": "93844270-6aa5-420b-a960-bcdf08abd357",
         "internalName": "LoanManager-975338008-26-08-07",
         "baselineVersion": "3.000228",
-        "preUpgradeVersion": null,
-        "postUpgradeVersion": null,
-        "rollbackVersion": null,
-        "preUpgradeAt": null,
-        "upgradedAt": null,
-        "upgradeEvidence": null
+        "preUpgradeVersion": "3.000228",
+        "postUpgradeVersion": "3.000231",
+        "rollbackVersion": "3.000228",
+        "preUpgradeAt": "2026-09-19",
+        "upgradedAt": "2026-09-19",
+        "upgradeEvidence": "outputs/r009-20260919/production/REPORT.md"
       },
       "captures": {
-        "dev": null,
-        "rc": null,
-        "prodBefore": null,
-        "prodAfter": null,
-        "unavailableReason": null
+        "dev": "Private r009-production/dev-oltp-1.000033.txt",
+        "rc": "Private r009-production/rc-oltp-final.txt",
+        "prodBefore": "Private r009-production/prod-oltp-preupgrade-history.txt",
+        "prodAfter": "Private r009-production/prod-oltp-after.txt",
+        "unavailableReason": "PROD-before rollback history used; AppDoc schema omissions resolved by targeted current editor/runtime checks"
       }
     },
     "OLAP": {
@@ -81,37 +81,40 @@
         "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
         "internalName": "MW-OLAP-DEV-20260919-578763613",
         "version": "1.000015",
-        "evidence": "outputs/r009-20260919/IDENTITY_TESTS.md"
+        "evidence": "outputs/r009-20260919/IDENTITY_TESTS.md",
+        "lastVerifiedVersion": "1.000015",
+        "currentObservedVersion": "1.000015",
+        "currentVersionStatus": "Integrated capture accepted by owner promotion request; later DEV not compared"
       },
       "rc": {
-        "id": null,
-        "internalName": null,
-        "number": null,
-        "version": null,
-        "state": "not-created",
-        "createdAt": null,
-        "frozenAt": null,
-        "mode": null,
-        "containmentEvidence": null,
-        "sourceEligibilityEvidence": null
+        "id": "5fce331d-68d5-49b8-923f-01dc1b524c9f",
+        "internalName": "MW-OLAP-R009-RC1-578763613",
+        "number": 1,
+        "version": "1.000006",
+        "state": "ready-immutable",
+        "createdAt": "2026-09-19",
+        "frozenAt": "2026-09-19",
+        "mode": "Deployed",
+        "containmentEvidence": "outputs/r009-20260919/production/source-mapping-validation.json",
+        "sourceEligibilityEvidence": "outputs/r009-20260919/production/REPORT.md"
       },
       "prod": {
         "id": "e74dd368-654f-44d7-bccf-83cf361d1cdb",
         "internalName": "LoanBusinessInsights-975338008",
         "baselineVersion": "1.100178",
-        "preUpgradeVersion": null,
-        "postUpgradeVersion": null,
-        "rollbackVersion": null,
-        "preUpgradeAt": null,
-        "upgradedAt": null,
-        "upgradeEvidence": null
+        "preUpgradeVersion": "1.100178",
+        "postUpgradeVersion": "1.100181",
+        "rollbackVersion": "1.100178",
+        "preUpgradeAt": "2026-09-19",
+        "upgradedAt": "2026-09-19",
+        "upgradeEvidence": "outputs/r009-20260919/production/REPORT.md"
       },
       "captures": {
-        "dev": null,
-        "rc": null,
-        "prodBefore": null,
-        "prodAfter": null,
-        "unavailableReason": null
+        "dev": "Private r009-production/dev-olap-1.000015.txt",
+        "rc": "Private r009-production/rc-olap-final.txt",
+        "prodBefore": "Private r009-production/prod-olap-preupgrade-history.txt",
+        "prodAfter": "Private r009-production/prod-olap-after.txt",
+        "unavailableReason": "PROD-before rollback history used; AppDoc schema omissions resolved by targeted current editor/runtime checks"
       }
     }
   },
@@ -120,13 +123,13 @@
     "migrationTool": "Flyway",
     "disposition": "migrate",
     "devVersion": "26",
-    "prodBeforeMigration": null,
+    "prodBeforeMigration": "24",
     "targetVersion": "26",
-    "prodBeforeAppUpgrade": null,
-    "prodAfter": null,
-    "testedCommit": "pending final R009 freeze",
-    "runnerManifestReference": null,
-    "manifestSha256": null,
+    "prodBeforeAppUpgrade": "26",
+    "prodAfter": "26",
+    "testedCommit": "7fc856102101fdf93c54e5927a4b6ec36e1ffd6b",
+    "runnerManifestReference": "Private flyway/release-7fc856102101fdf93c54e5927a4b6ec36e1ffd6b.json",
+    "manifestSha256": "994ddc9ea26f6b9e70f114450a80bb909ff04c716d2c5832c0addd9834a7392c",
     "migrations": [
       {
         "version": "25",
@@ -139,44 +142,51 @@
         "sha256": "cd894eff206950401771f94041f1b450b9a254504c431bbe11163322ebc53ee4"
       }
     ],
-    "backupEvidence": "Change Logs/CHANGE_NOTES_R009_2026-09-19.md",
+    "backupEvidence": "outputs/r009-20260919/production/REPORT.md#recovery-and-retention",
     "compatibilityEvidence": "V25 is additive. V26 preserves the OLAP view signature and changes only the Effective Daily Interest Rate calculation; OLTP change is an existing VC formula."
   },
   "externalDependencies": [],
   "deploymentOrder": [
-    "Verify PROD Partner login mappings and backup; exact tested Flyway V25",
-    "Prepare both integrated RC apps against PROD; verify shared recipient definitions, bindings and existing containment",
-    "Authorized App Upgrade of both PROD apps; basic validation and documentation closure"
+    "Verify PROD baseline, Partner login mapping and restore-tested V24 backup",
+    "Exact Flyway V25 and V26",
+    "Prepare/verify/freeze both PROD-bound RC1 apps at 1.000006",
+    "App Upgrade PROD OLAP, verify new version, then PROD OLTP",
+    "Basic production validation, document closure, publication and R009 tag"
   ],
   "approvals": {
-    "devAcceptance": null,
-    "productionScope": null,
-    "reference": null,
-    "approvedRcVersions": null,
-    "productionWriteTests": null
+    "devAcceptance": "Owner requested R009 promotion including current saved owner GUI edits",
+    "productionScope": "R009 SQL V25/V26 and both prepared RC1 App Upgrades into existing PROD IDs",
+    "reference": "Current user request: now i want you to promote the R009 into production by following the latest prod promotion runbook",
+    "approvedRcVersions": {
+      "OLTP": "RC1 1.000006",
+      "OLAP": "RC1 1.000006",
+      "basis": "Prepared within authorized R009 scope under standing runbook; no separate approval requested"
+    },
+    "productionWriteTests": "Not authorized/performed; read-only smoke and cancelled form only"
   },
   "validation": {
-    "A_devIntegrated": "Reopened by ongoing owner OLTP GUI edits. At observed OLTP 1.000032 / DEV V26, closure-body and outstanding-principal rate deltas have saved readback; editor diagnostics, migration tests, and live SQL reconciliation passed. Final complete owner scope/version and remaining affected checks pending",
-    "B_candidateCaptured": "pending",
-    "C_databaseReady": "DEV V26 migrated and validated; V26 hash recorded. Freeze a fresh release runner manifest/commit after the owner finishes R009. PROD migration awaits authorization.",
-    "D_rcReady": "pending",
-    "E_authorizedUpgrade": "pending",
-    "F_productionClosure": "pending"
+    "A_devIntegrated": "Passed; final saved diagnostics and existing relevant behavior tests reused",
+    "B_candidateCaptured": "Passed; complete integrated DEV definitions copied without data; SQL pins captured",
+    "C_databaseReady": "Passed; V24 drift matched, backup restored, V25/V26 applied, 27-entry Flyway validation and rate reconciliation passed",
+    "D_rcReady": "Passed; all 32 SQL mappings, branding/links/folders, owner-only access, guards, initial deployment and clear editor diagnostics; frozen 1.000006 each",
+    "E_authorizedUpgrade": "Passed; existing PROD baselines rechecked, OLAP then OLTP upgraded from frozen RC1",
+    "F_productionClosure": "Passed; both editors clear, basic runtime/environment/SQL checks, natural PROD hourly run and all 21 document dispositions completed",
+    "scheduledRun": "PROD OLAP 2026-09-19 15:00 UTC: Complete, run 9beb94d0-8e79-426a-88bc-24aec2802685; audit ea61cdec-e583-481f-bc40-96ba89d75623 action Success"
   },
   "exceptions": [],
   "rollback": {
     "databaseStrategy": "compatible expanded schema / reviewed forward-fix",
-    "planReference": "Change Logs/CHANGE_NOTES_R009_2026-09-19.md",
-    "rcRetentionDecision": null
+    "planReference": "outputs/r009-20260919/production/REPORT.md#recovery-and-retention",
+    "rcRetentionDecision": "Retain frozen owner-only guard-excluded RCs and private recovery evidence through 2026-10-19 minimum, and until replacement recovery coverage verified"
   },
   "timestamps": {
     "started": "2026-09-19",
-    "promoted": null,
+    "promoted": "2026-09-19",
     "validated": "2026-09-19"
   },
   "publication": {
-    "evidenceCommit": "resolve from DEV publication commit; production tag not created",
-    "verificationReference": "Git remote branch/tag and final task report"
+    "evidenceCommit": "Resolve from unique annotated R009 tag",
+    "verificationReference": "Git remote branch/tag targets and final task report"
   },
   "operatingModel": {
     "devMode": "Deployed",
@@ -190,5 +200,10 @@
       "prod": "enabled"
     },
     "prodValidation": "basic App Upgrade checks; targeted expansion only"
-  }
+  },
+  "limitations": [
+    "Device push receipt and actual Lisa-signed-in GUI transaction not verified; prior SQL identity tests cover both actors",
+    "Optional initial RC metadata/cache/menu recommendations recorded; zero editor configuration issues",
+    "No forced PROD job or notification; first normal PROD hourly run completed at 22:00 Bangkok. OLTP daily run not yet observed; verified guard pattern reused."
+  ]
 }

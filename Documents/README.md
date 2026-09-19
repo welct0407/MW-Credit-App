@@ -6,7 +6,7 @@ Use [AGENTS.md's task routing](../AGENTS.md#working-method-and-task-routing) to 
 | --- | --- | --- |
 | [Release tracker](Release_Tracker.md) | Project release numbers, content summaries, status and chat-title convention | Consult tracker for current release status and next available number |
 | [Solution design](Solution_Design.md) | Prototype scope, app ownership, financial-model principles and dashboard page order | Read the affected section for design/model/report work |
-| [Production data model](AppSheet_Data_Model_Overview.md) | Architecture, ownership, tables, relationships and current calculation boundaries | Reconciled to live app definitions and SQL schema on 15 September |
+| [Production data model](AppSheet_Data_Model_Overview.md) | Architecture, ownership, tables, relationships and current calculation boundaries | Current production model includes R009; older dated sections retain their evidence |
 | [Data dictionary](AppSheet_Data_Dictionary.xlsx) | Exact production business columns, rules, references, slices, SQL catalog and development differences | Rebuilt from current definitions; see Guide for scope |
 | [Environment inventory](Environment_Inventory.md) | App IDs/versions, database hosts, connection limits, evidence timestamps and limitations | Current read-only app/SQL checks; other configuration has dated evidence |
 | [Development differences](Development_Changes.md) | Environment isolation, remaining differences and promotion history | Record each release's DEV checkpoint and close its promoted differences; consult the register for current state |

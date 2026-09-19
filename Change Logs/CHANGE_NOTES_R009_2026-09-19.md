@@ -1,5 +1,18 @@
 # R009 — Partner identity and payment notifications
 
+## Production promotion — 19 September 2026
+
+Owner explicitly requested promotion under the latest runbook. Captured integrated DEV **V26 / OLTP 1.000033 / OLAP 1.000015**, including the complete owner-edited OLTP GUI definition; this supersedes the earlier open checkpoint. Starting clean implementation commit **7fc856102101fdf93c54e5927a4b6ec36e1ffd6b**.
+
+PROD backup restored successfully and V24 drift matched. Exact V25/V26 migrated and validated. Copied definition-only RC1 apps, rebound all 32 SQL sources, restored per-app production theme/logo/folder/links, verified owner-only access and retained canonical schedule guards. Both RCs deployed and frozen at **1.000006**. App Upgrade, OLAP then OLTP, produced **PROD V26 / OLTP 3.000231 / OLAP 1.100181** in the existing IDs. Both editors report No issues found; current runtime smoke, Partner identity prerequisites and rate reconciliation passed. No financial test writes or forced notifications.
+
+[Production report and recovery](../outputs/r009-20260919/production/REPORT.md), [manifest](../outputs/r009-20260919/release-manifest.json), [source mapping](../outputs/r009-20260919/production/source-mapping-validation.json), [all-document closure](../outputs/r009-20260919/production/documentation-checklist.md). Updated tracker, inventory, Development Changes, overview/dictionary, process annotation and documentation index. Exact affected model rows and retained environment differences are reconciled; historical records stay dated. Workbook and publication checks are recorded with final evidence. First natural post-upgrade PROD OLAP hourly run completed at 22:00 Bangkok with the analytics action successful; the RC event had empty data and no process steps. Final tag: **R009**.
+
+Rollback: restorable PROD **3.000228 / 1.100178**, private restore-tested V24 dump; normally retain compatible SQL V26 and forward-fix. RCs retained owner-only/guard-excluded at least through 19 October 2026. Physical-device receipt and actual Lisa-signed-in GUI transaction remain declared limitations, covered in part by prior SQL identity tests. Optional initial RC metadata/cache/menu recommendations were recorded without changing tested business behavior; final editor issues are zero.
+
+The remaining sections are historical implementation checkpoints; their earlier no-authorization/pending statements do not describe the completed production deployment.
+
+
 ## Owner GUI work in progress — 19 September 2026
 
 The owner is making additional OLTP GUI changes directly in the DEV editor under R009. The complete owner-edited scope and final AppSheet version are not yet confirmed. OLTP **1.000014** remains the last fully scoped R009 checkpoint, not the current release candidate. R009 is back **In development**; recapture the completed GUI scope, final saved version, editor diagnostics and affected checks before making a new readiness recommendation. PROD remains unchanged.
