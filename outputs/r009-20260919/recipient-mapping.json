@@ -1,0 +1,51 @@
+{
+  "release": "R009",
+  "devVersion": "1.000011",
+  "baselineProdVersion": "3.000228",
+  "scope": "Six quick-payment push task recipient overrides; other DEV mappings retained from refresh",
+  "status": "DEV owner-only; corrected production expressions for future authorized RC",
+  "entries": [
+    {
+      "bot": "R008 Receive All Confirmed",
+      "table": "Borrowers",
+      "tasks": [
+        "Notify exact posted receipt",
+        "R009 closure summary"
+      ],
+      "property": "To",
+      "dev": "LIST(\"welct0407@mw-credit.com\")",
+      "productionForR009": "SELECT(Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> LOOKUP(CONCATENATE(\"r008:Borrowers|\", LEN([_THISROW].[Row ID]), \":\", [_THISROW].[Row ID], \"|\", [_THISROW].[Payment Request Token]), \"Payments\", \"Row ID\", \"Created By\")))",
+      "closureCondition": "COUNT(SELECT(Loans[Row ID], [Ref Closing Payment] = CONCATENATE(\"r008:Borrowers|\", LEN([_THISROW].[Row ID]), \":\", [_THISROW].[Row ID], \"|\", [_THISROW].[Payment Request Token]))) > 0",
+      "closurePlacement": "Yes branch of Notify payment-closed loans",
+      "rcSavedVerification": null
+    },
+    {
+      "bot": "R008 Single Full Confirmed",
+      "table": "Charges",
+      "tasks": [
+        "Notify exact posted receipt",
+        "Send closure summary when loans closed"
+      ],
+      "property": "To",
+      "dev": "LIST(\"welct0407@mw-credit.com\")",
+      "productionForR009": "SELECT(Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> LOOKUP(CONCATENATE(\"r008:Charges|\", LEN([_THISROW].[Row ID]), \":\", [_THISROW].[Row ID], \"|\", [_THISROW].[Payment Request Token]), \"Payments\", \"Row ID\", \"Created By\")))",
+      "closureCondition": "COUNT(SELECT(Loans[Row ID], [Ref Closing Payment] = CONCATENATE(\"r008:Charges|\", LEN([_THISROW].[Row ID]), \":\", [_THISROW].[Row ID], \"|\", [_THISROW].[Payment Request Token]))) > 0",
+      "closurePlacement": "Yes branch of Notify payment-closed loans",
+      "rcSavedVerification": null
+    },
+    {
+      "bot": "R008 Loan Close Confirmed",
+      "table": "Loans",
+      "tasks": [
+        "Notify exact posted receipt",
+        "Send closure summary when loans closed"
+      ],
+      "property": "To",
+      "dev": "LIST(\"welct0407@mw-credit.com\")",
+      "productionForR009": "SELECT(Partners[Email], AND(ISNOTBLANK([Email]), [Email] <> LOOKUP(CONCATENATE(\"r008:Loans|\", LEN([_THISROW].[Row ID]), \":\", [_THISROW].[Row ID], \"|\", [_THISROW].[Payment Request Token]), \"Payments\", \"Row ID\", \"Created By\")))",
+      "closureCondition": "COUNT(SELECT(Loans[Row ID], [Ref Closing Payment] = CONCATENATE(\"r008:Loans|\", LEN([_THISROW].[Row ID]), \":\", [_THISROW].[Row ID], \"|\", [_THISROW].[Payment Request Token]))) > 0",
+      "closurePlacement": "Yes branch of Notify payment-closed loans",
+      "rcSavedVerification": null
+    }
+  ]
+}

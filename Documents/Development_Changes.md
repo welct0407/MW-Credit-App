@@ -4,6 +4,12 @@
 
 **Capture/closure rule from 19 September 2026:** Record every future release's integrated DEV checkpoint and concise complete scope/change record, then link its immutable PROD-mapped RC manifest/mapping and App Upgrade evidence. After validation, explicitly close each promoted scope difference against the frozen release and actual PROD versions; preserve later DEV work, owner-only notification routing and DEV themes. RC takes its corresponding PROD theme and normal PROD routes under execution containment. No manual PROD recreation is the normal process. [Workflow](Release_Workflow.md) and [documentation checklist](Promotion_Documentation_Checklist.md) govern closure; historical entries below retain their original deployment method.
 
+## R009 DEV notification corrections — 19 September 2026
+
+DEV OLTP **1.000011**, unchanged OLAP **1.000013**, SQL **V24**. All three quick-payment closure summaries now execute only inside the positive closure branch. Five synthetic GUI runs completed: zero closures skipped the summary and positive closures executed it. Both saved editors show No issues found. Corrected creator-exclusion expressions explicitly reference the originating command row; the six DEV task recipient overrides remain directly owner-only. The corrected expressions are recorded for future RC substitution, not activated for multi-user delivery in DEV. [R009 log](../Change%20Logs/CHANGE_NOTES_R009_2026-09-19.md), [recipient mapping](../outputs/r009-20260919/recipient-mapping.json), [tests](../outputs/r009-20260919/TESTS.md).
+
+Status: Ready for review; owner acceptance and RC/PROD authorization pending. No production changes. The two diagnosed R008 notification defects supersede the earlier zero-gap notification conclusion; other historical R008 evidence remains unchanged. No table/model or OLAP configuration changes.
+
 ## Apps-only DEV refresh — 19 September 2026
 
 Replacement OLTP `500b27b6-884a-41e8-a9ec-df801b0110ad` and OLAP `9f3422be-bc87-4a5a-a42a-67528ee80393` copy PROD **3.000228 / 1.100178** and retain DEV SQL V24/data. Both are Deployed. Preserved DEV orange **#e8710a** / blue **#1e88e5**, original DEV icons and light/Color styling; all 13/19 business bindings use verified database-3 and companion links join the new pair. Twelve OLTP push tasks have owner-only recipients, with original production expressions retained for later RC restoration. Scheduled processes now have canonical DEV/PROD app-name guards and original business conditions/schedules; PROD guards were not changed.
