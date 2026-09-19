@@ -2,7 +2,7 @@
 
 ## Scope and status
 
-Owner requested refreshing DEV OLAP and OLTP from PROD while preserving the current DEV theme colors. Apps-only scope: retain the existing DEV database, financial data and fixtures. No PROD changes or database refresh are authorized by this task. Status: replacement apps applied and Deployed; configuration/runtime checks passed. Old-app recovery/cleanup closure remains blocked. Do not claim the full refresh closed yet.
+Owner requested refreshing DEV OLAP and OLTP from PROD while preserving the current DEV theme colors. Apps-only scope: retain the existing DEV database, financial data and fixtures. No PROD changes or database refresh are authorized by this task. Status: replacement apps applied and Deployed; configuration/runtime checks and old-app cleanup are complete.
 
 Starting Git commit: `b170c5870d3a1fed6265609281d4d7fdcc4bf8f0`. Pre-existing unrelated untracked `Change Logs/CHANGE_NOTES_ORGAN_PAYMENT_2026-09-19.md` belongs to another task and is excluded.
 
@@ -15,7 +15,7 @@ Starting Git commit: `b170c5870d3a1fed6265609281d4d7fdcc4bf8f0`. Pre-existing un
 | PROD OLTP | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000228 | Deployed | Not changed | Not changed |
 | PROD OLAP | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100178 | Deployed | Not changed | Not changed |
 
-Both DEV apps use Color header/footer style, white launch image, no background image and text size 20. OLTP uses Rubik and the accounting.png app icon; OLAP uses productivity.png. Exact values were read from current editor controls. Existing DEV apps remain recovery candidates; do not delete them until replacement validation and recoverable-definition verification pass.
+Both prior DEV apps used Color header/footer style, white launch image, no background image and text size 20. OLTP used Rubik and the accounting.png app icon; OLAP used productivity.png. Exact values were read from current editor controls and preserved in the replacements.
 
 DEV OLAP 1.000171 is newer than the inventory's 1.000170. Its history records a System automatic consistency check at 2026-09-19T02:30:43Z, with generated metadata/internal output-table changes. It is not evidence of a new owner feature. Release tracker and development differences record R001–R008 promoted; preserve all existing DEV data and environment differences.
 
@@ -47,10 +47,10 @@ Account Sources UI independently confirmed **database-3 → Postgres / 34.158.38
 
 ## Recovery, documentation applicability and remaining work
 
-Original DEV apps remain unchanged at their captured versions and Prototype mode, so their schedules cannot duplicate deployed replacement jobs. No old app or backing data has been deleted. Current version numbers alone do not satisfy post-deletion recovery. Browser content export is unavailable for this Chrome surface; the appdoc print route did not produce a verified export. Existing private source-PROD appdoc captures match **3.000228 / 1.100178**, but they are not claimed as tested recovery of the original DEV definitions. Old-app cleanup is blocked until recoverable definitions/reconstruction are verified under the refresh runbook.
+The owner subsequently gave explicit approval to delete both prior Prototype apps despite the unavailable original-DEV definition exports. After action-time confirmation, AppSheet deleted `Loan Business Insights — DEV` (`494cd013-0d9b-482f-9559-c9d83059de91`) and `Loan Manager — DEV` (`65faacd8-2b0d-43bf-9e0a-58eb915dcf9b`). A refreshed inventory showed four apps only: the two replacement DEV apps and the two PROD apps, all Deployed. AppSheet warns deleted definitions are no longer accessible. No backing PostgreSQL data or files were deleted.
 
 The private source captures remain under `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r008-20260918`: `prod-oltp-r008-appdoc.json` SHA-256 `abbcce7da39b2d1dae9c90133e8f68cfb3a5772c8cb5d8db7f59f5242097c0a9`; OLAP counterpart `c12659ea745579d6ba1d9964fd3761b2bceb78afef971a304f69ee0357552cf0`. No new private-backup coverage is claimed.
 
 No SQL/business model, Ref, slice, permission or business-column expression was redesigned. Environment identity, appearance, routing and automation guards are the refresh differences. Update inventory/differences and overview status; the production dictionary's business inventory remains applicable and requires no model-row rewrite for this environment-only batch. Release tracker R001–R008 remains Released; no new product release number or PROD tag is allocated for the refresh.
 
-Remaining: obtain and verify recoverable original-DEV definitions/reconstruction, then perform gated app-only cleanup. Browser content export is unsupported and printing produced no verified file; intact original apps are retained as rollback instead of deleting the only verified copies. Device receipt is distinct from recorded server dispatch and was not independently observed. Full refresh closure remains pending recovery/cleanup. Configuration, source isolation, GUI checks and guard execution evidence are complete; no PROD deployment/tag applies. This checked checkpoint is published using the current branch/upstream under standing repository authorization.
+Refresh closure is complete. Configuration, source isolation, GUI checks, guard execution and final four-app inventory are verified. Browser content export was unsupported and printing produced no verified original-DEV file; the owner explicitly accepted deletion with that limitation. Device receipt remains distinct from recorded server dispatch and was not independently observed. No PROD deployment/tag applies.
