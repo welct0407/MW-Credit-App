@@ -5,7 +5,7 @@ Copy these files into the existing `outputs/<release>/` evidence folder; no new 
 | File | Use |
 | --- | --- |
 | [release-manifest.json](release-manifest.json) | Machine-readable relationship between tested Git/Flyway and DEV → RC → PROD versions |
-| [source-mapping-validation.json](source-mapping-validation.json) | Every table/source and environment substitution, with independent RC and PROD readbacks |
+| [source-mapping-validation.json](source-mapping-validation.json) | Complete RC source preparation and necessary substitutions; focused resulting-PROD verification |
 | [test-results.md](test-results.md) | Relevant DEV/RC/PROD tests and honestly reused evidence |
 | [promotion-checklist.md](promotion-checklist.md) | Gates A–F; link generated documentation rows and complete them before release closure |
 
@@ -21,9 +21,9 @@ Copy these files into the existing `outputs/<release>/` evidence folder; no new 
 
 ## Source mapping fields
 
-Expand the example `sources` row to **every actual RC table/source**, including unchanged ones; reconcile actual inventory/count/names with the rows. Record actual app/RC IDs, source kind, DEV source and exact expected PROD connection/host/instance/database/schema/table or view. Non-SQL/file/internal sources need explicit purpose/destination/disposition, not guessed SQL values. RC and PROD-after observations/evidence are independently captured; never copy expected objects into observations.
+Expand the example `sources` row to **every actual RC table/source**, including unchanged ones; reconcile actual inventory/count/names with the rows. Record actual app/RC IDs, source kind, DEV source and exact expected PROD connection/host/instance/database/schema/table or view. Non-SQL/file/internal sources need explicit purpose/destination/disposition, not guessed SQL values. Capture RC preparation evidence independently. PROD uses a focused source/substitution check; no repeat full mapping transcription is required when unchanged evidence remains applicable. Record unused detailed PROD fields as not applicable with the basic verification reference, not as falsely observed values.
 
-Expand `substitutions` to all required PROD differences: sources, companion app IDs/deep links, nested/error notification recipients, access/endpoints/templates and themes. Use the actual existing PROD pair for inter-app links, never the RC pair. Values may be JSON scalars/arrays/objects to preserve exact properties and order; protected values use controlled external references and actual private comparison. Record baseline source evidence/version and reason.
+Expand `substitutions` only to actual PROD differences: sources, companion IDs/deep links, access/endpoints/templates and themes. Shared recipient expressions stay unchanged; DEV owner-only contact data is not copied to PROD. No routine recipient remapping. Only changed routes or documented legacy/non-master-data exceptions need separate review. Use the actual existing PROD pair for inter-app links, never the RC pair. Values may be JSON scalars/arrays/objects to preserve exact properties and order; protected values use controlled external references and actual private comparison. Record baseline source evidence/version and reason.
 
 For `themeByApp`, separately capture each corresponding PROD app's exact mode/color/branding property names/values and version. Apply those values **after copying DEV to RC**, then verify saved settings/appearance and resulting PROD. The four existing DEV/PROD colors remain unchanged. No guessed color codes or common color for both RCs. Link substitution rows rather than maintaining competing expected values.
 
@@ -32,5 +32,7 @@ Record containment method and demonstrated app-specific scope. RC production sou
 `containment.scheduledBots` holds one row per scheduled entry point: exact canonical DEV/PROD **internal names**, actual RC name, original filter/guard/first-branch placement, intended enablement/schedule, saved RC/PROD evidence and first-use or reused scheduled-runtime proof. Use [the standard guard](../../../Documents/Release_Workflow.md#scheduled-bot-execution-guard); never allow an RC or infer names from display labels/UUIDs. A skipped scheduler invocation is acceptable; no business side effects may pass. Newly created templates have no live verification. Preserve the guard through App Upgrade and record replacement DEV names after refresh; do not add a normal post-upgrade enablement step.
 
 ## Checks and limits
+
+All app modes target Deployed; the initial deployment check applies to a new/undeployed app, not every release. `records.delta`/`deltaHash` may remain null when unused; the log supplies the concise change record. Basic PROD validation covers identity/version, mode, bindings/substitutions, editor issues, load/sync and representative changed entry points; expand only for specific risks.
 
 These JSON files deliberately ship incomplete. Parsing JSON only checks syntax; no automated schema or semantic readiness validator is supplied. Review fields against the linked gates and actual evidence. The delta helper validates exact delta records only; it does not validate the RC manifest/mapping, read live apps or certify a release. Generate fresh per-document rows with `documentation.mjs`, preserving prior completed outputs. Use the existing Flyway checks for migrations and current AppSheet GUI for relevant functional tests.

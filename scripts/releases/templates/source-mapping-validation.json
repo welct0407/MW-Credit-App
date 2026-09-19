@@ -43,5 +43,16 @@
     }]
   },
   "externalAssets": [],
-  "coverage": { "companionLinks": "pending", "recipientAndNestedRoutes": "pending", "accessAndEndpoints": "pending", "templatesAndFiles": "pending", "perAppThemes": "pending" }
+  "coverage": { "companionLinks": "pending", "recipientAndNestedRoutes": "reuse established coverage; inspect changed routes/exceptions only", "accessAndEndpoints": "pending", "templatesAndFiles": "pending", "perAppThemes": "pending" },
+  "notificationRouting": {
+    "strategy": "shared expressions; DEV master-data override; no routine recipient remapping",
+    "establishedCoverageReference": null,
+    "changedRouteOrException": null,
+    "creatorExclusionDisposition": null
+  },
+  "productionVerification": {
+    "level": "basic",
+    "evidence": null,
+    "targetedExpansionReason": null
+  }
 }
