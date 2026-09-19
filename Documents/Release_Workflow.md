@@ -9,11 +9,11 @@ Effective **19 September 2026** for all future development/promotion, including 
 
 | Environment | Mode | Notifications / recipients | Scheduled business execution |
 | --- | --- | --- | --- |
-| DEV | Deployed | Enabled; recipient settings point to `welct0407@mw-credit.com` | Enabled for intended jobs |
+| DEV | Deployed | Enabled; DEV Partner delivery data points to `welct0407@mw-credit.com` | Enabled for intended jobs |
 | RC | Deployed | Enabled; production recipient configuration; no unapproved test delivery | Blocked by app-name guard |
 | PROD | Deployed | Enabled; existing production recipient configuration | Enabled for intended jobs |
 
-Supersedes earlier Prototype-only DEV rules and exhaustive delta-validation gates. Existing deliberately retired/disabled jobs stay disabled. The matrix is target policy, not a claim that live transition has occurred. Follow [DEV preparation](Development_Environment_Preparation.md) for direct owner-only DEV recipient overrides. During RC preparation restore the corresponding production recipient configuration before freeze. Partner email/master-data overrides and the creator-exclusion redesign are deferred.
+Supersedes earlier Prototype-only DEV rules and exhaustive delta gates. R009 also supersedes direct DEV notification literals: distinct Login Email identities and environment-specific Partner delivery data support shared recipient expressions. Follow [DEV preparation](Development_Environment_Preparation.md). Preserve deliberately retired jobs; policy does not itself deploy to PROD.
 
 ## Release records and integration
 
@@ -21,7 +21,7 @@ Use the reserved Rnnn, one release log under `Change Logs/`, and `outputs/<relea
 
 - `release-manifest.json`: scope, Git/Flyway pins, DEV/RC/PROD identities/versions, decisions, gates and recovery. Include OLTP and OLAP with `upgrade` or `unchanged` disposition. SQL-only releases record App Upgrade as not applicable.
 - Change record in the existing log: all included features/fixes, affected components, dependencies, tests and recovery. An exact `release-delta.json` is optional for critical logic, troubleshooting or tooling; do not recreate an exhaustive property inventory merely for promotion. Exact model documentation remains required when applicable.
-- `source-mapping-validation.json`: RC table/source mappings, actual environment substitutions and scheduled guard evidence. Include the compact DEV-override → production-recipient mapping and saved RC restoration evidence; reuse untouched route coverage.
+- `source-mapping-validation.json`: RC table/source mappings, actual environment substitutions and scheduled guard evidence. Record shared recipient logic/identity prerequisites and any remaining legacy substitutions; reuse untouched route coverage.
 - `promotion-checklist.md`, linked test/readback artifacts and generated [per-document closure rows](Promotion_Documentation_Checklist.md). Unknown values remain null/Pending, never invented or automatically passed.
 
 The implementation commit, Flyway manifest and final evidence/tag commit are different identifiers. A delta hash fingerprints recorded changes, not the whole app. Record complete AppSheet internal names (including suffix), UUIDs and versions; display names alone are ambiguous. Keep credentials/raw private exports outside Git. Capture generated documentation at DEV freeze, final RC, PROD-before and PROD-after where available; manual editor/version evidence is acceptable. Record unavailable captures once; perfect extraction/full-app diff is not a development prerequisite.
@@ -70,7 +70,7 @@ Reuse passing evidence while implementation, dependencies, environment and data 
 
 ### RC containment and external dependencies
 
-A PROD-bound RC is production-capable. It retains notification definitions, restores production recipient configuration in place of copied DEV overrides, reads PROD data and links to the actual PROD pair. Do not perform test writes or force notifications in RC without scoped production authorization. Scheduled business execution is blocked by the guard; restricted access/reviewed entry points contain non-scheduled effects. Do not disable scheduled bot definitions in RC, which would carry disabled definitions into PROD.
+A PROD-bound RC is production-capable. It retains notification definitions, uses shared recipient expressions with PROD contact data, reads PROD data and links to the actual PROD pair. Do not perform test writes or force notifications in RC without scoped production authorization. Scheduled business execution is blocked by the guard; restricted access/reviewed entry points contain non-scheduled effects. Do not disable scheduled bot definitions in RC, which would carry disabled definitions into PROD.
 
 Use the persistent scheduled-bot guard below, implemented/tested in controlled DEV before RC copy. It preserves the intended enabled state while allowing business execution only in canonical apps. Other entry points (interactive writes, app/external events, webhooks and external/SQL schedulers) still need their own applicable containment; this guard is not a data-access security boundary. Never disable DB integrity triggers. If the guard is missing or unverified, keep the candidate on DEV sources with affected bots disabled until prepared; do not rebind/deploy an executable RC or silently repair disabled PROD bots afterward.
 
@@ -78,7 +78,7 @@ Validate templates/files, endpoints, permissions and scheduler ownership that Ap
 
 ### Scheduled-bot execution guard
 
-**Standard arrangement:** all apps are Deployed and retain intended bot definitions/schedules. DEV and PROD are allowed by the persistent app-name guard; RC is excluded. Thus “RC scheduled bots disabled” means scheduled business execution is disabled, not that the bot definition's enabled flag is switched off. An RC timer may be invoked but must perform no business side effects. Notifications remain enabled: DEV recipient settings point directly to `welct0407@mw-credit.com`; RC restores production recipient configuration and PROD retains it.
+**Standard arrangement:** all apps are Deployed and retain intended bot definitions/schedules. DEV and PROD are allowed by the persistent app-name guard; RC is excluded. Thus “RC scheduled bots disabled” means scheduled business execution is disabled, not that the bot definition's enabled flag is switched off. An RC timer may be invoked but must perform no business side effects. Notifications remain enabled: DEV delivery is owner-only through Partner data; RC/PROD read PROD contacts.
 
 For each app separately, use this expression with its actual full internal names:
 
@@ -110,7 +110,7 @@ Apply compatible migrations **before final RC PROD-source verification**, so req
 ### Gate D: PROD-mapped RC validated and immutable
 
 1. Rebind **every RC SQL table/view** to the verified PROD host/instance, database, schema and object. Reconcile actual RC inventory with mapping rows so missing/extra tables cannot hide. Verify auxiliary/file/internal sources separately with explicit purpose/disposition. Labels/common database names do not establish identity. No DEV source remains in the deployment definition.
-2. Record necessary substitutions: connections, existing PROD companion IDs/deep links (not RC/DEV IDs), access/endpoints/files and per-app PROD themes. Restore each copied DEV owner-only recipient override to its recorded production expression/value, including nested tasks and To/CC/BCC. Verify saved substitutions once against the recorded PROD baseline, incorporating only separately approved recipient changes. Rebinding the database alone does not remove DEV literals. Reuse coverage for untouched routes; inspect new/changed tasks or concrete delivery issues. Resolve missing production mappings before freeze; never carry DEV-only recipients into PROD. RC navigation into PROD must not execute unauthorized actions.
+2. Record necessary substitutions: connections, existing PROD companion IDs/deep links (not RC/DEV IDs), access/endpoints/files and per-app PROD themes. Shared R009 recipient expressions require no environment substitution. Verify V25 identity schema/mapping and PROD contacts before final RC verification; never copy DEV delivery data to PROD or restore superseded creator-by-delivery-email expressions. Restore only documented legacy DEV literals on unconverted routes, once before freeze. Reuse untouched routing evidence. RC navigation into PROD must not execute unauthorized actions.
 3. Save/reload and use Save & Verify Data (or equivalent exposed current-editor data validation). Verify Refs, security filters, types/permissions and affected slices/views/generated metadata. Resolve editor issues and complete applicable RC-source deployment prerequisites under containment. Capture saved versions, source/substitution readbacks and relevant GUI checks.
 4. Reconcile the candidate with the accepted change summary and source DEV versions. Verify preparation substitutions and release-critical differences using existing evidence; complete separate external-asset steps. Do not require full business-property readback solely because the app was copied. Unexpected regeneration or copy changes require targeted investigation/retesting.
 5. Freeze final deployed RC UUID/internal name/version, mapping/guard evidence, tests, scope and package revision (plus optional delta hash) in the manifest. Set `rc.state` to `ready-immutable` only now. No later configuration edits on this identity. Fixes require a new RC number and affected retesting/approval. If DEV has later work, reconstruct the earlier integrated candidate in a controlled copy without resetting others' work.

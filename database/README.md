@@ -1,6 +1,11 @@
 # PostgreSQL development with Flyway
 
-After a DEV app/database copy or refresh, complete [Development Environment Preparation](../Documents/Development_Environment_Preparation.md) before test writes. Flyway does not manage AppSheet bot enablement. DEV apps are Deployed and follow intended released schedules with DEV-only effects; owner-only notifications use DEV app recipient settings pointing directly to `welct0407@mw-credit.com`. Verify those overrides after a PROD-to-DEV data restore before jobs resume, using the preparation procedure; do not rewrite Partner email/master data for notification routing. PROD-mapped RCs instead follow [Release Workflow](../Documents/Release_Workflow.md), including independent execution containment. [AGENTS.md, Section 6](../AGENTS.md) governs the complete batch and frozen baseline.
+## R009 DEV checkpoint — 19 September 2026
+
+DEV is **V25**, PROD remains **V24**. Immutable V25 adds Partners.Login Email separately from Email delivery data. Populated-backfill and recipient selection tests: `Test-Migrations.ps1 -PreMigrationTarget 24 -PreMigrationSqlFile scripts/database/Test-R009PreMigration.sql -TestSqlFile scripts/database/Test-R009Recipients.sql`. DEV-only delivery override: `Set-R009DevRecipients.ps1` (current two-partner guard; review if population changes). See [R009 evidence](../outputs/r009-20260919/IDENTITY_TESTS.md). No production migration authorized.
+
+
+After a DEV app/database copy or refresh, complete [Development Environment Preparation](../Documents/Development_Environment_Preparation.md) before test writes. Flyway does not manage AppSheet bot enablement. DEV apps are Deployed and follow intended released schedules with DEV-only effects; owner-only notifications use DEV Partners.Email delivery addresses, preserving distinct Partners.Login Email identities. After each PROD-to-DEV restore and retained migrations, reapply the DEV-only delivery-data override before jobs resume. Shared AppSheet expressions need no environment email substitution. PROD-mapped RCs instead follow [Release Workflow](../Documents/Release_Workflow.md), including independent execution containment. [AGENTS.md, Section 6](../AGENTS.md) governs the complete batch and frozen baseline.
 
 Flyway Open Source 13.6.0 manages the database schema in this repository. PostgreSQL 18.6 is the tested engine. Both Cloud SQL instances use database name `loan_manager_prod`; the **host/instance**, not that database name, identifies the environment. See `environments.json`.
 

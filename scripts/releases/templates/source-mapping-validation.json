@@ -43,9 +43,9 @@
     }]
   },
   "externalAssets": [],
-  "coverage": { "companionLinks": "pending", "recipientAndNestedRoutes": "verify DEV override restoration once in RC; reuse untouched route coverage", "accessAndEndpoints": "pending", "templatesAndFiles": "pending", "perAppThemes": "pending" },
+  "coverage": { "companionLinks": "pending", "recipientAndNestedRoutes": "shared R009 identity/delivery routing; legacy substitutions only if applicable; reuse untouched coverage", "accessAndEndpoints": "pending", "templatesAndFiles": "pending", "perAppThemes": "pending" },
   "notificationRouting": {
-    "strategy": "DEV owner-only recipient settings; restore production configuration in RC; PROD unchanged",
+    "strategy": "shared expressions; DEV Partner delivery data owner-only, RC/PROD production contacts",
     "establishedCoverageReference": null,
     "changedRouteOrException": null,
     "productionRecipientBaselineReference": null,

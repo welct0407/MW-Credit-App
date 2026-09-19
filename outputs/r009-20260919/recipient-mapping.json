@@ -3,7 +3,7 @@
   "devVersion": "1.000011",
   "baselineProdVersion": "3.000228",
   "scope": "Six quick-payment push task recipient overrides; other DEV mappings retained from refresh",
-  "status": "DEV owner-only; corrected production expressions for future authorized RC",
+  "status": "Historical first-stage R009 evidence; superseded, do not restore these recipient formulas",
   "entries": [
     {
       "bot": "R008 Receive All Confirmed",
@@ -47,5 +47,6 @@
       "closurePlacement": "Yes branch of Notify payment-closed loans",
       "rcSavedVerification": null
     }
-  ]
+  ],
+  "supersededBy": "outputs/r009-20260919/identity-routing.json"
 }

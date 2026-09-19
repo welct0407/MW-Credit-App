@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
   "release": "R009",
-  "revision": 1,
-  "status": "DEV ready for review; owner-only override retained",
+  "revision": 2,
+  "status": "DEV ready for owner review; production authorization pending",
   "scope": [
-    "Correct origin-row creator exclusion in three production recipient expressions, retaining six owner-only DEV task overrides",
-    "Run closure summaries only when exact payment closed at least one loan"
+    "Three quick-payment closure summaries run only when the exact receipt closes a loan",
+    "Separate Partner login identity from database-driven notification delivery; exclude actor Partner ID across 12 push tasks",
+    "Flyway V25 and Partners regeneration in both apps; DEV owner-only delivery data and refresh/promotion policy"
   ],
   "prerequisites": [
     "R008 / Flyway V24",
@@ -19,21 +20,21 @@
     "log": "Change Logs/CHANGE_NOTES_R009_2026-09-19.md",
     "delta": null,
     "deltaHash": null,
-    "mapping": "outputs/r009-20260919/recipient-mapping.json",
+    "mapping": "outputs/r009-20260919/identity-routing.json",
     "checklist": null,
-    "tests": "outputs/r009-20260919/TESTS.md",
+    "tests": "outputs/r009-20260919/IDENTITY_TESTS.md",
     "documentationChecklist": null,
     "recovery": null
   },
   "apps": {
     "OLTP": {
       "disposition": "upgrade",
-      "reason": "Three conditional closure paths and corrected RC recipient substitutions",
+      "reason": "Closure gates and 12 identity-based notification tasks plus Login Email schema",
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": "1.000011",
-        "evidence": "outputs/r009-20260919/TESTS.md"
+        "version": "1.000014",
+        "evidence": "outputs/r009-20260919/IDENTITY_TESTS.md"
       },
       "rc": {
         "id": null,
@@ -67,13 +68,13 @@
       }
     },
     "OLAP": {
-      "disposition": "unchanged",
-      "reason": "No reporting/model change",
+      "disposition": "upgrade",
+      "reason": "Partners.Login Email schema and partner-management form",
       "dev": {
         "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
         "internalName": "MW-OLAP-DEV-20260919-578763613",
-        "version": "1.000013",
-        "evidence": "outputs/r009-20260919/TESTS.md"
+        "version": "1.000015",
+        "evidence": "outputs/r009-20260919/IDENTITY_TESTS.md"
       },
       "rc": {
         "id": null,
@@ -110,21 +111,31 @@
   "database": {
     "engine": "PostgreSQL",
     "migrationTool": "Flyway",
-    "disposition": "unchanged",
-    "devVersion": "24",
+    "disposition": "migrate",
+    "devVersion": "25",
     "prodBeforeMigration": null,
-    "targetVersion": "24",
+    "targetVersion": "25",
     "prodBeforeAppUpgrade": null,
     "prodAfter": null,
     "testedCommit": null,
     "runnerManifestReference": null,
     "manifestSha256": null,
-    "migrations": [],
-    "backupEvidence": null,
-    "compatibilityEvidence": null
+    "migrations": [
+      {
+        "version": "25",
+        "path": "database/migrations/V25__partner_login_identity.sql",
+        "sha256": "30e9a90a0b4da327f2124de84762f7a1851e3c1ef6865fdef8af6d1771fd25a3"
+      }
+    ],
+    "backupEvidence": "Change Logs/CHANGE_NOTES_R009_2026-09-19.md",
+    "compatibilityEvidence": "Additive nullable column/index/check; existing Email unchanged by migration. Older apps can ignore Login Email."
   },
   "externalDependencies": [],
-  "deploymentOrder": [],
+  "deploymentOrder": [
+    "Verify PROD Partner login mappings and backup; exact tested Flyway V25",
+    "Prepare both integrated RC apps against PROD; verify shared recipient definitions, bindings and existing containment",
+    "Authorized App Upgrade of both PROD apps; basic validation and documentation closure"
+  ],
   "approvals": {
     "devAcceptance": null,
     "productionScope": null,
@@ -133,9 +144,9 @@
     "productionWriteTests": null
   },
   "validation": {
-    "A_devIntegrated": "passed for closure execution, editor checks and formula syntax/SQL cross-check; multi-user delivery not exercised under DEV isolation",
+    "A_devIntegrated": "Passed scoped migration, saved-expression, both-editor and GUI checks; physical-device and actual Lisa-session delivery unverified",
     "B_candidateCaptured": "pending",
-    "C_databaseReady": "not applicable: SQL V24 unchanged",
+    "C_databaseReady": "DEV V25 passed; PROD pending authorization and pinned runner manifest",
     "D_rcReady": "pending",
     "E_authorizedUpgrade": "pending",
     "F_productionClosure": "pending"
@@ -159,8 +170,8 @@
     "devMode": "Deployed",
     "rcMode": "Deployed",
     "prodMode": "Deployed",
-    "devRecipients": "DEV recipient settings: welct0407@mw-credit.com",
-    "rcAndProdRecipients": "production recipient configuration (restored in RC before freeze)",
+    "devRecipients": "DEV Partners.Email owner-only; distinct Partners.Login Email preserved",
+    "rcAndProdRecipients": "Shared identity-based expressions read PROD Partner delivery data; no converted-task expression substitution",
     "scheduledBusinessExecution": {
       "dev": "enabled",
       "rc": "blocked by canonical-app guard",

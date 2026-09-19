@@ -50,8 +50,8 @@
     "devMode": "Deployed",
     "rcMode": "Deployed",
     "prodMode": "Deployed",
-    "devRecipients": "DEV recipient settings: welct0407@mw-credit.com",
-    "rcAndProdRecipients": "production recipient configuration (restored in RC before freeze)",
+    "devRecipients": "DEV Partners.Email: welct0407@mw-credit.com; distinct Login Email identities",
+    "rcAndProdRecipients": "PROD Partner contacts; shared R009 expressions; restore only legacy unconverted overrides",
     "scheduledBusinessExecution": {
       "dev": "enabled",
       "rc": "blocked by canonical-app guard",

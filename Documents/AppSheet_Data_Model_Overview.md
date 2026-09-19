@@ -1,5 +1,12 @@
 # AppSheet production data model
 
+## R009 DEV difference — pending promotion
+
+DEV **V25 / OLTP 1.000014 / OLAP 1.000015** adds Partners.Login Email independently of existing Email (delivery address). SQL permits null but rejects blanks and enforces uniqueness on lower(btrim(Login Email)); initial backfill normalizes the prior distinct emails. Both apps expose a physical Email-type, sensitive, non-key/non-label column without formulas/defaults; OLTP Partners remains READ_ONLY and OLAP retains partner management. Regeneration's Compose Email (Login Email) system action is retained. Existing keys, relationships, financial fields and permissions remain unchanged.
+
+Twelve OLTP push tasks resolve the recorded Created By/Closed By actor through Login Email to immutable Partner Row ID, exclude that ID, then select distinct nonblank Email addresses. Unmapped/blank actors produce no recipients. Quick commands look up the exact posted receipt using the originating row and request token. DEV both delivery addresses are the owner; login identities remain distinct. PROD schema/data/configuration are unchanged until promotion. Exact expressions and evidence: [R009 identity routing](../outputs/r009-20260919/identity-routing.json), [tests](../outputs/r009-20260919/IDENTITY_TESTS.md). Workbook Dev Differences holds matching R009 rows; its production inventory remains the R008 reference.
+
+
 ## R008 production model — 19 September 2026
 
 PROD is **SQL V24 / OLTP 3.000228 / OLAP 1.100178** after the production correction audit. The 19 September apps-only refresh copies this business model into replacement DEV apps on retained **SQL V24**, with DEV bindings, appearance, owner-only routing and scheduled-app guards. Both replacements are Deployed, runtime checks passed, and the prior Prototype apps were deleted with explicit owner approval. Current identities/versions are in the [environment inventory](Environment_Inventory.md) and [refresh log](../Change%20Logs/CHANGE_NOTES_DEV_APP_REFRESH_2026-09-19.md). No business table/column/Ref/slice/permission change was introduced by this environment-only refresh; the workbook's production model inventory remains applicable. Exact promoted properties are captured in the [R008 revision-4 delta](../outputs/r008-20260918/r4/release-delta.json), and the workbook retains the exact DEV history plus the reconciled production inventory. [Correction audit and current evidence](../outputs/r008-20260918/production-correction/REPORT.md) establish the production reference.

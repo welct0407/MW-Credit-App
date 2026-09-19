@@ -1,4 +1,22 @@
-# R009 — Payment notification fixes
+# R009 — Partner identity and payment notifications
+
+## Current extension — 19 September 2026
+
+Owner approved separate login/delivery identities and implementation under R009. This supersedes the first-stage deferral and direct DEV recipient overrides below. Starting commit 7b5d2606c97e7c77956407ac523edc5717e443b0; tree was clean. **DEV complete; ready for owner review.** Production promotion remains unauthorized.
+
+Implemented **V25 / OLTP 1.000014 / OLAP 1.000015**. V25 adds nullable, normalized-unique Partners.Login Email and backfills prior emails before the separate DEV delivery override. Existing Email remains the delivery column. Both DEV Email values are welct0407@mw-credit.com, with distinct login identities retained. Twelve push tasks exclude the actor Partner ID and deduplicate nonblank delivery addresses; unknown actors select nobody. Existing channels, content, event conditions and closure gates are retained. Both apps regenerate Partners; generated Compose Email (Login Email) action retained. OLAP edit form shows both fields and was cancelled without data changes.
+
+Both saved editors **No issues found**. [Current test results](../outputs/r009-20260919/IDENTITY_TESTS.md), [exact saved expressions](../outputs/r009-20260919/identity-routing.json), [manifest](../outputs/r009-20260919/release-manifest.json). Full migration chain with populated V24 backfill, uniqueness/blank checks, shared-delivery exclusion/deduplication and Flyway validate passed. Initial migration attempt rolled back due to deferred Partner trigger events before DDL; corrected ordering was retested before successful application. Applied V25 is immutable. Current-GUI positive and zero-closure runs passed; positive receipt and summary task output both target the owner. SQL covers both actor identities. Physical-device receipt and a transaction under Lisa's actual sign-in remain unverified; recommend that focused owner acceptance test before promotion.
+
+Updated AGENTS, release/refresh/preparation and promotion-documentation procedures, templates, database guide, tracker, environment inventory, development differences, overview and dictionary. R009 scripts/evidence capture exact expressions and bounded DEV fixture/data operations. Production reference remains R008. The earlier mapping is marked superseded and must not be restored into RC. No Looker/export logic change. New login values should be maintained as trimmed canonical sign-in emails. Before V25 in PROD, verify existing Email values really identify the two sign-ins; preserve delivery data and handle any divergence explicitly.
+
+Rollback: restorable DEV OLTP **1.000011**, OLAP **1.000013** recorded before this batch. Retain additive V25 on ordinary app rollback; old owner-literal DEV definition still isolates notifications. Private DEV backup before identity change: C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r009-20260919/dev-before-login-identity.dump; SHA256 82022F579A1E8277832A8AFAE00453C746CCA9E736F135B4E35CBCA9F3934DB5. Archive listing passed; restoration not tested. Do not restore over later shared work or assume Login Email always reconstructs an earlier delivery address; the backup preserves prior mappings. Synthetic receipts remain auditable DEV history, auto-charge off. SQL/app rollback does not undo notifications already sent.
+
+The DEV-only Set-R009DevRecipients runner is pinned to the current host and exactly two mapped partners; review it if partner population changes. Never run DEV overrides against PROD. Refresh applies retained migrations then reapplies delivery-data isolation before jobs resume. Normal RC/App Upgrade keeps identical expressions and uses PROD contacts; existing schedule guards and theme/binding steps remain required. No RC/PROD edits or final production tag in this task.
+
+## Historical first-stage R009 implementation
+
+The following is dated evidence. Its earlier direct-recipient approach and no-model-change applicability statements are superseded by the extension above.
 
 Owner request: fix both diagnosed notification issues in DEV as R009. Production promotion is not authorized. Starting Git commit `acbdc4fd492b2087ded27223a2841a36b61e5e5c`; working tree clean.
 
