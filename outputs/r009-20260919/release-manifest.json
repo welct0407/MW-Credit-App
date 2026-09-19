@@ -1,13 +1,14 @@
 {
   "schemaVersion": 1,
   "release": "R009",
-  "revision": 3,
+  "revision": 4,
   "status": "In development; owner OLTP GUI edits and final version pending",
   "scope": [
     "Three quick-payment closure summaries run only when the exact receipt closes a loan",
     "Separate Partner login identity from database-driven notification delivery; exclude actor Partner ID across 12 push tasks",
     "Flyway V25 and Partners regeneration in both apps; DEV owner-only delivery data and refresh/promotion policy",
-    "Additional owner OLTP GUI refinements; exact scope and final version pending completion"
+    "Additional owner OLTP GUI refinements; exact scope and final version pending completion",
+    "Four loan-closure notification bodies display Loan Key instead of Row ID"
   ],
   "prerequisites": [
     "R008 / Flyway V24",
@@ -36,7 +37,8 @@
         "internalName": "MW-OLTP-DEV-20260919-578763613",
         "version": null,
         "lastVerifiedVersion": "1.000014",
-        "currentVersionStatus": "Owner GUI edits in progress; recapture after completion",
+        "currentObservedVersion": "1.000023",
+        "currentVersionStatus": "Owner GUI edits in progress; Loan Key notification delta verified, full scope requires recapture after completion",
         "evidence": "outputs/r009-20260919/IDENTITY_TESTS.md"
       },
       "rc": {
@@ -147,7 +149,7 @@
     "productionWriteTests": null
   },
   "validation": {
-    "A_devIntegrated": "Prior checkpoint passed; reopened by ongoing owner OLTP GUI edits. Final scope/version, diagnostics and affected checks pending",
+    "A_devIntegrated": "Prior checkpoint passed; reopened by ongoing owner OLTP GUI edits. At observed OLTP 1.000023, four closure bodies read back Loan Key and editor diagnostics passed; final complete scope/version and other affected checks pending",
     "B_candidateCaptured": "pending",
     "C_databaseReady": "DEV V25 validated from clean tested commit; runner manifest pinned. PROD migration awaits authorization.",
     "D_rcReady": "pending",

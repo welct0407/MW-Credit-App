@@ -2,7 +2,9 @@
 
 ## Owner GUI work in progress — 19 September 2026
 
-The owner is making additional OLTP GUI changes directly in the DEV editor under R009. The changes and resulting AppSheet version are not yet final. OLTP **1.000014** remains the last verified R009 checkpoint, not the current release candidate. R009 is back **In development**; recapture the completed GUI scope, final saved version, editor diagnostics and affected checks before making a new readiness recommendation. PROD remains unchanged.
+The owner is making additional OLTP GUI changes directly in the DEV editor under R009. The complete owner-edited scope and final AppSheet version are not yet confirmed. OLTP **1.000014** remains the last fully scoped R009 checkpoint, not the current release candidate. R009 is back **In development**; recapture the completed GUI scope, final saved version, editor diagnostics and affected checks before making a new readiness recommendation. PROD remains unchanged.
+
+Current observed DEV OLTP is **1.000023**. At the owner's request, all four loan-closure push-notification body templates now display `<<[Loan Key]>>` after `สินเชื่อ Loan:` instead of `<<[Row ID]>>`: `R009 closure summary Task - 1` (Borrowers), `Send closure summary when loans closed Task - 1` (Charges), `Task for Send closure summary when loans closed` (Loans), and `Send closure summary Task - 1` (Payments). Their Row ID selectors, receipt matching, titles, amounts, interest, recipients, deep links, channels and conditions are unchanged. After save/reload, all four bodies independently read back with Loan Key and no displayed Row ID; the editor reports **No issues found**. No notification was fired. This targeted check does not close or validate the owner's other ongoing GUI edits.
 
 ## Current extension — 19 September 2026
 
