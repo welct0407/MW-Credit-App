@@ -1,21 +1,22 @@
 {
   "schemaVersion": 1,
   "release": "R009",
-  "revision": 4,
+  "revision": 5,
   "status": "In development; owner OLTP GUI edits and final version pending",
   "scope": [
     "Three quick-payment closure summaries run only when the exact receipt closes a loan",
     "Separate Partner login identity from database-driven notification delivery; exclude actor Partner ID across 12 push tasks",
     "Flyway V25 and Partners regeneration in both apps; DEV owner-only delivery data and refresh/promotion policy",
     "Additional owner OLTP GUI refinements; exact scope and final version pending completion",
-    "Four loan-closure notification bodies display Loan Key instead of Row ID"
+    "Four loan-closure notification bodies display Loan Key instead of Row ID",
+    "Loans Effective Daily Interest Rate uses outstanding principal in OLTP and OLAP; zero when fully repaid"
   ],
   "prerequisites": [
     "R008 / Flyway V24",
     "Refreshed canonical DEV pair of 2026-09-19"
   ],
   "git": {
-    "implementationCommit": "d1424ff0bd06b99b4b644ae5cbb6197c09728654",
+    "implementationCommit": "pending final R009 freeze",
     "finalTag": null
   },
   "records": {
@@ -26,19 +27,20 @@
     "checklist": null,
     "tests": "outputs/r009-20260919/IDENTITY_TESTS.md",
     "documentationChecklist": null,
-    "recovery": null
+    "recovery": null,
+    "effectiveRateTests": "outputs/r009-20260919/EFFECTIVE_RATE_TESTS.md"
   },
   "apps": {
     "OLTP": {
       "disposition": "upgrade",
-      "reason": "Closure gates and 12 identity-based notification tasks plus Login Email schema",
+      "reason": "Closure gates, 12 identity-based notification tasks, Login Email schema, and outstanding-principal effective rate",
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
         "version": null,
         "lastVerifiedVersion": "1.000014",
-        "currentObservedVersion": "1.000023",
-        "currentVersionStatus": "Owner GUI edits in progress; Loan Key notification delta verified, full scope requires recapture after completion",
+        "currentObservedVersion": "1.000032",
+        "currentVersionStatus": "Owner GUI edits in progress; Loan Key notification and outstanding-principal rate deltas verified, full scope requires recapture after completion",
         "evidence": "outputs/r009-20260919/IDENTITY_TESTS.md"
       },
       "rc": {
@@ -117,23 +119,28 @@
     "engine": "PostgreSQL",
     "migrationTool": "Flyway",
     "disposition": "migrate",
-    "devVersion": "25",
+    "devVersion": "26",
     "prodBeforeMigration": null,
-    "targetVersion": "25",
+    "targetVersion": "26",
     "prodBeforeAppUpgrade": null,
     "prodAfter": null,
-    "testedCommit": "d1424ff0bd06b99b4b644ae5cbb6197c09728654",
-    "runnerManifestReference": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/flyway/release-d1424ff0bd06b99b4b644ae5cbb6197c09728654.json",
-    "manifestSha256": "99874a81ee86b85a8abe9c6d557b1f36c7306a91f93fc34ee74740ae26565dbd",
+    "testedCommit": "pending final R009 freeze",
+    "runnerManifestReference": null,
+    "manifestSha256": null,
     "migrations": [
       {
         "version": "25",
         "path": "database/migrations/V25__partner_login_identity.sql",
         "sha256": "30e9a90a0b4da327f2124de84762f7a1851e3c1ef6865fdef8af6d1771fd25a3"
+      },
+      {
+        "version": "26",
+        "path": "database/migrations/V26__effective_daily_interest_rate_outstanding_principal.sql",
+        "sha256": "cd894eff206950401771f94041f1b450b9a254504c431bbe11163322ebc53ee4"
       }
     ],
     "backupEvidence": "Change Logs/CHANGE_NOTES_R009_2026-09-19.md",
-    "compatibilityEvidence": "Additive nullable column/index/check; existing Email unchanged by migration. Older apps can ignore Login Email."
+    "compatibilityEvidence": "V25 is additive. V26 preserves the OLAP view signature and changes only the Effective Daily Interest Rate calculation; OLTP change is an existing VC formula."
   },
   "externalDependencies": [],
   "deploymentOrder": [
@@ -149,9 +156,9 @@
     "productionWriteTests": null
   },
   "validation": {
-    "A_devIntegrated": "Prior checkpoint passed; reopened by ongoing owner OLTP GUI edits. At observed OLTP 1.000023, four closure bodies read back Loan Key and editor diagnostics passed; final complete scope/version and other affected checks pending",
+    "A_devIntegrated": "Reopened by ongoing owner OLTP GUI edits. At observed OLTP 1.000032 / DEV V26, closure-body and outstanding-principal rate deltas have saved readback; editor diagnostics, migration tests, and live SQL reconciliation passed. Final complete owner scope/version and remaining affected checks pending",
     "B_candidateCaptured": "pending",
-    "C_databaseReady": "DEV V25 validated from clean tested commit; runner manifest pinned. PROD migration awaits authorization.",
+    "C_databaseReady": "DEV V26 migrated and validated; V26 hash recorded. Freeze a fresh release runner manifest/commit after the owner finishes R009. PROD migration awaits authorization.",
     "D_rcReady": "pending",
     "E_authorizedUpgrade": "pending",
     "F_productionClosure": "pending"

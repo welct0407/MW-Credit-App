@@ -2,7 +2,7 @@
 
 **R009 owner revision, 19 September 2026:** All apps remain Deployed. DEV/PROD schedules execute; RC is guard-blocked. Shared notification expressions resolve the recorded actor through unique Partners.Login Email to Partner Row ID, exclude that partner, then select distinct nonblank Partners.Email delivery addresses. DEV delivery addresses point only to the owner; RC/PROD use PROD contacts. Preserve login identities. This supersedes direct DEV recipient literals and their routine RC restoration for converted routes. PROD remains unchanged until authorized promotion. See [DEV preparation](Development_Environment_Preparation.md).
 
-Updated 19 September 2026 after the owner-requested apps-only DEV refresh and cleanup. PROD remains **V24 / OLTP 3.000228 / OLAP 1.100178**. Replacement DEV apps below are **Deployed**, use DEV V25 after R009 (the refresh retained V24), and preserve OLTP orange `#e8710a` / OLAP blue `#1e88e5`. The two prior Prototype apps were deleted with explicit owner approval; the current inventory contains four apps, all Deployed. [Refresh status and evidence](../Change%20Logs/CHANGE_NOTES_DEV_APP_REFRESH_2026-09-19.md). R008 business scope and deliberately uninitialized PROD account openings remain as documented in the [production correction audit](../outputs/r008-20260918/production-correction/REPORT.md).
+Updated 19 September 2026 after the owner-requested apps-only DEV refresh and cleanup. PROD remains **V24 / OLTP 3.000228 / OLAP 1.100178**. Replacement DEV apps below are **Deployed**, use DEV V26 after R009 (the refresh retained V24), and preserve OLTP orange `#e8710a` / OLAP blue `#1e88e5`. The two prior Prototype apps were deleted with explicit owner approval; the current inventory contains four apps, all Deployed. [Refresh status and evidence](../Change%20Logs/CHANGE_NOTES_DEV_APP_REFRESH_2026-09-19.md). R008 business scope and deliberately uninitialized PROD account openings remain as documented in the [production correction audit](../outputs/r008-20260918/production-correction/REPORT.md).
 
 ## App identities and bindings
 
@@ -12,10 +12,10 @@ Updated 19 September 2026 after the owner-requested apps-only DEV refresh and cl
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000228 | database-2 | 13 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100178 | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000023 (owner edits ongoing) | database-3 | 13 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000032 (owner edits ongoing) | database-3 | 13 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000015 | database-3 | 19 |
 
-R009's last fully scoped checkpoint is DEV **V25 / OLTP 1.000014 / OLAP 1.000015**. Current observed OLTP **1.000023** includes ongoing owner GUI edits and the verified four-task Loan Key notification-body refinement; its full scope and final readiness remain pending recapture. The 1.000023 editor reports No issues found. [R009 log](../Change%20Logs/CHANGE_NOTES_R009_2026-09-19.md). PROD versions above are unchanged.
+R009's last fully scoped checkpoint is DEV **V25 / OLTP 1.000014 / OLAP 1.000015**. Current observed DEV is **V26 / OLTP 1.000032 / OLAP 1.000015** and includes ongoing owner GUI edits, the verified four-task Loan Key notification-body refinement, and the outstanding-principal Effective Daily Interest Rate rule in OLTP and the OLAP SQL view. Saved formula readback, V26 migration tests, live SQL reconciliation and OLTP editor diagnostics passed; full owner scope and final readiness remain pending recapture. [R009 log](../Change%20Logs/CHANGE_NOTES_R009_2026-09-19.md). PROD versions above are unchanged.
 
 Replacement internal names are `MW-OLTP-DEV-20260919-578763613` and `MW-OLAP-DEV-20260919-578763613`; their companion actions link to each other, verified in the runtime. Account Sources UI confirmed database-3 host **34.158.38.171**, database **loan_manager_prod**, Require SSL. Twelve OLTP push tasks target only the owner. Canonical scheduled guards allow the replacement DEV and existing corresponding PROD internal names. The prior Prototype UUIDs and temporary verification copy are deletion history in the refresh log, not current inventory.
 
@@ -37,7 +37,7 @@ Cleanup on 15 September leaves exactly these four owned AppSheet apps and one Ap
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V24 migrated and validated | V25 migrated and tested (R009) | R008 V23/V24 were promoted from the frozen package; no DEV data was copied. Both pre-release V22 and final V24 private backups restored with matching normalized schemas. |
+| Flyway | V24 migrated and validated | V26 migrated and tested (R009) | V25 adds Partner login identity; V26 aligns Effective Daily Interest Rate with outstanding principal. PROD remains V24 and no DEV data was copied. |
 
 Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
