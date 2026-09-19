@@ -10,20 +10,26 @@ The verified target was production Cloud SQL host `34.21.174.215`, database `loa
 
 Before initialization, Dad's holder balance was ฿21,780. Account-assigned inflows were ฿2,620 for TTB and ฿1,400 for SCB, while ten retained accountless historical ledger rows had a net value of ฿17,760: ฿15,870 dated 17 September and a net ฿1,890 dated 18 September.
 
-The owner-provided current account balances total ฿22,690, requiring a documented ฿910 increase to Dad's holder ledger. The initialization retained every historical accountless row unchanged and used its dated net amounts as the opening snapshots:
+The owner's initial current account balances totaled ฿22,690, requiring a documented ฿910 increase to Dad's holder ledger. The owner subsequently corrected SCB from ฿3,880 to ฿3,300. The initialization retained every historical accountless row unchanged and used its dated net amounts as the opening snapshots:
 
-| Account | Initiation date | Opening snapshot | Initialization correction | Existing assigned inflows | Current balance |
-| --- | --- | ---: | ---: | ---: | ---: |
-| Dad TTB | 2026-09-17 | ฿15,870 | ฿320 | ฿2,620 | ฿18,810 |
-| Dad SCB | 2026-09-18 | ฿1,890 | ฿590 | ฿1,400 | ฿3,880 |
+| Account | Initiation date | Opening snapshot | Initialization correction | Existing assigned inflows | Later correction outflow | Current balance |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Dad TTB | 2026-09-17 | ฿15,870 | ฿320 | ฿2,620 | ฿0 | ฿18,810 |
+| Dad SCB | 2026-09-18 | ฿1,890 | ฿590 | ฿1,400 | ฿580 | ฿3,300 |
 
 Created controlled manual-correction rows `dad-ttb-init-reconcile-20260917` and `dad-scb-init-reconcile-20260918`, each linked to its bank account and carrying an audit note. Created immutable account-cutover records with TTB dated one day before its first assigned receipt on 18 September and SCB dated one day before its first assigned receipt on 19 September.
 
-After initialization, Dad's account balances sum exactly to his holder cash on hand of ฿22,690. The ten earlier accountless rows remain intact; their net is represented by the dated opening snapshots instead of assigning individual historical receipts to banks without evidence.
+After the SCB correction, Dad's account balances sum exactly to his holder cash on hand of ฿22,110. The ten earlier accountless rows remain intact; their net is represented by the dated opening snapshots instead of assigning individual historical receipts to banks without evidence.
+
+### SCB correction refinement
+
+The owner corrected Dad SCB's current balance from ฿3,880 to ฿3,300. Added account-specific manual-correction row `dad-scb-balance-correction-20260919`, dated 19 September 2026, as a ฿580 outflow from Dad SCB. The immutable opening snapshot and the earlier ฿590 initialization correction remain unchanged and auditable.
 
 ## Backup and rollback
 
 Before the write, created the private production dump `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\dad-accounts-init-before-20260919.dump`, SHA-256 `BF6DE83E1155DC1D61F7CC0ACA1D5771079E1E46045BD24C0EB97C2A471199E9`. An isolated restore succeeded with normalized schema equivalence for `public`, `assessment_lab` and Flyway history. Cloud SQL instance settings and the cron extension remain outside this logical-backup scope.
+
+Before the later SCB correction, created and restore-tested `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\dad-scb-correction-before-20260919.dump`, SHA-256 `1018B7A2851E0F863F8009177ED40283F4AE9F1F2901BA001CB9046816131056`, with the same logical-backup scope.
 
 Account openings are immutable by design. Future balance differences should use documented account-specific compensating corrections. Changing the initialization metadata itself requires a separately authorized, coordinated database recovery; never restore the backup over later production activity without that recovery decision.
 
@@ -33,9 +39,10 @@ Account openings are immutable by design. Future balance differences should use 
 - Locked affected financial source, ledger, account and cutover tables during both phases.
 - Verified the historical accountless ledger count, net amount and row fingerprint did not change.
 - Verified TTB is initialized with opening ฿15,870, Cash In ฿2,940 and Current Balance ฿18,810.
-- Verified SCB is initialized with opening ฿1,890, Cash In ฿1,990 and Current Balance ฿3,880.
-- Verified Dad's holder Current Balance and Business Cash Held are both ฿22,690 and equal the sum of the two initialized account balances.
-- Synced the current production OLAP app. Cash Account Summary displays both accounts as initialized with the exact opening, inflow and current balances above; Cash Holder Summary displays Dad at ฿22,690 with no reimbursement or advance due.
+- Rehearsed the later ฿580 SCB correction under rollback before committing it.
+- Verified SCB is initialized with opening ฿1,890, Cash In ฿1,990, Cash Out ฿580 and Current Balance ฿3,300.
+- Verified Dad's holder Current Balance and Business Cash Held are both ฿22,110 and equal the sum of the two initialized account balances.
+- Synced the current production OLAP app. Cash Account Summary displays TTB ฿18,810 and SCB ฿3,300 as initialized; Cash Holder Summary displays Dad at ฿22,110 with no reimbursement or advance due. Cash Ledger Recent displays the dated ฿580 manual correction.
 
 ## Status
 
