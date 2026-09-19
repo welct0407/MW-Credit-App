@@ -2,7 +2,7 @@
 
 **R009 owner revision, 19 September 2026:** All apps remain Deployed. DEV/PROD schedules execute; RC is guard-blocked. Shared notification expressions resolve the recorded actor through unique Partners.Login Email to Partner Row ID, exclude that partner, then select distinct nonblank Partners.Email delivery addresses. DEV delivery addresses point only to the owner; RC/PROD use PROD contacts. Preserve login identities. This supersedes direct DEV recipient literals and their routine RC restoration for converted routes. R009 was promoted on 19 September 2026. See [DEV preparation](Development_Environment_Preparation.md).
 
-Updated after R009 promotion and RC retirement on 19 September 2026: **PROD V26 / OLTP 3.000231 / OLAP 1.100181**. Both PROD apps remain Deployed and show No issues found. DEV freeze was **V26 / 1.000033 / 1.000015**; later DEV state is not implied. Replacement DEV themes remain orange `#e8710a` / blue `#1e88e5`. PROD themes are pink `#d81b60` / turquoise `#0abab5`. Exactly four owned apps remain: the canonical DEV and PROD OLTP/OLAP pairs. [R009 evidence](../outputs/r009-20260919/production/REPORT.md); earlier [DEV refresh](../Change%20Logs/CHANGE_NOTES_DEV_APP_REFRESH_2026-09-19.md). R008 account openings remain deliberately uninitialized.
+Updated 20 September 2026 after R010 DEV implementation: **DEV V26 / OLTP 1.000036 / OLAP 1.000015**; DEV OLTP is Deployed and shows No issues found. **PROD remains V26 / OLTP 3.000231 / OLAP 1.100181** and is unchanged. Replacement DEV themes remain orange `#e8710a` / blue `#1e88e5`. PROD themes are pink `#d81b60` / turquoise `#0abab5`. Exactly four owned apps remain: the canonical DEV and PROD OLTP/OLAP pairs. [R010 evidence](../outputs/r010-20260919/REPORT.md); [R009 production evidence](../outputs/r009-20260919/production/REPORT.md). R008 account openings remain deliberately uninitialized.
 
 ## App identities and bindings
 
@@ -12,7 +12,7 @@ Updated after R009 promotion and RC retirement on 19 September 2026: **PROD V26 
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000231 | database-2 | 13 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100181 | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000033 (R009 freeze) | database-3 | 13 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000036 (R010 ready for review) | database-3 | 13 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000015 | database-3 | 19 |
 
 R009 RC1 OLTP `b21a5069-4897-4937-a62c-993563fcf572` / `MW-OLTP-R009-RC1-578763613` and OLAP `5fce331d-68d5-49b8-923f-01dc1b524c9f` / `MW-OLAP-R009-RC1-578763613` were frozen at **1.000006** each and used for the completed App Upgrades. All 32 SQL mappings, themes/folders/logos, companion links and schedule containment were verified. After release closure and the first natural PROD/RC schedule observation, the owner explicitly authorized deletion of both RC apps on 19 September 2026. Reloading each former editor redirected to My Apps, and the owned inventory showed only the four canonical apps. Git/private captures preserve the definitions and promotion evidence, but the RC app identities are no longer live recovery sources. [Manifest](../outputs/r009-20260919/release-manifest.json), [mapping](../outputs/r009-20260919/production/source-mapping-validation.json).

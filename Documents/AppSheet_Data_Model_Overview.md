@@ -1,5 +1,11 @@
 # AppSheet production data model
 
+## R010 DEV difference — GUI validation for predictable payment rejections
+
+DEV OLTP **1.000036** adds form constraints that keep predictable receipt rejections in the GUI. New direct receipts require borrower, amount and payment date; amounts retain the existing positive whole-baht and eligible-balance rule; dates remain limited to today or earlier; active receiving accounts and competing Processing/Error receipts show bilingual messages. A Posted receipt may change its receiving account/holder only when Notes preserves the previous text and appends a reason, using `_THISROW_BEFORE` so an unchanged receipt remains valid. The R008 Receive All, Receive Full and Loan Close command account fields now return no selectable account when the current row is ineligible and explain the remaining balance or loan prerequisites.
+
+This is an unpromoted DEV overlay. PROD remains the R009 model below at **V26 / OLTP 3.000231 / OLAP 1.100181**. No table, physical column, Ref, slice, permission, SQL object or reporting grain changed. Exact R010 expressions are recorded in the workbook's `Dev Differences` rows 2790–2811 and in the [R010 evidence](../outputs/r010-20260919/REPORT.md).
+
 ## R009 production model — 19 September 2026
 
 PROD **V26 / OLTP 3.000231 / OLAP 1.100181** was upgraded from immutable RC1 **1.000006** in each app, captured from DEV **1.000033 / 1.000015**. R009 model differences are promoted and closed. [Production evidence](../outputs/r009-20260919/production/REPORT.md), [manifest](../outputs/r009-20260919/release-manifest.json).

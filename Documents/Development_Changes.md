@@ -4,6 +4,12 @@
 
 **Capture/closure rule from 19 September 2026:** Record every future release's integrated DEV checkpoint and concise complete scope/change record, then link its immutable PROD-mapped RC manifest/mapping and App Upgrade evidence. After validation, explicitly close each promoted scope difference against the frozen release and actual PROD versions; preserve later DEV work, owner-only notification routing and DEV themes. RC takes its corresponding PROD theme and normal PROD routes under execution containment. No manual PROD recreation is the normal process. [Workflow](Release_Workflow.md) and [documentation checklist](Promotion_Documentation_Checklist.md) govern closure; historical entries below retain their original deployment method.
 
+## R010 ready for review — 20 September 2026
+
+DEV OLTP **1.000036** blocks predictable invalid payment operations in the form with bilingual guidance. New receipts require borrower, amount and date; existing amount/date/account eligibility remains enforced with clearer messages. Posted account/holder corrections compare the form to `_THISROW_BEFORE` and require Notes to preserve the old text and append a reason. The three R008 quick-command account fields expose an empty choice list when the live borrower/charge/loan is no longer eligible and display the relevant balance or loan prerequisites.
+
+The saved editor reports **No issues found**. Current-GUI checks proved that an unchanged Posted receipt opens without an error, an account change without a reason is blocked, and a blank new receipt is blocked for borrower and amount; all forms were cancelled/discarded and no financial row was written. OLAP remains **1.000015** and SQL remains **V26**. PROD remains R009. RC creation, owner acceptance and production promotion are pending. [R010 report](../outputs/r010-20260919/REPORT.md), [tests](../outputs/r010-20260919/TESTS.md), [manifest](../outputs/r010-20260919/release-manifest.json).
+
 ## R009 promoted and closed — 19 September 2026
 
 Integrated capture: **DEV V26 / OLTP 1.000033 / OLAP 1.000015**, including the owner's saved OLTP GUI refinements. Owner explicitly requested promotion. Both RC1 apps were frozen Deployed at **1.000006** with PROD sources/themes/links and guarded schedules. App Upgrade produced **PROD V26 / OLTP 3.000231 / OLAP 1.100181** in the existing app IDs. After validation and publication, the owner explicitly retired/deleted both RC apps; their identities and captured evidence remain in the manifest/report.
