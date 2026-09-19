@@ -29,6 +29,8 @@ For `themeByApp`, separately capture each corresponding PROD app's exact mode/co
 
 Record containment method and demonstrated app-specific scope. RC production sources/recipients are intentional final targets; they do not authorize RC to execute jobs. See [Release Workflow](../../../Documents/Release_Workflow.md#rc-containment-and-external-dependencies). Include final automation states and RC non-execution evidence. Definitions/copy status alone do not prove isolation or delivery.
 
+`containment.scheduledBots` holds one row per scheduled entry point: exact canonical DEV/PROD **internal names**, actual RC name, original filter/guard/first-branch placement, intended enablement/schedule, saved RC/PROD evidence and first-use or reused scheduled-runtime proof. Use [the standard guard](../../../Documents/Release_Workflow.md#scheduled-bot-execution-guard); never allow an RC or infer names from display labels/UUIDs. A skipped scheduler invocation is acceptable; no business side effects may pass. Newly created templates have no live verification. Preserve the guard through App Upgrade and record replacement DEV names after refresh; do not add a normal post-upgrade enablement step.
+
 ## Checks and limits
 
 These JSON files deliberately ship incomplete. Parsing JSON only checks syntax; no automated schema or semantic readiness validator is supplied. Review fields against the linked gates and actual evidence. The delta helper validates exact delta records only; it does not validate the RC manifest/mapping, read live apps or certify a release. Generate fresh per-document rows with `documentation.mjs`, preserving prior completed outputs. Use the existing Flyway checks for migrations and current AppSheet GUI for relevant functional tests.

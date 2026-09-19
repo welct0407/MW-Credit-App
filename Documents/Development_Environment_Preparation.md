@@ -24,6 +24,8 @@ Both DEV apps, including replacement copies, remain in **Prototype** mode under 
 
 Use one inventory/checklist and link it from these documents; do not maintain a duplicate bot list here. [Database workflow](../database/README.md) governs SQL migrations; AppSheet configuration and scheduler activation must be recorded separately where Flyway does not manage them.
 
+For scheduled bots, use the persistent [canonical-app execution guard](Release_Workflow.md#scheduled-bot-execution-guard). Verify the allowed full internal names for the relevant DEV/PROD pair and preserve the business conditions. A replacement DEV app requires updating its DEV literal before restoring automation; RC copies must remain excluded. Record guard installation as a release change, not an existing verified fact. Reuse verified coverage until a name, guard or reachable scheduled path changes; this does not authorize deploying canonical DEV or repeatedly testing unchanged schedules.
+
 ## Recorded evidence and policy transition
 
 This methodology update did not inspect or change live apps, schedules, recipients or databases. Existing saved states are not automatically compliant with the new parity rule. The next applicable preparation must compare the current environments and resolve differences before claiming parity.
