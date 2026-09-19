@@ -2,7 +2,7 @@
 
 **Owner policy revision, 19 September 2026:** DEV/RC/PROD target Deployed; DEV/PROD scheduled business execution is enabled and RC is guard-blocked. DEV notification recipient settings point directly to `welct0407@mw-credit.com`; RC restores production recipient configuration before freeze and PROD retains it. No Partner email override or creator-exclusion redesign is part of this policy. Keep concise release change records and basic PROD App Upgrade checks. Earlier Prototype states/exact-delta audits below are dated evidence, not current requirements. This documentation revision does not change observed live versions, modes or data. See [Release Workflow](Release_Workflow.md) and [DEV preparation](Development_Environment_Preparation.md).
 
-Updated 19 September 2026 after the R008 production correction audit. PROD is **V24 / OLTP 3.000228 / OLAP 1.100178**; DEV is **V24 / OLTP 1.000181 / OLAP 1.000170**, both Prototype. R008 adds Cash Accounts in both apps and Cash Account Balances in OLAP; all three live account openings remain deliberately uninitialized. Native borrower Refs replace custom navigation in affected details, Receive All remains inline while hidden in detail views, and OLAP Record Cash Transfer captures both holder and account endpoints. The databases retain the same database name; instance/host establish identity. [R008 correction audit](../outputs/r008-20260918/production-correction/REPORT.md).
+Updated 19 September 2026 during the owner-requested apps-only DEV refresh. PROD remains **V24 / OLTP 3.000228 / OLAP 1.100178**. Replacement DEV apps below are **Deployed**, use the retained DEV V24 database, and preserve OLTP orange `#e8710a` / OLAP blue `#1e88e5`. **Refresh applied; runtime checks passed; recovery cleanup incomplete.** Original DEV apps remain recovery candidates in Prototype mode. [Refresh status and evidence](../Change%20Logs/CHANGE_NOTES_DEV_APP_REFRESH_2026-09-19.md). R008 business scope and deliberately uninitialized PROD account openings remain as documented in the [production correction audit](../outputs/r008-20260918/production-correction/REPORT.md).
 
 ## App identities and bindings
 
@@ -12,8 +12,12 @@ Updated 19 September 2026 after the R008 production correction audit. PROD is **
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000228 | database-2 | 13 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100178 | database-2 | 19 |
-| Development OLTP | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000181 | database-3 | 13 |
-| Development OLAP | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000170 | database-3 | 19 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000010 | database-3 | 13 |
+| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000013 | database-3 | 19 |
+| Previous DEV OLTP, retained recovery | Loan Manager — DEV | 65faacd8-2b0d-43bf-9e0a-58eb915dcf9b | 1.000181 | database-3 | 13 |
+| Previous DEV OLAP, retained recovery | Loan Business Insights — DEV | 494cd013-0d9b-482f-9559-c9d83059de91 | 1.000171 | database-3 | 19 |
+
+Replacement internal names are `MW-OLTP-DEV-20260919-578763613` and `MW-OLAP-DEV-20260919-578763613`; their companion actions link to each other, verified in the runtime. Account Sources UI confirmed database-3 host **34.158.38.171**, database **loan_manager_prod**, Require SSL. Twelve OLTP push tasks target only the owner. Canonical scheduled guards allow the replacement DEV and existing corresponding PROD internal names. Temporary guard-verification copy/status is tracked only in the refresh log; it is not a canonical app or RC. The four-app count in the historical 15 September cleanup paragraph below is superseded during this refresh.
 
 Both OLAP apps use the assessment view and have removed Calendar for V11 SQL analytics. The historical SQL Calendar objects remain outside AppSheet for recovery. Native internal tables are excluded from the SQL counts. Business Expenses is loaded in both environments: editable for manual entries in OLTP and read only in OLAP. A 16 September post-release audit found Business Expenses, borrower-referral and net-reporting gaps at production 3.000118 / 1.100098. R003 reconciled every listed AppSheet object at production 3.000121 / 1.100101; use the linked R001 audit and R003 report for the before/after evidence.
 
