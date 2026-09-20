@@ -33,7 +33,7 @@ installer="$(mktemp)"
 trap 'rm -f "$installer"' EXIT
 curl -fsSL https://chatgpt.com/codex/install.sh -o "$installer"
 chown mwagent:mwagent "$installer"
-sudo -u mwagent -H sh "$installer"
+sudo -u mwagent -H sh -c 'cd /var/lib/mw-integration-agent && exec sh "$1"' sh "$installer"
 
 codex_path=/var/lib/mw-integration-agent/.local/bin/codex
 if [ ! -x "$codex_path" ]; then

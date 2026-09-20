@@ -2,7 +2,7 @@
 
 Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM.
 
-Status: **repository scaffold only**. All integrations and schedules are disabled. The existing Windows Partner Operations worker and webhooks remain paused; this repository performs no cutover.
+Status: **installed foundation, inactive**. The VM, host prerequisites, Codex CLI, and repository layout are installed. All integrations and schedules are disabled, no live configuration or credentials have been installed, and the existing Windows Partner Operations worker and webhooks remain paused. This repository performs no cutover.
 
 ## Initial target
 
@@ -11,7 +11,11 @@ Status: **repository scaffold only**. All integrations and schedules are disable
 - VM/hostname: `vm-mw-credit-agent`
 - Machine profile: E2 shared-core, 4 GB memory (`e2-medium`)
 - OS: Debian 13
-- Backups: Compute Engine default backup selection, verified after VM creation
+- Backups: regional Compute Engine snapshot policy `default-schedule-1`, attached and verified after VM creation
+- Network: ephemeral external IPv4 `136.85.96.197`, authorized only for this VM by project-level organization-policy override; SSH remains available through IAP
+- Installed source: `/opt/mw-integration-agent-src`
+- Installed application: `/opt/mw-integration-agent`
+- Service account: `mwagent` with a non-login shell
 
 ## Local verification
 
@@ -26,7 +30,7 @@ mw-integration-agent check --config config.example.json
 
 ## Debian preparation
 
-The bootstrap script installs only host prerequisites and the Codex CLI. It does not copy credentials, configure webhooks, enable systemd services, or start business processing.
+The bootstrap script installs only host prerequisites and the Codex CLI. It does not copy credentials, configure webhooks, enable systemd services, or start business processing. Run it from any working directory; it changes to the service account's home before invoking the Codex installer.
 
 ```bash
 sudo bash scripts/bootstrap-debian.sh
