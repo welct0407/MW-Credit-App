@@ -2,7 +2,7 @@
 
 ## Current state
 
-This repository has no production business runtime. Catalogue revision 1 enables only signed Instagram receipt ingress; delivery is implemented but disabled. The receiver stores messages without processing or replying. The loopback-only Cloud SQL Auth Proxy remains independent and has no database password.
+This repository has no production business runtime. Catalogue revision 1 enables signed Instagram receipt ingress and explicit Instagram delivery; live delivery remains disabled by the runtime flag. The receiver stores messages without processing or replying. A one-time outbound reply was accepted by Meta on 20 September 2026, and `sending_enabled` was immediately restored to `false`. The loopback-only Cloud SQL Auth Proxy remains independent and has no database password.
 
 ## Filesystem layout
 
@@ -47,4 +47,4 @@ Compute Engine snapshot schedules cover disk blocks, not the complete VM definit
 
 ## Activation boundary
 
-The owner authorized the receiver and two-way transport foundation on 20 September 2026. This does not authorize automated replies or a live outbound test. Enable the webhook and tunnel only after credential migration, cutoff recording, and proof that the Windows route remains stopped. Delivery, processing, scheduler, and data-write activation remain separate decisions.
+The owner authorized the receiver, two-way transport foundation, and one controlled outbound reply on 20 September 2026. That test is complete. It does not authorize automated replies: keep `sending_enabled=false` except for another deliberate operator action. Processing, scheduler, and data-write activation remain separate decisions.

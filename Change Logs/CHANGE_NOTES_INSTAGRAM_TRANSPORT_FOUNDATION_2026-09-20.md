@@ -19,7 +19,7 @@ Starting rollback point: `e1494f8dd6dc510f2a7217333e497f4ed14a75c6`.
 
 ## Credential and cutover boundary
 
-After explicit owner authorization, the preserved Instagram access token, Instagram application secret, webhook verification token, and Cloudflare tunnel token were transferred through authenticated SSH/IAP into `/etc/mw-integration-agent/secrets`. They were not printed or committed. A fresh Linux cutoff marker was created, the stopped Windows route was not restarted, and historical messages are not replayed. A live outbound test remains a separate deliberate action.
+After explicit owner authorization, the preserved Instagram access token, Instagram application secret, webhook verification token, and Cloudflare tunnel token were transferred through authenticated SSH/IAP into `/etc/mw-integration-agent/secrets`. They were not printed or committed. A fresh Linux cutoff marker was created, the stopped Windows route was not restarted, and historical messages are not replayed. The separately authorized controlled outbound test is recorded below.
 
 ## Rollback
 
@@ -37,6 +37,9 @@ Live checks:
 - Public Meta verification challenge returned the exact challenge.
 - A signed empty Instagram payload returned 200 `EVENT_RECEIVED`; an invalid signature returned 403.
 - The official Instagram API authenticated account `tttlll8709` and enumerated 14 conversations.
-- No genuine post-cutover Instagram message has yet been delivered to the new journal, so content receipt and controlled outbound delivery still require a fresh test DM.
+- A genuine post-cutover Instagram DM was captured exactly as `linux webhook test 20260920`, attributed to the captured sender, and stored with `CAPTURED_NO_PROCESSING`.
+- With `sending_enabled` temporarily enabled, the Debian CLI sent one reply to that captured sender. Meta returned `accepted` and a message ID.
+- The live configuration was immediately restored to `sending_enabled=false`; a subsequent delivery attempt was rejected locally with `sending_enabled is false`.
+- Both `mw-instagram-webhook.service` and `mw-cloudflared-instagram.service` remained active after the test.
 
-Status: signed receipt-only ingress is live. A fresh genuine DM was captured exactly as `linux webhook test 20260920` with `CAPTURED_NO_PROCESSING`. Explicit delivery is authorized for a controlled reply test; automated business processing remains disabled.
+Status: two-way transport is verified. Signed receipt-only ingress is live, explicit delivery works when deliberately enabled, and outbound sending is disabled again. Provider acceptance proves submission to Meta, not recipient delivery or read status. Automated business processing remains disabled.

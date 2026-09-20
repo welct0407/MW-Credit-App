@@ -2,7 +2,7 @@
 
 Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM.
 
-Status: **signed Instagram ingress active on Debian; outbound adapter disabled pending a controlled test**. The receiver is live through `https://hooks.mw-credit.com/instagram`, while no message processing, automatic reply, AppSheet/database write, or schedule is enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
+Status: **two-way Instagram transport verified on Debian; automated outbound remains disabled**. The receiver is live through `https://hooks.mw-credit.com/instagram`; a controlled reply was accepted by Meta on 20 September 2026, after which `sending_enabled` was restored to `false`. No message processing, automatic reply, AppSheet/database write, or schedule is enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
 
 ## Initial target
 
