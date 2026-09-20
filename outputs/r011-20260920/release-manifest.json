@@ -1,19 +1,20 @@
 {
   "schemaVersion": 1,
   "release": "R011",
-  "revision": 3,
+  "revision": 4,
   "status": "dev-complete-awaiting-owner-acceptance",
   "scope": [
     "Persistent borrower-level collection quick-edit note",
     "Required English Name (Borrowers.Description) in OLTP forms",
     "Thai-first bilingual display names for remaining new-borrower fields",
-    "Partner-preference AppSheet system-text localization in OLTP and OLAP"
+    "Partner-preference AppSheet system-text localization in OLTP and OLAP",
+    "Optional second receiving identifier on Cash Accounts (DEV prerequisite for future receipt summaries)"
   ],
   "prerequisites": [
     "R010"
   ],
   "git": {
-    "implementationCommit": "2856dd06e79d1974e94984055c6e9df710c27c05",
+    "implementationCommit": null,
     "finalTag": null
   },
   "records": {
@@ -25,11 +26,11 @@
   "apps": {
     "OLTP": {
       "disposition": "upgrade-planned",
-      "reason": "Collection note, form validation, bilingual new-borrower labels and dynamic system-text localization",
+      "reason": "Collection note, form validation, bilingual new-borrower labels and dynamic system-text localization; read-only cash-account alias",
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": "1.000059",
+        "version": "1.000062",
         "evidence": "outputs/r011-20260920/test-results.md"
       },
       "rc": {
@@ -65,11 +66,11 @@
     },
     "OLAP": {
       "disposition": "upgrade-planned",
-      "reason": "Dynamic system-text localization; read-only SQL analytical view contract unchanged",
+      "reason": "Dynamic system-text localization; read-only SQL analytical view contract unchanged; editable cash-account alias; integrated R012 requires scope reconciliation",
       "dev": {
         "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
         "internalName": "MW-OLAP-DEV-20260919-578763613",
-        "version": "1.000018",
+        "version": "1.000021",
         "evidence": "outputs/r011-20260920/test-results.md"
       },
       "rc": {
@@ -108,18 +109,22 @@
     "engine": "PostgreSQL",
     "migrationTool": "Flyway",
     "disposition": "additive-column",
-    "devVersion": "28",
+    "devVersion": "29",
     "prodBeforeMigration": "27",
-    "targetVersion": "28",
+    "targetVersion": "29",
     "prodBeforeAppUpgrade": null,
     "prodAfter": null,
-    "testedCommit": "59ea9d95d499d9d59f45733c5fc9c2f60a9c6e36",
-    "runnerManifestReference": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/flyway/release-59ea9d95d499d9d59f45733c5fc9c2f60a9c6e36.json",
-    "manifestSha256": "81e6dd5b3988f530ae0034958d79f457a1c1c8331e9726db47146280b7cdab5a",
+    "testedCommit": null,
+    "runnerManifestReference": null,
+    "manifestSha256": null,
     "migrations": [
       {
         "file": "database/migrations/V28__borrower_collection_note.sql",
         "sha256": "84c81ae64d96d7917c90de4c9a9ac33b46c66403fdc28bdc5187e0077bdbf1e8"
+      },
+      {
+        "file": "database/migrations/V29__cash_account_alternative_number.sql",
+        "sha256": "1815789c2dcdd07fb182617274d4d2ca02f92ed15d32ed38692e487b5dfc3623"
       }
     ],
     "backupEvidence": "Private DEV dump and hash recorded in release log; PROD backup pending",
@@ -129,7 +134,7 @@
   "deploymentOrder": [
     "Owner acceptance and scoped production authorization",
     "Pin tested package; prepare contained RC",
-    "Verify PROD backup/drift; migrate compatible V28",
+    "Verify PROD backup/drift; migrate compatible V28 and V29",
     "Validate/freeze PROD-mapped OLTP and OLAP RCs",
     "App Upgrade existing PROD OLTP and OLAP",
     "Limited PROD validation and documentation closure"
@@ -144,7 +149,7 @@
   "validation": {
     "A_devIntegrated": "passed",
     "B_candidateCaptured": "pending",
-    "C_databaseReady": "DEV V28 tested and pinned; PROD migration pending authorization",
+    "C_databaseReady": "DEV V29 tested; updated clean package pin pending",
     "D_rcReady": "pending",
     "E_authorizedUpgrade": "pending",
     "F_productionClosure": "pending"
@@ -176,5 +181,6 @@
       "prod": "enabled"
     },
     "prodValidation": "basic App Upgrade checks; targeted expansion only"
-  }
+  },
+  "integratedDevScope": "R012 retained in OLAP; reconcile owner-approved batch before RC copy. OLTP pre-alias 1.000060 observed ahead of inventory; preserve prior delta."
 }

@@ -19,3 +19,6 @@ Targets: DEV OLTP `500b27b6-884a-41e8-a9ec-df801b0110ad`, final 1.000059; DEV OL
 | Dictionary | Rows 2857–2870 in Dev Differences, all prior values/formulas preserved after export/import; affected renders inspected and formula-error scan clear. See `dictionary/verification.json`, `dictionary-labels/verification.json` and `dictionary-localization/verification.json`. |
 
 Limitations: physical-device/mobile/offline and concurrent-user note edits were not tested. Separate Tommy and Lisa sign-in sessions were not impersonated; the saved per-user expression set and current-user English evaluation were verified instead. No dated note history was requested or implemented. Tests do not establish owner acceptance or production authorization. No new notification route or financial workflow was exercised.
+# Latest extension — 21 September 2026
+
+R011 now includes optional Cash Accounts.Alternative Account Number. Current DEV: SQL V29 / OLTP 1.000062 / OLAP 1.000021. See [account-alias verification](account-alias/test-results.md) for new SQL/GUI tests, rollback and preserved R012 integration; the earlier tests below remain dated evidence for unchanged behavior.

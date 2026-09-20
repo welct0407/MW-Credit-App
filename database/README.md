@@ -1,8 +1,8 @@
 # PostgreSQL development with Flyway
 
-## Current checkpoint — R010, 20 September 2026
+## Current checkpoint — R011 DEV, 21 September 2026
 
-DEV and PROD are **V27**. Immutable V25 adds Partners.Login Email separately from Email delivery data; V26 corrects the effective daily interest denominator; V27 adds the recent Cash Account Statement providers and private Partner selection context. V27 was promoted from the tested clean commit and validated in production before OLTP App Upgrade. The next migration must be V28 or higher. See [R010 production evidence](../outputs/r010-20260919/production/REPORT.md). DEV-only delivery override remains `Set-R009DevRecipients.ps1` and must not be copied to PROD.
+DEV is **V29**, PROD remains **V27**. R011's immutable V28 adds optional Borrowers.Borrower Note; V29 adds optional Cash Accounts.Alternative Account Number with no backfill or financial effects. Both are pending owner production promotion. The next migration must be V30 or higher. [R011 alias verification](../outputs/r011-20260920/account-alias/test-results.md) and [R010 production evidence](../outputs/r010-20260919/production/REPORT.md). DEV-only delivery override remains `Set-R009DevRecipients.ps1` and must not be copied to PROD.
 
 
 After a DEV app/database copy or refresh, complete [Development Environment Preparation](../Documents/Development_Environment_Preparation.md) before test writes. Flyway does not manage AppSheet bot enablement. DEV apps are Deployed and follow intended released schedules with DEV-only effects; owner-only notifications use DEV Partners.Email delivery addresses, preserving distinct Partners.Login Email identities. After each PROD-to-DEV restore and retained migrations, reapply the DEV-only delivery-data override before jobs resume. Shared AppSheet expressions need no environment email substitution. PROD-mapped RCs instead follow [Release Workflow](../Documents/Release_Workflow.md), including independent execution containment. [AGENTS.md, Section 6](../AGENTS.md) governs the complete batch and frozen baseline.

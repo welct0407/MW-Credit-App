@@ -1,4 +1,14 @@
-# R011 — Borrower collection notes, required English Name and Partner-language system text
+# R011 — Borrower collection notes, localization and receiving-account aliases
+
+## Cash account prerequisite extension — 21 September 2026
+
+Owner requested Instagram webhook receipt processing, restricted to enabled mapped borrowers, today/yesterday receipt dates, duplicate checks and defined recipient accounts, with Partner email summaries in each Partner's preferred language and no payment creation. Owner explicitly requested the account-number prerequisite in DEV under R011, then owner production promotion before agent development continues. This extends the original scope below; it does not activate AI Collection.
+
+Implemented immutable V29 adding Cash Accounts.Alternative Account Number (nullable text, no default/backfill). Regenerated both DEV apps and configured Text, optional, shown/searchable/PII, no key/label/formula/initial value, with display name `เลขบัญชีสำรอง / Alternative Account Number`. OLAP owns editing (Adds/Updates, no Deletes); OLTP remains read-only and the new column is noneditable. Two identifiers resolve to the existing cash-account identity; account balances, custody, defaults and financial logic remain unchanged.
+
+Starting Git `43fad6e3ddd3f45fa905037fb23747643048722a`, clean tree. Fresh rollback: OLTP 1.000060 / OLAP 1.000019 and private verified DEV dump documented in [alias tests](../outputs/r011-20260920/account-alias/test-results.md). Final saved DEV OLTP **1.000062**, OLAP **1.000021**, SQL **V29**, both editors show no issues. Isolated migration/SQL tests, OLAP synthetic save/clear with SQL readback, OLTP account selector and dependent-view reads passed. All alternative identifiers remain blank; no real receiving identifiers inferred. Updated dictionary Dev Differences A2874:E2876, overview, tracker, environment/open-difference records and this release package.
+
+Status: account prerequisite DEV complete; owner acceptance/production pending. Current OLAP includes R012, which must be reconciled into the promotion batch before whole-definition App Upgrade. Live OLTP pre-edit 1.000060 was ahead of the inventory 1.000059; preserve/reconcile its prior delta. The [receipt continuation](../outputs/r011-20260920/account-alias/receipt-continuation.md) retains the requested scope and source references. Agent code/runtime unchanged, email delivery not yet implemented or tested. Retain V29 when restoring pre-alias app versions; restoring the database requires later-write review.
 
 ## Scope and authority — 20 September 2026
 
