@@ -12,12 +12,16 @@ from mw_integration_agent.statement_delivery import DeliveryJournal, check_windo
 
 
 class StatementTests(unittest.TestCase):
-    def test_six_am_period_boundaries(self):
-        for hour,expected in [(5,'2026-09-18'),(6,'2026-09-19'),(20,'2026-09-19')]:
+    def test_midnight_period_boundaries(self):
+        for hour,expected in [(0,'2026-09-19'),(5,'2026-09-19'),(6,'2026-09-19'),(20,'2026-09-19')]:
             start,end=period(now=datetime(2026,9,20,hour,tzinfo=BANGKOK))
             self.assertEqual(start.date().isoformat(),expected)
             self.assertEqual((end-start).total_seconds(),86400)
-            self.assertEqual(start.hour,6)
+            self.assertEqual(start.hour,0)
+            self.assertEqual(end.hour,0)
+        start,end=period('2026-09-19',now=datetime(2026,9,20,0,tzinfo=BANGKOK))
+        self.assertEqual(start.isoformat(),'2026-09-19T00:00:00+07:00')
+        self.assertEqual(end.isoformat(),'2026-09-20T00:00:00+07:00')
         with self.assertRaises(ConfigurationError):
             period('2026-09-20',now=datetime(2026,9,20,23,tzinfo=BANGKOK))
 

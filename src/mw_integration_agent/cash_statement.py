@@ -17,15 +17,13 @@ def period(day: str | None = None, now: datetime | None = None):
     now = now or datetime.now(BANGKOK)
     now = now.astimezone(BANGKOK)
     if day:
-        start = datetime.combine(datetime.strptime(day, '%Y-%m-%d').date(), time(6), BANGKOK)
+        start = datetime.combine(datetime.strptime(day, '%Y-%m-%d').date(), time.min, BANGKOK)
     else:
-        end = datetime.combine(now.date(), time(6), BANGKOK)
-        if end > now:
-            end -= timedelta(days=1)
+        end = datetime.combine(now.date(), time.min, BANGKOK)
         start = end - timedelta(days=1)
     end = start + timedelta(days=1)
     if end > now:
-        raise ConfigurationError('Only completed 06:00–06:00 periods may be generated')
+        raise ConfigurationError('Only completed 00:00–00:00 calendar days may be generated')
     return start, end
 
 

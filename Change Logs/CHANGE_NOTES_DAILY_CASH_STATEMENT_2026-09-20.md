@@ -1,5 +1,11 @@
 # Daily cash movement statement — 20 September 2026
 
+## Owner refinement — calendar day and M&W Credit branding
+
+Starting clean Git commit `5fd7f5b4773c71d30e80327bf05d6febddff3a30`; live VM checkout matches. The owner revised the reporting window to a full Bangkok calendar day, 00:00 inclusive through next midnight exclusive, retaining posting-time basis. Display all amounts without decimals, transaction times as HH:MM, organization name **M&W Credit**, no footer date, and primary color **#D81B60** with coordinated pink shades. These instructions supersede the historical 06:00 design below.
+
+Updated period selection, rendering, CLI help, catalogue revision 4, sample fixtures, existing boundary/render tests and current documentation. Preserve exact Decimal accounting; round display only to whole baht (half up). Calendar-day snapshots have a separate directory and full-period send keys, preserving the earlier accepted report and its journal. Scheduling remains off. Verification, revised previews and deployment are in progress.
+
 ## Scope and authority
 
 Owner requested a daily picture statement for every bank/cash account, an R010-style summary, opening balance, transactions with running balances, and closing balance; send to all Partners with IG Integration Enabled, using each Partner's master Language Preference. Owner explicitly chose posting timestamps for the 06:00–06:00 Bangkok cutoff. Manual generation/delivery is in scope. Scheduling awaits owner satisfaction.

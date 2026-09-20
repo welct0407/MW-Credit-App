@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 import unicodedata
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, features
@@ -12,11 +12,11 @@ from PIL import Image, ImageDraw, ImageFont, features
 from .config import ConfigurationError
 
 LABELS = {
- 'English': ['Daily cash movement', 'Opening balance', 'Money in', 'Money out',
+ 'English': ['Daily statement', 'Opening balance', 'Money in', 'Money out',
   'Net movement', 'Closing balance', 'Transactions', 'Posted time', 'Transaction / counterparty',
   'Amount', 'Balance', 'No transactions in this period', 'Brought forward', 'Carried forward',
   'Posting time • Asia/Bangkok (UTC+07:00) • THB', 'Page', 'Effective date'],
- 'ไทย': ['รายงานความเคลื่อนไหวเงินสดประจำวัน', 'ยอดยกมา', 'เงินเข้า', 'เงินออก',
+ 'ไทย': ['รายการเดินบัญชีประจำวัน', 'ยอดยกมา', 'เงินเข้า', 'เงินออก',
   'เงินเคลื่อนไหวสุทธิ', 'ยอดคงเหลือปิดงวด', 'จำนวนรายการ', 'เวลาบันทึก', 'รายการ / ผู้เกี่ยวข้อง',
   'จำนวนเงิน', 'ยอดคงเหลือ', 'ไม่มีรายการในช่วงเวลานี้', 'ยอดยกมาจากหน้าก่อน', 'ยอดยกไปหน้าถัดไป',
   'ตามเวลาบันทึก • เวลาไทย (UTC+07:00) • บาท', 'หน้า', 'วันที่มีผล'],
@@ -38,7 +38,8 @@ TYPES = {
 
 
 def money(value):
-    return f'{Decimal(str(value)):,.2f}'
+    rounded = Decimal(str(value)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+    return f'{abs(rounded) if rounded == 0 else rounded:,.0f}'
 
 
 def render(report, account, language, directory, font_path='/usr/share/fonts/truetype/tlwg/Garuda.ttf'):
@@ -90,7 +91,7 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
             posted = datetime.fromisoformat(row['posted_at'])
             if row.get('effective_date') and row['effective_date'] != posted.date().isoformat():
                 description += '\n'+labels[16]+': '+row['effective_date']
-            table_rows.append((posted.strftime('%d/%m\n%H:%M:%S'),wrap(description,493),
+            table_rows.append((posted.strftime('%H:%M'),wrap(description,493),
                 ('+' if Decimal(str(row['amount'])) > 0 else '')+money(row['amount']),
                 money(row['balance']),'in' if Decimal(str(row['amount']))>=0 else 'out'))
         if not selected:
@@ -101,28 +102,28 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
         title_lines = wrap(account['label']+' · '+account['bank']+(' · •••• '+account['last4'] if account.get('last4') else ''),1100,32)
         table_top = 510+44*(len(title_lines)-1)
         height = table_top+sum(row_heights)+130
-        image = Image.new('RGB',(1200,height),'#f3f6fa')
+        image = Image.new('RGB',(1200,height),'#fff7fa')
         draw = ImageDraw.Draw(image)
-        def text(x,y,t,size=24,color='#1c3047',align='left'):
+        def text(x,y,t,size=24,color='#452432',align='left'):
             draw.text((x,y),str(t),font=fonts[size],fill=color,anchor='ra' if align=='right' else 'la',spacing=6)
-        draw.rectangle((0,0,1200,16),fill='#168e88')
-        text(44,39,'MW CREDIT',22,'#168e88')
+        draw.rectangle((0,0,1200,16),fill='#D81B60')
+        text(44,39,'M&W Credit',22,'#D81B60')
         text(44,79,labels[0],40)
         for i,line in enumerate(title_lines):
             text(44,141+44*i,line,32)
         offset = 44*(len(title_lines)-1)
         start,end = (datetime.fromisoformat(report[k]) for k in ('start','end'))
         text(44,196+offset,start.strftime('%d/%m/%Y  %H:%M')+'  -  '+end.strftime('%d/%m/%Y  %H:%M'),27)
-        text(44,236+offset,labels[14],22,'#52667e')
+        text(44,236+offset,labels[14],22,'#805767')
         values = [money(account['opening']),money(account['money_in']),money(account['money_out']),
                   money(account['net']),money(account['closing']),str(account['count'])]
         for i,(label,value) in enumerate(zip(labels[1:7],values)):
             x,y = 44+(i%3)*375,289+offset+(i//3)*83
             draw.rounded_rectangle((x,y,x+362,y+73),radius=10,fill='white')
-            text(x+15,y+8,label,22,'#52667e')
-            text(x+15,y+34,value,27,'#15806d' if i==1 else '#b54742' if i==2 else '#1c3047')
+            text(x+15,y+8,label,22,'#805767')
+            text(x+15,y+34,value,27,'#AD1457' if i==1 else '#D81B60' if i==2 else '#452432')
         draw.rounded_rectangle((32,table_top-49,1168,table_top+sum(row_heights)+6),radius=12,fill='white')
-        draw.rectangle((32,table_top-49,1168,table_top),fill='#1c3047')
+        draw.rectangle((32,table_top-49,1168,table_top),fill='#D81B60')
         for x,label in [(48,labels[7]),(208,labels[8])]:
             text(x,table_top-38,label,22,'white')
         text(924,table_top-38,labels[9],22,'white','right')
@@ -131,17 +132,17 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
         for row,h in zip(table_rows,row_heights):
             stamp,description,amount,balance,kind = row
             if kind=='boundary':
-                draw.rectangle((33,y,1167,y+h),fill='#e2f1ef')
+                draw.rectangle((33,y,1167,y+h),fill='#FCE4EC')
             for j,line in enumerate(stamp.split('\n')):
-                text(48,y+17+j*30,line,22,'#52667e')
+                text(48,y+17+j*30,line,22,'#805767')
             for j,line in enumerate(description):
                 text(208,y+17+j*32,line,24)
-            text(924,y+18,amount,24,'#15806d' if kind=='in' else '#b54742','right')
+            text(924,y+18,amount,24,'#AD1457' if kind=='in' else '#D81B60','right')
             text(1152,y+18,balance,24,align='right')
             y+=h
-            draw.line((44,y,1156,y),fill='#dce4ec',width=1)
-        text(44,y+27,labels[15]+f' {page+1} / {pages}',22,'#52667e')
-        text(1152,y+27,end.strftime('%Y-%m-%d')+' • MW CREDIT',22,'#52667e','right')
+            draw.line((44,y,1156,y),fill='#F3CCD9',width=1)
+        text(44,y+27,labels[15]+f' {page+1} / {pages}',22,'#805767')
+        text(1152,y+27,'M&W Credit',22,'#805767','right')
         path = directory / f'page-{page+1:03d}.png'
         image.save(path,optimize=True)
         if path.stat().st_size > 8_000_000:

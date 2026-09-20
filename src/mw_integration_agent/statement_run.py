@@ -42,7 +42,8 @@ def run(config_path,catalogue_path,day=None,send=False):
     journal=DeliveryJournal(state/'cash-statement-delivery.db')
     try:
         start,end=period(day)
-        folder=state/'cash-statements'/start.date().isoformat()
+        # Preserve the previously sent 06:00 snapshots and their audit evidence.
+        folder=state/'cash-statements'/'calendar-day'/start.date().isoformat()
         folder.mkdir(parents=True,exist_ok=True)
         saved=folder/'snapshot.json'
         reused=saved.exists()

@@ -6,7 +6,7 @@ Status: **two-way Instagram transport verified; bounded production data connecti
 
 ## Initial target
 
-Manual [daily cash statements](docs/CASH_STATEMENT.md) are implemented for owner review: 06:00–06:00 Bangkok posting activity, per-account English/Thai PNGs, current Partner opt-in and API-only delivery. Scheduling remains off; see the current change log for deployment/delivery evidence.
+Manual [daily cash statements](docs/CASH_STATEMENT.md) are implemented for owner review: 00:00–00:00 Bangkok posting activity, per-account English/Thai PNGs, current Partner opt-in and API-only delivery. Scheduling remains off; see the current change log for deployment/delivery evidence.
 
 - GCP project: `clever-oasis-508610-n7`
 - Region: `asia-southeast1`

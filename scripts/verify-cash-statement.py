@@ -14,7 +14,7 @@ p.add_argument('--date')
 a=p.parse_args()
 c=load_json(a.config)
 start,end=period(a.date)
-folder=Path(c['state_directory'])/'cash-statements'/start.date().isoformat()
+folder=Path(c['state_directory'])/'cash-statements'/'calendar-day'/start.date().isoformat()
 report=json.loads((folder/'snapshot.json').read_text())
 cutoff=end.replace(tzinfo=None).isoformat()
 direct=read_query(c,f'''SELECT coalesce(json_agg(t),'[]'::json) FROM (

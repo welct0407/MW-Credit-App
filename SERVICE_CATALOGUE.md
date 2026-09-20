@@ -1,6 +1,6 @@
 # Service catalogue
 
-Revision 3 — owner-authorized manual daily cash statements, 20 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
+Revision 4 — owner-authorized manual daily cash statements, 20 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
 Signed Instagram webhook ingress and explicit Instagram delivery are authorized and implemented. Ingress verifies Meta signatures, stores deduplicated messages, and never processes or replies. Delivery requires both the catalogue permission and the live `sending_enabled` control; no automated worker exists.
 
@@ -8,7 +8,7 @@ Signed Instagram webhook ingress and explicit Instagram delivery are authorized 
 | --- | --- | --- |
 | signed_webhook_ingress | enabled | Verify signatures, persist before acknowledgement, and deduplicate. No processing or replay. |
 | partner_authentication | enabled for cash statements | Fresh opt-in, supported language, unique username, conversation scoped ID and profile verification. No inbound operational commands. |
-| daily_cash_statement | enabled for explicit calls | Read-only R010 cash effects; 06:00–06:00 Bangkok posting timestamp; localized account PNGs to all currently enabled Partners. No schedule. |
+| daily_cash_statement | enabled for explicit calls | Read-only R010 cash effects; 00:00–00:00 Bangkok posting timestamp; localized account PNGs to all currently enabled Partners. No schedule. |
 | operational_data_read | enabled | Bounded Find-only AppSheet reads through the official API; output probes omit row contents. |
 | database_connectivity | enabled | Dedicated loopback/Cloud SQL Auth Proxy login with business-table SELECT and TEMP only; no durable operational DML. |
 | persistent_codex_conversation | disabled | Per-partner isolated Codex App Server threads with host-owned bounded tools. |

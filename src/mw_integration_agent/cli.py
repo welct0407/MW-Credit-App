@@ -44,7 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
     statement = sub.add_parser("cash-statement", help="prepare or explicitly deliver the latest completed daily cash statement")
     statement.add_argument("--config", required=True)
     statement.add_argument("--catalogue", required=True)
-    statement.add_argument("--date", help="period start date YYYY-MM-DD, at 06:00 Bangkok")
+    statement.add_argument("--date", help="calendar date YYYY-MM-DD, midnight to midnight Bangkok")
     statement.add_argument("--send", action="store_true", help="deliver once to currently opted-in Partners")
     return parser
 

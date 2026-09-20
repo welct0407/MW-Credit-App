@@ -18,7 +18,7 @@ class ImageTests(unittest.TestCase):
                       'borrower_th':'ตัวอย่าง'} for i in range(33)]}
         summarize(account)
         self.assertEqual(str(account['closing']),'51.25')
-        report={'start':'2026-09-19T06:00:00+07:00','end':'2026-09-20T06:00:00+07:00'}
+        report={'start':'2026-09-19T00:00:00+07:00','end':'2026-09-20T00:00:00+07:00'}
         with tempfile.TemporaryDirectory() as directory:
             for language in ('English','ไทย'):
                 pages=render(report,account,language,Path(directory)/language)
