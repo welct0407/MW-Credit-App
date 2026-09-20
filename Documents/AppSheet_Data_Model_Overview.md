@@ -57,6 +57,10 @@ R010 also adds an OLTP Cash Statement dashboard for the latest 15 Bangkok dates.
 
 A non-financial Cash Statement Context row per Partner stores account/date selection. SQL seeds it on Partner creation; OLTP restricts it by normalized Login Email and permits only preference updates. Read-only slices select the account/day. English/Thai labels and borrower-description fallback are lightweight presentation expressions. No posting, opening initialization, notification routing or source-transaction edit ownership changes.
 
+## Open R011 DEV behavior
+
+OLTP stores an optional persistent note directly on each Borrower. Collectors can quick-edit it below the daily collection totals to record requests or follow-up information; it remains attached to that borrower across days. Editing the note does not change payment terms, charges or balances. This is one editable current note, not a dated note-history table. English Name (`Description`) is required in OLTP borrower forms. OLAP's analytical borrower view and editing ownership are unchanged. These changes are DEV-only until R011 promotion; exact settings are in the dictionary's R011 Dev Differences rows.
+
 ## Maintenance and evidence
 
 Update this overview only when architecture, relationships, ownership or explained business behavior changes. An exact formula/property change updates dictionary rows and the release log; it does not require rewriting unchanged prose. Keep one current explanation, without appending a release narrative. SQL changes remain immutable Flyway migrations under [database procedure](../database/README.md#each-change).
