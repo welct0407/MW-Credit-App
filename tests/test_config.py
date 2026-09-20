@@ -16,7 +16,7 @@ class ConfigurationTests(unittest.TestCase):
 
     def test_enabled_unimplemented_service_fails_closed(self):
         catalogue = load_json(ROOT / "service-catalogue.json")
-        catalogue["services"]["partner_authentication"]["enabled"] = True
+        catalogue["services"]["persistent_codex_conversation"]["enabled"] = True
         with self.assertRaises(ConfigurationError):
             validate_catalogue(catalogue)
 

@@ -7,7 +7,7 @@ name = "mw-integration-agent"
 version = "0.1.0"
 description = "Linux-native MW Credit integration agent foundation"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["Pillow==11.3.0", "tzdata==2025.2"]
 
 [project.scripts]
 mw-integration-agent = "mw_integration_agent.cli:main"

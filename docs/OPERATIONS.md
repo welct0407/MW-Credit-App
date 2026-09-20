@@ -2,6 +2,8 @@
 
 ## Current state
 
+Manual daily cash statements are now implemented under catalogue revision 3; see [cash statement operations](CASH_STATEMENT.md). Owner authorized generation and one manual delivery run to current enabled Partners. No schedule is authorized. Earlier transport baseline below describes the preceding checkpoint.
+
 This repository has no automated production business runtime. Catalogue revision 2 adds bounded AppSheet Find reads and dedicated PostgreSQL connectivity to the verified Instagram transport. AppSheet edits and durable SQL DML remain disabled. A one-time Instagram reply was accepted by Meta on 20 September 2026, and `sending_enabled` was immediately restored to `false`.
 
 ## Filesystem layout

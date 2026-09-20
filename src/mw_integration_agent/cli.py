@@ -41,12 +41,22 @@ def build_parser() -> argparse.ArgumentParser:
     appsheet = sub.add_parser("appsheet-probe", help="verify bounded read-only AppSheet API access")
     appsheet.add_argument("--config", required=True)
     appsheet.add_argument("--catalogue", required=True)
+    statement = sub.add_parser("cash-statement", help="prepare or explicitly deliver the latest completed daily cash statement")
+    statement.add_argument("--config", required=True)
+    statement.add_argument("--catalogue", required=True)
+    statement.add_argument("--date", help="period start date YYYY-MM-DD, at 06:00 Bangkok")
+    statement.add_argument("--send", action="store_true", help="deliver once to currently opted-in Partners")
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        if args.command == "cash-statement":
+            from .statement_run import run
+            result = run(args.config,args.catalogue,args.date,args.send)
+            print(json.dumps(result,ensure_ascii=False))
+            return 2 if any(p['status']=='BLOCKED' for p in result['recipients']) else 0
         if args.command == "check":
             validate_config(load_json(args.config))
             validate_catalogue(load_json(args.catalogue))

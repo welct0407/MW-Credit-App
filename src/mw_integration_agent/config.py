@@ -120,7 +120,14 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
     if not isinstance(services, dict) or not services:
         raise ConfigurationError("service catalogue must define services")
     for name, service in services.items():
+        if name not in {"signed_webhook_ingress", "partner_authentication", "operational_data_read",
+                        "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
+                        "operational_data_api", "instagram_delivery", "email_fallback", "daily_briefing",
+                        "pattaya_weather", "daily_cash_statement"}:
+            raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")
+        if any(type(service.get(key)) is not bool for key in ("enabled", "implemented")):
+            raise ConfigurationError(f"invalid service flags: {name}")
         if service.get("enabled") and not service.get("implemented"):
             raise ConfigurationError(f"enabled service is not implemented: {name}")
