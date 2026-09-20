@@ -38,6 +38,12 @@ Use AGENTS §6.2: both DEV apps at readiness and both PROD apps at closure requi
 
 During the brief DEV edit freeze, pin the tested versions/implementation commit and, for SQL changes, create the Flyway runner manifest before later migrations advance DEV. Copy included definitions as MW-OLTP-Rnnn-RCk / MW-OLAP-Rnnn-RCk, recording complete internal names (including account suffix), UUIDs and source versions. Never copy DEV financial data into PROD. DEV resumes once independent copies/pins are verified; final RC immutability begins after preparation.
 
+**RC creation is definition-only: never copy app/table/database data or file/document data, even temporarily.** This applies to every included app and every replacement/retry RC.
+
+- **The copy-data checkbox is checked by default. Before clicking Copy, actively UNCHECK it every time.** Also uncheck any file-data/document-copy option, then verify all these boxes are unchecked. Do not accept defaults or submit while an option's meaning/state is unresolved. Record one concise confirmation in P14; no separate checklist or full export is needed.
+- Retain references to existing sources during the definition copy; rebind them to PROD in the normal P25 mapping step. Do not create copied Google Sheets, AppSheet databases, tables or data files, and do not copy data as a shortcut before rebinding. RC has no separate database or dataset.
+- During the existing source-mapping pass, check for unexpected copied sources. A candidate accidentally copied with data is rejected: contain it, record the mistake and create the next RC correctly. Do not promote it or silently treat later rebinding as compliance. Deleting the rejected app or copied assets is separate cleanup; never delete shared sources.
+
 ### RC containment and external dependencies
 
 An RC is production-capable once PROD-bound. Restrict access and prevent unintended writes, notifications, webhooks and external/SQL jobs from copy creation. The scheduled guard is not a security boundary for other entry points. If guard proof is missing, keep the candidate DEV-bound with affected jobs paused while resolving it. No PROD-bound test writes or forced notifications without their own scoped authority. Guarded bot definitions retain intended enabled states so App Upgrade preserves production schedules.
