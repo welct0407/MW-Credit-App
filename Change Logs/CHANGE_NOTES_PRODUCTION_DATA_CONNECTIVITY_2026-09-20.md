@@ -20,4 +20,15 @@ Set `appsheet_enabled=false` and `database_enabled=false`, remove the two VM sec
 
 ## Checks and status
 
-Ten unit tests pass, including bounded-selector and no-row-output checks. Live AppSheet and PostgreSQL results will be recorded after deployment. No AppSheet edit, durable SQL DML, schema change, financial write, notification, or schedule is authorized by this change.
+Ten unit tests pass, including bounded-selector and no-row-output checks.
+
+Live PostgreSQL verification passed through the loopback Cloud SQL Auth Proxy:
+
+- authenticated to `loan_manager_prod` as `mw_integration_agent`;
+- read the two-row Partners table;
+- confirmed read-only transactions are the default and the role has no persistent INSERT privilege;
+- created and inserted one row into a temporary table inside an explicit read/write transaction, then rolled back; the temporary table did not remain.
+
+The copied AppSheet key is byte-identical to the protected Windows credential, but both Windows and Debian requests return HTTP 403. Live editor inspection found the production OLTP app's inbound API toggle disabled. Enabling that access remains pending the required action-time confirmation for an external-access permission change.
+
+No AppSheet edit, durable SQL DML, schema change, financial write, notification, or schedule was performed.
