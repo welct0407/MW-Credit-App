@@ -32,8 +32,9 @@ Made the VM checkout independently fetchable from its private GitHub repository 
 - An unauthenticated PostgreSQL startup probe reached the server and received a SCRAM-SHA-256 authentication request; no password was supplied.
 - VM metadata reports the dedicated `mw-integration-agent` service account.
 - Deploy-key fingerprint: `SHA256:RxBY/LgFOOWm5adSfv7X0iuYcdv05LFw47sY38y9gaU`.
-- Pending completion: add the public deploy key to GitHub and verify a read-only fetch from the VM.
+- GitHub lists the key as read-only and repository-scoped.
+- The VM fetched `refs/heads/main` over SSH, fast-forwarded to the published commit, and retained a clean checkout.
 
 ## Status and remaining work
 
-Cloud SQL transport is complete and the GitHub deploy key is prepared on the VM. PostgreSQL login remains intentionally unavailable until a least-privilege database role and credential are explicitly approved and installed outside Git.
+Cloud SQL transport and read-only GitHub synchronization are complete. PostgreSQL login remains intentionally unavailable until a least-privilege database role and credential are explicitly approved and installed outside Git.
