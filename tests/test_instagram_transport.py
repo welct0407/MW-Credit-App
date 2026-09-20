@@ -5,6 +5,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from mw_integration_agent.config import ConfigurationError
 from mw_integration_agent.instagram import Instagram
@@ -50,6 +51,15 @@ class InstagramTransportTests(unittest.TestCase):
     def test_send_is_blocked_while_disabled(self):
         with self.assertRaises(ConfigurationError):
             Instagram({"sending_enabled": False}).send("456", "hello")
+
+    def test_enabled_send_requires_provider_message_id(self):
+        client = Instagram({"sending_enabled": True, "instagram_account_id": "123"})
+        with patch.object(client, "request", return_value={"message_id": "accepted"}) as request:
+            self.assertEqual(client.send("456", "hello"), "accepted")
+        request.assert_called_once_with(
+            "123/messages",
+            body={"recipient": {"id": "456"}, "message": {"text": "hello"}},
+        )
 
 
 if __name__ == "__main__":

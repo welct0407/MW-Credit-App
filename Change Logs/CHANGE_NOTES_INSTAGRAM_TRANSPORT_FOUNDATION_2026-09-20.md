@@ -9,7 +9,7 @@ Starting rollback point: `e1494f8dd6dc510f2a7217333e497f4ed14a75c6`.
 ## Changes
 
 - Advanced the service catalogue to revision 1.
-- Enabled only `signed_webhook_ingress`; marked `instagram_delivery` implemented but disabled.
+- Enabled `signed_webhook_ingress` and explicit `instagram_delivery`; delivery additionally requires a live runtime flag and has no automatic worker.
 - Added HMAC-SHA256 verification, bounded event parsing, SQLite receipt/message deduplication, and `CAPTURED_NO_PROCESSING` status.
 - Added a loopback-only webhook server with Meta verification challenge support.
 - Added a read-only Instagram account/conversation probe and a disabled-by-default send adapter.
@@ -39,4 +39,4 @@ Live checks:
 - The official Instagram API authenticated account `tttlll8709` and enumerated 14 conversations.
 - No genuine post-cutover Instagram message has yet been delivered to the new journal, so content receipt and controlled outbound delivery still require a fresh test DM.
 
-Status: signed receipt-only ingress is live. Automated business processing and outbound sending remain disabled.
+Status: signed receipt-only ingress is live. A fresh genuine DM was captured exactly as `linux webhook test 20260920` with `CAPTURED_NO_PROCESSING`. Explicit delivery is authorized for a controlled reply test; automated business processing remains disabled.

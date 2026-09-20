@@ -2,7 +2,7 @@
 
 Revision 1 — receipt-only Instagram transport foundation. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
-Signed Instagram webhook ingress is authorized and implemented. It verifies Meta signatures, stores deduplicated messages, and never processes or replies. The outbound Instagram adapter is implemented but disabled pending a deliberate live-send test and later feature work.
+Signed Instagram webhook ingress and explicit Instagram delivery are authorized and implemented. Ingress verifies Meta signatures, stores deduplicated messages, and never processes or replies. Delivery requires both the catalogue permission and the live `sending_enabled` control; no automated worker exists.
 
 | Service | State | Migration intent |
 | --- | --- | --- |
@@ -12,7 +12,7 @@ Signed Instagram webhook ingress is authorized and implemented. It verifies Meta
 | persistent_codex_conversation | disabled | Per-partner isolated Codex App Server threads with host-owned bounded tools. |
 | partner_oltp_gui | disabled | Linux/Chromium compatibility must be proven before migration. |
 | operational_data_api | disabled | Mapped, reviewed operational edits only; no raw database or schema access. |
-| instagram_delivery | implemented, disabled | Official API transport exists; live sending remains blocked by catalogue and runtime flags. |
+| instagram_delivery | enabled for explicit calls | Official API transport; live sending also requires `sending_enabled=true`. No automatic replies or retries. |
 | email_fallback | disabled | Same authorized partner only; unknown outcomes never replay. |
 | daily_briefing | disabled | Separate owner authorization required before schedule installation. |
 | pattaya_weather | disabled | Optional commercial endpoint/key; no borrower data transmitted. |
