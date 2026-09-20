@@ -6,7 +6,7 @@ Latest recorded checkpoint: **20 September 2026**, from the [DEV database consol
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000235 | database-2 | 16 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000237 | database-2 | 16 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100183 (unchanged by R010) | database-2 | 19 |
 | Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000054 | database-3 | 16 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000017 (unchanged by R010) | database-3 | 19 |
@@ -19,6 +19,8 @@ All four canonical apps are recorded Deployed. Internal names:
 | PROD OLAP | LoanBusinessInsights-975338008 | #0abab5 |
 | DEV OLTP | MW-OLTP-DEV-20260919-578763613 | #e8710a |
 | DEV OLAP | MW-OLAP-DEV-20260919-578763613 | #1e88e5 |
+
+Production OLTP inbound AppSheet API access is enabled as of version 3.000237 for the Linux integration agent's bounded Find requests. The existing enabled application access key is stored outside Git; no replacement key was created. Production OLAP API access was not changed.
 
 Companion links join the corresponding pair. DEV uses owner-only Partner delivery data and distinct login identities. Scheduled guards allow only the canonical DEV/PROD name of the corresponding role. See [policy](../AGENTS.md#2-architecture-and-ownership) and [guard procedure](Release_Workflow.md#scheduled-bot-execution-guard); these details are not a new delivery/execution test.
 
