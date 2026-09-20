@@ -9,7 +9,7 @@ Template revision: 2026-09-20. **Single master:** `scripts/releases/templates/pr
 - DEV readiness: complete; owner acceptance pending.
 - Production authorization: not granted; RC not created.
 - DEV OLTP 1.000058, OLAP unchanged 1.000017, SQL V28. Full R011 rollback OLTP 1.000054 with additive column retained; label-refinement rollback 1.000057. Recorded PROD baseline R010 / V27; reverify at promotion.
-- Implementation commit: 59ea9d95d499d9d59f45733c5fc9c2f60a9c6e36; [Flyway manifest](flyway-manifest.json). Final R011 tag awaits production closure.
+- Implementation commit: 2856dd06e79d1974e94984055c6e9df710c27c05; SQL/Flyway package remains pinned at unchanged commit 59ea9d95d499d9d59f45733c5fc9c2f60a9c6e36 in the [Flyway manifest](flyway-manifest.json). Final R011 tag awaits production closure.
 - Completed: DEV implementation, relevant SQL/GUI tests, current-state documentation. Next: owner review and production authorization, then RC/promotion steps.
 - Documentation impact: Documents/AppSheet_Data_Dictionary.xlsx, Documents/AppSheet_Data_Model_Overview.md. Confirm no other document is affected from release scope.
 
