@@ -10,7 +10,7 @@ Starting clean Git commit: `fcedf4b9959cf9115d9b8c24ac96e314e5d5441a`. No AppShe
 
 Fixed read-only R010 view query under repeatable-read transaction; immutable opening-minus-baseline offsets; Decimal arithmetic; exact start-inclusive/end-exclusive period; all accounts including inactive/no activity; no invented zero for uninitialized accounts. Effective dates remain visible for backdated entries. Current ledger corrections can restate historical postings; snapshots freeze once prepared rather than pretending to be immutable bank history.
 
-Deterministic PNG renderer in English and Thai with RAQM shaping, masked account suffix, summary and full running-balance table. Long statements use numbered pages with brought/carried balances. Financial images and source snapshots stay private under runtime state, never Git or a public URL.
+Deterministic PNG renderer in English and Thai with Garuda and RAQM shaping, masked account suffix, summary and full running-balance table. Long statements use numbered pages with brought/carried balances. Financial images and source snapshots stay private under runtime state, never Git or a public URL.
 
 Partner authentication requires current explicit opt-in, supported language, unique master username, live official API conversation/profile binding and a signed-ingress 24-hour window. Fresh controls/master checks surround upload/dispatch. Durable intent is committed before send, and unknown outcomes never automatically replay. No inbound processing, financial writes, email fallback, or schedule is enabled.
 
@@ -20,7 +20,9 @@ Changed modules: cash_statement, statement_image, statement_delivery, statement_
 
 Read-only VM preflight confirmed `vm-mw-credit-agent`, correct proxy instance, `loan_manager_prod` / `mw_integration_agent`, actual source fields, four accounts with four initialization records, and one opted-in Partner with English preference. No row contents printed.
 
-Implementation validation/deployment and visual review are in progress. Live delivery and owner acceptance are not yet claimed. No schedule installed.
+Implementation checkpoint `64b01ad` was published and installed. All 20 logic/transport tests passed on Windows and Debian. Private production preparation generated four account statements for 19 September 06:00 through 20 September 06:00 Bangkok. Visual review caught missing Latin glyphs in the original Thai-only font before any delivery. Changed to Garuda, added Latin/Thai glyph guards and Debian pagination/font regression tests; numeric date formatting avoids untranslated month names and a missing arrow glyph. Garuda samples were visually checked in both languages; final rerender/live reconciliation and delivery remain in progress. No schedule installed.
+
+Pre-installation rollback directory: `/var/lib/mw-integration-agent/rollback/cash-statement-20260920T224152`. It contains the prior installed package, protected config/catalogue and dependency inventory. Its source-commit file identifies the new checked-out source; the original installed baseline was `fcedf4b`.
 
 ## Rollback
 

@@ -99,6 +99,8 @@ def summarize(account):
     if not account['initialized'] or opening is None:
         raise ConfigurationError('Account opening balance is not initialized; report blocked')
     balance = Decimal(str(opening))
+    if not balance.is_finite():
+        raise ConfigurationError('Invalid opening balance')
     incoming = outgoing = Decimal(0)
     last = None
     for row in account['transactions']:

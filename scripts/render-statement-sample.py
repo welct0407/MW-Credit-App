@@ -6,7 +6,7 @@ from mw_integration_agent.statement_image import render
 
 p=argparse.ArgumentParser()
 p.add_argument('--output',default='outputs/cash-statement-sample')
-p.add_argument('--font',default='/usr/share/fonts/truetype/noto/NotoSansThai-Regular.ttf')
+p.add_argument('--font',default='/usr/share/fonts/truetype/tlwg/Garuda.ttf')
 a=p.parse_args()
 account={'id':'synthetic','label':'Sample account / บัญชีตัวอย่าง','bank':'Demo Bank',
          'last4':'0000','initialized':True,'opening':'12500.00','transactions':[

@@ -10,7 +10,7 @@ Opening = R008 Opening Balance − Baseline Cash In + Baseline Cash Out + effect
 
 The source is the current corrected operational ledger, not immutable bank settlement history. Corrections can restate previous periods. First preparation freezes a private snapshot; retries reuse it. Preserve existing snapshot/send evidence when designing an explicit future revision; never erase delivery keys.
 
-English/Thai PNGs use Pillow, Noto Sans Thai and RAQM. Account numbers are masked to four digits. Long statements use numbered pages of 16 transactions with opening/brought-forward and closing/carried-forward rows. Real snapshots, images, identities and provider IDs remain private below runtime state. Only synthetic samples may be committed.
+English/Thai PNGs use Pillow, Garuda (Latin/Thai) and RAQM, with a required-glyph preflight. Account numbers are masked to four digits. Long statements use numbered pages of 16 transactions with opening/brought-forward and closing/carried-forward rows. Real snapshots, images, identities and provider IDs remain private below runtime state. Only synthetic samples may be committed.
 
 ## Execution and delivery
 

@@ -41,7 +41,7 @@ def money(value):
     return f'{Decimal(str(value)):,.2f}'
 
 
-def render(report, account, language, directory, font_path='/usr/share/fonts/truetype/noto/NotoSansThai-Regular.ttf'):
+def render(report, account, language, directory, font_path='/usr/share/fonts/truetype/tlwg/Garuda.ttf'):
     if language not in LABELS:
         raise ConfigurationError('Unsupported Partner language')
     if not features.check('raqm'):
@@ -49,6 +49,9 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
     labels = LABELS[language]
     thai = language == 'ไทย'
     fonts = {s: ImageFont.truetype(font_path, s, layout_engine=ImageFont.Layout.RAQM) for s in (22,24,27,32,40)}
+    for left,right in [('0','1'),('A','B'),('ก','ข')]:
+        if bytes(fonts[24].getmask(left)) == bytes(fonts[24].getmask(right)):
+            raise ConfigurationError('Statement font is missing required Latin/Thai glyphs')
     measuring = ImageDraw.Draw(Image.new('RGB',(1,1)))
 
     def wrap(text, width, size=24):
@@ -109,7 +112,7 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
             text(44,141+44*i,line,32)
         offset = 44*(len(title_lines)-1)
         start,end = (datetime.fromisoformat(report[k]) for k in ('start','end'))
-        text(44,196+offset,start.strftime('%d %b %Y  %H:%M')+'  →  '+end.strftime('%d %b %Y  %H:%M'),27)
+        text(44,196+offset,start.strftime('%d/%m/%Y  %H:%M')+'  -  '+end.strftime('%d/%m/%Y  %H:%M'),27)
         text(44,236+offset,labels[14],22,'#52667e')
         values = [money(account['opening']),money(account['money_in']),money(account['money_out']),
                   money(account['net']),money(account['closing']),str(account['count'])]

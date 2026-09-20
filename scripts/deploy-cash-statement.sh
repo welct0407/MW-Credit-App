@@ -11,7 +11,7 @@ git -C "$repo" rev-parse HEAD > "$backup/source-commit.txt"
 cp -a /opt/mw-integration-agent/.venv/lib/python3.13/site-packages/mw_integration_agent "$backup/"
 # Read-only reporting adds its own state; existing receiver and ingress journal are untouched.
 apt-get update -qq
-apt-get install -y --no-install-recommends fonts-noto-core libraqm0
+apt-get install -y --no-install-recommends fonts-thai-tlwg libraqm0
 /opt/mw-integration-agent/.venv/bin/python -m pip install "$repo"
 install -o root -g mwagent -m 0640 "$repo/service-catalogue.json" /etc/mw-integration-agent/service-catalogue.json
 cd "$repo"
