@@ -47,8 +47,8 @@ await edit('Documents/Development_Changes.md',s=>{
 
 | Area | Production | Development | Status |
 | --- | --- | --- | --- |
-| Database instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Isolation retained |
-| AppSheet source | database-2 | database-3 | Never promote the development host |
+| Database identity | appsheet-pg-prod-20260914 / loan_manager_prod | appsheet-pg-prod-20260914 / loan_manager_dev | Isolation retained by distinct database names |
+| AppSheet source | database-2 | database-3 | Verify the full instance/host/database tuple |
 | SQL schema | Flyway V10 | Flyway V10 | Exact migration hashes and normalized schemas match |
 | Core payments, final close, first day, default | Atomic SQL | Same SQL | Phases 1–6 promoted with owner approval |
 | Manual generation | Hidden dated Loans request | Same request | Same common SQL rules |

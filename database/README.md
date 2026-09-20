@@ -7,7 +7,9 @@ DEV and PROD are **V27**. Immutable V25 adds Partners.Login Email separately fro
 
 After a DEV app/database copy or refresh, complete [Development Environment Preparation](../Documents/Development_Environment_Preparation.md) before test writes. Flyway does not manage AppSheet bot enablement. DEV apps are Deployed and follow intended released schedules with DEV-only effects; owner-only notifications use DEV Partners.Email delivery addresses, preserving distinct Partners.Login Email identities. After each PROD-to-DEV restore and retained migrations, reapply the DEV-only delivery-data override before jobs resume. Shared AppSheet expressions need no environment email substitution. PROD-mapped RCs instead follow [Release Workflow](../Documents/Release_Workflow.md), including independent execution containment. [AGENTS.md, Section 6](../AGENTS.md) governs the complete batch and frozen baseline.
 
-Flyway Open Source 13.6.0 manages the database schema in this repository. PostgreSQL 18.6 is the tested engine. Both Cloud SQL instances use database name `loan_manager_prod`; the **host/instance**, not that database name, identifies the environment. See `environments.json`.
+Flyway Open Source 13.6.0 manages the database schema in this repository. PostgreSQL 18.6 is the tested engine. Since 20 September 2026, PROD and DEV are separate databases on Cloud SQL instance `appsheet-pg-prod-20260914`: `loan_manager_prod` and `loan_manager_dev`. The full **instance/host/database tuple** identifies an environment; host alone no longer distinguishes DEV from PROD. See `environments.json`.
+
+The shared instance has `max_connections=200`; this is an instance-wide ceiling, not a per-database allocation or a capacity increase. PROD retains the `pg_cron` extension because `cron.database_name=loan_manager_prod`. DEV intentionally omits `pg_cron` and uses the canonical AppSheet schedules; the duplicate database cron jobs are not recreated in `loan_manager_dev`.
 
 ## Setup and initial adoption
 

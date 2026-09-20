@@ -4,7 +4,7 @@ Current production baseline is R010. This register contains open product differe
 
 ## Intentional environment differences
 
-- Separate DEV database and app identities, DEV themes and within-DEV companion links; see [Environment Inventory](Environment_Inventory.md).
+- Separate DEV database and app identities, DEV themes and within-DEV companion links. DEV uses `loan_manager_dev` and PROD uses `loan_manager_prod` on the same Cloud SQL instance; see [Environment Inventory](Environment_Inventory.md).
 - DEV Partners.Email delivers only to the owner, while Login Email remains distinct. RC/PROD use PROD contacts with the shared actor-ID rule in [AGENTS §2](../AGENTS.md#2-architecture-and-ownership).
 - Synthetic DEV fixtures and the owner-approved five zero account openings remain DEV-only. See [DEV initialization evidence](../outputs/r010-20260919/cash-statement/ZERO_INITIALIZATION.md).
 - DEV and PROD may advance through owner saves independently. R010 preserved production OLAP 1.100183 unchanged and promoted only the frozen OLTP RC2 definition.

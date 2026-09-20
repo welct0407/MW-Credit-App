@@ -1,6 +1,6 @@
 # Environment inventory
 
-Latest recorded checkpoint: **20 September 2026**, from [R010 production evidence](../outputs/r010-20260919/production/REPORT.md). Current PROD is R010. Unaffected infrastructure facts retain their recorded evidence.
+Latest recorded checkpoint: **20 September 2026**, from the [DEV database consolidation evidence](../outputs/dev-db-consolidation-20260920/verification.json) and [R010 production evidence](../outputs/r010-20260919/production/REPORT.md). Current PROD is R010. Unaffected application facts retain their recorded evidence.
 
 ## App identities and bindings
 
@@ -8,7 +8,7 @@ Latest recorded checkpoint: **20 September 2026**, from [R010 production evidenc
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000235 | database-2 | 16 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100183 (unchanged by R010) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000052 (R010 source retained) | database-3 | 16 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000054 | database-3 | 16 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000017 (unchanged by R010) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
@@ -29,18 +29,20 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Setting | Production | Development | Evidence |
 | --- | --- | --- | --- |
 | Project | clever-oasis-508610-n7 | clever-oasis-508610-n7 | Repository environment configuration |
-| Instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Environment configuration |
-| Public host | 34.21.174.215 | 34.158.38.171 | Environment configuration; recorded connection |
-| Database | loan_manager_prod | loan_manager_prod | Recorded SQL evidence |
+| Instance | appsheet-pg-prod-20260914 | appsheet-pg-prod-20260914 | Live console and SQL verification |
+| Public host | 34.21.174.215 | 34.21.174.215 | AppSheet source readback and SQL verification |
+| Database | loan_manager_prod | loan_manager_dev | AppSheet source readback and SQL verification |
 | PostgreSQL | 18.6 | 18.6 | Recorded SQL evidence |
-| max_connections | 100 | 50 | Recorded SQL evidence |
-| Connection | Direct public IP, SSL required | Direct public IP, SSL required | SSL recorded on prior audit sessions; configured sslmode=require |
-| Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
-| Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
-| Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
-| Flyway | V27 migrated and validated (R010) | V27 migrated and validated | V27 adds recent statement/summary providers and private selection context; no DEV data copied. |
+| max_connections | 200 | 200 | Live SQL after the 20 September instance restart; shared instance-wide ceiling |
+| Connection | Direct public IP, SSL required | Direct public IP, SSL required | Live SQL and AppSheet source readback |
+| Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
+| Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
+| Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
+| Flyway | V27 migrated and validated (R010) | V27 restored and validated | Application schema/catalog parity; DEV differs only by intended Partner delivery data and omitted `pg_cron`. |
 
-Host/instance, not the shared database name, establishes environment identity. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. Capacity/network facts retain their original observation dates in the [archive](archive/2026-09-20/Environment_Inventory.md); no new load/capacity or recovery coverage is asserted.
+The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. The former DEV instance `appsheet-pg-dev-20260915` / `34.158.38.171` and its database remain unchanged as a temporary rollback source; they are not active AppSheet targets and have not been deleted.
+
+The on-demand Cloud SQL backup at **2026-09-20 19:32 Bangkok** completed before the instance flag change. Private custom-format PROD-source and former-DEV rollback dumps were created and SHA-256 recorded outside Git. `loan_manager_dev` was restored from the PROD snapshot with 22 public tables, 13 views, 162 constraints, 48 indexes, 71 functions, 177 trigger entries and Flyway V27/27 successful history rows. All 21 application-table row counts match the snapshot; 20 fingerprints match, and `Partners` is the sole intended difference after its delivery addresses were set to the owner while two distinct Login Email identities were preserved. PROD retains `pg_cron`; DEV intentionally omits it because the shared instance flag points cron metadata to `loan_manager_prod` and AppSheet owns DEV schedules.
 
 ## Automation and limitations
 
@@ -48,4 +50,4 @@ AppSheet owns daily-charge and hourly-analytics scheduling; duplicate pg_cron fi
 
 The last recorded common sync settings were caching/delta/Quick Sync/delayed sync Off, sync on start/automatic updates On (15 September). They are dated evidence, not a newly verified configuration. Full bot/settings history is archived; inspect only changed routes/settings or concrete problems.
 
-R010 records clear PROD editors, deployed apps, statement runtime/SQL checks and frozen guard/mapping evidence. Physical-device receipt and actual second-user GUI testing remain declared limitations. All five DEV accounts were initialized at zero on 20 September with owner-approved holder adjustments; [verification](../outputs/r010-20260919/cash-statement/ZERO_INITIALIZATION.md). That fixture operation was not promoted. Production has four cash accounts; R010 changed no production opening amounts. Release-specific rollback/backup points belong in the release manifest/log, not a reusable old-version table here.
+R010 records clear PROD editors, deployed apps, statement runtime/SQL checks and frozen guard/mapping evidence. The database consolidation verified both DEV runtime apps load/sync and both current editors remain Deployed with no displayed warning/error text. Physical-device receipt and actual second-user GUI testing remain declared limitations. The former five-account DEV zero-initialization fixture was replaced by the requested PROD data refresh; its [verification](../outputs/r010-20260919/cash-statement/ZERO_INITIALIZATION.md) is historical evidence, not current DEV state. Production has four cash accounts; this maintenance changed no production financial row. Release-specific rollback/backup points belong in the relevant evidence, not a reusable old-version table here.

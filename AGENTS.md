@@ -46,7 +46,7 @@ The tracker holds status and links; the release log holds a concise complete sco
 
 ## 2. Architecture and ownership
 
-DEV and PROD each have one PostgreSQL database on their own Cloud SQL instance and two apps sharing that environment's database. Verify host/instance and app IDs against the environment inventory; database name alone is insufficient. The original AppSheet database is historical reference, not the write target.
+**Database topology — owner revision, 20 September 2026:** DEV and PROD have separate PostgreSQL databases on one shared Cloud SQL instance: `loan_manager_dev` and `loan_manager_prod`. Each environment's two apps share its database. Verify the complete instance/host/database tuple and app IDs against the environment inventory; host or instance alone is insufficient. Instance-level settings, restarts, storage, network policy and connection limits affect both environments. The original AppSheet database and the former separate DEV Cloud SQL instance are historical/recovery references, not active write targets.
 
 Release candidates (RCs) are temporary AppSheet copies, not a third database environment. They are prepared from integrated DEV, mapped to PROD, validated and frozen before App Upgrade into the existing PROD app IDs. A PROD-bound RC has production effects: contain its writes/notifications/schedules independently of the intended PROD definition. Follow the release workflow; DEV owner-only notification permission does not authorize RC production delivery.
 

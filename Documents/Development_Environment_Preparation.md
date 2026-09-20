@@ -6,7 +6,7 @@ Use this procedure for initial setup, requested refresh/replacement/restore, or 
 
 ## Preparation checklist
 
-1. **Identify and preserve.** Verify app IDs/internal names, database host/instance, current modes and rollback versions against the inventory. Record released baseline and unreleased work. The database name alone does not establish DEV. Preserve unrelated tasks' work.
+1. **Identify and preserve.** Verify app IDs/internal names, the complete database instance/host/database tuple, current modes and rollback versions against the inventory. Record released baseline and unreleased work. DEV and PROD share an instance, so host or instance alone does not establish the environment. Preserve unrelated tasks' work.
 2. **Pause before exposing copied data.** Pause affected DEV writers/jobs before refresh and keep replacement apps inaccessible while sources or recipients are unverified. Restored PROD contacts must not be available to active DEV notification jobs. Keep old/new duplicate schedulers from overlapping; never disable integrity/calculation triggers.
 3. **Verify DEV sources and navigation.** Bind business tables to DEV and check DEV OLTP ↔ DEV OLAP links. Inspect affected external exports/webhooks/files separately; a DEV SQL connection does not isolate shared external destinations.
 4. **Apply owner-only DEV recipient data.** Follow the procedure below before deployment/resuming bots. Preserve distinct login identities; set delivery addresses to the owner in the DEV database only. Reuse shared expressions. Document any remaining non-Partner or legacy routing separately.

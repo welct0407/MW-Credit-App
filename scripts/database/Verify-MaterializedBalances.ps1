@@ -2,8 +2,6 @@
 param([ValidateSet(1,3,4)][int]$Phase=1,[ValidateSet('development','production')][string]$Environment='development')
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment $Environment
-$expectedHost=if($Environment -eq 'production'){'34.21.174.215'}else{'34.158.38.171'}
-if($target.host -ne $expectedHost){throw 'Reviewed environment host required'}
 $prior=@{};foreach($name in @('PGPASSWORD','PGSSLMODE','PGOPTIONS','PGCONNECT_TIMEOUT')){$prior[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try{
  $env:PGPASSWORD=(Get-Content -LiteralPath $target.passwordFile -Raw).Trim();$env:PGSSLMODE='require';$env:PGCONNECT_TIMEOUT='10';$env:PGOPTIONS='-c default_transaction_read_only=on'

@@ -2,7 +2,9 @@
 param()
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment development
-if($target.host -ne '34.158.38.171'){throw 'DEV host mismatch'}
+if($target.instance -ne 'appsheet-pg-prod-20260914' -or $target.host -ne '34.21.174.215' -or $target.database -ne 'loan_manager_dev'){
+ throw 'DEV instance/host/database mismatch'
+}
 $saved=@{}
 foreach($name in @('PGPASSWORD','PGSSLMODE','PGCONNECT_TIMEOUT')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try {

@@ -4,11 +4,27 @@ $DbRepoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $DbPrivateRoot = 'C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/flyway'
 $DbToolRoot = Join-Path $env:LOCALAPPDATA 'AppSheetLoanTools'
 $DbToolchain = Get-Content (Join-Path $DbRepoRoot 'database/toolchain.json') -Raw | ConvertFrom-Json
+function Assert-DbEnvironmentIdentity([string]$Name, $Target) {
+    $expected = @{
+        development = @{ instance='appsheet-pg-prod-20260914'; host='34.21.174.215'; database='loan_manager_dev' }
+        production  = @{ instance='appsheet-pg-prod-20260914'; host='34.21.174.215'; database='loan_manager_prod' }
+    }[$Name]
+    foreach ($property in @('instance','host','database')) {
+        if ($Target.$property -ne $expected.$property) {
+            throw "Unexpected $Name database identity: $property=$($Target.$property)"
+        }
+    }
+}
 function Get-DbEnvironment([string]$Name) {
     if ($Name -notin @('development','production')) { throw 'Unknown database environment' }
     $config = Get-Content (Join-Path $DbRepoRoot 'database/environments.json') -Raw | ConvertFrom-Json
     $target = $config.$Name
-    if ($config.development.host -eq $config.production.host) { throw 'Development and production hosts must differ' }
+    $sameInstance = $config.development.instance -eq $config.production.instance
+    $sameDatabase = $config.development.database -eq $config.production.database
+    if ($sameInstance -and $sameDatabase) {
+        throw 'Development and production database identities must differ'
+    }
+    Assert-DbEnvironmentIdentity $Name $target
     $passwordPath = [IO.Path]::GetFullPath($target.passwordFile)
     if (-not $passwordPath.StartsWith('C:\Users\MWCredit\Documents\ChatGPT\',[StringComparison]::OrdinalIgnoreCase)) {
         throw 'Credential path must remain outside Git in Documents/ChatGPT'

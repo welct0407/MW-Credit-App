@@ -90,18 +90,18 @@ Production OLAP additionally uses Google Sheets Calendar; development OLAP uses 
 | Setting | Production | Development | Evidence |
 | --- | --- | --- | --- |
 | Project | clever-oasis-508610-n7 | clever-oasis-508610-n7 | Repository environment configuration |
-| Instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Environment configuration |
-| Public host | 34.21.174.215 | 34.158.38.171 | Environment configuration; fresh successful connection |
-| Database | loan_manager_prod | loan_manager_prod | Fresh SQL query |
+| Instance | appsheet-pg-prod-20260914 | appsheet-pg-prod-20260914 | Environment configuration |
+| Public host | 34.21.174.215 | 34.21.174.215 | Environment configuration; fresh successful connection |
+| Database | loan_manager_prod | loan_manager_dev | Fresh SQL query |
 | PostgreSQL | 18.6 | 18.6 | Fresh SQL query |
-| max_connections | 100 | 50 | Fresh SQL query |
+| max_connections | 200 (shared instance setting) | 200 (shared instance setting) | Fresh SQL query |
 | Connection | Direct public IP, SSL required | Direct public IP, SSL required | SSL active on audit sessions; configured sslmode=require |
 | Tier | db-f1-micro | db-f1-micro | Latest dated capacity/development logs; not a fresh Cloud Console inspection |
 | Storage | 10 GB HDD, automatic increase | 10 GB HDD | Latest dated configuration logs |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same recorded access scope | Flyway adoption log; no network change here |
 | Flyway | Successful explicit baseline 1 | Successful explicit baseline 1 | Fresh schema-history query |
 
-Raising max_connections does not prove enough memory for that many active queries. The 50/100 values are current settings, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
+Raising max_connections does not prove enough memory for that many active queries. The shared value of 200 is a connection ceiling, not measured sustainable concurrency. Capacity changes require separate documentation and may restart the instance. The runtime's sslmode=require encrypts traffic; it is not hostname verification. No proxy is used.
 
 Passwords remain outside Git under Documents/ChatGPT/AppSheet-Loan-Project. Both environment configurations reference the existing external password file; values are never included here. Private credential/snapshot backup coverage is not established by Git or database backups. Backup/PITR/deletion-protection settings were recorded in prior instance logs; no restore was tested by this documentation task.
 
@@ -111,7 +111,7 @@ Passwords remain outside Git under Documents/ChatGPT/AppSheet-Loan-Project. Both
 | --- | --- | --- |
 | Four AppSheet definitions | 15 Sep 12:17–12:20 Bangkok, read-only appdoc | Tables, columns, Refs, slices, actions and views captured; versions above |
 | PostgreSQL schema | 15 Sep fresh exports and catalog queries | Both normalized schemas equal V1 SHA256 0edda94ee69bbcfe1e2b8bf5bad16f7dbbd46af7289a9700bff280b49ea20d38 |
-| Runtime settings | Fresh SQL queries recorded in output JSON | PostgreSQL 18.6, SSL, production 100/development 50 |
+| Runtime settings | Fresh SQL queries recorded in output JSON | PostgreSQL 18.6, SSL, shared-instance max_connections 200 |
 | Database application objects | Fresh catalogs | 14 base tables + 2 views + 6 functions + 10 triggers + 13 validated FKs; plus Flyway metadata |
 | Cloud tier/network/backups | Dated micro/development/Flyway change logs | Recorded latest configuration; not freshly checked in Console |
 | Development smoke tests | Development instance verification, 15 Sep | Concurrent sync and assessment edit/readback passed earlier; not repeated here |
@@ -146,14 +146,14 @@ Updated 15 September 2026 against production OLTP ${m['production-oltp'].version
 
 | Area | Production | Development | Promotion status |
 | --- | --- | --- | --- |
-| Database instance | appsheet-pg-prod-20260914 | appsheet-pg-dev-20260915 | Isolation is intentional; never promote the development host |
+| Database identity | appsheet-pg-prod-20260914 / loan_manager_prod | appsheet-pg-prod-20260914 / loan_manager_dev | Isolation is by database; verify the full instance/host/database tuple |
 | AppSheet source | database-2 | database-3 | All copied app SQL sources isolated |
 | Loan Assessment | Original table and AppSheet forecast VCs | Loan Assessment SQL Lab View over Loan Assessment SQL Lab | Prototype; owner acceptance and production app rollout pending |
 | Calendar | Calendar Help Table / Sheet1 | OLAP Calendar SQL Lab generated view | Prototype replacement; fixed 153-day horizon |
 | Assessment outputs | Original AppSheet calculations | Stored SQL outputs read through guarded VCs | Input update fires calculation/stamp triggers; sync retrieves results |
 | Navigation | Production companion app | Other development copy | Keep environments isolated |
 | SQL schema | Flyway baseline 1 | Identical Flyway baseline 1 | No schema drift at current capture; schema equality does not mean equal app behavior or data |
-| Connections | 100 limit | 50 limit | Environment configuration; not a migration |
+| Connections | 200 shared-instance limit | 200 shared-instance limit | Connection ceiling; infrastructure size unchanged |
 
 The workbook's **Dev Differences** sheet contains the exact current table, business-column, slice, action and view differences. Full definitions are in the captured app-model.json. AppSheet-generated internal process schemas may differ when disabled processes are omitted; they are not PostgreSQL business tables. Captured differences are observed configuration, not automatic promotion instructions.
 
