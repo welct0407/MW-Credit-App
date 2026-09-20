@@ -14,6 +14,8 @@ M&W Credit statements use the #D81B60 pink theme, HH:MM posting times without da
 
 ## Execution and delivery
 
+The owner-supplied logo is bundled at `mw_integration_agent/assets/mw-credit-logo.png`. Debian keeps it under `/opt/mw-integration-agent/.venv/lib/python3.13/site-packages/`; every page uses this local file. It is included in package installation and source recovery, so no Drive access or download is required during a run. Source provenance and SHA-256 are recorded beside the asset.
+
 Install from a clean published checkout with `sudo sh scripts/deploy-cash-statement.sh`. It backs up affected installed code/config and adds fonts/dependencies without enabling sending or schedules.
 
 ```sh

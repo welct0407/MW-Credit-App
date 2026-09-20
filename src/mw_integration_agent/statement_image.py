@@ -54,6 +54,13 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
         if bytes(fonts[24].getmask(left)) == bytes(fonts[24].getmask(right)):
             raise ConfigurationError('Statement font is missing required Latin/Thai glyphs')
     measuring = ImageDraw.Draw(Image.new('RGB',(1,1)))
+    # Packaged, owner-supplied original: reports never fetch branding from Drive.
+    try:
+        with Image.open(Path(__file__).parent/'assets'/'mw-credit-logo.png') as source_logo:
+            logo = source_logo.convert('RGBA')
+        logo.thumbnail((100,100),Image.Resampling.LANCZOS)
+    except OSError as exc:
+        raise ConfigurationError('The locally installed M&W Credit logo is unavailable') from exc
 
     def wrap(text, width, size=24):
         # Combining marks stay with their base; no ellipsis or silent data truncation.
@@ -107,8 +114,9 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
         def text(x,y,t,size=24,color='#452432',align='left'):
             draw.text((x,y),str(t),font=fonts[size],fill=color,anchor='ra' if align=='right' else 'la',spacing=6)
         draw.rectangle((0,0,1200,16),fill='#D81B60')
-        text(44,39,'M&W Credit',22,'#D81B60')
-        text(44,79,labels[0],40)
+        image.paste(logo,(44,34),logo)
+        text(168,39,'M&W Credit',22,'#D81B60')
+        text(168,79,labels[0],40)
         for i,line in enumerate(title_lines):
             text(44,141+44*i,line,32)
         offset = 44*(len(title_lines)-1)

@@ -14,3 +14,6 @@ mw-integration-agent = "mw_integration_agent.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+mw_integration_agent = ["assets/*.png"]

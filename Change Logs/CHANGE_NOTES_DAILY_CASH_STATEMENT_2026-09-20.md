@@ -6,6 +6,10 @@ Starting clean Git commit `5fd7f5b4773c71d30e80327bf05d6febddff3a30`; live VM ch
 
 Updated period selection, rendering, CLI help, catalogue revision 4, sample fixtures, existing boundary/render tests and current documentation. Preserve exact Decimal accounting; round display only to whole baht (half up). Calendar-day snapshots have a separate directory and full-period send keys, preserving the earlier accepted report and its journal. Scheduling remains off. Verification, revised previews and deployment are in progress.
 
+The owner then supplied the M&W Credit logo and requested a persistent Debian copy. Retrieved the exact PNG through the signed-in Drive browser (connector returned not found), verified its dimensions/hash, and bundled the unchanged original in the Python package. Header rendering scales a local copy; it never downloads at runtime. Provenance lives in `src/mw_integration_agent/assets/README.md`.
+
+Calendar-day checkpoint `95b7aa1` is installed: all 22 Debian tests passed; four account balances and 19 transaction rows independently reconciled for 19 September 00:00 through 20 September 00:00 Bangkok. Eight private English/Thai images were generated. Delivery is held until the logo is included and visually verified. Refinement rollback package/config: `/var/lib/mw-integration-agent/rollback/cash-statement-20260920T230003` (prior installed implementation `89994d4`, checkout/evidence baseline `5fd7f5b`).
+
 ## Scope and authority
 
 Owner requested a daily picture statement for every bank/cash account, an R010-style summary, opening balance, transactions with running balances, and closing balance; send to all Partners with IG Integration Enabled, using each Partner's master Language Preference. Owner explicitly chose posting timestamps for the 06:00–06:00 Bangkok cutoff. Manual generation/delivery is in scope. Scheduling awaits owner satisfaction.
