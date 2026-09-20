@@ -1,3 +1,5 @@
 # Applied migrations are immutable; preserve the exact tested bytes and SHA256
 # across Windows/Linux checkouts. Flyway release manifests hash file bytes.
 database/migrations/*.sql -text
+# R010 runner manifest is pinned by its exact-byte SHA256.
+outputs/r010-20260919/cash-statement/flyway-release.json -text
