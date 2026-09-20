@@ -7,7 +7,7 @@ Signed Instagram webhook ingress and explicit Instagram delivery are authorized 
 | Service | State | Migration intent |
 | --- | --- | --- |
 | signed_webhook_ingress | enabled | Verify signatures, persist before acknowledgement, and deduplicate. Processing stays outside the HTTP request. |
-| receipt_summary | implemented; dedicated activation required | New image messages from uniquely mapped, AI-enabled Borrowers; basic receipt validation and Partner Email/Language Preference summaries only. No payment creation or borrower replies. See [receipt operations](docs/RECEIPTS.md). |
+| receipt_summary | enabled, summary only | New image messages from uniquely mapped, AI-enabled Borrowers; basic receipt validation and Partner Email/Language Preference summaries only. No payment creation or borrower replies. See [receipt operations](docs/RECEIPTS.md). |
 | partner_authentication | enabled for cash statements | Fresh opt-in, supported language, unique username, conversation scoped ID and profile verification. No inbound operational commands. |
 | daily_cash_statement | enabled and scheduled | Read-only R010 cash effects; 00:00–00:00 Bangkok posting timestamp; localized account PNGs to all currently enabled Partners at 00:15 Bangkok. |
 | operational_data_read | enabled | Bounded Find-only AppSheet reads through the official API; output probes omit row contents. |

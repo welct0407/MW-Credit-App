@@ -27,7 +27,9 @@ No production schema changes, Payments creation, loan allocation or accounting a
 - Activated receipt_summary_enabled with immutable cutoff 2026-09-20T19:50:41.429637+00:00 (02:50:41 Bangkok). Generic sending, processing and writes remain false; statement schedule and fallback remain true.
 - First service start exposed lazy ingress migration (attachment column was previously initialized only on POST). Applied the existing journal migration and verified integrity; next service run succeeded at 02:51:32, with empty job/outbox counts proving no historical replay. Deployment now initializes it explicitly; activation checks it before changing controls.
 - Existing receiver/tunnel/proxy and both statement timers remain active; systemd receipt unit validation passed.
-- Pending: first authentic eligible borrower receipt and delivered email review.
+- Signed loopback ingress: invalid signature 403, repeated valid delivery stored once with image reference; synthetic event timestamp was pre-cutoff and generated zero jobs/emails. Both journals integrity=ok.
+- Actual Codex synthetic image extraction passed under production-equivalent systemd restrictions at 02:54:01 Bangkok (5.5 seconds, about 131 MB peak). Authentication file mode verified 0600. No synthetic email or payment was sent/created.
+- **Implemented and activated; first authentic eligible borrower receipt and actual Partner email review remain outstanding.** Code and deployment scripts published to main through 9ac5c69; final evidence publication follows this log update.
 
 ## Rollback
 
