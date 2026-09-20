@@ -1,10 +1,10 @@
 # Release tracker
 
-Recorded PROD baseline: **R009**. Next available number: **R011**. R010 remains Ready for review, not accepted or authorized for production. Numbering/approval rules are in [AGENTS](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026).
+Recorded PROD baseline: **R009**. Next available number: **R011**. R010 is ready for owner review following the Cash Statement scope extension; not accepted or authorized for production. Numbering/approval rules are in [AGENTS](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026).
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R010 | OLTP payment-entry validation; depends on R009 | Ready for review | 2026-09-20 DEV ready; acceptance/promotion pending | [Report](../outputs/r010-20260919/REPORT.md) · [change log](../Change%20Logs/CHANGE_NOTES_R010_2026-09-19.md) |
+| R010 | OLTP payment-entry validation and recent Cash Account Statement; depends on R009 | Ready for review | DEV OLTP 1.000052 / SQL V27; preserved owner baseline 1.000038. OLAP 1.000017 scope reconciliation before RC | [Report](../outputs/r010-20260919/REPORT.md) · [change log](../Change%20Logs/CHANGE_NOTES_R010_2026-09-19.md) |
 | R009 | Partner login/delivery, closure notifications, rate correction and owner GUI refinements | Released | 2026-09-19 | [Report](../outputs/r009-20260919/production/REPORT.md) · [manifest](../outputs/r009-20260919/release-manifest.json) |
 | R008 | Cash accounts and account-aware payment commands | Released after correction audit | 2026-09-19 | [Correction audit](../outputs/r008-20260918/production-correction/REPORT.md) · [original production record](../outputs/r008-20260918/production/REPORT.md) |
 | R007 | SQL analytical views for OLAP | Released | 2026-09-18 | [Flyway manifest](../outputs/r007-20260918/flyway-manifest-r1.json) · [the report](../outputs/r007-20260918/REPORT.md) |

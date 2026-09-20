@@ -10,3 +10,7 @@
 | R010-DOC-01 model workbook | Repository | Exact DEV overlay preserved without changing PROD inventory | `Dev Differences` A2790:E2811 exported, reopened, value-compared and rendered | Pass |
 
 The selected tests cover the changed visible inputs and the Posted-correction regression found during implementation. They intentionally avoid financial writes and notification delivery. RC mapping, initial RC deployment and PROD validation remain future promotion work.
+
+## Cash Statement extension — 20 September 2026
+
+[GUI tests](cash-statement/GUI_TESTS.md) record OLTP 1.000052, OLAP 1.000017 zero-issue diagnostics and focused runtime coverage. [SQL tests](cash-statement/SQL_TESTS.md) cover V27 migration/backup/reconciliation. Dictionary A2812:E2856 passed preserved-value/formula round-trip and rendered review. Earlier unchanged payment guards reuse the evidence above; scope/version reconciliation precedes RC capture.

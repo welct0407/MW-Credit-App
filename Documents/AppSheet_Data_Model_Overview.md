@@ -53,6 +53,10 @@ Native borrower Refs provide detail navigation in Loans, Charges and Repayments.
 
 R010 adds bilingual form validation for required receipt inputs, appended correction reasons and ineligible quick commands. PROD remains R009. Exact unpromoted expressions and test/approval status are in the dictionary and [R010 record](../outputs/r010-20260919/REPORT.md); do not relabel them production.
 
+R010 also adds an OLTP Cash Statement dashboard for the latest 15 Bangkok dates. SQL V27 expands Cash Ledger into account-side effects, computes running balances over all history before limiting recent rows, and supplies daily summaries including zero-movement dates. Initialized balances use the governed opening-minus-captured-baseline contract; unknown balances remain NULL. Source tables enrich labels/Refs only. Full history and cash administration remain in OLAP.
+
+A non-financial Cash Statement Context row per Partner stores account/date selection. SQL seeds it on Partner creation; OLTP restricts it by normalized Login Email and permits only preference updates. Read-only slices select the account/day. English/Thai labels and borrower-description fallback are lightweight presentation expressions. No posting, opening initialization, notification routing or source-transaction edit ownership changes.
+
 ## Maintenance and evidence
 
 Update this overview only when architecture, relationships, ownership or explained business behavior changes. An exact formula/property change updates dictionary rows and the release log; it does not require rewriting unchanged prose. Keep one current explanation, without appending a release narrative. SQL changes remain immutable Flyway migrations under [database procedure](../database/README.md#each-change).

@@ -1,4 +1,20 @@
-# R010 — OLTP GUI validation for predictable payment rejections
+# R010 — OLTP payment validation and Cash Account Statement
+
+## Cash Statement extension — 20 September 2026
+
+**DEV implemented; Ready for owner review.** OLTP **1.000052**, SQL **V27**. Both DEV editors report **No issues found** and remain Deployed. OLAP **1.000017** was observed without edits by this task; its version is newer than the prior 1.000015 record. Preserve it and reconcile owner scope before RC capture. Acceptance, RC creation and production authorization remain pending.
+
+The owner requested the supplied Cash Statement design in **R010**, overriding its suggested R011. The owner confirmed manual OLTP saves through **1.000038** and requested work on current DEV; this is the extension's restorable app baseline. Starting Git **d04e47b8af7f636633e4dc67df7e859af7b52c33**, clean tree. Original design: G:/My Drive/Loan Manager/Design Documents/R010_Cash_Account_Statement_Detailed_Design.md. Existing payment guards below remain included; historical readiness statements describe their earlier scope.
+
+Implemented additive V27: per-Partner selection context with immutable owner and insert seeding; internal account-side Cash Ledger provider; recent statements; 15-date account daily summaries. Running balances use opening minus captured baseline in plus baseline out plus all ledger effects, before the recent filter. Uninitialized balances remain NULL. Financial posting and opening initialization are unchanged.
+
+DEV OLTP adds those three public sources from database-3, two read-only selected slices, localized presentation VCs and four views (controls, summary, five-column transactions and menu dashboard). Only account/date preferences are editable. Source Refs provide native drill-down. Full historical review remains in existing OLAP navigation. Optional date shortcuts and dedicated history action were not necessary to the core feature. Exact types, keys/Refs, filters, formulas, display settings and SQL contracts are captured in [configuration](../outputs/r010-20260919/cash-statement/appsheet-config.json) and dictionary Dev Differences **A2812:E2856**.
+
+Verification: clean 27-migration rebuild, repeat/validate/checksum protection, synthetic finance/date/context suite, restored DEV backup rehearsal, V27 DEV migrate/validate, zero aggregate reconciliation errors, GUI account/date refresh, blank unknown balances, five-column signed amounts, payment drill-down and final both-app diagnostics. GUI testing caught and corrected duplicate baht formatting. See [SQL tests](../outputs/r010-20260919/cash-statement/SQL_TESTS.md) and [GUI tests](../outputs/r010-20260919/cash-statement/GUI_TESTS.md). All existing workbook values/formulas survived export/reimport; rendered review passed. Actual Thai second-user, concurrent-device and physical-phone testing remain limitations; initialized numeric balances were tested in disposable SQL because DEV has no account openings. No financial GUI writes or forced notifications.
+
+Rollback: restore OLTP **1.000038** while retaining owner work. V27 is additive and compatible with the old app; removal would require a reviewed higher migration. Private DEV backup was restored/schema-compared and V27 rehearsed successfully; path/hash and limitations are in SQL evidence. PROD remains R009 (OLTP 3.000231 / OLAP 1.100181 / V26). Promotion must apply V27 before a PROD-bound candidate's source validation, using the exact tested manifest and approved RC workflow. No production action was performed.
+
+Changed files: V27 and maintained SQL test/state/backup runners; R010 statement evidence/configuration; data dictionary, model overview, solution-design DEV note, environment inventory, development differences, tracker, report/tests/manifest and existing promotion checklist. New documentation only describes this feature; unrelated historical sections below are preserved.
 
 ## Scope and status
 
