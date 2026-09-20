@@ -16,6 +16,8 @@ if [ "${ID:-}" != "debian" ] || [ "${VERSION_ID:-}" != "13" ]; then
   exit 1
 fi
 
+timedatectl set-timezone Asia/Bangkok
+
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends \

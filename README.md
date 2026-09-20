@@ -11,6 +11,7 @@ Status: **two-way Instagram transport verified; bounded production data connecti
 - VM/hostname: `vm-mw-credit-agent`
 - Machine profile: E2 shared-core, 4 GB memory (`e2-medium`)
 - OS: Debian 13
+- System timezone: `Asia/Bangkok` (`UTC+07:00`), synchronized by NTP
 - Backups: regional Compute Engine snapshot policy `default-schedule-1`, attached and verified after VM creation
 - Network: static regional external IPv4 `136.85.96.197` (`vm-mw-credit-agent-ip`), authorized only for this VM by project-level organization-policy override; SSH remains available through IAP
 - Installed source: `/opt/mw-integration-agent-src`
