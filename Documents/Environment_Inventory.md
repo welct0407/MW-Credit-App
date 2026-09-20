@@ -20,7 +20,7 @@ All four canonical apps are recorded Deployed. Internal names:
 | DEV OLTP | MW-OLTP-DEV-20260919-578763613 | #e8710a |
 | DEV OLAP | MW-OLAP-DEV-20260919-578763613 | #1e88e5 |
 
-R011 frozen recovery candidates are OLTP `MW-OLTP-R011-RC3-578763613` (`ba1c0e84-fba3-435c-8b4b-68653e34dea5`) and OLAP `MW-OLAP-R011-RC3-578763613` (`2aa8074e-7376-44a7-a46a-e1c597618f4b`), both Deployed at 1.000005. Their guards exclude RC execution; do not treat them as canonical runtime apps.
+R011 OLTP/OLAP RC1, RC2 and RC3 were deleted on 21 September 2026 by explicit owner direction after release closure. Exact editor URLs for all six returned AppSheet 404 / `Home/NotFound`; their recorded IDs are historical evidence only. Use PROD saved versions and the release database backup for recovery. [Retirement evidence](../outputs/r011-20260920/production/rc-retirement.md).
 
 Production OLTP inbound AppSheet API access remains enabled for the Linux integration agent's bounded Find requests. The existing enabled application access key is stored outside Git; no replacement key was created. Production OLAP API access was not changed.
 

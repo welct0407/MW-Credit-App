@@ -37,6 +37,10 @@ The initial OLAP RC2 upgrade changed only the copied definition/display name in 
 - OLTP borrower list loaded. The blank borrower form exposed Thai-first bilingual labels including `ชื่อภาษาอังกฤษ / English Name`; the form was cancelled without a write.
 - No production financial test write, forced notification or forced scheduled job was performed. Physical-device/offline, separate Partner-login and concurrent-edit checks remain unmeasured.
 
+## Post-release RC retirement
+
+On 21 September 2026, the owner explicitly authorized deletion of all R011 RC instances. OLTP and OLAP RC1, RC2 and RC3 were deleted; each exact editor URL subsequently returned AppSheet 404 / `Home/NotFound`. DEV and PROD were not deletion targets. See [RC retirement evidence](rc-retirement.md).
+
 ## Rollback
 
-App rollback points are OLTP 3.000237 and OLAP 1.100183. The additive nullable V28/V29 schema is backward-compatible and should normally be retained during app rollback; database restore requires explicit later-write review. Frozen Deployed RC3 definitions are retained as recovery evidence, with scheduled business execution excluded by the canonical guards.
+App rollback points are OLTP 3.000237 and OLAP 1.100183. The additive nullable V28/V29 schema is backward-compatible and should normally be retained during app rollback; database restore requires explicit later-write review. The former RC definitions were deleted by owner direction and are no longer recovery sources.

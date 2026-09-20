@@ -10,7 +10,7 @@ Template revision: 2026-09-20. **Single master:** `scripts/releases/templates/pr
 - Authority: owner accepted the integrated scope and directed production promotion in the current task.
 - Final PROD: SQL V29 / OLTP 3.000240 / OLAP 1.100189. Rollback app versions: OLTP 3.000237 / OLAP 1.100183; retain compatible nullable V28/V29 columns unless a separately reviewed database restore is required.
 - Tested package: commit `d8642d06d6bd39f0f168282b990bbc79721af3f6`; corrected private runner-manifest SHA256 `8AEE4B26AC33835A5E9B242965B3B17CA6916A41DC06323ABCF6B8AFD1F2D511`.
-- Frozen candidates retained: OLTP RC3 `ba1c0e84-fba3-435c-8b4b-68653e34dea5` 1.000005 and OLAP RC3 `2aa8074e-7376-44a7-a46a-e1c597618f4b` 1.000005, both Deployed and guard-contained.
+- Post-release retirement: the owner authorized deletion of all R011 candidates. OLTP/OLAP RC1, RC2 and RC3 were deleted and their exact URLs verified as AppSheet 404 / `Home/NotFound`.
 
 ## Activities
 
@@ -36,7 +36,7 @@ Template revision: 2026-09-20. **Single master:** `scripts/releases/templates/pr
 | P38 | F Validate | N/A | No paused jobs or external cutover steps. |
 | P45 | G Close | Done | Required core records and affected model records updated below. |
 | P46 | G Close | Done | Manifest/log/versions/authority/recovery reconciled; dictionary rows promoted and R012 links consolidated. |
-| P49 | G Close | Done | Frozen RC3 apps retained Deployed as recovery evidence; guards contain execution. |
+| P49 | G Close | Done | RC3 was initially retained; subsequent explicit owner direction deleted all six R011 RC1–RC3 apps. Exact URLs now return 404. |
 | P48 | G Close | Done | Final sanitized evidence committed/pushed and unique annotated R011 tag published; remote verification recorded in final task report. |
 | P50 | G Close | Done | Released after required validation, documentation and publication. |
 | P51 | X Exception | Done | RC2 OLAP display-name mismatch stopped before OLTP upgrade; corrected through new definition-only RC3 and normal App Upgrade. No manual PROD fix or data effect. |
@@ -46,7 +46,7 @@ Template revision: 2026-09-20. **Single master:** `scripts/releases/templates/pr
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
 | [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R011 Released; R012 merged/retired; next R013. |
-| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | PROD V29 / OLTP 3.000240 / OLAP 1.100189 and retained RC3 identities. |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | PROD V29 / OLTP 3.000240 / OLAP 1.100189 and post-release deletion of all R011 RCs. |
 | [Development Changes](../../Documents/Development_Changes.md) | Updated | R011/R012 product differences closed. |
 | [AppSheet_Data_Dictionary.xlsx](../../Documents/AppSheet_Data_Dictionary.xlsx) | Updated | Dev Differences closed; PROD columns/settings recorded with rendered verification. |
 | [AppSheet_Data_Model_Overview.md](../../Documents/AppSheet_Data_Model_Overview.md) | Updated | Production behavior for account aliases, borrower operations/localization and Cash Ledger detail. |
@@ -56,4 +56,4 @@ Template revision: 2026-09-20. **Single master:** `scripts/releases/templates/pr
 - Outcome: **Released**. Production SQL V29 / OLTP 3.000240 / OLAP 1.100189.
 - Recovery: app rollback OLTP 3.000237 / OLAP 1.100183; retain additive schema. Verified private pre-release dump details are in the production report.
 - Limitations: no production financial test write, forced notification or forced schedule. Physical-device/offline, separate Partner-login and concurrent-edit behavior were not retested.
-- RC retention: frozen RC3 definitions retained Deployed and guard-contained; no deletion authorized.
+- RC retirement: all R011 RC1–RC3 definitions deleted by explicit owner direction after release closure. They are not recovery sources.
