@@ -18,10 +18,21 @@ admin_password_file=$1
 secret_dir=/etc/mw-integration-agent/secrets
 role_password_file=$secret_dir/postgres-password.txt
 install -d -o root -g mwagent -m 0750 "$secret_dir"
-if [ ! -s "$role_password_file" ]; then
-  umask 0077
-  openssl rand -base64 36 >"$role_password_file"
+valid_password=true
+if [ -s "$role_password_file" ]; then
+  candidate=$(cat "$role_password_file")
+  case "$candidate" in *[a-z]*) ;; *) valid_password=false ;; esac
+  case "$candidate" in *[A-Z]*) ;; *) valid_password=false ;; esac
+  case "$candidate" in *[0-9]*) ;; *) valid_password=false ;; esac
+  case "$candidate" in *[!A-Za-z0-9]*) ;; *) valid_password=false ;; esac
+else
+  valid_password=false
 fi
+if [ "$valid_password" != true ]; then
+  umask 0077
+  printf 'Aa1!%s\n' "$(openssl rand -hex 24)" >"$role_password_file"
+fi
+unset candidate valid_password
 chown root:mwagent "$role_password_file"
 chmod 0640 "$role_password_file"
 
