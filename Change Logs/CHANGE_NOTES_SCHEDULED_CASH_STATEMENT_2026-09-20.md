@@ -21,6 +21,7 @@ Disable both timers, restore the captured config/catalogue/unit files and reinst
 
 - All 26 tests passed on Debian, including Thai rendering, cutoff, idempotency, unknown-outcome and email retry cases. Synthetic English and Thai statements rendered successfully.
 - Microsoft Graph authenticated without sending mail and the returned identity matched `welctcodex@outlook.com`.
+- At the owner's request, Microsoft Graph accepted one non-financial end-to-end test email from `welctcodex@outlook.com` to the owner's business account `welct0407@mw-credit.com`. The message contained no statement or financial data.
 - Current Partner preflight found two enabled Partners; both have supported languages and valid fallback Email values. No Partner address was printed.
 - systemd unit verification passed. Both timers are enabled and active; the daily timer reports the next 00:15 Asia/Bangkok occurrence and the retry timer completed its empty first run successfully.
 - Live controls: cash statement schedule and email fallback true; generic sending, message processing and writes false. OAuth JSON is mode 0600 and owned by `mwagent` for refresh-token rotation.
