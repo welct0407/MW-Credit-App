@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import urllib.parse
+import urllib.error
 import urllib.request
 from typing import Any
 
@@ -44,6 +45,8 @@ class AppSheet:
         try:
             with urllib.request.urlopen(request, timeout=60) as response:
                 result = json.load(response)
+        except urllib.error.HTTPError as exc:
+            raise ConfigurationError(f"AppSheet API request failed with HTTP {exc.code}") from exc
         except Exception as exc:
             raise ConfigurationError("AppSheet API request failed") from exc
         if not isinstance(result, list) or not all(isinstance(row, dict) for row in result):

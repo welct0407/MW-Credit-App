@@ -17,6 +17,7 @@ SELECT 'default_read_only=' || current_setting('transaction_read_only');
 SELECT 'partners_rows=' || count(*) FROM public."Partners";
 SELECT 'persistent_insert_privilege=' || has_table_privilege(current_user, 'public."Partners"', 'INSERT');
 BEGIN;
+SET TRANSACTION READ WRITE;
 CREATE TEMPORARY TABLE mw_agent_write_probe (probe_id text PRIMARY KEY);
 INSERT INTO mw_agent_write_probe VALUES ('rollback-only');
 SELECT 'temporary_write_rows=' || count(*) FROM mw_agent_write_probe;
