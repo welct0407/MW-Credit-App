@@ -15,6 +15,7 @@ Starting rollback point: `e1494f8dd6dc510f2a7217333e497f4ed14a75c6`.
 - Added a read-only Instagram account/conversation probe and a disabled-by-default send adapter.
 - Added hardened systemd units for the webhook receiver and Cloudflare tunnel.
 - Added an installation script that installs code and units without enabling services.
+- Added a pinned Cloudflare connector 2026.9.1 installer with SHA-256 verification.
 
 ## Credential and cutover boundary
 
@@ -26,4 +27,4 @@ Disable the Linux webhook and tunnel units, preserve the SQLite journal, remove 
 
 ## Checks and status
 
-Automated tests, configuration validation, shell syntax checks, VM installation, and live provider/tunnel verification are recorded before completion. The first Debian run exposed and corrected millisecond timestamp rounding in a test and refreshed example-config installation. Status: implementation in progress; credentials and live activation remain pending.
+Automated tests, configuration validation, shell syntax checks, VM installation, and live provider/tunnel verification are recorded before completion. The first Debian run exposed and corrected millisecond timestamp rounding in a test and refreshed example-config installation. Pinned cloudflared SHA-256: `03f1f25d1cc93b9ad6c60569d44060bc4f17ed97075760ed8cfca4b12dcd68cc`. Status: implementation in progress; credentials and live activation remain pending.

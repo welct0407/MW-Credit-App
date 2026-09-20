@@ -40,6 +40,7 @@ sudo bash scripts/bootstrap-debian.sh
 sudo bash scripts/install-layout.sh
 sudo bash scripts/install-cloud-sql-proxy.sh
 sudo bash scripts/install-instagram-runtime.sh
+sudo bash scripts/install-cloudflared.sh
 sudo -u mwagent -H /var/lib/mw-integration-agent/.local/bin/codex login --device-auth
 ```
 
