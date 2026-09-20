@@ -15,10 +15,10 @@
     "Canonical DEV replacement pair of 2026-09-19"
   ],
   "git": {
-    "implementationCommit": null,
+    "implementationCommit": "df2079cafad1b103178588d8fd60d0c6dba91646",
     "finalTag": null,
     "priorPaymentGuardCommit": "eba6f4571fe86cbf3aa584c323e547933a8636fc",
-    "note": "Cash Statement implementation commit is the commit containing revision 2; pin a clean Flyway manifest before candidate capture."
+    "note": "Cash Statement implementation pinned; final evidence commit follows without SQL changes."
   },
   "records": {
     "log": "Change Logs/CHANGE_NOTES_R010_2026-09-19.md",
@@ -121,9 +121,9 @@
     "targetVersion": "27",
     "prodBeforeAppUpgrade": null,
     "prodAfter": null,
-    "testedCommit": null,
-    "runnerManifestReference": null,
-    "manifestSha256": null,
+    "testedCommit": "df2079cafad1b103178588d8fd60d0c6dba91646",
+    "runnerManifestReference": "outputs/r010-20260919/cash-statement/flyway-release.json",
+    "manifestSha256": "bc6ba8d589b3a783be03a5a6363608edac25b1c6f12fd4fc2e0d0734dd2545a6",
     "migrations": [
       {
         "version": "27",
@@ -153,7 +153,7 @@
   "validation": {
     "A_devIntegrated": "Focused feature checks passed at OLTP 1.000052 / SQL V27; both editors clear. Owner acceptance and preserved manual scope reconciliation pending.",
     "B_candidateCaptured": "pending",
-    "C_databaseReady": "V27 tested/applied in DEV; PROD migration authorization and clean tested manifest pin pending",
+    "C_databaseReady": "V27 tested/applied in DEV and clean tested Flyway manifest pinned; PROD authorization and migration pending",
     "D_rcReady": "pending",
     "E_authorizedUpgrade": "pending",
     "F_productionClosure": "pending"
@@ -171,8 +171,8 @@
     "validated": "2026-09-20"
   },
   "publication": {
-    "evidenceCommit": null,
-    "verificationReference": "Normal branch push verified at completion; revision 2 evidence is in its containing commit, no self-referential hash."
+    "evidenceCommit": "df2079cafad1b103178588d8fd60d0c6dba91646",
+    "verificationReference": "Normal origin/master push verified at completion; final evidence commit contains these pins."
   },
   "operatingModel": {
     "devMode": "Deployed",
