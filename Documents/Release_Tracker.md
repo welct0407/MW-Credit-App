@@ -1,9 +1,10 @@
 # Release tracker
 
-Recorded PROD baseline: **R010**. Next available number: **R012**. Numbering/approval rules are in [AGENTS](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026).
+Recorded PROD baseline: **R010**. Next available number: **R013**. Numbering/approval rules are in [AGENTS](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026).
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
+| R012 | Enriched OLAP Cash Position / Cash Ledger Recent with movement time, borrower/payer context and operational references; depends on R011 | DEV complete; awaiting owner acceptance / promotion authorization | 2026-09-21: OLAP 1.000019; current GUI preview and saved-state diagnostics passed | [Change log](../Change%20Logs/CHANGE_NOTES_R012_2026-09-21.md) · [test results](../outputs/r012-20260921/test-results.md) |
 | R011 | Borrower-linked collection quick-edit note, required English Name, bilingual borrower labels and Partner-preference system-text localization in both apps; depends on R010 | DEV complete; awaiting owner acceptance / promotion authorization | 2026-09-20: DEV V28 / OLTP 1.000059 / OLAP 1.000018; GUI/SQL/localization checks passed | [Change log](../Change%20Logs/CHANGE_NOTES_R011_2026-09-20.md) · [manifest](../outputs/r011-20260920/release-manifest.json) · [checklist](../outputs/r011-20260920/promotion-checklist.md) |
 | R010 | OLTP payment-entry validation and recent Cash Account Statement; depends on R009 | Released | 2026-09-20: PROD SQL V27 / OLTP 3.000235 from RC2 1.000004; OLAP unchanged 1.100183 | [Production report](../outputs/r010-20260919/production/REPORT.md) · [manifest](../outputs/r010-20260919/release-manifest.json) |
 | R009 | Partner login/delivery, closure notifications, rate correction and owner GUI refinements | Released | 2026-09-19 | [Report](../outputs/r009-20260919/production/REPORT.md) · [manifest](../outputs/r009-20260919/release-manifest.json) |

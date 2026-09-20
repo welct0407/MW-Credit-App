@@ -1,6 +1,6 @@
 # Environment inventory
 
-Latest recorded checkpoint: **20 September 2026**, from the [DEV database consolidation evidence](../outputs/dev-db-consolidation-20260920/verification.json) and [R010 production evidence](../outputs/r010-20260919/production/REPORT.md). Current PROD is R010. Unaffected application facts retain their recorded evidence.
+Latest recorded checkpoint: **21 September 2026**, from the [R012 DEV evidence](../outputs/r012-20260921/test-results.md), [DEV database consolidation evidence](../outputs/dev-db-consolidation-20260920/verification.json) and [R010 production evidence](../outputs/r010-20260919/production/REPORT.md). Current PROD is R010. Unaffected application facts retain their recorded evidence.
 
 ## App identities and bindings
 
@@ -9,7 +9,7 @@ Latest recorded checkpoint: **20 September 2026**, from the [DEV database consol
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000237 | database-2 | 16 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100183 (unchanged by R010) | database-2 | 19 |
 | Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000059 (R011 DEV) | database-3 | 16 |
-| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000018 (R011 DEV) | database-3 | 19 |
+| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000019 (R012 DEV) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
 
@@ -47,6 +47,8 @@ The full instance/host/database tuple establishes environment identity; host or 
 The on-demand Cloud SQL backup at **2026-09-20 19:32 Bangkok** completed before the instance flag change. Private custom-format PROD-source and former-DEV rollback dumps were created and SHA-256 recorded outside Git. `loan_manager_dev` was restored from the PROD snapshot with 22 public tables, 13 views, 162 constraints, 48 indexes, 71 functions, 177 trigger entries and Flyway V27/27 successful history rows. All 21 application-table row counts match the snapshot; 20 fingerprints match, and `Partners` is the sole intended difference after its delivery addresses were set to the owner while two distinct Login Email identities were preserved. PROD retains `pg_cron`; DEV intentionally omits it because the shared instance flag points cron metadata to `loan_manager_prod` and AppSheet owns DEV schedules.
 
 ## Automation and limitations
+
+R012 DEV checkpoint: OLAP 1.000019 is Deployed with green saved-state editor diagnostics. `Cash Position` retains its dashboard composition; `Cash Ledger Recent` now shows `Movement Date`, 24-hour `Movement Time`, resolved `Ref Borrower`, payment/loan/source/note/creator context and both cash-account references. Current desktop preview confirmed representative payment rows display borrower names and `hh:mm` values. No data row, SQL object, automation, recipient route or production definition changed. See [R012 evidence](../outputs/r012-20260921/test-results.md).
 
 R011 DEV checkpoint: OLTP 1.000059 and OLAP 1.000018 are Deployed with green saved-state editor diagnostics. Collection note persistence, required English Name validation and the six Thai-first bilingual labels in the new-borrower form passed current desktop GUI checks. Both apps now evaluate all 116 system-text localizations from the signed-in Partner's `Language Preference`, using the platform English label for `English` and Thai otherwise; exact saved-expression readback passed with zero mismatches. See [R011 evidence](../outputs/r011-20260920/test-results.md); production remains R010.
 
