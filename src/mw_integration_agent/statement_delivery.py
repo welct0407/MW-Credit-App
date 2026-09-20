@@ -78,7 +78,11 @@ def resolve_recipient(api, partner):
         profile = api.request(recipient,{'fields':'id,username'})
     except ConfigurationError as exc:
         raise InstagramDeliveryError('Instagram profile lookup failed') from exc
-    if str(profile.get('id'))!=recipient or handle(profile.get('username'))!=handle(partner['username']):
+    try:
+        matches = str(profile.get('id'))==recipient and handle(profile.get('username'))==handle(partner['username'])
+    except ConfigurationError:
+        matches = False
+    if not matches:
         raise InstagramDeliveryError('Partner Instagram identity changed')
     return recipient
 
@@ -86,8 +90,11 @@ def resolve_recipient(api, partner):
 def check_window(state, recipient, now=None):
     now = time.time() if now is None else now
     path = Path(state)/'instagram-ingress.db'
-    with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as db:
-        stamp = db.execute('SELECT max(event_timestamp) FROM messages WHERE sender_id=?',(recipient,)).fetchone()[0]
+    try:
+        with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as db:
+            stamp = db.execute('SELECT max(event_timestamp) FROM messages WHERE sender_id=?',(recipient,)).fetchone()[0]
+    except sqlite3.Error as exc:
+        raise InstagramDeliveryError('Instagram delivery-window evidence is unavailable') from exc
     if stamp is None or not 0 <= now-stamp < 86400-60:
         raise InstagramDeliveryError('Partner must send an Instagram message to open the 24-hour delivery window')
 

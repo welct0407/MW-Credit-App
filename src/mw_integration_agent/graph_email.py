@@ -87,14 +87,19 @@ class GraphEmail:
             raise EmailRejected("Email sender identity mismatch")
         files=[]
         for item in attachments:
-            path=Path(item["path"])
-            data=path.read_bytes()
+            try:
+                path=Path(item["path"])
+                data=path.read_bytes()
+            except (KeyError,OSError,TypeError) as exc:
+                raise EmailRejected("Statement attachment is unavailable") from exc
             if hashlib.sha256(data).hexdigest()!=item["sha256"] or not data.startswith(b"\x89PNG\r\n\x1a\n"):
                 raise EmailRejected("Statement attachment changed")
             if len(data)>2_800_000:
                 raise EmailRejected("Statement attachment exceeds Graph simple-attachment limit")
             files.append({"@odata.type":"#microsoft.graph.fileAttachment","name":item["name"],
                           "contentType":"image/png","contentBytes":base64.b64encode(data).decode()})
+        if sum(len(item["contentBytes"]) for item in files)>3_000_000:
+            raise EmailRejected("Statement attachment set exceeds Graph simple-message limit")
         payload={"message":{"subject":subject,"body":{"contentType":"HTML","content":body},
             "toRecipients":[{"emailAddress":{"address":recipient}}],"attachments":files,
             "internetMessageHeaders":[{"name":"x-mw-operation-key",

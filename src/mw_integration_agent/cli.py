@@ -68,9 +68,14 @@ def main() -> int:
             print(json.dumps(retry_emails(args.config,args.catalogue),ensure_ascii=False))
             return 0
         if args.command == "check":
-            validate_config(load_json(args.config))
+            config = load_json(args.config)
+            validate_config(config)
             validate_catalogue(load_json(args.catalogue))
-            print(json.dumps({"status": "ok", "activation": "disabled"}))
+            print(json.dumps({"status": "ok", "activation": {
+                "cash_statement_schedule": config["cash_statement_schedule_enabled"],
+                "email_fallback": config["email_fallback_enabled"],
+                "generic_sending": config["sending_enabled"],
+                "processing": config["processing_enabled"], "writes": config["writes_enabled"]}}))
             return 0
         if args.command == "status":
             print(json.dumps({"status": "transport-foundation", "business_activation": "disabled", "version": __version__}))

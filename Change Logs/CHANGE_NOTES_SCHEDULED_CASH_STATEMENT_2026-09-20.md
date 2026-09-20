@@ -19,4 +19,9 @@ Disable both timers, restore the captured config/catalogue/unit files and reinst
 
 ## Checks and status
 
-Pending final Debian tests, OAuth sender probe, systemd calendar verification, timer activation, and published Git verification. The first automatic business run remains scheduled for the next 00:15 Asia/Bangkok occurrence.
+- All 26 tests passed on Debian, including Thai rendering, cutoff, idempotency, unknown-outcome and email retry cases. Synthetic English and Thai statements rendered successfully.
+- Microsoft Graph authenticated without sending mail and the returned identity matched `welctcodex@outlook.com`.
+- Current Partner preflight found two enabled Partners; both have supported languages and valid fallback Email values. No Partner address was printed.
+- systemd unit verification passed. Both timers are enabled and active; the daily timer reports the next 00:15 Asia/Bangkok occurrence and the retry timer completed its empty first run successfully.
+- Live controls: cash statement schedule and email fallback true; generic sending, message processing and writes false. OAuth JSON is mode 0600 and owned by `mwagent` for refresh-token rotation.
+- Published checkpoints `5cccb8b` and `6c5e01e` were fetched by the VM. The first automatic business run remains scheduled for the next 00:15 Asia/Bangkok occurrence.
