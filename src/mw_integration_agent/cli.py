@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from . import __version__
+from .appsheet import AppSheet
 from .config import ConfigurationError, load_json, validate_catalogue, validate_config
 from .instagram import Instagram
 from .journal import IngressJournal
@@ -37,6 +38,9 @@ def build_parser() -> argparse.ArgumentParser:
     send.add_argument("--catalogue", required=True)
     send.add_argument("--recipient", required=True)
     send.add_argument("--text", required=True)
+    appsheet = sub.add_parser("appsheet-probe", help="verify bounded read-only AppSheet API access")
+    appsheet.add_argument("--config", required=True)
+    appsheet.add_argument("--catalogue", required=True)
     return parser
 
 
@@ -91,6 +95,17 @@ def main() -> int:
                 raise ConfigurationError("instagram_delivery is disabled")
             message_id = Instagram(config).send(args.recipient, args.text)
             print(json.dumps({"status": "accepted", "message_id": message_id}))
+            return 0
+        if args.command == "appsheet-probe":
+            config = load_json(args.config)
+            catalogue = load_json(args.catalogue)
+            validate_config(config)
+            validate_catalogue(catalogue)
+            if not catalogue["services"]["operational_data_read"]["enabled"]:
+                raise ConfigurationError("operational_data_read is disabled")
+            if not config.get("appsheet_enabled"):
+                raise ConfigurationError("appsheet_enabled is false")
+            print(json.dumps(AppSheet(config).probe()))
             return 0
     except ConfigurationError as exc:
         print(json.dumps({"status": "error", "error": str(exc)}))

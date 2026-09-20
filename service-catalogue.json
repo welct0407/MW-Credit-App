@@ -1,10 +1,11 @@
 {
-  "revision": 1,
+  "revision": 2,
   "default_policy": "deny",
   "services": {
     "signed_webhook_ingress": {"enabled": true, "implemented": true},
     "partner_authentication": {"enabled": false, "implemented": false},
-    "operational_data_read": {"enabled": false, "implemented": false},
+    "operational_data_read": {"enabled": true, "implemented": true},
+    "database_connectivity": {"enabled": true, "implemented": true},
     "persistent_codex_conversation": {"enabled": false, "implemented": false},
     "partner_oltp_gui": {"enabled": false, "implemented": false},
     "operational_data_api": {"enabled": false, "implemented": false},

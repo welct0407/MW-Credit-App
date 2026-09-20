@@ -12,6 +12,8 @@ BOOLEAN_FLAGS = (
     "writes_enabled",
     "daily_briefing_enabled",
     "receiver_enabled",
+    "appsheet_enabled",
+    "database_enabled",
 )
 
 
@@ -67,6 +69,24 @@ def validate_config(config: dict[str, Any]) -> None:
             except ValueError as exc:
                 raise ConfigurationError(f"{key} must be under secrets_directory") from exc
 
+    if config.get("appsheet_enabled"):
+        if not re.fullmatch(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", str(config.get("appsheet_app_id", ""))):
+            raise ConfigurationError("appsheet_app_id must be a lowercase UUID")
+        if config.get("appsheet_api_base") != "https://www.appsheet.com":
+            raise ConfigurationError("appsheet_api_base is not approved")
+        _validate_secret_path(config, "appsheet_key_file")
+
+    if config.get("database_enabled"):
+        if config.get("database_host") not in {"127.0.0.1", "::1"}:
+            raise ConfigurationError("database_host must be loopback")
+        if config.get("database_port") != 5432:
+            raise ConfigurationError("database_port must be 5432")
+        if config.get("database_name") != "loan_manager_prod":
+            raise ConfigurationError("database_name must identify the approved production database")
+        if config.get("database_user") != "mw_integration_agent":
+            raise ConfigurationError("database_user must be the dedicated least-privilege role")
+        _validate_secret_path(config, "database_password_file")
+
 
 def load_secret(config: dict[str, Any], key: str) -> str:
     path = Path(config[key]).resolve()
@@ -78,6 +98,19 @@ def load_secret(config: dict[str, Any], key: str) -> str:
     if not value:
         raise ConfigurationError(f"credential is empty: {key}")
     return value
+
+
+def _validate_secret_path(config: dict[str, Any], key: str) -> None:
+    value = config.get(key)
+    if not isinstance(value, str) or not PurePosixPath(value).is_absolute():
+        raise ConfigurationError(f"{key} must be an absolute POSIX path")
+    path = PurePosixPath(value)
+    if ".." in path.parts:
+        raise ConfigurationError(f"{key} must not contain parent traversal")
+    try:
+        path.relative_to(PurePosixPath(config["secrets_directory"]))
+    except (KeyError, ValueError) as exc:
+        raise ConfigurationError(f"{key} must be under secrets_directory") from exc
 
 
 def validate_catalogue(catalogue: dict[str, Any]) -> None:

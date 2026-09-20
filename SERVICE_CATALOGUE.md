@@ -1,6 +1,6 @@
 # Service catalogue
 
-Revision 1 — receipt-only Instagram transport foundation. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
+Revision 2 — Instagram transport plus bounded production data connectivity. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
 Signed Instagram webhook ingress and explicit Instagram delivery are authorized and implemented. Ingress verifies Meta signatures, stores deduplicated messages, and never processes or replies. Delivery requires both the catalogue permission and the live `sending_enabled` control; no automated worker exists.
 
@@ -8,7 +8,8 @@ Signed Instagram webhook ingress and explicit Instagram delivery are authorized 
 | --- | --- | --- |
 | signed_webhook_ingress | enabled | Verify signatures, persist before acknowledgement, and deduplicate. No processing or replay. |
 | partner_authentication | disabled | Resolve authenticated Instagram sender against current Partner master data. |
-| operational_data_read | disabled | Bounded Find-only AppSheet reads with fresh authorization and paging. |
+| operational_data_read | enabled | Bounded Find-only AppSheet reads through the official API; output probes omit row contents. |
+| database_connectivity | enabled | Dedicated loopback/Cloud SQL Auth Proxy login with business-table SELECT and TEMP only; no durable operational DML. |
 | persistent_codex_conversation | disabled | Per-partner isolated Codex App Server threads with host-owned bounded tools. |
 | partner_oltp_gui | disabled | Linux/Chromium compatibility must be proven before migration. |
 | operational_data_api | disabled | Mapped, reviewed operational edits only; no raw database or schema access. |

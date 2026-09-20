@@ -2,7 +2,7 @@
 
 Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM.
 
-Status: **two-way Instagram transport verified on Debian; automated outbound remains disabled**. The receiver is live through `https://hooks.mw-credit.com/instagram`; a controlled reply was accepted by Meta on 20 September 2026, after which `sending_enabled` was restored to `false`. No message processing, automatic reply, AppSheet/database write, or schedule is enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
+Status: **two-way Instagram transport verified; bounded production data connectivity configured**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. AppSheet access is Find-only, and PostgreSQL uses a dedicated loopback role restricted to business-table SELECT and temporary objects. No automatic reply, durable SQL write, AppSheet edit, message processing, or schedule is enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
 
 ## Initial target
 
@@ -41,11 +41,14 @@ sudo bash scripts/install-layout.sh
 sudo bash scripts/install-cloud-sql-proxy.sh
 sudo bash scripts/install-instagram-runtime.sh
 sudo bash scripts/install-cloudflared.sh
+sudo bash scripts/configure-postgres-access.sh /tmp/admin-password.txt
 sudo -u mwagent -H /var/lib/mw-integration-agent/.local/bin/codex login --device-auth
 ```
 
 Use device-code authentication on the headless VM. Treat `/var/lib/mw-integration-agent/.codex/auth.json` as a secret and include it only in an explicitly approved credential-recovery design.
 
 The Instagram receiver binds only to `127.0.0.1:8000` and is intended to sit behind the authenticated Cloudflare tunnel. Captured messages are durably deduplicated with status `CAPTURED_NO_PROCESSING`. The outbound adapter cannot send while `instagram_delivery` or `sending_enabled` is false.
+
+`appsheet-probe` performs a bounded official-API `Find` against the production OLTP Partners table and reports only metadata, never row contents. PostgreSQL connects only through the Cloud SQL Auth Proxy on loopback; its dedicated role defaults to read-only transactions and has SELECT plus TEMPORARY privileges, not durable table DML.
 
 See [migration plan](docs/MIGRATION_PLAN.md), [operations](docs/OPERATIONS.md), and the [service catalogue](SERVICE_CATALOGUE.md).

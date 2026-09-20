@@ -2,7 +2,7 @@
 
 ## Current state
 
-This repository has no production business runtime. Catalogue revision 1 enables signed Instagram receipt ingress and explicit Instagram delivery; live delivery remains disabled by the runtime flag. The receiver stores messages without processing or replying. A one-time outbound reply was accepted by Meta on 20 September 2026, and `sending_enabled` was immediately restored to `false`. The loopback-only Cloud SQL Auth Proxy remains independent and has no database password.
+This repository has no automated production business runtime. Catalogue revision 2 adds bounded AppSheet Find reads and dedicated PostgreSQL connectivity to the verified Instagram transport. AppSheet edits and durable SQL DML remain disabled. A one-time Instagram reply was accepted by Meta on 20 September 2026, and `sending_enabled` was immediately restored to `false`.
 
 ## Filesystem layout
 
@@ -35,11 +35,14 @@ sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
   --catalogue /etc/mw-integration-agent/service-catalogue.json
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
   messages --config /etc/mw-integration-agent/config.json --limit 10
+sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
+  appsheet-probe --config /etc/mw-integration-agent/config.json \
+  --catalogue /etc/mw-integration-agent/service-catalogue.json
 ```
 
 The example config is not installed as the active config. Live ingress sets only `receiver_enabled=true`; processing, sending, writes, and schedules remain false. `messages` omits message text unless `--include-text` is explicitly supplied.
 
-The production proxy endpoint is `127.0.0.1:5432`. The VM identity is conditionally granted `roles/cloudsql.client` only for `appsheet-pg-prod-20260914`. Proxy transport authentication does not replace PostgreSQL authentication: a separately approved, least-privilege database role/credential is still required before an application can log in.
+The production proxy endpoint is `127.0.0.1:5432`. The VM identity is conditionally granted `roles/cloudsql.client` only for `appsheet-pg-prod-20260914`. PostgreSQL login uses `mw_integration_agent`, which defaults to read-only transactions and has CONNECT, TEMPORARY, public-schema USAGE, and SELECT on business tables. It has no durable table DML privileges. Its password and the AppSheet access key remain in the protected secrets directory outside Git.
 
 ## Backups and recovery
 
