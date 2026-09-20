@@ -156,8 +156,8 @@ class ReceiptJournalTests(unittest.TestCase):
         self.add();m=master();m['posted_references']=[receipt()['reference']]
         self.process(m=m);self.assertEqual(self.j.emails(),[])
         self.add('m2');m=master();m['borrowers'][0]['enabled']=False
-        with patch('mw_integration_agent.receipt_run.download',side_effect=AssertionError('must not download')):
-            self.process(m=m)
+        def forbidden(_): raise AssertionError('must not download')
+        process(self.j.pending()[0],self.j,{},m,fetch=forbidden,profile_reader=profile)
         self.assertEqual(self.j.emails(),[])
 
     def test_unknown_outcome_survives_restart_no_retry(self):

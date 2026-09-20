@@ -11,7 +11,7 @@ Owner requested restoring Instagram-triggered borrower payment receipt handling;
 - Reference only: retired MW AI Collection `815537117341f292430bfda1af9b43c50028bd49`; its workers remain stopped.
 - Verified VM `vm-mw-credit-agent`, project `clever-oasis-508610-n7`, zone `asia-southeast1-a`; loopback proxy to production `loan_manager_prod`, login `mw_integration_agent`.
 - Production read-only inspection confirmed Alternative Account Number populated on two Cash Accounts, Borrowers Instagram Username / AI Collection Enabled, Payments Bank Reference, and English/ไทย Partner language values. No real data exported.
-- Codex CLI 0.155.1 was installed but not authenticated. Owner requested device sign-in, initiated in the configured private Codex home. Authentication and live extraction are pending verification.
+- Codex CLI 0.155.1 was installed but not authenticated. Owner requested device sign-in, initiated in the configured private Codex home. Device sign-in completed and actual image extraction passed. No credentials copied from Windows.
 
 ## Changes
 
@@ -21,10 +21,14 @@ No production schema changes, Payments creation, loan allocation or accounting a
 
 ## Checks and status
 
-- Local Python unittest discovery: 41 tests passed, 2 existing Linux/font-dependent skips on Windows.
+- Local Python unittest discovery: 42 tests passed, 2 existing Linux/font-dependent skips on Windows.
 - Tests cover basic rules and negatives, disabled/ambiguous Borrower, account aliases/masks/collisions, prior Payments reference, message/image/reference retries, restart with uncertain email, bounded rejection attempts, changed delivery data, tool-control arguments, URL allowlist and old ingress migration.
-- Pending: Linux installation/tests, authentication + actual synthetic extraction, activation evidence, first authentic eligible borrower receipt and delivered email review.
+- Installed package from b111681; Linux suite: all 42 tests passed. Synthetic image extraction and PromptPay alias validation passed at 2026-09-21 02:49:44 Bangkok; no email or payment created. The synthetic verifier now uses Pillow bundled font after its initial external-font path was unavailable.
+- Activated receipt_summary_enabled with immutable cutoff 2026-09-20T19:50:41.429637+00:00 (02:50:41 Bangkok). Generic sending, processing and writes remain false; statement schedule and fallback remain true.
+- First service start exposed lazy ingress migration (attachment column was previously initialized only on POST). Applied the existing journal migration and verified integrity; next service run succeeded at 02:51:32, with empty job/outbox counts proving no historical replay. Deployment now initializes it explicitly; activation checks it before changing controls.
+- Existing receiver/tunnel/proxy and both statement timers remain active; systemd receipt unit validation passed.
+- Pending: first authentic eligible borrower receipt and delivered email review.
 
 ## Rollback
 
-Before installation, maintained deploy script backs up live config/catalogue, installed package and every root state SQLite database using online backup + integrity check. It preserves and resumes daily statement timers. New receipt scope can be disabled independently; never rewind receipt/email journals over provider effects. The ingress addition requires keeping its explicit-column INSERT patch when rolling back the old package. No financial database rollback is needed.
+Verified private rollback snapshot: `/var/lib/mw-integration-agent/rollback/receipts-20260920T194819Z`. It contains live config/catalogue, installed package and root state SQLite online backups; integrity checks passed. It preserves and resumes daily statement timers. New receipt scope can be disabled independently; never rewind receipt/email journals over provider effects. The ingress addition requires keeping its explicit-column INSERT patch when rolling back the old package. No financial database rollback is needed.

@@ -51,5 +51,13 @@ cd "$repo"
 /opt/mw-integration-agent/.venv/bin/python -m unittest discover -s tests -q
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent check \
  --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json
+sudo -u mwagent /opt/mw-integration-agent/.venv/bin/python - <<'PY'
+import json
+from pathlib import Path
+from mw_integration_agent.journal import IngressJournal
+c=json.loads(Path('/etc/mw-integration-agent/config.json').read_text())
+j=IngressJournal(Path(c['state_directory'])/'instagram-ingress.db')
+j.close()
+PY
 systemctl start mw-instagram-webhook.service
 echo "Receipt runtime installed, not activated. Rollback: $backup"

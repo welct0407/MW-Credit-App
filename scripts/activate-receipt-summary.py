@@ -3,6 +3,7 @@
 import json
 import os
 import subprocess
+import sqlite3
 from datetime import datetime,timezone
 from pathlib import Path
 
@@ -27,6 +28,9 @@ if auth.returncode!=0:
 validate_catalogue(json.loads(Path('/etc/mw-integration-agent/service-catalogue.json').read_text()))
 data=masters(config)
 recipients(data['partners'])
+with sqlite3.connect(f"file:{Path(config['state_directory'])/'instagram-ingress.db'}?mode=ro",uri=True) as db:
+    if 'attachments' not in {r[1] for r in db.execute('PRAGMA table_info(messages)')}:
+        raise SystemExit('Install the ingress attachment migration before activation')
 config['receipt_summary_enabled']=True
 config['receipt_activation_cutoff']=datetime.now(timezone.utc).isoformat()
 validate_config(config)
