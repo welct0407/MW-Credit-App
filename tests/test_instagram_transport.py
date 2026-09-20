@@ -31,9 +31,12 @@ class InstagramTransportTests(unittest.TestCase):
         signature = "sha256=" + hmac.new(b"secret", raw, hashlib.sha256).hexdigest()
         self.assertTrue(verify_signature(raw, signature, "secret"))
         self.assertFalse(verify_signature(raw, "sha256=wrong", "secret"))
-        self.assertEqual(extract_messages(payload, "123", now), [{
-            "message_id": "m1", "sender_id": "456", "timestamp": now, "text": "hello"
-        }])
+        messages = extract_messages(payload, "123", now)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0]["message_id"], "m1")
+        self.assertEqual(messages[0]["sender_id"], "456")
+        self.assertEqual(messages[0]["text"], "hello")
+        self.assertAlmostEqual(messages[0]["timestamp"], now, places=3)
 
     def test_journal_deduplicates_receipts_and_messages(self):
         with tempfile.TemporaryDirectory() as directory:

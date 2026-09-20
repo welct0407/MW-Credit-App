@@ -26,4 +26,4 @@ Disable the Linux webhook and tunnel units, preserve the SQLite journal, remove 
 
 ## Checks and status
 
-Automated tests, configuration validation, shell syntax checks, VM installation, and live provider/tunnel verification are recorded before completion. Status: implementation in progress; credentials and live activation remain pending.
+Automated tests, configuration validation, shell syntax checks, VM installation, and live provider/tunnel verification are recorded before completion. The first Debian run exposed and corrected millisecond timestamp rounding in a test and refreshed example-config installation. Status: implementation in progress; credentials and live activation remain pending.
