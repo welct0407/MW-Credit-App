@@ -14,7 +14,7 @@ The saved editor reports **No issues found**. Current-GUI checks proved that an 
 
 - Separate DEV database and app identities, DEV themes and within-DEV companion links; see [Environment Inventory](Environment_Inventory.md).
 - DEV Partners.Email delivers only to the owner, while Login Email remains distinct. RC/PROD use PROD contacts with the shared actor-ID rule in [AGENTS §2](../AGENTS.md#2-architecture-and-ownership).
-- Synthetic DEV fixtures and uninitialized cash-account openings are not production data to promote. Use release-specific evidence for any approved initialization.
+- Synthetic DEV fixtures and the owner-approved five zero account openings are not production data to promote. See [DEV initialization evidence](../outputs/r010-20260919/cash-statement/ZERO_INITIALIZATION.md).
 
 ## Closed differences
 

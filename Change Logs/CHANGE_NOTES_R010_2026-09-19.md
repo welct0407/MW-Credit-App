@@ -1,5 +1,13 @@
 # R010 — OLTP payment validation and Cash Account Statement
 
+## DEV account initialization — 20 September 2026
+
+Completed the owner's request to initialize all five DEV accounts at zero, after explicit approval of the necessary Dad 19,828 and Lisa 26,234 Manual Correction outflows. Existing financial history is preserved; all five opening and current balances were zero at completion. Earlier daily balances now calculate from retained history. PROD is untouched; this DEV data operation must not be promoted.
+
+Starting Git `498331854ceb4c01823dcf9f769ebefc57062a62`. A fresh private backup was restored, schema-compared and the atomic operation rehearsed before live execution. Transaction assertions, post-commit SQL reconciliation and current-GUI numeric statement balances passed. Exact backup hash, recovery procedure and checks: [initialization evidence](../outputs/r010-20260919/cash-statement/ZERO_INITIALIZATION.md).
+
+Changed files: maintained DEV initialization SQL/PowerShell runner, parameterized R010 backup rehearsal runner, this log, initialization evidence, environment inventory, development differences, report and promotion checklist. No schema or app configuration change; no new migration or dictionary update is needed. Existing V27 hashes and app versions remain applicable. This supersedes the earlier uninitialized-DEV limitation below; broader owner acceptance and promotion remain pending.
+
 ## Cash Statement extension — 20 September 2026
 
 **DEV implemented; Ready for owner review.** OLTP **1.000052**, SQL **V27**. Both DEV editors report **No issues found** and remain Deployed. OLAP **1.000017** was observed without edits by this task; its version is newer than the prior 1.000015 record. Preserve it and reconcile owner scope before RC capture. Acceptance, RC creation and production authorization remain pending.

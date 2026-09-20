@@ -1,5 +1,7 @@
 # R010 DEV report — Payment validation and Cash Account Statement
 
+20 September follow-up: all five DEV accounts now have zero opening amounts and reconciled zero current balances after explicitly approved holder adjustments. Numeric statement balances passed current-GUI verification. See [initialization evidence](cash-statement/ZERO_INITIALIZATION.md). Historical balances are retained/calculated; the DEV data operation is excluded from PROD promotion.
+
 **Ready for owner review.** Current DEV OLTP **1.000052**, SQL **V27**; both DEV editors have zero issues. The owner-confirmed OLTP 1.000038 manual baseline was preserved. Current companion OLAP **1.000017** was not edited by this feature; reconcile its owner scope before RC capture. PROD remains R009 / SQL V26.
 
 Cash Statement is available from the OLTP menu. Select an active account and one of the latest 15 Bangkok dates to see the daily summary and chronological Time / Transaction / From-To / Amount / Balance table. Financial rows are read-only; only private account/date preferences change. SQL computes balances using full history and initialized baseline semantics, then limits recent output. Unknown opening balances remain blank with an explicit status.

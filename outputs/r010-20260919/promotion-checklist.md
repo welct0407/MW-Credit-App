@@ -1,5 +1,7 @@
 # R010 promotion checklist
 
+DEV-only data follow-up: [five zero account initializations](cash-statement/ZERO_INITIALIZATION.md) and their two approved adjustments are test-environment data, excluded from this promotion. Do not run `Initialize-R010DevZero.ps1` or copy those records into PROD. Existing V27 migration pins remain unchanged.
+
 Template revision: 2026-09-20. Filled release copy of the [single master](../../scripts/releases/templates/promotion-checklist.md). Continue this file; do not regenerate over results or maintain an Excel/separate document checklist. Implementation detail: [Release Workflow](../../Documents/Release_Workflow.md); exceptions: [Recovery](../../Documents/Release_Recovery_Runbook.md).
 
 ## Continue here
