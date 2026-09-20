@@ -24,6 +24,8 @@ sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent cash-st
 
 Preparation creates both languages without sending. Explicit `--send` also requires live `sending_enabled=true` and catalogue permissions. Restore sending to false after the manual run. No timer, catch-up, inbound commands, fallback email or financial operations are included.
 
+For an owner-authorized latest-period delivery, `sudo /opt/mw-integration-agent/.venv/bin/python scripts/send-cash-statement-once.py` temporarily enables sending and restores it in `finally`. `scripts/verify-cash-statement.py` reconciles the prepared closing balances against the direct Cash Ledger without printing financial values. `scripts/cash-statement-status.py` reports controls and accepted/unknown send counts only. The initial four-account English run was accepted by Meta; see the change log. No schedule has been installed.
+
 Every image rechecks current Partner opt-in/language, unique username, official conversation/profile binding, controls and signed-ingress messaging window with a 60-second margin. Unknown/closed windows block delivery; that Partner must message the agent before manual retry. Disabled Partners receive nothing. All enabled Partners receive all accounts per owner scope.
 
 Upload directly to Meta and send by attachment ID; never create a public financial-image URL. Each period/account/partner/page has one durable send reservation. ACCEPTED means an API message ID was returned, not that a human read it. Timeout, crash or missing ID leaves UNKNOWN and prevents automatic resubmission. Reconcile through read-only API evidence before recovery; never delete the reservation. A file lock serializes runs.

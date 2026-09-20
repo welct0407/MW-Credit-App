@@ -24,6 +24,16 @@ Implementation checkpoint `64b01ad` was published and installed. All 20 logic/tr
 
 Pre-installation rollback directory: `/var/lib/mw-integration-agent/rollback/cash-statement-20260920T224152`. It contains the prior installed package, protected config/catalogue and dependency inventory. Its source-commit file identifies the new checked-out source; the original installed baseline was `fcedf4b`.
 
+## Completed manual delivery
+
+Runtime code `89994d4` is installed on Debian. All **22 tests passed on Debian**, including both actual renderer tests; Windows passed 20 logic tests with the two Debian renderer tests explicitly skipped. Final English and Thai synthetic PNGs were visually inspected; required Latin/Thai glyph checks pass, and the numeric date interval renders correctly. Synthetic review images are under `outputs/cash-statement-sample/`.
+
+The frozen production period is **2026-09-19 06:00 through 2026-09-20 06:00 Asia/Bangkok**. Read-only verification independently reconciled all **four account closing balances against direct Cash Ledger totals plus the R008 baseline**, verified all **20 transaction rows** fall inside the posting-time interval, and checked eight English/Thai image files. No financial amounts or personal rows were published.
+
+The explicit manual run found one currently enabled Partner, language English, verified the live conversation/profile and messaging window, uploaded the four images directly to Meta, and received **four accepted message IDs**. No public media hosting was needed. `sending_enabled` was restored to false in the wrapper's `finally` block. Delivery IDs, financial images and snapshots remain in private VM state. API acceptance is not proof of human reading.
+
+**Implemented, deployed and manually sent for owner review.** Owner satisfaction/acceptance remains pending. **Scheduling remains off**; no timer, automatic reply, financial write or email fallback was enabled. Thai output was visually tested, but no Thai Partner delivery was attempted because the only currently enabled Partner selected English. Future changed/backdated source records can restate the operational ledger; the sent snapshot remains frozen.
+
 ## Rollback
 
 Revert this source change normally, reinstall the prior package, and restore the backed-up catalogue/configuration. The deployment script preserves affected installed Python code, dependency inventory and private config/catalogue before installation. Never replace an active delivery journal with an older copy or erase accepted/unknown send records. No database rollback is needed because reporting performs SELECT only. Existing ingress remains independent.
