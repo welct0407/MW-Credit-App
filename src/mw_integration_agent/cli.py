@@ -46,6 +46,10 @@ def build_parser() -> argparse.ArgumentParser:
     statement.add_argument("--catalogue", required=True)
     statement.add_argument("--date", help="calendar date YYYY-MM-DD, midnight to midnight Bangkok")
     statement.add_argument("--send", action="store_true", help="deliver once to currently opted-in Partners")
+    statement.add_argument("--scheduled", action="store_true", help="run the authorized daily scheduled delivery")
+    retry = sub.add_parser("retry-cash-statement-email", help="retry definitely unsent fallback email")
+    retry.add_argument("--config", required=True)
+    retry.add_argument("--catalogue", required=True)
     return parser
 
 
@@ -54,9 +58,15 @@ def main() -> int:
     try:
         if args.command == "cash-statement":
             from .statement_run import run
-            result = run(args.config,args.catalogue,args.date,args.send)
+            if args.send and args.scheduled:
+                raise ConfigurationError("--send and --scheduled are mutually exclusive")
+            result = run(args.config,args.catalogue,args.date,args.send,args.scheduled)
             print(json.dumps(result,ensure_ascii=False))
             return 2 if any(p['status']=='BLOCKED' for p in result['recipients']) else 0
+        if args.command == "retry-cash-statement-email":
+            from .statement_run import retry_emails
+            print(json.dumps(retry_emails(args.config,args.catalogue),ensure_ascii=False))
+            return 0
         if args.command == "check":
             validate_config(load_json(args.config))
             validate_catalogue(load_json(args.catalogue))

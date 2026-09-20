@@ -1,0 +1,20 @@
+[Unit]
+Description=Retry definitely unsent cash statement fallback email
+After=network-online.target cloud-sql-auth-proxy.service
+Wants=network-online.target
+Requires=cloud-sql-auth-proxy.service
+
+[Service]
+Type=oneshot
+User=mwagent
+Group=mwagent
+UMask=0077
+ExecStart=/opt/mw-integration-agent/.venv/bin/mw-integration-agent retry-cash-statement-email --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mw-integration-agent/state /etc/mw-integration-agent/secrets/outlook-email-oauth.json
+
+[Install]
+WantedBy=multi-user.target

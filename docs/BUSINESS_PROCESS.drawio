@@ -1,0 +1,128 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" type="device" version="24.7.17">
+  <diagram id="cash-statement" name="Daily cash statement">
+    <mxGraphModel dx="1500" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="DAILY CASH STATEMENT  |  Production delivery process" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fafafa;strokeColor=#78909c;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1380" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="timer" value="00:15 Asia/Bangkok&#10;systemd timer" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fce4ec;strokeColor=#d81b60;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="610" y="130" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="period" value="Select latest completed day&#10;00:00–00:00 Bangkok" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fce4ec;strokeColor=#d81b60;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="610" y="250" width="280" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="snapshot" value="Read R010 cash effects and balances&#10;Repeatable-read, read-only PostgreSQL&#10;Freeze one private snapshot" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="370" width="380" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="render" value="Render every bank account in English and Thai&#10;Logo-only design · whole baht · HH:MM" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fce4ec;strokeColor=#d81b60;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="520" width="380" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="partner" value="Next Partner with&#10;IG Integration Enabled = TRUE?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff3e0;strokeColor=#ef6c00;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="610" y="650" width="280" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="skip" value="Disabled Partner&#10;No delivery" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#ffebee;strokeColor=#c62828;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="90" y="655" width="250" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="prefs" value="Recheck unique IG identity, preferred language&#10;and current Partner email" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="800" width="380" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ig" value="IG route and 24-hour window available?&#10;Send each statement image once" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff3e0;strokeColor=#ef6c00;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="560" y="930" width="380" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="igd" value="All images accepted by Meta&#10;Record provider message IDs" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="945" width="320" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="email" value="Fallback: send complete statement set&#10;to current Partner Email through Graph" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fce4ec;strokeColor=#d81b60;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="120" y="930" width="330" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="eo" value="Email result?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff3e0;strokeColor=#ef6c00;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="145" y="1080" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ea" value="ACCEPTED&#10;Stop" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="20" y="1220" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="er" value="Definitely unsent&#10;Retry with bounded backoff&#10;Maximum 3 attempts" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fce4ec;strokeColor=#d81b60;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="250" y="1210" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="eu" value="Unknown / interrupted&#10;Retain evidence; never replay" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#ffebee;strokeColor=#c62828;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1210" width="250" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="journal" value="Durable journals + private snapshot&#10;serialize runs, prevent duplicates, preserve uncertainty" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fafafa;strokeColor=#78909c;strokeWidth=2;fontColor=#263238;fontSize=15;align=center;verticalAlign=middle;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="900" y="1190" width="460" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="timer" target="period">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="period" target="snapshot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="snapshot" target="render">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="render" target="partner">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="partner" target="skip">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="partner" target="prefs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="prefs" target="ig">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ig" target="igd">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" value="No / partial / unknown" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ig" target="email">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="985" />
+              <mxPoint x="500" y="980" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="email" target="eo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" value="Accepted" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="eo" target="ea">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" value="Rejected" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="eo" target="er">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" value="Unknown" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="eo" target="eu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" value="Retry timer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="er" target="email">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="1170" />
+              <mxPoint x="70" y="1170" />
+              <mxPoint x="70" y="980" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e32" value="Next Partner" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="igd" target="partner">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1360" y="985" />
+              <mxPoint x="1360" y="705" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e33" value="Next Partner" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=1;strokeColor=#546e7a;fontColor=#37474f;fontSize=13;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ea" target="partner">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="40" y="750" />
+              <mxPoint x="500" y="750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

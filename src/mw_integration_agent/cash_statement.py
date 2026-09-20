@@ -46,7 +46,8 @@ def partners(config):
     # Read disabled rows too: duplicate identity bindings deny delivery even if one is off.
     return read_query(config, '''SELECT coalesce(json_agg(t),'[]'::json) FROM (
       SELECT "Row ID" AS id,"Instagram Username" AS username,
-      "Language Preference" AS language,"IG Integration Enabled" AS enabled
+      "Language Preference" AS language,"IG Integration Enabled" AS enabled,
+      coalesce("Email",'') AS email
       FROM public."Partners" ORDER BY "Row ID") t;''')
 
 

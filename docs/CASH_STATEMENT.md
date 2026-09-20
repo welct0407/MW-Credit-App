@@ -1,6 +1,6 @@
-# Manual daily cash statement
+# Daily cash statement
 
-Owner-authorized service, 20 September 2026. Scheduling awaits acceptance.
+Owner-authorized production service, 20 September 2026. It runs daily at 00:15 Asia/Bangkok.
 
 ## Report contract
 
@@ -16,7 +16,7 @@ Statements use the local M&W Credit logo without repeated brand text, #D81B60 st
 
 The owner-supplied logo is bundled at `mw_integration_agent/assets/mw-credit-logo.png`. Debian keeps it under `/opt/mw-integration-agent/.venv/lib/python3.13/site-packages/`; every page uses this local file. It is included in package installation and source recovery, so no Drive access or download is required during a run. Source provenance and SHA-256 are recorded beside the asset.
 
-Install from a clean published checkout with `sudo sh scripts/deploy-cash-statement.sh`. It backs up affected installed code/config and adds fonts/dependencies without enabling sending or schedules.
+Install the accepted schedule from a clean published checkout with `sudo sh scripts/install-cash-statement-schedule.sh`. It backs up affected code/config/unit files, installs the package and systemd units, enables the daily and email-retry timers, and leaves the general `sending_enabled` control off. The dedicated `cash_statement_schedule_enabled` flag authorizes only this job.
 
 ```sh
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent cash-statement \
@@ -24,19 +24,21 @@ sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent cash-st
  --catalogue /etc/mw-integration-agent/service-catalogue.json
 ```
 
-Preparation creates both languages without sending. Explicit `--send` also requires live `sending_enabled=true` and catalogue permissions. Restore sending to false after the manual run. No timer, catch-up, inbound commands, fallback email or financial operations are included.
+Preparation creates both languages without sending. Explicit `--send` still requires live `sending_enabled=true`. The timer invokes `--scheduled`, which requires `cash_statement_schedule_enabled=true`, `email_fallback_enabled=true`, and the relevant catalogue entries. `Persistent=true` catches up one missed scheduled run after downtime; the report key and journals prevent duplicate accepted delivery.
 
-For an owner-authorized latest-period delivery, `sudo /opt/mw-integration-agent/.venv/bin/python scripts/send-cash-statement-once.py` temporarily enables sending and restores it in `finally`. `scripts/verify-cash-statement.py` reconciles the prepared closing balances against the direct Cash Ledger without printing financial values. `scripts/cash-statement-status.py` reports controls and accepted/unknown send counts only. The initial four-account English run was accepted by Meta; see the change log. No schedule has been installed.
+`scripts/verify-cash-statement.py` reconciles prepared closing balances against the direct Cash Ledger without printing financial values. `scripts/cash-statement-status.py` reports controls and accepted/unknown send counts only. The editable maintained flow is [BUSINESS_PROCESS.drawio](BUSINESS_PROCESS.drawio), with [PNG preview](BUSINESS_PROCESS.png).
 
-Every image rechecks current Partner opt-in/language, unique username, official conversation/profile binding, controls and signed-ingress messaging window with a 60-second margin. Unknown/closed windows block delivery; that Partner must message the agent before manual retry. Disabled Partners receive nothing. All enabled Partners receive all accounts per owner scope.
+Every image rechecks current Partner opt-in/language, unique username, official conversation/profile binding, controls and signed-ingress messaging window with a 60-second margin. Disabled Partners receive nothing. All Partners whose current `IG Integration Enabled` value is true receive all accounts in their preferred language.
 
-Upload directly to Meta and send by attachment ID; never create a public financial-image URL. Each period/account/partner/page has one durable send reservation. ACCEPTED means an API message ID was returned, not that a human read it. Timeout, crash or missing ID leaves UNKNOWN and prevents automatic resubmission. Reconcile through read-only API evidence before recovery; never delete the reservation. A file lock serializes runs.
+Upload directly to Meta and send by attachment ID; never create a public financial-image URL. Each period/account/partner/page has one durable send reservation. ACCEPTED means an API message ID was returned, not that a human read it. Timeout, crash or missing ID leaves UNKNOWN and prevents automatic Instagram resubmission.
+
+If the Instagram route is unavailable, its 24-hour window is closed, or delivery is rejected, partial or unknown, send one complete fallback email to the same Partner row's current `Email`. The subject and body follow `Language Preference`; all generated account pages are attached. Microsoft Graph authenticates as `welctcodex@outlook.com` using the program-owned OAuth credential. The fallback has its own durable key. Provider acceptance is terminal; an uncertain outcome is never replayed. A definitely unsent result retries after bounded backoff, at most three attempts, through the five-minute retry timer. A changed/disabled Partner or changed email cancels a queued retry. Inbound email commands are outside scope.
 
 ## Validation and recovery
 
 Source: project `clever-oasis-508610-n7`, instance `appsheet-pg-prod-20260914`, proxy `127.0.0.1:5432`, database `loan_manager_prod`, role `mw_integration_agent`. Fixed SELECT only, repeatable-read snapshot. R010 V27 remains owned by AppSheet-Loan-Project; no schema/app/model change.
 
-Run `python -m unittest discover -s tests -v` and `python scripts/render-statement-sample.py` on Debian; review both images. Coverage includes cutoff, reversals, zero activity, uninitialized balances, opt-out/duplicate identity/language, profile mismatch, window margin, unknown/restart and duplicate delivery. Live results are in the change log.
+Run `python -m unittest discover -s tests -v`, `python scripts/render-statement-sample.py`, and `python scripts/generate-business-process.py`; review the statement samples and process diagram. Coverage includes cutoff, reversals, zero activity, uninitialized balances, opt-out/duplicate identity/language, profile mismatch, window margin, unknown/restart, duplicate delivery, email reservation/retry and configuration gates. Live results are in the change log.
 
 Rollback reinstalls backed-up Python package and old catalogue/config. Preserve current delivery journals and snapshots; never overwrite later sends with stale state. The independent webhook receiver needs no restart for manual statements.
 

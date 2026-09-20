@@ -11,6 +11,8 @@ BOOLEAN_FLAGS = (
     "sending_enabled",
     "writes_enabled",
     "daily_briefing_enabled",
+    "cash_statement_schedule_enabled",
+    "email_fallback_enabled",
     "receiver_enabled",
     "appsheet_enabled",
     "database_enabled",
@@ -86,6 +88,11 @@ def validate_config(config: dict[str, Any]) -> None:
         if config.get("database_user") != "mw_integration_agent":
             raise ConfigurationError("database_user must be the dedicated least-privilege role")
         _validate_secret_path(config, "database_password_file")
+
+    if config.get("email_fallback_enabled") or config.get("cash_statement_schedule_enabled"):
+        if not re.fullmatch(r"[^\s@<>;,]+@[^\s@<>;,]+\.[^\s@<>;,]+", str(config.get("email_sender", ""))):
+            raise ConfigurationError("email_sender is invalid")
+        _validate_secret_path(config, "email_oauth_file")
 
 
 def load_secret(config: dict[str, Any], key: str) -> str:

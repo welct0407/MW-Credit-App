@@ -1,5 +1,5 @@
 {
-  "revision": 6,
+  "revision": 7,
   "default_policy": "deny",
   "services": {
     "signed_webhook_ingress": {"enabled": true, "implemented": true},
@@ -11,7 +11,7 @@
     "partner_oltp_gui": {"enabled": false, "implemented": false},
     "operational_data_api": {"enabled": false, "implemented": false},
     "instagram_delivery": {"enabled": true, "implemented": true},
-    "email_fallback": {"enabled": false, "implemented": false},
+    "email_fallback": {"enabled": true, "implemented": true},
     "daily_briefing": {"enabled": false, "implemented": false},
     "pattaya_weather": {"enabled": false, "implemented": false}
   }
