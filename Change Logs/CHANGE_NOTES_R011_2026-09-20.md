@@ -2,7 +2,7 @@
 
 ## Scope and authority — 20 September 2026
 
-Owner requested one borrower-linked quick-edit note in the Collection daily borrower detail, plus making Borrowers.Description (English Name) required in AppSheet edit forms. Implement in DEV; production promotion is not authorized.
+Owner requested one borrower-linked quick-edit note in the Collection daily borrower detail, making Borrowers.Description (English Name) required in AppSheet edit forms, and adding Thai to the remaining English-only/raw display names in the new-borrower form. Implement in DEV; production promotion is not authorized.
 
 The note is a persistent, optional borrower-level operational text field, editable from the daily collection detail. It does not reset daily or alter payment dates, balances or collection status. OLTP owns editing; OLAP remains a read-only analytical consumer. No automatic notifications or AI Collection integration are included.
 
@@ -18,17 +18,18 @@ The note is a persistent, optional borrower-level operational text field, editab
 - Reserved and published R011; next number R012. DEV database identity verified as instance `appsheet-pg-prod-20260914`, host `34.21.174.215`, database `loan_manager_dev`.
 - Immutable SQL V28 adds `Borrowers.Borrower Note`, nullable text without a default/backfill. Existing keys, constraints, permissions and triggers unchanged. Existing borrower triggers normalize blank referrers and recalculate rollups; quick payment posting is guarded by its Payment Request Token update path. Note-only SQL and GUI tests passed.
 - OLTP Borrowers regenerated from 47 to 48 AppSheet columns. Borrower Note: LongText, shown, editable, optional, no formula/initial value; display name `"บันทึกผู้กู้ / Borrower Note"`.
-- Borrowers.Description: Required TRUE, retaining Text and `"English Name"`. No database NOT NULL constraint or invented missing names. All 31 DEV borrowers had nonblank names before and after testing.
+- Borrowers.Description: Required TRUE, retaining Text and changing its display name from `"English Name"` to `"ชื่อภาษาอังกฤษ / English Name"`. No database NOT NULL constraint or invented missing names. All 31 DEV borrowers had nonblank names before and after testing.
+- New-borrower display names now follow the existing Thai-first `Thai / English` pattern: Borrower Name `"ชื่อผู้กู้ - ไทย / Borrower Name - Thai"`; Preferred Receiving Cash Account `"บัญชีรับเงินที่ต้องการ / Preferred Receiving Cash Account"`; Instagram Username `"ชื่อผู้ใช้ Instagram / Instagram Username"`; AI Collection Enabled `"เปิดใช้ AI Collection / AI Collection Enabled"`; and Address `"ที่อยู่ / Address"`. Existing bilingual labels were retained.
 - Todays Collection Board: Updates only, Adds/Deletes off; unchanged source Borrowers and filter `ISNOTBLANK([Daily Collection Status])`. Regeneration includes Borrower Note in this slice, Visible Borrowers and R008 Borrower Commands. Regeneration's three slice-change warnings cleared after save.
 - Todays Collection Board_Detail: quick-edit list contains only Borrower Note. Column order: Daily Collection Status - Order, Borrower Reference TE, Todays Amount Due, Todays Amount Collected, Todays Amount Remaining, Borrower Note, Todays Collection Charges. Enabling updates also exposes the existing borrower Edit entry point; required English Name is enforced there.
-- Saved DEV OLTP 1.000055 after regeneration, 1.000056 after field/quick-edit configuration, final 1.000057 after note positioning. Rollback remains 1.000054.
+- Saved DEV OLTP 1.000055 after regeneration, 1.000056 after field/quick-edit configuration, 1.000057 after note positioning, and final 1.000058 after the bilingual form-label refinement. Full R011 rollback remains 1.000054; the refinement-only rollback point is 1.000057.
 - OLAP Borrowers stays read-only on `olap_borrowers_analytics` (87 AppSheet columns), unchanged definition/version. Its SQL view and `olap_portfolio_summary` retain their existing column contract. Existing reports/exports need no changed field binding; note export/reporting is outside this scope. No AI Collection code/integration, schedule, notification or financial rule changed.
 
 ## Verification and documentation
 
 [Test results](../outputs/r011-20260920/test-results.md) record passing migration-chain, SQL isolation/compatibility and current-GUI tests. Both saved editors show green diagnostics and Deployed state. Physical mobile/offline and concurrent-user note editing were not tested; a single note is overwritten by later edits and supplies no separate note-history feature.
 
-Dictionary Dev Differences rows 2857–2862 preserve production reference and all prior values/formulas. Before/after renders inspected. Updated tracker, environment inventory, development differences and model behavior; [single promotion checklist](../outputs/r011-20260920/promotion-checklist.md) retains future promotion activities. No diagram, routing/runbook, report, or unrelated model changes required.
+Dictionary Dev Differences rows 2857–2868 preserve production reference and all prior values/formulas. Before/after renders for the original implementation and the label refinement were inspected. The blank new-borrower form showed all six requested bilingual labels in the current runtime and was cancelled without saving a row. Updated tracker, environment inventory, development differences and model behavior; [single promotion checklist](../outputs/r011-20260920/promotion-checklist.md) retains future promotion activities. No diagram, routing/runbook, report, or unrelated model changes required.
 
 Status: DEV complete; ready for owner review. Owner acceptance, RC preparation and production authorization/deployment remain pending. No production writes or notifications performed.
 

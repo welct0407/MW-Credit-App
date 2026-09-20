@@ -1,6 +1,6 @@
 # R011 DEV verification — 20 September 2026
 
-Targets: DEV OLTP `500b27b6-884a-41e8-a9ec-df801b0110ad`, final 1.000057; DEV OLAP `9f3422be-bc87-4a5a-a42a-67528ee80393`, unchanged 1.000017. Database tuple: `appsheet-pg-prod-20260914` / `34.21.174.215` / `loan_manager_dev`.
+Targets: DEV OLTP `500b27b6-884a-41e8-a9ec-df801b0110ad`, final 1.000058; DEV OLAP `9f3422be-bc87-4a5a-a42a-67528ee80393`, unchanged 1.000017. Database tuple: `appsheet-pg-prod-20260914` / `34.21.174.215` / `loan_manager_dev`.
 
 | Check | Result / evidence |
 | --- | --- |
@@ -11,9 +11,10 @@ Targets: DEV OLTP `500b27b6-884a-41e8-a9ec-df801b0110ad`, final 1.000057; DEV OL
 | DEV migrate/validate | V27→V28, one migration, success true, no warnings; validationSuccessful true, no invalid migrations. |
 | GUI note persistence | Current DEV desktop app: Collection → borrower detail → enter two-line synthetic R011 TEST note → blur/sync → reload. Both lines remain. Clear note and sync restores empty value. SQL aggregate confirms 0 nonblank notes after cleanup. No borrower identities or data exported into evidence. |
 | GUI required English Name | Existing borrower Edit form shows required English Name. Clear only that input and press Save: Thai required-field message `จำเป็นต้องกรอกข้อมูลนี้`; form remains open. Cancel and return to detail. Database aggregate confirms 0 missing English Names among 31 borrowers. |
-| Final layout | Final 1.000057 reloaded runtime: optional multiline note directly below Todays Amount Remaining and before Todays Collection Charges, inside borrower summary. Persistence test reused from 1.000056 because final save only reordered the same field. |
-| Diagnostics | Final OLTP 1.000057 and OLAP 1.000017 saved editors show green check, no outstanding configuration warning/error indicators, Deployed. Schema regeneration slice-list warnings cleared on save. |
+| Final layout | 1.000057 reloaded runtime: optional multiline note directly below Todays Amount Remaining and before Todays Collection Charges, inside borrower summary. Persistence test reused from 1.000056 because that save only reordered the same field; 1.000058 changed display names only. |
+| GUI new-borrower labels | Final 1.000058 blank create form shows Thai-first bilingual labels for Borrower Name, English Name, Preferred Receiving Cash Account, Instagram Username, AI Collection Enabled and Address. Existing bilingual labels remain in the same format. The form was cancelled; no borrower row was created. |
+| Diagnostics | Final OLTP 1.000058 and OLAP 1.000017 saved editors show green check, no outstanding configuration warning/error indicators, Deployed. OLTP Save is disabled after save; the emulator identifies current version 1.000058. Schema regeneration slice-list warnings cleared on save. |
 | OLAP | Current editor/preview loaded at unchanged 1.000017; Borrowers source olap_borrowers_analytics / database-3, read-only, 87 AppSheet columns. Existing SQL provider contract unchanged; no regeneration necessary. |
-| Dictionary | Rows 2857–2862 in Dev Differences, all prior values/formulas preserved after export/import; affected render inspected. See dictionary/verification.json. |
+| Dictionary | Rows 2857–2868 in Dev Differences, all prior values/formulas preserved after export/import; affected renders inspected. See `dictionary/verification.json` and `dictionary-labels/verification.json`. |
 
 Limitations: physical-device/mobile/offline and concurrent-user note edits not tested. No dated note history requested or implemented. Tests do not establish owner acceptance or production authorization. No new notification route or financial workflow was exercised.

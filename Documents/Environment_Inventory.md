@@ -8,7 +8,7 @@ Latest recorded checkpoint: **20 September 2026**, from the [DEV database consol
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000237 | database-2 | 16 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100183 (unchanged by R010) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000057 (R011 DEV) | database-3 | 16 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000058 (R011 DEV) | database-3 | 16 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000017 (unchanged by R010) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
@@ -48,7 +48,7 @@ The on-demand Cloud SQL backup at **2026-09-20 19:32 Bangkok** completed before 
 
 ## Automation and limitations
 
-R011 DEV checkpoint: OLTP 1.000057 and unchanged OLAP 1.000017 are Deployed with green saved-state editor diagnostics. Collection note persistence and required English Name validation passed in the current desktop GUI. See [R011 evidence](../outputs/r011-20260920/test-results.md); production remains R010.
+R011 DEV checkpoint: OLTP 1.000058 and unchanged OLAP 1.000017 are Deployed with green saved-state editor diagnostics. Collection note persistence, required English Name validation and the six Thai-first bilingual labels in the new-borrower form passed current desktop GUI checks. See [R011 evidence](../outputs/r011-20260920/test-results.md); production remains R010.
 
 AppSheet owns daily-charge and hourly-analytics scheduling; duplicate pg_cron financial jobs are paused. Intended enabled/retired states and RC guards follow the accepted release evidence. Daily Loan Analysis is a [dormant reference](reference/Daily_Loan_Analysis_Automation.md), not an active promotion dependency unless affected.
 

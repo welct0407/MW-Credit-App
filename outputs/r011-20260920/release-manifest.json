@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
   "release": "R011",
-  "revision": 1,
+  "revision": 2,
   "status": "dev-complete-awaiting-owner-acceptance",
   "scope": [
     "Persistent borrower-level collection quick-edit note",
-    "Required English Name (Borrowers.Description) in OLTP forms"
+    "Required English Name (Borrowers.Description) in OLTP forms",
+    "Thai-first bilingual display names for remaining new-borrower fields"
   ],
   "prerequisites": [
     "R010"
@@ -23,11 +24,11 @@
   "apps": {
     "OLTP": {
       "disposition": "upgrade-planned",
-      "reason": "Collection note and form validation",
+      "reason": "Collection note, form validation and bilingual new-borrower labels",
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": "1.000057",
+        "version": "1.000058",
         "evidence": "outputs/r011-20260920/test-results.md"
       },
       "rc": {
