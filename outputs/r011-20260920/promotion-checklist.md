@@ -9,7 +9,7 @@ Template revision: 2026-09-20. **Single master:** `scripts/releases/templates/pr
 - DEV readiness: complete; owner acceptance pending.
 - Production authorization: not granted; RC not created.
 - DEV OLTP 1.000057, OLAP unchanged 1.000017, SQL V28. DEV rollback OLTP 1.000054 with additive column retained. Recorded PROD baseline R010 / V27; reverify at promotion.
-- Implementation commit / Flyway manifest / final tag: in linked manifest; Pending
+- Implementation commit: 59ea9d95d499d9d59f45733c5fc9c2f60a9c6e36; [Flyway manifest](flyway-manifest.json). Final R011 tag awaits production closure.
 - Completed: DEV implementation, relevant SQL/GUI tests, current-state documentation. Next: owner review and production authorization, then RC/promotion steps.
 - Documentation impact: Documents/AppSheet_Data_Dictionary.xlsx, Documents/AppSheet_Data_Model_Overview.md. Confirm no other document is affected from release scope.
 
@@ -25,7 +25,7 @@ Execute applicable rows in order; one result/evidence link per coherent check. S
 | P10 | A Readiness | Always; reuse passing evidence | Accept recorded integrated DEV tests and both apps’ final zero-warning/error diagnostics. Rerun only checks invalidated by changed behavior, dependencies or data. No new full regression or live audit merely to start promotion. | Done | Both DEV saved editors green; [tests](test-results.md). |
 | P06 | A Readiness | First use / guard changed | Install/test scheduled guards in DEV before copy, including child calls and per-row filters. Prove canonical DEV allowed and harmless copy excluded in scheduled context. Reuse this proof in later releases. | N/A | No scheduled guard or job change in this DEV batch; reuse existing proof when preparing RC. |
 | P08 | A Readiness | DEV setup / routing changed | Use DEV preparation only for missing/changed setup: DEV sources/links, owner-only Partner delivery data, distinct Login Email and initial deployment if needed. Keep audit fields and channels. Unmapped actors must be resolved for affected tests. | N/A | No source, recipient, link, identity or routing change. Existing DEV bindings retained. |
-| P04 | A Readiness | SQL changes | Reuse completed Flyway-chain/DEV tests and old/new-app compatibility evidence, including relevant queued clients/locks. Pin the clean tested commit with New-Release.ps1 before DEV advances; include every pending migration/prerequisite. | In progress | Chain/DEV tests passed; tested commit pin recorded after implementation commit. |
+| P04 | A Readiness | SQL changes | Reuse completed Flyway-chain/DEV tests and old/new-app compatibility evidence, including relevant queued clients/locks. Pin the clean tested commit with New-Release.ps1 before DEV advances; include every pending migration/prerequisite. | Done | Chain/DEV tests passed; New-Release.ps1 pinned clean commit 59ea9d9 and all 28 migration hashes. See [manifest](flyway-manifest.json). |
 | P13 | B Capture | Always; app details if upgrading | Record PROD identities/baseline, restorable app versions and cutover/recovery order once. Confirm scoped authority before PROD effects; reuse existing approval and App Upgrade eligibility. Recheck eligibility only after access/plan changes. | Pending | |
 | P14 | B Capture | App Upgrade; SQL-only pins above | Briefly freeze DEV, pin tested versions/commit and copy included definitions to named Rnnn-RCk apps. Record IDs/internal names and restrict execution from creation. Resume DEV once independent copies/pins are verified. Never copy DEV financial data to PROD. | Pending | |
 | P22 | C SQL | SQL changes / DB writes | Verify restorable DB backup, schema drift and history; then validate/migrate/validate with the pinned manifest and existing runner. Record target/schema checks and before/after SQL versions. Complete compatible SQL before final RC PROD validation. | Pending | |
@@ -63,7 +63,7 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 ## Close
 
 - Outcome: DEV complete, not Released. Mobile/offline/concurrent editing untested. Rollback and limits in log/tests.
-- Final evidence commit / Rnnn tag / remote verification: Pending
+- DEV implementation and evidence published to configured upstream; final R011 release tag is pending production closure.
 - RC retention: N/A until candidate creation.
 
 Released requires applicable activities, documentation and publication complete. If only documents/publication remain, repair them without redeploying. Record final outcome in the manifest/tracker before the final evidence commit and verify publication afterward; do not create self-referential commit hashes.

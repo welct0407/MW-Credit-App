@@ -31,3 +31,5 @@ The note is a persistent, optional borrower-level operational text field, editab
 Dictionary Dev Differences rows 2857–2862 preserve production reference and all prior values/formulas. Before/after renders inspected. Updated tracker, environment inventory, development differences and model behavior; [single promotion checklist](../outputs/r011-20260920/promotion-checklist.md) retains future promotion activities. No diagram, routing/runbook, report, or unrelated model changes required.
 
 Status: DEV complete; ready for owner review. Owner acceptance, RC preparation and production authorization/deployment remain pending. No production writes or notifications performed.
+
+Implementation committed/pushed as `59ea9d95d499d9d59f45733c5fc9c2f60a9c6e36`. `New-Release.ps1` validated clean DEV and pinned all 28 migration hashes at that commit; [sanitized runner manifest](../outputs/r011-20260920/flyway-manifest.json) and private runner path/hash are linked from the release manifest. Final evidence is published on the configured upstream. No R011 production tag is created before release closure.
