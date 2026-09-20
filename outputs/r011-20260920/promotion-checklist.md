@@ -4,13 +4,13 @@ Template revision: 2026-09-20. **Single master:** `scripts/releases/templates/pr
 
 ## Continue here
 
-- Scope: borrower note quick edit, required English Name and Thai/English new-borrower form labels. Depends on R010; OLTP Upgrade planned, OLAP unchanged.
+- Scope: borrower note quick edit, required English Name, Thai/English new-borrower form labels and Partner-preference system-text localization in both apps. Depends on R010; both app Upgrades planned.
 - Records: [manifest](release-manifest.json), [log](../../Change%20Logs/CHANGE_NOTES_R011_2026-09-20.md), [tests](test-results.md).
 - DEV readiness: complete; owner acceptance pending.
 - Production authorization: not granted; RC not created.
-- DEV OLTP 1.000058, OLAP unchanged 1.000017, SQL V28. Full R011 rollback OLTP 1.000054 with additive column retained; label-refinement rollback 1.000057. Recorded PROD baseline R010 / V27; reverify at promotion.
+- DEV OLTP 1.000059, OLAP 1.000018, SQL V28. Full R011 rollback OLTP 1.000054 with additive column retained; localization-only rollback OLTP 1.000058 / OLAP 1.000017. Recorded PROD baseline R010 / V27; reverify at promotion.
 - Implementation commit: 2856dd06e79d1974e94984055c6e9df710c27c05; SQL/Flyway package remains pinned at unchanged commit 59ea9d95d499d9d59f45733c5fc9c2f60a9c6e36 in the [Flyway manifest](flyway-manifest.json). Final R011 tag awaits production closure.
-- Completed: DEV implementation, relevant SQL/GUI tests, current-state documentation. Next: owner review and production authorization, then RC/promotion steps.
+- Completed: DEV implementation, relevant SQL/GUI/localization checks, current-state documentation. Next: owner review and production authorization, then two-app RC/promotion steps.
 - Documentation impact: Documents/AppSheet_Data_Dictionary.xlsx, Documents/AppSheet_Data_Model_Overview.md. Confirm no other document is affected from release scope.
 
 ## Execution rules
@@ -21,8 +21,8 @@ Execute applicable rows in order; one result/evidence link per coherent check. S
 
 | ID | Stage | When required | Activity / completion criterion | Status | Evidence / reason |
 | --- | --- | --- | --- | --- | --- |
-| P01 | A Readiness | Always | Confirm Rnnn scope, integrated DEV features/PROD fixes, dependencies and app Upgrade/Unchanged decisions. Reuse the existing manifest/log and DEV/model checkpoint; resolve unrelated unreleased work. Record readiness/owner acceptance. | In progress | DEV scope integrated; owner acceptance pending. See log. |
-| P10 | A Readiness | Always; reuse passing evidence | Accept recorded integrated DEV tests and both apps’ final zero-warning/error diagnostics. Rerun only checks invalidated by changed behavior, dependencies or data. No new full regression or live audit merely to start promotion. | Done | Both DEV saved editors green; [tests](test-results.md). |
+| P01 | A Readiness | Always | Confirm Rnnn scope, integrated DEV features/PROD fixes, dependencies and app Upgrade/Unchanged decisions. Reuse the existing manifest/log and DEV/model checkpoint; resolve unrelated unreleased work. Record readiness/owner acceptance. | In progress | DEV scope integrated; both app definitions require Upgrade; owner acceptance pending. See log. |
+| P10 | A Readiness | Always; reuse passing evidence | Accept recorded integrated DEV tests and both apps’ final zero-warning/error diagnostics. Rerun only checks invalidated by changed behavior, dependencies or data. No new full regression or live audit merely to start promotion. | Done | Both DEV saved editors green at OLTP 1.000059 / OLAP 1.000018; 116/116 localization expressions verified in each app. [Tests](test-results.md). |
 | P06 | A Readiness | First use / guard changed | Install/test scheduled guards in DEV before copy, including child calls and per-row filters. Prove canonical DEV allowed and harmless copy excluded in scheduled context. Reuse this proof in later releases. | N/A | No scheduled guard or job change in this DEV batch; reuse existing proof when preparing RC. |
 | P08 | A Readiness | DEV setup / routing changed | Use DEV preparation only for missing/changed setup: DEV sources/links, owner-only Partner delivery data, distinct Login Email and initial deployment if needed. Keep audit fields and channels. Unmapped actors must be resolved for affected tests. | N/A | No source, recipient, link, identity or routing change. Existing DEV bindings retained. |
 | P04 | A Readiness | SQL changes | Reuse completed Flyway-chain/DEV tests and old/new-app compatibility evidence, including relevant queued clients/locks. Pin the clean tested commit with New-Release.ps1 before DEV advances; include every pending migration/prerequisite. | Done | Chain/DEV tests passed; New-Release.ps1 pinned clean commit 59ea9d9 and all 28 migration hashes. See [manifest](flyway-manifest.json). |
@@ -62,7 +62,7 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 ## Close
 
-- Outcome: DEV complete, not Released. Mobile/offline/concurrent editing untested. Rollback and limits in log/tests.
+- Outcome: DEV complete, not Released. Separate Tommy/Lisa sign-in switching and mobile/offline/concurrent editing remain untested. Rollback and limits in log/tests.
 - DEV implementation and evidence published to configured upstream; final R011 release tag is pending production closure.
 - RC retention: N/A until candidate creation.
 

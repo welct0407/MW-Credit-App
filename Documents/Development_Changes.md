@@ -4,7 +4,7 @@ Current production baseline is R010. This register contains open product differe
 
 ## R011 — DEV complete, awaiting acceptance and production authorization
 
-DEV SQL V28 adds optional `Borrowers.Borrower Note`. OLTP 1.000058 displays it below the daily collection totals with quick edit, stores it on the borrower across days, requires `Description` (English Name) in borrower forms, and gives the six formerly English-only/raw new-borrower inputs Thai-first bilingual display names. Collection slice permits updates only; regenerated borrower slices include the note. OLAP remains unchanged at 1.000017 over its read-only analytical view. [Scope, tests and rollback](../Change%20Logs/CHANGE_NOTES_R011_2026-09-20.md). PROD remains V27 / R010; no RC exists yet.
+DEV SQL V28 adds optional `Borrowers.Borrower Note`. OLTP 1.000059 displays it below the daily collection totals with quick edit, stores it on the borrower across days, requires `Description` (English Name) in borrower forms, and gives the six formerly English-only/raw new-borrower inputs Thai-first bilingual display names. Collection slice permits updates only; regenerated borrower slices include the note. In OLTP 1.000059 and OLAP 1.000018, all 116 AppSheet system-text localizations resolve the signed-in `USEREMAIL()` to `Partners[Login Email]` and select platform English only when `Language Preference` is `English`; Thai is the fallback. OLAP's analytical data contract remains read-only and unchanged, but its app definition now requires upgrade for the localization change. [Scope, tests and rollback](../Change%20Logs/CHANGE_NOTES_R011_2026-09-20.md). PROD remains V27 / R010; no RC exists yet.
 
 ## Intentional environment differences
 

@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
   "release": "R011",
-  "revision": 2,
+  "revision": 3,
   "status": "dev-complete-awaiting-owner-acceptance",
   "scope": [
     "Persistent borrower-level collection quick-edit note",
     "Required English Name (Borrowers.Description) in OLTP forms",
-    "Thai-first bilingual display names for remaining new-borrower fields"
+    "Thai-first bilingual display names for remaining new-borrower fields",
+    "Partner-preference AppSheet system-text localization in OLTP and OLAP"
   ],
   "prerequisites": [
     "R010"
@@ -24,11 +25,11 @@
   "apps": {
     "OLTP": {
       "disposition": "upgrade-planned",
-      "reason": "Collection note, form validation and bilingual new-borrower labels",
+      "reason": "Collection note, form validation, bilingual new-borrower labels and dynamic system-text localization",
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": "1.000058",
+        "version": "1.000059",
         "evidence": "outputs/r011-20260920/test-results.md"
       },
       "rc": {
@@ -63,12 +64,12 @@
       }
     },
     "OLAP": {
-      "disposition": "unchanged",
-      "reason": "Read-only SQL analytical view contract unchanged",
+      "disposition": "upgrade-planned",
+      "reason": "Dynamic system-text localization; read-only SQL analytical view contract unchanged",
       "dev": {
         "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
         "internalName": "MW-OLAP-DEV-20260919-578763613",
-        "version": "1.000017",
+        "version": "1.000018",
         "evidence": "outputs/r011-20260920/test-results.md"
       },
       "rc": {
@@ -129,8 +130,8 @@
     "Owner acceptance and scoped production authorization",
     "Pin tested package; prepare contained RC",
     "Verify PROD backup/drift; migrate compatible V28",
-    "Validate/freeze PROD-mapped OLTP RC",
-    "App Upgrade existing PROD OLTP; OLAP unchanged",
+    "Validate/freeze PROD-mapped OLTP and OLAP RCs",
+    "App Upgrade existing PROD OLTP and OLAP",
     "Limited PROD validation and documentation closure"
   ],
   "approvals": {
