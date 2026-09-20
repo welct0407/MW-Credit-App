@@ -6,6 +6,8 @@ Starting clean Git commit `1532d2ad204fe876ec962e2925e2412347f5fb82`. After acce
 
 Removed the temporary `--review-thai` / incomplete-day preview flags, preview rendering branch, isolated review snapshot/key logic, related test, sample option and preview image. Catalogue revision 6 closes that temporary service path. Historical change-log text, private snapshots and durable send journals remain as audit evidence; they are data/evidence, not callable old output scripts. No message, data write or schedule is part of this cleanup. Verification and Debian deployment are in progress.
 
+**Cleanup completed and deployed** at commit `f8b9896`. All **22 tests passed on Debian**, including both renderer tests. A read-only current-format preparation reused the completed 19 September calendar-day snapshot and reconciled four accounts, 19 transaction rows and eight language images. The installed CLI exposes only `--date` and `--send`; repository/runtime searches find no temporary review or preview flags. Current Partner master data reported one English and one Thai enabled recipient during preparation; no images were sent. Sending, processing, writes and daily briefing remain false, and no schedule exists. Rollback package/config: `/var/lib/mw-integration-agent/rollback/cash-statement-20260920T232417`.
+
 ## Logo-only branding, movement colors and Thai 20 September review
 
 Starting clean Git commit `3a60eef9fbad31ed665981d6b48affa8d7c5e83d`. Owner requested removal of repeated M&W Credit header/footer text (retain logo), original green incoming/red outgoing amounts while keeping pink layout accents, and the next review for 20 September in Thai. Rendering and review CLI now implement this; Partner master language is never edited.
