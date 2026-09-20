@@ -11,8 +11,8 @@ The owner requested moving the active DEV PostgreSQL database from the separate 
 - Private custom-format dumps and TOC files are outside Git under `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/dev-db-consolidation-20260920-193337`.
 - PROD-source dump SHA-256: `e8cae9a0ac9055aad6d3e37550de00f2567a75ad54c7df715a18d59e3594f40d`.
 - Former-DEV rollback dump SHA-256: `09fc024b16b67b5efe42723b2e41e10cc4cd4eef3145b035e30ab86f3ec22c3d`.
-- The former active DEV instance `appsheet-pg-dev-20260915` at `34.158.38.171` remains unchanged and is not an active AppSheet target. No instance/database deletion was authorized or performed.
-- App rollback is to point `database-3` back to the former DEV endpoint using the preserved credential and then verify both apps. Database rollback is unnecessary while the former source remains intact. Restoring the shared production instance backup would affect PROD and is reserved for an actual instance-level recovery decision.
+- The verified former-DEV logical dump remains the recovery point after the owner subsequently authorized retirement of the former instance. Its hash and private location were rechecked immediately before deletion.
+- App/database recovery now restores the preserved logical dump into a separately reviewed target or recreates `loan_manager_dev`; the deleted endpoint cannot be used as a direct rollback. Restoring the shared production instance backup would affect PROD and is reserved for an actual instance-level recovery decision.
 
 ## Live changes
 
@@ -22,6 +22,7 @@ The owner requested moving the active DEV PostgreSQL database from the separate 
 - Applied the guarded DEV Partner delivery override before AppSheet cutover. Both Partner rows retain distinct Login Email identities and deliver only to `welct0407@mw-credit.com`.
 - Rebound AppSheet account source `database-3` to `34.21.174.215` / `loan_manager_dev` with Require SSL. PROD source `database-2` was not changed.
 - Set the shared instance `max_connections` flag to 200. Cloud SQL restarted; the tier remains `db-f1-micro` with 1 vCPU and 628.74 MB displayed memory. All other flags, including IAM authentication and PROD pg_cron settings, were preserved.
+- After the owner confirmed permanent deletion, disabled deletion protection and post-deletion backup retention on former instance `appsheet-pg-dev-20260915`, left final backup unchecked, and deleted the instance. This removed its database, Cloud SQL backups, storage and managed public IP `34.158.38.171`.
 
 ## Repository changes
 
@@ -43,9 +44,10 @@ The owner requested moving the active DEV PostgreSQL database from the separate 
 - Flyway info/validate passed at V27; the guarded R009 recipient and R010 statement checks passed. Materialized reconciliation found zero mismatches across 956 charge rows and 74 loan rows.
 - The legacy analytics formula verifier reports 43/47 matching dates after the natural run. PROD reports the same four mismatches, so this is a pre-existing analytics finding rather than migration drift; no financial data was altered to conceal it.
 - Production application definitions and financial rows were not changed. The only PROD runtime impact was the authorized instance restart for the flag change.
+- Cloud SQL reported **Deleted appsheet-pg-dev-20260915** at **21:40:43 Bangkok**. The instance list contains only `appsheet-pg-prod-20260914`; the Backups page contains only production backups. Both `loan_manager_dev` and `loan_manager_prod` remained reachable at Flyway V27 after deletion.
 
 ## Status and limitations
 
-Completed and verified: database creation, PROD-to-DEV refresh, recipient isolation, AppSheet cutover, runtime load/sync, editor diagnostics, backup, connection-limit change and the first natural hourly DEV automation run.
+Completed and verified: database creation, PROD-to-DEV refresh, recipient isolation, AppSheet cutover, runtime load/sync, editor diagnostics, backup, connection-limit change, the first natural hourly DEV automation run and retirement of the former DEV instance and its related Cloud SQL resources.
 
 The 200-connection setting is a ceiling, not evidence that the unchanged micro tier can sustain 200 active queries. No load test or memory-headroom benchmark was performed. Physical-device notification receipt and second-user testing were not repeated. The four existing legacy analytics formula mismatches remain an explicit data-quality limitation outside this infrastructure migration.
