@@ -1,9 +1,16 @@
 """Explicit owner/operator command; temporarily enable sending, always restore off."""
 import json
+import argparse
 import os
 import signal
 import subprocess
 from pathlib import Path
+
+parser=argparse.ArgumentParser()
+parser.add_argument('--date')
+parser.add_argument('--review-thai',action='store_true')
+args=parser.parse_args()
+extra=(['--date',args.date] if args.date else [])+(['--review-thai'] if args.review_thai else [])
 
 if os.geteuid()!=0:
     raise SystemExit('Run as root for the explicitly authorized manual delivery')
@@ -26,7 +33,7 @@ signal.signal(signal.SIGINT,interrupt)
 try:
     set_sending(True)
     result=subprocess.run(['sudo','-u','mwagent','/opt/mw-integration-agent/.venv/bin/mw-integration-agent',
-        'cash-statement','--config',str(path),'--catalogue','/etc/mw-integration-agent/service-catalogue.json','--send'])
+        'cash-statement','--config',str(path),'--catalogue','/etc/mw-integration-agent/service-catalogue.json','--send']+extra)
 finally:
     set_sending(False)
     print('Manual run finished; sending_enabled restored to false')

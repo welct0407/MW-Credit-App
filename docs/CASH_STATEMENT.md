@@ -10,7 +10,7 @@ Opening = R008 Opening Balance − Baseline Cash In + Baseline Cash Out + effect
 
 The source is the current corrected operational ledger, not immutable bank settlement history. Corrections can restate previous periods. First preparation freezes a private snapshot; retries reuse it. Calendar-day snapshots use cash-statements/calendar-day/YYYY-MM-DD, preserving historical 06:00-period snapshots and their send journals. Delivery keys contain the full interval, so the revised period is distinct. Preserve existing snapshot/send evidence when designing an explicit future revision; never erase delivery keys.
 
-M&W Credit statements use the #D81B60 pink theme, HH:MM posting times without dates or seconds, and a date-free footer. English/Thai PNGs use Pillow, Garuda (Latin/Thai) and RAQM, with a required-glyph preflight. Account numbers are masked to four digits. Long statements use numbered pages of 16 transactions with opening/brought-forward and closing/carried-forward rows. Real snapshots, images, identities and provider IDs remain private below runtime state. Only synthetic samples may be committed.
+Statements use the local M&W Credit logo without repeated brand text, #D81B60 structural accents, green inflows and red outflows, HH:MM posting times without dates or seconds, and a date-free footer. English/Thai PNGs use Pillow, Garuda (Latin/Thai) and RAQM, with a required-glyph preflight. Account numbers are masked to four digits. Long statements use numbered pages of 16 transactions with opening/brought-forward and closing/carried-forward rows. Real snapshots, images, identities and provider IDs remain private below runtime state. Only synthetic samples may be committed.
 
 ## Execution and delivery
 
@@ -39,3 +39,7 @@ Source: project `clever-oasis-508610-n7`, instance `appsheet-pg-prod-20260914`, 
 Run `python -m unittest discover -s tests -v` and `python scripts/render-statement-sample.py` on Debian; review both images. Coverage includes cutoff, reversals, zero activity, uninitialized balances, opt-out/duplicate identity/language, profile mismatch, window margin, unknown/restart and duplicate delivery. Live results are in the change log.
 
 Rollback reinstalls backed-up Python package and old catalogue/config. Preserve current delivery journals and snapshots; never overwrite later sends with stale state. The independent webhook receiver needs no restart for manual statements.
+
+## Explicit Thai owner review
+
+`--date 2026-09-20 --review-thai` renders and optionally sends in Thai without changing Partner master data. Exactly one currently enabled Partner is required. If the day is still open, the image shows the full intended date interval and a visible Thai preview/cutoff notice; balances stop at the captured time. Snapshots are isolated under `cash-statements/review-thai/YYYY-MM-DD`; retries reuse the same cutoff and `thai-review:` delivery keys. Normal finalized statements and their duplicate keys remain separate. The run-once sender and read-only verification script accept these flags. Scheduling remains disabled.

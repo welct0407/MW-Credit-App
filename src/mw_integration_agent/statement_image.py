@@ -107,7 +107,8 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
         table_rows.append(('',[labels[5] if page == pages-1 else labels[13]],'',money(final_balance),'boundary'))
         row_heights = [max(78,32*len(r[1])+28) for r in table_rows]
         title_lines = wrap(account['label']+' · '+account['bank']+(' · •••• '+account['last4'] if account.get('last4') else ''),1100,32)
-        table_top = 510+44*(len(title_lines)-1)
+        preview_offset = 36 if report.get('preview') else 0
+        table_top = 510+44*(len(title_lines)-1)+preview_offset
         height = table_top+sum(row_heights)+130
         image = Image.new('RGB',(1200,height),'#fff7fa')
         draw = ImageDraw.Draw(image)
@@ -115,21 +116,25 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
             draw.text((x,y),str(t),font=fonts[size],fill=color,anchor='ra' if align=='right' else 'la',spacing=6)
         draw.rectangle((0,0,1200,16),fill='#D81B60')
         image.paste(logo,(44,34),logo)
-        text(168,39,'M&W Credit',22,'#D81B60')
-        text(168,79,labels[0],40)
+        text(168,66,labels[0],40)
         for i,line in enumerate(title_lines):
             text(44,141+44*i,line,32)
         offset = 44*(len(title_lines)-1)
-        start,end = (datetime.fromisoformat(report[k]) for k in ('start','end'))
+        start = datetime.fromisoformat(report['start'])
+        end = datetime.fromisoformat(report.get('planned_end',report['end']))
         text(44,196+offset,start.strftime('%d/%m/%Y  %H:%M')+'  -  '+end.strftime('%d/%m/%Y  %H:%M'),27)
         text(44,236+offset,labels[14],22,'#805767')
+        if report.get('preview'):
+            cutoff = datetime.fromisoformat(report['end']).strftime('%H:%M')
+            notice = ('ฉบับตัวอย่างถึงเวลา '+cutoff+' • ยังไม่สิ้นวัน') if thai else ('Preview through '+cutoff+' • Day still open')
+            text(44,269+offset,notice,22,'#b54742')
         values = [money(account['opening']),money(account['money_in']),money(account['money_out']),
                   money(account['net']),money(account['closing']),str(account['count'])]
         for i,(label,value) in enumerate(zip(labels[1:7],values)):
-            x,y = 44+(i%3)*375,289+offset+(i//3)*83
+            x,y = 44+(i%3)*375,289+offset+preview_offset+(i//3)*83
             draw.rounded_rectangle((x,y,x+362,y+73),radius=10,fill='white')
             text(x+15,y+8,label,22,'#805767')
-            text(x+15,y+34,value,27,'#AD1457' if i==1 else '#D81B60' if i==2 else '#452432')
+            text(x+15,y+34,value,27,'#15806d' if i==1 else '#b54742' if i==2 else '#452432')
         draw.rounded_rectangle((32,table_top-49,1168,table_top+sum(row_heights)+6),radius=12,fill='white')
         draw.rectangle((32,table_top-49,1168,table_top),fill='#D81B60')
         for x,label in [(48,labels[7]),(208,labels[8])]:
@@ -145,12 +150,11 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
                 text(48,y+17+j*30,line,22,'#805767')
             for j,line in enumerate(description):
                 text(208,y+17+j*32,line,24)
-            text(924,y+18,amount,24,'#AD1457' if kind=='in' else '#D81B60','right')
+            text(924,y+18,amount,24,'#15806d' if kind=='in' else '#b54742','right')
             text(1152,y+18,balance,24,align='right')
             y+=h
             draw.line((44,y,1156,y),fill='#F3CCD9',width=1)
         text(44,y+27,labels[15]+f' {page+1} / {pages}',22,'#805767')
-        text(1152,y+27,'M&W Credit',22,'#805767','right')
         path = directory / f'page-{page+1:03d}.png'
         image.save(path,optimize=True)
         if path.stat().st_size > 8_000_000:

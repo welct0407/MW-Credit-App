@@ -46,6 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
     statement.add_argument("--catalogue", required=True)
     statement.add_argument("--date", help="calendar date YYYY-MM-DD, midnight to midnight Bangkok")
     statement.add_argument("--send", action="store_true", help="deliver once to currently opted-in Partners")
+    statement.add_argument("--review-thai", action="store_true", help="explicit owner review in Thai; allow labeled current-day preview")
     return parser
 
 
@@ -54,7 +55,7 @@ def main() -> int:
     try:
         if args.command == "cash-statement":
             from .statement_run import run
-            result = run(args.config,args.catalogue,args.date,args.send)
+            result = run(args.config,args.catalogue,args.date,args.send,args.review_thai)
             print(json.dumps(result,ensure_ascii=False))
             return 2 if any(p['status']=='BLOCKED' for p in result['recipients']) else 0
         if args.command == "check":

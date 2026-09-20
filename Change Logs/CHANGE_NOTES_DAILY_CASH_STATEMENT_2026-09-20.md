@@ -1,5 +1,11 @@
 # Daily cash movement statement — 20 September 2026
 
+## Logo-only branding, movement colors and Thai 20 September review
+
+Starting clean Git commit `3a60eef9fbad31ed665981d6b48affa8d7c5e83d`. Owner requested removal of repeated M&W Credit header/footer text (retain logo), original green incoming/red outgoing amounts while keeping pink layout accents, and the next review for 20 September in Thai. Rendering and review CLI now implement this; Partner master language is never edited.
+
+At request time Bangkok was 20 September 23:11, so this run must be a visibly labeled preview through its captured cutoff. It cannot claim a completed 20 September day. Explicit dated Thai review requires exactly one enabled Partner, retains normal eligibility/identity/window controls, and uses isolated snapshot storage/send keys. A retry reuses its frozen cutoff; normal finalized statements remain separate. Catalogue revision 5 records this narrow exception. Scheduling remains off. Deployment, visual verification and delivery are in progress.
+
 ## Owner refinement — calendar day and M&W Credit branding
 
 Starting clean Git commit `5fd7f5b4773c71d30e80327bf05d6febddff3a30`; live VM checkout matches. The owner revised the reporting window to a full Bangkok calendar day, 00:00 inclusive through next midnight exclusive, retaining posting-time basis. Display all amounts without decimals, transaction times as HH:MM, organization name **M&W Credit**, no footer date, and primary color **#D81B60** with coordinated pink shades. These instructions supersede the historical 06:00 design below.
