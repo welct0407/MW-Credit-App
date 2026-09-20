@@ -16,6 +16,9 @@ Status: **installed foundation, inactive**. The VM, host prerequisites, Codex CL
 - Installed source: `/opt/mw-integration-agent-src`
 - Installed application: `/opt/mw-integration-agent`
 - Service account: `mwagent` with a non-login shell
+- GCP identity: `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com`, conditionally limited to Cloud SQL Client access for the production instance
+- Cloud SQL transport: Auth Proxy 2.25.4 on `127.0.0.1:5432`; PostgreSQL credentials are not installed
+- GitHub transport: repository-scoped read-only deploy key; updates are manual, clean-checkout, and fast-forward-only
 
 ## Local verification
 
@@ -35,6 +38,7 @@ The bootstrap script installs only host prerequisites and the Codex CLI. It does
 ```bash
 sudo bash scripts/bootstrap-debian.sh
 sudo bash scripts/install-layout.sh
+sudo bash scripts/install-cloud-sql-proxy.sh
 sudo -u mwagent -H /var/lib/mw-integration-agent/.local/bin/codex login --device-auth
 ```
 
