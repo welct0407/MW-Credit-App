@@ -2,6 +2,8 @@
 
 These are synthetic fixtures, not production statements. Images show the revised midnight-to-midnight M&W Credit statement with whole-baht amounts, HH:MM times and #D81B60 branding. They are regenerated on Debian and visually checked in both languages.
 
+Final revision includes the owner-supplied logo, bundled locally in the Debian package. Generated and visually checked at runtime commit `b52febf`.
+
 - `cash-statement-en.png`: English, four example transactions.
 - `cash-statement-th.png`: Thai, same amounts and transactions.
 

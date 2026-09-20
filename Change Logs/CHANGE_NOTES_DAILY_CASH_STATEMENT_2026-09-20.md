@@ -10,6 +10,10 @@ The owner then supplied the M&W Credit logo and requested a persistent Debian co
 
 Calendar-day checkpoint `95b7aa1` is installed: all 22 Debian tests passed; four account balances and 19 transaction rows independently reconciled for 19 September 00:00 through 20 September 00:00 Bangkok. Eight private English/Thai images were generated. Delivery is held until the logo is included and visually verified. Refinement rollback package/config: `/var/lib/mw-integration-agent/rollback/cash-statement-20260920T230003` (prior installed implementation `89994d4`, checkout/evidence baseline `5fd7f5b`).
 
+**Refinement completed:** logo/runtime checkpoint `b52febf` is installed. All 22 Debian tests passed, and the installed package's PNG SHA-256 matches the owner-supplied original (`5808ee79d5b6e843c8ed648e8507678ea349297d1cc687a97021c5d396dd2a8d`). Final English/Thai images were visually reviewed: midnight interval, whole-baht summary/table values, HH:MM times, exact M&W Credit branding/logo, no footer date, and pink theme all verified. Updated synthetic previews are published under `outputs/cash-statement-sample/`.
+
+The revised full-day statements were then sent once to the one currently opted-in Partner in English: **four new images accepted by Meta**, for 19 September 00:00 through 20 September 00:00 Bangkok. The journal now retains eight accepted sends (four historical 06:00-period images plus four revised calendar-day images), with no unknown send. Controls read back sending/processing/writes/daily briefing all false. Scheduling remains off; owner acceptance remains pending. No financial or AppSheet data/configuration change occurred.
+
 ## Scope and authority
 
 Owner requested a daily picture statement for every bank/cash account, an R010-style summary, opening balance, transactions with running balances, and closing balance; send to all Partners with IG Integration Enabled, using each Partner's master Language Preference. Owner explicitly chose posting timestamps for the 06:00–06:00 Bangkok cutoff. Manual generation/delivery is in scope. Scheduling awaits owner satisfaction.
