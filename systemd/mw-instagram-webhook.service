@@ -1,0 +1,26 @@
+[Unit]
+Description=MW Integration Agent signed Instagram webhook receiver
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mwagent
+Group=mwagent
+WorkingDirectory=/var/lib/mw-integration-agent
+ExecStart=/opt/mw-integration-agent/.venv/bin/mw-integration-agent serve-webhook --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=/var/lib/mw-integration-agent
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

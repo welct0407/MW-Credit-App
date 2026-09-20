@@ -2,7 +2,7 @@
 
 ## Current state
 
-This repository has no production business runtime. All service flags are false and the catalogue is revision 0. The disabled one-shot configuration verifier is installed alongside an enabled loopback-only Cloud SQL Auth Proxy; the proxy provides an authenticated transport but has no database password and cannot start business processing.
+This repository has no production business runtime. Catalogue revision 1 enables only signed Instagram receipt ingress; delivery is implemented but disabled. The receiver stores messages without processing or replying. The loopback-only Cloud SQL Auth Proxy remains independent and has no database password.
 
 ## Filesystem layout
 
@@ -16,6 +16,8 @@ The source checkout is `/opt/mw-integration-agent-src`. Its `origin` uses a repo
 
 Do not store credentials in the repository, VM metadata, startup scripts, or systemd unit text.
 
+Instagram secrets belong in `/etc/mw-integration-agent/secrets` with root ownership, group `mwagent`, directory mode `0750`, and file mode `0640`. The live config references those files and must not contain secret values.
+
 ## Verification
 
 ```bash
@@ -25,9 +27,17 @@ sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
 sudo -u mwagent -H /var/lib/mw-integration-agent/.local/bin/codex login status
 systemctl is-active cloud-sql-auth-proxy.service
 ss -ltn '( sport = :5432 )'
+systemctl is-active mw-instagram-webhook.service
+systemctl is-active mw-cloudflared-instagram.service
+curl --fail http://127.0.0.1:8000/health
+sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
+  instagram-probe --config /etc/mw-integration-agent/config.json \
+  --catalogue /etc/mw-integration-agent/service-catalogue.json
+sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
+  messages --config /etc/mw-integration-agent/config.json --limit 10
 ```
 
-The example config is not installed as the active config. Create `/etc/mw-integration-agent/config.json` deliberately and keep every activation flag false during foundation work.
+The example config is not installed as the active config. Live ingress sets only `receiver_enabled=true`; processing, sending, writes, and schedules remain false. `messages` omits message text unless `--include-text` is explicitly supplied.
 
 The production proxy endpoint is `127.0.0.1:5432`. The VM identity is conditionally granted `roles/cloudsql.client` only for `appsheet-pg-prod-20260914`. Proxy transport authentication does not replace PostgreSQL authentication: a separately approved, least-privilege database role/credential is still required before an application can log in.
 
@@ -37,4 +47,4 @@ Compute Engine snapshot schedules cover disk blocks, not the complete VM definit
 
 ## Activation boundary
 
-Installing packages, authenticating Codex, or passing the verifier does not authorize service enablement. No receiver, tunnel, worker, scheduler, delivery, or data-write unit may be enabled until its implementation is migrated, tested, documented, and explicitly authorized.
+The owner authorized the receiver and two-way transport foundation on 20 September 2026. This does not authorize automated replies or a live outbound test. Enable the webhook and tunnel only after credential migration, cutoff recording, and proof that the Windows route remains stopped. Delivery, processing, scheduler, and data-write activation remain separate decisions.

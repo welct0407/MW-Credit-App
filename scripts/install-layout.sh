@@ -18,4 +18,4 @@ install -o root -g mwagent -m 0640 "$project_root/service-catalogue.json" /etc/m
 install -o root -g root -m 0644 "$project_root/systemd/mw-integration-agent-verify.service" /etc/systemd/system/mw-integration-agent-verify.service
 systemctl daemon-reload
 
-echo "Layout installed. The verification unit remains disabled and no runtime service exists yet."
+echo "Layout installed. Runtime services remain disabled until separately configured and authorized."

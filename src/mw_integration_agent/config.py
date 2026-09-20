@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 
-REQUIRED_DISABLED_FLAGS = (
+BOOLEAN_FLAGS = (
     "processing_enabled",
     "sending_enabled",
     "writes_enabled",
     "daily_briefing_enabled",
+    "receiver_enabled",
 )
 
 
@@ -29,9 +31,13 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
-    for flag in REQUIRED_DISABLED_FLAGS:
+    for flag in BOOLEAN_FLAGS:
+        if not isinstance(config.get(flag), bool):
+            raise ConfigurationError(f"{flag} must be boolean")
+
+    for flag in ("processing_enabled", "writes_enabled", "daily_briefing_enabled"):
         if config.get(flag) is not False:
-            raise ConfigurationError(f"scaffold requires {flag}=false")
+            raise ConfigurationError(f"unimplemented capability requires {flag}=false")
 
     for key in ("state_directory", "secrets_directory", "codex_executable", "codex_home"):
         value = config.get(key)
@@ -43,6 +49,35 @@ def validate_config(config: dict[str, Any]) -> None:
     port = config.get("listen_port")
     if not isinstance(port, int) or not 1 <= port <= 65535:
         raise ConfigurationError("listen_port must be an integer from 1 to 65535")
+
+    if config.get("receiver_enabled") or config.get("sending_enabled"):
+        if not re.fullmatch(r"\d+", str(config.get("instagram_account_id", ""))):
+            raise ConfigurationError("instagram_account_id must contain digits")
+        if not re.fullmatch(r"v\d+\.\d+", str(config.get("instagram_api_version", ""))):
+            raise ConfigurationError("instagram_api_version is invalid")
+        secret_root = PurePosixPath(config["secrets_directory"])
+        for key in ("instagram_token_file", "meta_app_secret_file", "webhook_verify_token_file"):
+            value = config.get(key)
+            if not isinstance(value, str) or not PurePosixPath(value).is_absolute():
+                raise ConfigurationError(f"{key} must be an absolute POSIX path")
+            if ".." in PurePosixPath(value).parts:
+                raise ConfigurationError(f"{key} must not contain parent traversal")
+            try:
+                PurePosixPath(value).relative_to(secret_root)
+            except ValueError as exc:
+                raise ConfigurationError(f"{key} must be under secrets_directory") from exc
+
+
+def load_secret(config: dict[str, Any], key: str) -> str:
+    path = Path(config[key]).resolve()
+    try:
+        path.relative_to(Path(config["secrets_directory"]).resolve())
+        value = path.read_text(encoding="utf-8-sig").strip()
+    except (KeyError, OSError, ValueError) as exc:
+        raise ConfigurationError(f"credential unavailable: {key}") from exc
+    if not value:
+        raise ConfigurationError(f"credential is empty: {key}")
+    return value
 
 
 def validate_catalogue(catalogue: dict[str, Any]) -> None:

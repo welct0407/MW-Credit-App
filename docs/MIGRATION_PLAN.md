@@ -5,7 +5,7 @@ The source Windows agent was fully stopped on 19 September 2026. Its processing,
 ## Stages
 
 1. **Foundation (this revision):** private Git repository, Debian bootstrap, external secrets/state layout, Codex installation path, disabled systemd verification, and fail-closed service catalogue.
-2. **Read-only core:** migrate configuration parsing, domain validation, journal schema/integrity checks, signed webhook parsing, partner authentication, and bounded AppSheet reads. Use synthetic tests only.
+2. **Transport core:** signed webhook parsing and durable deduplication are implemented in revision 1. Credential migration and live cutover remain pending. Partner authentication and bounded AppSheet reads are not implemented.
 3. **Codex conversations:** port App Server lifecycle and isolated per-partner threads. Provide only host-owned bounded tools. Prove Linux process and authentication recovery.
 4. **GUI compatibility:** replace the Windows/Edge saved session with Linux Chromium. Verify current OLTP and OLAP read-only navigation before any GUI write test.
 5. **Delivery and scheduling:** migrate Instagram/email transports and the daily briefing only after fresh platform-policy checks and explicit owner authorization.

@@ -6,6 +6,9 @@ from pathlib import Path
 
 from . import __version__
 from .config import ConfigurationError, load_json, validate_catalogue, validate_config
+from .instagram import Instagram
+from .journal import IngressJournal
+from .server import serve
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -19,6 +22,21 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(Path(__file__).resolve().parents[2] / "service-catalogue.json"),
     )
     sub.add_parser("status", help="print the repository runtime status")
+    webhook = sub.add_parser("serve-webhook", help="run receipt-only signed Instagram ingress")
+    webhook.add_argument("--config", required=True)
+    webhook.add_argument("--catalogue", required=True)
+    messages = sub.add_parser("messages", help="show captured Instagram messages")
+    messages.add_argument("--config", required=True)
+    messages.add_argument("--limit", type=int, default=10)
+    messages.add_argument("--include-text", action="store_true")
+    probe = sub.add_parser("instagram-probe", help="verify read-only Instagram API access")
+    probe.add_argument("--config", required=True)
+    probe.add_argument("--catalogue", required=True)
+    send = sub.add_parser("send-instagram", help="send one explicitly requested Instagram message")
+    send.add_argument("--config", required=True)
+    send.add_argument("--catalogue", required=True)
+    send.add_argument("--recipient", required=True)
+    send.add_argument("--text", required=True)
     return parser
 
 
@@ -31,7 +49,48 @@ def main() -> int:
             print(json.dumps({"status": "ok", "activation": "disabled"}))
             return 0
         if args.command == "status":
-            print(json.dumps({"status": "scaffold", "activation": "disabled", "version": __version__}))
+            print(json.dumps({"status": "transport-foundation", "business_activation": "disabled", "version": __version__}))
+            return 0
+        if args.command == "serve-webhook":
+            config = load_json(args.config)
+            catalogue = load_json(args.catalogue)
+            validate_config(config)
+            validate_catalogue(catalogue)
+            if not catalogue["services"]["signed_webhook_ingress"]["enabled"]:
+                raise ConfigurationError("signed_webhook_ingress is disabled")
+            serve(args.config)
+            return 0
+        if args.command == "messages":
+            config = load_json(args.config)
+            validate_config(config)
+            if not 1 <= args.limit <= 100:
+                raise ConfigurationError("limit must be from 1 to 100")
+            journal = IngressJournal(Path(config["state_directory"]) / "instagram-ingress.db")
+            try:
+                rows = journal.latest(args.limit)
+            finally:
+                journal.close()
+            if not args.include_text:
+                for row in rows:
+                    row["text_length"] = len(row.pop("text"))
+            print(json.dumps({"messages": rows}, ensure_ascii=False))
+            return 0
+        if args.command == "instagram-probe":
+            config = load_json(args.config)
+            catalogue = load_json(args.catalogue)
+            validate_config(config)
+            validate_catalogue(catalogue)
+            print(json.dumps(Instagram(config).probe(), ensure_ascii=False))
+            return 0
+        if args.command == "send-instagram":
+            config = load_json(args.config)
+            catalogue = load_json(args.catalogue)
+            validate_config(config)
+            validate_catalogue(catalogue)
+            if not catalogue["services"]["instagram_delivery"]["enabled"]:
+                raise ConfigurationError("instagram_delivery is disabled")
+            message_id = Instagram(config).send(args.recipient, args.text)
+            print(json.dumps({"status": "accepted", "message_id": message_id}))
             return 0
     except ConfigurationError as exc:
         print(json.dumps({"status": "error", "error": str(exc)}))

@@ -2,7 +2,7 @@
 
 Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM.
 
-Status: **installed foundation, inactive**. The VM, host prerequisites, Codex CLI, and repository layout are installed. All integrations and schedules are disabled, no live configuration or credentials have been installed, and the existing Windows Partner Operations worker and webhooks remain paused. This repository performs no cutover.
+Status: **Instagram transport implemented; live activation pending credentials**. Signed receipt-only webhook ingress and a disabled-by-default outbound API adapter are present. No message processing, automatic reply, AppSheet/database write, or schedule is enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
 
 ## Initial target
 
@@ -39,9 +39,12 @@ The bootstrap script installs only host prerequisites and the Codex CLI. It does
 sudo bash scripts/bootstrap-debian.sh
 sudo bash scripts/install-layout.sh
 sudo bash scripts/install-cloud-sql-proxy.sh
+sudo bash scripts/install-instagram-runtime.sh
 sudo -u mwagent -H /var/lib/mw-integration-agent/.local/bin/codex login --device-auth
 ```
 
 Use device-code authentication on the headless VM. Treat `/var/lib/mw-integration-agent/.codex/auth.json` as a secret and include it only in an explicitly approved credential-recovery design.
+
+The Instagram receiver binds only to `127.0.0.1:8000` and is intended to sit behind the authenticated Cloudflare tunnel. Captured messages are durably deduplicated with status `CAPTURED_NO_PROCESSING`. The outbound adapter cannot send while `instagram_delivery` or `sending_enabled` is false.
 
 See [migration plan](docs/MIGRATION_PLAN.md), [operations](docs/OPERATIONS.md), and the [service catalogue](SERVICE_CATALOGUE.md).
