@@ -4,7 +4,7 @@ Date: 15 September 2026. Status: implemented and verified in development; owner 
 
 Owner requested implementation of phases 1–3 from the linked migration proposal, using Chrome. Owner explicitly approved one nullable Loans.Ref Closing Payment referencing Payments, read-only in both apps, for causal loan-closure notifications.
 
-Plan: [Core Payment SQL Migration Plan](../Documents/Core_Payment_SQL_Migration_Plan.md). OLTP owns payment/loan entry; OLAP reads the shared ledger. Preserve the six existing allocation methods and their eligibility rules. Keep daily jobs, default posting and analytics out of this release.
+Plan: [Core Payment SQL Migration Plan](../Documents/archive/2026-09-20/Core_Payment_SQL_Migration_Plan.md). OLTP owns payment/loan entry; OLAP reads the shared ledger. Preserve the six existing allocation methods and their eligibility rules. Keep daily jobs, default posting and analytics out of this release.
 
 Rollback: fresh Dev OLTP 1.000025; Dev OLAP 1.000031; Git a6b3a7d; database Flyway V5. Fresh schema export: C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/flyway/development-schema-20260915-180922.sql. A schema export is not a data backup; the subsequent development backup is recorded below.
 

@@ -1,6 +1,6 @@
 # Universal payments clone migration runbook
 
-**Historical procedure — 15 September 2026:** this is the earlier AppSheet-native migration procedure. Production now uses Cloud SQL PostgreSQL. Do not replay it as a current database migration or cutover plan. Use [current documentation](README.md), [Environment Inventory](Environment_Inventory.md) and [Flyway procedures](../database/README.md). The original steps remain below for traceability.
+**Historical procedure — 15 September 2026:** this is the earlier AppSheet-native migration procedure. Production now uses Cloud SQL PostgreSQL. Do not replay it as a current database migration or cutover plan. Use [current documentation](../../README.md), [Environment Inventory](../../Environment_Inventory.md) and [Flyway procedures](../../../database/README.md). The original steps remain below for traceability.
 
 Date: 6 September 2026. Configuration checkpoint: **v1.000068**. Data-model inventory checkpoint: **v1.000065** (unchanged by the subsequent temporary recovery test and receipt-card action selection). The user accepted the clone results and authorized production migration on 6 September 2026. Production is now deployed at v3.000002; the production change log records implementation, backup, validation and remaining coverage.
 
@@ -18,11 +18,11 @@ The clone remains undeployed. Three notification bots remain disabled. OLAP and 
 
 ## Authoritative implementation sources
 
-- [Change log](../Change%20Logs/CHANGE_NOTES_UNIVERSAL_PAYMENTS_CLONE_2026-09-05.md): exact locations, before/after settings, corrections, temporary changes, versions and rollback.
-- [Data-model overview](AppSheet_Data_Model_Overview.md), section 2.2, and [data dictionary](AppSheet_Data_Dictionary.xlsx), sheets **Payments Clone** and **Payments Clone Slices**: 54 affected column definitions and 45 ordered slice memberships. Existing production sheets retain their dated baseline.
-- [Final core action expressions](../outputs/universal-payments-20260905/action_checkpoint_v1.000052.json): 18 core action definitions and four allocation helpers. Later default/delete/action changes are recorded in the log; this JSON alone is not the complete migration.
-- [Later configuration expressions](../outputs/universal-payments-20260905/configuration_checkpoint_after052.json): Interest Due validation, default entry guard and receipt-level notification template.
-- [Execution report](../outputs/universal-payments-20260905/functional-test-results.md): observed scenario results, including initial failures and corrected retests.
+- [Change log](../../../Change%20Logs/CHANGE_NOTES_UNIVERSAL_PAYMENTS_CLONE_2026-09-05.md): exact locations, before/after settings, corrections, temporary changes, versions and rollback.
+- [Data-model overview](../../AppSheet_Data_Model_Overview.md), section 2.2, and [data dictionary](../../AppSheet_Data_Dictionary.xlsx), sheets **Payments Clone** and **Payments Clone Slices**: 54 affected column definitions and 45 ordered slice memberships. Existing production sheets retain their dated baseline.
+- [Final core action expressions](../../../outputs/universal-payments-20260905/action_checkpoint_v1.000052.json): 18 core action definitions and four allocation helpers. Later default/delete/action changes are recorded in the log; this JSON alone is not the complete migration.
+- [Later configuration expressions](../../../outputs/universal-payments-20260905/configuration_checkpoint_after052.json): Interest Due validation, default entry guard and receipt-level notification template.
+- [Execution report](../../../outputs/universal-payments-20260905/functional-test-results.md): observed scenario results, including initial failures and corrected retests.
 
 Read later corrections before applying an earlier log entry. In particular, the initial Text fields, bot conditions, related-row processing checks, duplicate Automation Entry helper and temporary generator overrides are superseded.
 
@@ -61,9 +61,9 @@ The finite tests provide evidence for their recorded inputs. They do not prove a
 
 ## Production execution record
 
-Completed migration to original OLTP v3.000002 and original Money database. Full backup app243eb391-5f6d-4720-a7e2-f0dc67151e78 with databaseSAYscSVuS847EarNTaAiwc; app rollback v2.300005. Both new tables are empty after synthetic validation cleanup. Production notifications/scheduler restored; release candidate returned to prototype state. OLAP loads its prior schema with a source warning; recent reporting snapshots were refreshed and reconciled. See [the authoritative production change log](../Change%20Logs/CHANGE_NOTES_UNIVERSAL_PAYMENTS_PRODUCTION_2026-09-06.md). Remaining matrix items above remain unexecuted unless that log explicitly records a result.
+Completed migration to original OLTP v3.000002 and original Money database. Full backup app243eb391-5f6d-4720-a7e2-f0dc67151e78 with databaseSAYscSVuS847EarNTaAiwc; app rollback v2.300005. Both new tables are empty after synthetic validation cleanup. Production notifications/scheduler restored; release candidate returned to prototype state. OLAP loads its prior schema with a source warning; recent reporting snapshots were refreshed and reconciled. See [the authoritative production change log](../../../Change%20Logs/CHANGE_NOTES_UNIVERSAL_PAYMENTS_PRODUCTION_2026-09-06.md). Remaining matrix items above remain unexecuted unless that log explicitly records a result.
 
 
 ## Copy retirement — 6 September 2026
 
-At the user's request, the test app, release candidate and isolated test database were deleted after production implementation. The full production backup app/database pair is the only retained AppSheet backup. Earlier references to accessing the clone/candidate are historical; local test records and configuration checkpoints remain. Production and OLAP were retained without configuration changes. See [copy cleanup log](../Change%20Logs/CHANGE_NOTES_LOAN_MANAGER_COPY_CLEANUP_2026-09-06.md) for exact IDs and final verified inventory.
+At the user's request, the test app, release candidate and isolated test database were deleted after production implementation. The full production backup app/database pair is the only retained AppSheet backup. Earlier references to accessing the clone/candidate are historical; local test records and configuration checkpoints remain. Production and OLAP were retained without configuration changes. See [copy cleanup log](../../../Change%20Logs/CHANGE_NOTES_LOAN_MANAGER_COPY_CLEANUP_2026-09-06.md) for exact IDs and final verified inventory.

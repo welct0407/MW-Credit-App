@@ -1,22 +1,18 @@
 # Release record helpers
 
-Local helpers for [the release workflow](../../Documents/Release_Workflow.md). They do not access live apps/databases, deploy, grant approval, discover unrecorded edits or certify release readiness. Use the bundled Node executable via the repository's shared dependency junction; no new installation is needed.
+## One checklist per release
 
-From 19 September 2026, use [RC/App Upgrade promotion](../../Documents/Release_Workflow.md) for future work, including remaining work in an existing release. Start each release record from the [templates and field guide](templates/README.md): machine-readable manifest, per-table/source and substitution record, test results and promotion checklist. These are editable records, not live deployment tools or automatic gate validators. Preserve historical packages rather than converting them.
+The only promotion/documentation master is [templates/promotion-checklist.md](templates/promotion-checklist.md). Fill one release copy; never regenerate over recorded results or keep a parallel Excel/document checklist. Read only a triggered implementation section in [Release Workflow](../../Documents/Release_Workflow.md).
 
-Keep a concise release change record in the existing log. `outputs/<release>/release-delta.json` is optional for critical logic, troubleshooting or exact-value tools; no exhaustive delta transcription or per-property PROD comparison is required for normal App Upgrade. Existing deltas remain useful historical evidence and need not be rebuilt. Start from [example-delta.json](example-delta.json), replace every synthetic value and use the reserved release number; it does not reserve R000. An SQL-only release uses the release manifest, Flyway manifest and checklist without an empty AppSheet delta. **Deploy whole definitions through App Upgrade from the recorded immutable PROD-mapped RC; do not treat delta rows as manual PROD implementation instructions.**
+`node scripts/releases/checklist.mjs Rnnn outputs/<release>/promotion-checklist.md [affected Documents/path ...]`
 
-```powershell
-# Substitute the bundled Node executable when node is not on PATH.
-node scripts/releases/delta.mjs validate outputs/<release>/release-delta.json
-node scripts/releases/delta.mjs render outputs/<release>/release-delta.json outputs/<release>/checklist-r1.md
-node scripts/releases/delta.mjs compare outputs/<release>/release-delta.json outputs/<release>/prod-readback-r1.json outputs/<release>/prod-comparison-r1.json
-node --test scripts/releases/delta.test.mjs
-```
+Use the bundled Node runtime. The helper copies the master, fixes relative links, includes the three mandatory current-state records and adds explicitly affected documents. It does not reserve releases, enumerate the Documents tree, grant approval or execute checks. It refuses existing output files and archive paths. For an existing release continue its filled copy. If adopting a newer template, preserve evidence and mark only genuinely new required checks pending.
 
-`validate` checks record shape, unique IDs/paths, target states and substitution reasons. `render` generates the configuration checklist, continuation section and **per-document promotion closure rows**. Edit configuration values in JSON; fill document dispositions/evidence in the release checklist or its linked log. Preserve filled rows when regenerating. `compare` requires the matching candidate hash, revision, environment and app IDs, and compares every recorded item. Exit code 1 means an error, mismatch or missing observation. Output files must be new paths, so old frozen evidence is not overwritten. Generated Markdown is a readable view; JSON retains exact values and types, including newlines and ordered arrays.
+The manifest stores versions, Git/Flyway/RC pins and approvals; the log records concise scope/decisions. The filled checklist records completion and documentation closure. Templates for manifest/mapping/tests are supporting records, not separate activity checklists. Documentation-only work needs no product release number.
 
-Document rows come from [the canonical register](../../Documents/Promotion_Documentation_Checklist.md) and a fresh recursive Documents path inventory, including diagrams/workbooks/history. Newly discovered or missing registered paths stay visible for resolution; generation never marks a document verified. For an existing or SQL-only release use `node scripts/releases/documentation.mjs outputs/<release>/documentation-checklist.md`. Every promotion must complete these rows before Released; optional `compare` success covers only the selected recorded observations and is not a standard release gate. Verify the helpers with `node --test scripts/releases/delta.test.mjs scripts/releases/documentation.test.mjs`.
+Optional exact deltas are technical evidence only. `delta.mjs validate`, `render` and `compare` validate recorded targets, render their detail and compare independent saved observations. Render no longer appends document rows; link its result from the single release checklist. It cannot detect unrecorded changes or certify release readiness. Existing historical deltas stay dated evidence.
+
+Tests for helper changes: `node --test scripts/releases/delta.test.mjs scripts/releases/checklist.test.mjs`. No need to run these during an ordinary product promotion unless the helper changes.
 
 ## Delta fields
 

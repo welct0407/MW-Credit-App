@@ -1,27 +1,67 @@
-# Rnnn promotion checklist — RC revision pending
+# {{RELEASE}} promotion checklist
 
-Copy to the release evidence folder, replace labels, link the manifest/log and fill each gate with evidence. This template grants no production authority. Optional targeted delta checks and required generated per-document rows supplement these gates; don't copy their contents here.
+Template revision: 2026-09-20. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
 
 ## Continue here
 
-- Manifest / concise release log / mapping (delta optional): Pending
-- Versions / RC identities: Pending
-- Completed / next / pending approval scope: Pending
-- Documentation checklist: Pending — generate with `node scripts/releases/documentation.mjs NEW-PATH.md`.
+- Scope / dependencies / app Upgrade or Unchanged decisions: Pending
+- Manifest / change log / test evidence: Pending
+- DEV readiness / owner acceptance: Pending
+- Production authorization / approved RC revision: Pending
+- DEV / RC / PROD-before / PROD-after / rollback / SQL versions: in linked manifest; Pending
+- Implementation commit / Flyway manifest / final tag: in linked manifest; Pending
+- Completed / next / blockers: Pending
+- Documentation impact: Pending — list affected paths or None with a scope-based reason; add their closure rows below.
 
-## Gates
+## Execution rules
 
-| Gate | Required result | Status | Evidence / reason |
-| --- | --- | --- | --- |
-| A | All features/prior PROD fixes integrated in DEV; concise complete scope/change record reconciled; relevant GUI/SQL tests and both DEV editors clear, Deployed mode and owner-only DEV delivery data established; model docs/DEV checkpoint recorded | Pending | |
-| B | Tested versions/commit and Flyway manifest captured before DEV advances; controlled copies named/identified; scope and external assets complete; per-app PROD themes captured/applied to matching RCs | Pending | |
-| C | Scoped PROD authority and backup/compatibility established; current history/drift checked; exact pinned migrations validated/applied; target and objects confirmed (or justified no migration) | Pending | |
-| D | Every RC table/source reconciled to PROD; PROD companion IDs/access/assets/themes verified; shared recipient expressions read PROD contacts with required Login Email schema/mapping; only remaining documented legacy DEV literals require restoration; untouched routing evidence reused; scheduled bots retain intended states with canonical-name guards excluding RC before all business effects, backed by first-use/reused scheduled-runtime proof; other entry points contained; saved editor/data validation and initial RC deployment check complete; RC Deployed; final RC versions frozen immutable | Pending | |
-| E | Final RC authorization and current PROD baseline checked; pre-upgrade/rollback versions and SQL state captured; correct RC internal name/version → existing PROD ID; ordered App Upgrade results recorded | Pending | |
-| F | Basic PROD verification passed: correct RC/target/version, Deployed mode, sources/necessary substitutions, both-app zero editor issues, load/sync and representative changed entry points; relevant SQL/external checks passed; no exhaustive delta readback; automation/RC containment reconciled; every documentation row complete; manifest/evidence published and unique final tag verified | Pending | |
+Execute applicable rows in order; one result/evidence link per coherent check. Status: Pending, In progress, Done, Reused, N/A or Blocked. Reused requires still-valid evidence; N/A requires a brief reason. Skip untriggered setup/SQL/external/recovery work. Reuse existing decisions/authority, identities and passing tests; recheck pre-upgrade baseline/version and changed dependencies. No repeated DEV suite, whole-app diff, repeat deployment check for deployed apps, untouched-route audit or duplicate report. Consult only the runbook section needed to perform a triggered row. Stop affected dependent work on failure; no invented gates or silent scope expansion.
 
-## Exceptions, failure and recovery
+## Activities
 
-Record actual partial state, unresolved items and any explicit owner exception/reference. Use the recovery runbook; don't hand-recreate missed settings in PROD. Final outcome remains **Not assessed** until evidence supports it. Documentation or publication failure doesn't require repeating deployment.
+| ID | Stage | When required | Activity / completion criterion | Status | Evidence / reason |
+| --- | --- | --- | --- | --- | --- |
+| P01 | A Readiness | Always | Confirm Rnnn scope, integrated DEV features/PROD fixes, dependencies and app Upgrade/Unchanged decisions. Reuse the existing manifest/log and DEV/model checkpoint; resolve unrelated unreleased work. Record readiness/owner acceptance. | Pending | |
+| P10 | A Readiness | Always; reuse passing evidence | Accept recorded integrated DEV tests and both apps’ final zero-warning/error diagnostics. Rerun only checks invalidated by changed behavior, dependencies or data. No new full regression or live audit merely to start promotion. | Pending | |
+| P06 | A Readiness | First use / guard changed | Install/test scheduled guards in DEV before copy, including child calls and per-row filters. Prove canonical DEV allowed and harmless copy excluded in scheduled context. Reuse this proof in later releases. | Pending | |
+| P08 | A Readiness | DEV setup / routing changed | Use DEV preparation only for missing/changed setup: DEV sources/links, owner-only Partner delivery data, distinct Login Email and initial deployment if needed. Keep audit fields and channels. Unmapped actors must be resolved for affected tests. | Pending | |
+| P04 | A Readiness | SQL changes | Reuse completed Flyway-chain/DEV tests and old/new-app compatibility evidence, including relevant queued clients/locks. Pin the clean tested commit with New-Release.ps1 before DEV advances; include every pending migration/prerequisite. | Pending | |
+| P13 | B Capture | Always; app details if upgrading | Record PROD identities/baseline, restorable app versions and cutover/recovery order once. Confirm scoped authority before PROD effects; reuse existing approval and App Upgrade eligibility. Recheck eligibility only after access/plan changes. | Pending | |
+| P14 | B Capture | App Upgrade; SQL-only pins above | Briefly freeze DEV, pin tested versions/commit and copy included definitions to named Rnnn-RCk apps. Record IDs/internal names and restrict execution from creation. Resume DEV once independent copies/pins are verified. Never copy DEV financial data to PROD. | Pending | |
+| P22 | C SQL | SQL changes / DB writes | Verify restorable DB backup, schema drift and history; then validate/migrate/validate with the pinned manifest and existing runner. Record target/schema checks and before/after SQL versions. Complete compatible SQL before final RC PROD validation. | Pending | |
+| P25 | D RC | App Upgrade | Rebind/reconcile every RC table/view and auxiliary source to PROD host/database/object. Save exact mappings once. No DEV source remains. Keep RC contained before PROD binding. | Pending | |
+| P18 | D RC | App Upgrade | Apply the corresponding PROD theme/branding and PROD companion links. Keep shared recipients on PROD contact data; confirm Login Email prerequisites. Restore only documented legacy DEV overrides. Verify these substitutions once. | Pending | |
+| P28 | D RC | External asset / access changes | Provision/check only affected templates, files, grants, endpoints and integrations outside App Upgrade. Link existing evidence for unchanged assets. | Pending | |
+| P29 | D RC | App Upgrade | Check copied guard coverage and this RC’s exact name exclusion; retain canonical DEV/PROD literals and intended bot states/schedules. Reuse runtime proof; no repeated diagnostic app or wait for every daily job. | Pending | |
+| P30 | D RC | App Upgrade | One RC validation pass: save/reload, editor data validation, zero issues, open/sync and representative changed screens. Resolve unexpected generated changes only. Complete initial Deployment Check and deploy new RC; reuse DEV business tests. | Pending | |
+| P33 | E Upgrade | App Upgrade | Freeze final deployed RC identity/version and mapping evidence. Confirm authorization covers that revision. Immediately before each upgrade, confirm unchanged PROD baseline and frozen RC version; drift/fixes require a new integrated RC. | Pending | |
+| P37 | E Upgrade | Each included app | App Upgrade the existing PROD ID from the frozen RC’s full internal name in planned order. Record source, target and before/after versions. Confirm success before dependent steps; never hand-recreate settings in PROD. | Pending | |
+| P39 | F Validate | Always; mappings if upgraded | One PROD pass: verify version/Deployed state, sources/substitutions, PROD-allowed/RC-excluded guards, both editors clear and both apps open/sync with changed entry points. Check recipients only if changed. Reuse DEV tests; no repeat Deployment Check. | Pending | |
+| P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | Pending | |
+| P38 | F Validate | Paused jobs / cutover steps | Complete approved external cutover steps and resume temporary pauses. Keep integrity triggers and one active scheduler per job/environment. | Pending | |
+| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Pending | |
+| P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Pending | |
+| P49 | G Close | RC exists | Record RC retention/recovery window and keep execution contained without changing frozen definitions. No automatic RC deletion or DEV refresh. | Pending | |
+| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | Pending | |
+| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | Pending | |
+| P51 | X Exception | Failure / drift / required gap only | Stop affected dependent steps, record actual partial state and follow only the matching recovery branch. Preserve later writes/work; no blind replay or manual PROD fallback. Ask only for missing authority/material decisions. Reconcile resulting status and documents. | Pending | |
 
-Final evidence commit: resolve from final Git tag. Final tag / remote verification: Pending. RC retention/recovery decision: Pending.
+## Documentation impact and closure
+
+The three rows below always require Updated or Verified current. Add only affected documents, with Updated / Verified current / Pending / Blocked and a section/row reference. Scope-based non-applicability belongs in the single impact note above, not a row for every untouched file. No Pending/Blocked required row at closure.
+
+Triggers: exact model/formula changes → dictionary; changed behavior/relationships/ownership → overview/design; changed depicted flows → relevant drawio; changed operating method → affected runbook/AGENTS; changed paths/purposes → README/links; dormant pilot → only if its contract/dependencies or activation is in scope. Preserve historical evidence; archives are excluded.
+
+| Document | Disposition | Updated section / evidence |
+| --- | --- | --- |
+| [Release Tracker](../../../Documents/Release_Tracker.md) | Pending | |
+| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Pending | |
+| [Development Changes](../../../Documents/Development_Changes.md) | Pending | |
+
+## Close
+
+- Outcome / limitations / rollback: Pending
+- Final evidence commit / Rnnn tag / remote verification: Pending
+- RC retention / retirement decision: Pending or justified N/A
+
+Released requires applicable activities, documentation and publication complete. If only documents/publication remain, repair them without redeploying. Record final outcome in the manifest/tracker before the final evidence commit and verify publication afterward; do not create self-referential commit hashes.

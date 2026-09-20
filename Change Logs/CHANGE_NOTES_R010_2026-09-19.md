@@ -37,3 +37,5 @@ AppSheet rollback restores DEV OLTP version 1.000033 if needed. Repository rollb
 ## Readiness and remaining work
 
 **Ready for review.** DEV acceptance, RC creation and production authorization are not recorded. Normal promotion requires an integrated PROD-mapped immutable R010 RC and the current App Upgrade workflow. PROD and SQL remain unchanged.
+
+20 September documentation adoption: continue the [single filled Markdown checklist](../outputs/r010-20260919/promotion-checklist.md) for remaining promotion and document closure. Existing DEV evidence is linked/reused; no live checks, acceptance or production authorization were added by this update.

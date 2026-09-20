@@ -1,6 +1,6 @@
 # Core payment migration — phases 1–3
 
-15 September 2026. Status: implemented and verified in development (OLTP 1.000032 / OLAP 1.000033 / Flyway V6); owner confirmed tested notification delivery/amounts. Overall acceptance and a separate production release remain pending. See [actual tests and limitations](../outputs/core-payment-20260915/REPORT.md).
+15 September 2026. Status: implemented and verified in development (OLTP 1.000032 / OLAP 1.000033 / Flyway V6); owner confirmed tested notification delivery/amounts. Overall acceptance and a separate production release remain pending. See [actual tests and limitations](../../../outputs/core-payment-20260915/REPORT.md).
 
 ## Scope and sequence
 

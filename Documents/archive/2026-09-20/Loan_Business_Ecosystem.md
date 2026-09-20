@@ -1,6 +1,6 @@
 # Loan business ecosystem architecture
 
-Completed 16 September 2026 using repository evidence and the owner's service confirmations. Editable diagram: [Loan_Business_Ecosystem.drawio](Loan_Business_Ecosystem.drawio).
+Completed 16 September 2026 using repository evidence and the owner's service confirmations. Editable diagram: [Loan_Business_Ecosystem.drawio](../../Loan_Business_Ecosystem.drawio).
 
 The current diagram puts the ecosystem on one page: the loan apps and shared database on the left, the partner assistant and its connected services on the right, and access/recovery/development/public-site services below. Native people shapes, a database cylinder, colored flow arrows, and embedded platform marks make it easier to scan. MW AI Collection is excluded at the owner's request. No application, agent, database, notification, or infrastructure setting was changed.
 

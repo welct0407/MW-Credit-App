@@ -82,8 +82,8 @@ test('CLI writes new reports, refuses evidence overwrite and returns failure for
     assert.equal(run('validate', files[0]).status, 0);
     assert.equal(run('render', files[0], files[2]).status, 0);
     const checklist = await fs.readFile(files[2], 'utf8');
-    for (const name of ['Release_Tracker.md', 'Environment_Inventory.md', 'Development_Changes.md', 'AppSheet_Data_Dictionary.xlsx']) assert.ok(checklist.includes(`Documents/${name}`));
-    assert.match(checklist, /Promotion documentation closure/);
+    assert.doesNotMatch(checklist, /Promotion documentation closure/);
+    assert.match(checklist, /single release promotion checklist/);
     assert.equal(run('render', files[0], files[2]).status, 1);
     const r = readback(d); await fs.writeFile(files[1], JSON.stringify(r));
     assert.equal(run('compare', files[0], files[1], files[3]).status, 0);

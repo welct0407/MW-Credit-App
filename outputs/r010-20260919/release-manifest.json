@@ -15,9 +15,9 @@
     "delta": null,
     "deltaHash": null,
     "mapping": null,
-    "checklist": "outputs/r010-20260919/REPORT.md",
+    "checklist": "outputs/r010-20260919/promotion-checklist.md",
     "tests": "outputs/r010-20260919/TESTS.md",
-    "documentationChecklist": null,
+    "documentationChecklist": "outputs/r010-20260919/promotion-checklist.md#documentation-impact-and-closure",
     "recovery": "Change Logs/CHANGE_NOTES_R010_2026-09-19.md#baseline-and-rollback"
   },
   "apps": {

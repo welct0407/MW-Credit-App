@@ -1,16 +1,17 @@
 # RC release templates
 
-Copy these files into the existing `outputs/<release>/` evidence folder; no new release number or live operation is performed by copying. Fill actual observations progressively. Keep null/Pending for unknown facts; no synthetic app IDs, versions, hashes or approval strings. Use one linked log for decisions/history and one checklist, not a duplicate report per stage.
+Copy only required supporting records into the existing `outputs/<release>/` evidence folder; no new release number or live operation is performed by copying. Fill actual observations progressively. Keep null/Pending for unknown facts; no synthetic app IDs, versions, hashes or approval strings. Use one linked log for decisions/history and one checklist, not a duplicate report per stage.
 
 | File | Use |
 | --- | --- |
 | [release-manifest.json](release-manifest.json) | Machine-readable relationship between tested Git/Flyway and DEV → RC → PROD versions |
 | [source-mapping-validation.json](source-mapping-validation.json) | Complete RC source preparation and necessary substitutions; focused resulting-PROD verification |
 | [test-results.md](test-results.md) | Relevant DEV/RC/PROD tests and honestly reused evidence |
-| [promotion-checklist.md](promotion-checklist.md) | Gates A–F; link generated documentation rows and complete them before release closure |
+| [promotion-checklist.md](promotion-checklist.md) | Single master activity/documentation checklist; create and fill one copy per release |
 
 ## Manifest fields
 
+- `records.checklist` points to the filled Markdown copy. If using `records.documentationChecklist`, point it to the same file's `#documentation-impact-and-closure` section, never a separate document checklist.
 - `release`: actual reserved Rnnn; `revision`: positive package revision. `scope` and `prerequisites` identify integrated batch contents, baseline and excluded later work. Track status using the workflow, not template existence.
 - `git.implementationCommit`: exact tested implementation. `git.finalTag`: intended unique final Rnnn. Resolve final evidence commit through Git tag; don't embed a commit's own hash in its contents. Optional RC tags never substitute for the final production tag.
 - Include both apps. `disposition` is `upgrade` or `unchanged`, with reason. For unchanged apps leave RC fields null/not-created and record observed PROD version/consumer tests. For an upgraded app fill DEV origin, actual RC UUID/full internal name/number/final version and PROD baseline/pre/post/rollback versions. Display naming follows `MW-OLTP-Rnnn-RCk` / `MW-OLAP-Rnnn-RCk`; preserve platform suffix in `internalName`. `rc.state`: not-created → preparing → ready-immutable; superseded/rejected sources remain in prior evidence. No edits to a ready RC; use a new number.
@@ -35,4 +36,4 @@ Record containment method and demonstrated app-specific scope. RC production sou
 
 All app modes target Deployed; the initial deployment check applies to a new/undeployed app, not every release. `records.delta`/`deltaHash` may remain null when unused; the log supplies the concise change record. Basic PROD validation covers identity/version, mode, bindings/substitutions, editor issues, load/sync and representative changed entry points; expand only for specific risks.
 
-These JSON files deliberately ship incomplete. Parsing JSON only checks syntax; no automated schema or semantic readiness validator is supplied. Review fields against the linked gates and actual evidence. The delta helper validates exact delta records only; it does not validate the RC manifest/mapping, read live apps or certify a release. Generate fresh per-document rows with `documentation.mjs`, preserving prior completed outputs. Use the existing Flyway checks for migrations and current AppSheet GUI for relevant functional tests.
+These JSON files deliberately ship incomplete. Parsing JSON only checks syntax; no automated schema or semantic readiness validator is supplied. Review fields against the linked gates and actual evidence. The delta helper validates exact delta records only; it does not validate the RC manifest/mapping, read live apps or certify a release. Use `checklist.mjs` once to create a scoped release copy; add only affected documents and preserve filled results. No separate document checklist or folder scan. Use the existing Flyway checks for migrations and current AppSheet GUI for relevant functional tests.

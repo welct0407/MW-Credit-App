@@ -2,7 +2,6 @@
 import fs from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { renderDocumentationChecklist } from './documentation.mjs';
 
 export const canonical = value => JSON.stringify(sort(value));
 function sort(value) {
@@ -80,7 +79,7 @@ const cell = v => String(v).replaceAll('&', '&amp;').replaceAll('<', '&lt;').rep
 export function render(d) {
   const hash = candidateHash(d);
   const resume = d.continuation ?? {};
-  return `# ${d.release} release delta — revision ${d.revision}\n\nConfiguration is generated from JSON; edit that source for target changes. Complete documentation dispositions in the appended rows or linked release log; preserve them when regenerating. This is an optional targeted verification checklist, not a required all-property promotion gate, manual PROD deployment recipe, release approval or proof of unrecorded-change coverage. Promote whole definitions through App Upgrade from the approved immutable PROD-mapped RC; link its manifest and mapping evidence.\n\nCandidate SHA-256: \`${hash}\`\n\n## Continue here\n\n${['versions', 'done', 'next', 'decisions', 'evidence'].map(k => `- ${k}: ${cell(resume[k] ?? 'Not recorded')}`).join('\n')}\n\n## Checklist\n\n| ID | App | Object / property | Operation | DEV target | PROD target |\n| --- | --- | --- | --- | --- | --- |\n${d.items.map(i => `| ${[i.id, i.app, `${i.object} / ${i.property}`, i.operation, canonical(i.dev), canonical(i.prod)].map(cell).join(' | ')} |`).join('\n')}\n\nCompare saved readbacks separately for DEV and PROD; missing observations remain Pending. Readiness also requires the workflow tests, warning gate, complete edit-record reconciliation and applicable approvals in the release log.\n`;
+  return `# ${d.release} release delta — revision ${d.revision}\n\nConfiguration is generated from JSON; edit that source for target changes. Record documentation closure only in the single release promotion checklist; this generated view is optional technical evidence. This is an optional targeted verification checklist, not a required all-property promotion gate, manual PROD deployment recipe, release approval or proof of unrecorded-change coverage. Promote whole definitions through App Upgrade from the approved immutable PROD-mapped RC; link its manifest and mapping evidence.\n\nCandidate SHA-256: \`${hash}\`\n\n## Continue here\n\n${['versions', 'done', 'next', 'decisions', 'evidence'].map(k => `- ${k}: ${cell(resume[k] ?? 'Not recorded')}`).join('\n')}\n\n## Checklist\n\n| ID | App | Object / property | Operation | DEV target | PROD target |\n| --- | --- | --- | --- | --- | --- |\n${d.items.map(i => `| ${[i.id, i.app, `${i.object} / ${i.property}`, i.operation, canonical(i.dev), canonical(i.prod)].map(cell).join(' | ')} |`).join('\n')}\n\nCompare saved readbacks separately for DEV and PROD; missing observations remain Pending. Readiness also requires the workflow tests, warning gate, complete edit-record reconciliation and applicable approvals in the release log.\n`;
 }
 
 export async function fingerprint(files, context) {
@@ -99,7 +98,7 @@ async function main() {
   }
   const d = validate(await readJson(file));
   if (command === 'validate') console.log(JSON.stringify({ release: d.release, items: d.items.length, candidateHash: candidateHash(d) }));
-  else if (command === 'render') { requireThat(extra, 'output Markdown path required'); await fs.writeFile(extra, render(d) + await renderDocumentationChecklist(), { flag: 'wx' }); }
+  else if (command === 'render') { requireThat(extra, 'output Markdown path required'); await fs.writeFile(extra, render(d), { flag: 'wx' }); }
   else if (command === 'compare') {
     const result = compare(d, await readJson(extra));
     if (output) await fs.writeFile(output, JSON.stringify(result, null, 2) + '\n', { flag: 'wx' });

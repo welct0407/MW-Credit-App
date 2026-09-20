@@ -36,3 +36,11 @@ Read this section when creating, migrating or recovering credentials; ordinary t
 - On migration, update consumers and verify references without printing values. Preserve existing credentials until verified; never overwrite/regenerate a recovery key as a substitute for a lost key.
 - Leave application-managed Codex/GitHub/browser sign-in stores in place; do not relocate them as a side effect. Project-owned exports belong in the external folder.
 - Record actual credential recovery/backup coverage when credentials change. Folder existence proves no backup; database backups do not cover credentials, and the GitHub project folder is excluded from Drive.
+
+## Diagram maintenance
+
+Update drawings only when depicted flows/architecture change. Their interpretation lives in [Solution Design](../Documents/Solution_Design.md); provenance and prior render evidence live in the dated archive/change logs. Keep manual draw.io edits before running generators, which overwrite files.
+
+- OLTP: `node scripts/build-oltp-process-diagram.cjs`; three editable pages. Historical verification: `outputs/oltp-process-diagram-20260912/`.
+- Ecosystem: `node scripts/build-loan-ecosystem.cjs` calls `build-loan-ecosystem-visual.cjs`. Embedded assets come from `outputs/loan-ecosystem-20260916/logos`; pinned sources are in its SOURCES.json. Refresh logos only when required.
+- Render changed pages with the installed draw.io export UI/CLI and check text/connectors. XML or a diagram edit does not prove runtime/business tests. No routine promotion render for unchanged diagrams.

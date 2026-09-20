@@ -2,11 +2,9 @@
 
 Read the affected section when designing or changing app workflows, the model or reporting. [AGENTS.md](../AGENTS.md) contains standing execution rules. This document describes ownership and design constraints, not live versions; use the environment inventory and affected model records for actual configuration.
 
-## Prototype scope
+## Scope
 
-The loan solution is a prototype, not a production accounting, statutory reporting or regulatory-compliance system. Optimize for the owner's stated business behavior, usability, iteration speed, learning value, internal consistency and reversibility. Simplified or experimental financial logic is acceptable when intentional, understandable and documented.
-
-Accounting/regulatory practices are optional design references unless explicitly requested for the change. Label recommendations and obtain authorization before expanding scope to implement them. Do not claim accounting compliance, regulatory approval, legal sufficiency or production readiness unless independently established and expressly in scope. Financial correctness means implementing and reconciling the documented prototype logic.
+Prototype boundaries and execution rules are defined in [AGENTS](../AGENTS.md#3-essential-implementation-rules). This file owns application responsibility and reporting design decisions.
 
 ## OLTP Operations app
 
@@ -20,13 +18,9 @@ Name: **Loan Business Insights**. Owns historical/cross-entity analytics, manage
 
 Prefer read-only or tightly controlled interactions. Do not duplicate operational editing for convenience, or let heavy expressions degrade OLTP sync/form performance. Shared-table design must identify the workflow owner and reconcile affected consumers in both apps.
 
-## Model and business logic
+## Model ownership
 
-- Use stable immutable keys and correct `Ref` relationships; preserve grain and referential integrity. New physical tables/columns follow AGENTS.md's justification/approval rule.
-- Payments, allocations, settlements, reversals and loan assessments must remain traceable, auditable and reconcilable across affected apps/reports.
-- Derive partial/paid/unpaid/overpaid/default/delinquency states from valid posted amounts, reversals/adjustments, due dates, grace rules and a defined as-of date. A payment row's existence alone does not establish those states.
-- Actions and bots must handle duplicate execution without duplicated effects or loops. Correct financially material records with auditable reversal, void or adjustment instead of routine physical deletion.
-- Use virtual columns only for lightweight row-level calculations. Put expensive aggregation/historical analytics in OLAP or a justified reporting structure.
+Business behavior and relationships are explained in the [Model Overview](AppSheet_Data_Model_Overview.md); exact values belong in the dictionary. Integrity, auditability and correction rules follow AGENTS.
 
 ## Looker Studio dashboard
 
@@ -43,3 +37,10 @@ Preserve the page order unless the owner requests a change:
 7. Borrower Insight
 
 App workflows take priority. Review direct downstream impacts, but test/edit reports only when explicitly in scope or directly affected; record limitations rather than auditing unrelated reports. Back up the affected report before editing, including when a task also changes AppSheet.
+
+## Business and ecosystem diagrams
+
+- [OLTP lifecycle diagram](OLTP_Business_Processes.drawio): three editable pages cover loan lifecycle, payment processing and controls/ownership. Update only depicted behavior, not version numbers, formula refinements or presentation-only changes. Its synthesis baseline is 12 September; current business explanations/verified release evidence take precedence. It does not claim fresh lifecycle or delivery acceptance.
+- [Ecosystem diagram](Loan_Business_Ecosystem.drawio): the app/database pair, partner assistant services, access/recovery and public-site context. As confirmed on 16 September, Azure hosts the partner worker; Tailscale provides private RDP; Outlook fallback and Looker are in use. Borrower-location sheets are a historical import, not a live feed. The privacy site is published; custom-domain mapping is not inferred. AI Collection was excluded from this drawing by owner request; this does not alter that separate project's authority. Dormant facilities are not active release dependencies.
+
+Generation/asset instructions are in [scripts guide](../scripts/README.md#diagram-maintenance). Original provenance and interpretation are preserved in the archive: [OLTP](archive/2026-09-20/OLTP_Business_Processes.md), [ecosystem](archive/2026-09-20/Loan_Business_Ecosystem.md). These archived companions are no longer maintained in parallel.
