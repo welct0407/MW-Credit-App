@@ -1,4 +1,6 @@
-// Build the owner-review draft. Never overwrite an owner-edited workbook.
+// Historical first-draft builder (57 rows). The reviewed workbook was streamlined
+// by streamline-promotion-review.mjs; do not use this to replace that workbook.
+// Never overwrite an owner-edited workbook.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Workbook, SpreadsheetFile } from '@oai/artifact-tool';
