@@ -33,6 +33,12 @@ To preserve holder/account reconciliation and avoid adding a ledger row, the exi
 
 The transaction was first rehearsed under rollback with the same assertions. The committed correction changed no ledger row count, left every unrelated ledger row and the cutover row unchanged, reduced Dad SCB from ฿2,850 to ฿2,230, and produced the requested ฿130 balance immediately after the withdrawal. Dad's holder balance and initialized-account total both reconcile to ฿29,140.
 
+### Owner-approved one-time TTB opening correction — 20 September 2026
+
+The owner then confirmed that Dad TTB's current balance should be ฿14,080 and explicitly authorized the corresponding one-time direct production database correction. Live readback before the change was ฿13,910, so the existing TTB initialization correction `dad-ttb-init-reconcile-20260917` was corrected from a ฿320 inflow to a ฿490 inflow. No new ledger row was posted. The row retained its identity, movement date, source and creation audit, and its Notes now record the previous and corrected amounts and owner authorization.
+
+As with the SCB correction, the ledger-account immutability trigger was paused only around this exact owner-authorized update inside the locked serializable transaction, restored before commit and independently read back enabled. The transaction was rehearsed under rollback before the identical commit. It changed no ledger row count, left every unrelated ledger row and the cutover row unchanged, increased Dad TTB by exactly ฿170 to ฿14,080, and left Dad's holder balance equal to the initialized-account total at ฿29,310.
+
 ### Jame payment account refinement
 
 The owner confirmed that Jame's ฿90 receipt dated 18 September 2026 belonged in Dad SCB. Payment `k9iBSTOeNfMQaEyEMZJM0u` was already posted to Dad but had no cash account, while Jame's separate 19 September ฿90 receipt was already correctly assigned to Dad SCB. Updated only the 18 September payment's receiving account and appended an audit note. The existing source trigger synchronized system cash-ledger row `cash:PAYMENT:k9iBSTOeNfMQaEyEMZJM0u` to Dad SCB. No repayment amount, allocation, payment date, holder or Dad total changed.
@@ -59,6 +65,8 @@ Before the cash-in-hand initialization, created and restore-tested `C:\Users\MWC
 
 Before the 20 September owner-approved SCB correction, created and restore-tested `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\dad-scb-approved-opening-correction-before-20260920.dump`, SHA-256 `EDA036E6E6BC7A238BBDA1E2BE7116824F2BF817008E29557A7F4ADA9276E878`, with the same logical-backup scope. The first local restore invocation inherited invalid empty connection settings and stopped before restoration; the corrected invocation explicitly set local connection options, restored successfully and matched the normalized source schema.
 
+Before the 20 September owner-approved TTB correction, created and restore-tested `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\dad-ttb-approved-opening-correction-before-20260920.dump`, SHA-256 `732FD5629E61680AC979587BE470DA27872828F50B0BF7C5A73EF23C58A8A6D8`, with the same logical-backup scope.
+
 Account openings are immutable by design. Future balance differences should use documented account-specific compensating corrections. Changing the initialization metadata itself requires a separately authorized, coordinated database recovery; never restore the backup over later production activity without that recovery decision.
 
 ## Verification
@@ -78,6 +86,7 @@ Account openings are immutable by design. Future balance differences should use 
 - Verified the cutover-protection trigger was active before commit, the existing ฿5,000 TTB-to-cash ledger row was unchanged and all three Dad accounts were initialized.
 - Synced the current production OLAP app. Cash Account Summary displays Dad เงินสดในมือ with Opening ฿0, Cash In ฿5,000, Cash Out ฿0, Current Balance ฿5,000 and Initialized Y. It displays Dad TTB ฿18,510 and Dad SCB ฿3,750; Cash Holder Summary displays Dad ฿27,260 with no reimbursement or advance due.
 - Rehearsed the 20 September SCB correction under rollback, then committed the identical guarded transaction. Independent SQL readback at 14:11 Bangkok confirmed Dad SCB Cash In ฿4,540, Cash Out ฿4,200 and Current Balance ฿2,230; the corrected initialization outflow is ฿1,200; the post-withdrawal running balance is ฿130; both protection triggers are enabled; and Dad's holder/account totals equal ฿29,140. The ledger remained at 48 rows, the cutover row was unchanged and no unrelated ledger row changed.
+- Rehearsed the 20 September TTB correction under rollback, then committed the identical guarded transaction. Independent SQL readback at 14:21 Bangkok confirmed Dad TTB Cash In ฿16,210, Cash Out ฿18,000 and Current Balance ฿14,080; the corrected initialization inflow is ฿490; both protection triggers are enabled; and Dad's holder/account totals equal ฿29,310. The ledger remained at 48 rows, the cutover row was unchanged and no unrelated ledger row changed.
 
 ## Status
 
