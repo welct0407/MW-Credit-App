@@ -18,4 +18,3 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/var/lib/mw-integration-agent /etc/mw-integration-agent/secrets/outlook-email-oauth.json
-

@@ -13,7 +13,7 @@ from mw_integration_agent.receipt_rules import BANGKOK,validate_receipt
 config=load_json('/etc/mw-integration-agent/config.json')
 today=datetime.now(BANGKOK).date().isoformat()
 image=Image.new('RGB',(1000,760),'white');draw=ImageDraw.Draw(image)
-font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',32)
+font=ImageFont.load_default(size=32)
 lines=['SYNTHETIC TEST TRANSFER RECEIPT','Transfer completed successfully',
        'Date: '+today,'Amount: THB 1234.50','From account: 7777777777',
        'To PromptPay: 0891234567','Reference: TEST20260921ABC']
