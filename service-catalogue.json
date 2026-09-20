@@ -1,0 +1,16 @@
+{
+  "revision": 0,
+  "default_policy": "deny",
+  "services": {
+    "signed_webhook_ingress": {"enabled": false, "implemented": false},
+    "partner_authentication": {"enabled": false, "implemented": false},
+    "operational_data_read": {"enabled": false, "implemented": false},
+    "persistent_codex_conversation": {"enabled": false, "implemented": false},
+    "partner_oltp_gui": {"enabled": false, "implemented": false},
+    "operational_data_api": {"enabled": false, "implemented": false},
+    "instagram_delivery": {"enabled": false, "implemented": false},
+    "email_fallback": {"enabled": false, "implemented": false},
+    "daily_briefing": {"enabled": false, "implemented": false},
+    "pattaya_weather": {"enabled": false, "implemented": false}
+  }
+}
