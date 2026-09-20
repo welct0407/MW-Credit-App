@@ -107,8 +107,7 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
         table_rows.append(('',[labels[5] if page == pages-1 else labels[13]],'',money(final_balance),'boundary'))
         row_heights = [max(78,32*len(r[1])+28) for r in table_rows]
         title_lines = wrap(account['label']+' · '+account['bank']+(' · •••• '+account['last4'] if account.get('last4') else ''),1100,32)
-        preview_offset = 36 if report.get('preview') else 0
-        table_top = 510+44*(len(title_lines)-1)+preview_offset
+        table_top = 510+44*(len(title_lines)-1)
         height = table_top+sum(row_heights)+130
         image = Image.new('RGB',(1200,height),'#fff7fa')
         draw = ImageDraw.Draw(image)
@@ -121,17 +120,13 @@ def render(report, account, language, directory, font_path='/usr/share/fonts/tru
             text(44,141+44*i,line,32)
         offset = 44*(len(title_lines)-1)
         start = datetime.fromisoformat(report['start'])
-        end = datetime.fromisoformat(report.get('planned_end',report['end']))
+        end = datetime.fromisoformat(report['end'])
         text(44,196+offset,start.strftime('%d/%m/%Y  %H:%M')+'  -  '+end.strftime('%d/%m/%Y  %H:%M'),27)
         text(44,236+offset,labels[14],22,'#805767')
-        if report.get('preview'):
-            cutoff = datetime.fromisoformat(report['end']).strftime('%H:%M')
-            notice = ('ฉบับตัวอย่างถึงเวลา '+cutoff+' • ยังไม่สิ้นวัน') if thai else ('Preview through '+cutoff+' • Day still open')
-            text(44,269+offset,notice,22,'#b54742')
         values = [money(account['opening']),money(account['money_in']),money(account['money_out']),
                   money(account['net']),money(account['closing']),str(account['count'])]
         for i,(label,value) in enumerate(zip(labels[1:7],values)):
-            x,y = 44+(i%3)*375,289+offset+preview_offset+(i//3)*83
+            x,y = 44+(i%3)*375,289+offset+(i//3)*83
             draw.rounded_rectangle((x,y,x+362,y+73),radius=10,fill='white')
             text(x+15,y+8,label,22,'#805767')
             text(x+15,y+34,value,27,'#15806d' if i==1 else '#b54742' if i==2 else '#452432')

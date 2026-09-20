@@ -7,7 +7,6 @@ from mw_integration_agent.statement_image import render
 p=argparse.ArgumentParser()
 p.add_argument('--output',default='outputs/cash-statement-sample')
 p.add_argument('--font',default='/usr/share/fonts/truetype/tlwg/Garuda.ttf')
-p.add_argument('--preview',action='store_true')
 a=p.parse_args()
 account={'id':'synthetic','label':'Sample account / บัญชีตัวอย่าง','bank':'Demo Bank',
          'last4':'0000','initialized':True,'opening':'12500.00','transactions':[
@@ -21,8 +20,6 @@ account={'id':'synthetic','label':'Sample account / บัญชีตัวอ�
   'amount':'1200.00','type':'ACCOUNT_TRANSFER','kind':'ACCOUNT','other_account':'Sample reserve / บัญชีสำรองตัวอย่าง'}]}
 summarize(account)
 report={'start':'2026-09-19T00:00:00+07:00','end':'2026-09-20T00:00:00+07:00'}
-if a.preview:
-    report.update(preview=True,planned_end=report['end'],end='2026-09-19T23:59:59.999999+07:00')
 for language,name in [('English','en'),('ไทย','th')]:
     render(report,account,language,Path(a.output)/name,a.font)
 print('Synthetic English and Thai statements rendered')

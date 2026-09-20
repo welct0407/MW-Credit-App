@@ -13,7 +13,7 @@ from .config import ConfigurationError, load_secret
 BANGKOK = ZoneInfo('Asia/Bangkok')
 
 
-def period(day: str | None = None, now: datetime | None = None, preview: bool = False):
+def period(day: str | None = None, now: datetime | None = None):
     now = now or datetime.now(BANGKOK)
     now = now.astimezone(BANGKOK)
     if day:
@@ -23,9 +23,7 @@ def period(day: str | None = None, now: datetime | None = None, preview: bool = 
         start = end - timedelta(days=1)
     end = start + timedelta(days=1)
     if end > now:
-        if not preview or start >= now:
-            raise ConfigurationError('Only completed calendar days or explicit current-day review previews may be generated')
-        end = now
+        raise ConfigurationError('Only completed 00:00–00:00 calendar days may be generated')
     return start, end
 
 

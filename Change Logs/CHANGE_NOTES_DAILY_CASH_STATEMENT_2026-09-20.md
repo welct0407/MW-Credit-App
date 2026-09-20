@@ -1,5 +1,11 @@
 # Daily cash movement statement — 20 September 2026
 
+## Final output consolidation
+
+Starting clean Git commit `1532d2ad204fe876ec962e2925e2412347f5fb82`. After accepting the current output, the owner requested removal of scripts for older output versions. The runtime now supports only completed 00:00–00:00 Bangkok calendar-day statements in the final logo-only design, with whole-baht values, HH:MM posting times, pink structure, green inflows, red outflows and Partner-master language selection.
+
+Removed the temporary `--review-thai` / incomplete-day preview flags, preview rendering branch, isolated review snapshot/key logic, related test, sample option and preview image. Catalogue revision 6 closes that temporary service path. Historical change-log text, private snapshots and durable send journals remain as audit evidence; they are data/evidence, not callable old output scripts. No message, data write or schedule is part of this cleanup. Verification and Debian deployment are in progress.
+
 ## Logo-only branding, movement colors and Thai 20 September review
 
 Starting clean Git commit `3a60eef9fbad31ed665981d6b48affa8d7c5e83d`. Owner requested removal of repeated M&W Credit header/footer text (retain logo), original green incoming/red outgoing amounts while keeping pink layout accents, and the next review for 20 September in Thai. Rendering and review CLI now implement this; Partner master language is never edited.

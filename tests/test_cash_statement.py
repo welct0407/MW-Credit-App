@@ -34,16 +34,6 @@ class StatementTests(unittest.TestCase):
         self.assertEqual(result['money_out'],Decimal('25.30'))
         self.assertEqual(rows[1]['balance'],Decimal('74.80'))
 
-    def test_current_day_preview_is_explicit_and_never_future(self):
-        now=datetime(2026,9,20,23,15,tzinfo=BANGKOK)
-        with self.assertRaises(ConfigurationError):
-            period('2026-09-20',now=now)
-        start,end=period('2026-09-20',now=now,preview=True)
-        self.assertEqual(start.hour,0)
-        self.assertEqual(end,now)
-        with self.assertRaises(ConfigurationError):
-            period('2026-09-21',now=now,preview=True)
-
     def test_empty_and_uninitialized(self):
         self.assertEqual(summarize({'opening':0,'initialized':True,'transactions':[]})['closing'],0)
         with self.assertRaises(ConfigurationError):

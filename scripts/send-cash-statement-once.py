@@ -8,9 +8,8 @@ from pathlib import Path
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--date')
-parser.add_argument('--review-thai',action='store_true')
 args=parser.parse_args()
-extra=(['--date',args.date] if args.date else [])+(['--review-thai'] if args.review_thai else [])
+extra=['--date',args.date] if args.date else []
 
 if os.geteuid()!=0:
     raise SystemExit('Run as root for the explicitly authorized manual delivery')
