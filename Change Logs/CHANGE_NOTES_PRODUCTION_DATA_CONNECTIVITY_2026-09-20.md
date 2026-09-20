@@ -29,6 +29,6 @@ Live PostgreSQL verification passed through the loopback Cloud SQL Auth Proxy:
 - confirmed read-only transactions are the default and the role has no persistent INSERT privilege;
 - created and inserted one row into a temporary table inside an explicit read/write transaction, then rolled back; the temporary table did not remain.
 
-The copied AppSheet key is byte-identical to the protected Windows credential, but both Windows and Debian requests return HTTP 403. Live editor inspection found the production OLTP app's inbound API toggle disabled. Enabling that access remains pending the required action-time confirmation for an external-access permission change.
+The copied AppSheet key is byte-identical to the protected Windows credential. After explicit action-time confirmation, production OLTP inbound API access was enabled and saved as AppSheet version `3.000237` from rollback version `3.000236`. The existing enabled key created on 8 September 2026 was retained; no new key was created. A bounded Find returned HTTP 200 and two Partner rows from Windows, and the Debian `appsheet-probe` returned authenticated, bounded access with row count two while emitting no row contents.
 
-No AppSheet edit, durable SQL DML, schema change, financial write, notification, or schedule was performed.
+No AppSheet row edit, durable SQL DML, schema change, financial write, notification, or schedule was performed. The saved production app remained Deployed and displayed no warning or error text; its already-Deployed state did not require a repeated Deployment Check.
