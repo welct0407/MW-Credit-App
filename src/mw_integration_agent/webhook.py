@@ -33,10 +33,21 @@ def extract_messages(payload: dict[str, Any], account_id: str, now: float | None
                 continue
             if not 0 <= current - timestamp <= 86400:
                 continue
+            attachments = message.get('attachments')
+            if not isinstance(attachments, list):
+                attachments = []
             result.append({
                 "message_id": str(message["mid"]),
                 "sender_id": sender,
                 "timestamp": timestamp,
                 "text": str(message.get("text") or "")[:12000],
+                "attachments": [
+                    {"type": "image", "url": a["payload"]["url"]}
+                    for a in attachments[:10]
+                    if isinstance(a, dict) and a.get("type") == "image"
+                    and isinstance(a.get("payload"), dict)
+                    and isinstance(a["payload"].get("url"), str)
+                    and len(a["payload"]["url"]) <= 8192
+                ],
             })
     return result

@@ -4,7 +4,7 @@
 
 Daily cash statements are implemented and scheduled under catalogue revision 7; see [cash statement operations](CASH_STATEMENT.md). The owner authorized a 00:15 Asia/Bangkok daily production timer for current Partners with `IG Integration Enabled=true`, plus Microsoft Graph email fallback to each Partner's current Email. The dedicated schedule and fallback controls are enabled; generic sending, processing and writes remain false.
 
-This repository has no automated production business runtime. Catalogue revision 2 adds bounded AppSheet Find reads and dedicated PostgreSQL connectivity to the verified Instagram transport. AppSheet edits and durable SQL DML remain disabled. A one-time Instagram reply was accepted by Meta on 20 September 2026, and `sending_enabled` was immediately restored to `false`.
+Catalogue revision 8 adds [receipt-only borrower processing and Partner email summaries](RECEIPTS.md) under a dedicated activation switch and cutoff. AppSheet Find reads and dedicated PostgreSQL connectivity remain bounded. AppSheet edits and durable SQL DML remain disabled. A one-time Instagram reply was accepted by Meta on 20 September 2026, and `sending_enabled` was immediately restored to `false`.
 
 ## Filesystem layout
 
@@ -45,7 +45,7 @@ sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
 sudo -u mwagent /opt/mw-integration-agent-src/scripts/test-postgres-access.sh
 ```
 
-The example config is not installed as the active config. Live ingress sets only `receiver_enabled=true`; processing, sending, writes, and schedules remain false. `messages` omits message text unless `--include-text` is explicitly supplied.
+The example config is not installed as the active config. Live ingress uses `receiver_enabled=true`; generic processing, sending and writes remain false. The cash statement schedule and email fallback have separate enabled controls. Receipt summaries require their own `receipt_summary_enabled` switch. `messages` omits message text unless `--include-text` is explicitly supplied.
 
 The production proxy endpoint is `127.0.0.1:5432`. The VM identity is conditionally granted `roles/cloudsql.client` only for `appsheet-pg-prod-20260914`. PostgreSQL login uses `mw_integration_agent`, which defaults to read-only transactions and has CONNECT, TEMPORARY, public-schema USAGE, and SELECT on business tables. It has no durable table DML privileges. Its password and the AppSheet access key remain in the protected secrets directory outside Git.
 

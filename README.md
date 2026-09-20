@@ -2,7 +2,7 @@
 
 Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM.
 
-Status: **daily cash statement production schedule active**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. AppSheet access is Find-only, and PostgreSQL uses a dedicated loopback role restricted to business-table SELECT and temporary objects. The statement runs at 00:15 Asia/Bangkok with Partner-master Instagram routing and Microsoft Graph email fallback. No automatic conversational reply, durable SQL write, AppSheet edit or inbound message processing is enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
+Status: **daily cash statement production schedule active**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. AppSheet access is Find-only, and PostgreSQL uses a dedicated loopback role restricted to business-table SELECT and temporary objects. The statement runs at 00:15 Asia/Bangkok with Partner-master Instagram routing and Microsoft Graph email fallback. Receipt-only inbound processing is implemented under its own activation switch; see [receipt operations](docs/RECEIPTS.md). No automatic conversational reply, durable SQL write or AppSheet edit is enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
 
 ## Initial target
 
@@ -20,7 +20,7 @@ Status: **daily cash statement production schedule active**. The Debian receiver
 - Installed application: `/opt/mw-integration-agent`
 - Service account: `mwagent` with a non-login shell
 - GCP identity: `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com`, conditionally limited to Cloud SQL Client access for the production instance
-- Cloud SQL transport: Auth Proxy 2.25.4 on `127.0.0.1:5432`; PostgreSQL credentials are not installed
+- Cloud SQL transport: Auth Proxy 2.25.4 on `127.0.0.1:5432`; dedicated read-only PostgreSQL credentials are installed
 - GitHub transport: repository-scoped read-only deploy key; updates are manual, clean-checkout, and fast-forward-only
 
 ## Local verification
@@ -45,10 +45,10 @@ sudo bash scripts/install-cloud-sql-proxy.sh
 sudo bash scripts/install-instagram-runtime.sh
 sudo bash scripts/install-cloudflared.sh
 sudo bash scripts/configure-postgres-access.sh /tmp/admin-password.txt
-sudo -u mwagent -H /var/lib/mw-integration-agent/.local/bin/codex login --device-auth
+sudo -u mwagent -H env CODEX_HOME=/var/lib/mw-integration-agent/codex-runtime /var/lib/mw-integration-agent/.local/bin/codex login --device-auth
 ```
 
-Use device-code authentication on the headless VM. Treat `/var/lib/mw-integration-agent/.codex/auth.json` as a secret and include it only in an explicitly approved credential-recovery design.
+Use device-code authentication on the headless VM. Treat `/var/lib/mw-integration-agent/codex-runtime/auth.json` as a secret and include it only in an explicitly approved credential-recovery design.
 
 The Instagram receiver binds only to `127.0.0.1:8000` and is intended to sit behind the authenticated Cloudflare tunnel. Captured messages are durably deduplicated with status `CAPTURED_NO_PROCESSING`. The outbound adapter cannot send while `instagram_delivery` or `sending_enabled` is false.
 

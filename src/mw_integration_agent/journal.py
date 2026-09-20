@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+import json
 import time
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,9 @@ class IngressJournal:
                 status TEXT NOT NULL CHECK(status = 'CAPTURED_NO_PROCESSING')
             );
         """)
+        if 'attachments' not in {r[1] for r in self.db.execute('PRAGMA table_info(messages)')}:
+            self.db.execute("ALTER TABLE messages ADD COLUMN attachments TEXT NOT NULL DEFAULT '[]'")
+            self.db.commit()
 
     def capture(self, payload_sha256: str, messages: list[dict[str, Any]]) -> tuple[bool, int]:
         with self.db:
@@ -38,8 +42,10 @@ class IngressJournal:
             inserted = 0
             for message in messages:
                 inserted += self.db.execute(
-                    "INSERT OR IGNORE INTO messages VALUES (?, ?, ?, ?, ?, 'CAPTURED_NO_PROCESSING')",
-                    (message["message_id"], message["sender_id"], message["timestamp"], message["text"], time.time()),
+                    "INSERT OR IGNORE INTO messages (message_id,sender_id,event_timestamp,text,captured_at,status,attachments) "
+                    "VALUES (?, ?, ?, ?, ?, 'CAPTURED_NO_PROCESSING', ?)",
+                    (message["message_id"], message["sender_id"], message["timestamp"], message["text"], time.time(),
+                     json.dumps(message.get('attachments', []))),
                 ).rowcount
         return bool(cursor.rowcount), inserted
 

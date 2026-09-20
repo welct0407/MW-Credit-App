@@ -35,6 +35,18 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
+    if type(config.get('receipt_summary_enabled', False)) is not bool:
+        raise ConfigurationError('receipt_summary_enabled must be boolean')
+    if config.get('receipt_summary_enabled'):
+        from datetime import datetime
+        try:
+            cutoff = datetime.fromisoformat(config['receipt_activation_cutoff'])
+            if cutoff.tzinfo is None:
+                raise ValueError()
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ConfigurationError('receipt_activation_cutoff must include timezone') from exc
+        if not config.get('receiver_enabled') or not config.get('database_enabled'):
+            raise ConfigurationError('receipt summaries require receiver and database')
     for flag in BOOLEAN_FLAGS:
         if not isinstance(config.get(flag), bool):
             raise ConfigurationError(f"{flag} must be boolean")
@@ -89,7 +101,7 @@ def validate_config(config: dict[str, Any]) -> None:
             raise ConfigurationError("database_user must be the dedicated least-privilege role")
         _validate_secret_path(config, "database_password_file")
 
-    if config.get("email_fallback_enabled") or config.get("cash_statement_schedule_enabled"):
+    if config.get("email_fallback_enabled") or config.get("cash_statement_schedule_enabled") or config.get('receipt_summary_enabled'):
         if not re.fullmatch(r"[^\s@<>;,]+@[^\s@<>;,]+\.[^\s@<>;,]+", str(config.get("email_sender", ""))):
             raise ConfigurationError("email_sender is invalid")
         _validate_secret_path(config, "email_oauth_file")
@@ -130,7 +142,7 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
         if name not in {"signed_webhook_ingress", "partner_authentication", "operational_data_read",
                         "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
                         "operational_data_api", "instagram_delivery", "email_fallback", "daily_briefing",
-                        "pattaya_weather", "daily_cash_statement"}:
+                        "pattaya_weather", "daily_cash_statement", "receipt_summary"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")

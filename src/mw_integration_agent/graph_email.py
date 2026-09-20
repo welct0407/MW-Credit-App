@@ -47,6 +47,19 @@ class GraphEmail:
         return path
 
     def token(self):
+        # Statement and receipt workers share the rotating OAuth credential.
+        # Lock the existing inode, which is already writable in both systemd sandboxes.
+        if os.name == 'posix':
+            import fcntl
+            try:
+                with self._oauth_path().open('r+') as lock:
+                    fcntl.flock(lock,fcntl.LOCK_EX)
+                    return self._token_locked()
+            except OSError as exc:
+                raise EmailRejected('Email authorization unavailable') from exc
+        return self._token_locked()
+
+    def _token_locked(self):
         path = self._oauth_path()
         try:
             saved = json.loads(path.read_text(encoding="utf-8-sig"))

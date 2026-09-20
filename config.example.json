@@ -1,4 +1,6 @@
 {
+  "receipt_summary_enabled": false,
+  "receipt_activation_cutoff": null,
   "environment": "development",
   "processing_enabled": false,
   "sending_enabled": false,

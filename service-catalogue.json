@@ -1,8 +1,9 @@
 {
-  "revision": 7,
+  "revision": 8,
   "default_policy": "deny",
   "services": {
     "signed_webhook_ingress": {"enabled": true, "implemented": true},
+    "receipt_summary": {"enabled": true, "implemented": true},
     "partner_authentication": {"enabled": true, "implemented": true},
     "daily_cash_statement": {"enabled": true, "implemented": true},
     "operational_data_read": {"enabled": true, "implemented": true},

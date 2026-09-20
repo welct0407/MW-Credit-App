@@ -1,0 +1,124 @@
+"""Deterministic receipt rules. No model-supplied identity, SQL or delivery address."""
+from __future__ import annotations
+
+import html
+import re
+from datetime import date, datetime, timedelta
+from decimal import Decimal, InvalidOperation
+from zoneinfo import ZoneInfo
+
+from .config import ConfigurationError
+from .graph_email import valid_email
+
+BANGKOK = ZoneInfo('Asia/Bangkok')
+
+
+class ReceiptInvalid(ConfigurationError):
+    pass
+
+
+def username(value):
+    return str(value or '').strip().lstrip('@').casefold()
+
+
+def borrower_for(profile, borrowers):
+    name = username(profile.get('username'))
+    matches = [b for b in borrowers if name and username(b['username']) == name]
+    if len(matches) != 1 or matches[0]['enabled'] is not True:
+        raise ReceiptInvalid('BORROWER_NOT_UNIQUELY_ENABLED')
+    return matches[0]
+
+
+def account_pattern(value):
+    # Preserve every printed mask; never invent hidden digits. Reject other text.
+    value = str(value or '').strip().translate(str.maketrans('๐๑๒๓๔๕๖๗๘๙','0123456789'))
+    value = re.sub(r'[\s\-().]', '', value).lower()
+    value = value.replace('*','x').replace('•','x').replace('●','x')
+    return value if re.fullmatch(r'[0-9x]{8,15}', value) else ''
+
+
+def match_account(numbers, accounts):
+    matches = set()
+    for number in numbers:
+        pattern = account_pattern(number)
+        if not pattern or sum(c.isdigit() for c in pattern) < 4:
+            continue
+        for account in accounts:
+            if account['active'] is not True:
+                continue
+            for field in ('number', 'alternative'):
+                candidate = account_pattern(account.get(field))
+                if candidate and 'x' not in candidate and len(candidate) == len(pattern) and all(
+                    a == 'x' or a == b for a,b in zip(pattern,candidate)
+                ):
+                    matches.add(account['id'])
+    if len(matches) != 1:
+        raise ReceiptInvalid('RECIPIENT_UNKNOWN_OR_AMBIGUOUS')
+    return next(a for a in accounts if a['id'] in matches)
+
+
+def validate_receipt(value, accounts, today=None):
+    if value.get('is_payment_receipt') is not True:
+        raise ReceiptInvalid('NOT_PAYMENT_RECEIPT')
+    if value.get('transfer_successful') is not True:
+        raise ReceiptInvalid('TRANSFER_NOT_CONFIRMED')
+    today = today or datetime.now(BANGKOK).date()
+    try:
+        receipt_date = date.fromisoformat(value['date'])
+    except (KeyError,ValueError,TypeError) as exc:
+        raise ReceiptInvalid('DATE_UNREADABLE') from exc
+    if receipt_date not in {today,today-timedelta(days=1)}:
+        raise ReceiptInvalid('DATE_OUTSIDE_TODAY_YESTERDAY')
+    try:
+        if not isinstance(value['amount'], str) or not re.fullmatch(r'\d{1,12}(?:\.\d{1,2})?',value['amount']):
+            raise ValueError()
+        amount = Decimal(value['amount'])
+        if amount <= 0 or value.get('currency') != 'THB':
+            raise ValueError()
+    except (KeyError,InvalidOperation,ValueError,TypeError) as exc:
+        raise ReceiptInvalid('AMOUNT_OR_CURRENCY_UNREADABLE') from exc
+    reference = re.sub(r'[\s-]','', str(value.get('reference') or '')).upper()
+    if not re.fullmatch(r'[A-Z0-9]{6,100}',reference):
+        raise ReceiptInvalid('REFERENCE_UNREADABLE')
+    numbers = value.get('recipient_numbers')
+    if not isinstance(numbers,list) or not 1 <= len(numbers) <= 5 or any(not isinstance(n,str) for n in numbers):
+        raise ReceiptInvalid('RECIPIENT_UNREADABLE')
+    account = match_account(numbers,accounts)
+    return {'date':receipt_date.isoformat(),'amount':f'{amount:.2f}',
+            'reference':reference,'account_id':account['id'],'account_label':account['label']}
+
+
+def recipients(partners):
+    # Owner selected all Partners' Email + Language Preference; IG opt-in is irrelevant here.
+    grouped = {}
+    for p in partners:
+        email = str(p.get('email') or '').strip().lower()
+        if not valid_email(email):
+            continue
+        if p.get('language') not in ('English','ไทย'):
+            raise ReceiptInvalid('PARTNER_LANGUAGE_UNSUPPORTED')
+        item = grouped.setdefault(email, {'email':email,'languages':set(),'partner_ids':[]})
+        item['languages'].add(p['language'])
+        item['partner_ids'].append(p['id'])
+    if not grouped:
+        raise ReceiptInvalid('NO_PARTNER_EMAIL')
+    return [{**v,'languages':sorted(v['languages']),'partner_ids':sorted(v['partner_ids'])}
+            for _,v in sorted(grouped.items())]
+
+
+def summary(receipt, borrower, languages):
+    blocks=[]
+    for language in languages:
+        name=borrower.get('name_th' if language=='ไทย' else 'name_en') or borrower['id']
+        name, account, reference = map(html.escape,(name,receipt['account_label'],receipt['reference']))
+        amount=f"{Decimal(receipt['amount']):,.2f}"
+        if language=='ไทย':
+            blocks.append(f'<p>ได้รับสลิปการชำระเงินจาก {name} จำนวน {amount} บาท เข้าบัญชี {account}</p>'
+                          f'<p>วันที่: {receipt["date"]} · เลขอ้างอิง: {reference}</p>'
+                          '<p>ผ่านการตรวจสอบเบื้องต้นแล้ว ยังไม่ได้สร้างรายการชำระเงิน กรุณาตรวจสอบยอดเข้าบัญชี</p>')
+        else:
+            blocks.append(f'<p>Received a payment receipt from {name} for {amount} baht into {account}.</p>'
+                          f'<p>Date: {receipt["date"]} · Reference: {reference}</p>'
+                          '<p>Basic receipt checks passed. No payment record has been created. Please verify the bank credit.</p>')
+    subject='สรุปสลิปการชำระเงิน' if languages==['ไทย'] else 'Payment receipt summary'
+    return subject,'<hr>'.join(blocks)
