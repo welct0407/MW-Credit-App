@@ -19,7 +19,7 @@ Starting rollback point: `e1494f8dd6dc510f2a7217333e497f4ed14a75c6`.
 
 ## Credential and cutover boundary
 
-The preserved Windows Instagram access token, Instagram application secret, webhook verification token, and Cloudflare tunnel token were not copied. Live Linux activation requires explicit credential migration authorization, a fresh cutoff, and verification that the Windows receiver/tunnel remain stopped. A live outbound test remains a separate deliberate action.
+After explicit owner authorization, the preserved Instagram access token, Instagram application secret, webhook verification token, and Cloudflare tunnel token were transferred through authenticated SSH/IAP into `/etc/mw-integration-agent/secrets`. They were not printed or committed. A fresh Linux cutoff marker was created, the stopped Windows route was not restarted, and historical messages are not replayed. A live outbound test remains a separate deliberate action.
 
 ## Rollback
 
@@ -27,4 +27,16 @@ Disable the Linux webhook and tunnel units, preserve the SQLite journal, remove 
 
 ## Checks and status
 
-Automated tests, configuration validation, shell syntax checks, VM installation, and live provider/tunnel verification are recorded before completion. The first Debian run exposed and corrected millisecond timestamp rounding in a test and refreshed example-config installation. Pinned cloudflared SHA-256: `03f1f25d1cc93b9ad6c60569d44060bc4f17ed97075760ed8cfca4b12dcd68cc`. Status: implementation in progress; credentials and live activation remain pending.
+Automated tests and configuration validation pass on Windows and Debian. The first Debian run exposed and corrected millisecond timestamp rounding in a test and refreshed example-config installation. Pinned cloudflared SHA-256: `03f1f25d1cc93b9ad6c60569d44060bc4f17ed97075760ed8cfca4b12dcd68cc`.
+
+Live checks:
+
+- Webhook and Cloudflare tunnel services are enabled and active.
+- Receiver listens only on `127.0.0.1:8000`; Cloudflare registered four QUIC connections and loaded the existing `hooks.mw-credit.com` ingress rule.
+- Public `/health` returned 200.
+- Public Meta verification challenge returned the exact challenge.
+- A signed empty Instagram payload returned 200 `EVENT_RECEIVED`; an invalid signature returned 403.
+- The official Instagram API authenticated account `tttlll8709` and enumerated 14 conversations.
+- No genuine post-cutover Instagram message has yet been delivered to the new journal, so content receipt and controlled outbound delivery still require a fresh test DM.
+
+Status: signed receipt-only ingress is live. Automated business processing and outbound sending remain disabled.
