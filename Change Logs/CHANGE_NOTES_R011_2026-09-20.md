@@ -48,3 +48,5 @@ Repository artifacts changed for this refinement: `Documents/AppSheet_Data_Dicti
 Status: DEV complete; ready for owner review. Owner acceptance, RC preparation and production authorization/deployment remain pending. No production writes or notifications performed.
 
 The prior DEV implementation checkpoint is `2856dd06e79d1974e94984055c6e9df710c27c05`; this localization refinement and its evidence are published in the later repository commit reported at task completion. SQL is unchanged: `New-Release.ps1` validated clean DEV and pinned all 28 migration hashes at `59ea9d95d499d9d59f45733c5fc9c2f60a9c6e36`; [sanitized runner manifest](../outputs/r011-20260920/flyway-manifest.json) and private runner path/hash are linked from the release manifest. No R011 production tag is created before release closure.
+
+21 September account-alias publication: tested implementation commit d8642d06d6bd39f0f168282b990bbc79721af3f6; New-Release.ps1 validated DEV and pinned all 29 migration hashes. [Updated Flyway pin](../outputs/r011-20260920/account-alias/flyway-manifest.json). Production remains pending owner promotion.

@@ -14,7 +14,7 @@
     "R010"
   ],
   "git": {
-    "implementationCommit": null,
+    "implementationCommit": "d8642d06d6bd39f0f168282b990bbc79721af3f6",
     "finalTag": null
   },
   "records": {
@@ -31,7 +31,7 @@
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
         "version": "1.000062",
-        "evidence": "outputs/r011-20260920/test-results.md"
+        "evidence": "outputs/r011-20260920/account-alias/test-results.md"
       },
       "rc": {
         "id": null,
@@ -71,7 +71,7 @@
         "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
         "internalName": "MW-OLAP-DEV-20260919-578763613",
         "version": "1.000021",
-        "evidence": "outputs/r011-20260920/test-results.md"
+        "evidence": "outputs/r011-20260920/account-alias/test-results.md"
       },
       "rc": {
         "id": null,
@@ -114,9 +114,9 @@
     "targetVersion": "29",
     "prodBeforeAppUpgrade": null,
     "prodAfter": null,
-    "testedCommit": null,
-    "runnerManifestReference": null,
-    "manifestSha256": null,
+    "testedCommit": "d8642d06d6bd39f0f168282b990bbc79721af3f6",
+    "runnerManifestReference": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/flyway/release-d8642d06d6bd39f0f168282b990bbc79721af3f6.json",
+    "manifestSha256": "6f1c280834e448ceede29aae7ab2b609f2ea069aabaf6f5b6b3781908238741b",
     "migrations": [
       {
         "file": "database/migrations/V28__borrower_collection_note.sql",
@@ -128,7 +128,7 @@
       }
     ],
     "backupEvidence": "Private DEV dump and hash recorded in release log; PROD backup pending",
-    "compatibilityEvidence": "outputs/r011-20260920/test-results.md"
+    "compatibilityEvidence": "outputs/r011-20260920/account-alias/test-results.md"
   },
   "externalDependencies": [],
   "deploymentOrder": [
@@ -149,7 +149,7 @@
   "validation": {
     "A_devIntegrated": "passed",
     "B_candidateCaptured": "pending",
-    "C_databaseReady": "DEV V29 tested; updated clean package pin pending",
+    "C_databaseReady": "DEV V29 tested and pinned; PROD migration pending owner promotion",
     "D_rcReady": "pending",
     "E_authorizedUpgrade": "pending",
     "F_productionClosure": "pending"
