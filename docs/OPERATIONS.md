@@ -38,6 +38,7 @@ sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
   appsheet-probe --config /etc/mw-integration-agent/config.json \
   --catalogue /etc/mw-integration-agent/service-catalogue.json
+sudo -u mwagent /opt/mw-integration-agent-src/scripts/test-postgres-access.sh
 ```
 
 The example config is not installed as the active config. Live ingress sets only `receiver_enabled=true`; processing, sending, writes, and schedules remain false. `messages` omits message text unless `--include-text` is explicitly supplied.
