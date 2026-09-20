@@ -22,3 +22,7 @@ Limitations: physical-device/mobile/offline and concurrent-user note edits were 
 # Latest extension — 21 September 2026
 
 R011 now includes optional Cash Accounts.Alternative Account Number. Current DEV: SQL V29 / OLTP 1.000062 / OLAP 1.000021. See [account-alias verification](account-alias/test-results.md) for new SQL/GUI tests, rollback and preserved R012 integration; the earlier tests below remain dated evidence for unchanged behavior.
+
+## Production closure — 21 September 2026
+
+The owner merged the reserved R012 Cash Ledger Recent refinement into R011 and authorized promotion. PROD finished at SQL V29 / OLTP 3.000240 / OLAP 1.100189 with both apps Deployed and editor-clear. See the [production report](production/REPORT.md) and [Cash Ledger evidence](cash-ledger-recent/test-results.md). R012 was not promoted independently.

@@ -18,6 +18,6 @@ Scope: optional second receiving identifier, requested as an R011 prerequisite f
 | Final editors | OLTP 1.000062 / OLAP 1.000021, saved with No issues found. Both remain Deployed; no mode changes |
 | Dictionary | Dev Differences A2874:E2876 added; all prior values/formulas preserved, including R012. Changed range rendered and reviewed |
 
-No payment, loan or cash movement was created for this test. No notification was sent. Existing SQL financial logic and report definitions were not changed. Mobile/offline testing and owner acceptance remain unverified. R012 is already integrated in current DEV OLAP and must be reconciled into the eventual promotion batch; App Upgrade cannot exclude it automatically. OLTP baseline 1.000060 was observed live, ahead of the inventory's 1.000059; its prior delta was not attributed to this task.
+No payment, loan or cash movement was created for this test. No notification was sent. Existing SQL financial logic and report definitions were not changed. Mobile/offline testing remained unverified at this DEV checkpoint. The integrated Cash Ledger work was subsequently merged into R011 by owner direction and promoted with the batch; R012 was retired. OLTP baseline 1.000060 was observed live, ahead of the inventory's 1.000059, and its prior delta was preserved in the integrated candidate.
 
 Rollback this addition by restoring OLTP 1.000060 and OLAP 1.000019 while retaining compatible nullable V29. Do not restore the database over later financial activity without write-loss review.

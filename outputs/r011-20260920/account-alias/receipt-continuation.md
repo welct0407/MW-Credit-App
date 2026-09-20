@@ -19,7 +19,7 @@ The legacy receipt engine can auto-post and uses a configured/sent receiving-acc
 
 ## Next steps
 
-- Verify owner promotion of V28/V29 and both app definitions; reconcile integrated R012 scope before App Upgrade. Complete the existing R011 promotion checklist, not a separate checklist.
+- R011 promotion is complete: PROD V29 / OLTP 3.000240 / OLAP 1.100189. The integrated Cash Ledger scope was merged into R011 and R012 retired. Reuse the completed R011 evidence; do not reopen a separate R012 release.
 - Populate the real receiving identifiers through Cash Accounts: existing Account Number plus one Alternative Account Number per row. No real numbers were inferred or backfilled; all aliases remain blank after DEV tests.
 - Confirm the intended current agent deployment and email transport, adapt the existing guards/durable journals, and add synthetic tests for mapped/disabled/ambiguous borrowers, ordinary chat, date boundaries, both account identifiers, masked collisions, duplicate delivery, and zero financial writes.
 - Verify webhook capture and an owner-scoped email acceptance example before reporting the end-to-end feature active. Failed/old/duplicate receipts must not be described as successful received payments; finalize exception presentation during agent implementation.

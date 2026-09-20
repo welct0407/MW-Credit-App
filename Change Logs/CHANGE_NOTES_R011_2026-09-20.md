@@ -1,5 +1,15 @@
 # R011 — Borrower collection notes, localization and receiving-account aliases
 
+## Production closure — 21 September 2026
+
+Status: **Released**. The owner directed that the reserved R012 Cash Ledger Recent refinement be merged into R011 and explicitly authorized R011 production promotion. R012 was never promoted separately and its number is retired. The complete release therefore includes the original borrower note/form/localization scope, optional cash-account alternative number, and the enriched OLAP Cash Position / Cash Ledger Recent table with movement date, 24-hour time, resolved borrower/payer and operational references.
+
+Production finished at PostgreSQL Flyway **V29**, OLTP **3.000240** and OLAP **1.100189**, with the original PROD app UUIDs/internal names retained. Both apps are Deployed and editor-clear; all 16 OLTP and 19 OLAP SQL objects remain on `database-2`. Representative PROD entry points loaded, including Cash Position with borrower/time detail and the bilingual borrower form. No production financial test write, notification or forced scheduled run was performed.
+
+The final frozen candidates are OLTP RC3 `ba1c0e84-fba3-435c-8b4b-68653e34dea5` / `MW-OLTP-R011-RC3-578763613` 1.000005 and OLAP RC3 `2aa8074e-7376-44a7-a46a-e1c597618f4b` / `MW-OLAP-R011-RC3-578763613` 1.000005. They are retained Deployed as recovery evidence, while their canonical guards exclude RC execution. RC1 was rejected before use because default copy-data options remained selected. RC2 was definition-only and fully validated, but the first OLAP upgrade revealed that App Upgrade copied its temporary display name; dependent work stopped, no OLTP upgrade occurred, and corrected definition-only RC3 apps restored exact PROD display names through normal App Upgrade. No manual PROD patch was used.
+
+Immediately before migration, PROD was V27 / OLTP 3.000237 / OLAP 1.100183. The private pre-release dump and SHA256 are recorded in the [production report](../outputs/r011-20260920/production/REPORT.md); restore catalogue/schema comparison and migration rehearsal passed. The additive nullable V28/V29 columns should normally remain if an app is rolled back to those pre-upgrade versions. Database restore requires review of all later writes. See the [completed checklist](../outputs/r011-20260920/promotion-checklist.md), [release manifest](../outputs/r011-20260920/release-manifest.json), [source mapping](../outputs/r011-20260920/production/source-mapping-validation.json) and [Cash Ledger evidence](../outputs/r011-20260920/cash-ledger-recent/test-results.md).
+
 ## Cash account prerequisite extension — 21 September 2026
 
 Owner requested Instagram webhook receipt processing, restricted to enabled mapped borrowers, today/yesterday receipt dates, duplicate checks and defined recipient accounts, with Partner email summaries in each Partner's preferred language and no payment creation. Owner explicitly requested the account-number prerequisite in DEV under R011, then owner production promotion before agent development continues. This extends the original scope below; it does not activate AI Collection.
@@ -8,7 +18,7 @@ Implemented immutable V29 adding Cash Accounts.Alternative Account Number (nulla
 
 Starting Git `43fad6e3ddd3f45fa905037fb23747643048722a`, clean tree. Fresh rollback: OLTP 1.000060 / OLAP 1.000019 and private verified DEV dump documented in [alias tests](../outputs/r011-20260920/account-alias/test-results.md). Final saved DEV OLTP **1.000062**, OLAP **1.000021**, SQL **V29**, both editors show no issues. Isolated migration/SQL tests, OLAP synthetic save/clear with SQL readback, OLTP account selector and dependent-view reads passed. All alternative identifiers remain blank; no real receiving identifiers inferred. Updated dictionary Dev Differences A2874:E2876, overview, tracker, environment/open-difference records and this release package.
 
-Status: account prerequisite DEV complete; owner acceptance/production pending. Current OLAP includes R012, which must be reconciled into the promotion batch before whole-definition App Upgrade. Live OLTP pre-edit 1.000060 was ahead of the inventory 1.000059; preserve/reconcile its prior delta. The [receipt continuation](../outputs/r011-20260920/account-alias/receipt-continuation.md) retains the requested scope and source references. Agent code/runtime unchanged, email delivery not yet implemented or tested. Retain V29 when restoring pre-alias app versions; restoring the database requires later-write review.
+Historical DEV checkpoint: the account prerequisite was complete and the integrated Cash Ledger work had not yet been assigned to the final batch. The production closure above supersedes that readiness status. Live OLTP pre-edit 1.000060 was ahead of the inventory 1.000059 and was preserved in the integrated candidate. The [receipt continuation](../outputs/r011-20260920/account-alias/receipt-continuation.md) retains the future agent scope and source references. Agent code/runtime remains unchanged; email delivery is not implemented or tested. Retain V29 when restoring pre-alias app versions; restoring the database requires later-write review.
 
 ## Scope and authority — 20 September 2026
 
@@ -25,7 +35,7 @@ The note is a persistent, optional borrower-level operational text field, editab
 
 ## Implementation and dependency review
 
-- Reserved and published R011; next number R012. DEV database identity verified as instance `appsheet-pg-prod-20260914`, host `34.21.174.215`, database `loan_manager_dev`.
+- Reserved and published R011; R012 was later reserved, merged into R011 by owner direction and retired. DEV database identity verified as instance `appsheet-pg-prod-20260914`, host `34.21.174.215`, database `loan_manager_dev`.
 - Immutable SQL V28 adds `Borrowers.Borrower Note`, nullable text without a default/backfill. Existing keys, constraints, permissions and triggers unchanged. Existing borrower triggers normalize blank referrers and recalculate rollups; quick payment posting is guarded by its Payment Request Token update path. Note-only SQL and GUI tests passed.
 - OLTP Borrowers regenerated from 47 to 48 AppSheet columns. Borrower Note: LongText, shown, editable, optional, no formula/initial value; display name `"บันทึกผู้กู้ / Borrower Note"`.
 - Borrowers.Description: Required TRUE, retaining Text and changing its display name from `"English Name"` to `"ชื่อภาษาอังกฤษ / English Name"`. No database NOT NULL constraint or invented missing names. All 31 DEV borrowers had nonblank names before and after testing.
@@ -45,8 +55,8 @@ Dictionary Dev Differences rows 2857–2870 preserve production reference and al
 
 Repository artifacts changed for this refinement: `Documents/AppSheet_Data_Dictionary.xlsx`; the R011 tracker/inventory/development/overview/log/manifest/checklist/test records; `outputs/r011-20260920/localization/verification.json`; workbook renders and checks under `outputs/r011-20260920/dictionary-localization/`; and the guarded reusable builder `scripts/releases/update-r011-localization-dictionary.mjs`.
 
-Status: DEV complete; ready for owner review. Owner acceptance, RC preparation and production authorization/deployment remain pending. No production writes or notifications performed.
+Historical DEV checkpoint: implementation was ready for owner review and no production writes or notifications had been performed. The production closure above supersedes this status.
 
 The prior DEV implementation checkpoint is `2856dd06e79d1974e94984055c6e9df710c27c05`; this localization refinement and its evidence are published in the later repository commit reported at task completion. SQL is unchanged: `New-Release.ps1` validated clean DEV and pinned all 28 migration hashes at `59ea9d95d499d9d59f45733c5fc9c2f60a9c6e36`; [sanitized runner manifest](../outputs/r011-20260920/flyway-manifest.json) and private runner path/hash are linked from the release manifest. No R011 production tag is created before release closure.
 
-21 September account-alias publication: tested implementation commit d8642d06d6bd39f0f168282b990bbc79721af3f6; New-Release.ps1 validated DEV and pinned all 29 migration hashes. [Updated Flyway pin](../outputs/r011-20260920/account-alias/flyway-manifest.json). Production remains pending owner promotion.
+21 September account-alias publication: tested implementation commit d8642d06d6bd39f0f168282b990bbc79721af3f6; New-Release.ps1 validated DEV and pinned all 29 migration hashes. [Updated Flyway pin](../outputs/r011-20260920/account-alias/flyway-manifest.json). This was the package subsequently promoted as recorded above.
