@@ -10,7 +10,7 @@ from .instagram import Instagram
 from .receipt_image import download,extract
 from .receipt_journal import ReceiptJournal
 from .receipt_master import masters
-from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,validate_receipt
+from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,validate_receipt,username
 
 
 def controls(config_path,catalogue_path):
@@ -24,16 +24,50 @@ def controls(config_path,catalogue_path):
     return config
 
 
-def profile(config,sender):
-    value=Instagram(config).request(sender,{'fields':'id,username'})
-    if str(value.get('id'))!=sender:
-        raise ReceiptInvalid('IG_PROFILE_ID_MISMATCH')
-    return value
+def conversation_identity(config,sender,api=None):
+    """Bind signed sender ID to the account's conversation participant; no profile consent call."""
+    sender=str(sender)
+    if not sender.isdigit() or sender==str(config['instagram_account_id']):
+        raise ReceiptInvalid('IG_SENDER_INVALID')
+    api=api or Instagram(config)
+    bindings=set();seen=set();after=None
+    for _ in range(100):
+        query={'platform':'instagram','fields':'id,participants','limit':100}
+        if after:
+            query['after']=after
+        page=api.request(config['instagram_account_id']+'/conversations',query)
+        if not isinstance(page.get('data'),list):
+            raise ConfigurationError('IG_CONVERSATION_DIRECTORY_UNAVAILABLE')
+        for conversation in page['data']:
+            peers=conversation.get('participants',{})
+            if peers.get('paging',{}).get('next') or not isinstance(peers.get('data'),list):
+                raise ConfigurationError('IG_PARTICIPANTS_INCOMPLETE')
+            for peer in peers['data']:
+                identifier=str(peer.get('id') or '')
+                name=username(peer.get('username'))
+                if identifier.isdigit() and name:
+                    bindings.add((identifier,name))
+        paging=page.get('paging',{})
+        if not paging.get('next'):
+            break
+        after=paging.get('cursors',{}).get('after')
+        if not after or after in seen:
+            raise ConfigurationError('IG_CONVERSATION_PAGINATION_INCOMPLETE')
+        seen.add(after)
+    else:
+        raise ConfigurationError('IG_CONVERSATION_PAGINATION_LIMIT')
+    names={name for identifier,name in bindings if identifier==sender}
+    if len(names)!=1:
+        raise ReceiptInvalid('IG_CONVERSATION_IDENTITY_AMBIGUOUS')
+    name=names.pop()
+    if {identifier for identifier,n in bindings if n==name}!={sender}:
+        raise ReceiptInvalid('IG_CONVERSATION_IDENTITY_AMBIGUOUS')
+    return {'id':sender,'username':name}
 
 
-def process(job,journal,config,master,fetch=download,extractor=extract,profile_reader=profile):
+def process(job,journal,config,master,fetch=download,extractor=extract,identity_reader=conversation_identity):
     try:
-        borrower=borrower_for(profile_reader(config,job['sender_id']),master['borrowers'])
+        borrower=borrower_for(identity_reader(config,job['sender_id']),master['borrowers'])
         if job['image'] is None:
             data,digest=fetch(job['url'])
             journal.image(job['id'],data,digest)
@@ -54,10 +88,10 @@ def process(job,journal,config,master,fetch=download,extractor=extract,profile_r
         journal.retry(job['id'],job['attempts']+1,'RECEIPT_PROCESSING_UNAVAILABLE')
 
 
-def dispatch(email,journal,config,master,sender=None,profile_reader=profile):
+def dispatch(email,journal,config,master,sender=None,identity_reader=conversation_identity):
     try:
         result=json.loads(email['result']); destination=json.loads(email['payload'])
-        borrower=borrower_for(profile_reader(config,email['sender_id']),master['borrowers'])
+        borrower=borrower_for(identity_reader(config,email['sender_id']),master['borrowers'])
         if borrower['id']!=result['borrower']['id']:
             raise ReceiptInvalid('BORROWER_MAPPING_CHANGED')
         current={p['email']:p for p in recipients(master['partners'])}.get(destination['email'])

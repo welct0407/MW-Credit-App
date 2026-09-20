@@ -131,7 +131,7 @@ class ReceiptJournalTests(unittest.TestCase):
     def process(self,job=None,m=None,r=None):
         process(job or self.j.pending()[0],self.j,{},m or master(),
                 fetch=lambda _: (b'image',hashlib.sha256(b'image').hexdigest()),
-                extractor=lambda *_:r or receipt(),profile_reader=profile)
+                extractor=lambda *_:r or receipt(),identity_reader=profile)
 
     def test_no_replay_cutoff_and_nonimage(self):
         import time
@@ -149,7 +149,7 @@ class ReceiptJournalTests(unittest.TestCase):
         self.assertEqual(self.j.db.execute("SELECT count(*) FROM receipt_jobs WHERE status='DUPLICATE'").fetchone()[0],1)
         self.add('m3')
         process(self.j.pending()[0],self.j,{},master(),fetch=lambda _: (b'other','different'),
-                extractor=lambda *_:receipt(),profile_reader=profile)
+                extractor=lambda *_:receipt(),identity_reader=profile)
         self.assertEqual(len(self.j.emails()),1)
 
     def test_existing_payment_reference_and_disabled_borrower(self):
@@ -157,14 +157,14 @@ class ReceiptJournalTests(unittest.TestCase):
         self.process(m=m);self.assertEqual(self.j.emails(),[])
         self.add('m2');m=master();m['borrowers'][0]['enabled']=False
         def forbidden(_): raise AssertionError('must not download')
-        process(self.j.pending()[0],self.j,{},m,fetch=forbidden,profile_reader=profile)
+        process(self.j.pending()[0],self.j,{},m,fetch=forbidden,identity_reader=profile)
         self.assertEqual(self.j.emails(),[])
 
     def test_unknown_outcome_survives_restart_no_retry(self):
         self.add();self.process();email=self.j.emails()[0]
         class Unknown:
             def send(self,*_): raise EmailUnknown('uncertain')
-        dispatch(email,self.j,{},master(),sender=Unknown(),profile_reader=profile)
+        dispatch(email,self.j,{},master(),sender=Unknown(),identity_reader=profile)
         self.j.close();self.j=ReceiptJournal(self.root/'receipt.db')
         self.assertEqual(self.j.emails(),[])
         self.assertEqual(self.j.db.execute('SELECT status FROM receipt_emails').fetchone()[0],'UNKNOWN')
@@ -174,8 +174,8 @@ class ReceiptJournalTests(unittest.TestCase):
         sent=[]
         class Sender:
             def send(self,*args): sent.append(args)
-        dispatch(email,self.j,{},master(),sender=Sender(),profile_reader=profile)
-        dispatch(email,self.j,{},master(),sender=Sender(),profile_reader=profile)
+        dispatch(email,self.j,{},master(),sender=Sender(),identity_reader=profile)
+        dispatch(email,self.j,{},master(),sender=Sender(),identity_reader=profile)
         self.assertEqual(len(sent),1)
         self.assertEqual(sent[0][0],'partner@example.com')
         self.assertIn('No payment record has been created',sent[0][2])
@@ -192,7 +192,7 @@ class ReceiptJournalTests(unittest.TestCase):
             self.j.finish_email(email['id'],'REJECTED')
             self.j.db.execute('UPDATE receipt_emails SET retry_after=0');self.j.db.commit()
             due=self.j.emails()
-            if due: dispatch(due[0],self.j,{},master(),sender=Reject(),profile_reader=profile)
+            if due: dispatch(due[0],self.j,{},master(),sender=Reject(),identity_reader=profile)
         self.assertEqual(self.j.emails(),[])
 
     def test_changed_partner_or_revoked_borrower_blocks_send(self):
@@ -201,13 +201,13 @@ class ReceiptJournalTests(unittest.TestCase):
                 self.add(field)
                 r=receipt();r['reference']+=field.upper()
                 process(self.j.pending()[0],self.j,{},master(),fetch=lambda _: (field.encode(),field),
-                    extractor=lambda *_:r,profile_reader=profile)
+                    extractor=lambda *_:r,identity_reader=profile)
                 m=master()
                 if field=='partner': m['partners'][0]['email']='changed@example.com'
                 else: m['borrowers'][0]['enabled']=False
                 class Never:
                     def send(self,*_): raise AssertionError('unauthorized mail')
-                dispatch(self.j.emails()[0],self.j,{},m,sender=Never(),profile_reader=profile)
+                dispatch(self.j.emails()[0],self.j,{},m,sender=Never(),identity_reader=profile)
                 self.assertEqual(self.j.emails(),[])
 
     def test_ingress_additive_migration_and_attachment_capture(self):

@@ -34,3 +34,9 @@ No production schema changes, Payments creation, loan allocation or accounting a
 ## Rollback
 
 Verified private rollback snapshot: `/var/lib/mw-integration-agent/rollback/receipts-20260920T194819Z`. It contains live config/catalogue, installed package and root state SQLite online backups; integrity checks passed. It preserves and resumes daily statement timers. New receipt scope can be disabled independently; never rewind receipt/email journals over provider effects. The ingress addition requires keeping its explicit-column INSERT patch when rolling back the old package. No financial database rollback is needed.
+
+## Conversation identity refinement — 21 September 2026
+
+Owner instructed using the existing IG identity in the conversation/group and Borrower master, removing the separate profile-consent requirement. Schema inspection confirmed Borrowers has Instagram Username, not a numeric IG ID column. The receipt path now matches signed sender ID to the conversation participant ID and its username to the unique AI-enabled borrower. It rechecks this binding before email dispatch. No new schema, profile request, or change to statement routing.
+
+Starting clean Git commit: 5bb3739821291543bcf38b0359e03933cdb4492d. Added tests for successful mapping without profile permission, pagination/repeated group members, missing/conflicting bindings and incomplete participant directories. Existing receipt validation, masked-account policy and email rules remain in force. Live backup, deployment and Noey retest results are recorded below after verification; retain the original activation cutoff and journals, with no historical replay or test email.
