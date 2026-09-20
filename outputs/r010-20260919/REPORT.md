@@ -1,5 +1,9 @@
 # R010 DEV report — Payment validation and Cash Account Statement
 
+## Production release — 20 September 2026
+
+**Released.** PROD SQL is V27. Production OLTP was App Upgraded from frozen PROD-mapped RC2 1.000004 and is now 3.000235, Deployed and editor-clear. Production OLAP was unchanged by R010 and remains Deployed/editor-clear at owner-saved 1.100183. Cash Statement loaded and exposed all four production accounts without a financial write. Full cutover, validation and recovery evidence: [production report](production/REPORT.md), [source mapping](production/source-mapping-validation.json) and [promotion checklist](promotion-checklist.md).
+
 20 September follow-up: all five DEV accounts now have zero opening amounts and reconciled zero current balances after explicitly approved holder adjustments. Numeric statement balances passed current-GUI verification. See [initialization evidence](cash-statement/ZERO_INITIALIZATION.md). Historical balances are retained/calculated; the DEV data operation is excluded from PROD promotion.
 
 **Ready for owner review.** Current DEV OLTP **1.000052**, SQL **V27**; both DEV editors have zero issues. The owner-confirmed OLTP 1.000038 manual baseline was preserved. Current companion OLAP **1.000017** was not edited by this feature; reconcile its owner scope before RC capture. PROD remains R009 / SQL V26.

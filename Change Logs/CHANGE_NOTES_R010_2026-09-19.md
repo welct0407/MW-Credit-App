@@ -1,12 +1,22 @@
 # R010 — OLTP payment validation and Cash Account Statement
 
+## Production release — 20 September 2026
+
+**Released.** The owner explicitly authorized moving R010 to production. A verified private logical backup and restore rehearsal preceded Flyway V27 promotion from clean tested commit `5fa0b3dd2bbb00a600f3e12364d634814a65b321`; migrate/validate and targeted read-only statement reconciliation passed. No DEV fixture, production opening balance, payment or notification was written.
+
+Frozen PROD-mapped **MW-OLTP-R010-RC2-578763613** (`4bb85573-773f-4495-9f69-6207697addea`) passed complete source mapping, theme/link/guard checks, zero editor issues, initial deployment check and runtime load at **1.000004**. App Upgrade moved production OLTP from **3.000232** to upgrade version 3.000234 and final consistency-check version **3.000235**. The intervening 3.000232 owner save was configuration-identical to 3.000231 across the complete normalized application documentation. Production OLAP was unchanged by R010 and preserved at owner-saved **1.100183**.
+
+Production OLTP is Deployed and editor-clear; all 16 SQL sources use `database-2`, the PROD theme/link and canonical scheduled guard are correct, and Cash Statement opens with all four production account choices. Production OLAP is Deployed, editor-clear and loads. Validation made no financial write and forced no notification. Actual Thai second-user and physical-device testing remain the recorded limitations.
+
+Rollback restores OLTP 3.000232 while retaining compatible additive V27. Database disaster recovery uses the verified private pre-migration dump and requires reconciliation of later production writes. Frozen RC2 and unused contained RC1 are retained; deletion was not authorized. Exact versions, hashes, mapping and checks: [production report](../outputs/r010-20260919/production/REPORT.md), [manifest](../outputs/r010-20260919/release-manifest.json), [checklist](../outputs/r010-20260919/promotion-checklist.md).
+
 ## DEV account initialization — 20 September 2026
 
 Completed the owner's request to initialize all five DEV accounts at zero, after explicit approval of the necessary Dad 19,828 and Lisa 26,234 Manual Correction outflows. Existing financial history is preserved; all five opening and current balances were zero at completion. Earlier daily balances now calculate from retained history. PROD is untouched; this DEV data operation must not be promoted.
 
 Starting Git `498331854ceb4c01823dcf9f769ebefc57062a62`. A fresh private backup was restored, schema-compared and the atomic operation rehearsed before live execution. Transaction assertions, post-commit SQL reconciliation and current-GUI numeric statement balances passed. Exact backup hash, recovery procedure and checks: [initialization evidence](../outputs/r010-20260919/cash-statement/ZERO_INITIALIZATION.md).
 
-Changed files: maintained DEV initialization SQL/PowerShell runner, parameterized R010 backup rehearsal runner, this log, initialization evidence, environment inventory, development differences, report and promotion checklist. No schema or app configuration change; no new migration or dictionary update is needed. Existing V27 hashes and app versions remain applicable. This supersedes the earlier uninitialized-DEV limitation below; broader owner acceptance and promotion remain pending.
+Changed files: maintained DEV initialization SQL/PowerShell runner, parameterized R010 backup rehearsal runner, this log, initialization evidence, environment inventory, development differences, report and promotion checklist. No schema or app configuration change; no new migration or dictionary update is needed. Existing V27 hashes and app versions remain applicable. This superseded the earlier uninitialized-DEV limitation below. Owner acceptance and production promotion were pending at this checkpoint and were completed in the production release recorded above.
 
 ## Cash Statement extension — 20 September 2026
 
@@ -64,6 +74,6 @@ AppSheet rollback restores DEV OLTP version 1.000033 if needed. Repository rollb
 
 20 September documentation adoption: continue the [single filled Markdown checklist](../outputs/r010-20260919/promotion-checklist.md) for remaining promotion and document closure. Existing DEV evidence is linked/reused; no live checks, acceptance or production authorization were added by this update.
 
-Cash Statement publication checkpoint: implementation commit df2079cafad1b103178588d8fd60d0c6dba91646; clean New-Release validate/info passed and all 27 migration hashes are pinned in outputs/r010-20260919/cash-statement/flyway-release.json. No subsequent SQL change. Final documentation publication uses the current branch upstream; R010 production tag remains pending.
+Cash Statement publication checkpoint: implementation commit df2079cafad1b103178588d8fd60d0c6dba91646; clean New-Release validate/info passed and all 27 migration hashes are pinned in outputs/r010-20260919/cash-statement/flyway-release.json. No subsequent SQL change. The final production release used clean commit 5fa0b3dd2bbb00a600f3e12364d634814a65b321 and is published under tag R010.
 
 The pinned runner manifest has a scoped `-text` Git attribute so its recorded SHA-256 survives Windows/Linux checkout unchanged. Published blob bytes were compared with the tested private manifest; no migration was modified.

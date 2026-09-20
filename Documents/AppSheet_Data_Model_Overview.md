@@ -49,9 +49,9 @@ Partners.Login Email uniquely identifies sign-in after normalized matching; Part
 
 Native borrower Refs provide detail navigation in Loans, Charges and Repayments. Receive All remains inline in Collection and excluded from Detail views. Loan Key labels may reflect the current effective rate. Environment-specific delivery, links and colors follow AGENTS, not duplicated formulas here.
 
-## Open DEV behavior
+## Current R010 behavior
 
-R010 adds bilingual form validation for required receipt inputs, appended correction reasons and ineligible quick commands. PROD remains R009. Exact unpromoted expressions and test/approval status are in the dictionary and [R010 record](../outputs/r010-20260919/REPORT.md); do not relabel them production.
+R010 adds bilingual form validation for required receipt inputs, appended correction reasons and ineligible quick commands. It was promoted to PROD OLTP 3.000235 with SQL V27 on 20 September 2026. Exact expressions and release evidence are in the dictionary and [R010 production record](../outputs/r010-20260919/production/REPORT.md).
 
 R010 also adds an OLTP Cash Statement dashboard for the latest 15 Bangkok dates. SQL V27 expands Cash Ledger into account-side effects, computes running balances over all history before limiting recent rows, and supplies daily summaries including zero-movement dates. Initialized balances use the governed opening-minus-captured-baseline contract; unknown balances remain NULL. Source tables enrich labels/Refs only. Full history and cash administration remain in OLAP.
 

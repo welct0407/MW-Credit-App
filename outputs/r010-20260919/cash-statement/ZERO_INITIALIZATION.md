@@ -19,4 +19,4 @@ Two traceable Manual Correction outflows reduced Dad by 19,828 and Lisa by 26,23
 - Current DEV OLTP GUI synced successfully. DEV Lisa Account 2 on 18 September displayed row balances 90, -10 and 0, with opening 190, in 10, out 200 and closing 0. Selecting 20 September displayed opening/in/out/closing all zero and no transactions.
 - No app configuration, schema, financial source records or notification routes changed. SQL remains V27; existing app versions and migration hashes remain applicable. Model dictionary update is unnecessary for operational data alone.
 
-This DEV fixture change is excluded from production promotion. Existing broader R010 acceptance and promotion requirements remain pending.
+This DEV fixture change was excluded from production promotion. The broader R010 release was subsequently completed; see [production evidence](../production/REPORT.md).
