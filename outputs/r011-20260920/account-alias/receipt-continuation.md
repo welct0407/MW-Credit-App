@@ -2,6 +2,12 @@
 
 Owner request: 21 September 2026. Implement the account-number prerequisite in DEV under R011; owner will promote, then agent development resumes. Delivery choice explicitly confirmed: Partners.Email and Partners.Language Preference.
 
+## Agent implementation status — 21 September 2026
+
+The owner confirmed production promotion and populated aliases. Receipt summaries are now implemented and activated in **C:/GitHub/MW-Integration-Agent**, the current Linux webhook owner; the retired MW AI Collection runtime remains a reference only. Runtime evidence is owned by that repository's `Change Logs/CHANGE_NOTES_RECEIPT_SUMMARIES_2026-09-21.md` and `docs/RECEIPTS.md`, published at `5bb3739821291543bcf38b0359e03933cdb4492d`.
+
+The dedicated summary timer is active with cutoff 2026-09-21 02:50:41 Bangkok. All 42 Linux tests, actual synthetic image extraction under service restrictions, signed ingress/deduplication and historical-cutoff checks passed. Partner Email/Language Preference routing is implemented; no payment creation or borrower reply. Invalid receipts are held locally for review. The first authentic eligible borrower receipt and actual delivered Partner summary remain to be observed. No further AppSheet/schema changes or R011 reopening are required.
+
 ## Agreed behavior to implement
 
 1. Capture authenticated incoming Instagram webhook events durably. Treat duplicates/retries as the same event and do not replay historical messages on activation.
@@ -17,7 +23,7 @@ Canonical legacy project: C:/GitHub/MW-AI-Collection. Read AGENTS.md, SERVICE_CA
 
 The legacy receipt engine can auto-post and uses a configured/sent receiving-account snapshot. Its policy also classifies disabled/unmapped attachments for reviewer alerts. Those legacy behaviors do not establish the requested summary-only scope: implement explicit guards and update both catalogue files as applicable before activation. Existing reviewer Instagram delivery is not the requested Partner email channel. No legacy service was started, no runtime configuration changed, and no historical receipt was replayed during this prerequisite task.
 
-## Next steps
+## Prerequisite handoff (historical; status above supersedes)
 
 - R011 promotion is complete: PROD V29 / OLTP 3.000240 / OLAP 1.100189. The integrated Cash Ledger scope was merged into R011 and R012 retired. Reuse the completed R011 evidence; do not reopen a separate R012 release.
 - Populate the real receiving identifiers through Cash Accounts: existing Account Number plus one Alternative Account Number per row. No real numbers were inferred or backfilled; all aliases remain blank after DEV tests.
