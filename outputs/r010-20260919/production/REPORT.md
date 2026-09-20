@@ -35,11 +35,11 @@ Immediately before App Upgrade, production OLTP was 3.000232 and RC2 was 1.00000
 - The production app loaded and synced. Cash Statement opened from the menu with Controls, Transactions and Daily summary panels. The account selector exposed Lisa, Dad SCB, Dad TTB and Dad เงินสดในมือ. No account was selected and no row was edited.
 - Production OLAP remained Deployed at owner-saved version 1.100183, loaded successfully and had zero editor issues. R010 made no OLAP definition change.
 
-## Recovery and retained candidate
+## Recovery and candidate retirement
 
 App rollback restores OLTP 3.000232. Additive V27 remains compatible with the prior app; removing it requires a reviewed higher migration. Database disaster recovery uses the verified private pre-migration dump and requires a write freeze plus reconciliation of later production writes.
 
-RC2 is retained as the frozen release and recovery evidence with its canonical guard blocking scheduled business work. RC1 is retained as an unused contained draft. Neither RC was deleted or modified after freeze.
+The release initially retained frozen RC2 and unused contained RC1. After release closure, the owner authorized their retirement. RC2 `4bb85573-773f-4495-9f69-6207697addea` and RC1 `d13b66da-d0eb-43ac-bc45-55b335400451` were deleted from My Apps on 20 September 2026. The remaining app list showed production OLTP, DEV OLTP, production OLAP and DEV OLAP; none was deleted or modified by the cleanup. The manifest, mapping, checklist and this report remain the immutable release evidence; the deleted RC IDs are no longer live recovery sources.
 
 Actual Thai second-user and physical-device testing remain the recorded limitations. Existing R010 DEV behavioral tests were reused because the definition and dependencies were frozen. Production validation was intentionally read-only and did not force a notification or financial write.
 

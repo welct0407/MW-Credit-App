@@ -8,7 +8,11 @@ Frozen PROD-mapped **MW-OLTP-R010-RC2-578763613** (`4bb85573-773f-4495-9f69-6207
 
 Production OLTP is Deployed and editor-clear; all 16 SQL sources use `database-2`, the PROD theme/link and canonical scheduled guard are correct, and Cash Statement opens with all four production account choices. Production OLAP is Deployed, editor-clear and loads. Validation made no financial write and forced no notification. Actual Thai second-user and physical-device testing remain the recorded limitations.
 
-Rollback restores OLTP 3.000232 while retaining compatible additive V27. Database disaster recovery uses the verified private pre-migration dump and requires reconciliation of later production writes. Frozen RC2 and unused contained RC1 are retained; deletion was not authorized. Exact versions, hashes, mapping and checks: [production report](../outputs/r010-20260919/production/REPORT.md), [manifest](../outputs/r010-20260919/release-manifest.json), [checklist](../outputs/r010-20260919/promotion-checklist.md).
+Rollback restores OLTP 3.000232 while retaining compatible additive V27. Database disaster recovery uses the verified private pre-migration dump and requires reconciliation of later production writes. Exact versions, hashes, mapping and checks: [production report](../outputs/r010-20260919/production/REPORT.md), [manifest](../outputs/r010-20260919/release-manifest.json), [checklist](../outputs/r010-20260919/promotion-checklist.md).
+
+## RC retirement — 20 September 2026
+
+After release closure, the owner explicitly authorized cleanup of the R010 candidates. Unused RC1 **MW-OLTP-R010-RC1-578763613** (`d13b66da-d0eb-43ac-bc45-55b335400451`) and frozen promotion source RC2 **MW-OLTP-R010-RC2-578763613** (`4bb85573-773f-4495-9f69-6207697addea`, 1.000004) were deleted from AppSheet My Apps. The remaining list showed production OLTP, DEV OLTP, production OLAP and DEV OLAP. No production or DEV app was modified. Release reports, mappings and version records remain the recovery evidence; the retired IDs are not live rollback sources.
 
 ## DEV account initialization — 20 September 2026
 

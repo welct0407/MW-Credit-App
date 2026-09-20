@@ -22,7 +22,7 @@ All four canonical apps are recorded Deployed. Internal names:
 
 Companion links join the corresponding pair. DEV uses owner-only Partner delivery data and distinct login identities. Scheduled guards allow only the canonical DEV/PROD name of the corresponding role. See [policy](../AGENTS.md#2-architecture-and-ownership) and [guard procedure](Release_Workflow.md#scheduled-bot-execution-guard); these details are not a new delivery/execution test.
 
-R010 frozen OLTP RC2 is `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697addea`), Deployed at 1.000004 with its scheduled guard excluding the RC name. Unused RC1 remains a contained draft because deletion was not authorized. R009 RCs were deleted after owner-approved retirement. The historical Money AppSheet database is not a write target. Superseded DEV/backup IDs are not recovery targets.
+R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697addea`, frozen at 1.000004) and unused RC1 `MW-OLTP-R010-RC1-578763613` (`d13b66da-d0eb-43ac-bc45-55b335400451`) were deleted on 20 September 2026 after owner-approved post-release retirement. They are retained only in release evidence and are not live recovery sources. R009 RCs were also deleted after owner-approved retirement. The historical Money AppSheet database is not a write target. Superseded DEV/backup IDs are not recovery targets.
 
 ## Cloud SQL
 

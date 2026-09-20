@@ -46,9 +46,10 @@
         "internalName": "MW-OLTP-R010-RC2-578763613",
         "number": 2,
         "version": "1.000004",
-        "state": "frozen-retained",
+        "state": "deleted-after-release",
         "createdAt": "2026-09-20",
         "frozenAt": "2026-09-20",
+        "retiredAt": "2026-09-20",
         "mode": "Deployed",
         "containmentEvidence": "outputs/r010-20260919/production/REPORT.md",
         "sourceEligibilityEvidence": "outputs/r010-20260919/production/source-mapping-validation.json"
@@ -163,7 +164,7 @@
   "rollback": {
     "databaseStrategy": "Keep additive V27 with restored old app; reviewed higher migration for removal; verified DEV backup evidence retained",
     "planReference": "Change Logs/CHANGE_NOTES_R010_2026-09-19.md#baseline-and-rollback",
-    "rcRetentionDecision": "Retain frozen RC2 as release/recovery evidence; retain unused contained RC1 draft; no deletion authorized",
+    "rcRetentionDecision": "Owner-authorized post-release retirement completed 2026-09-20: frozen RC2 4bb85573-773f-4495-9f69-6207697addea and unused RC1 d13b66da-d0eb-43ac-bc45-55b335400451 deleted; historical release evidence retained",
     "cashStatementDevAppVersion": "1.000038"
   },
   "timestamps": {
