@@ -9,7 +9,7 @@ Provisioned and prepared the Debian 13 host for the Linux integration-agent foun
 - Created Compute Engine VM `vm-mw-credit-agent` in project `clever-oasis-508610-n7`, zone `asia-southeast1-a`, using `e2-medium`, Debian 13, and a 10 GB balanced persistent boot disk.
 - Attached regional snapshot policy `default-schedule-1` to the boot disk and verified the disk reports the policy.
 - Retained Shielded VM vTPM and integrity monitoring; Secure Boot remains off.
-- Added a project-level `constraints/compute.vmExternalIpAccess` allowlist containing only this VM, following the owner's explicit request for an external IP, and attached ephemeral IPv4 `136.85.96.197`.
+- Added a project-level `constraints/compute.vmExternalIpAccess` allowlist containing only this VM, following the owner's explicit request for an external IP. Attached IPv4 `136.85.96.197`, then promoted it in place to static regional address resource `vm-mw-credit-agent-ip` after the owner's follow-up request.
 - Installed Debian prerequisites, Codex CLI 0.155.1, the dedicated non-login `mwagent` account, source under `/opt/mw-integration-agent-src`, and the application virtual environment under `/opt/mw-integration-agent`.
 - Installed the fail-closed example configuration and service catalogue under `/etc/mw-integration-agent`.
 - Installed but did not enable or start `mw-integration-agent-verify.service`; no runtime worker service exists.
@@ -19,7 +19,7 @@ Provisioned and prepared the Debian 13 host for the Linux integration-agent foun
 ## Rollback
 
 - Stop/delete the VM to remove compute usage; retain or delete its disk/snapshots according to the desired recovery outcome.
-- Remove the VM access configuration and delete the project-level external-IP policy override to return to the inherited deny-all policy.
+- Remove the VM access configuration, release static address resource `vm-mw-credit-agent-ip`, and delete the project-level external-IP policy override to return to the inherited deny-all policy. Release a detached address promptly to avoid unused-address charges.
 - On the retained VM, remove `/opt/mw-integration-agent`, `/opt/mw-integration-agent-src`, `/etc/mw-integration-agent`, `/var/lib/mw-integration-agent`, the `mwagent` account, and the disabled verification unit only after preserving any later approved state.
 - Repository changes can be reverted with a normal follow-up commit.
 
@@ -29,6 +29,7 @@ Provisioned and prepared the Debian 13 host for the Linux integration-agent foun
 - Boot disk reports snapshot resource policy `regions/asia-southeast1/resourcePolicies/default-schedule-1` and `READY` status.
 - IAP SSH login succeeded.
 - Direct outbound HTTPS succeeded after the external IP was attached; the temporary package proxy, reverse SSH tunnel, and VM APT proxy configuration were removed and verified closed.
+- Static address resource `vm-mw-credit-agent-ip` reports `136.85.96.197`, Premium tier, `IN_USE`, attached to `vm-mw-credit-agent`.
 - Repository commit `11c36b5c60d47f9d86361327fab305d9fb6842ee` was installed from a SHA-256-verified Git bundle.
 - Codex reports `codex-cli 0.155.1`.
 - Agent configuration validation reports `status=ok` and `activation=disabled`; runtime status reports `scaffold` and `disabled`.

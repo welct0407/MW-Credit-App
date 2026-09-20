@@ -12,7 +12,7 @@ Status: **installed foundation, inactive**. The VM, host prerequisites, Codex CL
 - Machine profile: E2 shared-core, 4 GB memory (`e2-medium`)
 - OS: Debian 13
 - Backups: regional Compute Engine snapshot policy `default-schedule-1`, attached and verified after VM creation
-- Network: ephemeral external IPv4 `136.85.96.197`, authorized only for this VM by project-level organization-policy override; SSH remains available through IAP
+- Network: static regional external IPv4 `136.85.96.197` (`vm-mw-credit-agent-ip`), authorized only for this VM by project-level organization-policy override; SSH remains available through IAP
 - Installed source: `/opt/mw-integration-agent-src`
 - Installed application: `/opt/mw-integration-agent`
 - Service account: `mwagent` with a non-login shell
