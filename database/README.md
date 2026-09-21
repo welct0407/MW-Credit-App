@@ -1,8 +1,8 @@
 # PostgreSQL development with Flyway
 
-## Current checkpoint — R013 released, 21 September 2026
+## Current checkpoint — R014 DEV complete, R013 in PROD, 21 September 2026
 
-DEV and PROD are **V30**. V30 changes only the new Payment ledger timestamp rule: inherit Payments.Created At, with current Bangkok time fallback when absent. No new columns or backfill. Production apps were not promoted and remain OLTP 3.000240 / OLAP 1.100189. The next migration must be V31 or higher. [R013 production verification](../outputs/r013-20260921/production/REPORT.md). DEV-only recipient data must not be copied to PROD.
+DEV is **V31**; PROD remains **V30**. V31 adds only the read-only Cash Dashboard view and FIFO current-month settlement helper, with no base tables/columns or posting changes. DEV OLTP 1.000070 / OLAP 1.000024 passed affected GUI checks and zero editor issues. The next migration must be V32 or higher. [R014 DEV verification](../outputs/r014-20260921/REPORT.md). V30 preserves source Payments.Created At in new Payment ledger entries; production apps remain OLTP 3.000240 / OLAP 1.100189. [R013 production verification](../outputs/r013-20260921/production/REPORT.md). DEV-only financial fixtures and recipient data must not be copied to PROD.
 
 ## Setup and initial adoption
 

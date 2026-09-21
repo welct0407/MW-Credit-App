@@ -6,12 +6,16 @@ There are no open R011/R012 product differences. The owner merged the reserved R
 
 There are no open R013 product differences. R013 promoted only PostgreSQL V30; production AppSheet definitions remain OLTP 3.000240 / OLAP 1.100189. Any future app change belongs to R014. Automatic receipt payment creation remains disabled. [R013 production report](../outputs/r013-20260921/production/REPORT.md).
 
+## R014 — open, DEV complete
+
+DEV V31 adds the read-only Cash Dashboard and oldest-month-first completed-settlement allocation. OLTP 1.000070 displays eight bilingual figures with green income, red expenses/withdrawals and blue balances, plus account-level cash grouped by owner. OLAP 1.000024 removes inline account creation from Cash Ledger and adds Set Amount alongside settle-all. Both editors are clear. Owner acceptance and production authorization are pending; no RC has been created. [Scope, tests and rollback](../outputs/r014-20260921/REPORT.md).
+
 ## Intentional environment differences
 
 - Separate DEV database and app identities, DEV themes and within-DEV companion links. DEV uses `loan_manager_dev` and PROD uses `loan_manager_prod` on the same Cloud SQL instance; see [Environment Inventory](Environment_Inventory.md).
 - DEV Partners.Email delivers only to the owner, while Login Email remains distinct. RC/PROD use PROD contacts with the shared actor-ID rule in [AGENTS §2](../AGENTS.md#2-architecture-and-ownership).
-- Synthetic DEV fixtures and the owner-approved five zero account openings remain DEV-only. See [DEV initialization evidence](../outputs/r010-20260919/cash-statement/ZERO_INITIALIZATION.md).
-- DEV and PROD may advance through owner saves independently. Current DEV is OLTP 1.000064 / OLAP 1.000021 while PROD is OLTP 3.000240 / OLAP 1.100189.
+- The former five-account zero-opening fixture was replaced by the owner-requested refresh. Current DEV has four initialized accounts. R014 retains one audited, cancelled synthetic settlement with no cash effect; DEV test records do not establish PROD balances.
+- DEV and PROD may advance through owner saves independently. Current DEV is OLTP 1.000070 / OLAP 1.000024 while PROD is OLTP 3.000240 / OLAP 1.100189.
 
 ## Closed differences
 
