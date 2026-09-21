@@ -30,6 +30,7 @@ No firewall rule, network resource, service account, or credential was created o
 - The inventory timestamp advanced to `2026-09-21T12:36:40Z`.
 - Metadata readback confirmed `enable-osconfig=TRUE` and `enable-guest-attributes=TRUE`; the temporary custom poll interval is absent.
 - Project feature-setting readback confirmed `patchAndConfigFeatureSet=OSCONFIG_C` after reconciliation was requested.
+- The OS Config inventory API began returning the complete Debian 13 system record. During a five-minute stability check, 11 of 15 requests returned the record while four reached stale replicas that still returned the earlier disabled-feature precondition. This confirms control-plane propagation rather than missing VM data.
 
 The earlier guest-attributes inventory is healthy. The later OS Config inventory API remained in its documented propagation window at the final immediate check, so the console can continue showing `Failed to load data` until the project control plane converges. Refresh the page after the propagation window; if the API still returns the precondition after two hours, escalate it as a Google Cloud control-plane fault rather than changing the VM again.
 
