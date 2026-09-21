@@ -84,3 +84,7 @@ The owner authorized the receiver, two-way transport foundation, daily cash stat
 ## Conversation polling
 
 The owner-authorized [API-only conversation reader](CONVERSATION_POLL.md) runs every five minutes for conversations containing AI-enabled borrowers. Browser automation is prohibited. History gaps fail without advancing the checkpoint; inspect mw-conversation-poll.service for errors. Financial writes remain disabled.
+
+## Partner receipt review
+
+See [Partner review](PARTNER_REVIEW.md). Scoped ordinary receipt execution requires a linked Partner approval; potential loan closes and overpayments remain manual-only. This supersedes earlier statements that all financial writes are unavailable. General commands and direct SQL writes remain disabled.

@@ -87,8 +87,12 @@ class NoticeJournal:
               WHERE id=? AND email_status IN ('PENDING','REJECTED') AND attempts<3 AND retry_after<=?""",(item['id'],time.time())).rowcount
         if not claimed:return
         try:
+            fallback_body=item['body']
+            if item['event_key'].startswith('review:'):
+                fallback_body+=('\nอีเมลนี้แจ้งข้อมูลเท่านั้น การตอบอีเมลไม่ใช่การอนุมัติ หากไม่มีข้อความคำขอใน Instagram ให้ดำเนินการเอง' if partner['language']=='ไทย' else
+                    '\nThis email is informational. Email replies cannot approve. If no Instagram request was delivered, handle the payment manually.')
             (mailer or GraphEmail(config)).send(partner['email'],item['subject'],
-                '<p>'+html.escape(item['body']).replace('\n','<br>')+'</p>',[],item['id'])
+                '<p>'+html.escape(fallback_body).replace('\n','<br>')+'</p>',[],item['id'])
         except EmailRejected:
             with self.db:self.db.execute("UPDATE partner_notices SET email_status='REJECTED',retry_after=? WHERE id=?",(time.time()+300,item['id']))
         except Exception:

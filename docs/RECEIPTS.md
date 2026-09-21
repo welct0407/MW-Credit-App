@@ -1,3 +1,7 @@
+# Current review behavior — 21 September 2026
+
+New validated receipts enter [Partner review](PARTNER_REVIEW.md). Ordinary payments require an exact linked approval; loan closures and overpayments are manual-only. This supersedes the earlier summary-only and pending-posting descriptions below, which describe the previous implementation. Shared extraction, receipt validation and duplicate checks remain applicable.
+
 # Incoming payment receipt summaries
 
 Owner scope, 21 September 2026: restore receipt handling using the retired MW AI Collection implementation as a reference. The owner promoted AppSheet R011 / PostgreSQL V29 and populated Cash Accounts Alternative Account Number before authorizing this implementation. Run on the current Linux webhook owner only. Do not start either retired Windows runtime.

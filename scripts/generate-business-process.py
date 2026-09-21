@@ -47,17 +47,17 @@ pages=[
  'Download bounded image; isolated Codex extracts facts',
  'Validate date, success, amount, transfer time, account aliases and duplicates',
  'Fresh Payments check: already recorded → stop; uncertain → review; otherwise queue notice'],
- 'Today/yesterday Bangkok only.\nActive receiving account; primary or alternative number.\nReference/image duplicate → stop.\nNonreceipt or disabled/unmapped borrower → ignore.\nInvalid receipt → REVIEW.\nCURRENT: summary only; no payment write or group reply.\nreceipt-prepare accepts borrower/date/message parameters and reuses the same extraction and rules.',
+ 'Today/yesterday Bangkok only.\nActive receiving account; primary or alternative number.\nReference/image duplicate → stop.\nNonreceipt or disabled/unmapped borrower → ignore.\nInvalid receipt → REVIEW.\nCURRENT: Partner review before ordinary posting; no group reply.\nreceipt-prepare accepts borrower/date/message parameters and reuses the same extraction and rules.',
  'receipt_run.py · receipt_rules.py · receipt_image.py · payment_match.py\nreceipt_master.py · receipt_journal.py · receipt_prepare.py'),
-('posting','Payment posting','PENDING',[
- 'Input: validated receipt from the shared workflow',
+('posting','Payment posting','LIVE',[
+ 'Input: ordinary payment approved through linked Partner reply',
  'Re-read borrower, loan, charges and existing payments',
- 'Resolve allocation; explicitly confirm loan closure when needed',
- 'TO IMPLEMENT: reserve one write intent; call OLTP API',
- 'TO IMPLEMENT: verify Posted payment, allocations, loan and ledger time',
+ 'Loan closure or overpayment → Partner manual handling only',
+ 'Reserve POSTING once; call PROD OLTP Payments Add',
+ 'Verify Posted payment, amount, account, receipt minute and repayments',
  'After verified posting only: send Payment processed notice'],
- 'Not implemented or enabled.\noperational_data_api remains disabled; writes_enabled=false.\nOwner authorized the real test and confirmed full repayment/loan close. It remains unposted.\nRequired: reusable posting/readback, exact receipt HH:mm, duplicate checks and unknown-write reconciliation.\nSuccess template exists; it cannot by itself establish that payment was posted.',
- 'receipt_prepare.py (implemented preparation)\npartner_notice.py (prepared success template; no posting caller)'),
+ 'Scoped review executor only; generic writes stay off.\nYes / Approve / Approved / อนุมัติ, case insensitive, via exact Instagram Reply.\nCurrent facts must match the reviewed proposal.\nExisting payment → stop.\nUncertain write → readback only, never repeat Add.\nNo automatic loan close or overpayment.\nNo group success messages.',
+ 'review_cycle.py · review_execution.py · payment_match.py\npartner_review.py · partner_notice.py'),
 ('identity','Partner authentication','LIVE',[
  'Read current Partner master for the event',
  'Use Language Preference: English or ไทย',
@@ -65,7 +65,7 @@ pages=[
  'Match one conversation participant to Partner IG username',
  'Verify scoped ID/profile; reject duplicate or changed identities',
  'Check signed inbound window: 24 hours minus 60 seconds'],
- 'Borrower identity never selects the partner recipient.\nChanged delivery details → REVIEW.\nUnavailable route/window → current Partner Email fallback.\nNo inbound partner command execution is enabled.',
+ 'Borrower identity never selects the partner recipient.\nChanged delivery details → REVIEW.\nUnavailable route/window → current Partner Email fallback.\nOnly linked receipt review decisions; no general commands.',
  'statement_delivery.py: eligible, resolve_recipient, check_window\ncash_statement.py: partners · receipt_master.py: masters'),
 ('ig','Instagram notifications','LIVE',[
  'Build text or statement PNGs in each Partner’s preferred language',
@@ -138,9 +138,19 @@ pages.append(('poll','Conversation API polling','LIVE',[
  'API only; no browser automation.\nObserved three-participant conversations are readable through expanded list fields.\nDirect group-history endpoint failed.\nMore than 100 unseen messages → stop; no cursor advance.\nOther senders / text / non-images → ignore.\nFresh activation cutoff; no historical replay.\nPolled records never refresh signed IG reply windows.\nNo group send or payment write.',
  'conversation_poll.py · receipt_journal.py · receipt_run.py\nmw-conversation-poll.timer · docs/CONVERSATION_POLL.md'))
 
+pages.append(('review','Partner receipt review','LIVE',[
+ 'Validated receipt → current balances and existing-payment checks',
+ 'Send localized proposal to Partners by IG; email fallback is informational',
+ 'Require direct Reply to the exact accepted proposal and current Partner identity',
+ 'Yes / Approve / Approved / อนุมัติ after trimming, case insensitive?',
+ 'First valid decision wins; ordinary payment → fresh checks and one Add',
+ 'Closure / overpayment → manual; verified posting → Partner result'],
+ 'Other direct reply → REJECTED.\nUnlinked text → no decision.\nNo reply → pending; expires after 24 hours.\nEither Partner may decide.\nReplay cannot execute twice.\nChanged identity or facts → stop.\nLoan closures and overpayments are manual-only even after approval.\nEmail reply cannot approve.\nNo browser automation or group reply.',
+ 'partner_review.py · review_proposal.py · review_cycle.py\nwebhook.py · journal.py · partner_notice.py'))
+
 r=page('agent-overview','01 · Agent overview',1460)
 box(r,'title','MW INTEGRATION AGENT | Overall operating flow',60,25,1280,55,'note')
-box(r,'status','LIVE: receipt summaries and daily cash statements · PENDING: payment posting\nDebian runtime · Click a process to open its detailed page',60,95,1280,65,'note')
+box(r,'status','LIVE: receipt review, approved ordinary payments and daily cash statements\nLoan closures / overpayments: Partner manual handling · Click for detailed pages',60,95,1280,65,'note')
 # Three connected lanes follow the source agent overview: entries, workers,
 # shared data services, delivery and durable state. Existing page IDs stay stable.
 for key,label,col,row,kind,target in [
@@ -152,9 +162,9 @@ for key,label,col,row,kind,target in [
  ('masters','Shared read-only data access\nPROD OLTP / OLAP API + PostgreSQL',2,1,'step','api'),
  ('render','Render statement images\nEnglish / Thai, receipt time HH:mm',0,2,'step','statement'),
  ('validate','Receipt worker: map borrower\nExtract image and validate receipt',1,2,'step','receipts'),
- ('post','PENDING: reusable payment posting\nExact OLTP readback before success',2,3,'PENDING','posting'),
+ ('post','Linked Partner approval\nOrdinary payment + exact readback',2,3,'LIVE','review'),
  ('identity','Current Partner identity, language\nIG route and messaging window',0,3,'step','identity'),
- ('notice','Prepare localized receipt summary\nCurrent path does not post payment',1,3,'step','ig'),
+ ('notice','Prepare localized action proposal\nClosure / overpayment: manual only',1,3,'step','review'),
  ('igsend','Instagram API delivery\nNo receipt-success group message',1,4,'step','ig'),
  ('fallback','Email fallback and bounded retry\nUnknown sends are not replayed',2,4,'step','email'),
  ('journal','Private SQLite journals\nReceipt deduplication, send intent and uncertain outcomes',1,5,'note',None),
@@ -166,7 +176,7 @@ for a,b,label in [
  ('manual','masters','Fresh masters'),('masters','validate','Borrower / account facts'),
  ('render','identity','Statement'),('validate','notice','Valid receipt'),
  ('identity','igsend','Verified recipient'),('notice','igsend','Summary'),
- ('notice','post','Future'),('igsend','fallback','Fallback'),
+ ('notice','post','Review'),('igsend','fallback','Fallback'),
  ('igsend','journal','Accepted / uncertain'),('fallback','journal','Outcome'),
 ]:
     routes={
@@ -176,20 +186,21 @@ for a,b,label in [
     }
     points,ports=routes.get((a,b),(None,''))
     edge(r,a,b,label,points,ports)
-box(r,'future','Pending posting: only a verified payment may produce a Payment processed notice.\nOperator-selected receipts also use shared preparation. Browser automation is prohibited.\nDisabled: persistent conversations, Partner GUI, briefing and weather. Click for service index.',60,1340,1280,90,'note','overview')
+box(r,'future','Only a verified payment produces a Payment processed notice. No automatic loan closure / overpayment.\nOperator-selected receipts use shared preparation. Browser automation is prohibited.\nDisabled: general conversations, Partner GUI, briefing and weather. Click for service index.',60,1340,1280,90,'note','overview')
 
 r=page('overview','02 · All services',1120)
 box(r,'title','MW INTEGRATION AGENT  |  All services and implementing scripts',40,25,1320,70,'step')
 box(r,'legend','One Debian runtime · Click a service for its detailed flowchart\nGreen = live outcome / service · Blue = process · Yellow = decision / pending · Red = stop · Grey = notes / disabled',40,110,1320,85)
 for i,(key,title,status,*_) in enumerate(pages):
     box(r,key,title,40+(i%3)*445,220+(i//3)*155,420,125,status,key)
-box(r,'scope','Owner review baseline · 21 September 2026\nProduction API configuration is outside releases. Real receipt posting remains pending; no borrower-specific scripts are maintained.',40,1010,1320,80,'PENDING')
+box(r,'scope','Owner review baseline · 21 September 2026\nProduction API configuration is outside releases. Ordinary payments require linked approval; closures and overpayments are manual-only.',40,1010,1320,80,'PENDING')
 # Decision labels describe existing behavior, not new runtime gates.
 decisions={
+ 'review':(3,'Linked reply approves\nthis exact proposal?','Reject other direct replies\nUnlinked / unauthorized → no decision'),
  'poll':(3,'History complete and\nnew-message boundary reached?','Stop and report gap\nDo not advance this checkpoint'),
  'ingress':(2,'Valid signature and\nexpected account?','Reject request; do not create a job'),
  'receipts':(4,'Receipt passes all\nvalidation rules?','Invalid → REVIEW\nNonreceipt / disabled borrower → ignore\nDuplicate → no second processing'),
- 'posting':(3,'Reusable posting and\nreadback implemented?','NO — current state\nPayment remains unposted\nDo not send a processed notice'),
+ 'posting':(3,'Approved ordinary payment\nand fresh checks pass?','Stop; no payment Add\nClosure / overpayment → manual'),
  'identity':(4,'One verified current\nPartner identity?','Reject ambiguous / changed identity\nUnavailable IG route → email fallback'),
  'ig':(4,'Meta accepted the\ncomplete notification?','Unavailable / incomplete / uncertain\nUse email fallback\nNever replay uncertain IG'),
  'email':(4,'Email provider outcome?','Unknown → retain for reconciliation\nNever automatically replay'),
