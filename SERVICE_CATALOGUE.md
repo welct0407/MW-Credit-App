@@ -2,6 +2,8 @@
 
 Revision 11 — linked Partner receipt reviews, 21 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
+R014 staged refinement: Partners.AI Reviewer separates payment review authority from Partner notification/IG preferences. Tommy is initially selected in DEV V32. Source code filters requests, replies and execution by the current reviewer role. This refinement is not deployed; production still uses the previously deployed all-Partner policy. Deploy only after the R014 database prerequisite. Existing service enablement and cutoffs are unchanged.
+
 Signed Instagram webhook ingress and explicit Instagram delivery are authorized and implemented. Ingress verifies Meta signatures and stores deduplicated messages and image references before acknowledgement. The owner authorized receipt-only processing on 21 September after promoting R011 account aliases. Receipt processing has its own switch and cutoff; generic processing and writes remain disabled; scoped partner-approved ordinary receipt posting is separately enabled.
 
 | Service | State | Migration intent |

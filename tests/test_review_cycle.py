@@ -25,11 +25,11 @@ class CycleTests(unittest.TestCase):
         notices=NoticeJournal(self.root/'partner-notices.db');n=notices.reserve('review:'+self.key,self.p,'subject','body')
         notices.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id='sent',recipient_id='456' WHERE id=?",(n,));notices.db.commit();notices.close()
         self.patches=[]
-        for target,kwargs in [('masters',{'return_value':{'partners':[self.p],'borrowers':[self.b],'accounts':[{'id':'a','active':True}]}}),
+        for target,kwargs in [('masters',{'return_value':{'partners':[self.p],'reviewer_ids':['p'],'borrowers':[self.b],'accounts':[{'id':'a','active':True}]}}),
               ('check',{}),('facts',{'return_value':{}}),('plan',{'return_value':self.proposal}),('read_query',{'return_value':['actor@example.invalid']}),
               ('add_payment',{}),('readback',{'return_value':True})]:
             p=patch('mw_integration_agent.review_cycle.'+target,**kwargs);setattr(self,target,p.start());self.addCleanup(p.stop)
-        p=patch('mw_integration_agent.partner_notice.NoticeJournal.dispatch');p.start();self.addCleanup(p.stop)
+        p=patch('mw_integration_agent.partner_notice.NoticeJournal.dispatch');self.dispatch=p.start();self.addCleanup(p.stop)
     def run_cycle(self):return cycle(self.config,self.j,lambda *_:{'id':'123','username':'borrower'})
     def test_approved_posts_once_then_result(self):
         self.run_cycle();self.run_cycle();self.assertEqual(self.add_payment.call_count,1)
@@ -47,6 +47,39 @@ class CycleTests(unittest.TestCase):
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'MANUAL_REQUIRED')
     def test_disabled_execution_no_write(self):
         self.config['partner_review_execution_enabled']=False;self.run_cycle();self.add_payment.assert_not_called()
+    def test_reviewer_removed_after_approval_no_write(self):
+        self.masters.return_value['reviewer_ids']=[]
+        self.run_cycle();self.add_payment.assert_not_called()
+        self.assertEqual(self.j.db.execute('SELECT state,detail FROM partner_reviews').fetchone()[:],('STALE','APPROVING_REVIEWER_REMOVED'))
+    def validated_job(self):
+        import time
+        self.j.db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id='old'")
+        self.j.db.execute("UPDATE receipt_jobs SET id='new-job',status='VALIDATED',created_at=?,result=?",(time.time(),json.dumps({'receipt':self.proposal['receipt'],'borrower':self.b})))
+        self.j.db.commit()
+    def test_new_requests_only_to_reviewer(self):
+        self.validated_job()
+        self.masters.return_value['partners'].append(dict(self.p,id='other',username='other'))
+        self.run_cycle()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertEqual({r[0] for r in notices.db.execute("SELECT partner_id FROM partner_notices WHERE event_key LIKE 'review:%'")},{'p'})
+        finally:notices.close()
+    def test_no_reviewer_keeps_validated_job_waiting(self):
+        self.validated_job();self.masters.return_value['reviewer_ids']=[]
+        self.run_cycle()
+        self.assertEqual(self.j.db.execute('SELECT status,detail FROM receipt_jobs').fetchone()[:],('VALIDATED','NO_AI_REVIEWER'))
+        self.add_payment.assert_not_called()
+    def test_unsent_request_to_removed_reviewer_is_blocked(self):
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING'");self.j.db.commit()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        notices.db.execute("UPDATE partner_notices SET ig_status='PENDING'");notices.db.commit();notices.close()
+        self.masters.return_value['reviewer_ids']=[]
+        self.run_cycle();self.dispatch.assert_not_called()
+    def test_posted_results_still_go_to_all_partners(self):
+        self.masters.return_value['partners'].append(dict(self.p,id='other',username='other'))
+        self.run_cycle()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertEqual({r[0] for r in notices.db.execute("SELECT partner_id FROM partner_notices WHERE event_key LIKE 'review-result:%'")},{'p','other'})
+        finally:notices.close()
     def test_preexisting_ingress_schema_migrates_before_read(self):
         import sqlite3
         from contextlib import closing

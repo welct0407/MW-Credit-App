@@ -30,7 +30,7 @@ class ReviewStore:
                             (key,job_id,value,now,now+86400))
         return key
 
-    def decide(self,event,notice,partners,identity,now=None):
+    def decide(self,event,notice,partners,identity,now=None,*,reviewer_ids=()):
         now=time.time() if now is None else now
         # Correlation requires our confirmed outbound message and its exact recipient.
         if not notice or notice['ig_status']!='ACCEPTED' or not event.get('reply_to'):
@@ -42,6 +42,7 @@ class ReviewStore:
         partner=[p for p in partners if p['id']==notice['partner_id']]
         if len(partner)!=1:return 'UNAUTHORIZED'
         p=partner[0]
+        if p['id'] not in reviewer_ids:return 'NOT_REVIEWER'
         if p['enabled'] is not True or p['language'] not in ('English','ไทย'):return 'UNAUTHORIZED'
         if json.loads(notice['partner'])!=p:return 'PARTNER_CHANGED'
         name=username(p['username'])

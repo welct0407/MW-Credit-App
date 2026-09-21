@@ -12,7 +12,7 @@ class ReviewTests(unittest.TestCase):
         self.notice={'ig_status':'ACCEPTED','event_key':'review:'+self.key,'message_id':'out','recipient_id':'123','partner_id':'p','partner':json.dumps(self.p)}
         self.event={'reply_to':'out','sender_id':'123','message_id':'in','event_timestamp':110,'text':'Approve'}
         self.identity={'id':'123','username':'partner'}
-    def decide(self,event=None,notice=None):return self.store.decide(event or self.event,notice or self.notice,[self.p],self.identity,120)
+    def decide(self,event=None,notice=None):return self.store.decide(event or self.event,notice or self.notice,[self.p],self.identity,120,reviewer_ids=['p'])
     def test_linked_approve_and_replay(self):
         self.assertEqual(self.decide(),'APPROVED');self.assertEqual(self.decide(),'APPROVED')
         self.assertEqual(self.decide(dict(self.event,message_id='in2',text='Reject')),'ALREADY_DECIDED')
@@ -26,7 +26,21 @@ class ReviewTests(unittest.TestCase):
         self.p['enabled']=False;self.assertEqual(self.decide(),'UNAUTHORIZED')
     def test_expired_and_no_reply(self):
         self.assertEqual(self.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'PENDING')
-        self.assertEqual(self.store.decide(self.event,self.notice,[self.p],self.identity,100000),'EXPIRED')
+        self.assertEqual(self.store.decide(self.event,self.notice,[self.p],self.identity,100000,reviewer_ids=['p']),'EXPIRED')
+    def test_nonreviewer_cannot_approve_or_reject(self):
+        for reply in ('yes','reject'):
+            event=dict(self.event,text=reply)
+            self.assertEqual(self.store.decide(event,self.notice,[self.p],self.identity,120,reviewer_ids=['someone-else']),'NOT_REVIEWER')
+        self.assertEqual(self.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'PENDING')
+    def test_missing_reviewer_role_fails_closed(self):
+        self.assertEqual(self.store.decide(self.event,self.notice,[self.p],self.identity,120),'NOT_REVIEWER')
+    def test_reviewer_selection_keeps_notification_partners(self):
+        from mw_integration_agent.review_cycle import reviewer_partners
+        other=dict(self.p,id='other',enabled=False)
+        live={'partners':[self.p,other],'reviewer_ids':['other']}
+        self.assertEqual(reviewer_partners(live),[other])
+        self.assertEqual(live['partners'],[self.p,other])
+        self.assertEqual(reviewer_partners({'partners':[self.p]}),[])
     def test_thai_approval(self):
         self.assertEqual(self.decide(dict(self.event,text='อนุมัติ')),'APPROVED')
     def test_case_insensitive_yes_and_approved(self):

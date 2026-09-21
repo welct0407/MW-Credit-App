@@ -14,6 +14,11 @@ from .review_execution import add_payment,readback
 from .cash_statement import read_query
 
 
+def reviewer_partners(live):
+    """Role selection is independent of notification/IG delivery preferences."""
+    return [p for p in live['partners'] if p['id'] in live.get('reviewer_ids',[])]
+
+
 def cycle(config,journal,identity_reader):
     root=Path(config['state_directory']);db=journal.db;reviews=ReviewStore(db)
     notices=NoticeJournal(root/'partner-notices.db')
@@ -28,8 +33,12 @@ def cycle(config,journal,identity_reader):
                 if b['id']!=result['borrower']['id']:raise ReceiptInvalid('BORROWER_CHANGED')
                 check(config,result['receipt'],b)
                 proposal=plan(result['receipt'],b,facts(config,b['id']))
+                recipients=reviewer_partners(live)
+                if not recipients:
+                    journal.mark(job['id'],'VALIDATED','NO_AI_REVIEWER')
+                    continue
                 key=reviews.reserve(job['id'],proposal)
-                for p in live['partners']:
+                for p in recipients:
                     subject,body=request_text(proposal,p['language'])
                     if job['detail']=='OWNER_REQUESTED_RECONSIDERATION':
                         body=('คำขอแก้ไข — ใช้แทนคำขอเดิม\n' if p['language']=='ไทย' else 'Corrected request — replaces the earlier request\n')+body
@@ -54,12 +63,16 @@ def cycle(config,journal,identity_reader):
             live=masters(config)
             try:identity=identity_reader(config,event['sender_id'])
             except ConfigurationError:continue
-            reviews.decide(event,dict(notice),live['partners'],identity)
+            reviews.decide(event,dict(notice),live['partners'],identity,reviewer_ids=live.get('reviewer_ids',[]))
         for review in db.execute("SELECT * FROM partner_reviews WHERE state IN ('APPROVED','POSTING','UNKNOWN')").fetchall():
             proposal=json.loads(review['proposal']);key='igr:'+review['id'][:48]
             if review['state'] in ('POSTING','UNKNOWN'):
                 if readback(config,key,proposal):
                     with db:db.execute("UPDATE partner_reviews SET state='POSTED',payment_id=? WHERE id=?",(key,review['id']))
+                continue
+            live=masters(config)
+            if review['deciding_partner'] not in live.get('reviewer_ids',[]):
+                with db:db.execute("UPDATE partner_reviews SET state='STALE',detail='APPROVING_REVIEWER_REMOVED' WHERE id=?",(review['id'],))
                 continue
             if proposal['action']!='Lump Sum':
                 with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED' WHERE id=?",(review['id'],))
@@ -67,7 +80,7 @@ def cycle(config,journal,identity_reader):
             if config.get('partner_review_execution_enabled') is not True:continue
             live=masters(config)
             try:
-                matches=[p for p in live['partners'] if p['id']==review['deciding_partner'] and p['enabled'] is True]
+                matches=[p for p in reviewer_partners(live) if p['id']==review['deciding_partner'] and p['enabled'] is True]
                 if len(matches)!=1:raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
                 sent=notices.db.execute("SELECT partner FROM partner_notices WHERE event_key=? AND partner_id=? AND ig_status='ACCEPTED'",('review:'+review['id'],review['deciding_partner'])).fetchone()
                 if not sent or json.loads(sent[0])!=matches[0]:raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
@@ -107,7 +120,11 @@ def cycle(config,journal,identity_reader):
                 notices.reserve('review-result:'+review['id']+':'+review['state'],p,subject,body)
         for notice in notices.due():
             if not notice['event_key'].startswith(('review:','review-result:')):continue
+            live=masters(config)
             if notice['event_key'].startswith('review:'):
+                if notice['partner_id'] not in live.get('reviewer_ids',[]):
+                    with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='NOT_AI_REVIEWER' WHERE id=?",(notice['id'],))
+                    continue
                 row=db.execute('SELECT * FROM partner_reviews WHERE id=?',(notice['event_key'][7:],)).fetchone()
                 if not row or row['state']!='PENDING':
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW' WHERE id=?",(notice['id'],))
@@ -119,6 +136,6 @@ def cycle(config,journal,identity_reader):
                 except ReceiptInvalid as exc:
                     with db:db.execute("UPDATE partner_reviews SET state='STALE',detail=? WHERE id=?",(str(exc),row['id']))
                     continue
-            notices.dispatch(notice,config,masters(config)['partners'])
+            notices.dispatch(notice,config,live['partners'])
         return {'reviews':[dict(r) for r in db.execute('SELECT state,count(*) count FROM partner_reviews GROUP BY state')]}
     finally:notices.close()

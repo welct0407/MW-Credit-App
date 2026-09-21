@@ -32,7 +32,7 @@ class InstagramTransportTests(unittest.TestCase):
         signature = "sha256=" + hmac.new(b"secret", raw, hashlib.sha256).hexdigest()
         self.assertTrue(verify_signature(raw, signature, "secret"))
         self.assertFalse(verify_signature(raw, "sha256=wrong", "secret"))
-        messages = extract_messages(payload, "123", now)
+        messages = extract_messages(payload, "123", now + 1)
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0]["message_id"], "m1")
         self.assertEqual(messages[0]["sender_id"], "456")
