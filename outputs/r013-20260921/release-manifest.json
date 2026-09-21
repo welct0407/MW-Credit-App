@@ -26,7 +26,9 @@
     "devVersion": "30",
     "prodVersion": "29",
     "migration": "database/migrations/V30__payment_receipt_transaction_time.sql",
-    "sha256": "3c43d430c0e06ab0554f62cd77d8ab087d512293ceac28f9955eb4ff2f9b424f"
+    "sha256": "3c43d430c0e06ab0554f62cd77d8ab087d512293ceac28f9955eb4ff2f9b424f",
+    "testedCommit": "aad17b642f38583f4dbaed8d9bfcfca2e482779d",
+    "flywayManifest": "outputs/r013-20260921/flyway-manifest.json"
   },
   "agent": {
     "repository": "MW-Integration-Agent",
