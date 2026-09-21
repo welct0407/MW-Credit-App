@@ -1,6 +1,6 @@
 # Service catalogue
 
-Current runtime override, 22 September 2026: owner temporarily paused Partner conversations. Both dedicated conversation switches are false; timer disabled and worker stopped. Catalogue capability enablement is retained, but does not override these runtime kill switches. Other active services continue.
+Current runtime status, 22 September 2026 at 02:17 Bangkok: owner resumed Partner conversations and operational API writes. Both dedicated switches are true; timer enabled/active. A fresh cutoff excludes messages received during the pause. Other active services continue.
 
 Revision 13 — persistent Partner conversations and Codex-selected operational API calls, 22 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
