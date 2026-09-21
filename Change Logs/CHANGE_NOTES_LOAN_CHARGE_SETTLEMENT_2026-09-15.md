@@ -1,5 +1,15 @@
 # Loan charge settlement — 2026-09-15
 
+## 3 October consolidation — 2026-09-21
+
+The owner moved Pond's unpaid THB 5,000 installment from 20 September 2026 into the 3 October schedule, where THB 7,000 was already due. Both charges had zero payments, zero repayments and zero allocations when changed. Because the charges belong to different loans, their immutable identities and loan links were retained so future principal repayments continue to reduce the correct THB 2,000 and THB 3,000 loans. The two charge rows now share 3 October and produce one borrower-level due total of THB 12,000: THB 5,000 principal and THB 7,000 interest.
+
+The remaining plan is THB 12,000 on 3 October, THB 12,000 on 3 November and THB 12,000 on 3 December. Total principal remains THB 15,000, total negotiated interest remains THB 21,000 and total outstanding remains THB 36,000. No payment, repayment, allocation, cash movement, loan balance, historical receipt or AppSheet definition changed.
+
+Before the write, created and restore-tested `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917/pond-oct3-combine-before-20260921.dump`, SHA-256 `513BB022A781F334D1256935DC8E9E69F87775068825B4FBE6DB5A08B90C6F45`. The restore matched the normalized `public` and `assessment_lab` schemas, including Flyway V30 history; Cloud SQL cron extension and instance settings are outside the logical-backup scope. Rollback is a locked, preconditioned correction that restores charge `EbDvjdHteTi2HJ4htrAYuM` to 20 September and restores both affected notes from this backup; never restore the whole dump over later production activity without reconciling subsequent writes.
+
+The complete change was rehearsed under a serializable transaction and rollback, then repeated and committed against the verified production tuple `appsheet-pg-prod-20260914` / `34.21.174.215` / `loan_manager_prod`. Post-commit SQL confirmed two unpaid loan-linked charges on 3 October totaling THB 12,000, no outstanding 20 September charge, and an unchanged THB 36,000 plan. Production OLTP 3.000240 synced successfully and visibly shows the THB 7,000 and THB 5,000 loan charges both dated 3 October, with automatic charge generation still disabled on both loans. No manual test remains for this refinement.
+
 ## Erroneous 18 September loan removal — 2026-09-18
 
 The owner confirmed that Pond's 2026-09-18 THB 3,500 loan was created accidentally and explicitly requested deletion of the loan and its payment. The complete self-contained transaction was removed atomically: loan `YczlTc4YwB0o6hb7IE5TCG`; THB 350 first-day charge; THB 350 Posted First-day Auto payment; its one allocation and one repayment; and the two derived Lisa cash movements (THB 3,500 loan disbursement out and THB 350 payment receipt in). No business expense referenced the loan.
@@ -72,10 +82,10 @@ The exact before-image rows were exported before the transaction to the private 
 - Synced the current OLAP app and visually confirmed the shared charge data on a representative THB 5,000 loan: one THB 12,000 open charge and the prior fully paid charges retained.
 - Looker Studio was not separately audited because no report configuration changed. Its governed source will receive the shared PostgreSQL values on its normal refresh.
 
-## Manual testing requested
+## Manual testing
 
 1. Open the borrower in Loan Manager and confirm each of the four loans has only one charge with an outstanding amount.
-2. Confirm the four outstanding installments are THB 5,000 on 20 September, THB 7,000 on 3 October, THB 12,000 on 3 November and THB 12,000 on 3 December, totaling THB 36,000.
+2. Confirm the current outstanding plan is THB 12,000 on 3 October, THB 12,000 on 3 November and THB 12,000 on 3 December, totaling THB 36,000. The 3 October total is represented by separate THB 5,000 and THB 7,000 loan-linked charges so principal settles the correct loans.
 3. Confirm the THB 3,000 loan's 2026-09-11 historical charge shows THB 200 paid and zero remaining.
 4. Confirm the settlement refinement created no payment or repayment and did not change historical received totals.
 5. After the next scheduled charge run, confirm no new daily charge is generated for any of the four loans.
@@ -83,6 +93,6 @@ The exact before-image rows were exported before the transaction to the private 
 
 ## Status and rollback
 
-Status: the 2026-09-18 payment-plan refinement and erroneous same-day loan removal are implemented and verified in production; owner manual acceptance is pending.
+Status: the original settlement, 2026-09-18 payment-plan refinement and erroneous same-day loan removal, and 2026-09-21 due-date consolidation are implemented and verified in production. No manual test remains for the 2026-09-21 refinement.
 
 To roll back the data correction, use a transaction to restore the five modified charge rows and reinsert the seven removed charge rows and six removed zero-value allocation rows from the private before-image CSV files. Re-run the same one-open-charge, payment, allocation, and repayment reconciliation checks before committing, then sync both apps. App version restoration is unnecessary because no app definition changed; versions 3.000094 and 1.100062 remain the recorded configuration rollback references.
