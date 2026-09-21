@@ -17,6 +17,8 @@ from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,valida
 def controls(config_path,catalogue_path):
     config=load_json(config_path); validate_config(config)
     catalogue=load_json(catalogue_path); validate_catalogue(catalogue)
+    if config.get('partner_review_enabled') and not catalogue['services'].get('partner_receipt_review',{}).get('enabled'):
+        raise ConfigurationError('PARTNER_REVIEW_SERVICE_DISABLED')
     for service in ('receipt_summary','signed_webhook_ingress','database_connectivity',
                     'partner_authentication','instagram_delivery','email_fallback'):
         if not catalogue['services'].get(service,{}).get('enabled'):
@@ -139,6 +141,9 @@ def run(config_path,catalogue_path):
                 config=controls(config_path,catalogue_path)
                 process(job,journal,config,masters(config))
             from .partner_notice import NoticeJournal,receipt_notice
+            if config.get('partner_review_enabled'):
+                from .review_cycle import cycle
+                return cycle(config,journal,conversation_identity)
             # Supersede definitely unsent legacy direct-email work. SENT/UNKNOWN history stays intact.
             with journal.db:
                 journal.db.execute("UPDATE receipt_emails SET status='SUPERSEDED' WHERE status IN ('PENDING','REJECTED')")

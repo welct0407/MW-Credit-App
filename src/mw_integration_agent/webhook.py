@@ -41,6 +41,8 @@ def extract_messages(payload: dict[str, Any], account_id: str, now: float | None
                 "sender_id": sender,
                 "timestamp": timestamp,
                 "text": str(message.get("text") or "")[:12000],
+                "reply_to": str((message.get('reply_to') or {}).get('mid') or '')[:2048]
+                    if isinstance(message.get('reply_to'),dict) else '',
                 "attachments": [
                     {"type": "image", "url": a["payload"]["url"]}
                     for a in attachments[:10]

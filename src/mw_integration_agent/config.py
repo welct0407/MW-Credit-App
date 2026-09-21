@@ -35,6 +35,15 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
+    for flag in ('partner_review_enabled','partner_review_execution_enabled'):
+        if type(config.get(flag,False)) is not bool:raise ConfigurationError(flag+' must be boolean')
+    if config.get('partner_review_execution_enabled') and not config.get('partner_review_enabled'):
+        raise ConfigurationError('review execution requires review flow')
+    if config.get('partner_review_enabled'):
+        from datetime import datetime
+        try:
+            if datetime.fromisoformat(config['partner_review_cutoff']).tzinfo is None:raise ValueError()
+        except (KeyError,TypeError,ValueError) as exc:raise ConfigurationError('partner_review_cutoff required') from exc
     if type(config.get('conversation_poll_enabled',False)) is not bool:
         raise ConfigurationError('conversation_poll_enabled must be boolean')
     if config.get('conversation_poll_enabled'):
@@ -160,7 +169,7 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
         if name not in {"signed_webhook_ingress", "partner_authentication", "operational_data_read",
                         "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
                         "operational_data_api", "instagram_delivery", "email_fallback", "daily_briefing",
-                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll"}:
+                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")

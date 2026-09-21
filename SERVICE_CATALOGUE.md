@@ -1,21 +1,22 @@
 # Service catalogue
 
-Revision 10 — official API conversation polling, 21 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
+Revision 11 — linked Partner receipt reviews, 21 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
 Signed Instagram webhook ingress and explicit Instagram delivery are authorized and implemented. Ingress verifies Meta signatures and stores deduplicated messages and image references before acknowledgement. The owner authorized receipt-only processing on 21 September after promoting R011 account aliases. Receipt processing has its own switch and cutoff; generic processing and writes remain disabled.
 
 | Service | State | Migration intent |
 | --- | --- | --- |
+| partner_receipt_review | enabled | Valid receipts become Partner proposals. Exact signed direct replies Yes/Approve/Approved/อนุมัติ authorize ordinary payments only. Case insensitive. Other direct replies reject. Loan closures and overpayments are manual-only. Scoped Payments Add plus readback; unknown dispatch is never replayed. |
 | conversation_poll | enabled | Five-minute API-only reader for conversations containing AI-enabled borrowers. New cutoff, overlapping checks, shared receipt deduplication. No browser automation or group sends. Bounded history gaps stop without advancing the affected cursor. |
 | signed_webhook_ingress | enabled | Verify signatures, persist before acknowledgement, and deduplicate. Processing stays outside the HTTP request. |
-| receipt_summary | enabled, summary only | New eligible images: validation and Partner Instagram notices in their preferred language; email is fallback. No payment creation or borrower/group replies. Operator-selected history uses the shared parameterized preparation command. See [receipt operations](docs/RECEIPTS.md). |
+| receipt_summary | enabled, review input | New eligible images: validate and propose action for linked Partner review. IG first; email fallback is informational and cannot authorize execution. No borrower/group replies. Operator-selected preparation remains read-only. |
 | partner_authentication | enabled for cash statements | Fresh opt-in, supported language, unique username, conversation scoped ID and profile verification. No inbound operational commands. |
 | daily_cash_statement | enabled and scheduled | Read-only R010 cash effects; 00:00–00:00 Bangkok ledger timestamp; localized account PNGs to all currently enabled Partners at 00:15 Bangkok. |
 | operational_data_read | enabled | Bounded Find-only reads through both production OLTP and OLAP APIs, with separate keys. Probes omit row contents. DEV APIs remain unchanged. |
 | database_connectivity | enabled | Dedicated loopback/Cloud SQL Auth Proxy login with business-table SELECT and TEMP only; no durable operational DML. |
 | persistent_codex_conversation | disabled | Per-partner isolated Codex App Server threads with host-owned bounded tools. |
 | partner_oltp_gui | disabled | Linux/Chromium compatibility must be proven before migration. |
-| operational_data_api | disabled | Mapped, reviewed operational edits only; no raw database or schema access. |
+| operational_data_api | disabled | General operational edits remain disabled. The separate partner_receipt_review capability permits only one exact approved ordinary Payments Add. No raw SQL writes or schema access. |
 | instagram_delivery | enabled for statements and explicit calls | Official API transport; scheduled statements use their dedicated switch and manual sends require `sending_enabled=true`. No automatic conversational replies. |
 | email_fallback | enabled for Partner notifications | Instagram first; current Partner Email is fallback. Definite non-delivery retries at most three total attempts; unknown email outcomes never replay. |
 | daily_briefing | disabled | Separate owner authorization required before schedule installation. |

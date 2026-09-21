@@ -25,6 +25,9 @@ class NoticeJournal:
           email_status TEXT NOT NULL DEFAULT 'PENDING',attempts INTEGER NOT NULL DEFAULT 0,
           retry_after REAL NOT NULL DEFAULT 0,detail TEXT NOT NULL DEFAULT '')''')
         self.db.commit()
+        if 'recipient_id' not in {r[1] for r in self.db.execute('PRAGMA table_info(partner_notices)')}:
+            self.db.execute('ALTER TABLE partner_notices ADD COLUMN recipient_id TEXT')
+            self.db.commit()
 
     def reserve(self,event_key,partner,subject,body):
         key=hashlib.sha256((event_key+':'+partner['id']).encode()).hexdigest()
@@ -65,7 +68,7 @@ class NoticeJournal:
                 with self.db:self.db.execute("UPDATE partner_notices SET ig_status='UNAVAILABLE',detail='IG_ROUTE_OR_WINDOW_UNAVAILABLE' WHERE id=?",(item['id'],))
             else:
                 with self.db:
-                    claimed=self.db.execute("UPDATE partner_notices SET ig_status='UNKNOWN' WHERE id=? AND ig_status='PENDING'",(item['id'],)).rowcount
+                    claimed=self.db.execute("UPDATE partner_notices SET ig_status='UNKNOWN',recipient_id=? WHERE id=? AND ig_status='PENDING'",(recipient,item['id'])).rowcount
                 if not claimed:return
                 try:
                     response=api.request(config['instagram_account_id']+'/messages',body={'recipient':{'id':recipient},'message':{'text':item['body']}})

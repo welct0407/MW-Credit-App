@@ -32,6 +32,9 @@ class IngressJournal:
         if 'attachments' not in {r[1] for r in self.db.execute('PRAGMA table_info(messages)')}:
             self.db.execute("ALTER TABLE messages ADD COLUMN attachments TEXT NOT NULL DEFAULT '[]'")
             self.db.commit()
+        if 'reply_to' not in {r[1] for r in self.db.execute('PRAGMA table_info(messages)')}:
+            self.db.execute("ALTER TABLE messages ADD COLUMN reply_to TEXT NOT NULL DEFAULT ''")
+            self.db.commit()
 
     def capture(self, payload_sha256: str, messages: list[dict[str, Any]]) -> tuple[bool, int]:
         with self.db:
@@ -42,10 +45,10 @@ class IngressJournal:
             inserted = 0
             for message in messages:
                 inserted += self.db.execute(
-                    "INSERT OR IGNORE INTO messages (message_id,sender_id,event_timestamp,text,captured_at,status,attachments) "
-                    "VALUES (?, ?, ?, ?, ?, 'CAPTURED_NO_PROCESSING', ?)",
+                    "INSERT OR IGNORE INTO messages (message_id,sender_id,event_timestamp,text,captured_at,status,attachments,reply_to) "
+                    "VALUES (?, ?, ?, ?, ?, 'CAPTURED_NO_PROCESSING', ?, ?)",
                     (message["message_id"], message["sender_id"], message["timestamp"], message["text"], time.time(),
-                     json.dumps(message.get('attachments', []))),
+                     json.dumps(message.get('attachments', [])),message.get('reply_to','')),
                 ).rowcount
         return bool(cursor.rowcount), inserted
 
