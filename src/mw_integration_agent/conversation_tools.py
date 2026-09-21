@@ -1,4 +1,4 @@
-"""General bounded data tools and inspected operational edit mappings."""
+"""Schema discovery and generic API primitives chosen by Codex."""
 import json
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
@@ -7,9 +7,9 @@ from .appsheet import AppSheet
 from .config import ConfigurationError
 from .receipt_rules import BANGKOK
 
-TABLES = ('Borrowers', 'Loans', 'Charges', 'Repayments', 'Payments')
-EDITABLE = ('Borrower Name', 'Description', 'Address', 'City', 'Working Location', 'Borrower Note')
-HIDDEN = {'Payment Request Token', 'Payment Request Cash Account', 'Charge Generation Request', '_RowNumber'}
+from .conversation_schema import load_schema, table_schema, writable, PROTECTED_TABLES
+
+HIDDEN = {'_RowNumber'}
 
 
 def spec(name, description, properties):
@@ -21,19 +21,20 @@ def spec(name, description, properties):
 STR = {'type': 'string'}
 STRINGS = {'type': 'array', 'items': STR}
 TOOLS = [
-    spec('data_catalogue', 'Discover current field names for one operational table, and supported edits. No schema modification.',
-         {'table': {'type': 'string', 'enum': list(TABLES)}}),
-    spec('read_records', 'Fresh Find-only records. Filter by exact keys or field text. All matching rows must fit the 1000-row bound; otherwise narrow the search. Select columns and page the current-turn snapshot. Ref fields link exact keys.',
-         {'table': {'type': 'string', 'enum': list(TABLES)}, 'keys': STRINGS,
-          'match_field': STR, 'match_text': STR, 'columns': STRINGS,
+    spec('data_catalogue', 'List apps/tables using empty app/table, or discover inspected fields, keys, types, references, initial values and validation rules. Use before API calls. No business-operation scripts.',
+         {'app': STR, 'table': STR}),
+    spec('read_records', 'Fresh Find-only records. Page limit MUST be 1..100. Use exact keys, field text, or an AppSheet boolean filter expression (empty for unused choices). Host wraps the filter in bounded Top(Filter(table,...),1001). All matching rows must fit 1000 rows; narrow search otherwise. Select columns and page current-turn snapshot. Ref fields link exact keys.',
+         {'app': STR, 'table': STR, 'keys': STRINGS,
+          'match_field': STR, 'match_text': STR, 'filter': STR, 'columns': STRINGS,
           'offset': {'type': 'integer', 'minimum': 0}, 'limit': {'type': 'integer', 'minimum': 1, 'maximum': 100}}),
     spec('sum_field', 'Exact decimal sum of current-turn observed rows only; result explicitly reports partial pages. Never extrapolate a partial sum.',
          {'observation': STR, 'field': STR, 'group_by': STR}),
-    spec('edit_record', 'Edit one observed Borrowers record using the supported descriptive fields only. Requires the partner explicitly requesting this change in the current message, the exact quote, current observation, and expected existing values. One edit per incoming message. Host checks both apps before and after. No financial, identity, opt-in or administrative edits.',
-         {'observation': STR, 'row_id': STR, 'instruction_quote': STR,
-          'changes': {'type': 'array', 'items': {'type': 'object', 'properties': {
-              'field': {'type': 'string', 'enum': list(EDITABLE)}, 'expected': STR, 'value': STR},
-              'required': ['field', 'expected', 'value'], 'additionalProperties': False}}}),
+    spec('api_action', 'Execute an AppSheet Add or Edit selected by you. Choose app/table/field values from data_catalogue and current records. row_json is a JSON object of supplied column values WITHOUT the key; row_id identifies an Edit or is empty for Add (host generates key). operation_key is stable and unique per logical step. observation must show the edited fields or complete duplicate search for Add. expected_final_json is a JSON object of additional final checks and intentional server transitions; supplied values otherwise must match readback. Use __ACTOR__ for actor fields. API initial values apply to omitted Add fields. Up to 10 sequential row calls; verify effects after every call. Never repeat UNKNOWN. No Delete, configuration, identities or computed-field writes.',
+         {'app': STR, 'table': STR, 'action': {'type':'string','enum':['Add','Edit']},
+          'row_id': STR, 'row_json': STR, 'expected_final_json': STR,
+          'operation_key': STR, 'observation': STR, 'instruction_quote': STR}),
+    spec('verify_operation', 'Read-only recheck of a current-turn operation with its immutable planned final state. Does not resubmit a write. Use for asynchronous completion or uncertain response.',
+         {'operation': STR}),
     spec('finish', 'Finish once. VERIFIED requires current-turn evidence; use CLARIFY or REFUSE when unavailable. Never claim an uncertain edit succeeded. Reply in the specified partner language. No more tools after finish.',
          {'status': {'type': 'string', 'enum': ['VERIFIED', 'CLARIFY', 'REFUSE']},
           'message': STR, 'observations': STRINGS}),
@@ -46,10 +47,25 @@ def literal(value):
     return json.dumps(value, ensure_ascii=False)
 
 
+def filter_expression(value):
+    if not isinstance(value,str) or len(value)>3000 or '\x00' in value:
+        raise ConfigurationError('INVALID_FIND_FILTER')
+    # The model chooses the expression, but cannot escape the host's Top/Filter.
+    depth, quoted = 0,False
+    for char in value:
+        if char == '"': quoted = not quoted
+        elif not quoted and char == '(' : depth += 1
+        elif not quoted and char == ')' : depth -= 1
+        if depth < 0: raise ConfigurationError('UNBALANCED_FIND_FILTER')
+    if depth or quoted: raise ConfigurationError('UNBALANCED_FIND_FILTER')
+    return value
+
+
 class ConversationTools:
-    def __init__(self, authorize, store, message_id, instruction, client=AppSheet):
+    def __init__(self, authorize, store, message_id, instruction, client=AppSheet, partner_id=None, schema_reader=load_schema):
         self.authorize, self.store, self.message_id = authorize, store, message_id
         self.instruction, self.client = instruction, client
+        self.partner_id, self.schema_reader = partner_id, schema_reader
         self.observations, self.fields, self.cache = {}, {}, {}
         self.result = None
         self.possible_write = False
@@ -80,23 +96,36 @@ class ConversationTools:
                 (json.dumps(value, ensure_ascii=False), self.message_id, call_id))
         return value
 
-    def catalogue(self, table):
-        if table not in TABLES:
-            raise ConfigurationError('TABLE_NOT_PERMITTED')
-        if table not in self.fields:
-            rows = self.client(self.authorize()).find(table, f'Top(Filter("{table}", true), 1)')
-            self.fields[table] = sorted({k for r in rows for k in r} - HIDDEN)
-        return self.fields[table]
+    def schema(self):
+        return self.schema_reader(self.authorize())
+
+    def catalogue(self, app, table):
+        definition = table_schema(self.schema(), app, table)
+        return sorted(set(definition['columns']) - HIDDEN)
 
     def dispatch(self, name, a):
         if name == 'data_catalogue':
-            return {'table': a['table'], 'fields': self.catalogue(a['table']),
-                    'editable': list(EDITABLE) if a['table'] == 'Borrowers' else [],
-                    'guidance': 'Principal, amount due, remaining charges and paid totals are distinct. Refresh every turn. Other writes are not implemented; never claim execution.'}
+            schema = self.schema()
+            if not a['table']:
+                return {'apps': {app: {'version': value['version'], 'tables': list(value['tables'])}
+                                 for app,value in schema['apps'].items() if not a['app'] or app==a['app']}}
+            table = table_schema(schema, a['app'], a['table'])
+            return {'app':a['app'], 'table': a['table'], 'key':table['key'],
+                    'permission':table['permission'], 'condition':table.get('condition',''),
+                    'columns': {k: v for k,v in table['columns'].items() if k not in HIDDEN},
+                    'writable_fields': {action:[k for k in table['columns'] if writable(a['table'],table,k,action)]
+                                        for action in ('Add','Edit')},
+                    'protected_table': a['table'] in PROTECTED_TABLES,
+                    'guidance': 'Use current app rules and Ref keys. AppSheet enforces its live validation. Existing automation and database triggers execute normally. Inspect related effects before claiming workflow completion. No physical deletes.'}
         if name == 'read_records':
             table = a['table']
-            fields = self.catalogue(table)
+            app = a['app']
+            definition = table_schema(self.schema(),app,table)
+            key = definition['key']
+            fields = self.catalogue(app,table)
             keys, columns, offset, limit = a['keys'], a['columns'], a['offset'], a['limit']
+            if type(limit) is not int or not 1 <= limit <= 100:
+                raise ConfigurationError('PAGE_LIMIT_MUST_BE_INTEGER_1_TO_100')
             if (not isinstance(keys, list) or len(keys) > 25 or any(not isinstance(k, str) or not k for k in keys)
                     or len(set(keys)) != len(keys) or not isinstance(columns, list) or not columns
                     or any(not isinstance(k, str) or k not in fields for k in columns)
@@ -105,9 +134,13 @@ class ConversationTools:
                 raise ConfigurationError('INVALID_RECORD_QUERY')
             if keys and (a['match_field'] or a['match_text']):
                 raise ConfigurationError('USE_KEYS_OR_SEARCH')
+            if a['filter'] and (keys or a['match_field'] or a['match_text']):
+                raise ConfigurationError('USE_FILTER_OR_KEYS_OR_SEARCH')
             predicate = 'true'
-            if keys:
-                predicate = 'OR(' + ','.join('[Row ID] = ' + literal(k) for k in keys) + ')'
+            if a['filter']:
+                predicate = filter_expression(a['filter'])
+            elif keys:
+                predicate = 'OR(' + ','.join(f'[{key}] = ' + literal(k) for k in keys) + ')'
             elif a['match_field']:
                 field = a['match_field']
                 if field not in fields or any(c in field for c in '[]"'):
@@ -115,20 +148,22 @@ class ConversationTools:
                 predicate = f'CONTAINS(LOWER([{field}]), {literal(a["match_text"].lower())})'
             elif a['match_text']:
                 raise ConfigurationError('SEARCH_FIELD_REQUIRED')
-            cache_key = (table, predicate)
+            cache_key = (app, table, predicate)
             if cache_key not in self.cache:
-                rows = self.client(self.authorize()).find(table, f'Top(Filter("{table}", {predicate}), 1001)')
-                ids = [r.get('Row ID') for r in rows]
+                rows = self.client(self.authorize(),app).find(table, f'Top(Filter({literal(table)}, {predicate}), 1001)')
+                ids = [r.get(key) for r in rows]
                 if len(rows) >= 1001:
                     raise ConfigurationError('READ_BOUND_REACHED_NARROW_SEARCH')
                 if any(not isinstance(k, str) or not k for k in ids) or len(set(ids)) != len(ids):
                     raise ConfigurationError('RECORD_IDENTITY_MISMATCH')
                 if keys and set(ids) != set(keys):
                     raise ConfigurationError('REQUESTED_RECORD_MISSING')
-                self.cache[cache_key] = sorted(rows, key=lambda r: r['Row ID'])
+                self.cache[cache_key] = sorted(rows, key=lambda r: r[key])
             rows = self.cache[cache_key]
-            return self.observe({'table': table, 'total_matched': len(rows), 'offset': offset,
-                'rows': [{k: r.get(k) for k in dict.fromkeys(['Row ID'] + columns)} for r in rows[offset:offset + limit]],
+            if any(k not in row for row in rows for k in columns):
+                raise ConfigurationError('APP_SCHEMA_CHANGED_OR_FIELD_UNAVAILABLE')
+            return self.observe({'app': app, 'table': table, 'total_matched': len(rows), 'offset': offset,
+                'rows': [{k: r.get(k) for k in dict.fromkeys([key] + columns)} for r in rows[offset:offset + limit]],
                 'complete': offset == 0 and len(rows) <= limit})
         if name == 'sum_field':
             source = self.observations.get(a['observation'])
@@ -148,9 +183,12 @@ class ConversationTools:
                 totals[group] = totals.get(group, Decimal(0)) + value
             return self.observe({'totals': {k: str(v) for k, v in totals.items()}, 'source': a['observation'],
                                  'rows_count': len(source['rows']), 'complete': source['complete']})
-        if name == 'edit_record':
-            from .conversation_write import edit_record
-            return self.observe(edit_record(self, a))
+        if name == 'api_action':
+            from .conversation_write import api_action
+            return self.observe(api_action(self, a))
+        if name == 'verify_operation':
+            from .conversation_write import verify_operation
+            return self.observe(verify_operation(self, a['operation']))
         if name == 'finish':
             if (a['status'] not in ('VERIFIED', 'CLARIFY', 'REFUSE') or not isinstance(a['message'], str)
                     or not a['message'].strip() or len(a['message']) > 12000 or not isinstance(a['observations'], list)
@@ -160,7 +198,7 @@ class ConversationTools:
                 raise ConfigurationError('CURRENT_EVIDENCE_REQUIRED')
             if self.possible_write and not self.write_verified:
                 raise ConfigurationError('WRITE_UNCERTAIN_INSPECT_BEFORE_COMPLETION')
-            if self.possible_write and not any(self.observations[x].get('edit_verified') for x in a['observations']):
+            if self.possible_write and not any(self.observations[x].get('write_verified') for x in a['observations']):
                 raise ConfigurationError('WRITE_READBACK_EVIDENCE_REQUIRED')
             self.authorize()
             self.result = a

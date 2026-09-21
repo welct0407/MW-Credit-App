@@ -53,6 +53,8 @@ def validate_config(config: dict[str, Any]) -> None:
             raise ConfigurationError('conversations require the approved production OLTP app')
         if config.get('conversation_writes_enabled') and not config.get('appsheet_olap_app_id'):
             raise ConfigurationError('conversation edits require OLAP readback')
+        from .conversation_schema import load_schema
+        load_schema(config)
     timeout = config.get('conversation_timeout_seconds', 600)
     if type(timeout) is not int or not 30 <= timeout <= 900:
         raise ConfigurationError('conversation_timeout_seconds must be 30..900')

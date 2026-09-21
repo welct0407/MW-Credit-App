@@ -18,6 +18,9 @@ PY
 backup=/var/lib/mw-integration-agent/rollback/reviewed-$(date -u +%Y%m%dT%H%M%SZ)
 install -d -m 0700 "$backup"
 cp -a /etc/mw-integration-agent/config.json /etc/mw-integration-agent/service-catalogue.json "$backup/"
+if [ -f /etc/mw-integration-agent/appsheet-schema.json ]; then
+ cp -a /etc/mw-integration-agent/appsheet-schema.json "$backup/"
+fi
 cp -a /opt/mw-integration-agent/.venv/lib/python3.13/site-packages/mw_integration_agent "$backup/"
 resume=''
 for timer in mw-conversation-poll.timer mw-receipt-summary.timer mw-cash-statement.timer mw-cash-statement-email-retry.timer mw-partner-conversation.timer; do

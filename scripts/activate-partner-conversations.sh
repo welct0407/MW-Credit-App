@@ -10,6 +10,7 @@ install -o root -g root -m 0644 "$repo/systemd/mw-partner-conversation.service" 
 install -o root -g root -m 0644 "$repo/systemd/mw-partner-conversation.timer" /etc/systemd/system/
 /opt/mw-integration-agent/.venv/bin/python - "$1" <<'PY'
 import json,sys
+import hashlib
 from pathlib import Path
 from datetime import datetime,timezone
 from mw_integration_agent.config import validate_config,validate_catalogue
@@ -20,6 +21,8 @@ if not c.get('partner_conversation_cutoff'):
 c['partner_conversations_enabled']=True
 c['conversation_writes_enabled']=True
 c['conversation_timeout_seconds']=600
+c['conversation_schema_file']='/etc/mw-integration-agent/appsheet-schema.json'
+c['conversation_schema_sha256']=hashlib.sha256(Path(c['conversation_schema_file']).read_bytes()).hexdigest()
 c['partner_conversation_backup']=sys.argv[1]
 validate_config(c)
 validate_catalogue(json.loads(Path('/etc/mw-integration-agent/service-catalogue.json').read_text()))

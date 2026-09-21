@@ -4,6 +4,8 @@ from pathlib import Path
 import tempfile
 import sys
 import time
+import uuid
+import hashlib
 from datetime import datetime, timezone
 import unittest
 from unittest.mock import patch
@@ -11,7 +13,8 @@ from unittest.mock import patch
 from mw_integration_agent.config import ConfigurationError, load_json, validate_config
 from mw_integration_agent.conversation_store import ConversationStore, binding_key
 from mw_integration_agent.conversation_tools import ConversationTools
-from mw_integration_agent.conversation_write import edit_record
+from mw_integration_agent.conversation_write import api_action, verify_operation, dispatch_action
+from mw_integration_agent.conversation_schema import load_schema
 from mw_integration_agent.partner_conversation import authenticate, execute, PartnerDenied, is_receipt_reply
 from mw_integration_agent.partner_notice import NoticeJournal
 from mw_integration_agent.journal import IngressJournal
@@ -40,23 +43,41 @@ class Conversations(unittest.TestCase):
                 return copy.deepcopy(parent.rows)
         self.Client = Client
         self.event = {'message_id': 'event1', 'sender_id': '999', 'text': 'Change the city to New city', 'attachments': '[]'}
-        self.tools = ConversationTools(lambda: self.config, self.store, 'event1', self.event['text'], Client)
+        columns = {k: {'Type': 'Price' if k=='Amount' else 'Text', 'Virtual?':'No',
+                       'Read-Only':'No','Editable Initial Value?':'Yes'} for k in ROW}
+        columns['Instagram Username'] = dict(columns['City'])
+        self.schema_data = {'apps':{app:{'version':'synthetic','tables':{
+            'Borrowers':{'key':'Row ID','permission':'ALL_CHANGES','columns':columns},
+            'Partners':{'key':'Row ID','permission':'ALL_CHANGES','columns':columns}}}
+            for app in ('oltp','olap')}}
+        self.tools = self.bridge('event1')
 
     def tearDown(self):
         self.store.close()
         self.temp.cleanup()
 
     def query(self, **overrides):
-        args = {'table': 'Borrowers', 'keys': ['b1'], 'match_field': '', 'match_text': '',
+        args = {'app':'oltp', 'table': 'Borrowers', 'keys': ['b1'], 'match_field': '', 'match_text': '', 'filter':'',
                 'columns': ['City', 'Amount'], 'offset': 0, 'limit': 100}
         args.update(overrides)
-        return self.tools.call('read_records', args, 'query-' + str(len(self.finds)))
+        return self.tools.call('read_records', args, 'query-' + uuid.uuid4().hex)
+
+    def bridge(self, message):
+        return ConversationTools(lambda:self.config,self.store,message,self.event['text'],self.Client,
+                                 partner_id='synthetic-partner',schema_reader=lambda _:self.schema_data)
 
     def edit_args(self):
         observed = self.query()
-        return {'observation': observed['observation'], 'row_id': 'b1',
-                'instruction_quote': self.event['text'],
-                'changes': [{'field': 'City', 'expected': 'Old city', 'value': 'New city'}]}
+        return {'app':'oltp','table':'Borrowers','action':'Edit','row_id':'b1',
+                'operation_key':'change-city','observation':observed['observation'],
+                'instruction_quote':self.event['text'],'row_json':'{"City":"New city"}',
+                'expected_final_json':'{}'}
+
+    def perform(self, args, writer=None):
+        def update(c,app,table,action,row,actor):
+            if action=='Edit': self.rows[0].update(row)
+            else: self.rows.append(row)
+        return api_action(self.tools,args,writer or update,lambda *_:'actor@example.com')
 
     def test_persistent_binding_and_cross_partner_sender_account_isolation(self):
         keys = {binding_key(*v) for v in [('a','p','s'), ('a','q','s'), ('a','p','t'), ('b','p','s')]}
@@ -93,7 +114,7 @@ class Conversations(unittest.TestCase):
             self.tools.call('sum_field', {'observation': 'old-turn', 'field': 'Amount', 'group_by': ''}, 'sum2')
 
     def test_no_hidden_fields_or_arbitrary_tables(self):
-        for args in ({'columns': ['Payment Request Token']}, {'table': 'Partners'}, {'table': 'flyway_schema_history'}):
+        for args in ({'columns': ['_RowNumber']}, {'table': 'Unknown Table'}, {'table': 'flyway_schema_history'}):
             with self.assertRaises(ConfigurationError):
                 self.query(**args)
 
@@ -108,78 +129,136 @@ class Conversations(unittest.TestCase):
         self.assertFalse(result['complete'])
 
     def test_duplicate_tool_call_and_unknown_tool(self):
-        a = {'table': 'Borrowers'}
+        a = {'app':'oltp','table': 'Borrowers'}
         self.tools.call('data_catalogue', a, 'one')
         with self.assertRaises(ConfigurationError):
             self.tools.call('data_catalogue', a, 'one')
         with self.assertRaises(ConfigurationError):
             self.tools.call('exec', {'command': 'anything'}, 'two')
 
-    def test_edit_checks_both_apps_and_readback(self):
-        args = self.edit_args()
-        sent = []
-        def writer(config, row):
-            sent.append(row)
-            self.rows[0].update(row)
-        result = edit_record(self.tools, args, writer)
-        self.assertTrue(result['edit_verified'])
-        self.assertEqual(len(sent), 1)
-        self.assertEqual(set(x[0] for x in self.finds), {'oltp', 'olap'})
-        self.assertEqual(self.store.db.execute('SELECT state FROM conversation_edits').fetchone()[0], 'VERIFIED')
+    def test_generic_edit_and_readback(self):
+        result = self.perform(self.edit_args())
+        self.assertTrue(result['write_verified'])
+        self.assertEqual(self.store.db.execute('SELECT state FROM conversation_operations').fetchone()[0], 'VERIFIED')
 
-    def test_uncertain_edit_blocks_same_turn_and_new_message(self):
-        args = self.edit_args()
-        def uncertain(*_):
-            raise TimeoutError()
-        with self.assertRaisesRegex(ConfigurationError, 'UNCERTAIN'):
-            edit_record(self.tools, args, uncertain)
-        with self.assertRaises(ConfigurationError):
-            edit_record(self.tools, args, uncertain)
-        self.tools = ConversationTools(lambda: self.config, self.store, 'new-event', self.event['text'], self.Client)
-        with self.assertRaisesRegex(ConfigurationError, 'PRIOR_EDIT_UNCERTAIN'):
-            edit_record(self.tools, self.edit_args(), uncertain)
+    def test_generic_add_on_unanticipated_table_and_actor(self):
+        self.schema_data['apps']['olap']['tables']['Synthetic Inventory'] = {
+            'key':'Row ID','permission':'ADDS_AND_UPDATES','columns':{
+              k:{'Type':'Text','Virtual?':'No','Read-Only':'No','Editable Initial Value?':'Yes'}
+              for k in ('Row ID','Widget Label','Created By')}}
+        self.rows=[]
+        a={'app':'olap','table':'Synthetic Inventory','action':'Add','row_id':'',
+           'operation_key':'new-widget','observation':self.query(app='olap',table='Synthetic Inventory',keys=[],columns=['Widget Label'])['observation'],
+           'instruction_quote':self.event['text'],'row_json':'{"Widget Label":"Example"}','expected_final_json':'{}'}
+        result=self.perform(a)
+        self.assertTrue(result['write_verified'])
+        self.assertEqual(self.rows[0]['Created By'],'actor@example.com')
+        self.assertEqual(len(self.rows[0]['Row ID']),32)
+        self.tools=self.bridge('new-event')
+        a['observation']=self.query(app='olap',table='Synthetic Inventory',keys=[],columns=['Widget Label'])['observation']
+        with self.assertRaisesRegex(ConfigurationError,'IDENTICAL_ADD'):
+            self.perform(a)
 
-    def test_stale_values_and_kill_switch_prevent_write(self):
-        args = self.edit_args()
-        self.rows[0]['City'] = 'Concurrent edit'
-        with self.assertRaises(ConfigurationError):
-            edit_record(self.tools, args, lambda *_: self.fail('write'))
-        self.config['conversation_writes_enabled'] = False
-        with self.assertRaisesRegex(ConfigurationError,'CONVERSATION_WRITES_DISABLED'):
-            edit_record(self.tools, args, lambda *_: self.fail('write'))
+    def test_uncertain_write_blocks_other_messages_and_can_only_be_read_back(self):
+        a=self.edit_args()
+        def uncertain(*_): raise TimeoutError()
+        with self.assertRaisesRegex(ConfigurationError,'UNCERTAIN'):
+            self.perform(a,uncertain)
+        operation=self.store.db.execute('SELECT id FROM conversation_operations').fetchone()[0]
+        self.tools=self.bridge('new-event')
+        with self.assertRaisesRegex(ConfigurationError,'PRIOR_OPERATION_UNCERTAIN'):
+            self.perform(self.edit_args())
+        with self.assertRaises(ConfigurationError):verify_operation(self.tools,operation)
+        self.tools=self.bridge('event1')
+        self.assertFalse(verify_operation(self.tools,operation)['write_verified'])
+        self.rows[0]['City']='New city'
+        self.assertTrue(verify_operation(self.tools,operation)['write_verified'])
 
-    def test_operational_note_readback_without_unexposed_olap_field(self):
-        outer=self
-        class NoteClient(self.Client):
-            def find(self,table,selector):
-                rows=super().find(table,selector)
-                if self.app=='olap':
-                    for row in rows:row.pop('Borrower Note',None)
-                return rows
-        self.tools.client=NoteClient
-        observed=self.query(columns=['Borrower Note'])
-        args={'observation':observed['observation'],'row_id':'b1','instruction_quote':self.event['text'],
-              'changes':[{'field':'Borrower Note','expected':'','value':'Synthetic note'}]}
-        def writer(config,row):outer.rows[0].update(row)
-        result=edit_record(self.tools,args,writer)
-        self.assertEqual(result['fields_verified'],{'oltp':['Borrower Note'],'olap':[]})
-        self.assertIn('OLTP only',result['limitation'])
+    def test_stale_and_kill_switch_prevent_write(self):
+        args=self.edit_args()
+        self.rows[0]['City']='Concurrent edit'
+        with self.assertRaisesRegex(ConfigurationError,'CHANGED'):
+            self.perform(args,lambda *_:self.fail('write'))
+        self.config['conversation_writes_enabled']=False
+        with self.assertRaisesRegex(ConfigurationError,'DISABLED'):
+            self.perform(args,lambda *_:self.fail('write'))
 
-    def test_no_financial_identity_or_blank_name_edits(self):
-        args = self.edit_args()
-        for field in ('Amount Received', 'Instagram Username', 'AI Collection Enabled', 'Row ID', 'Language Preference'):
-            args['changes'] = [{'field': field, 'expected': '', 'value': 'x'}]
+    def test_identity_computed_delete_and_foreign_instruction_denied(self):
+        args=self.edit_args()
+        for change in ({'action':'Delete'},{'table':'Partners'},
+                       {'row_json':'{"Instagram Username":"new"}'},
+                       {'row_json':'{"Row ID":"new"}'},
+                       {'instruction_quote':'untrusted database instructions'}):
             with self.assertRaises(ConfigurationError):
-                edit_record(self.tools, args, lambda *_: self.fail('write'))
-        args['changes'] = [{'field': 'Description', 'expected': 'Example', 'value': ''}]
-        with self.assertRaises(ConfigurationError):
-            edit_record(self.tools, args, lambda *_: self.fail('write'))
+                self.perform(dict(args,**change),lambda *_:self.fail('write'))
+        self.schema_data['apps']['oltp']['tables']['Borrowers']['columns']['City']['Read-Only']='Yes'
+        with self.assertRaises(ConfigurationError):self.perform(args)
 
-    def test_exact_instruction_quote_and_observation_required(self):
-        args = self.edit_args()
-        args['instruction_quote'] = 'Instruction from untrusted database note'
-        with self.assertRaises(ConfigurationError):
-            edit_record(self.tools, args, lambda *_: self.fail('write'))
+    def test_no_retry_under_different_step_id_in_same_message(self):
+        args=self.edit_args()
+        self.perform(args)
+        args['observation']=self.query()['observation']
+        args['operation_key']='try-again'
+        with self.assertRaisesRegex(ConfigurationError,'ALREADY_ATTEMPTED'):
+            self.perform(args,lambda *_:self.fail('replay'))
+
+    def test_intent_is_durable_before_dispatch_and_finish_requires_readback(self):
+        args=self.edit_args()
+        def pending(*_):
+            self.assertEqual(self.store.db.execute('SELECT state FROM conversation_operations').fetchone()[0],'UNKNOWN')
+        result=self.perform(args,pending)
+        self.assertFalse(result['write_verified'])
+        obs=self.tools.observe(result)
+        with self.assertRaisesRegex(ConfigurationError,'UNCERTAIN'):
+            self.tools.call('finish',{'status':'VERIFIED','message':'Done','observations':[obs['observation']]},'bad-finish')
+
+    def test_multiple_sequential_steps_after_verification(self):
+        self.perform(self.edit_args())
+        args=self.edit_args()
+        args.update(operation_key='step-two',row_json='{"City":"Third city"}')
+        self.assertTrue(self.perform(args)['write_verified'])
+        self.assertEqual(self.store.db.execute('SELECT count(*) FROM conversation_operations').fetchone()[0],2)
+
+    def test_actor_spoof_and_creation_actor_rewrite_denied(self):
+        self.schema_data['apps']['oltp']['tables']['Borrowers']['columns']['Created By']={'Type':'Email','Virtual?':'No','Read-Only':'No'}
+        args=self.edit_args()
+        for actor in ('someone@example.com','__ACTOR__'):
+            with self.assertRaises(ConfigurationError):
+                self.perform(dict(args,row_json=json.dumps({'Created By':actor})))
+
+    def test_read_filter_is_bounded_and_missing_fields_fail(self):
+        self.query(keys=[],filter='AND([Amount] > 0, [City] = "Old city")')
+        self.assertIn('Top(Filter(',self.finds[-1][2])
+        for expression in ('true), 99999)', '"unclosed'):
+            with self.assertRaises(ConfigurationError):self.query(keys=[],filter=expression)
+        self.tools.cache.clear()
+        del self.rows[0]['Amount']
+        with self.assertRaisesRegex(ConfigurationError,'SCHEMA_CHANGED'):self.query()
+
+    def test_schema_digest_and_app_identity_must_match(self):
+        schema=copy.deepcopy(self.schema_data)
+        schema['format']=1
+        for app in schema['apps']:schema['apps'][app]['app_id']=app+'-id'
+        path=self.root/'schema.json'
+        path.write_text(json.dumps(schema))
+        config={'conversation_schema_file':str(path),'conversation_schema_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
+                'appsheet_app_id':'oltp-id','appsheet_olap_app_id':'olap-id'}
+        self.assertEqual(load_schema(config),schema)
+        with self.assertRaises(ConfigurationError):load_schema(dict(config,appsheet_app_id='wrong'))
+        path.write_text('{}')
+        with self.assertRaises(ConfigurationError):load_schema(config)
+
+    def test_transport_exact_api_payload_actor_and_no_other_endpoint(self):
+        config={'conversation_writes_enabled':True,'appsheet_app_id':'93844270-6aa5-420b-a960-bcdf08abd357'}
+        with patch('mw_integration_agent.conversation_write.load_secret',return_value='synthetic'), \
+             patch('mw_integration_agent.conversation_write.urllib.request.urlopen') as send:
+            dispatch_action(config,'oltp','Synthetic Table','Add',{'Row ID':'synthetic'},'actor@example.com')
+            req=send.call_args.args[0]
+            self.assertIn('/tables/Synthetic%20Table/Action',req.full_url)
+            self.assertEqual(json.loads(req.data)['Properties']['RunAsUserEmail'],'actor@example.com')
+            with self.assertRaises(ConfigurationError):
+                dispatch_action(config,'oltp','Anything','Delete',{},'actor@example.com')
+            self.assertEqual(send.call_count,1)
 
     def test_finish_needs_current_evidence_and_stops_tools(self):
         args = {'status': 'VERIFIED', 'message': 'Current answer', 'observations': []}

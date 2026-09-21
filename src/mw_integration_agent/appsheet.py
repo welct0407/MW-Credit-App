@@ -25,7 +25,7 @@ class AppSheet:
     def find(self, table: str, selector: str) -> list[dict[str, Any]]:
         if not re.fullmatch(r"[A-Za-z][A-Za-z0-9 _-]{0,63}", table):
             raise ConfigurationError("invalid AppSheet table name")
-        if not selector.startswith("Top(") or len(selector) > 500:
+        if not selector.startswith("Top(") or len(selector) > 4096:
             raise ConfigurationError("AppSheet reads require a bounded Top selector")
         base = self.config.get("appsheet_api_base", "https://www.appsheet.com")
         if base != "https://www.appsheet.com":
@@ -41,6 +41,8 @@ class AppSheet:
             },
             "Rows": [],
         }
+        if self.config.get('_appsheet_run_as_user_email'):
+            payload['Properties']['RunAsUserEmail'] = self.config['_appsheet_run_as_user_email']
         request = urllib.request.Request(
             url,
             data=json.dumps(payload).encode(),

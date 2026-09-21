@@ -2,7 +2,7 @@
 
 ## Current state
 
-Persistent Partner conversations now have an independent [operations guide](PARTNER_CONVERSATIONS.md), switches and `mw-partner-conversation.timer`. Catalogue revision 12 adds current-data conversations and the six descriptive Borrowers edit fields; earlier statements below about all general commands being unavailable describe the pre-conversation baseline. Financial conversation commands and GUI workflows remain unavailable. Check the conversation change log for verified deployment status.
+Persistent Partner conversations now have an independent [operations guide](PARTNER_CONVERSATIONS.md), switches and `mw-partner-conversation.timer`. Catalogue revision 13 adds current-data conversations and Codex-selected Add/Edit calls for inspected business tables; earlier statements below about all general commands being unavailable describe the pre-conversation baseline. Conversation operations use general API primitives; GUI workflows remain unavailable. Check the conversation change log for verified deployment status.
 
 Daily cash statements are implemented and scheduled under catalogue revision 9; see [cash statement operations](CASH_STATEMENT.md). The owner authorized a 00:15 Asia/Bangkok daily production timer for current Partners with `IG Integration Enabled=true`, plus Microsoft Graph email fallback to each Partner's current Email. The dedicated schedule and fallback controls are enabled; generic sending, processing and writes remain false.
 

@@ -8,7 +8,7 @@
         <mxCell id="title" value="MW INTEGRATION AGENT | Overall operating flow" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="25" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="LIVE: receipt review, approved ordinary payments and daily cash statements&#10;Loan closures / overpayments: Partner manual handling · Click for detailed pages" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="status" value="LIVE: receipt review, daily cash statements and persistent Partner conversations&#10;Codex-selected API operations with verified outcomes · Click for detailed pages" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="95" width="1280" height="65" as="geometry" />
         </mxCell>
         <mxCell id="daily" value="00:15 Bangkok timer&#10;Daily cash statement" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,statement">
@@ -107,7 +107,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="future" value="Only a verified payment produces a Payment processed notice. No automatic loan closure / overpayment.&#10;Operator-selected receipts use shared preparation. Browser automation is prohibited.&#10;Disabled: general conversations, Partner GUI, briefing and weather. Click for service index." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+        <mxCell id="future" value="Also live: signed Partner text → persistent Codex thread → current data / general Add/Edit API operations → reply.&#10;Receipt approvals stay separate. Unknown turns, edits and sends never replay.&#10;Disabled: general Partner GUI, briefing and weather. Click for service index." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
           <mxGeometry x="60" y="1340" width="1280" height="90" as="geometry" />
         </mxCell>
       </root>
@@ -151,7 +151,7 @@
         <mxCell id="database" value="Database reporting access" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,database">
           <mxGeometry x="930" y="530" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="codex" value="Persistent partner conversations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,codex">
+        <mxCell id="codex" value="Persistent partner conversations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,codex">
           <mxGeometry x="40" y="685" width="420" height="125" as="geometry" />
         </mxCell>
         <mxCell id="gui" value="Partner OLTP GUI operations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,gui">
@@ -169,7 +169,7 @@
         <mxCell id="review" value="Partner receipt review" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,review">
           <mxGeometry x="930" y="840" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="scope" value="Owner review baseline · 21 September 2026&#10;Production API configuration is outside releases. Ordinary payments require linked approval; closures and overpayments are manual-only." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="scope" value="Owner review baseline · 22 September 2026&#10;Persistent Partner conversations use general AppSheet API tools. Codex chooses the calls; the host checks authority and outcomes." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="40" y="1010" width="1320" height="80" as="geometry" />
         </mxCell>
       </root>
@@ -641,19 +641,19 @@
         <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="Send official Find request; key stays in HTTP header" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s3" value="Send official Find or authorized Codex-selected Add/Edit" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e10" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="Return scoped records; probe prints metadata only" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s4" value="Return scoped records; persist write intent and read back" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="After app upgrades: verify switches and probe both APIs" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s5" value="After app upgrades: refresh schema and probe both APIs" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
@@ -665,10 +665,10 @@
         <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="stop">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;PROD APIs enabled directly by owner authority, outside releases. DEV unchanged.&#10;Current client is Find-only. Connection setup does not enable arbitrary writes.&#10;Keys stay under /etc/mw-integration-agent.&#10;Do not assume API Enable survives App Upgrade; preservation is not explicitly guaranteed in the vendor guide." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;PROD APIs enabled directly by owner authority, outside releases. DEV unchanged.&#10;Conversation writes have independent controls and actor attribution.&#10;Keys stay under /etc/mw-integration-agent.&#10;Do not assume API Enable survives App Upgrade; preservation is not explicitly guaranteed in the vendor guide." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;appsheet.py · config.py · cli.py: appsheet-probe --app oltp|olap&#10;scripts/configure-appsheet-apis.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;appsheet.py · conversation_schema.py · conversation_write.py&#10;scripts/configure-appsheet-apis.py · scripts/verify-conversation-schema.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
         </mxCell>
         <mxCell id="detail" value="DECISION DETAIL&#10;Validate approved endpoint and bounded table/selector" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
@@ -747,55 +747,55 @@
         <mxCell id="title" value="12. Persistent partner conversations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
           <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="Service listed in the catalogue for future scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s0" value="New signed Partner text after activation cutoff" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="Service implemented&#10;and enabled?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s1" value="New signed message from&#10;one enabled Partner?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="430" width="320" height="140" as="geometry" />
         </mxCell>
         <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="PENDING / FUTURE&#10;No business worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s2" value="Reserve one turn; resume account / Partner / sender thread" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" value="Future only" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="PENDING / FUTURE&#10;Inbound messages cannot activate this capability" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s3" value="Codex chooses schema-guided Find / Add / Edit API calls" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="PENDING / FUTURE&#10;Future work needs shared scripts, tests and owner scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s4" value="Persist answer; verify current identity before delivery" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="PENDING / FUTURE&#10;Activation would be a separate explicit step" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s5" value="Instagram first; complete email fallback when unavailable" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="stop" value="NO — current state&#10;No worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="stop" value="Receipt-review reply → existing coordinator&#10;Unknown / revoked sender → no conversation" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="70" y="430" width="340" height="140" as="geometry" />
         </mxCell>
         <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="stop">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Receipt-image extraction is separate and constrained; it is not a general conversation agent.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Host-owned tools only; no shell, SQL, plugins or general GUI.&#10;Current-turn evidence, not old balances.&#10;Generic API primitives; no fixed business-operation scripts.&#10;Authenticated actor, durable intent and owning-app readback.&#10;Unknown operation blocks writes; no turn/write/send replay.&#10;Opt-out blocks both conversation reply channels.&#10;Existing app validation and posting rules still apply.&#10;Separate receipt approval authority is unchanged." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: persistent_codex_conversation&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;partner_conversation.py · codex_conversation.py · conversation_tools.py&#10;conversation_store.py · conversation_write.py · partner_notice.py&#10;mw-partner-conversation.timer · docs/PARTNER_CONVERSATIONS.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="detail" value="DECISION DETAIL&#10;enabled=false and implemented=false" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="detail" value="DECISION DETAIL&#10;Exclude receipt-review replies; verify enabled Partner and sender" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>

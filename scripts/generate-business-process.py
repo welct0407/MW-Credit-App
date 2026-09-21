@@ -98,11 +98,11 @@ pages=[
  'Select named app: oltp (default) or olap',
  'Resolve production app ID and its separate protected key',
  'Validate approved endpoint and bounded table/selector',
- 'Send official Find request; key stays in HTTP header',
- 'Return scoped records; probe prints metadata only',
- 'After app upgrades: verify switches and probe both APIs'],
- 'PROD APIs enabled directly by owner authority, outside releases. DEV unchanged.\nCurrent client is Find-only. Connection setup does not enable arbitrary writes.\nKeys stay under /etc/mw-integration-agent.\nDo not assume API Enable survives App Upgrade; preservation is not explicitly guaranteed in the vendor guide.',
- 'appsheet.py · config.py · cli.py: appsheet-probe --app oltp|olap\nscripts/configure-appsheet-apis.py'),
+ 'Send official Find or authorized Codex-selected Add/Edit',
+ 'Return scoped records; persist write intent and read back',
+ 'After app upgrades: refresh schema and probe both APIs'],
+ 'PROD APIs enabled directly by owner authority, outside releases. DEV unchanged.\nConversation writes have independent controls and actor attribution.\nKeys stay under /etc/mw-integration-agent.\nDo not assume API Enable survives App Upgrade; preservation is not explicitly guaranteed in the vendor guide.',
+ 'appsheet.py · conversation_schema.py · conversation_write.py\nscripts/configure-appsheet-apis.py · scripts/verify-conversation-schema.py'),
 ('database','Database reporting access','LIVE',[
  'Cloud SQL Auth Proxy listens on 127.0.0.1:5432',
  'Validate loan_manager_prod and dedicated agent role',
@@ -118,6 +118,17 @@ for key,title,service,detail in [
  ('gui','Partner OLTP GUI operations','partner_oltp_gui','Desktop inspection during development is not a deployed VM capability. The retired Windows worker stays stopped.'),
  ('briefing','Daily briefing','daily_briefing','No briefing timer runs. Daily cash statements are a separate authorized service.'),
  ('weather','Pattaya weather','pattaya_weather','No weather provider is called and no borrower information is sent to one.')]:
+    if key=='codex':
+        pages.append((key,title,'LIVE',[
+            'New signed Partner text after activation cutoff',
+            'Exclude receipt-review replies; verify enabled Partner and sender',
+            'Reserve one turn; resume account / Partner / sender thread',
+            'Codex chooses schema-guided Find / Add / Edit API calls',
+            'Persist answer; verify current identity before delivery',
+            'Instagram first; complete email fallback when unavailable'],
+            'Host-owned tools only; no shell, SQL, plugins or general GUI.\nCurrent-turn evidence, not old balances.\nGeneric API primitives; no fixed business-operation scripts.\nAuthenticated actor, durable intent and owning-app readback.\nUnknown operation blocks writes; no turn/write/send replay.\nOpt-out blocks both conversation reply channels.\nExisting app validation and posting rules still apply.\nSeparate receipt approval authority is unchanged.',
+            'partner_conversation.py · codex_conversation.py · conversation_tools.py\nconversation_store.py · conversation_write.py · partner_notice.py\nmw-partner-conversation.timer · docs/PARTNER_CONVERSATIONS.md'))
+        continue
     pages.append((key,title,'DISABLED',[
         'Service listed in the catalogue for future scope',
         'enabled=false and implemented=false',
@@ -150,7 +161,7 @@ pages.append(('review','Partner receipt review','LIVE',[
 
 r=page('agent-overview','01 · Agent overview',1460)
 box(r,'title','MW INTEGRATION AGENT | Overall operating flow',60,25,1280,55,'note')
-box(r,'status','LIVE: receipt review, approved ordinary payments and daily cash statements\nLoan closures / overpayments: Partner manual handling · Click for detailed pages',60,95,1280,65,'note')
+box(r,'status','LIVE: receipt review, daily cash statements and persistent Partner conversations\nCodex-selected API operations with verified outcomes · Click for detailed pages',60,95,1280,65,'note')
 # Three connected lanes follow the source agent overview: entries, workers,
 # shared data services, delivery and durable state. Existing page IDs stay stable.
 for key,label,col,row,kind,target in [
@@ -186,16 +197,17 @@ for a,b,label in [
     }
     points,ports=routes.get((a,b),(None,''))
     edge(r,a,b,label,points,ports)
-box(r,'future','Only a verified payment produces a Payment processed notice. No automatic loan closure / overpayment.\nOperator-selected receipts use shared preparation. Browser automation is prohibited.\nDisabled: general conversations, Partner GUI, briefing and weather. Click for service index.',60,1340,1280,90,'note','overview')
+box(r,'future','Also live: signed Partner text → persistent Codex thread → current data / general Add/Edit API operations → reply.\nReceipt approvals stay separate. Unknown turns, edits and sends never replay.\nDisabled: general Partner GUI, briefing and weather. Click for service index.',60,1340,1280,90,'note','overview')
 
 r=page('overview','02 · All services',1120)
 box(r,'title','MW INTEGRATION AGENT  |  All services and implementing scripts',40,25,1320,70,'step')
 box(r,'legend','One Debian runtime · Click a service for its detailed flowchart\nGreen = live outcome / service · Blue = process · Yellow = decision / pending · Red = stop · Grey = notes / disabled',40,110,1320,85)
 for i,(key,title,status,*_) in enumerate(pages):
     box(r,key,title,40+(i%3)*445,220+(i//3)*155,420,125,status,key)
-box(r,'scope','Owner review baseline · 21 September 2026\nProduction API configuration is outside releases. Ordinary payments require linked approval; closures and overpayments are manual-only.',40,1010,1320,80,'PENDING')
+box(r,'scope','Owner review baseline · 22 September 2026\nPersistent Partner conversations use general AppSheet API tools. Codex chooses the calls; the host checks authority and outcomes.',40,1010,1320,80,'PENDING')
 # Decision labels describe existing behavior, not new runtime gates.
 decisions={
+ 'codex':(1,'New signed message from\none enabled Partner?','Receipt-review reply → existing coordinator\nUnknown / revoked sender → no conversation'),
  'review':(3,'Linked reply approves\nthis exact proposal?','Reject other direct replies\nUnlinked / unauthorized → no decision'),
  'poll':(3,'History complete and\nnew-message boundary reached?','Stop and report gap\nDo not advance this checkpoint'),
  'ingress':(2,'Valid signature and\nexpected account?','Reject request; do not create a job'),
