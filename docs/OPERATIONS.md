@@ -12,7 +12,7 @@ Both PROD OLTP and OLAP inbound APIs are enabled directly outside the product re
 
 Do not assume App Upgrade preserves API Enable. The previous recorded enabled OLTP state was found disabled on 21 September. The vendor upgrade guide does not explicitly guarantee this setting; check both production APIs after upgrades without enabling DEV as a workaround.
 
-All Partner notices are Instagram first, email fallback. The reviewed runtime updater backs up package/configuration and integrity-checks online SQLite backups, preserves activation controls, and sets a separate notification cutoff once. It never resets receipt activation or replays history. See the [14-page process diagram](BUSINESS_PROCESS.md).
+All Partner notices are Instagram first, email fallback. The reviewed runtime updater backs up package/configuration and integrity-checks online SQLite backups, preserves activation controls, and sets a separate notification cutoff once. It never resets receipt activation or replays history. See the [15-page process diagram](BUSINESS_PROCESS.md).
 
 ## Filesystem layout
 

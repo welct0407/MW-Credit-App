@@ -1,6 +1,119 @@
 <?xml version='1.0' encoding='utf-8'?>
 <mxfile host="app.diagrams.net" type="device" version="24.7.17">
-  <diagram id="overview" name="01 · All services">
+  <diagram id="agent-overview" name="01 · Agent overview">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1460">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="MW INTEGRATION AGENT | Overall operating flow" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="25" width="1280" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="status" value="LIVE: receipt summaries and daily cash statements · PENDING: payment posting&#10;Debian runtime · Click a process to open its detailed page" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="95" width="1280" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="daily" value="00:15 Bangkok timer&#10;Daily cash statement" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,statement">
+          <mxGeometry x="60" y="210" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="webhook" value="Signed Instagram webhook&#10;Borrower receipt messages" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,ingress">
+          <mxGeometry x="500" y="210" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="manual" value="Operator-selected receipt&#10;Shared receipt-prepare command" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,receipts">
+          <mxGeometry x="940" y="210" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="snapshot" value="Read cash ledger and balances&#10;Freeze private statement snapshot" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,statement">
+          <mxGeometry x="60" y="395" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="capture" value="Verify signature&#10;Persist and deduplicate events" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,ingress">
+          <mxGeometry x="500" y="395" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="masters" value="Shared read-only data access&#10;PROD OLTP / OLAP API + PostgreSQL" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,api">
+          <mxGeometry x="940" y="395" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="render" value="Render statement images&#10;English / Thai, receipt time HH:mm" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,statement">
+          <mxGeometry x="60" y="580" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="validate" value="Receipt worker: map borrower&#10;Extract image and validate receipt" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,receipts">
+          <mxGeometry x="500" y="580" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="post" value="PENDING: reusable payment posting&#10;Exact OLTP readback before success" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,posting">
+          <mxGeometry x="940" y="765" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="identity" value="Current Partner identity, language&#10;IG route and messaging window" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,identity">
+          <mxGeometry x="60" y="765" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="notice" value="Prepare localized receipt summary&#10;Current path does not post payment" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,ig">
+          <mxGeometry x="500" y="765" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="igsend" value="Instagram API delivery&#10;No receipt-success group message" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,ig">
+          <mxGeometry x="500" y="950" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="fallback" value="Email fallback and bounded retry&#10;Unknown sends are not replayed" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,email">
+          <mxGeometry x="940" y="950" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="journal" value="Private SQLite journals&#10;Receipt deduplication, send intent and uncertain outcomes" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="500" y="1135" width="400" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="daily" target="snapshot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="snapshot" target="render">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="webhook" target="capture">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" value="20-second worker" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="capture" target="validate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" value="Fresh masters" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="manual" target="masters">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" value="Borrower / account facts" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=1;entryY=0.5;" edge="1" parent="1" source="masters" target="validate">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1140" y="637.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e24" value="Statement" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="render" target="identity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" value="Valid receipt" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="validate" target="notice">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" value="Verified recipient" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="identity" target="igsend">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="260" y="1007.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e27" value="Summary" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="notice" target="igsend">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" value="Future" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="notice" target="post">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" value="Fallback" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="igsend" target="fallback">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" value="Accepted / uncertain" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="igsend" target="journal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" value="Outcome" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=1;entryY=0.5;" edge="1" parent="1" source="fallback" target="journal">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1140" y="1192.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="future" value="Pending posting: only a verified payment may produce a Payment processed notice.&#10;Disabled: persistent Partner conversations, Partner GUI operations, daily briefing and weather.&#10;Open the service index for every detailed process and its implementing scripts." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="1340" width="1280" height="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="overview" name="02 · All services">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
       <root>
         <mxCell id="0" />
@@ -56,12 +169,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="ingress" name="02 · Instagram webhook">
+  <diagram id="ingress" name="03 · Instagram webhook">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="2. Instagram webhook" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="3. Instagram webhook" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -118,12 +231,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="receipts" name="03 · Receipt validation">
+  <diagram id="receipts" name="04 · Receipt validation">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="3. Receipt validation" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="4. Receipt validation" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -180,12 +293,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="posting" name="04 · Payment posting">
+  <diagram id="posting" name="05 · Payment posting">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="4. Payment posting" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="5. Payment posting" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: PENDING  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -242,12 +355,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="identity" name="05 · Partner authentication">
+  <diagram id="identity" name="06 · Partner authentication">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="5. Partner authentication" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="6. Partner authentication" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -304,12 +417,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="ig" name="06 · Instagram notifications">
+  <diagram id="ig" name="07 · Instagram notifications">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="6. Instagram notifications" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="7. Instagram notifications" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -366,12 +479,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="email" name="07 · Email fallback and retry">
+  <diagram id="email" name="08 · Email fallback and retry">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="7. Email fallback and retry" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="8. Email fallback and retry" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -434,12 +547,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="statement" name="08 · Daily cash statement">
+  <diagram id="statement" name="09 · Daily cash statement">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="8. Daily cash statement" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="9. Daily cash statement" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -496,12 +609,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="api" name="09 · AppSheet API connections">
+  <diagram id="api" name="10 · AppSheet API connections">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="9. AppSheet API connections" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="10. AppSheet API connections" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -558,12 +671,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="database" name="10 · Database reporting access">
+  <diagram id="database" name="11 · Database reporting access">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="10. Database reporting access" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="11. Database reporting access" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -620,12 +733,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="codex" name="11 · Persistent partner conversations">
+  <diagram id="codex" name="12 · Persistent partner conversations">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="11. Persistent partner conversations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="12. Persistent partner conversations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -682,12 +795,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="gui" name="12 · Partner OLTP GUI operations">
+  <diagram id="gui" name="13 · Partner OLTP GUI operations">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="12. Partner OLTP GUI operations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="13. Partner OLTP GUI operations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -744,12 +857,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="briefing" name="13 · Daily briefing">
+  <diagram id="briefing" name="14 · Daily briefing">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="13. Daily briefing" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="14. Daily briefing" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
@@ -806,12 +919,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="weather" name="14 · Pattaya weather">
+  <diagram id="weather" name="15 · Pattaya weather">
     <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="14. Pattaya weather" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="title" value="15. Pattaya weather" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
         <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">

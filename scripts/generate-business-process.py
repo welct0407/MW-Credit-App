@@ -22,9 +22,13 @@ def box(r,key,label,x,y,w,h,kind='note',link=None):
     if link:attrs['link']='data:page/id,'+link
     c=E.SubElement(r,'mxCell',**attrs);E.SubElement(c,'mxGeometry',x=str(x),y=str(y),width=str(w),height=str(h),**{'as':'geometry'})
 
-def edge(r,a,b,label=''):
+def edge(r,a,b,label='',points=None,ports=''):
     c=E.SubElement(r,'mxCell',id='e'+str(len(r)),value=label,style='edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;',edge='1',parent='1',source=a,target=b)
-    E.SubElement(c,'mxGeometry',relative='1',**{'as':'geometry'})
+    if ports:c.set('style',c.get('style')+ports)
+    g=E.SubElement(c,'mxGeometry',relative='1',**{'as':'geometry'})
+    if points:
+        arr=E.SubElement(g,'Array',**{'as':'points'})
+        for x,y in points:E.SubElement(arr,'mxPoint',x=str(x),y=str(y))
 
 pages=[
 ('ingress','Instagram webhook','LIVE',[
@@ -124,7 +128,47 @@ for key,title,service,detail in [
         detail+'\n\nThis page records the current disabled state; it does not enable or promise the feature.',
         'service-catalogue.json: '+service+'\nconfig.py · docs/MIGRATION_PLAN.md'))
 
-r=page('overview','01 · All services',1120)
+r=page('agent-overview','01 · Agent overview',1460)
+box(r,'title','MW INTEGRATION AGENT | Overall operating flow',60,25,1280,55,'note')
+box(r,'status','LIVE: receipt summaries and daily cash statements · PENDING: payment posting\nDebian runtime · Click a process to open its detailed page',60,95,1280,65,'note')
+# Three connected lanes follow the source agent overview: entries, workers,
+# shared data services, delivery and durable state. Existing page IDs stay stable.
+for key,label,col,row,kind,target in [
+ ('daily','00:15 Bangkok timer\nDaily cash statement',0,0,'LIVE','statement'),
+ ('webhook','Signed Instagram webhook\nBorrower receipt messages',1,0,'LIVE','ingress'),
+ ('manual','Operator-selected receipt\nShared receipt-prepare command',2,0,'LIVE','receipts'),
+ ('snapshot','Read cash ledger and balances\nFreeze private statement snapshot',0,1,'step','statement'),
+ ('capture','Verify signature\nPersist and deduplicate events',1,1,'step','ingress'),
+ ('masters','Shared read-only data access\nPROD OLTP / OLAP API + PostgreSQL',2,1,'step','api'),
+ ('render','Render statement images\nEnglish / Thai, receipt time HH:mm',0,2,'step','statement'),
+ ('validate','Receipt worker: map borrower\nExtract image and validate receipt',1,2,'step','receipts'),
+ ('post','PENDING: reusable payment posting\nExact OLTP readback before success',2,3,'PENDING','posting'),
+ ('identity','Current Partner identity, language\nIG route and messaging window',0,3,'step','identity'),
+ ('notice','Prepare localized receipt summary\nCurrent path does not post payment',1,3,'step','ig'),
+ ('igsend','Instagram API delivery\nNo receipt-success group message',1,4,'step','ig'),
+ ('fallback','Email fallback and bounded retry\nUnknown sends are not replayed',2,4,'step','email'),
+ ('journal','Private SQLite journals\nReceipt deduplication, send intent and uncertain outcomes',1,5,'note',None),
+]:
+    box(r,key,label,60+col*440,210+row*185,400,115,kind,target)
+for a,b,label in [
+ ('daily','snapshot',''),('snapshot','render',''),
+ ('webhook','capture',''),('capture','validate','20-second worker'),
+ ('manual','masters','Fresh masters'),('masters','validate','Borrower / account facts'),
+ ('render','identity','Statement'),('validate','notice','Valid receipt'),
+ ('identity','igsend','Verified recipient'),('notice','igsend','Summary'),
+ ('notice','post','Future'),('igsend','fallback','Fallback'),
+ ('igsend','journal','Accepted / uncertain'),('fallback','journal','Outcome'),
+]:
+    routes={
+      ('masters','validate'):([(1140,637.5)],'exitX=0.5;exitY=1;entryX=1;entryY=0.5;'),
+      ('identity','igsend'):([(260,1007.5)],'exitX=0.5;exitY=1;entryX=0;entryY=0.5;'),
+      ('fallback','journal'):([(1140,1192.5)],'exitX=0.5;exitY=1;entryX=1;entryY=0.5;'),
+    }
+    points,ports=routes.get((a,b),(None,''))
+    edge(r,a,b,label,points,ports)
+box(r,'future','Pending posting: only a verified payment may produce a Payment processed notice.\nDisabled: persistent Partner conversations, Partner GUI operations, daily briefing and weather.\nOpen the service index for every detailed process and its implementing scripts.',60,1340,1280,90,'note','overview')
+
+r=page('overview','02 · All services',1120)
 box(r,'title','MW INTEGRATION AGENT  |  All services and implementing scripts',40,25,1320,70,'step')
 box(r,'legend','One Debian runtime · Click a service for its detailed flowchart\nGreen = live outcome / service · Blue = process · Yellow = decision / pending · Red = stop · Grey = notes / disabled',40,110,1320,85)
 for i,(key,title,status,*_) in enumerate(pages):
@@ -142,7 +186,7 @@ decisions={
  'api':(2,'Approved app, table\nand bounded selector?','Reject request\nNo arbitrary write access'),
  'database':(1,'Expected PROD database\nand dedicated role?','Stop query\nDo not use another database'),
 }
-for number,(key,title,status,steps,notes,sources) in enumerate(pages,2):
+for number,(key,title,status,steps,notes,sources) in enumerate(pages,3):
     r=page(key,f'{number:02} · {title}')
     box(r,'title',f'{number}. {title}',60,30,1280,55,'note')
     box(r,'status',f'STATUS: {status}  |  Return to all services',60,100,1280,65,'note','overview')
