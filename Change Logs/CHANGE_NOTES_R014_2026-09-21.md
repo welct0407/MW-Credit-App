@@ -51,3 +51,11 @@ Rollback for this coherent app-only batch: Git `f1f15a4`, DEV OLTP 1.000070 and 
 - Updated dictionary DEV differences, model overview, inventory, tracker, development differences and release manifest. No notifications, financial writes, Looker changes or production changes in this refinement.
 
 Owner decision, 21 September: forecast proposal rejected and excluded from R014. Review-only scripts/report were removed by revert `1844453` (recoverable in Git history). No forecast changes were applied to either app or database; existing R014 implementation and scope remain intact.
+
+## AI Reviewer role — owner extension, 21 September
+
+Owner clarified the flag belongs to Partners, not Borrowers. Add `AI Reviewer` Yes/No with false default and Tommy initially true; separate review request/decision authority from daily summaries and IG integration. Include schema, both affected app consumers and agent script changes in R014. No production promotion authorized by this extension.
+
+Refinement baseline: Git `8a11cb656ed6ba1f77aa3ac750d00529d2a64e0d`; DEV OLAP 1.000028 verified before regeneration. Private DEV backup and hash: [reviewer backup](../outputs/r014-20260921/reviewer-backup.json). V32 is reserved/applied to DEV: additive non-null boolean with default false; existing Tommy identity explicitly selected. Existing reporting views use explicit Partner columns and require no definition change. OLAP owns editing; OLTP remains read-only. Live production activation must follow V32 promotion and coordinated reviewed agent deployment, preserving old request correlation and rejecting non-reviewers.
+
+Implementation and GUI verification in progress; this extension reopens DEV completion. Prior R014 checks remain valid for untouched workflows. The old V31 release manifest is superseded for the expanded batch; rebuild its pinned manifest after completion.
