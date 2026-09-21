@@ -46,9 +46,9 @@ pages=[
  'IG participant ID → username → one AI-enabled Borrower',
  'Download bounded image; isolated Codex extracts facts',
  'Validate date, success, amount, transfer time, account aliases and duplicates',
- 'Reserve receipt keys; queue localized partner notification'],
+ 'Fresh Payments check: already recorded → stop; uncertain → review; otherwise queue notice'],
  'Today/yesterday Bangkok only.\nActive receiving account; primary or alternative number.\nReference/image duplicate → stop.\nNonreceipt or disabled/unmapped borrower → ignore.\nInvalid receipt → REVIEW.\nCURRENT: summary only; no payment write or group reply.\nreceipt-prepare accepts borrower/date/message parameters and reuses the same extraction and rules.',
- 'receipt_run.py · receipt_rules.py · receipt_image.py\nreceipt_master.py · receipt_journal.py · receipt_prepare.py'),
+ 'receipt_run.py · receipt_rules.py · receipt_image.py · payment_match.py\nreceipt_master.py · receipt_journal.py · receipt_prepare.py'),
 ('posting','Payment posting','PENDING',[
  'Input: validated receipt from the shared workflow',
  'Re-read borrower, loan, charges and existing payments',
