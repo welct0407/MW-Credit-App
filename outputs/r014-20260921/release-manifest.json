@@ -1,13 +1,16 @@
 {
   "schemaVersion": 1,
   "release": "R014",
-  "revision": 1,
+  "revision": 2,
   "status": "dev-complete-awaiting-owner-acceptance",
   "scope": [
     "Remove inline Cash Account creation from manual OLAP Cash Ledger",
     "OLTP account balances grouped and summed by owner",
     "Eight bilingual MTD income/expense/withdrawal/balance figures",
-    "Exact positive partial settlements with completed withdrawals allocated FIFO from business inception"
+    "Exact positive partial settlements with completed withdrawals allocated FIFO from business inception",
+    "Settlement account picker excludes New",
+    "Both Borrowers lists grouped Active first, Inactive second, with outstanding-principal subtitle",
+    "Both apps disable detail record slideshow navigation; list swipe actions remain None"
   ],
   "prerequisites": [
     "R013"
@@ -33,7 +36,7 @@
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": "1.000070",
+        "version": "1.000072",
         "evidence": "outputs/r014-20260921/REPORT.md"
       },
       "rc": {
@@ -73,7 +76,7 @@
       "dev": {
         "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
         "internalName": "MW-OLAP-DEV-20260919-578763613",
-        "version": "1.000024",
+        "version": "1.000028",
         "evidence": "outputs/r014-20260921/REPORT.md"
       },
       "rc": {

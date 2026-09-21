@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
 const input='Documents/AppSheet_Data_Dictionary.xlsx';
 const dir='outputs/r014-20260921';
+const refinement=process.argv.includes('--refine');
 const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(input));
 const sheet=wb.worksheets.getItem('Dev Differences');
 const existing=sheet.getUsedRange().values;
@@ -20,9 +21,9 @@ if(process.argv.includes('--inspect')){
  await fs.writeFile(`${dir}/.tmp/dictionary-before.png`,new Uint8Array(await pic.arrayBuffer()));
  process.exit(0);
 }
-assert(!existing.some(r=>String(r[0]).startsWith('R014')),'R014 already recorded');
+assert(!existing.some(r=>refinement?r[0]==='R014 DEV refinement':String(r[0]).startsWith('R014')),'Requested R014 batch already recorded');
 const before=wb.worksheets.items.map(s=>({name:s.name,values:s.getUsedRange().values,formulas:s.getUsedRange().formulas}));
-const rows=[
+let rows=[
  ['R014 DEV SQL','Cash Dashboard','Read-only view','Absent; PROD V30','DEV V31. One row keyed cash-dashboard. Bangkok month-to-date income, signed expenses, net profit, signed completed FIFO withdrawals per partner, unsettled profit, available cash pool and positive initialized account custody. No base columns or posting changes.'],
  ['R014 DEV SQL','fifo_current_month_settled','Function','Absent','Immutable strict numeric helper: least(greatest(month_net,0), greatest(completed-greatest(prior_net,0),0)). Completed settlements consume prior net entitlement from inception before current-month entitlement, separately for role A (Tommy) and B (Lisa). Pending/Cancelled excluded.'],
  ['R014 DEV OLAP','Cash Accounts','Are updates allowed','ADDS_AND_UPDATES','IF(OR(CONTAINS(CONTEXT("View"), "Cash Ledger"), CONTEXT("View") = "Cash Position"), "UPDATES_ONLY", "ADDS_AND_UPDATES"). Removes New in manual Cash Ledger account selectors; standalone account administration retained.'],
@@ -45,6 +46,17 @@ const rows=[
  ['R014 DEV OLTP','Income MTD / Dashboard / KPIs','Views','Three MTD figures embedded in KPIs','Income MTD: reference Detail, Cash Dashboard, Normal, automatic source-order columns, no desktop multicolumn; display "เดือนนี้ / Income MTD". Dashboard entries KPIs Small, Income MTD Tall, Business Cash Held Tall. KPIs removes Header - Income Statement MTD and its three old MTD metrics; other fields retained.'],
  ['R014 DEV OLTP','Income MTD format rules','Rules','Absent','All TRUE on Cash Dashboard. Income MTD - Green: Operating Income MTD, Net Profit MTD (#188038). Income MTD - Red: Expenses MTD, Tommy Withdrawn MTD, Lisa Withdrawn MTD (#d93025). Income MTD - Balances Blue: Unsettled Profit MTD, Cash Pool Remaining, Business Cash Held (#1a73e8).']
 ];
+if(refinement){
+ const ref=JSON.parse(await fs.readFile(`${dir}/refinements.json`,'utf8'));
+ rows=[
+  ['R014 DEV refinement','OLAP Cash Accounts','Are updates allowed','R014 initial Cash Ledger/Cash Position restriction',ref.cashAccountUpdateMode+'; also removes New from settlement Paid From Account picker. Standalone account administration retains adds/updates.'],
+  ['R014 DEV refinement','Both apps: Borrowers[Borrower Activity Group]','Virtual column','Absent','Text; Show TRUE; read-only; no key/label/required/search. App formula '+ref.borrowerView.formula+'. Display name: '+ref.borrowerView.displayName+'. Uses existing Has Active Loan flag; no new database column.'],
+  ['R014 DEV refinement','Both apps: Borrowers view','Grouping and secondary header','No grouping; secondary Total Amount Loaned','Group by Borrower Activity Group ascending: Active first, Inactive second. Secondary header Total Outstanding Principal. Existing row sort, Total Interest Earned summary and visibility filters retained. New virtual column available in view data.'],
+ ];
+ for(const [role,names] of Object.entries(ref.swipeReview.slideshowFalse)){
+  for(let i=0;i<names.length;i+=5)rows.push(['R014 DEV refinement',`${role} detail views ${i+1}–${Math.min(i+5,names.length)}`,'Slideshow mode','Previously TRUE except existing disabled views recorded in refinements.json','FALSE in: '+names.slice(i,i+5).join('; ')+'. Disables previous/next record navigation. All exposed list left/right swipe actions remain Auto assign (None).']);
+ }
+}
 const start=existing.length+1,end=start+rows.length-1;
 for(let r=start;r<=end;r++)sheet.getRange(`A${r}:E${r}`).copyFrom(sheet.getRange(`A${start-1}:E${start-1}`),'all');
 sheet.getRange(`A${start}:E${end}`).values=rows;
@@ -52,8 +64,8 @@ sheet.getRange(`A${start}:E${end}`).format.wrapText=true;
 sheet.getRange(`A${start}:E${end}`).format.rowHeight=145;
 wb.recalculate();
 for(const [name,a,b] of [['first',start,start+3],['last',end-3,end]]){
- const pic=await wb.render({sheetName:sheet.name,range:`A${a}:E${b}`,scale:1,format:'png'});
- await fs.writeFile(`${dir}/dictionary-${name}.png`,new Uint8Array(await pic.arrayBuffer()));
+ const pic=await wb.render({sheetName:sheet.name,range:`A${a}:E${b}`,scale:0.7,format:'png'});
+ await fs.writeFile(`${dir}/dictionary-${refinement?'refinements-':''}${name}.png`,new Uint8Array(await pic.arrayBuffer()));
 }
 const out=`${dir}/.tmp/dictionary.xlsx`;
 await (await SpreadsheetFile.exportXlsx(wb)).save(out);
@@ -61,5 +73,5 @@ const after=await SpreadsheetFile.importXlsx(await FileBlob.load(out));
 for(const b of before){const a=after.worksheets.getItem(b.name);assert.deepEqual(a.getUsedRange().values.slice(0,b.values.length),b.values);assert.deepEqual(a.getUsedRange().formulas.slice(0,b.formulas.length),b.formulas);}
 assert.deepEqual(after.worksheets.getItem(sheet.name).getRange(`A${start}:E${end}`).values,rows);
 await fs.copyFile(out,input);
-await fs.writeFile(`${dir}/dictionary-verification.json`,JSON.stringify({range:`A${start}:E${end}`,priorValuesAndFormulasPreserved:true,rowsAdded:rows.length},null,2));
+await fs.writeFile(`${dir}/dictionary-${refinement?'refinements-':''}verification.json`,JSON.stringify({range:`A${start}:E${end}`,priorValuesAndFormulasPreserved:true,rowsAdded:rows.length},null,2));
 console.log(JSON.stringify({start,end,output:input}));

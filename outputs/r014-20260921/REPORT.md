@@ -2,6 +2,8 @@
 
 21 September 2026. **DEV complete; ready subject to owner acceptance and production authorization.** No RC, production migration or App Upgrade was performed. PROD remains R013 / V30 / OLTP 3.000240 / OLAP 1.100189.
 
+Latest owner refinements supersede the initial app versions below: **OLTP 1.000072 / OLAP 1.000028**, both Deployed and No issues found. The settlement Paid From Account picker has no New option. Both Borrowers lists group Active before Inactive using the existing activity flag and show outstanding principal as secondary header. All 48 detail views have Slideshow mode FALSE after checking all 127 views; exposed row swipe events are None. [Exact configuration, coverage and checks](refinements.json). No financial writes in this refinement. V31 is unchanged, so the initial SQL evidence is reused. Device/browser edge-back gestures are not AppSheet view settings; physical touch hardware was not tested.
+
 ## Tested definition
 
 | Component | Before / rollback | Final tested state |

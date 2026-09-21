@@ -1,0 +1,43 @@
+{
+  "date": "2026-09-21",
+  "rollback": {"git": "f1f15a48e1da29ff856f329be9651a6336493d37", "OLTP": "1.000070", "OLAP": "1.000024"},
+  "saved": {"OLTP": "1.000072", "OLAP": "1.000028", "bothEditors": "No issues found", "mode": "Deployed"},
+  "cashAccountUpdateMode": "IF(OR(CONTAINS(CONTEXT(\"View\"), \"Cash Ledger\"), CONTEXT(\"View\") = \"Cash Position\", CONTAINS(CONTEXT(\"View\"), \"Settlements\")), \"UPDATES_ONLY\", \"ADDS_AND_UPDATES\")",
+  "borrowerView": {
+    "apps": ["OLTP", "OLAP"],
+    "view": "Borrowers",
+    "source": {"OLTP": "Visible Borrowers", "OLAP": "Borrowers"},
+    "virtualColumn": "Borrower Activity Group",
+    "formula": "IF([Has Active Loan], \"Active / มีสินเชื่อ\", \"Inactive / ไม่ใช้งาน\")",
+    "type": "Text",
+    "displayName": "สถานะ / Status",
+    "groupBy": "Borrower Activity Group",
+    "groupDirection": "Ascending",
+    "secondaryHeaderBefore": "Total Amount Loaned",
+    "secondaryHeaderAfter": "Total Outstanding Principal",
+    "rowSortUnchanged": "Creation Date ascending",
+    "summaryUnchanged": "Total Interest Earned"
+  },
+  "swipeReview": {
+    "reviewedViewCounts": {"OLTP": 61, "OLAP": 66},
+    "slideshowFalse": {
+      "OLTP": ["Reporting App Shortcut", "Cash Statement Controls", "Cash Statement Summary", "Income MTD", "KPIs", "Borrowers_Detail", "Business Expenses_Detail", "Cash Account Balances_Detail", "Cash Account Daily Summary Recent_Detail", "Cash Account Statement Recent_Detail", "Cash Accounts_Detail", "Cash Dashboard_Detail", "Cash Holder Balances_Detail", "Cash Holders_Detail", "Cash Statement Context_Detail", "Charges_Detail", "Loan Form Context_Detail", "Loans_Detail", "Partners_Detail", "Payment Allocations_Detail", "Payments_Detail", "Repayments_Detail", "Statistics_Detail", "Todays Collection Board_Detail", "Visible Borrowers_Detail"],
+      "OLAP": ["Loan Assessment", "Operations App Shortcut", "Analytics Data", "KPIs", "Borrowers_Detail", "Business Expenses_Detail", "Cash Account Balances_Detail", "Cash Accounts_Detail", "Cash Holder Balances_Detail", "Cash Holders_Detail", "Cash Ledger_Detail", "Cash Pool Contributions_Detail", "Charges_Detail", "Daily Analytics_Detail", "Loan Assessment_Detail", "Loans_Detail", "Partners_Detail", "Payment Allocations_Detail", "Payments_Detail", "olap_portfolio_summary_Detail", "Repayments_Detail", "Settlements_Detail", "Statistics_Detail"]
+    },
+    "alreadyFalseBeforeRefinement": {"OLTP": ["Cash Statement Controls", "Cash Statement Summary", "KPIs"], "OLAP": ["KPIs"]},
+    "changedFromTrueToFalse": 44,
+    "rowSwipedLeftAndRight": "All exposed list swipe events observed Auto assign (None); no assigned swipe actions found",
+    "scope": "AppSheet record navigation and row actions. Device/browser edge-back gestures are outside app view settings. Physical touch hardware not tested."
+  },
+  "guiChecks": [
+    "Saved OLTP and OLAP grouping and secondary headers read back after editor reload; synced OLAP list shows Active first",
+    "Mobile preview shows Active group first; scrolling reaches Inactive group",
+    "Mobile borrower detail opens without previous/next record arrows",
+    "Running synced OLAP Set Amount > Settlements Form > Paid From Account has existing choice and no New",
+    "Settlement form cancelled without saving; no financial writes in this refinement",
+    "Both reloaded saved editors show No issues found"
+  ],
+  "sql": "Unchanged V31; original arithmetic and migration evidence reused",
+  "production": "Unchanged; no authorization or promotion",
+  "reference": "https://support.google.com/appsheet/answer/10106385"
+}
