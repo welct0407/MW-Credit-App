@@ -32,4 +32,14 @@ The account opening is immutable. Any rollback requires a separately reviewed co
 
 ## Status
 
+### Owner-authorized opening correction — 21 September 2026
+
+Owner confirmed the omitted 280 personal profit withdrawal and explicitly authorized direct opening updates without adding an adjustment transaction. Completed historical settlements total 115,470: 84,510 (owner identifies 84,230 August profit plus 280 September profit) and 30,960. Both are pre-cash-tracking sources without settlement ledger rows. Net unsettled profit already deducts these settlements; the owner's explanation reconciles the 280 cash excess.
+
+In production on shared instance appsheet-pg-prod-20260914 / 34.21.174.215 / loan_manager_prod, reduced Lisa account cutover Opening Balance from 75,931 to 75,651 and matching historical holder opening `opening-lisa-20260918` from 78,540 to 78,260. Appended old/new values and reason to both audit notes. No new ledger row, settlement, income or expense was posted. Creation audit and keys were retained. Paused only the two relevant immutability guards inside the locked transaction and restored both before commit; independent readback confirmed enabled. No schema definition changed.
+
+Fresh private backup: `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917/lisa-opening-280-before-20260921.dump`; SHA-256 `7FBB383C3CE292653D9A977345B9BBCFF179FE9586130F2EECA1A60F3A7EAD9F`. Existing restore runner successfully restored public/assessment_lab and compared normalized schema; instance/cron settings are excluded. Recovery requires coordinated reversal of both opening values; do not restore over later activity.
+
+Rollback rehearsal and committed transaction verified Lisa holder/account balances 78,651, Dad 35,340, Tommy 0, total cash 113,991 equal to expected cash 113,991 (11,992 remaining capital plus 101,999 net unsettled profit). Gap is zero. Ledger row count and unrelated ledger fingerprints were unchanged. Independent post-commit SQL readback passed; app GUI sync was not performed for this data-only correction. Starting Git commit b61640eb344589be9b650eb65b29ca635acf18dd. No app/model configuration changed.
+
 Complete and verified in production. This was an operational data correction and initialization; it changed no schema or AppSheet configuration.
