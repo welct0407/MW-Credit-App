@@ -2,7 +2,7 @@
 
 Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM.
 
-Status: **daily cash statement production schedule active**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. PostgreSQL uses a dedicated loopback role restricted to business-table SELECT and temporary objects. The statement runs at 00:15 Asia/Bangkok with Partner-master Instagram routing and Microsoft Graph email fallback. Receipt review/payment processing and persistent Partner conversations have separate activation switches; see their operating guides and deployment logs. Codex selects general AppSheet Add/Edit calls from inspected schema metadata, and approved receipt payments retain their separate adapter. No durable SQL writes are enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
+Status: **daily cash statements, receipt review and persistent Partner conversations active on Debian**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. PostgreSQL uses a dedicated loopback role restricted to business-table SELECT and temporary objects. The statement runs at 00:15 Asia/Bangkok with Partner-master Instagram routing and Microsoft Graph email fallback. Receipt review/payment processing and persistent Partner conversations have separate activation switches; see their operating guides and deployment logs. Codex selects general AppSheet Add/Edit calls from inspected schema metadata, and approved receipt payments retain their separate adapter. No durable SQL writes are enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
 
 ## Initial target
 
