@@ -30,6 +30,8 @@ Google Cloud Ops Agent 2.71.0 is installed through the VM's existing `goog-ops-a
 
 VM Manager OS inventory uses the active Google OS Config agent. Project feature settings must report the full `OSCONFIG_C` feature set. Instance metadata must retain both `enable-osconfig=TRUE` and `enable-guest-attributes=TRUE`; the latter also publishes the earlier guest-attributes inventory. No custom poll interval is configured, so the agent uses the default inventory cadence. A new or re-applied full-feature setting can take up to two hours to propagate before the OS Config inventory API and Compute Engine OS Info view load successfully.
 
+Normal administration uses ordinary public-key OpenSSH over Tailscale at `100.71.171.91`. `tailscaled` is enabled, but Tailscale SSH, subnet routing, exit-node advertising and Tailscale DNS acceptance are off. The worldwide `default-allow-ssh` and `default-allow-rdp` VPC rules are disabled. Recovery SSH uses `allow-ssh-iap-mw-integration-agent`, which permits TCP 22 only from `35.235.240.0/20` and targets the VM's dedicated service account. Keep `sshd` active for both Tailscale and IAP. The existing tailnet retains its owner-managed general access policy; public-key authentication remains an independent SSH authorization boundary.
+
 Do not store credentials in the repository, VM metadata, startup scripts, or systemd unit text.
 
 Instagram secrets belong in `/etc/mw-integration-agent/secrets` with root ownership, group `mwagent`, directory mode `0750`, and file mode `0640`. The live config references those files and must not contain secret values.
@@ -48,6 +50,8 @@ systemctl is-active mw-cloudflared-instagram.service
 systemctl is-active google-cloud-ops-agent-opentelemetry-collector.service
 systemctl is-active google-cloud-ops-agent-fluent-bit.service
 systemctl is-active google-osconfig-agent.service
+systemctl is-active tailscaled.service
+tailscale status
 curl --fail http://127.0.0.1:8000/health
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
   instagram-probe --config /etc/mw-integration-agent/config.json \

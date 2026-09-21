@@ -15,13 +15,14 @@ Status: **daily cash statement production schedule active**. The Debian receiver
 - OS: Debian 13
 - System timezone: `Asia/Bangkok` (`UTC+07:00`), synchronized by NTP
 - Backups: regional Compute Engine snapshot policy `default-schedule-1`, attached and verified after VM creation
-- Network: static regional external IPv4 `136.85.96.197` (`vm-mw-credit-agent-ip`), authorized only for this VM by project-level organization-policy override; SSH remains available through IAP
+- Network: static regional external IPv4 `136.85.96.197` (`vm-mw-credit-agent-ip`) retained without public SSH/RDP; normal administration uses Tailscale `100.71.171.91`, with targeted IAP SSH as recovery
 - Installed source: `/opt/mw-integration-agent-src`
 - Installed application: `/opt/mw-integration-agent`
 - Service account: `mwagent` with a non-login shell
 - GCP identity: `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com`; Cloud SQL Client is conditionally limited to the production instance, with project-level Monitoring Metric Writer and Logs Writer for Ops Agent telemetry
 - Telemetry: Google Cloud Ops Agent 2.71.0 managed by the existing VM policy, collecting guest memory, process, filesystem and system metrics every 60 seconds
 - VM Manager inventory: Google OS Config agent enabled with guest attributes publishing Debian OS details on the default inventory cadence
+- Administrative overlay: Tailscale 1.102.4 with ordinary public-key OpenSSH; the VM is not an exit node or subnet router
 - Cloud SQL transport: Auth Proxy 2.25.4 on `127.0.0.1:5432`; dedicated read-only PostgreSQL credentials are installed
 - GitHub transport: repository-scoped read-only deploy key; updates are manual, clean-checkout, and fast-forward-only
 
