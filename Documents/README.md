@@ -16,6 +16,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Requested apps/DB refresh | [DEV Refresh](Development_Refresh_Runbook.md) |
 | SQL migrations | [Database procedure](../database/README.md#each-change) |
 | Release record tooling | [Release helpers](../scripts/releases/README.md) |
+| Correct app logos / restoration | [Logo resources](../resources/README.md) |
 | Dated changes/tests/decisions | [Change Logs](../Change%20Logs/) |
 | Dormant analysis/export pilot | [Feature reference](reference/Daily_Loan_Analysis_Automation.md) |
 | Historical evidence | [Archive index](archive/README.md) — excluded from routine work |
