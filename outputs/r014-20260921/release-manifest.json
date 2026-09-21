@@ -13,7 +13,7 @@
     "R013"
   ],
   "git": {
-    "implementationCommit": null,
+    "implementationCommit": "59a987675303ff764a764991545d69175cedbb24",
     "finalTag": null
   },
   "records": {
@@ -117,9 +117,9 @@
     "targetVersion": "31",
     "prodBeforeAppUpgrade": null,
     "prodAfter": null,
-    "testedCommit": null,
-    "runnerManifestReference": null,
-    "manifestSha256": null,
+    "testedCommit": "59a987675303ff764a764991545d69175cedbb24",
+    "runnerManifestReference": "outputs/r014-20260921/flyway-release.json",
+    "manifestSha256": "cc629bdad4eb6367a9f06c6768283b8ba079c9329f54931158d62f0d31c50200",
     "migrations": [
       {
         "name": "V31__cash_dashboard_fifo_settlements.sql",
