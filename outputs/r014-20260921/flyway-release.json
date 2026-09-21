@@ -1,8 +1,8 @@
 {
   "environment": "development",
-  "commit": "59a987675303ff764a764991545d69175cedbb24",
-  "createdUtc": "2026-09-21T10:57:21.6183807Z",
-  "validationReference": "outputs/r014-20260921/REPORT.md",
+  "commit": "75f847d9ba31c580b8c8f336df92a606635b2f6e",
+  "createdUtc": "2026-09-21T13:34:58.9070287Z",
+  "validationReference": "outputs/r014-20260921/reviewer-report.md and outputs/r014-20260921/REPORT.md",
   "migrations": [
     {
       "name": "V1__existing_schema.sql",
@@ -103,6 +103,10 @@
     {
       "name": "V31__cash_dashboard_fifo_settlements.sql",
       "sha256": "3e796d343aeb9abf0a4ce84d282064a7a27146859ab78a8a7202128c6b845edd"
+    },
+    {
+      "name": "V32__partner_ai_reviewer.sql",
+      "sha256": "3f92f3bbfb0ad2ced0ebe1fa560c554272a32ae4f694197f189b39fe0cd8c1d5"
     },
     {
       "name": "V4__preserve_appsheet_notification_events.sql",
