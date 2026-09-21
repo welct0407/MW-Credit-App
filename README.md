@@ -19,7 +19,8 @@ Status: **daily cash statement production schedule active**. The Debian receiver
 - Installed source: `/opt/mw-integration-agent-src`
 - Installed application: `/opt/mw-integration-agent`
 - Service account: `mwagent` with a non-login shell
-- GCP identity: `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com`, conditionally limited to Cloud SQL Client access for the production instance
+- GCP identity: `mw-integration-agent@clever-oasis-508610-n7.iam.gserviceaccount.com`; Cloud SQL Client is conditionally limited to the production instance, with project-level Monitoring Metric Writer and Logs Writer for Ops Agent telemetry
+- Telemetry: Google Cloud Ops Agent 2.71.0 managed by the existing VM policy, collecting guest memory, process, filesystem and system metrics every 60 seconds
 - Cloud SQL transport: Auth Proxy 2.25.4 on `127.0.0.1:5432`; dedicated read-only PostgreSQL credentials are installed
 - GitHub transport: repository-scoped read-only deploy key; updates are manual, clean-checkout, and fast-forward-only
 
