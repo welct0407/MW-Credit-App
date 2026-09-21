@@ -227,7 +227,7 @@ class ReceiptJournalTests(unittest.TestCase):
 
     def test_ingress_additive_migration_and_attachment_capture(self):
         import time
-        now=time.time()
+        now=int(time.time())
         payload={'object':'instagram','entry':[{'id':'9','messaging':[{'sender':{'id':'123'},
                  'recipient':{'id':'9'},'timestamp':now*1000,'message':{'mid':'a',
                  'attachments':[{'type':'image','payload':{'url':'https://scontent.fbcdn.net/a'}},
