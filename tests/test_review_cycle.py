@@ -47,3 +47,12 @@ class CycleTests(unittest.TestCase):
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'MANUAL_REQUIRED')
     def test_disabled_execution_no_write(self):
         self.config['partner_review_execution_enabled']=False;self.run_cycle();self.add_payment.assert_not_called()
+    def test_preexisting_ingress_schema_migrates_before_read(self):
+        import sqlite3
+        from contextlib import closing
+        with closing(sqlite3.connect(self.root/'instagram-ingress.db')) as old:
+            old.execute('ALTER TABLE messages DROP COLUMN reply_to')
+            old.commit()
+        self.run_cycle()
+        with closing(sqlite3.connect(self.root/'instagram-ingress.db')) as current:
+            self.assertIn('reply_to',{r[1] for r in current.execute('PRAGMA table_info(messages)')})
