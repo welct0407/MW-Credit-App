@@ -49,3 +49,5 @@ Rollback for this coherent app-only batch: Git `f1f15a4`, DEV OLTP 1.000070 and 
 - Saved-state checks caught an OLAP group selection mismatch during configuration; it was corrected to Borrower Activity Group and saved before acceptance checks.
 - Final DEV versions **OLTP 1.000072 / OLAP 1.000028**, both Deployed, saved and No issues found. Mobile preview checked active-first/inactive-later grouping and absence of previous/next arrows in borrower detail. Physical-phone touch gestures were not exercised. Original SQL/settlement arithmetic evidence remains valid because its dependencies are unchanged.
 - Updated dictionary DEV differences, model overview, inventory, tracker, development differences and release manifest. No notifications, financial writes, Looker changes or production changes in this refinement.
+
+Owner decision, 21 September: forecast proposal rejected and excluded from R014. Review-only scripts/report were removed by revert `1844453` (recoverable in Git history). No forecast changes were applied to either app or database; existing R014 implementation and scope remain intact.
