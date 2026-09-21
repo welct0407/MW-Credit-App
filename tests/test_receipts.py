@@ -32,7 +32,8 @@ def master():
 
 def receipt():
     return {'is_payment_receipt':True,'transfer_successful':True,
-            'date':datetime.now(BANGKOK).date().isoformat(),'amount':'1234.50','currency':'THB',
+            'date':datetime.now(BANGKOK).date().isoformat(),'time':'18:23:12',
+            'amount':'1234.50','currency':'THB',
             'reference':'TEST20260921','recipient_numbers':['0891234567']}
 
 

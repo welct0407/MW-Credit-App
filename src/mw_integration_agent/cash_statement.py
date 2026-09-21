@@ -1,4 +1,4 @@
-"""Read-only R010 cash effects, grouped by ledger posting time (Bangkok)."""
+"""Read-only R010 cash effects, grouped by the existing ledger timestamp (Bangkok)."""
 from __future__ import annotations
 
 import json

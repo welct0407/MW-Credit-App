@@ -69,6 +69,10 @@ def validate_receipt(value, accounts, today=None):
         raise ReceiptInvalid('DATE_UNREADABLE') from exc
     if receipt_date not in {today,today-timedelta(days=1)}:
         raise ReceiptInvalid('DATE_OUTSIDE_TODAY_YESTERDAY')
+    clock=value.get('time')
+    if (not isinstance(clock,str) or not re.fullmatch(r'(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?',clock)):
+        raise ReceiptInvalid('RECEIPT_TIME_UNREADABLE')
+    receipt_timestamp=f'{receipt_date.isoformat()}T{clock}+07:00'
     try:
         if not isinstance(value['amount'], str) or not re.fullmatch(r'\d{1,12}(?:\.\d{1,2})?',value['amount']):
             raise ValueError()
@@ -84,7 +88,9 @@ def validate_receipt(value, accounts, today=None):
     if not isinstance(numbers,list) or not 1 <= len(numbers) <= 5 or any(not isinstance(n,str) for n in numbers):
         raise ReceiptInvalid('RECIPIENT_UNREADABLE')
     account = match_account(numbers,accounts)
-    return {'date':receipt_date.isoformat(),'amount':f'{amount:.2f}',
+    return {'date':receipt_date.isoformat(),'time':clock,'timestamp':receipt_timestamp,
+            'payment_fields':{'Payment Date':receipt_date.isoformat(),'Created At':receipt_date.isoformat()+' '+clock},
+            'amount':f'{amount:.2f}',
             'reference':reference,'account_id':account['id'],'account_label':account['label']}
 
 
@@ -108,17 +114,19 @@ def recipients(partners):
 
 def summary(receipt, borrower, languages):
     blocks=[]
+    # Older accepted records retain their original evidence; never synthesize a missing time.
+    when=html.escape(receipt['date']+' '+receipt['time'][:5]+' (UTC+07:00)' if receipt.get('time') else receipt['date'])
     for language in languages:
         name=borrower.get('name_th' if language=='ไทย' else 'name_en') or borrower['id']
         name, account, reference = map(html.escape,(name,receipt['account_label'],receipt['reference']))
         amount=f"{Decimal(receipt['amount']):,.2f}"
         if language=='ไทย':
             blocks.append(f'<p>ได้รับสลิปการชำระเงินจาก {name} จำนวน {amount} บาท เข้าบัญชี {account}</p>'
-                          f'<p>วันที่: {receipt["date"]} · เลขอ้างอิง: {reference}</p>'
+                          f'<p>วันเวลาตามสลิป: {when} · เลขอ้างอิง: {reference}</p>'
                           '<p>ผ่านการตรวจสอบเบื้องต้นแล้ว ยังไม่ได้สร้างรายการชำระเงิน กรุณาตรวจสอบยอดเข้าบัญชี</p>')
         else:
             blocks.append(f'<p>Received a payment receipt from {name} for {amount} baht into {account}.</p>'
-                          f'<p>Date: {receipt["date"]} · Reference: {reference}</p>'
+                          f'<p>Receipt date/time: {when} · Reference: {reference}</p>'
                           '<p>Basic receipt checks passed. No payment record has been created. Please verify the bank credit.</p>')
     subject='สรุปสลิปการชำระเงิน' if languages==['ไทย'] else 'Payment receipt summary'
     return subject,'<hr>'.join(blocks)

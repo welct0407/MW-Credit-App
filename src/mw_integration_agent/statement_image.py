@@ -13,13 +13,13 @@ from .config import ConfigurationError
 
 LABELS = {
  'English': ['Daily statement', 'Opening balance', 'Money in', 'Money out',
-  'Net movement', 'Closing balance', 'Transactions', 'Posted time', 'Transaction / counterparty',
+  'Net movement', 'Closing balance', 'Transactions', 'Time', 'Transaction / counterparty',
   'Amount', 'Balance', 'No transactions in this period', 'Brought forward', 'Carried forward',
-  'Posting time • Asia/Bangkok (UTC+07:00) • THB', 'Page', 'Effective date'],
+  'Transaction time • Asia/Bangkok (UTC+07:00) • THB', 'Page', 'Effective date'],
  'ไทย': ['รายการเดินบัญชีประจำวัน', 'ยอดยกมา', 'เงินเข้า', 'เงินออก',
-  'เงินเคลื่อนไหวสุทธิ', 'ยอดคงเหลือปิดงวด', 'จำนวนรายการ', 'เวลาบันทึก', 'รายการ / ผู้เกี่ยวข้อง',
+  'เงินเคลื่อนไหวสุทธิ', 'ยอดคงเหลือปิดงวด', 'จำนวนรายการ', 'เวลา', 'รายการ / ผู้เกี่ยวข้อง',
   'จำนวนเงิน', 'ยอดคงเหลือ', 'ไม่มีรายการในช่วงเวลานี้', 'ยอดยกมาจากหน้าก่อน', 'ยอดยกไปหน้าถัดไป',
-  'ตามเวลาบันทึก • เวลาไทย (UTC+07:00) • บาท', 'หน้า', 'วันที่มีผล'],
+  'ตามเวลาทำรายการ • เวลาไทย (UTC+07:00) • บาท', 'หน้า', 'วันที่มีผล'],
 }
 TYPES = {
  'FIRST_DAY_PAYMENT': ('First-day payment','ชำระเงินวันแรก'),

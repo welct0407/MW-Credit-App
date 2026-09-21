@@ -20,7 +20,7 @@ from .graph_email import NoRedirect
 
 SCHEMA = {'type':'object','additionalProperties':False,'properties':{
     'is_payment_receipt':{'type':'boolean'},'transfer_successful':{'type':'boolean'},
-    **{k:{'type':'string'} for k in ('date','amount','currency','reference')},
+    **{k:{'type':'string'} for k in ('date','time','amount','currency','reference')},
     'recipient_numbers':{'type':'array','items':{'type':'string'}}}}
 SCHEMA['required'] = list(SCHEMA['properties'])
 PROMPT = '''Classify and extract ONLY visible facts from this image into the JSON schema.
@@ -29,6 +29,11 @@ Do not use tools, access files, browse, calculate a payment or contact anyone.
 is_payment_receipt is true only for a bank/payment transfer receipt; transfer_successful is true
 only when the image confirms a completed successful transfer, never pending/failed/scheduled.
 Return date as Gregorian YYYY-MM-DD (Thai Buddhist year minus 543); empty if unreadable.
+Return time as the TRANSFER time printed on the receipt, in 24-hour HH:MM or HH:MM:SS
+(retain fractional seconds if printed). Preserve the printed precision: never invent seconds,
+substitute message/upload/current time, or use a phone status-bar clock. These are Thai receipts:
+interpret an unlabeled local transfer time as Asia/Bangkok. If a different timezone is shown,
+leave time empty for review. If transfer time is missing/unreadable, return time as an empty string.
 Return transfer amount as decimal string without commas, currency THB only when baht is evident,
 and the bank transaction reference exactly as visible (not a phone/account/date or invented ID).
 recipient_numbers contains ONLY destination bank account or PromptPay numbers, never sender numbers.
