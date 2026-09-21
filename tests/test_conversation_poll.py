@@ -40,6 +40,15 @@ class PollTests(unittest.TestCase):
     def test_disabled_borrower_not_scanned(self):
         self.master['borrowers'][0]['enabled']=False
         self.assertEqual(scan(self.c,self.api([self.message()]),self.master,self.j,self.now)['eligible_conversations'],0)
+    def test_today_backfill_preserves_cursor_and_dedupes(self):
+        api=self.api([self.message()])
+        scan(self.c,api,self.master,self.j,self.now)
+        self.j.db.execute('UPDATE conversation_poll_state SET checked_through=?',(self.now+10000,));self.j.db.commit()
+        api=self.api([self.message('earlier',time='2026-09-21T00:10:00+00:00')])
+        self.assertEqual(scan(self.c,api,self.master,self.j,self.now,day='2026-09-21')['image_jobs'],1)
+        self.assertEqual(self.j.db.execute('SELECT checked_through FROM conversation_poll_state').fetchone()[0],self.now+10000)
+        self.assertEqual(scan(self.c,api,self.master,self.j,self.now,day='2026-09-21')['image_jobs'],0)
+        with self.assertRaises(ConfigurationError):scan(self.c,api,self.master,self.j,self.now,day='2026-09-20')
     def test_pagination_cycle_rejected(self):
         api=Mock(request=Mock(return_value={'data':[],'paging':{'next':'unused','cursors':{'after':'a'}}}))
         with self.assertRaises(ConfigurationError):list(pages(api,'999/conversations',{}))

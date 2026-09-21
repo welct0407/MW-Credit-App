@@ -26,6 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
     poll=sub.add_parser('conversation-poll',help='read new conversation messages through official API')
     poll.add_argument('--config',required=True)
     poll.add_argument('--catalogue',required=True)
+    poll.add_argument('--date',help='explicit owner-requested today-only group backfill; preserve polling cursors')
     webhook = sub.add_parser("serve-webhook", help="run receipt-only signed Instagram ingress")
     webhook.add_argument("--config", required=True)
     webhook.add_argument("--catalogue", required=True)
@@ -71,7 +72,7 @@ def main() -> int:
     try:
         if args.command=='conversation-poll':
             from .conversation_poll import run
-            print(json.dumps(run(args.config,args.catalogue)))
+            print(json.dumps(run(args.config,args.catalogue,args.date)))
             return 0
         if args.command=='receipt-prepare':
             from .receipt_prepare import prepare

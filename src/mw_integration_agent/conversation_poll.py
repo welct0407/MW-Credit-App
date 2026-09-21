@@ -27,9 +27,13 @@ def pages(api,path,query):
     raise ConfigurationError('POLL_PAGE_LIMIT')
 
 
-def scan(config,api,master,journal,now=None):
+def scan(config,api,master,journal,now=None,day=None):
     now=time.time() if now is None else now
     cutoff=datetime.fromisoformat(config['conversation_poll_cutoff']).timestamp()
+    if day:
+        from .receipt_rules import BANGKOK
+        if day!=datetime.fromtimestamp(now,BANGKOK).date().isoformat():raise ConfigurationError('BACKFILL_TODAY_ONLY')
+        cutoff=datetime.fromisoformat(day+'T00:00:00+07:00').timestamp()
     db=journal.db
     db.executescript('''CREATE TABLE IF NOT EXISTS conversation_poll_state
       (conversation_id TEXT PRIMARY KEY, checked_through REAL NOT NULL);
@@ -46,13 +50,14 @@ def scan(config,api,master,journal,now=None):
             if peers.get('paging',{}).get('next'):raise ConfigurationError('POLL_PARTICIPANTS_INCOMPLETE')
             participants=peers.get('data')
             if not isinstance(participants,list):raise ConfigurationError('POLL_PARTICIPANTS_MISSING')
+            if day and len(participants)<=2:continue
             allowed={str(p['id']) for p in participants if username(p.get('username')) in enabled}
             allowed.discard(str(config['instagram_account_id']))
             if not allowed:continue
             counts['eligible_conversations']+=1
             cid=conversation['id']
             prior=db.execute('SELECT checked_through FROM conversation_poll_state WHERE conversation_id=?',(cid,)).fetchone()
-            since=max(cutoff,(prior[0]-300) if prior else cutoff)
+            since=cutoff if day else max(cutoff,(prior[0]-300) if prior else cutoff)
             found=[]; previous=float('inf')
             # Read newest-first history through the overlap boundary, not just its last message.
             history=conversation.get('messages',{'data':[]})
@@ -90,12 +95,12 @@ def scan(config,api,master,journal,now=None):
                         images+=db.execute('''INSERT OR IGNORE INTO receipt_jobs
                           (id,message_id,sender_id,url,status,created_at) VALUES (?,?,?,?,'PENDING',?)''',
                           (key,message['id'],sender,url,now)).rowcount
-                db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(cid,now))
+                if not day:db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(cid,now))
             counts['new_messages']+=added;counts['image_jobs']+=images
     return counts
 
 
-def run(config_path,catalogue_path):
+def run(config_path,catalogue_path,day=None):
     import fcntl
     config=controls(config_path,catalogue_path)
     if config.get('conversation_poll_enabled') is not True or not load_json(catalogue_path)['services'].get('conversation_poll',{}).get('enabled'):
@@ -105,5 +110,5 @@ def run(config_path,catalogue_path):
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:return {'status':'already_running'}
         journal=ReceiptJournal(root/'receipt-processing.db')
-        try:return scan(config,Instagram(config),masters(config),journal)
+        try:return scan(config,Instagram(config),masters(config),journal,day=day)
         finally:journal.close()

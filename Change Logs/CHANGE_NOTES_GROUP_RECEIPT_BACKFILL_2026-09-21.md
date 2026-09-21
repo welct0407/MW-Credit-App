@@ -1,0 +1,5 @@
+# Today-only group receipt backfill — 21 September 2026
+
+Owner explicitly requested reading today's group messages and applying the current Partner review workflow. Added parameterized `conversation-poll --date YYYY-MM-DD` to the existing reader. It accepts today in Bangkok only, restricts to multi-participant conversations, ignores saved polling watermarks for this run and leaves those watermarks/configuration cutoffs unchanged. Existing message/image/reference/payment/review deduplication remains in force. No one-person script or browser automation is used.
+
+Source rollback: `fb713017df14cc09ef976a682ac94435eb34f43e`. Reviewed runtime updater establishes a consistent private journal/config/package backup before deployment. Automated coverage verifies early-day intake despite a later cursor, unchanged normal cursors and harmless repeated invocation. Operational borrower/message details remain private. Current receipt validation/review service owns processing and sending; this command only queues unseen images.
