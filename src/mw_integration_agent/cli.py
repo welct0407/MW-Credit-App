@@ -41,6 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     appsheet = sub.add_parser("appsheet-probe", help="verify bounded read-only AppSheet API access")
     appsheet.add_argument("--config", required=True)
     appsheet.add_argument("--catalogue", required=True)
+    appsheet.add_argument('--app', choices=('oltp','olap'), default='oltp')
     statement = sub.add_parser("cash-statement", help="prepare or explicitly deliver the latest completed daily cash statement")
     statement.add_argument("--config", required=True)
     statement.add_argument("--catalogue", required=True)
@@ -50,15 +51,25 @@ def build_parser() -> argparse.ArgumentParser:
     retry = sub.add_parser("retry-cash-statement-email", help="retry definitely unsent fallback email")
     retry.add_argument("--config", required=True)
     retry.add_argument("--catalogue", required=True)
-    receipt=sub.add_parser('receipt-cycle',help='process new borrower receipt images and email summaries only')
+    receipt=sub.add_parser('receipt-cycle',help='validate new borrower receipts and deliver IG-first Partner notices; no payments')
     receipt.add_argument('--config',required=True)
     receipt.add_argument('--catalogue',required=True)
+    prepare=sub.add_parser('receipt-prepare',help='prepare one explicitly selected borrower receipt; no payment or notification')
+    prepare.add_argument('--config',required=True)
+    prepare.add_argument('--catalogue',required=True)
+    prepare.add_argument('--borrower-id',required=True)
+    prepare.add_argument('--date',required=True)
+    prepare.add_argument('--message-id')
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        if args.command=='receipt-prepare':
+            from .receipt_prepare import prepare
+            print(json.dumps(prepare(args.config,args.catalogue,args.borrower_id,args.date,args.message_id)))
+            return 0
         if args.command=='receipt-cycle':
             from .receipt_run import run
             print(json.dumps(run(args.config,args.catalogue)))
@@ -138,7 +149,7 @@ def main() -> int:
                 raise ConfigurationError("operational_data_read is disabled")
             if not config.get("appsheet_enabled"):
                 raise ConfigurationError("appsheet_enabled is false")
-            print(json.dumps(AppSheet(config).probe()))
+            print(json.dumps(AppSheet(config,args.app).probe()))
             return 0
     except ConfigurationError as exc:
         print(json.dumps({"status": "error", "error": str(exc)}))

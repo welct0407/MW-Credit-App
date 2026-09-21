@@ -1,5 +1,5 @@
 {
-  "revision": 8,
+  "revision": 9,
   "default_policy": "deny",
   "services": {
     "signed_webhook_ingress": {"enabled": true, "implemented": true},

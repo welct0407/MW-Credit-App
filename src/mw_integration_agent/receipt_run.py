@@ -16,7 +16,8 @@ from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,valida
 def controls(config_path,catalogue_path):
     config=load_json(config_path); validate_config(config)
     catalogue=load_json(catalogue_path); validate_catalogue(catalogue)
-    for service in ('receipt_summary','signed_webhook_ingress','database_connectivity'):
+    for service in ('receipt_summary','signed_webhook_ingress','database_connectivity',
+                    'partner_authentication','instagram_delivery','email_fallback'):
         if not catalogue['services'].get(service,{}).get('enabled'):
             raise ConfigurationError('RECEIPT_SERVICE_DISABLED')
     if config.get('receipt_summary_enabled') is not True:
@@ -78,8 +79,7 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
         receipt=validate_receipt(value,master['accounts'])
         if receipt['reference'] in master.get('posted_references',[]):
             journal.mark(job['id'],'DUPLICATE','REFERENCE_ALREADY_IN_PAYMENTS'); return
-        destinations=recipients(master['partners'])
-        journal.accept(job,{'receipt':receipt,'borrower':borrower},destinations)
+        journal.accept(job,{'receipt':receipt,'borrower':borrower},[])
     except ReceiptInvalid as exc:
         ignored=str(exc) in ('NOT_PAYMENT_RECEIPT','BORROWER_NOT_UNIQUELY_ENABLED')
         journal.mark(job['id'],'IGNORED' if ignored else 'REVIEW',str(exc))
@@ -134,9 +134,43 @@ def run(config_path,catalogue_path):
             for job in journal.pending():
                 config=controls(config_path,catalogue_path)
                 process(job,journal,config,masters(config))
-            for email in journal.emails():
+            from .partner_notice import NoticeJournal,receipt_notice
+            # Supersede definitely unsent legacy direct-email work. SENT/UNKNOWN history stays intact.
+            with journal.db:
+                journal.db.execute("UPDATE receipt_emails SET status='SUPERSEDED' WHERE status IN ('PENDING','REJECTED')")
+            notices=NoticeJournal(root/'partner-notices.db')
+            try:
                 config=controls(config_path,catalogue_path)
-                dispatch(email,journal,config,masters(config))
+                cutoff=config.get('partner_notice_cutoff')
+                if not cutoff:raise ConfigurationError('PARTNER_NOTICE_CUTOFF_REQUIRED')
+                jobs=journal.db.execute("SELECT * FROM receipt_jobs WHERE status='VALIDATED' AND created_at>=?",
+                    (datetime.fromisoformat(cutoff).timestamp(),)).fetchall()
+                for job in jobs:
+                    result=json.loads(job['result']);live=masters(config)
+                    borrower=borrower_for(conversation_identity(config,job['sender_id']),live['borrowers'])
+                    if borrower['id']!=result['borrower']['id']:continue
+                    if not any(a['id']==result['receipt']['account_id'] and a['active'] is True for a in live['accounts']):continue
+                    for partner in live['partners']:
+                        subject,body=receipt_notice(result['receipt'],borrower,partner['language'])
+                        notices.reserve('receipt:'+job['id'],partner,subject,body)
+                    with journal.db:
+                        journal.db.execute("UPDATE receipt_jobs SET status='NOTICE_QUEUED' WHERE id=? AND status='VALIDATED'",(job['id'],))
+                for notice in notices.due():
+                    config=controls(config_path,catalogue_path)
+                    live=masters(config)
+                    job=journal.db.execute('SELECT * FROM receipt_jobs WHERE id=?',(notice['event_key'].removeprefix('receipt:'),)).fetchone()
+                    try:
+                        if not job:raise ReceiptInvalid('RECEIPT_MISSING')
+                        result=json.loads(job['result'])
+                        borrower=borrower_for(conversation_identity(config,job['sender_id']),live['borrowers'])
+                        if borrower['id']!=result['borrower']['id']:raise ReceiptInvalid('BORROWER_MAPPING_CHANGED')
+                        if not any(a['id']==result['receipt']['account_id'] and a['active'] is True for a in live['accounts']):
+                            raise ReceiptInvalid('CASH_ACCOUNT_CHANGED')
+                    except ReceiptInvalid:
+                        with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='RECEIPT_MASTER_CHANGED' WHERE id=?",(notice['id'],))
+                        continue
+                    notices.dispatch(notice,config,live['partners'])
+            finally:notices.close()
             return journal.counts()
         finally:
             journal.close()

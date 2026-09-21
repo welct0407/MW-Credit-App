@@ -133,6 +133,14 @@ class ReceiptJournalTests(unittest.TestCase):
         process(job or self.j.pending()[0],self.j,{},m or master(),
                 fetch=lambda _: (b'image',hashlib.sha256(b'image').hexdigest()),
                 extractor=lambda *_:r or receipt(),identity_reader=profile)
+        # Retained legacy-outbox tests exercise old SENT/UNKNOWN journal recovery.
+        # The production process no longer reserves these direct-email entries.
+        for accepted in self.j.db.execute("SELECT id FROM receipt_jobs WHERE status='VALIDATED'").fetchall():
+            for dest in recipients((m or master())['partners']):
+                key=hashlib.sha256((accepted['id']+':'+dest['email']).encode()).hexdigest()
+                self.j.db.execute('INSERT OR IGNORE INTO receipt_emails(id,job_id,payload) VALUES (?,?,?)',
+                                  (key,accepted['id'],json.dumps(dest)))
+        self.j.db.commit()
 
     def test_no_replay_cutoff_and_nonimage(self):
         import time
@@ -203,6 +211,10 @@ class ReceiptJournalTests(unittest.TestCase):
                 r=receipt();r['reference']+=field.upper()
                 process(self.j.pending()[0],self.j,{},master(),fetch=lambda _: (field.encode(),field),
                     extractor=lambda *_:r,identity_reader=profile)
+                accepted=self.j.db.execute("SELECT id FROM receipt_jobs WHERE status='VALIDATED' ORDER BY created_at DESC LIMIT 1").fetchone()
+                dest=recipients(master()['partners'])[0]
+                self.j.db.execute('INSERT INTO receipt_emails(id,job_id,payload) VALUES (?,?,?)',
+                                  (field,accepted['id'],json.dumps(dest)));self.j.db.commit()
                 m=master()
                 if field=='partner': m['partners'][0]['email']='changed@example.com'
                 else: m['borrowers'][0]['enabled']=False

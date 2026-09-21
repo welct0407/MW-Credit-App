@@ -11,8 +11,16 @@ from .config import ConfigurationError, load_secret
 
 
 class AppSheet:
-    def __init__(self, config: dict[str, Any]):
-        self.config = config
+    def __init__(self, config: dict[str, Any], app: str = 'oltp'):
+        if app not in ('oltp', 'olap'):
+            raise ConfigurationError('Unknown AppSheet application')
+        self.config = dict(config)
+        self.app = app
+        if app == 'olap':
+            if not config.get('appsheet_olap_app_id') or not config.get('appsheet_olap_key_file'):
+                raise ConfigurationError('OLAP API connection is not configured')
+            self.config['appsheet_app_id'] = config['appsheet_olap_app_id']
+            self.config['appsheet_key_file'] = config['appsheet_olap_key_file']
 
     def find(self, table: str, selector: str) -> list[dict[str, Any]]:
         if not re.fullmatch(r"[A-Za-z][A-Za-z0-9 _-]{0,63}", table):
@@ -57,6 +65,7 @@ class AppSheet:
         rows = self.find("Partners", "Top(Filter(Partners, true), 10)")
         return {
             "authenticated": True,
+            "app": self.app,
             "app_id": self.config["appsheet_app_id"],
             "table": "Partners",
             "row_count": len(rows),

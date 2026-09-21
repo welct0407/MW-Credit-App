@@ -37,6 +37,12 @@ def load_json(path: str | Path) -> dict[str, Any]:
 def validate_config(config: dict[str, Any]) -> None:
     if type(config.get('receipt_summary_enabled', False)) is not bool:
         raise ConfigurationError('receipt_summary_enabled must be boolean')
+    if config.get('partner_notice_cutoff'):
+        from datetime import datetime
+        try:
+            if datetime.fromisoformat(config['partner_notice_cutoff']).tzinfo is None:raise ValueError()
+        except (TypeError,ValueError) as exc:
+            raise ConfigurationError('partner_notice_cutoff must include timezone') from exc
     if config.get('receipt_summary_enabled'):
         from datetime import datetime
         try:
@@ -89,6 +95,10 @@ def validate_config(config: dict[str, Any]) -> None:
         if config.get("appsheet_api_base") != "https://www.appsheet.com":
             raise ConfigurationError("appsheet_api_base is not approved")
         _validate_secret_path(config, "appsheet_key_file")
+        if config.get('appsheet_olap_app_id') or config.get('appsheet_olap_key_file'):
+            if config.get('appsheet_olap_app_id') != 'e74dd368-654f-44d7-bccf-83cf361d1cdb':
+                raise ConfigurationError('OLAP API must identify the approved production application')
+            _validate_secret_path(config, 'appsheet_olap_key_file')
 
     if config.get("database_enabled"):
         if config.get("database_host") not in {"127.0.0.1", "::1"}:
