@@ -1,5 +1,6 @@
 \ir Test-ChargeGeneration.sql
 BEGIN;
+\ir Test-CashAccountFixtures.sql
 CREATE FUNCTION pg_temp.assert(ok boolean,label text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'FAILED: %',label; END IF; END $$;
 CREATE FUNCTION pg_temp.reject(command text,expected text) RETURNS void LANGUAGE plpgsql AS $$
@@ -14,18 +15,16 @@ INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('DF10-B','SYNTHETIC DEF
 INSERT INTO "Partners"("Row ID","Partner Role") VALUES('DF10-PARTNER','A');
 INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
 VALUES('DF10-CAPITAL','DF10-PARTNER',current_date,'Contribution',5000::money);
-INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest")
-SELECT 'DF10-'||n,'DF10-B',current_date-5,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,10::money FROM generate_series(1,5) n;
+INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest")
+SELECT 'CI-LISA','DF10-'||n,'DF10-B',current_date-5,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,10::money FROM generate_series(1,5) n;
 INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes") VALUES
 ('DF10-unpaid','DF10-1',current_date-3,20::money,10::money,'Preserve note'),
 ('DF10-partial','DF10-1',current_date-2,50::money,20::money,NULL),
 ('DF10-paidtoday','DF10-2',current_date,0::money,10::money,NULL),
 ('DF10-a-good','DF10-3',current_date-2,10::money,5::money,'Rollback this write-off'),
 ('DF10-bad','DF10-3',current_date-1,(-1)::money,10::money,NULL);
-INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status") VALUES
-('DF10-pay','DF10-B','DF10-partial',30::money,current_date,'Single Partial','Processing');
-INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status") VALUES
-('DF10-paytoday','DF10-B','DF10-paidtoday',10::money,current_date,'Single Full','Processing');
+INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','DF10-pay','DF10-B','DF10-partial',30::money,current_date,'Single Partial','Processing');
+INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','DF10-paytoday','DF10-B','DF10-paidtoday',10::money,current_date,'Single Full','Processing');
 UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" LIKE 'DF10-%' AND "Row ID"<>'DF10-5';
 SELECT pg_temp.reject($q$UPDATE "Loans" SET "Defaulted"=true,"Close Date"=current_date-1,"Closed By"='synthetic@example.invalid' WHERE "Row ID"='DF10-1'$q$,'confirmation date');
 UPDATE "Loans" SET "Defaulted"=true,"Close Date"=current_date,"Closed By"='synthetic@example.invalid' WHERE "Row ID"='DF10-1';
@@ -47,7 +46,7 @@ UPDATE "Loans" SET "Loan Date"=current_date WHERE "Row ID"='DF10-4';
 UPDATE "Loans" SET "Defaulted"=true,"Close Date"=current_date,"Closed By"='synthetic@example.invalid' WHERE "Row ID"='DF10-4';
 SELECT pg_temp.assert((SELECT "Default Loss Amount"::numeric=100 FROM "Loans" WHERE "Row ID"='DF10-4'),'no prior charge required');
 SELECT pg_temp.assert(NOT EXISTS(SELECT 1 FROM "Payments" WHERE "Ref Target Charge"='df10:6:DF10-4'),'same-day loss never produces first-day cash receipt');
-SELECT pg_temp.reject($q$INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status") VALUES('DF10-after-default','DF10-B','DF10-partial',1::money,current_date,'Single Partial','Processing')$q$,'current eligible balance');
+SELECT pg_temp.reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','DF10-after-default','DF10-B','DF10-partial',1::money,current_date,'Single Partial','Processing')$q$,'current eligible balance');
 SELECT pg_temp.assert(public.generate_due_charges(current_date,ARRAY['DF10-1','DF10-4'])=0,'defaulted loans never generate new charges');
 SELECT 'Atomic Default Loan regressions passed' AS result;
 ROLLBACK;

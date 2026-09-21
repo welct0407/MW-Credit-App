@@ -1,12 +1,13 @@
 param([Parameter(Mandatory)][string]$PgBin,[Parameter(Mandatory)][int]$Port,[Parameter(Mandatory)][string]$OutputDirectory)
+& (Join-Path $PgBin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres -f "$PSScriptRoot/Test-CashAccountFixtures.sql"
+if($LASTEXITCODE){throw 'Cash-account fixture failed'}
 $ErrorActionPreference='Stop';$psql=Join-Path $PgBin 'psql.exe'
 @'
 SET TIME ZONE 'Asia/Bangkok';
 INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('DF10-CON','SYNTHETIC DEFAULT CONCURRENCY');
 INSERT INTO "Partners"("Row ID","Partner Role") VALUES('DF10-CON-PARTNER','A');
 INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES('DF10-CON-CAPITAL','DF10-CON-PARTNER',current_date,'Contribution',1000::money);
-INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Current Daily Interest","Auto Charge Enabled","Interest Payment Interval")
-VALUES('DF10-CON-L','DF10-CON',current_date-2,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',10::money,false,1);
+INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Current Daily Interest","Auto Charge Enabled","Interest Payment Interval") VALUES ('CI-LISA','DF10-CON-L','DF10-CON',current_date-2,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',10::money,false,1);
 UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='DF10-CON-L';
 '@ | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
 if($LASTEXITCODE){throw 'Default concurrency setup failed'}

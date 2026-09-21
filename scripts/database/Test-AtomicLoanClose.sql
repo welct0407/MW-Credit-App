@@ -2,6 +2,7 @@
 SET TIME ZONE 'Asia/Bangkok';
 \ir Test-CorePayment.sql
 BEGIN;
+\ir Test-CashAccountFixtures.sql
 CREATE FUNCTION pg_temp.close_assert(ok boolean,label text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'FAILED: %',label; END IF; END $$;
 CREATE FUNCTION pg_temp.close_reject(command text,expected text) RETURNS void LANGUAGE plpgsql AS $$
@@ -16,8 +17,8 @@ INSERT INTO "Partners"("Row ID","Partner Role") VALUES('AC7-PARTNER','A');
 INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
 VALUES('AC7-CAPITAL','AC7-PARTNER',current_date,'Contribution',5000::money);
 -- Seed with auto false so fixture setup does not create first-day receipts.
-INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest")
-SELECT 'AC7-'||n,'AC7-B',current_date-5,100::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money
+INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest")
+SELECT 'CI-LISA','AC7-'||n,'AC7-B',current_date-5,100::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money
 FROM unnest(ARRAY['NONE','OLD','PART','PAID','SAME','FUTURE','ROLLBACK','DUP','STALE','WRONG','FRACTION']) n;
 UPDATE "Loans" SET "Loan Date"=current_date WHERE "Row ID"='AC7-SAME';
 UPDATE "Loans" SET "Current Daily Interest"=0.1::money WHERE "Row ID"='AC7-FRACTION';
@@ -28,14 +29,11 @@ INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Intere
 ('AC7-FUTURE-C','AC7-FUTURE',current_date+2,100::money,20::money),
 ('AC7-DUP-C1','AC7-DUP',current_date,0::money,20::money),
 ('AC7-DUP-C2','AC7-DUP',current_date,0::money,20::money);
-INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES
-('AC7-PART-FIRST','AC7-B','AC7-PART-C',current_date,50::money,'Single Partial','Processing');
-INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES
-('AC7-PAID-FIRST','AC7-B','AC7-PAID-C',current_date,20::money,'Single Full','Processing');
+INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-PART-FIRST','AC7-B','AC7-PART-C',current_date,50::money,'Single Partial','Processing');
+INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-PAID-FIRST','AC7-B','AC7-PAID-C',current_date,20::money,'Single Full','Processing');
 UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" LIKE 'AC7-%';
 DO $$ DECLARE n text; BEGIN FOREACH n IN ARRAY ARRAY['NONE','OLD','PART','PAID','SAME','FUTURE'] LOOP
-INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Loan","Payment Date","Amount Received","Allocation Method","Status")
-VALUES('AC7-P-'||n,'AC7-B','AC7-'||n,current_date,1::money,'Loan Close','Processing');
+INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Amount Received","Allocation Method","Status") VALUES ('CI-DAD','AC7-P-'||n,'AC7-B','AC7-'||n,current_date,1::money,'Loan Close','Processing');
 END LOOP; END $$;
 SELECT pg_temp.close_assert((SELECT bool_and("Status"='Posted') FROM "Payments" WHERE "Row ID" LIKE 'AC7-P-%'),'all close requests posted');
 SELECT pg_temp.close_assert((SELECT "Amount Received"::numeric=150 FROM "Payments" WHERE "Row ID"='AC7-P-NONE'),'no existing charge accrual');
@@ -51,17 +49,17 @@ SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Payments" p WHERE p."Row I
 UPDATE "Payments" SET "Status"='Processing',"Amount Received"="Amount Received" WHERE "Row ID"='AC7-P-NONE';
 SELECT pg_temp.close_assert((SELECT "Status"='Posted' FROM "Payments" WHERE "Row ID"='AC7-P-NONE'),'stale retry no-op');
 SELECT pg_temp.close_reject($q$UPDATE "Payments" SET "Ref Target Loan"='AC7-OLD' WHERE "Row ID"='AC7-P-NONE'$q$,'target loan cannot be changed');
-SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES('AC7-DOUBLE','AC7-B','AC7-NONE',current_date,'Loan Close','Processing')$q$,'open auto-enabled');
-SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES('AC7-WRONG-P','AC7-OTHER','AC7-WRONG',current_date,'Loan Close','Processing')$q$,'must belong');
-SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES('AC7-DUP-P','AC7-B','AC7-DUP',current_date,'Loan Close','Processing')$q$,'Multiple charges today');
-SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES('AC7-STALE-P','AC7-B','AC7-STALE',current_date-1,'Loan Close','Processing')$q$,'date is stale');
-SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES('AC7-FRACTION-P','AC7-B','AC7-FRACTION',current_date,'Loan Close','Processing')$q$,'whole-baht');
+SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-DOUBLE','AC7-B','AC7-NONE',current_date,'Loan Close','Processing')$q$,'open auto-enabled');
+SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-WRONG-P','AC7-OTHER','AC7-WRONG',current_date,'Loan Close','Processing')$q$,'must belong');
+SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-DUP-P','AC7-B','AC7-DUP',current_date,'Loan Close','Processing')$q$,'Multiple charges today');
+SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-STALE-P','AC7-B','AC7-STALE',current_date-1,'Loan Close','Processing')$q$,'date is stale');
+SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-FRACTION-P','AC7-B','AC7-FRACTION',current_date,'Loan Close','Processing')$q$,'whole-baht');
 SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Charges" WHERE "Ref Loans"='AC7-FRACTION'),'fractional failure removes prepared charge');
 -- Force an error after the ordinary posting trigger; every financial effect must roll back.
 CREATE FUNCTION pg_temp.fail_close_post() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN IF NEW."Row ID"='AC7-FAIL-P' THEN RAISE EXCEPTION 'Synthetic downstream failure'; END IF; RETURN NULL; END $$;
 CREATE TRIGGER zz_test_close_failure AFTER INSERT ON "Payments" FOR EACH ROW EXECUTE FUNCTION pg_temp.fail_close_post();
-SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES('AC7-FAIL-P','AC7-B','AC7-ROLLBACK',current_date,'Loan Close','Processing')$q$,'Synthetic downstream failure');
+SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-FAIL-P','AC7-B','AC7-ROLLBACK',current_date,'Loan Close','Processing')$q$,'Synthetic downstream failure');
 SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Charges" WHERE "Ref Loans"='AC7-ROLLBACK') AND NOT EXISTS(SELECT 1 FROM "Payments" WHERE "Row ID"='AC7-FAIL-P') AND NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Ref Loans"='AC7-ROLLBACK') AND NOT EXISTS(SELECT 1 FROM "Payment Allocations" WHERE "Ref Payment"='AC7-FAIL-P'),'failure removes charge receipt and ledger');
 SELECT pg_temp.close_assert((SELECT "Loan Status"='ยังไม่ปิดยอด' AND "Ref Closing Payment" IS NULL FROM "Loans" WHERE "Row ID"='AC7-ROLLBACK'),'failure restores loan state');
 SELECT 'Atomic Loan Close regressions passed' AS result;

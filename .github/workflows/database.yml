@@ -1,6 +1,7 @@
 name: Database migrations
 on:
   push:
+    branches: ['**'] # Release tags reuse the tested commit; avoid duplicate tag runs.
     paths: ['database/**', 'scripts/database/**', '.github/workflows/database.yml']
   pull_request:
     paths: ['database/**', 'scripts/database/**', '.github/workflows/database.yml']
@@ -33,4 +34,4 @@ jobs:
         run: ./scripts/database/Install-Tools.ps1
       - name: Rebuild and validate disposable database
         shell: pwsh
-        run: ./scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-AnalyticsRefresh.sql -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency
+        run: ./scripts/database/Test-CI.ps1
