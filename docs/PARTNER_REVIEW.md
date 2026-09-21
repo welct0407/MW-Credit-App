@@ -1,5 +1,7 @@
 # Partner receipt review
 
+Notification retries preserve completed or held journal entries unchanged, including unknown email outcomes. Later Partner preference changes do not reopen those entries or block new reviews. Pending payload conflicts still fail closed; current recipient validation remains required before sending.
+
 Owner authority: 21 September 2026. Use the same queue for group API polling and signed webhook receipts. Do not replay historical receipts when enabling review. Valid new receipts are checked against manually recorded Payments, then proposed with borrower, amount, receipt date/time to the minute, receiving account and proposed action. Proposals retain current loan/charge facts; changed facts invalidate approval.
 
 R014 deployed on 21 September 2026: only Partners with `AI Reviewer = true` receive requests or decide them. Tommy is the initial reviewer; new Partners default false. The flag belongs to Partners, not Borrowers. Daily summaries, general IG integration and payment-result notices keep their existing Partner routing. An empty reviewer set leaves the receipt validated and waiting, with no request or payment. PROD V32 was verified before the reviewed runtime installation. All 102 Debian tests and the installed production master selection passed; no real customer direct reply or synthetic payment was forced during promotion.

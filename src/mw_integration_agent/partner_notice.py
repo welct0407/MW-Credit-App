@@ -33,8 +33,13 @@ class NoticeJournal:
         key=hashlib.sha256((event_key+':'+partner['id']).encode()).hexdigest()
         payload=json.dumps(partner,sort_keys=True,ensure_ascii=False)
         with self.db:
-            old=self.db.execute('SELECT partner,subject,body FROM partner_notices WHERE id=?',(key,)).fetchone()
-            if old and tuple(old)!=(payload,subject,body):
+            old=self.db.execute('SELECT * FROM partner_notices WHERE id=?',(key,)).fetchone()
+            # Completed or held deliveries are immutable history. A fresh master
+            # snapshot must not reopen them or block unrelated queued notices.
+            if old and (old['ig_status'] in ('ACCEPTED','REVIEW') or
+                        old['email_status'] in ('SENT','UNKNOWN','REVIEW')):
+                return key
+            if old and (old['partner'],old['subject'],old['body'])!=(payload,subject,body):
                 raise ConfigurationError('NOTICE_CONTENT_CHANGED')
             self.db.execute('INSERT OR IGNORE INTO partner_notices(id,event_key,partner_id,partner,subject,body) VALUES (?,?,?,?,?,?)',
                             (key,event_key,partner['id'],payload,subject,body))

@@ -74,6 +74,31 @@ class NoticeTests(unittest.TestCase):
     def test_payload_change_cannot_reuse_key(self):
         with self.assertRaises(ConfigurationError):self.j.reserve('event',self.rows[0],'subject','changed')
 
+    def test_terminal_notice_keeps_snapshot_after_partner_change_and_restart(self):
+        for ig,email in [('ACCEPTED','PENDING'),('UNAVAILABLE','SENT'),
+                         ('UNKNOWN','UNKNOWN'),('REVIEW','PENDING'),('UNAVAILABLE','REVIEW')]:
+            with self.subTest(ig=ig,email=email):
+                with self.j.db:
+                    self.j.db.execute('UPDATE partner_notices SET ig_status=?,email_status=? WHERE id=?',
+                                      (ig,email,self.key))
+                before=dict(self.j.db.execute('SELECT * FROM partner_notices WHERE id=?',(self.key,)).fetchone())
+                self.j.close();self.j=NoticeJournal(self.path)
+                changed=dict(self.rows[0],enabled=False,language='ไทย')
+                self.assertEqual(self.j.reserve('event',changed,'new subject','new body'),self.key)
+                self.dispatch()
+                after=dict(self.j.db.execute('SELECT * FROM partner_notices WHERE id=?',(self.key,)).fetchone())
+                self.assertEqual(before,after)
+                self.assertEqual(self.sent+self.mail,[])
+        new_key=self.j.reserve('new-review',self.rows[0],'subject','new review')
+        self.assertEqual([r['id'] for r in self.j.due()],[new_key])
+        self.j.dispatch(self.j.due()[0],self.config,self.rows,api=self.api,mailer=self.mailer,
+                        resolver=lambda *_:'999',window=lambda *_:None)
+        self.assertEqual(len(self.sent),1)
+
+    def test_pending_partner_change_still_rejected(self):
+        with self.assertRaises(ConfigurationError):
+            self.j.reserve('event',dict(self.rows[0],enabled=False),'subject','body')
+
     def conversation(self, body='response'):
         self.j.db.execute('DELETE FROM partner_notices');self.j.db.commit()
         key=self.j.reserve('conversation:synthetic',self.rows[0],'reply',body)
