@@ -1,15 +1,8 @@
 # PostgreSQL development with Flyway
 
-## Current checkpoint — R011 DEV, 21 September 2026
+## Current checkpoint — R013 DEV, 21 September 2026
 
-DEV is **V29**, PROD remains **V27**. R011's immutable V28 adds optional Borrowers.Borrower Note; V29 adds optional Cash Accounts.Alternative Account Number with no backfill or financial effects. Both are pending owner production promotion. The next migration must be V30 or higher. [R011 alias verification](../outputs/r011-20260920/account-alias/test-results.md) and [R010 production evidence](../outputs/r010-20260919/production/REPORT.md). DEV-only delivery override remains `Set-R009DevRecipients.ps1` and must not be copied to PROD.
-
-
-After a DEV app/database copy or refresh, complete [Development Environment Preparation](../Documents/Development_Environment_Preparation.md) before test writes. Flyway does not manage AppSheet bot enablement. DEV apps are Deployed and follow intended released schedules with DEV-only effects; owner-only notifications use DEV Partners.Email delivery addresses, preserving distinct Partners.Login Email identities. After each PROD-to-DEV restore and retained migrations, reapply the DEV-only delivery-data override before jobs resume. Shared AppSheet expressions need no environment email substitution. PROD-mapped RCs instead follow [Release Workflow](../Documents/Release_Workflow.md), including independent execution containment. [AGENTS.md, Section 6](../AGENTS.md) governs the complete batch and frozen baseline.
-
-Flyway Open Source 13.6.0 manages the database schema in this repository. PostgreSQL 18.6 is the tested engine. Since 20 September 2026, PROD and DEV are separate databases on Cloud SQL instance `appsheet-pg-prod-20260914`: `loan_manager_prod` and `loan_manager_dev`. The full **instance/host/database tuple** identifies an environment; host alone no longer distinguishes DEV from PROD. See `environments.json`.
-
-The shared instance has `max_connections=200`; this is an instance-wide ceiling, not a per-database allocation or a capacity increase. PROD retains the `pg_cron` extension because `cron.database_name=loan_manager_prod`. DEV intentionally omits `pg_cron` and uses the canonical AppSheet schedules; the duplicate database cron jobs are not recreated in `loan_manager_dev`.
+DEV is **V30**, PROD is **V29** (released R011). V30 changes only the new Payment ledger timestamp rule: inherit Payments.Created At, with current Bangkok time fallback when absent. No new columns or backfill. The next migration must be V31 or higher. [R013 verification](../outputs/r013-20260921/test-results.md). Production promotion remains pending. DEV-only recipient data must not be copied to PROD.
 
 ## Setup and initial adoption
 

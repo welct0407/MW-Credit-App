@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "release": "R013",
+  "status": "dev-complete-production-pending",
+  "prerequisites": [
+    "R011"
+  ],
+  "scope": [
+    "Receipt transfer time in existing Payment Date and Created At, propagated to existing ledger timestamp",
+    "Hours/minutes display retained; no columns, backfill or automatic payment creation"
+  ],
+  "apps": {
+    "OLTP": {
+      "disposition": "unchanged-after-reverting-seconds-display",
+      "devVersion": "1.000064",
+      "rollbackDevVersion": "1.000062",
+      "prodVersion": "3.000240"
+    },
+    "OLAP": {
+      "disposition": "unchanged",
+      "devVersion": "1.000021",
+      "prodVersion": "1.100189"
+    }
+  },
+  "database": {
+    "devVersion": "30",
+    "prodVersion": "29",
+    "migration": "database/migrations/V30__payment_receipt_transaction_time.sql",
+    "sha256": "3c43d430c0e06ab0554f62cd77d8ab087d512293ceac28f9955eb4ff2f9b424f"
+  },
+  "agent": {
+    "repository": "MW-Integration-Agent",
+    "implementationCommit": "0e953464728b53db5e72b4f191578856a8381ada",
+    "paymentWritesEnabled": false
+  },
+  "records": {
+    "tests": "outputs/r013-20260921/test-results.md",
+    "log": "Change Logs/CHANGE_NOTES_R013_2026-09-21.md"
+  }
+}

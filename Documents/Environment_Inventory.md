@@ -8,7 +8,7 @@ Latest recorded checkpoint: **21 September 2026**, from the [R011 production evi
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000240 (R011) | database-2 | 16 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100189 (R011) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000062 (R011 account alias) | database-3 | 16 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000064 (R013 minutes display retained) | database-3 | 16 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000021 (integrated R011) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
@@ -42,7 +42,7 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
 | Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
-| Flyway | V29 migrated and validated (R011) | V29 migrated and validated (R011) | Both databases include optional Borrowers.Borrower Note and Cash Accounts.Alternative Account Number; intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
+| Flyway | V29 migrated and validated (R011) | V30 migrated and validated (R013 DEV) | Both databases include optional Borrowers.Borrower Note and Cash Accounts.Alternative Account Number; intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
 
 The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. After the consolidated DEV database and natural scheduler run were verified, the owner authorized deletion of former instance `appsheet-pg-dev-20260915`. Cloud SQL completed deletion on 20 September 2026, released public IP `34.158.38.171`, and retained no backups or final backup for that instance. The verified private former-DEV logical dump remains outside Git as recovery evidence.
 
@@ -57,3 +57,5 @@ AppSheet owns daily-charge and hourly-analytics scheduling; duplicate pg_cron fi
 The last recorded common sync settings were caching/delta/Quick Sync/delayed sync Off, sync on start/automatic updates On (15 September). They are dated evidence, not a newly verified configuration. Full bot/settings history is archived; inspect only changed routes/settings or concrete problems.
 
 R011 records clear PROD editors, deployed apps, load/sync entry-point checks and frozen guard/mapping evidence. Physical-device/offline, separate Partner-login and concurrent-edit testing remain declared limitations. The former five-account DEV zero-initialization fixture was replaced by the requested PROD data refresh; its [verification](../outputs/r010-20260919/cash-statement/ZERO_INITIALIZATION.md) is historical evidence, not current DEV state. Production has four cash accounts; R011 changed no production financial row. Release-specific rollback/backup points belong in the relevant evidence, not a reusable old-version table here.
+
+R013 DEV checkpoint, 21 September: V30 preserves source payment time in new ledger entries. OLTP 1.000064 retains minute display; OLAP 1.000021 unchanged. Both saved editors show the green no-issues check and both apps load. PROD remains unchanged. [Verification](../outputs/r013-20260921/test-results.md).

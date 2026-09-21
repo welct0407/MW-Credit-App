@@ -1,9 +1,10 @@
 # Release tracker
 
-Recorded PROD baseline: **R011**. Next available number: **R013**. Numbering/approval rules are in [AGENTS](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026).
+Recorded PROD baseline: **R011**. Next available number: **R014**. Numbering/approval rules are in [AGENTS](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026).
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
+| R013 | Receipt transfer time through existing Payments/Cash Ledger timestamps and both cash statements; depends on R011 | DEV complete; production promotion pending | 2026-09-21: DEV V30; existing timestamps, hours/minutes display; no new columns | [Change log](../Change%20Logs/CHANGE_NOTES_R013_2026-09-21.md) |
 | R012 | Reservation retired; Cash Ledger Recent scope merged into R011 by owner direction | Cancelled / merged into R011; number not reusable | 2026-09-21: never promoted independently; DEV evidence consolidated under R011 | [R011 Cash Ledger evidence](../outputs/r011-20260920/cash-ledger-recent/test-results.md) · [R011 production report](../outputs/r011-20260920/production/REPORT.md) |
 | R011 | Borrower collection note, bilingual labels/localization, optional cash-account alternative number and enriched OLAP Cash Ledger Recent; depends on R010 | Released | 2026-09-21: PROD V29 / OLTP 3.000240 / OLAP 1.100189 from frozen RC3 definitions | [Production report](../outputs/r011-20260920/production/REPORT.md) · [manifest](../outputs/r011-20260920/release-manifest.json) · [checklist](../outputs/r011-20260920/promotion-checklist.md) |
 | R010 | OLTP payment-entry validation and recent Cash Account Statement; depends on R009 | Released | 2026-09-20: PROD SQL V27 / OLTP 3.000235 from RC2 1.000004; OLAP unchanged 1.100183 | [Production report](../outputs/r010-20260919/production/REPORT.md) · [manifest](../outputs/r010-20260919/release-manifest.json) |
