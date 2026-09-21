@@ -35,6 +35,9 @@ def cycle(config,journal,identity_reader):
                 with db:db.execute("UPDATE receipt_jobs SET status='REVIEW_REQUESTED' WHERE id=?",(job['id'],))
             except ReceiptInvalid as exc:journal.mark(job['id'],'REVIEW',str(exc))
         # Signed direct-message replies only. API-polled borrower content cannot authorize.
+        # Apply the additive local schema before the first new webhook arrives.
+        from .journal import IngressJournal
+        migrated=IngressJournal(root/'instagram-ingress.db');migrated.close()
         ingress=sqlite3.connect(f'file:{root / "instagram-ingress.db"}?mode=ro',uri=True)
         ingress.row_factory=sqlite3.Row
         try:
