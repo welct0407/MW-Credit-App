@@ -1,6 +1,6 @@
 # R014 — Cash visibility and partial settlements
 
-Date: 21 September 2026. Status: DEV complete, awaiting owner acceptance. Production promotion is not authorized.
+Date: 21 September 2026. Status: production deployment and verification complete; final documentation/publication closure recorded in the promotion checklist. Owner authorized the complete integrated R014, including the AI Reviewer extension, on 21 September.
 
 ## Scope and owner decisions
 
@@ -65,3 +65,13 @@ AI Reviewer refinement completed in DEV: V32 / OLTP 1.000075 / OLAP 1.000031, bo
 Agent implementation is published at `MW-Integration-Agent@83e1b56`, with 102 local tests passing (two platform skips) and a real DEV master query passing. Source is staged, not installed on the production VM. Daily summaries/results retain Partner routing; only payment requests and decisions use current reviewers. The updater rejects installation before the V32 column exists. Production app/database promotion and VM deployment remain outstanding under R014, with no new approval gate beyond the existing release process.
 
 Expanded SQL package pinned by New-Release.ps1 at tested commit `75f847d9ba31c580b8c8f336df92a606635b2f6e`, covering V31 and V32 after clean-checkout DEV validation. Updated flyway-release.json and release manifest replace the old V31-only package. No production tag or promotion was performed.
+
+## Production promotion — 21 September
+
+Owner: “I made another change in another codex session, also included in R014. now move R014 to production.” This supersedes the earlier pending-authorization statuses above. Forecast changes remain excluded.
+
+Migrated production V30 to V32 from the exact tested package after restored-backup/schema/history checks. Definition-only RC copies excluded data and file copying. All 37 saved source mappings passed. Frozen Deployed RCs OLTP 1.000007 and OLAP 1.000006 upgraded the existing production IDs to **OLTP 3.000245 / OLAP 1.100194**, from rollback versions **3.000242 / 1.100191**. Production names, colours, logos, folders, companion links and separately enabled API access were preserved.
+
+Both production editors show No issues found. Changed app entry points and sync passed, settlement form was discarded without saving, and dashboard SQL arithmetic reconciled. Current Tommy-only reviewer membership passed in SQL and the installed agent master query. Agent business code matches `83e1b56`; its source checkout also contains later documentation-only commits through `40076e6`. Reviewed updater backed up configuration/package/journals, passed all 102 tests on Debian and resumed all four existing timers. Both bounded AppSheet API probes authenticated with existing protected keys. Tailscale hardening required IAP SSH; no network protection was changed.
+
+Rollback, exact mappings, checks, contained RC retention, remaining physical-device/real-reply limitations and publication are recorded in the [production report](../outputs/r014-20260921/production-report.md), [manifest](../outputs/r014-20260921/release-manifest.json) and single [promotion checklist](../outputs/r014-20260921/promotion-checklist.md). Dictionary rows 2880–2915 become the production reference, with open R014 differences closed. No Looker/export contract or unrelated automation changed.
