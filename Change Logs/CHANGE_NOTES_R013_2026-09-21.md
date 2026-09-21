@@ -2,7 +2,7 @@
 
 Owner clarification, 21 September 2026: use existing fields for the time money was transferred, including OLTP Cash Statement and the 00:15 agent image. No separate receipt audit columns. Automatic payment creation remains deferred.
 
-Starting AppSheet Git commit: `1cf3c0409258e9430e77b3e65133f22e7ad63ad3`, clean. R013 reserves V30, depending on released R011/V29. No production deployment is authorized in this batch.
+Starting AppSheet Git commit: `1cf3c0409258e9430e77b3e65133f22e7ad63ad3`, clean. R013 reserves V30, depending on released R011/V29. The owner subsequently authorized the SQL-only production promotion and explicitly excluded both apps.
 
 ## Implementation
 
@@ -22,6 +22,14 @@ Migration chain, DEV SQL checks, current GUI and model documentation completed. 
 - OLTP rollback 1.000062 recorded before editing. Temporary Ignore seconds=FALSE in 1.000063 was reverted on explicit owner correction. Final 1.000064 has Ignore seconds=TRUE, matching production. Existing statement/detail loads and shows hours/minutes. No remaining AppSheet product delta; OLAP unchanged 1.000021. Both saved editors have green no-issues checks and Deployed status. No regeneration or production app edit.
 - Data dictionary Dev Differences rows 2877–2879 updated, with export/reimport value/formula preservation and visual review. Model overview, environment inventory and open-difference records updated. No export/Looker shape or amount change; no report changes required.
 
-DEV complete, ready for owner production promotion decision. SQL-only promotion can use the tested V30 package; both AppSheet definitions remain functionally unchanged. Automatic payment creation is still deferred, and this change does not correct old manually entered payment times. Agent receipt summaries and its 00:15 image retain minutes-only display.
+DEV completed and was accepted for SQL-only production promotion. Both AppSheet definitions remain functionally unchanged. Automatic payment creation is still deferred, and this change does not correct old manually entered payment times. Agent receipt summaries and its 00:15 image retain minutes-only display.
 
-DEV package pinned by the maintained New-Release runner to aad17b642f38583f4dbaed8d9bfcfca2e482779d; all 30 migration hashes are in outputs/r013-20260921/flyway-manifest.json. Agent implementation 0e953464728b53db5e72b4f191578856a8381ada deployed and passed 49 Linux tests plus actual synthetic extraction and English/Thai minutes-only PNG visual checks. Production SQL remains pending.
+DEV package pinned by the maintained New-Release runner to aad17b642f38583f4dbaed8d9bfcfca2e482779d; all 30 migration hashes are in outputs/r013-20260921/flyway-manifest.json. Agent implementation 0e953464728b53db5e72b4f191578856a8381ada deployed and passed 49 Linux tests plus actual synthetic extraction and English/Thai minutes-only PNG visual checks.
+
+## Production release — SQL only
+
+The owner explicitly directed production promotion of the R013 database change and excluded all AppSheet changes. Before migration, production was V29 and the apps were OLTP 3.000240 / OLAP 1.100189. Private backup `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r010-20260919/r013-production-before-20260921-131013.dump` has SHA256 `58D9E1BA0DAB2FF1419C4D3411073CE10CD8FBECB7D4CE817124481B38FC2B0D`; isolated restore, normalized schema comparison and V30 candidate rehearsal passed.
+
+At 13:15 Bangkok, the exact pinned package migrated `loan_manager_prod` from V29 to V30 with one migration, 199 ms execution time and no warnings. Post-migration Flyway validation passed all 31 history entries. The six targeted assertions passed against production inside a rolled-back transaction, including exact payment-to-ledger time, statement provider time/date, calendar cutoff, retry uniqueness, missing-time fallback and unchanged non-payment behavior. Readback confirmed V30 successful, the function rule present and zero retained R013 test payments.
+
+Production OLTP Cash Statement and OLAP Analytics both loaded and synced after migration. No app copy, RC, App Upgrade, editor save, financial payment, backfill, notification or schedule trigger occurred. Production apps remain OLTP 3.000240 / OLAP 1.100189. Restore of the database backup would discard legitimate later writes and therefore requires a separate recovery decision; prefer a reviewed V31 forward fix. See the [production report](../outputs/r013-20260921/production/REPORT.md) and [promotion checklist](../outputs/r013-20260921/promotion-checklist.md).

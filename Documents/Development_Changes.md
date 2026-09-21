@@ -1,12 +1,10 @@
 # Open development differences
 
-Current production baseline is R011. This register contains open product differences and intentional environment differences, not completed-release narratives.
+Current production baseline is R013. This register contains open product differences and intentional environment differences, not completed-release narratives.
 
 There are no open R011/R012 product differences. The owner merged the reserved R012 Cash Ledger Recent scope into R011, and R011 was released on 21 September 2026 at PROD SQL V29 / OLTP 3.000240 / OLAP 1.100189. R012 was never promoted independently and its number is retired. See the [R011 production report](../outputs/r011-20260920/production/REPORT.md).
 
-## Open R013
-
-Receipt transfer time uses existing Payment Date / Created At and flows into Cash Ledger.Created At through DEV V30. No columns or historical backfill. Both statement consumers already read that field. OLTP 1.000064 keeps Ignore seconds=TRUE, matching PROD; the temporary seconds display was reverted at the owner's direction. OLAP 1.000021 is unchanged. Automatic receipt payment creation remains disabled. DEV verified; production SQL promotion pending. [R013 evidence](../outputs/r013-20260921/test-results.md).
+There are no open R013 product differences. R013 promoted only PostgreSQL V30; production AppSheet definitions remain OLTP 3.000240 / OLAP 1.100189. Any future app change belongs to R014. Automatic receipt payment creation remains disabled. [R013 production report](../outputs/r013-20260921/production/REPORT.md).
 
 ## Intentional environment differences
 
@@ -17,4 +15,4 @@ Receipt transfer time uses existing Payment Date / Created At and flows into Cas
 
 ## Closed differences
 
-R001–R011 product differences are closed according to the [Release Tracker](Release_Tracker.md) and their dated release evidence. R011 [closure](../outputs/r011-20260920/production/REPORT.md) preserves its limitations; the R012 reservation was merged into R011 and retired. Older checkpoints and superseded rules remain in the [archive](archive/2026-09-20/Development_Changes.md), not the active backlog.
+R001–R013 product differences are closed according to the [Release Tracker](Release_Tracker.md) and their dated release evidence. R012 was merged into R011 and retired. Older checkpoints and superseded rules remain in the [archive](archive/2026-09-20/Development_Changes.md), not the active backlog.

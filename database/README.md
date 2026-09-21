@@ -1,8 +1,8 @@
 # PostgreSQL development with Flyway
 
-## Current checkpoint — R013 DEV, 21 September 2026
+## Current checkpoint — R013 released, 21 September 2026
 
-DEV is **V30**, PROD is **V29** (released R011). V30 changes only the new Payment ledger timestamp rule: inherit Payments.Created At, with current Bangkok time fallback when absent. No new columns or backfill. The next migration must be V31 or higher. [R013 verification](../outputs/r013-20260921/test-results.md). Production promotion remains pending. DEV-only recipient data must not be copied to PROD.
+DEV and PROD are **V30**. V30 changes only the new Payment ledger timestamp rule: inherit Payments.Created At, with current Bangkok time fallback when absent. No new columns or backfill. Production apps were not promoted and remain OLTP 3.000240 / OLAP 1.100189. The next migration must be V31 or higher. [R013 production verification](../outputs/r013-20260921/production/REPORT.md). DEV-only recipient data must not be copied to PROD.
 
 ## Setup and initial adoption
 

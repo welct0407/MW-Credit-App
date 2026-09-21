@@ -1,6 +1,6 @@
 # Environment inventory
 
-Latest recorded checkpoint: **21 September 2026**, from the [R011 production evidence](../outputs/r011-20260920/production/REPORT.md) and [DEV database consolidation evidence](../outputs/dev-db-consolidation-20260920/verification.json). Current PROD is R011. Unaffected application facts retain their recorded evidence.
+Latest recorded checkpoint: **21 September 2026**, from the [R013 production evidence](../outputs/r013-20260921/production/REPORT.md) and [DEV database consolidation evidence](../outputs/dev-db-consolidation-20260920/verification.json). Current PROD is R013. Unaffected application facts retain their recorded evidence.
 
 ## App identities and bindings
 
@@ -42,7 +42,7 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
 | Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
-| Flyway | V29 migrated and validated (R011) | V30 migrated and validated (R013 DEV) | Both databases include optional Borrowers.Borrower Note and Cash Accounts.Alternative Account Number; intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
+| Flyway | V30 migrated and validated (R013) | V30 migrated and validated (R013) | Both databases preserve source payment time in new Payment ledger entries. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
 
 The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. After the consolidated DEV database and natural scheduler run were verified, the owner authorized deletion of former instance `appsheet-pg-dev-20260915`. Cloud SQL completed deletion on 20 September 2026, released public IP `34.158.38.171`, and retained no backups or final backup for that instance. The verified private former-DEV logical dump remains outside Git as recovery evidence.
 
@@ -58,4 +58,4 @@ The last recorded common sync settings were caching/delta/Quick Sync/delayed syn
 
 R011 records clear PROD editors, deployed apps, load/sync entry-point checks and frozen guard/mapping evidence. Physical-device/offline, separate Partner-login and concurrent-edit testing remain declared limitations. The former five-account DEV zero-initialization fixture was replaced by the requested PROD data refresh; its [verification](../outputs/r010-20260919/cash-statement/ZERO_INITIALIZATION.md) is historical evidence, not current DEV state. Production has four cash accounts; R011 changed no production financial row. Release-specific rollback/backup points belong in the relevant evidence, not a reusable old-version table here.
 
-R013 DEV checkpoint, 21 September: V30 preserves source payment time in new ledger entries. OLTP 1.000064 retains minute display; OLAP 1.000021 unchanged. Both saved editors show the green no-issues check and both apps load. PROD remains unchanged. [Verification](../outputs/r013-20260921/test-results.md).
+R013 production checkpoint, 21 September: PROD V30 preserves source payment time in new ledger entries. Production apps were explicitly excluded and remain OLTP 3.000240 / OLAP 1.100189; both loaded and synced after migration. DEV remains V30 / OLTP 1.000064 / OLAP 1.000021. Hours/minutes display is unchanged. [Production report](../outputs/r013-20260921/production/REPORT.md).
