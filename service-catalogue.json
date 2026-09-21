@@ -1,7 +1,8 @@
 {
-  "revision": 9,
+  "revision": 10,
   "default_policy": "deny",
   "services": {
+    "conversation_poll": {"enabled": true, "implemented": true},
     "signed_webhook_ingress": {"enabled": true, "implemented": true},
     "receipt_summary": {"enabled": true, "implemented": true},
     "partner_authentication": {"enabled": true, "implemented": true},

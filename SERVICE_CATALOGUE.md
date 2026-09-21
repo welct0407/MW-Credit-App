@@ -1,11 +1,12 @@
 # Service catalogue
 
-Revision 9 — Instagram-first receipt notices and two production APIs, 21 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
+Revision 10 — official API conversation polling, 21 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
 Signed Instagram webhook ingress and explicit Instagram delivery are authorized and implemented. Ingress verifies Meta signatures and stores deduplicated messages and image references before acknowledgement. The owner authorized receipt-only processing on 21 September after promoting R011 account aliases. Receipt processing has its own switch and cutoff; generic processing and writes remain disabled.
 
 | Service | State | Migration intent |
 | --- | --- | --- |
+| conversation_poll | enabled | Five-minute API-only reader for conversations containing AI-enabled borrowers. New cutoff, overlapping checks, shared receipt deduplication. No browser automation or group sends. Bounded history gaps stop without advancing the affected cursor. |
 | signed_webhook_ingress | enabled | Verify signatures, persist before acknowledgement, and deduplicate. Processing stays outside the HTTP request. |
 | receipt_summary | enabled, summary only | New eligible images: validation and Partner Instagram notices in their preferred language; email is fallback. No payment creation or borrower/group replies. Operator-selected history uses the shared parameterized preparation command. See [receipt operations](docs/RECEIPTS.md). |
 | partner_authentication | enabled for cash statements | Fresh opt-in, supported language, unique username, conversation scoped ID and profile verification. No inbound operational commands. |

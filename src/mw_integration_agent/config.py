@@ -35,6 +35,14 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
+    if type(config.get('conversation_poll_enabled',False)) is not bool:
+        raise ConfigurationError('conversation_poll_enabled must be boolean')
+    if config.get('conversation_poll_enabled'):
+        from datetime import datetime
+        try:
+            if datetime.fromisoformat(config['conversation_poll_cutoff']).tzinfo is None:raise ValueError()
+        except (KeyError,TypeError,ValueError) as exc:
+            raise ConfigurationError('conversation_poll_cutoff must include timezone') from exc
     if type(config.get('receipt_summary_enabled', False)) is not bool:
         raise ConfigurationError('receipt_summary_enabled must be boolean')
     if config.get('partner_notice_cutoff'):
@@ -152,7 +160,7 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
         if name not in {"signed_webhook_ingress", "partner_authentication", "operational_data_read",
                         "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
                         "operational_data_api", "instagram_delivery", "email_fallback", "daily_briefing",
-                        "pattaya_weather", "daily_cash_statement", "receipt_summary"}:
+                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")

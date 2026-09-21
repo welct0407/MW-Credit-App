@@ -23,6 +23,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(Path(__file__).resolve().parents[2] / "service-catalogue.json"),
     )
     sub.add_parser("status", help="print the repository runtime status")
+    poll=sub.add_parser('conversation-poll',help='read new conversation messages through official API')
+    poll.add_argument('--config',required=True)
+    poll.add_argument('--catalogue',required=True)
     webhook = sub.add_parser("serve-webhook", help="run receipt-only signed Instagram ingress")
     webhook.add_argument("--config", required=True)
     webhook.add_argument("--catalogue", required=True)
@@ -66,6 +69,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        if args.command=='conversation-poll':
+            from .conversation_poll import run
+            print(json.dumps(run(args.config,args.catalogue)))
+            return 0
         if args.command=='receipt-prepare':
             from .receipt_prepare import prepare
             print(json.dumps(prepare(args.config,args.catalogue,args.borrower_id,args.date,args.message_id)))

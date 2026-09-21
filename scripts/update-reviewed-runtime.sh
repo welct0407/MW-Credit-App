@@ -9,11 +9,11 @@ install -d -m 0700 "$backup"
 cp -a /etc/mw-integration-agent/config.json /etc/mw-integration-agent/service-catalogue.json "$backup/"
 cp -a /opt/mw-integration-agent/.venv/lib/python3.13/site-packages/mw_integration_agent "$backup/"
 resume=''
-for timer in mw-receipt-summary.timer mw-cash-statement.timer mw-cash-statement-email-retry.timer; do
+for timer in mw-conversation-poll.timer mw-receipt-summary.timer mw-cash-statement.timer mw-cash-statement-email-retry.timer; do
  if systemctl is-active --quiet "$timer"; then resume="$resume $timer"; systemctl stop "$timer"; fi
 done
 trap 'for timer in $resume; do systemctl start "$timer"; done' EXIT
-for service in mw-receipt-summary.service mw-cash-statement.service mw-cash-statement-email-retry.service; do
+for service in mw-conversation-poll.service mw-receipt-summary.service mw-cash-statement.service mw-cash-statement-email-retry.service; do
  if systemctl is-active --quiet "$service"; then echo 'Worker active; retry after completion'; exit 1; fi
 done
 /opt/mw-integration-agent/.venv/bin/python - "$backup" <<'PY'
