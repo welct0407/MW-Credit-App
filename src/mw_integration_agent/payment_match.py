@@ -28,7 +28,7 @@ def check(config,receipt,borrower):
     rows=read_query(config,'''SELECT coalesce(json_agg(t),'[]'::json) FROM (
       SELECT "Status" status,"Ref Borrower" borrower,"Amount Received"::numeric amount,
        "Payment Date"::text date,"Ref Received By Cash Account" account,"Bank Reference" reference,
-       to_char("Created At",'YYYY-MM-DD HH24:MI') minute
+       to_char("Created At",'YYYY-MM-DD HH24:MI') "minute"
       FROM public."Payments" WHERE
        upper(regexp_replace(coalesce("Bank Reference",''),'[[:space:]-]','','g'))='''+literal(receipt['reference'])+
       ''' OR ("Ref Borrower"='''+literal(borrower['id'])+''' AND "Payment Date"='''+literal(receipt['date'])+'''::date
