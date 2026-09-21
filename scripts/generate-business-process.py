@@ -145,7 +145,7 @@ pages.append(('review','Partner receipt review','LIVE',[
  'Yes / Approve / Approved / อนุมัติ after trimming, case insensitive?',
  'First valid decision wins; ordinary payment → fresh checks and one Add',
  'Closure / overpayment → manual; verified posting → Partner result'],
- 'Other direct reply → REJECTED.\nUnlinked text → no decision.\nNo reply → pending; expires after 24 hours.\nR014 staged: only AI Reviewer=true may decide; Tommy initially.\nCurrent PROD: either Partner until R014 deployment.\nReplay cannot execute twice.\nChanged identity or facts → stop.\nLoan closures and overpayments are manual-only even after approval.\nEmail reply cannot approve.\nNo browser automation or group reply.',
+ 'Other direct reply → REJECTED.\nUnlinked text → no decision.\nNo reply → pending; expires after 24 hours.\nR014 deployed: only AI Reviewer=true may decide.\nTommy initially selected; new Partners default false.\nReplay cannot execute twice.\nChanged identity or facts → stop.\nLoan closures and overpayments are manual-only even after approval.\nEmail reply cannot approve.\nNo browser automation or group reply.',
  'partner_review.py · review_proposal.py · review_cycle.py\nwebhook.py · journal.py · partner_notice.py'))
 
 r=page('agent-overview','01 · Agent overview',1460)
