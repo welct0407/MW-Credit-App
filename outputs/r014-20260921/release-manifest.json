@@ -180,12 +180,13 @@
   "rollback": {
     "databaseStrategy": "compatible expanded schema / reviewed forward-fix",
     "planReference": "outputs/r014-20260921/production-report.md",
-    "rcRetentionDecision": "Retain frozen RC1 pair until explicit owner retirement; guards continue to exclude RC names. No DEV refresh."
+    "rcRetentionDecision": "Both RC1 apps deleted by explicit owner direction on 2026-09-21; exact editor URLs return 404. Historical identities retained; PROD saved versions and private backups remain recovery references. See outputs/r014-20260921/rc-retirement.md."
   },
   "timestamps": {
     "started": "2026-09-21",
     "promoted": "2026-09-21",
-    "validated": "2026-09-21"
+    "validated": "2026-09-21",
+    "rcRetired": "2026-09-21"
   },
   "publication": {
     "evidenceCommit": "Resolve immutable R014 annotated tag to the final evidence commit",
@@ -193,13 +194,13 @@
   },
   "operatingModel": {
     "devMode": "Deployed",
-    "rcMode": "Deployed",
+    "rcMode": "Retired after promotion",
     "prodMode": "Deployed",
     "devRecipients": "DEV Partners.Email: welct0407@mw-credit.com; distinct Login Email identities",
     "rcAndProdRecipients": "PROD Partner contacts; shared R009 expressions; restore only legacy unconverted overrides",
     "scheduledBusinessExecution": {
       "dev": "enabled",
-      "rc": "blocked by canonical-app guard",
+      "rc": "No live R014 RC apps; deleted after owner authorization",
       "prod": "enabled"
     },
     "prodValidation": "basic App Upgrade checks; targeted expansion only"

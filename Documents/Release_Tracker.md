@@ -22,3 +22,5 @@ Recorded PROD baseline: **R014**. Next available number: **R015**. Numbering/app
 R011 [promotion checklist](../outputs/r011-20260920/promotion-checklist.md) records the completed release. All six R011 RC1–RC3 apps were deleted on 21 September 2026 by explicit owner direction; their recorded identities remain historical evidence and are not live rollback sources. R010 OLTP RC1 and frozen RC2 were deleted on 20 September 2026 after owner-approved post-release retirement. R009 RCs were likewise retired with owner approval.
 
 Maintain one short row per release. Versions, tests, decisions and recovery belong in the linked manifest/log/checklist; current identities belong in [Environment Inventory](Environment_Inventory.md). Preserve reserved numbers and distinguish acceptance from production authorization. Detailed past entries are retained in the [dated archive](archive/2026-09-20/Release_Tracker.md).
+
+R014 RC1 pair retired by owner direction on 21 September 2026; [retirement evidence](../outputs/r014-20260921/rc-retirement.md). The immutable R014 tag remains the production-release evidence checkpoint.
