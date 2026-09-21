@@ -5,742 +5,865 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="MW INTEGRATION AGENT  |  All services and implementing scripts" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
+        <mxCell id="title" value="MW INTEGRATION AGENT  |  All services and implementing scripts" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="40" y="25" width="1320" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="legend" value="GREEN = live · AMBER = pending implementation · GREY = disabled&#10;One Debian runtime. Click any service card for its detailed page." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
+        <mxCell id="legend" value="One Debian runtime · Click a service for its detailed flowchart&#10;Green = live outcome / service · Blue = process · Yellow = decision / pending · Red = stop · Grey = notes / disabled" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="40" y="110" width="1320" height="85" as="geometry" />
         </mxCell>
-        <mxCell id="ingress" value="Instagram webhook" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,ingress">
+        <mxCell id="ingress" value="Instagram webhook" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,ingress">
           <mxGeometry x="40" y="220" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="receipts" value="Receipt validation" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,receipts">
+        <mxCell id="receipts" value="Receipt validation" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,receipts">
           <mxGeometry x="485" y="220" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="posting" value="Payment posting" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fff3e0;strokeColor=#ef6c00;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,posting">
+        <mxCell id="posting" value="Payment posting" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,posting">
           <mxGeometry x="930" y="220" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="identity" value="Partner authentication" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,identity">
+        <mxCell id="identity" value="Partner authentication" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,identity">
           <mxGeometry x="40" y="375" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="ig" value="Instagram notifications" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,ig">
+        <mxCell id="ig" value="Instagram notifications" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,ig">
           <mxGeometry x="485" y="375" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="email" value="Email fallback and retry" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,email">
+        <mxCell id="email" value="Email fallback and retry" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,email">
           <mxGeometry x="930" y="375" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="statement" value="Daily cash statement" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,statement">
+        <mxCell id="statement" value="Daily cash statement" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,statement">
           <mxGeometry x="40" y="530" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="api" value="AppSheet API connections" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,api">
+        <mxCell id="api" value="AppSheet API connections" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,api">
           <mxGeometry x="485" y="530" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="database" value="Database reporting access" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,database">
+        <mxCell id="database" value="Database reporting access" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,database">
           <mxGeometry x="930" y="530" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="codex" value="Persistent partner conversations" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,codex">
+        <mxCell id="codex" value="Persistent partner conversations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,codex">
           <mxGeometry x="40" y="685" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="gui" value="Partner OLTP GUI operations" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,gui">
+        <mxCell id="gui" value="Partner OLTP GUI operations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,gui">
           <mxGeometry x="485" y="685" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="briefing" value="Daily briefing" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,briefing">
+        <mxCell id="briefing" value="Daily briefing" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,briefing">
           <mxGeometry x="930" y="685" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="weather" value="Pattaya weather" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,weather">
+        <mxCell id="weather" value="Pattaya weather" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,weather">
           <mxGeometry x="40" y="840" width="420" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="scope" value="Owner review baseline · 21 September 2026&#10;Production API configuration is outside releases. Real receipt posting remains pending; no borrower-specific scripts are maintained." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fff3e0;strokeColor=#ef6c00;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
+        <mxCell id="scope" value="Owner review baseline · 21 September 2026&#10;Production API configuration is outside releases. Real receipt posting remains pending; no borrower-specific scripts are maintained." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="40" y="1010" width="1320" height="80" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="ingress" name="02 · Instagram webhook">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Instagram webhook" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="2. Instagram webhook" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Meta message → hooks.mw-credit.com/instagram" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Meta message → hooks.mw-credit.com/instagram" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. Cloudflare tunnel → Debian loopback receiver" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Cloudflare tunnel → Debian loopback receiver" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. Verify signature and expected Instagram account" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="Valid signature and&#10;expected account?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Durably capture ID, sender, time and image references" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="Durably capture ID, sender, time and image references" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Deduplicate retries, then acknowledge HTTP request" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="Deduplicate retries, then acknowledge HTTP request" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. Receipt worker consumes captured events separately" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="Receipt worker consumes captured events separately" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;Invalid signature → reject.&#10;Duplicate event → no second job.&#10;Ordinary text/audio/video → no reply.&#10;Operator-selected history is a separate input and is not labelled webhook evidence." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="Reject request; do not create a job" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="640" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;server.py · webhook.py · journal.py&#10;mw-instagram-webhook.service · mw-cloudflared-instagram.service" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Invalid signature → reject.&#10;Duplicate event → no second job.&#10;Ordinary text/audio/video → no reply.&#10;Operator-selected history is a separate input and is not labelled webhook evidence." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;server.py · webhook.py · journal.py&#10;mw-instagram-webhook.service · mw-cloudflared-instagram.service" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;Verify signature and expected Instagram account" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="receipts" name="03 · Receipt validation">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Receipt validation" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="3. Receipt validation" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. 20-second timer → acquire single-worker lock" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="20-second timer → acquire single-worker lock" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. Read only events after the existing activation cutoff" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Read only events after the existing activation cutoff" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. IG participant ID → username → one AI-enabled Borrower" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="IG participant ID → username → one AI-enabled Borrower" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Download bounded image; isolated Codex extracts facts" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="Download bounded image; isolated Codex extracts facts" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Validate date, success, amount, transfer time, account aliases and duplicates" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="Receipt passes all&#10;validation rules?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. Reserve receipt keys; queue localized partner notification" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="Reserve receipt keys; queue localized partner notification" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;Today/yesterday Bangkok only.&#10;Active receiving account; primary or alternative number.&#10;Reference/image duplicate → stop.&#10;Nonreceipt or disabled/unmapped borrower → ignore.&#10;Invalid receipt → REVIEW.&#10;CURRENT: summary only; no payment write or group reply.&#10;receipt-prepare accepts borrower/date/message parameters and reuses the same extraction and rules." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="Invalid → REVIEW&#10;Nonreceipt / disabled borrower → ignore&#10;Duplicate → no second processing" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1060" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;receipt_run.py · receipt_rules.py · receipt_image.py&#10;receipt_master.py · receipt_journal.py · receipt_prepare.py" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Today/yesterday Bangkok only.&#10;Active receiving account; primary or alternative number.&#10;Reference/image duplicate → stop.&#10;Nonreceipt or disabled/unmapped borrower → ignore.&#10;Invalid receipt → REVIEW.&#10;CURRENT: summary only; no payment write or group reply.&#10;receipt-prepare accepts borrower/date/message parameters and reuses the same extraction and rules." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;receipt_run.py · receipt_rules.py · receipt_image.py&#10;receipt_master.py · receipt_journal.py · receipt_prepare.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;Validate date, success, amount, transfer time, account aliases and duplicates" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="posting" name="04 · Payment posting">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Payment posting" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fff3e0;strokeColor=#ef6c00;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="4. Payment posting" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: PENDING  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: PENDING  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Input: validated receipt from the shared workflow" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Input: validated receipt from the shared workflow" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. Re-read borrower, loan, charges and existing payments" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Re-read borrower, loan, charges and existing payments" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. Resolve allocation; explicitly confirm loan closure when needed" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="Resolve allocation; explicitly confirm loan closure when needed" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. TO IMPLEMENT: reserve one write intent; call OLTP API" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="Reusable posting and&#10;readback implemented?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. TO IMPLEMENT: verify Posted payment, allocations, loan and ledger time" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="PENDING / FUTURE&#10;TO IMPLEMENT: verify Posted payment, allocations, loan and ledger time" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="Future only" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. After verified posting only: send Payment processed notice" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="PENDING / FUTURE&#10;After verified posting only: send Payment processed notice" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;Not implemented or enabled.&#10;operational_data_api remains disabled; writes_enabled=false.&#10;Owner authorized the real test and confirmed full repayment/loan close. It remains unposted.&#10;Required: reusable posting/readback, exact receipt HH:mm, duplicate checks and unknown-write reconciliation.&#10;Success template exists; it cannot by itself establish that payment was posted." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fff3e0;strokeColor=#ef6c00;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="NO — current state&#10;Payment remains unposted&#10;Do not send a processed notice" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="850" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;receipt_prepare.py (implemented preparation)&#10;partner_notice.py (prepared success template; no posting caller)" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Not implemented or enabled.&#10;operational_data_api remains disabled; writes_enabled=false.&#10;Owner authorized the real test and confirmed full repayment/loan close. It remains unposted.&#10;Required: reusable posting/readback, exact receipt HH:mm, duplicate checks and unknown-write reconciliation.&#10;Success template exists; it cannot by itself establish that payment was posted." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;receipt_prepare.py (implemented preparation)&#10;partner_notice.py (prepared success template; no posting caller)" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;TO IMPLEMENT: reserve one write intent; call OLTP API" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="identity" name="05 · Partner authentication">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Partner authentication" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="5. Partner authentication" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Read current Partner master for the event" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Read current Partner master for the event" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. Use Language Preference: English or ไทย" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Use Language Preference: English or ไทย" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. IG Integration Enabled controls Instagram eligibility" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="IG Integration Enabled controls Instagram eligibility" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Match one conversation participant to Partner IG username" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="Match one conversation participant to Partner IG username" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Verify scoped ID/profile; reject duplicate or changed identities" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="One verified current&#10;Partner identity?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. Check signed inbound window: 24 hours minus 60 seconds" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="Check signed inbound window: 24 hours minus 60 seconds" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;Borrower identity never selects the partner recipient.&#10;Changed delivery details → REVIEW.&#10;Unavailable route/window → current Partner Email fallback.&#10;No inbound partner command execution is enabled." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="Reject ambiguous / changed identity&#10;Unavailable IG route → email fallback" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1060" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;statement_delivery.py: eligible, resolve_recipient, check_window&#10;cash_statement.py: partners · receipt_master.py: masters" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Borrower identity never selects the partner recipient.&#10;Changed delivery details → REVIEW.&#10;Unavailable route/window → current Partner Email fallback.&#10;No inbound partner command execution is enabled." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;statement_delivery.py: eligible, resolve_recipient, check_window&#10;cash_statement.py: partners · receipt_master.py: masters" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;Verify scoped ID/profile; reject duplicate or changed identities" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="ig" name="06 · Instagram notifications">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Instagram notifications" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="6. Instagram notifications" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Build text or statement PNGs in each Partner’s preferred language" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Build text or statement PNGs in each Partner’s preferred language" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. Reserve event + Partner key; images also use account/page keys" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Reserve event + Partner key; images also use account/page keys" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. Recheck identity, destination and delivery window" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="Recheck identity, destination and delivery window" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Commit UNKNOWN intent before calling Meta API" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="Commit UNKNOWN intent before calling Meta API" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Accepted message ID → record success; no email" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="Meta accepted the&#10;complete notification?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. Unavailable, incomplete or uncertain → email fallback" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="Record complete IG delivery&#10;No email fallback needed" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;All partner notifications start with IG.&#10;Never replay an uncertain IG send.&#10;No receipt-success message to borrower/group.&#10;Summary: explicitly says payment not recorded.&#10;Processed template: borrower, amount, date/time HH:mm, receiving account, payment ID.&#10;Unknown IG may have arrived; fallback is separately recorded." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="Unavailable / incomplete / uncertain&#10;Use email fallback&#10;Never replay uncertain IG" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1060" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;partner_notice.py · instagram.py&#10;statement_delivery.py · statement_run.py" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;All partner notifications start with IG.&#10;Never replay an uncertain IG send.&#10;No receipt-success message to borrower/group.&#10;Summary: explicitly says payment not recorded.&#10;Processed template: borrower, amount, date/time HH:mm, receiving account, payment ID.&#10;Unknown IG may have arrived; fallback is separately recorded." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;partner_notice.py · instagram.py&#10;statement_delivery.py · statement_run.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;Accepted message ID → record success; no email" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="email" name="07 · Email fallback and retry">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Email fallback and retry" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="7. Email fallback and retry" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Start only after unavailable/incomplete/uncertain IG" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Start only after unavailable/incomplete/uncertain IG" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. Re-read current Partner email and language; stop if changed" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Re-read current Partner email and language; stop if changed" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. Build localized notice or complete statement image set" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="Build localized notice or complete statement image set" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Commit UNKNOWN intent before Microsoft Graph call" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="Commit UNKNOWN intent before Microsoft Graph call" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Accepted → SENT; definite rejection → retry queue" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="Email provider outcome?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. At most 3 attempts; unknown/crash outcome → no replay" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="At most 3 attempts; unknown/crash outcome → no replay" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="Rejected: bounded retry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;Email is backup, never first choice.&#10;No email after confirmed complete IG delivery.&#10;Receipt retries: worker timer, 5-minute backoff.&#10;Statement retries: existing 5-minute timer.&#10;No public hosting of statements or receipt pictures." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="Unknown → retain for reconciliation&#10;Never automatically replay" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1060" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;partner_notice.py · graph_email.py · statement_run.py: retry_emails&#10;mw-cash-statement-email-retry.timer" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="Unknown" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Email is backup, never first choice.&#10;No email after confirmed complete IG delivery.&#10;Receipt retries: worker timer, 5-minute backoff.&#10;Statement retries: existing 5-minute timer.&#10;No public hosting of statements or receipt pictures." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="accepted" value="Accepted → SENT&#10;No automatic resend" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="1110" width="340" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" value="Accepted" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="accepted">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;partner_notice.py · graph_email.py · statement_run.py: retry_emails&#10;mw-cash-statement-email-retry.timer" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;Accepted → SENT; definite rejection → retry queue" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="statement" name="08 · Daily cash statement">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Daily cash statement" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="8. Daily cash statement" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. 00:15 Bangkok → latest completed 00:00–00:00 day" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="00:15 Bangkok → latest completed 00:00–00:00 day" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. Read governed cash effects and opening balances" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Read governed cash effects and opening balances" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. Freeze a private repeatable-read snapshot" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="Freeze a private repeatable-read snapshot" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Render all account pages in English and Thai; show HH:mm" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="Render all account pages in English and Thai; show HH:mm" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Send preferred-language PNGs to each enabled Partner by IG" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="Complete IG delivery&#10;confirmed?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. If incomplete/unavailable: email the complete image set" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="Record complete IG delivery&#10;No email fallback needed" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;Uses Cash Ledger.Created At for the calendar cutoff.&#10;Production V30 propagates source Payment.Created At on new payment ledger entries.&#10;No historical backfill or automatic reissue of old images.&#10;Durable snapshot/send keys survive restart.&#10;No financial writes." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="Use complete image set&#10;for email fallback" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1060" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;cash_statement.py · statement_image.py · statement_run.py&#10;mw-cash-statement.timer · statement_delivery.py" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Uses Cash Ledger.Created At for the calendar cutoff.&#10;Production V30 propagates source Payment.Created At on new payment ledger entries.&#10;No historical backfill or automatic reissue of old images.&#10;Durable snapshot/send keys survive restart.&#10;No financial writes." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;cash_statement.py · statement_image.py · statement_run.py&#10;mw-cash-statement.timer · statement_delivery.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;Send preferred-language PNGs to each enabled Partner by IG" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="api" name="09 · AppSheet API connections">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="AppSheet API connections" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="9. AppSheet API connections" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Select named app: oltp (default) or olap" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Select named app: oltp (default) or olap" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. Resolve production app ID and its separate protected key" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Resolve production app ID and its separate protected key" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. Validate approved endpoint and bounded table/selector" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="Approved app, table&#10;and bounded selector?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Send official Find request; key stays in HTTP header" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="Send official Find request; key stays in HTTP header" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Return scoped records; probe prints metadata only" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="Return scoped records; probe prints metadata only" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. After app upgrades: verify switches and probe both APIs" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="After app upgrades: verify switches and probe both APIs" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;PROD APIs enabled directly by owner authority, outside releases. DEV unchanged.&#10;Current client is Find-only. Connection setup does not enable arbitrary writes.&#10;Keys stay under /etc/mw-integration-agent.&#10;Do not assume API Enable survives App Upgrade; preservation is not explicitly guaranteed in the vendor guide." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="Reject request&#10;No arbitrary write access" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="640" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;appsheet.py · config.py · cli.py: appsheet-probe --app oltp|olap&#10;scripts/configure-appsheet-apis.py" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;PROD APIs enabled directly by owner authority, outside releases. DEV unchanged.&#10;Current client is Find-only. Connection setup does not enable arbitrary writes.&#10;Keys stay under /etc/mw-integration-agent.&#10;Do not assume API Enable survives App Upgrade; preservation is not explicitly guaranteed in the vendor guide." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;appsheet.py · config.py · cli.py: appsheet-probe --app oltp|olap&#10;scripts/configure-appsheet-apis.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;Validate approved endpoint and bounded table/selector" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="database" name="10 · Database reporting access">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Database reporting access" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8f5e9;strokeColor=#2e7d32;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="10. Database reporting access" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Cloud SQL Auth Proxy listens on 127.0.0.1:5432" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Cloud SQL Auth Proxy listens on 127.0.0.1:5432" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. Validate loan_manager_prod and dedicated agent role" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Expected PROD database&#10;and dedicated role?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. Load protected credential without exposing it to Codex" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="Load protected credential without exposing it to Codex" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Run fixed SELECT queries in read-only transactions" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="Run fixed SELECT queries in read-only transactions" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Return receipt masters, duplicate checks or report data" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="Return receipt masters, duplicate checks or report data" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. Rollback read transaction; retain required private evidence" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e8eaf6;strokeColor=#5c6bc0;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="Rollback read transaction; retain required private evidence" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;SELECT and TEMP privileges only; no durable DML/schema changes.&#10;Both apps share PROD database, with distinct API keys.&#10;Integrity/accounting triggers are never disabled.&#10;No unrestricted production export goes into Git." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="Stop query&#10;Do not use another database" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="430" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;cash_statement.py: read_query, snapshot · receipt_master.py&#10;cloud-sql-auth-proxy.service" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;SELECT and TEMP privileges only; no durable DML/schema changes.&#10;Both apps share PROD database, with distinct API keys.&#10;Integrity/accounting triggers are never disabled.&#10;No unrestricted production export goes into Git." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;cash_statement.py: read_query, snapshot · receipt_master.py&#10;cloud-sql-auth-proxy.service" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;Validate loan_manager_prod and dedicated agent role" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="codex" name="11 · Persistent partner conversations">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Persistent partner conversations" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="11. Persistent partner conversations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Service listed in the catalogue for future scope" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Service listed in the catalogue for future scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. enabled=false and implemented=false" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Service implemented&#10;and enabled?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. No business worker or automatic execution" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="PENDING / FUTURE&#10;No business worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="Future only" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Inbound messages cannot activate this capability" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="PENDING / FUTURE&#10;Inbound messages cannot activate this capability" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Future work needs shared scripts, tests and owner scope" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="PENDING / FUTURE&#10;Future work needs shared scripts, tests and owner scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. Activation would be a separate explicit step" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="PENDING / FUTURE&#10;Activation would be a separate explicit step" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;Receipt-image extraction is separate and constrained; it is not a general conversation agent.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="NO — current state&#10;No worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="430" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: persistent_codex_conversation&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Receipt-image extraction is separate and constrained; it is not a general conversation agent.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: persistent_codex_conversation&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;enabled=false and implemented=false" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="gui" name="12 · Partner OLTP GUI operations">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Partner OLTP GUI operations" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="12. Partner OLTP GUI operations" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Service listed in the catalogue for future scope" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Service listed in the catalogue for future scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. enabled=false and implemented=false" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Service implemented&#10;and enabled?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. No business worker or automatic execution" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="PENDING / FUTURE&#10;No business worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="Future only" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Inbound messages cannot activate this capability" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="PENDING / FUTURE&#10;Inbound messages cannot activate this capability" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Future work needs shared scripts, tests and owner scope" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="PENDING / FUTURE&#10;Future work needs shared scripts, tests and owner scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. Activation would be a separate explicit step" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="PENDING / FUTURE&#10;Activation would be a separate explicit step" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;Desktop inspection during development is not a deployed VM capability. The retired Windows worker stays stopped.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="NO — current state&#10;No worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="430" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: partner_oltp_gui&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Desktop inspection during development is not a deployed VM capability. The retired Windows worker stays stopped.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: partner_oltp_gui&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;enabled=false and implemented=false" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="briefing" name="13 · Daily briefing">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Daily briefing" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="13. Daily briefing" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Service listed in the catalogue for future scope" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Service listed in the catalogue for future scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. enabled=false and implemented=false" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Service implemented&#10;and enabled?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. No business worker or automatic execution" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="PENDING / FUTURE&#10;No business worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="Future only" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Inbound messages cannot activate this capability" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="PENDING / FUTURE&#10;Inbound messages cannot activate this capability" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Future work needs shared scripts, tests and owner scope" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="PENDING / FUTURE&#10;Future work needs shared scripts, tests and owner scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. Activation would be a separate explicit step" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="PENDING / FUTURE&#10;Activation would be a separate explicit step" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;No briefing timer runs. Daily cash statements are a separate authorized service.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="NO — current state&#10;No worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="430" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: daily_briefing&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;No briefing timer runs. Daily cash statements are a separate authorized service.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: daily_briefing&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;enabled=false and implemented=false" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
   <diagram id="weather" name="14 · Pattaya weather">
-    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1120">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Pattaya weather" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="25" width="1320" height="65" as="geometry" />
+        <mxCell id="title" value="14. Pattaya weather" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
         </mxCell>
-        <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1" link="data:page/id,overview">
-          <mxGeometry x="40" y="105" width="1320" height="45" as="geometry" />
+        <mxCell id="status" value="STATUS: DISABLED  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="1. Service listed in the catalogue for future scope" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="180" width="740" height="96" as="geometry" />
+        <mxCell id="s0" value="Service listed in the catalogue for future scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="2. enabled=false and implemented=false" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="306" width="740" height="96" as="geometry" />
+        <mxCell id="s1" value="Service implemented&#10;and enabled?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s0" target="s1">
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="3. No business worker or automatic execution" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="432" width="740" height="96" as="geometry" />
+        <mxCell id="s2" value="PENDING / FUTURE&#10;No business worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s1" target="s2">
+        <mxCell id="e8" value="Future only" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s3" value="4. Inbound messages cannot activate this capability" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="558" width="740" height="96" as="geometry" />
+        <mxCell id="s3" value="PENDING / FUTURE&#10;Inbound messages cannot activate this capability" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s2" target="s3">
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="5. Future work needs shared scripts, tests and owner scope" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="684" width="740" height="96" as="geometry" />
+        <mxCell id="s4" value="PENDING / FUTURE&#10;Future work needs shared scripts, tests and owner scope" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s3" target="s4">
+        <mxCell id="e12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="6. Activation would be a separate explicit step" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="80" y="810" width="740" height="96" as="geometry" />
+        <mxCell id="s5" value="PENDING / FUTURE&#10;Activation would be a separate explicit step" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;" edge="1" parent="1" source="s4" target="s5">
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="exceptions" value="DECISIONS / EXCEPTIONS&#10;&#10;No weather provider is called and no borrower information is sent to one.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="880" y="180" width="460" height="690" as="geometry" />
+        <mxCell id="stop" value="NO — current state&#10;No worker or automatic execution" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="430" width="340" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: pattaya_weather&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#f5f7fa;strokeColor=#78909c;strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;" vertex="1" parent="1">
-          <mxGeometry x="40" y="980" width="1320" height="100" as="geometry" />
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;No weather provider is called and no borrower information is sent to one.&#10;&#10;This page records the current disabled state; it does not enable or promise the feature." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;service-catalogue.json: pattaya_weather&#10;config.py · docs/MIGRATION_PLAN.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;enabled=false and implemented=false" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

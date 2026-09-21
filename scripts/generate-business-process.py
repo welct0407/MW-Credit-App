@@ -4,23 +4,26 @@ import xml.etree.ElementTree as E
 
 ROOT=Path(__file__).resolve().parents[1]
 file=E.Element('mxfile',host='app.diagrams.net',type='device',version='24.7.17')
-colors={'LIVE':('#e8f5e9','#2e7d32'),'PENDING':('#fff3e0','#ef6c00'),
-        'DISABLED':('#eceff1','#607d8b'),'note':('#f5f7fa','#78909c'),'step':('#e8eaf6','#5c6bc0')}
+colors={'LIVE':('#d5e8d4','#82b366'),'PENDING':('#fff2cc','#d6b656'),
+        'DISABLED':('#f5f5f5','#999999'),'note':('#f5f5f5','#999999'),
+        'step':('#dae8fc','#6c8ebf'),'decision':('#fff2cc','#d6b656'),
+        'stop':('#f8cecc','#b85450')}
 
-def page(key,name):
+def page(key,name,height=1900):
     d=E.SubElement(file,'diagram',id=key,name=name)
-    m=E.SubElement(d,'mxGraphModel',grid='1',gridSize='10',page='1',pageScale='1',pageWidth='1400',pageHeight='1120')
+    m=E.SubElement(d,'mxGraphModel',grid='1',gridSize='10',page='1',pageScale='1',pageWidth='1400',pageHeight=str(height))
     r=E.SubElement(m,'root');E.SubElement(r,'mxCell',id='0');E.SubElement(r,'mxCell',id='1',parent='0')
     return r
 
 def box(r,key,label,x,y,w,h,kind='note',link=None):
     fill,stroke=colors[kind]
-    attrs={'id':key,'value':label,'style':f'rounded=1;whiteSpace=wrap;html=0;fillColor={fill};strokeColor={stroke};strokeWidth=2;fontColor=#243447;fontSize=18;spacing=14;', 'vertex':'1','parent':'1'}
+    shape='rhombus;' if kind=='decision' else 'rounded=1;arcSize=12;'
+    attrs={'id':key,'value':label,'style':f'{shape}whiteSpace=wrap;html=0;fillColor={fill};strokeColor={stroke};fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;', 'vertex':'1','parent':'1'}
     if link:attrs['link']='data:page/id,'+link
     c=E.SubElement(r,'mxCell',**attrs);E.SubElement(c,'mxGeometry',x=str(x),y=str(y),width=str(w),height=str(h),**{'as':'geometry'})
 
-def edge(r,a,b):
-    c=E.SubElement(r,'mxCell',id='e'+str(len(r)),style='edgeStyle=orthogonalEdgeStyle;endArrow=block;strokeColor=#607d8b;',edge='1',parent='1',source=a,target=b)
+def edge(r,a,b,label=''):
+    c=E.SubElement(r,'mxCell',id='e'+str(len(r)),value=label,style='edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;',edge='1',parent='1',source=a,target=b)
     E.SubElement(c,'mxGeometry',relative='1',**{'as':'geometry'})
 
 pages=[
@@ -121,26 +124,56 @@ for key,title,service,detail in [
         detail+'\n\nThis page records the current disabled state; it does not enable or promise the feature.',
         'service-catalogue.json: '+service+'\nconfig.py · docs/MIGRATION_PLAN.md'))
 
-r=page('overview','01 · All services')
+r=page('overview','01 · All services',1120)
 box(r,'title','MW INTEGRATION AGENT  |  All services and implementing scripts',40,25,1320,70,'step')
-box(r,'legend','GREEN = live · AMBER = pending implementation · GREY = disabled\nOne Debian runtime. Click any service card for its detailed page.',40,110,1320,85)
+box(r,'legend','One Debian runtime · Click a service for its detailed flowchart\nGreen = live outcome / service · Blue = process · Yellow = decision / pending · Red = stop · Grey = notes / disabled',40,110,1320,85)
 for i,(key,title,status,*_) in enumerate(pages):
     box(r,key,title,40+(i%3)*445,220+(i//3)*155,420,125,status,key)
 box(r,'scope','Owner review baseline · 21 September 2026\nProduction API configuration is outside releases. Real receipt posting remains pending; no borrower-specific scripts are maintained.',40,1010,1320,80,'PENDING')
+# Decision labels describe existing behavior, not new runtime gates.
+decisions={
+ 'ingress':(2,'Valid signature and\nexpected account?','Reject request; do not create a job'),
+ 'receipts':(4,'Receipt passes all\nvalidation rules?','Invalid → REVIEW\nNonreceipt / disabled borrower → ignore\nDuplicate → no second processing'),
+ 'posting':(3,'Reusable posting and\nreadback implemented?','NO — current state\nPayment remains unposted\nDo not send a processed notice'),
+ 'identity':(4,'One verified current\nPartner identity?','Reject ambiguous / changed identity\nUnavailable IG route → email fallback'),
+ 'ig':(4,'Meta accepted the\ncomplete notification?','Unavailable / incomplete / uncertain\nUse email fallback\nNever replay uncertain IG'),
+ 'email':(4,'Email provider outcome?','Unknown → retain for reconciliation\nNever automatically replay'),
+ 'statement':(4,'Complete IG delivery\nconfirmed?','Use complete image set\nfor email fallback'),
+ 'api':(2,'Approved app, table\nand bounded selector?','Reject request\nNo arbitrary write access'),
+ 'database':(1,'Expected PROD database\nand dedicated role?','Stop query\nDo not use another database'),
+}
 for number,(key,title,status,steps,notes,sources) in enumerate(pages,2):
     r=page(key,f'{number:02} · {title}')
-    box(r,'title',title,40,25,1320,65,status)
-    box(r,'status',f'STATUS: {status}  |  Return to all services',40,105,1320,45,'note','overview')
+    box(r,'title',f'{number}. {title}',60,30,1280,55,'note')
+    box(r,'status',f'STATUS: {status}  |  Return to all services',60,100,1280,65,'note','overview')
+    decision=decisions.get(key,(1,'Service implemented\nand enabled?','NO — current state\nNo worker or automatic execution'))
+    index,question,stop=decision
     for i,label in enumerate(steps):
-        box(r,'s'+str(i),f'{i+1}. {label}',80,180+i*126,740,96,'DISABLED' if status=='DISABLED' else 'step')
-        if i:edge(r,'s'+str(i-1),'s'+str(i))
-    box(r,'exceptions','DECISIONS / EXCEPTIONS\n\n'+notes,880,180,460,690,'PENDING' if status=='PENDING' else 'note')
-    box(r,'scripts','IMPLEMENTING SCRIPTS / RUNTIME\n'+sources,40,980,1320,100,'note')
+        kind='decision' if i==index else ('DISABLED' if status=='DISABLED' else 'step')
+        text=question if i==index else label
+        if key in ('ig','statement') and i==5:text='Record complete IG delivery\nNo email fallback needed'
+        if (status!='LIVE' and i>index):text='PENDING / FUTURE\n'+text
+        box(r,'s'+str(i),text,540,220+i*210,320,140 if i==index else 120,kind)
+        if i:
+            branch=('Future only' if status!='LIVE' else ('Rejected: bounded retry' if key=='email' else 'Yes')) if i-1==index else ''
+            edge(r,'s'+str(i-1),'s'+str(i),branch)
+    box(r,'stop',stop,70,220+index*210,340,140,'stop')
+    edge(r,'s'+str(index),'stop','Unknown' if key=='email' else 'No')
+    box(r,'context','RULES / EXCEPTIONS\n\n'+notes,990,220,340,720,'note')
+    if key=='email':
+        box(r,'accepted','Accepted → SENT\nNo automatic resend',990,1110,340,110,'LIVE')
+        edge(r,'s4','accepted','Accepted')
+    box(r,'scripts','IMPLEMENTING SCRIPTS / RUNTIME\n'+sources,60,1480,1280,130,'note')
+    box(r,'detail','DECISION DETAIL\n'+steps[index],60,1650,1280,140,'PENDING' if status=='PENDING' else 'note')
 for d in file:
     r=d.find('mxGraphModel/root');ids={c.get('id') for c in r}
     assert len(ids)==len(r)
     for c in r:
         if c.get('edge')=='1':assert c.get('source') in ids and c.get('target') in ids
+        if c.get('vertex')=='1':
+            g=c.find('mxGeometry');m=d.find('mxGraphModel')
+            assert float(g.get('x'))+float(g.get('width'))<=float(m.get('pageWidth'))
+            assert float(g.get('y'))+float(g.get('height'))<=float(m.get('pageHeight'))
 E.indent(file,space='  ')
 E.ElementTree(file).write(ROOT/'docs'/'BUSINESS_PROCESS.drawio',encoding='utf-8',xml_declaration=True)
 print(f'Generated {len(file)} linked pages; IDs and edges verified.')
