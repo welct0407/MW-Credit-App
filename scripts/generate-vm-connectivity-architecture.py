@@ -236,7 +236,7 @@ vertex(
 
 vertex(
     "vm-boundary",
-    "COMPUTE ENGINE · vm-mw-credit-agent · Debian 13 · Asia/Bangkok · e2-medium",
+    "COMPUTE ENGINE · vm-mw-credit-agent · Debian 13 · Asia/Bangkok · e2-small",
     430,
     430,
     840,

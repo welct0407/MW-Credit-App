@@ -11,7 +11,7 @@ Status: **daily cash statement production schedule active**. The Debian receiver
 - GCP project: `clever-oasis-508610-n7`
 - Region: `asia-southeast1`
 - VM/hostname: `vm-mw-credit-agent`
-- Machine profile: E2 shared-core, 4 GB memory (`e2-medium`)
+- Machine profile: E2 shared-core, 2 GB memory (`e2-small`; 0.5 fractional vCPU across 2 exposed vCPUs)
 - OS: Debian 13
 - System timezone: `Asia/Bangkok` (`UTC+07:00`), synchronized by NTP
 - Backups: regional Compute Engine snapshot policy `default-schedule-1`, attached and verified after VM creation
