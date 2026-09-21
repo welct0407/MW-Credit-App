@@ -1,6 +1,6 @@
 # Agent service processes
 
-The authoritative editable diagram is [BUSINESS_PROCESS.drawio](BUSINESS_PROCESS.drawio). Its 15 linked pages start with an agent operating-flow overview (01), followed by the service index (02) and a detailed page for each service, including disabled and pending capabilities. Each detail page names its scripts, steps, decisions and exceptions. [BUSINESS_PROCESS.png](BUSINESS_PROCESS.png) is the overview; individual page images are in [process-pages](process-pages/). Regenerate after a process change:
+The authoritative editable diagram is [BUSINESS_PROCESS.drawio](BUSINESS_PROCESS.drawio). Its 16 linked pages start with an agent operating-flow overview (01), followed by the service index (02) and a detailed page for each service, including disabled and pending capabilities. Each detail page names its scripts, steps, decisions and exceptions. [BUSINESS_PROCESS.png](BUSINESS_PROCESS.png) is the overview; individual page images are in [process-pages](process-pages/). Regenerate after a process change:
 
 ```powershell
 python scripts/generate-business-process.py

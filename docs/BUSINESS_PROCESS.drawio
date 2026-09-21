@@ -17,7 +17,7 @@
         <mxCell id="webhook" value="Signed Instagram webhook&#10;Borrower receipt messages" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,ingress">
           <mxGeometry x="500" y="210" width="400" height="115" as="geometry" />
         </mxCell>
-        <mxCell id="manual" value="Operator-selected receipt&#10;Shared receipt-prepare command" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,receipts">
+        <mxCell id="manual" value="Five-minute conversation API poll&#10;New group and direct messages" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,poll">
           <mxGeometry x="940" y="210" width="400" height="115" as="geometry" />
         </mxCell>
         <mxCell id="snapshot" value="Read cash ledger and balances&#10;Freeze private statement snapshot" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,statement">
@@ -107,7 +107,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="future" value="Pending posting: only a verified payment may produce a Payment processed notice.&#10;Disabled: persistent Partner conversations, Partner GUI operations, daily briefing and weather.&#10;Open the service index for every detailed process and its implementing scripts." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+        <mxCell id="future" value="Pending posting: only a verified payment may produce a Payment processed notice.&#10;Operator-selected receipts also use shared preparation. Browser automation is prohibited.&#10;Disabled: persistent conversations, Partner GUI, briefing and weather. Click for service index." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
           <mxGeometry x="60" y="1340" width="1280" height="90" as="geometry" />
         </mxCell>
       </root>
@@ -162,6 +162,9 @@
         </mxCell>
         <mxCell id="weather" value="Pattaya weather" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,weather">
           <mxGeometry x="40" y="840" width="420" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="poll" value="Conversation API polling" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,poll">
+          <mxGeometry x="485" y="840" width="420" height="125" as="geometry" />
         </mxCell>
         <mxCell id="scope" value="Owner review baseline · 21 September 2026&#10;Production API configuration is outside releases. Real receipt posting remains pending; no borrower-specific scripts are maintained." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="40" y="1010" width="1320" height="80" as="geometry" />
@@ -976,6 +979,68 @@
           <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
         </mxCell>
         <mxCell id="detail" value="DECISION DETAIL&#10;enabled=false and implemented=false" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="poll" name="16 · Conversation API polling">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="16. Conversation API polling" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="s0" value="Five-minute timer → single polling worker" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" value="Official conversations API; current AI-enabled borrower participants" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" value="Read recent messages back to saved cutoff with five-minute overlap" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="History complete and&#10;new-message boundary reached?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" value="Reserve new message IDs and shared receipt image jobs" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s5" value="Commit conversation checkpoint; existing receipt worker continues" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="stop" value="Stop and report gap&#10;Do not advance this checkpoint" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="70" y="850" width="340" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;API only; no browser automation.&#10;Observed three-participant conversations are readable through expanded list fields.&#10;Direct group-history endpoint failed.&#10;More than 100 unseen messages → stop; no cursor advance.&#10;Other senders / text / non-images → ignore.&#10;Fresh activation cutoff; no historical replay.&#10;Polled records never refresh signed IG reply windows.&#10;No group send or payment write." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;conversation_poll.py · receipt_journal.py · receipt_run.py&#10;mw-conversation-poll.timer · docs/CONVERSATION_POLL.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;History complete and participant / attachment data usable?" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>

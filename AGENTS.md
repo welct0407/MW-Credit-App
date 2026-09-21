@@ -4,6 +4,8 @@ This repository is the Linux-native integration-agent runtime for Debian 13 on G
 
 ## Safety and authority
 
+- Instagram browser automation is prohibited by the owner following an account restriction. Use official API access only; do not replace missing group API capabilities with browser automation. Group sends remain untested and unauthorized.
+
 - Default deny: no production integration, webhook, sending, financial write, scheduled job, or partner operation is enabled until the owner explicitly authorizes that capability in this repository.
 - Treat `C:\GitHub\MW-Partner-Operations` as a dated source reference. Its private state, credentials, browser profiles, journals, queues, task definitions, and activation flags are not source code and must never be copied automatically.
 - Preserve the current paused state of the Windows agent. Provisioning or testing this repository does not authorize cutover, route changes, replay, partner messaging, or AppSheet writes.

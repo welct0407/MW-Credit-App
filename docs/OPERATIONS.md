@@ -12,7 +12,7 @@ Both PROD OLTP and OLAP inbound APIs are enabled directly outside the product re
 
 Do not assume App Upgrade preserves API Enable. The previous recorded enabled OLTP state was found disabled on 21 September. The vendor upgrade guide does not explicitly guarantee this setting; check both production APIs after upgrades without enabling DEV as a workaround.
 
-All Partner notices are Instagram first, email fallback. The reviewed runtime updater backs up package/configuration and integrity-checks online SQLite backups, preserves activation controls, and sets a separate notification cutoff once. It never resets receipt activation or replays history. See the [15-page process diagram](BUSINESS_PROCESS.md).
+All Partner notices are Instagram first, email fallback. The reviewed runtime updater backs up package/configuration and integrity-checks online SQLite backups, preserves activation controls, and sets a separate notification cutoff once. It never resets receipt activation or replays history. See the [16-page process diagram](BUSINESS_PROCESS.md).
 
 ## Filesystem layout
 
@@ -76,3 +76,7 @@ The Graph OAuth JSON is `/etc/mw-integration-agent/secrets/outlook-email-oauth.j
 ## Activation boundary
 
 The owner authorized the receiver, two-way transport foundation, daily cash statement schedule and its email fallback on 20 September 2026. This does not authorize automated conversational replies: keep `sending_enabled=false` except for a deliberate operator action. The owner separately authorized receipt-only processing on 21 September 2026; its dedicated timer is active. Generic processing and all data writes remain disabled.
+
+## Conversation polling
+
+The owner-authorized [API-only conversation reader](CONVERSATION_POLL.md) runs every five minutes for conversations containing AI-enabled borrowers. Browser automation is prohibited. History gaps fail without advancing the checkpoint; inspect mw-conversation-poll.service for errors. Financial writes remain disabled.

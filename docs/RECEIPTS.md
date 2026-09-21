@@ -42,3 +42,5 @@ Codex interface reference: [non-interactive mode](https://learn.chatgpt.com/docs
 ## Existing transaction time fields — R013
 
 The owner chose existing fields, without new audit columns. Extraction preserves the printed Bangkok transfer time, including seconds when present; missing/invalid time goes to REVIEW. Summary metadata prepares `Payment Date` and `Created At` for a future Payments write, but this service remains summary-only. The AppSheet repository R013/V30 copies Payments.Created At into new system-payment Cash Ledger.Created At, with current-time fallback for older clients that supply no timestamp. Its existing statement Sort Timestamp/Statement Time then carry that value to OLTP and the 00:15 image. R013 is deployed to production. Existing payments and accepted receipt journals are not backfilled.
+
+Scheduled [conversation API intake](CONVERSATION_POLL.md) also feeds these same receipt jobs, with a separate cutoff and shared message/attachment IDs. It does not create signed webhook events or refresh Partner messaging windows.

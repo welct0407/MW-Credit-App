@@ -128,6 +128,16 @@ for key,title,service,detail in [
         detail+'\n\nThis page records the current disabled state; it does not enable or promise the feature.',
         'service-catalogue.json: '+service+'\nconfig.py · docs/MIGRATION_PLAN.md'))
 
+pages.append(('poll','Conversation API polling','LIVE',[
+ 'Five-minute timer → single polling worker',
+ 'Official conversations API; current AI-enabled borrower participants',
+ 'Read recent messages back to saved cutoff with five-minute overlap',
+ 'History complete and participant / attachment data usable?',
+ 'Reserve new message IDs and shared receipt image jobs',
+ 'Commit conversation checkpoint; existing receipt worker continues'],
+ 'API only; no browser automation.\nObserved three-participant conversations are readable through expanded list fields.\nDirect group-history endpoint failed.\nMore than 100 unseen messages → stop; no cursor advance.\nOther senders / text / non-images → ignore.\nFresh activation cutoff; no historical replay.\nPolled records never refresh signed IG reply windows.\nNo group send or payment write.',
+ 'conversation_poll.py · receipt_journal.py · receipt_run.py\nmw-conversation-poll.timer · docs/CONVERSATION_POLL.md'))
+
 r=page('agent-overview','01 · Agent overview',1460)
 box(r,'title','MW INTEGRATION AGENT | Overall operating flow',60,25,1280,55,'note')
 box(r,'status','LIVE: receipt summaries and daily cash statements · PENDING: payment posting\nDebian runtime · Click a process to open its detailed page',60,95,1280,65,'note')
@@ -136,7 +146,7 @@ box(r,'status','LIVE: receipt summaries and daily cash statements · PENDING: pa
 for key,label,col,row,kind,target in [
  ('daily','00:15 Bangkok timer\nDaily cash statement',0,0,'LIVE','statement'),
  ('webhook','Signed Instagram webhook\nBorrower receipt messages',1,0,'LIVE','ingress'),
- ('manual','Operator-selected receipt\nShared receipt-prepare command',2,0,'LIVE','receipts'),
+ ('manual','Five-minute conversation API poll\nNew group and direct messages',2,0,'LIVE','poll'),
  ('snapshot','Read cash ledger and balances\nFreeze private statement snapshot',0,1,'step','statement'),
  ('capture','Verify signature\nPersist and deduplicate events',1,1,'step','ingress'),
  ('masters','Shared read-only data access\nPROD OLTP / OLAP API + PostgreSQL',2,1,'step','api'),
@@ -166,7 +176,7 @@ for a,b,label in [
     }
     points,ports=routes.get((a,b),(None,''))
     edge(r,a,b,label,points,ports)
-box(r,'future','Pending posting: only a verified payment may produce a Payment processed notice.\nDisabled: persistent Partner conversations, Partner GUI operations, daily briefing and weather.\nOpen the service index for every detailed process and its implementing scripts.',60,1340,1280,90,'note','overview')
+box(r,'future','Pending posting: only a verified payment may produce a Payment processed notice.\nOperator-selected receipts also use shared preparation. Browser automation is prohibited.\nDisabled: persistent conversations, Partner GUI, briefing and weather. Click for service index.',60,1340,1280,90,'note','overview')
 
 r=page('overview','02 · All services',1120)
 box(r,'title','MW INTEGRATION AGENT  |  All services and implementing scripts',40,25,1320,70,'step')
@@ -176,6 +186,7 @@ for i,(key,title,status,*_) in enumerate(pages):
 box(r,'scope','Owner review baseline · 21 September 2026\nProduction API configuration is outside releases. Real receipt posting remains pending; no borrower-specific scripts are maintained.',40,1010,1320,80,'PENDING')
 # Decision labels describe existing behavior, not new runtime gates.
 decisions={
+ 'poll':(3,'History complete and\nnew-message boundary reached?','Stop and report gap\nDo not advance this checkpoint'),
  'ingress':(2,'Valid signature and\nexpected account?','Reject request; do not create a job'),
  'receipts':(4,'Receipt passes all\nvalidation rules?','Invalid → REVIEW\nNonreceipt / disabled borrower → ignore\nDuplicate → no second processing'),
  'posting':(3,'Reusable posting and\nreadback implemented?','NO — current state\nPayment remains unposted\nDo not send a processed notice'),
