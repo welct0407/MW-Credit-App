@@ -1,0 +1,9 @@
+# Manual payment duplicate guard — 21 September 2026
+
+Owner requested detection of payments already entered manually by a Partner. Starting clean commit: `b7e19a9b41e2ee32b256ea28e0c57a3d6feaabbb`. Source rollback is that commit; deployment uses the reviewed updater's package/config and integrity-checked SQLite backup.
+
+Added `payment_match.py`: fresh SELECT against production Payments after extraction, before notice reservation and before notice dispatch; shared operator receipt preparation uses the same guard. Posted rows with the same borrower, amount, receiving cash account and date plus either matching bank reference or exact minute are already recorded. Same borrower/date/amount with different or missing details, multiple matches, conflicting references and non-Posted candidates require review. No new table, column or financial write is introduced. Existing global reference and image deduplication remain.
+
+Confirmed existing schema from V1/V23: Status, Ref Borrower, Amount Received, Payment Date, Created At, Ref Received By Cash Account and Bank Reference. Payment time is compared to minute precision; manual entry time differences are not guessed. Matching currently suppresses new summary delivery. It cannot retract already accepted messages or provide atomic exclusion against a simultaneous manual financial write; future posting must recheck and reconcile at the write boundary.
+
+Local tests: 73, with two platform skips. New tests cover manual entries without bank references, exact minute, alternative entry time, account mismatch, in-progress/error status, multiple matches, unrelated payments and conflicting references. Deployment checks recorded below.

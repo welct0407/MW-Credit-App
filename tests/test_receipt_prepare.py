@@ -9,6 +9,9 @@ from mw_integration_agent.config import ConfigurationError
 
 
 class PrepareTests(unittest.TestCase):
+    def setUp(self):
+        payment_check=patch('mw_integration_agent.receipt_prepare.check_existing_payment')
+        payment_check.start();self.addCleanup(payment_check.stop)
     def test_shared_rules_parameterized_and_no_effects(self):
         today=datetime.now(BANGKOK).date().isoformat()
         borrower={'id':'borrower-A','username':'borrower','enabled':True,'name_en':'Test'}

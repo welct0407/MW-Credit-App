@@ -10,6 +10,7 @@ from .instagram import Instagram
 from .receipt_image import download,extract
 from .receipt_journal import ReceiptJournal
 from .receipt_master import masters
+from .payment_match import check as check_existing_payment
 from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,validate_receipt,username
 
 
@@ -79,8 +80,11 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
         receipt=validate_receipt(value,master['accounts'])
         if receipt['reference'] in master.get('posted_references',[]):
             journal.mark(job['id'],'DUPLICATE','REFERENCE_ALREADY_IN_PAYMENTS'); return
+        check_existing_payment(config,receipt,borrower)
         journal.accept(job,{'receipt':receipt,'borrower':borrower},[])
     except ReceiptInvalid as exc:
+        if str(exc)=='PAYMENT_ALREADY_RECORDED':
+            journal.mark(job['id'],'DUPLICATE',str(exc));return
         ignored=str(exc) in ('NOT_PAYMENT_RECEIPT','BORROWER_NOT_UNIQUELY_ENABLED')
         journal.mark(job['id'],'IGNORED' if ignored else 'REVIEW',str(exc))
     except ConfigurationError:
@@ -148,6 +152,9 @@ def run(config_path,catalogue_path):
                 for job in jobs:
                     result=json.loads(job['result']);live=masters(config)
                     borrower=borrower_for(conversation_identity(config,job['sender_id']),live['borrowers'])
+                    try:check_existing_payment(config,result['receipt'],borrower)
+                    except ReceiptInvalid as exc:
+                        journal.mark(job['id'],'DUPLICATE' if str(exc)=='PAYMENT_ALREADY_RECORDED' else 'REVIEW',str(exc));continue
                     if borrower['id']!=result['borrower']['id']:continue
                     if not any(a['id']==result['receipt']['account_id'] and a['active'] is True for a in live['accounts']):continue
                     for partner in live['partners']:
@@ -163,6 +170,7 @@ def run(config_path,catalogue_path):
                         if not job:raise ReceiptInvalid('RECEIPT_MISSING')
                         result=json.loads(job['result'])
                         borrower=borrower_for(conversation_identity(config,job['sender_id']),live['borrowers'])
+                        check_existing_payment(config,result['receipt'],borrower)
                         if borrower['id']!=result['borrower']['id']:raise ReceiptInvalid('BORROWER_MAPPING_CHANGED')
                         if not any(a['id']==result['receipt']['account_id'] and a['active'] is True for a in live['accounts']):
                             raise ReceiptInvalid('CASH_ACCOUNT_CHANGED')

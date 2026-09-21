@@ -10,6 +10,7 @@ from .config import ConfigurationError
 from .instagram import Instagram
 from .receipt_image import download,extract
 from .receipt_master import masters
+from .payment_match import check as check_existing_payment
 from .receipt_rules import BANGKOK,borrower_for,validate_receipt,username
 from .receipt_run import controls,conversation_identity
 
@@ -51,6 +52,7 @@ def prepare(config_path,catalogue_path,borrower_id,day,message_id=None):
     image,digest=download(url)
     raw=extract(config,image);receipt=validate_receipt(raw,master['accounts'])
     if receipt['reference'] in master['posted_references']:raise ConfigurationError('REFERENCE_ALREADY_IN_PAYMENTS')
+    check_existing_payment(config,receipt,borrower)
     key=hashlib.sha256((message['id']+':0').encode()).hexdigest()
     candidate={'job_id':key,'source':'owner-selected-instagram-history','message_id':message['id'],
                'sender_id':message['from']['id'],'image_hash':digest,'raw':raw,'receipt':receipt,'borrower':borrower}

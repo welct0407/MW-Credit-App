@@ -117,6 +117,8 @@ class ReceiptRuleTests(unittest.TestCase):
 
 class ReceiptJournalTests(unittest.TestCase):
     def setUp(self):
+        payment_check=patch('mw_integration_agent.receipt_run.check_existing_payment')
+        self.payment_check=payment_check.start();self.addCleanup(payment_check.stop)
         self.tmp=tempfile.TemporaryDirectory();self.root=Path(self.tmp.name)
         self.ingress=IngressJournal(self.root/'in.db');self.j=ReceiptJournal(self.root/'receipt.db')
 
