@@ -1,5 +1,7 @@
 # Service catalogue
 
+Current runtime override, 22 September 2026: owner temporarily paused Partner conversations. Both dedicated conversation switches are false; timer disabled and worker stopped. Catalogue capability enablement is retained, but does not override these runtime kill switches. Other active services continue.
+
 Revision 13 — persistent Partner conversations and Codex-selected operational API calls, 22 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
 R014 deployed on 21 September: Partners.AI Reviewer separates payment review authority from Partner notification/IG preferences. Tommy is selected in PROD V32; Lisa is unselected. The installed runtime filters requests, replies and execution by current reviewer membership. All 102 Debian tests and the production master query passed after the coordinated database/app promotion. Existing service enablement and cutoffs are unchanged. A real customer direct-reply event was not forced during deployment.

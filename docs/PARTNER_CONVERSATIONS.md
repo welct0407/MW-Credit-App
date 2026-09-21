@@ -1,6 +1,6 @@
 # Persistent Partner conversations
 
-Live on Debian from 22 September 2026, 01:23 Bangkok. Owner requested persistent conversations and Codex-selected general operational API edits. Runtime deployment and checks are recorded in the [change log](../Change%20Logs/CHANGE_NOTES_PARTNER_CONVERSATIONS_2026-09-22.md).
+Temporarily paused by the owner on 22 September 2026 at approximately 02:07 Bangkok. The timer is disabled, the worker is stopped, and both conversation switches are false. History and journals are preserved. Before an owner-requested resume, reconcile interrupted/queued work and establish a fresh ingress cutoff so messages received during the pause are not automatically executed. Initially activated on Debian at 01:23 Bangkok. Owner requested persistent conversations and Codex-selected general operational API edits. Runtime deployment and checks are recorded in the [change log](../Change%20Logs/CHANGE_NOTES_PARTNER_CONVERSATIONS_2026-09-22.md).
 
 Signed ingress → post-cutoff text → fresh Partner authentication → once-only turn → persistent Codex App Server thread → host data tools → durable localized reply → Instagram, or complete email fallback.
 
