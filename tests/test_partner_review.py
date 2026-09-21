@@ -36,6 +36,12 @@ class ReviewTests(unittest.TestCase):
     def test_proposal_immutable(self):
         from mw_integration_agent.config import ConfigurationError
         with self.assertRaises(ConfigurationError):self.store.reserve('job',{'action':'Loan Close'})
+    def test_superseded_reply_cannot_approve_replacement(self):
+        self.db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id='job:old' WHERE id=?",(self.key,));self.db.commit()
+        replacement=self.store.reserve('job',{'action':'Lump Sum','corrected':True},115)
+        self.assertNotEqual(replacement,self.key)
+        self.assertEqual(self.decide(),'ALREADY_DECIDED')
+        self.assertEqual(self.db.execute('SELECT state FROM partner_reviews WHERE id=?',(replacement,)).fetchone()[0],'PENDING')
 
 class PlanTests(unittest.TestCase):
     def test_same_day_charges_are_combined(self):

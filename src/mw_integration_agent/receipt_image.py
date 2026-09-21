@@ -36,8 +36,7 @@ interpret an unlabeled local transfer time as Asia/Bangkok. If a different timez
 leave time empty for review. If transfer time is missing/unreadable, return time as an empty string.
 Return transfer amount as decimal string without commas. This project's receipts are Thai baht:
 return currency THB when no currency is printed; preserve an explicitly printed different currency.
-Return
-and the bank transaction reference exactly as visible (not a phone/account/date or invented ID).
+Return the bank transaction reference exactly as visible (not a phone/account/date or invented ID).
 recipient_numbers contains ONLY destination bank account or PromptPay numbers, never sender numbers.
 Preserve every masked digit as x. Never guess omitted/hidden digits or complete a truncated number.
 An unfamiliar bank name is fine. Empty strings/array for unreadable fields. Output JSON only.'''
