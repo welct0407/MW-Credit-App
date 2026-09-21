@@ -34,7 +34,9 @@ Return time as the TRANSFER time printed on the receipt, in 24-hour HH:MM or HH:
 substitute message/upload/current time, or use a phone status-bar clock. These are Thai receipts:
 interpret an unlabeled local transfer time as Asia/Bangkok. If a different timezone is shown,
 leave time empty for review. If transfer time is missing/unreadable, return time as an empty string.
-Return transfer amount as decimal string without commas, currency THB only when baht is evident,
+Return transfer amount as decimal string without commas. This project's receipts are Thai baht:
+return currency THB when no currency is printed; preserve an explicitly printed different currency.
+Return
 and the bank transaction reference exactly as visible (not a phone/account/date or invented ID).
 recipient_numbers contains ONLY destination bank account or PromptPay numbers, never sender numbers.
 Preserve every masked digit as x. Never guess omitted/hidden digits or complete a truncated number.

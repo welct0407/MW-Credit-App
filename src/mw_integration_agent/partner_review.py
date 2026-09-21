@@ -22,9 +22,9 @@ class ReviewStore:
     def reserve(self,job_id,proposal,now=None):
         now=time.time() if now is None else now
         value=json.dumps(proposal,sort_keys=True,ensure_ascii=False)
-        key=hashlib.sha256(('review:'+job_id).encode()).hexdigest()
+        key=hashlib.sha256(('review:'+job_id+':'+value).encode()).hexdigest()
         with self.db:
-            old=self.db.execute('SELECT proposal FROM partner_reviews WHERE id=?',(key,)).fetchone()
+            old=self.db.execute('SELECT proposal FROM partner_reviews WHERE job_id=?',(job_id,)).fetchone()
             if old and old[0]!=value:raise ConfigurationError('REVIEW_PROPOSAL_CHANGED')
             self.db.execute('INSERT OR IGNORE INTO partner_reviews(id,job_id,proposal,created_at,expires_at) VALUES (?,?,?,?,?)',
                             (key,job_id,value,now,now+86400))
@@ -81,9 +81,9 @@ def request_text(proposal,language):
         subject='Payment approval requested'
         action='Review loan closure; partner records manually' if close else ('Review overpayment; partner records manually' if manual else 'Record payment')
         body=f"{subject}\nBorrower: {name}\nAmount: {receipt['amount']} baht\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok)\nAccount: {receipt['account_label']}\nProposed: {action}\nUse Reply on THIS message: Yes / Approve / Approved (any case). Other direct replies reject. Nothing has been posted."
-    if proposal.get('loan_id'):body+='\nLoan: '+proposal['loan_id']
+    if proposal.get('loan_keys'):body+=('\nสัญญา: ' if thai else '\nLoan: ')+'; '.join(proposal['loan_keys'])
     if manual:
-        body+=('\nต้องให้หุ้นส่วนตรวจสอบและบันทึกเอง ระบบจะไม่ปิดสัญญาหรือบันทึกยอดเกินอัตโนมัติ' if thai else
-               '\nPartner handling required: no automatic loan closure or overpayment posting.')
+        body+=('\nหากอนุมัติ กรุณาบันทึกรายการในแอปด้วยตนเอง' if thai else
+               '\nIf you approve, please record this in the app yourself.')
     if len(body)>1000:raise ConfigurationError('REVIEW_REQUEST_TOO_LONG')
     return subject,body

@@ -1,5 +1,7 @@
 # Current review behavior — 21 September 2026
 
+Owner correction: receipt currency defaults to THB when no currency is printed. Explicit non-THB and unreadable amount have separate review reasons. Current charge comparison sums same-day unpaid charges across loans; request text uses the AppSheet Loan Key. The shared receipt-reconsider command supports explicit correction of unexecuted cases while preserving earlier evidence and invalidating old proposals.
+
 New validated receipts enter [Partner review](PARTNER_REVIEW.md). Ordinary payments require an exact linked approval; loan closures and overpayments are manual-only. This supersedes the earlier summary-only and pending-posting descriptions below, which describe the previous implementation. Shared extraction, receipt validation and duplicate checks remain applicable.
 
 # Incoming payment receipt summaries

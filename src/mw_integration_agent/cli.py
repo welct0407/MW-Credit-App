@@ -23,6 +23,10 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(Path(__file__).resolve().parents[2] / "service-catalogue.json"),
     )
     sub.add_parser("status", help="print the repository runtime status")
+    reconsider=sub.add_parser('receipt-reconsider',help='explicitly reconsider an unexecuted receipt; supersede prior pending review')
+    reconsider.add_argument('--config',required=True)
+    reconsider.add_argument('--catalogue',required=True)
+    reconsider.add_argument('--job-id',required=True)
     poll=sub.add_parser('conversation-poll',help='read new conversation messages through official API')
     poll.add_argument('--config',required=True)
     poll.add_argument('--catalogue',required=True)
@@ -70,6 +74,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        if args.command=='receipt-reconsider':
+            from .receipt_reconsider import run
+            print(json.dumps(run(args.config,args.catalogue,args.job_id)))
+            return 0
         if args.command=='conversation-poll':
             from .conversation_poll import run
             print(json.dumps(run(args.config,args.catalogue,args.date)))

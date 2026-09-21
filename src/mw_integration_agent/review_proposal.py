@@ -2,12 +2,14 @@
 from datetime import date,datetime
 from decimal import Decimal
 from .cash_statement import read_query
+from .appsheet import AppSheet
+import json
 from .receipt_rules import BANGKOK,ReceiptInvalid
 
 
 def facts(config,borrower_id):
     key="'"+str(borrower_id).replace("'","''")+"'"
-    return read_query(config,'''SELECT json_build_object(
+    result=read_query(config,'''SELECT json_build_object(
       'loans',(SELECT coalesce(json_agg(t),'[]'::json) FROM (
        SELECT "Row ID" id,"Loan Status" status,"Loan Type" type,"Auto Charge Enabled" auto,
         "Outstanding Principal"::text principal,"Current Daily Interest"::numeric::text daily,
@@ -17,6 +19,13 @@ def facts(config,borrower_id):
         c."Principal Remaining"::text principal,c."Interest Remaining"::text interest
        FROM public."Charges" c JOIN public."Loans" l ON l."Row ID"=c."Ref Loans"
        WHERE l."Ref Borrowers"='''+key+''' ORDER BY c."Row ID") t));''')
+    rows=AppSheet(config).find('Loans','Top(Filter(Loans, [Ref Borrowers] = '+json.dumps(str(borrower_id))+'), 100)')
+    if len(rows)>=100:raise ReceiptInvalid('LOAN_LABEL_READ_INCOMPLETE')
+    labels={r['Row ID']:r.get('Loan Key') for r in rows}
+    for loan in result['loans']:
+        loan['loan_key']=labels.get(loan['id'])
+        if not loan['loan_key']:raise ReceiptInvalid('LOAN_KEY_UNAVAILABLE')
+    return result
 
 
 def plan(receipt,borrower,current,today=None):
@@ -41,10 +50,12 @@ def plan(receipt,borrower,current,today=None):
         if total==amount and receipt['date']==today and Decimal(loan['principal'])>0:closures.append(loan['id'])
     if len(closures)>1:raise ReceiptInvalid('LOAN_CLOSE_AMBIGUOUS')
     dated=[c for c in current['charges'] if c['date']<=receipt['date'] and Decimal(c['principal'])+Decimal(c['interest'])>0]
-    latest=max(dated,key=lambda c:(c['date'],c['id']),default=None)
-    current_amount=Decimal(latest['principal'])+Decimal(latest['interest']) if latest else Decimal(0)
+    latest_day=max((c['date'] for c in dated),default=None)
+    current_amount=sum((Decimal(c['principal'])+Decimal(c['interest']) for c in dated if c['date']==latest_day),Decimal(0))
     potential_close=bool(closures) or any(Decimal(l['principal'])>0 and amount>=Decimal(l['principal']) for l in current['loans'] if l['status']=='ยังไม่ปิดยอด')
     if potential_close:action='Loan Close';loan_id=closures[0] if closures else None
     elif amount<=current_amount and amount<=due:action='Lump Sum';loan_id=None
     else:action='Overpayment review';loan_id=None
-    return {'receipt':receipt,'borrower':borrower,'action':action,'loan_id':loan_id,'facts':current,'planned_on':today}
+    relevant={c['loan'] for c in dated}
+    loan_keys=[l['loan_key'] for l in current['loans'] if l.get('loan_key') and (l['id']==loan_id if loan_id else l['id'] in relevant)]
+    return {'receipt':receipt,'borrower':borrower,'action':action,'loan_id':loan_id,'loan_keys':loan_keys,'facts':current,'planned_on':today}

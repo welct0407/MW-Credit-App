@@ -79,6 +79,8 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
         if journal.duplicate(job['image_hash']):
             journal.mark(job['id'],'DUPLICATE','RECEIPT_ALREADY_PROCESSED'); return
         value=extractor(config,job['image'])
+        with journal.db:
+            journal.db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps({'extraction':value}),job['id']))
         receipt=validate_receipt(value,master['accounts'])
         if receipt['reference'] in master.get('posted_references',[]):
             journal.mark(job['id'],'DUPLICATE','REFERENCE_ALREADY_IN_PAYMENTS'); return

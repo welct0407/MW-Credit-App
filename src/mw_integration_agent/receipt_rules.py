@@ -77,10 +77,12 @@ def validate_receipt(value, accounts, today=None):
         if not isinstance(value['amount'], str) or not re.fullmatch(r'\d{1,12}(?:\.\d{1,2})?',value['amount']):
             raise ValueError()
         amount = Decimal(value['amount'])
-        if amount <= 0 or value.get('currency') != 'THB':
+        if amount <= 0:
             raise ValueError()
     except (KeyError,InvalidOperation,ValueError,TypeError) as exc:
-        raise ReceiptInvalid('AMOUNT_OR_CURRENCY_UNREADABLE') from exc
+        raise ReceiptInvalid('AMOUNT_UNREADABLE') from exc
+    if str(value.get('currency') or '').strip().upper() not in ('','THB'):
+        raise ReceiptInvalid('EXPLICIT_NON_THB_CURRENCY')
     reference = re.sub(r'[\s-]','', str(value.get('reference') or '')).upper()
     if not re.fullmatch(r'[A-Z0-9]{6,100}',reference):
         raise ReceiptInvalid('REFERENCE_UNREADABLE')

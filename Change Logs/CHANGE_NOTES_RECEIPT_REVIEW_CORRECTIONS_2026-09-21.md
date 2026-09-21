@@ -1,0 +1,9 @@
+# Receipt review corrections — 21 September 2026
+
+Owner identified a wrong overpayment classification, confusing manual-handling wording, internal loan IDs in requests and unnecessary currency uncertainty. Same-day unpaid charges are now summed across the borrower's loans instead of selecting one charge. Amount/date/account/payment checks still apply. Loan Key is read from the existing AppSheet Loans virtual field; no business schema or app definition changes.
+
+Thai baht is the owner-defined project currency when omitted from the receipt. An explicitly different currency still requires review. Amount failures and explicit non-THB failures have separate error codes. Raw structured extraction is retained in the existing private receipt result field so future failures can be diagnosed without guessing; successful validation still replaces it with the governed receipt result.
+
+Manual requests now state the proposed manual action and ask the Partner to record it in the app. Internal Row IDs are not displayed. `receipt-reconsider --job-id` explicitly reconsiders unexecuted jobs, retaining a private prior-state record, superseding pending reviews and preserving deduplication. Revised proposals receive new message/review IDs; old approvals cannot authorize a replacement. Posted/unknown/decided reviews cannot be reopened. This is a shared command, not borrower-specific logic.
+
+Rollback baseline: current branch `2374835458635675c306bbd5659fe0983056e134` includes unrelated committed work preserved throughout. Reviewed runtime updater backs up package/config and integrity-checks journals before changes. Local tests: 93, two platform skips; added multi-charge sum, Loan Key display and blank-currency/default/amount-error checks. Operational details remain private. Deployment and reprocessing outcomes follow below.

@@ -42,6 +42,11 @@ def profile(*_):
 
 
 class ReceiptRuleTests(unittest.TestCase):
+    def test_project_currency_default_and_separate_amount_error(self):
+        raw=receipt();raw['currency']=''
+        self.assertEqual(validate_receipt(raw,master()['accounts'])['amount'],raw['amount'])
+        raw['amount']=''
+        with self.assertRaisesRegex(ReceiptInvalid,'AMOUNT_UNREADABLE'):validate_receipt(raw,master()['accounts'])
     def test_primary_alternative_and_mask_map_one_account(self):
         accounts=master()['accounts']
         for number in ('123-456-7890','0891234567','xxx1234567','๑๒๓๔๕๖๗๘๙๐'):

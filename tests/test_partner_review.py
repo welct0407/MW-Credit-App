@@ -38,6 +38,15 @@ class ReviewTests(unittest.TestCase):
         with self.assertRaises(ConfigurationError):self.store.reserve('job',{'action':'Loan Close'})
 
 class PlanTests(unittest.TestCase):
+    def test_same_day_charges_are_combined(self):
+        r={'amount':'300.00','date':'2026-09-21','time':'12:10','account_label':'Test'}
+        f={'loans':[{'id':'l','loan_key':'Readable loan','status':'ยังไม่ปิดยอด','type':'other','auto':False,'principal':'5000'}],
+           'charges':[{'id':'c1','loan':'l','date':'2026-09-21','principal':'0','interest':'100'},
+                      {'id':'c2','loan':'l','date':'2026-09-21','principal':'0','interest':'200'}]}
+        p=plan(r,{'id':'b'},f,'2026-09-21')
+        self.assertEqual(p['action'],'Lump Sum')
+        self.assertIn('Readable loan',request_text(p,'English')[1])
+        self.assertNotIn('Partner handling required',request_text(p,'English')[1])
     def test_close_and_changed_balance(self):
         r={'amount':'1300.00','date':'2026-09-21','time':'12:10','account_label':'Test'}
         b={'id':'b','name_en':'Test'}

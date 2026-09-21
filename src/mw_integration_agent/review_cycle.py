@@ -31,6 +31,9 @@ def cycle(config,journal,identity_reader):
                 key=reviews.reserve(job['id'],proposal)
                 for p in live['partners']:
                     subject,body=request_text(proposal,p['language'])
+                    if job['detail']=='OWNER_REQUESTED_RECONSIDERATION':
+                        body=('คำขอแก้ไข — ใช้แทนคำขอเดิม\n' if p['language']=='ไทย' else 'Corrected request — replaces the earlier request\n')+body
+                        if len(body)>1000:raise ReceiptInvalid('REVIEW_REQUEST_TOO_LONG')
                     notices.reserve('review:'+key,p,subject,body)
                 with db:db.execute("UPDATE receipt_jobs SET status='REVIEW_REQUESTED' WHERE id=?",(job['id'],))
             except ReceiptInvalid as exc:journal.mark(job['id'],'REVIEW',str(exc))
