@@ -2,7 +2,7 @@
 
 ## Current checkpoint — R014 DEV complete, R013 in PROD, 21 September 2026
 
-DEV is **V31**; PROD remains **V30**. V31 adds only the read-only Cash Dashboard view and FIFO current-month settlement helper, with no base tables/columns or posting changes. DEV OLTP 1.000072 / OLAP 1.000028 passed affected GUI checks and zero editor issues. The next migration must be V32 or higher. [R014 DEV verification](../outputs/r014-20260921/REPORT.md). V30 preserves source Payments.Created At in new Payment ledger entries; production apps remain OLTP 3.000240 / OLAP 1.100189. [R013 production verification](../outputs/r013-20260921/production/REPORT.md). DEV-only financial fixtures and recipient data must not be copied to PROD.
+DEV is **V32**; PROD remains **V30**. V32 adds Partners.AI Reviewer (NOT NULL, false default), selecting Tommy initially; OLAP owns administration and OLTP reads the field. The integration-agent reviewer-only policy is staged for coordinated R014 production deployment. V31 adds only the read-only Cash Dashboard view and FIFO current-month settlement helper, with no base tables/columns or posting changes. DEV OLTP 1.000075 / OLAP 1.000031 passed affected GUI checks and zero editor issues. The next migration must be V33 or higher. [R014 DEV verification](../outputs/r014-20260921/REPORT.md). V30 preserves source Payments.Created At in new Payment ledger entries; production apps remain OLTP 3.000240 / OLAP 1.100189. [R013 production verification](../outputs/r013-20260921/production/REPORT.md). DEV-only financial fixtures and recipient data must not be copied to PROD.
 
 ## Setup and initial adoption
 

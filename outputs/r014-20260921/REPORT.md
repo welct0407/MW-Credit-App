@@ -49,3 +49,7 @@ V31 only adds a view and arithmetic function. Existing apps/views, keys, financi
 DEV app rollback points are above. The additive SQL can remain while restoring old app definitions; any later SQL correction must use V32 or higher. The private pre-change dump has a valid custom archive listing and recorded SHA-256; this task did not claim a full restore rehearsal. Synthetic settlement remains audited in DEV history. Do not copy it or DEV recipient data to PROD.
 
 Owner acceptance, scoped production authorization, the single master promotion-checklist copy, exact-commit Flyway preparation, frozen PROD-mapped RCs and normal App Upgrade remain future release steps. See [manifest](release-manifest.json), [release log](../../Change%20Logs/CHANGE_NOTES_R014_2026-09-21.md) and the repository release workflow.
+
+## AI Reviewer extension
+
+The owner added Partners.AI Reviewer to this same release. DEV is now V32 / OLTP 1.000075 / OLAP 1.000031. Tommy is selected, Lisa unselected. Both editors remain clear; the agent role filter is implemented and tested but awaits coordinated production deployment after V32. See [reviewer report](reviewer-report.md) for schema/app checks, separate runtime dependency and rollback. This supersedes the earlier V31-only release package.

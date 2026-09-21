@@ -6,197 +6,197 @@ CREATE FUNCTION
 INSERT 0 2
 INSERT 0 1
 INSERT 0 1
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
 INSERT 0 3
 INSERT 0 5
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
 INSERT 0 1
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
 UPDATE 1
- post_payment 
+ post_payment
 --------------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
-(1 row)
 
-INSERT 0 1
- assert 
---------
- 
 (1 row)
 
 INSERT 0 1
- assert 
+ assert
 --------
- 
+
 (1 row)
 
 INSERT 0 1
- assert 
+ assert
 --------
- 
+
 (1 row)
 
 INSERT 0 1
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+INSERT 0 1
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
+(1 row)
+
+ assert
+--------
+
 (1 row)
 
 INSERT 0 4
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- create_first_day_charge 
+ create_first_day_charge
 -------------------------
- 
+
 (1 row)
 
- first_day_receipt 
+ first_day_receipt
 -------------------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
 INSERT 0 1
- assert 
+ assert
 --------
- 
+
 (1 row)
 
-             result              
+             result
 ---------------------------------
  Core payment regressions passed
 (1 row)
@@ -217,120 +217,120 @@ INSERT 0 1
 INSERT 0 1
 UPDATE 11
 DO
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
 UPDATE 1
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_reject 
+ close_reject
 --------------
- 
+
 (1 row)
 
- close_reject 
+ close_reject
 --------------
- 
+
 (1 row)
 
- close_reject 
+ close_reject
 --------------
- 
+
 (1 row)
 
- close_reject 
+ close_reject
 --------------
- 
+
 (1 row)
 
- close_reject 
+ close_reject
 --------------
- 
+
 (1 row)
 
- close_reject 
+ close_reject
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
 CREATE FUNCTION
 CREATE TRIGGER
- close_reject 
+ close_reject
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
- close_assert 
+ close_assert
 --------------
- 
+
 (1 row)
 
-                result                
+                result
 --------------------------------------
  Atomic Loan Close regressions passed
 (1 row)
@@ -347,85 +347,85 @@ INSERT 0 11
 INSERT 0 7
 INSERT 0 1
 UPDATE 10
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
 UPDATE 1
 UPDATE 1
 UPDATE 1
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
-                   result                    
+                   result
 ---------------------------------------------
  Common charge generation regressions passed
 (1 row)
@@ -444,101 +444,101 @@ INSERT 0 5
 INSERT 0 1
 INSERT 0 1
 UPDATE 4
- reject 
+ reject
 --------
- 
+
 (1 row)
 
 UPDATE 1
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
-(1 row)
 
-UPDATE 1
- assert 
---------
- 
-(1 row)
-
- reject 
---------
- 
-(1 row)
-
- reject 
---------
- 
-(1 row)
-
- reject 
---------
- 
-(1 row)
-
- reject 
---------
- 
-(1 row)
-
- assert 
---------
- 
-(1 row)
-
- assert 
---------
- 
-(1 row)
-
- reject 
---------
- 
 (1 row)
 
 UPDATE 1
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ assert
+--------
+
+(1 row)
+
+ reject
+--------
+
+(1 row)
+
 UPDATE 1
- assert 
+UPDATE 1
+ assert
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
- reject 
+ reject
 --------
- 
+
 (1 row)
 
- assert 
+ assert
 --------
- 
+
 (1 row)
 
-                 result                 
+                 result
 ----------------------------------------
  Atomic Default Loan regressions passed
 (1 row)
@@ -556,54 +556,54 @@ INSERT 0 1
 INSERT 0 1
 INSERT 0 1
 INSERT 0 1
- check_ok 
+ check_ok
 ----------
- 
+
 (1 row)
 
- check_ok 
+ check_ok
 ----------
- 
+
 (1 row)
 
- check_ok 
+ check_ok
 ----------
- 
+
 (1 row)
 
- check_ok 
+ check_ok
 ----------
- 
+
 (1 row)
 
 INSERT 0 1
- check_ok 
+ check_ok
 ----------
- 
+
 (1 row)
 
 SELECT 3
 UPDATE 1
- check_ok 
+ check_ok
 ----------
- 
+
 (1 row)
 
 DO
- check_ok 
+ check_ok
 ----------
- 
+
 (1 row)
 
 CREATE FUNCTION
 CREATE TRIGGER
 DO
- check_ok 
+ check_ok
 ----------
- 
+
 (1 row)
 
-               ?column?               
+               ?column?
 --------------------------------------
  Analytics refresh regressions passed
 (1 row)
@@ -630,7 +630,7 @@ DO
 competingOverpaymentRejected cashpoolLockFailsPromptly differentBorrowerRetrySucceeded busyMilliseconds
 ---------------------------- ------------------------- ------------------------------- ----------------
                         True                      True                            True           110.35
-                                                                                                       
+
 INSERT 0 0
 SET
 INSERT 0 1
@@ -653,5 +653,3 @@ SET
 UPDATE 1
 DO
                                                                                                  105.94
-                                                                                                       
-

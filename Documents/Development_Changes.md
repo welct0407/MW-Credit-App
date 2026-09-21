@@ -8,14 +8,16 @@ There are no open R013 product differences. R013 promoted only PostgreSQL V30; p
 
 ## R014 — open, DEV complete
 
-DEV V31 adds the read-only Cash Dashboard and oldest-month-first completed-settlement allocation. OLTP 1.000072 displays eight bilingual figures with green income, red expenses/withdrawals and blue balances, plus account-level cash grouped by owner. OLAP 1.000028 removes inline account creation from Cash Ledger and adds Set Amount alongside settle-all. Both Borrowers lists group active borrowers first and show outstanding principal. Settlement account creation is suppressed, and record slideshow navigation is disabled across both apps. Both editors are clear. Owner acceptance and production authorization are pending; no RC has been created. [Scope, tests and rollback](../outputs/r014-20260921/REPORT.md).
+DEV V31 adds the read-only Cash Dashboard and oldest-month-first completed-settlement allocation. OLTP 1.000075 displays eight bilingual figures with green income, red expenses/withdrawals and blue balances, plus account-level cash grouped by owner. OLAP 1.000031 removes inline account creation from Cash Ledger and adds Set Amount alongside settle-all. Both Borrowers lists group active borrowers first and show outstanding principal. Settlement account creation is suppressed, and record slideshow navigation is disabled across both apps. Both editors are clear. Owner acceptance and production authorization are pending; no RC has been created. [Scope, tests and rollback](../outputs/r014-20260921/REPORT.md).
+
+R014 also adds V32 Partners[AI Reviewer], false by default, with Tommy selected and Lisa unselected. OLAP owns editing; OLTP is read-only. The staged integration-agent code limits requests, decisions and payment execution to current reviewers while retaining Partner summaries/results. Agent commit `83e1b56` awaits coordinated production deployment after V32. [Reviewer evidence](../outputs/r014-20260921/reviewer-report.md).
 
 ## Intentional environment differences
 
 - Separate DEV database and app identities, DEV themes and within-DEV companion links. DEV uses `loan_manager_dev` and PROD uses `loan_manager_prod` on the same Cloud SQL instance; see [Environment Inventory](Environment_Inventory.md).
 - DEV Partners.Email delivers only to the owner, while Login Email remains distinct. RC/PROD use PROD contacts with the shared actor-ID rule in [AGENTS §2](../AGENTS.md#2-architecture-and-ownership).
 - The former five-account zero-opening fixture was replaced by the owner-requested refresh. Current DEV has four initialized accounts. R014 retains one audited, cancelled synthetic settlement with no cash effect; DEV test records do not establish PROD balances.
-- DEV and PROD may advance through owner saves independently. Current DEV is OLTP 1.000072 / OLAP 1.000028 while PROD is OLTP 3.000240 / OLAP 1.100189.
+- DEV and PROD may advance through owner saves independently. Current DEV is OLTP 1.000075 / OLAP 1.000031 while PROD is OLTP 3.000240 / OLAP 1.100189.
 
 ## Closed differences
 

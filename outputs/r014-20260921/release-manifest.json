@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "R014",
-  "revision": 2,
+  "revision": 3,
   "status": "dev-complete-awaiting-owner-acceptance",
   "scope": [
     "Remove inline Cash Account creation from manual OLAP Cash Ledger",
@@ -10,7 +10,8 @@
     "Exact positive partial settlements with completed withdrawals allocated FIFO from business inception",
     "Settlement account picker excludes New",
     "Both Borrowers lists grouped Active first, Inactive second, with outstanding-principal subtitle",
-    "Both apps disable detail record slideshow navigation; list swipe actions remain None"
+    "Both apps disable detail record slideshow navigation; list swipe actions remain None",
+    "Partners AI Reviewer role, Tommy initially selected, reviewer-only integration-agent payment approvals"
   ],
   "prerequisites": [
     "R013"
@@ -36,7 +37,7 @@
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": "1.000072",
+        "version": "1.000075",
         "evidence": "outputs/r014-20260921/REPORT.md"
       },
       "rc": {
@@ -76,7 +77,7 @@
       "dev": {
         "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
         "internalName": "MW-OLAP-DEV-20260919-578763613",
-        "version": "1.000028",
+        "version": "1.000031",
         "evidence": "outputs/r014-20260921/REPORT.md"
       },
       "rc": {
@@ -114,30 +115,43 @@
   "database": {
     "engine": "PostgreSQL",
     "migrationTool": "Flyway",
-    "disposition": "additive-view-and-function",
-    "devVersion": "31",
+    "disposition": "additive-view-function-and-reviewer-column",
+    "devVersion": "32",
     "prodBeforeMigration": "30",
-    "targetVersion": "31",
+    "targetVersion": "32",
     "prodBeforeAppUpgrade": null,
     "prodAfter": null,
-    "testedCommit": "59a987675303ff764a764991545d69175cedbb24",
-    "runnerManifestReference": "outputs/r014-20260921/flyway-release.json",
-    "manifestSha256": "cc629bdad4eb6367a9f06c6768283b8ba079c9329f54931158d62f0d31c50200",
+    "testedCommit": null,
+    "runnerManifestReference": null,
+    "manifestSha256": null,
     "migrations": [
       {
         "name": "V31__cash_dashboard_fifo_settlements.sql",
         "sha256": "3e796d343aeb9abf0a4ce84d282064a7a27146859ab78a8a7202128c6b845edd"
+      },
+      {
+        "name": "V32__partner_ai_reviewer.sql",
+        "sha256": "3f92f3bbfb0ad2ced0ebe1fa560c554272a32ae4f694197f189b39fe0cd8c1d5"
       }
     ],
     "backupEvidence": "outputs/r014-20260921/backup.json",
     "compatibilityEvidence": "outputs/r014-20260921/REPORT.md"
   },
-  "externalDependencies": [],
+  "externalDependencies": [
+    {
+      "repository": "MW-Integration-Agent",
+      "commit": "83e1b56",
+      "status": "tested-not-deployed",
+      "requires": "PROD R014/V32 before reviewed runtime update",
+      "evidence": "Change Logs/CHANGE_NOTES_R014_AI_REVIEWER_2026-09-21.md"
+    }
+  ],
   "deploymentOrder": [
     "Owner acceptance and scoped production authorization",
-    "Exact tested V31 with maintained Flyway runner",
+    "Exact tested V31 and V32 with maintained Flyway runner",
     "Frozen PROD-mapped RCs for both apps",
     "App Upgrade both existing PROD apps",
+    "Deploy pinned reviewed integration-agent runtime after V32; check Tommy reviewer routing and reject non-reviewer replies",
     "Basic production validation and documentation closure"
   ],
   "approvals": {

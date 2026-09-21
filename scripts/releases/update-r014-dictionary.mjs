@@ -4,6 +4,7 @@ import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
 const input='Documents/AppSheet_Data_Dictionary.xlsx';
 const dir='outputs/r014-20260921';
 const refinement=process.argv.includes('--refine');
+const reviewer=process.argv.includes('--reviewer');
 const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(input));
 const sheet=wb.worksheets.getItem('Dev Differences');
 const existing=sheet.getUsedRange().values;
@@ -21,7 +22,7 @@ if(process.argv.includes('--inspect')){
  await fs.writeFile(`${dir}/.tmp/dictionary-before.png`,new Uint8Array(await pic.arrayBuffer()));
  process.exit(0);
 }
-assert(!existing.some(r=>refinement?r[0]==='R014 DEV refinement':String(r[0]).startsWith('R014')),'Requested R014 batch already recorded');
+assert(!existing.some(r=>reviewer?r[0]==='R014 DEV reviewer':refinement?r[0]==='R014 DEV refinement':String(r[0]).startsWith('R014')),'Requested R014 batch already recorded');
 const before=wb.worksheets.items.map(s=>({name:s.name,values:s.getUsedRange().values,formulas:s.getUsedRange().formulas}));
 let rows=[
  ['R014 DEV SQL','Cash Dashboard','Read-only view','Absent; PROD V30','DEV V31. One row keyed cash-dashboard. Bangkok month-to-date income, signed expenses, net profit, signed completed FIFO withdrawals per partner, unsettled profit, available cash pool and positive initialized account custody. No base columns or posting changes.'],
@@ -57,6 +58,13 @@ if(refinement){
   for(let i=0;i<names.length;i+=5)rows.push(['R014 DEV refinement',`${role} detail views ${i+1}–${Math.min(i+5,names.length)}`,'Slideshow mode','Previously TRUE except existing disabled views recorded in refinements.json','FALSE in: '+names.slice(i,i+5).join('; ')+'. Disables previous/next record navigation. All exposed list left/right swipe actions remain Auto assign (None).']);
  }
 }
+if(reviewer) rows=[
+ ['R014 DEV reviewer','Partners[AI Reviewer]','SQL V32','Absent in PROD V30','Boolean NOT NULL DEFAULT false. Tommy initially true by verified Row ID; Lisa false. Separate payment review role from IG Integration Enabled and daily summary delivery.'],
+ ['R014 DEV reviewer','OLAP Partners[AI Reviewer]','App column / administration','Absent','Yes/No; Show TRUE, Editable TRUE, Required TRUE, Initial FALSE. No key, label, search, scan, NFC or PII. Display "ผู้ตรวจสอบ AI / AI Reviewer". Partners_Form includes field; Partners_Detail includes it in explicit column order.'],
+ ['R014 DEV reviewer','OLTP Partners[AI Reviewer]','App column / consumer','Absent','Yes/No; Show TRUE, Editable FALSE, Required TRUE, Initial FALSE. No key, label, search, scan, NFC or PII. Same bilingual display. Partners table remains READ_ONLY; management belongs to OLAP.'],
+ ['R014 DEV reviewer','Integration agent payment reviews','Recipient and decision policy','All Partners eligible for review','Only current AI Reviewer=true Partners receive requests and may approve/reject. Recheck at dispatch, reply and before posting. No reviewer leaves validated receipt waiting. Daily summaries and result notices keep existing Partner recipients. Production activation depends on R014 V32 promotion.']
+];
+const suffix=reviewer?'reviewer-':refinement?'refinements-':'';
 const start=existing.length+1,end=start+rows.length-1;
 for(let r=start;r<=end;r++)sheet.getRange(`A${r}:E${r}`).copyFrom(sheet.getRange(`A${start-1}:E${start-1}`),'all');
 sheet.getRange(`A${start}:E${end}`).values=rows;
@@ -65,7 +73,7 @@ sheet.getRange(`A${start}:E${end}`).format.rowHeight=145;
 wb.recalculate();
 for(const [name,a,b] of [['first',start,start+3],['last',end-3,end]]){
  const pic=await wb.render({sheetName:sheet.name,range:`A${a}:E${b}`,scale:0.7,format:'png'});
- await fs.writeFile(`${dir}/dictionary-${refinement?'refinements-':''}${name}.png`,new Uint8Array(await pic.arrayBuffer()));
+ await fs.writeFile(`${dir}/dictionary-${suffix}${name}.png`,new Uint8Array(await pic.arrayBuffer()));
 }
 const out=`${dir}/.tmp/dictionary.xlsx`;
 await (await SpreadsheetFile.exportXlsx(wb)).save(out);
@@ -73,5 +81,5 @@ const after=await SpreadsheetFile.importXlsx(await FileBlob.load(out));
 for(const b of before){const a=after.worksheets.getItem(b.name);assert.deepEqual(a.getUsedRange().values.slice(0,b.values.length),b.values);assert.deepEqual(a.getUsedRange().formulas.slice(0,b.formulas.length),b.formulas);}
 assert.deepEqual(after.worksheets.getItem(sheet.name).getRange(`A${start}:E${end}`).values,rows);
 await fs.copyFile(out,input);
-await fs.writeFile(`${dir}/dictionary-${refinement?'refinements-':''}verification.json`,JSON.stringify({range:`A${start}:E${end}`,priorValuesAndFormulasPreserved:true,rowsAdded:rows.length},null,2));
+await fs.writeFile(`${dir}/dictionary-${suffix}verification.json`,JSON.stringify({range:`A${start}:E${end}`,priorValuesAndFormulasPreserved:true,rowsAdded:rows.length},null,2));
 console.log(JSON.stringify({start,end,output:input}));

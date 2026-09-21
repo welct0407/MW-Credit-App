@@ -78,3 +78,7 @@ Detailed prior checkpoints, unique decisions and dated limitations are preserved
 ## Receipt transfer time — R013 production
 
 Owner clarification, 21 September 2026: use existing Payments.Payment Date and Payments.Created At for the receipt transfer date/time, without new audit columns. Production and DEV V30 make new system Payment ledger entries inherit Payments.Created At, falling back to current Bangkok time when absent. Other sources, update guards and existing rows are unchanged. Cash Ledger.Created At remains the shared source for statement Sort Timestamp and Statement Time. OLTP and the 00:15 agent PNG display hours/minutes only. The agent prepares these values in summary-only mode; automatic payment creation remains disabled. [R013 production verification](../outputs/r013-20260921/production/REPORT.md).
+
+## R014 DEV reviewer role (not promoted)
+
+Partners.AI Reviewer is a non-null Yes/No flag, false by default. Tommy initially has Yes and Lisa No. OLAP owns maintenance in Partners_Form and displays the flag in Partners_Detail; OLTP imports it read-only. The integration agent uses current reviewer membership for payment review requests, approval/rejection and pre-posting checks. Existing daily summaries, Partner result notices and IG preferences retain their routing. No reviewer means the validated receipt waits; non-reviewer replies cannot decide a payment. Closures and overpayments remain manual-only. Production needs V32 followed by the staged agent update; no borrower-level reviewer assignment is introduced.

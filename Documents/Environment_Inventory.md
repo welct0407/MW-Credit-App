@@ -8,8 +8,8 @@ Latest recorded checkpoint: **21 September 2026**, from [R014 DEV evidence](../o
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000240 (R011) | database-2 | 16 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100189 (R011) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000072 (R014) | database-3 | 18 |
-| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000028 (R014) | database-3 | 19 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000075 (R014) | database-3 | 18 |
+| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000031 (R014) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
 
@@ -42,7 +42,7 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
 | Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
-| Flyway | V30 migrated and validated (R013) | V31 migrated and validated (R014) | DEV adds read-only Cash Dashboard and FIFO helper. Both databases preserve source payment time in new Payment ledger entries. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
+| Flyway | V30 migrated and validated (R013) | V32 migrated and validated (R014) | DEV adds read-only Cash Dashboard, FIFO helper and Partners.AI Reviewer. Both databases preserve source payment time in new Payment ledger entries. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
 
 The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. After the consolidated DEV database and natural scheduler run were verified, the owner authorized deletion of former instance `appsheet-pg-dev-20260915`. Cloud SQL completed deletion on 20 September 2026, released public IP `34.158.38.171`, and retained no backups or final backup for that instance. The verified private former-DEV logical dump remains outside Git as recovery evidence.
 
@@ -60,4 +60,6 @@ R011 records clear PROD editors, deployed apps, load/sync entry-point checks and
 
 R013 production checkpoint, 21 September: PROD V30 preserves source payment time in new ledger entries. Production apps were explicitly excluded and remain OLTP 3.000240 / OLAP 1.100189; both loaded and synced after migration. Hours/minutes display is unchanged. [Production report](../outputs/r013-20260921/production/REPORT.md).
 
-R014 DEV checkpoint: V31 / OLTP 1.000072 / OLAP 1.000028, both saved editors show No issues found and remain Deployed. Account grouping and the eight signed/color-coded dashboard figures loaded in desktop and 360-pixel mobile preview. Exact partial settlement passed validation/reservation/cancellation checks. Four current DEV accounts are initialized. The synthetic ฿100 Pending test was audited to Cancelled with no cash-ledger effect; it remains DEV-only. No production change. [DEV report](../outputs/r014-20260921/REPORT.md).
+R014 DEV checkpoint: V32 / OLTP 1.000075 / OLAP 1.000031, both saved editors show No issues found and remain Deployed. Account grouping and the eight signed/color-coded dashboard figures loaded in desktop and 360-pixel mobile preview. Exact partial settlement passed validation/reservation/cancellation checks. Four current DEV accounts are initialized. The synthetic ฿100 Pending test was audited to Cancelled with no cash-ledger effect; it remains DEV-only. No production change. [DEV report](../outputs/r014-20260921/REPORT.md).
+
+R014 AI Reviewer: Tommy selected and Lisa unselected in DEV. OLAP owns editing; OLTP imports the field read-only. Production runtime reviewer restriction awaits coordinated V32 promotion and agent deployment. [Reviewer verification](../outputs/r014-20260921/reviewer-report.md).
