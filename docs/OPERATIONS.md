@@ -28,6 +28,8 @@ The host timezone is `Asia/Bangkok`. Keep the hardware clock in UTC and NTP sync
 
 Google Cloud Ops Agent 2.71.0 is installed through the VM's existing `goog-ops-agent-policy`/OS Config setup. The VM service account has `roles/monitoring.metricWriter` and `roles/logging.logWriter`; its instance access scope is `cloud-platform`. The default host-metrics pipeline exports every 60 seconds. Memory and process charts require these guest metrics; basic Compute Engine CPU/network metrics alone do not prove the agent is working.
 
+VM Manager OS inventory uses the active Google OS Config agent. Instance metadata must retain both `enable-osconfig=TRUE` and `enable-guest-attributes=TRUE`; the latter publishes the guest inventory consumed by the Compute Engine OS Info view. No custom poll interval is configured, so the agent uses the default inventory cadence.
+
 Do not store credentials in the repository, VM metadata, startup scripts, or systemd unit text.
 
 Instagram secrets belong in `/etc/mw-integration-agent/secrets` with root ownership, group `mwagent`, directory mode `0750`, and file mode `0640`. The live config references those files and must not contain secret values.
@@ -45,6 +47,7 @@ systemctl is-active mw-instagram-webhook.service
 systemctl is-active mw-cloudflared-instagram.service
 systemctl is-active google-cloud-ops-agent-opentelemetry-collector.service
 systemctl is-active google-cloud-ops-agent-fluent-bit.service
+systemctl is-active google-osconfig-agent.service
 curl --fail http://127.0.0.1:8000/health
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent \
   instagram-probe --config /etc/mw-integration-agent/config.json \
