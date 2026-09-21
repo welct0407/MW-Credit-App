@@ -22,7 +22,7 @@ All four canonical apps are recorded Deployed. Internal names:
 
 R011 OLTP/OLAP RC1, RC2 and RC3 were deleted on 21 September 2026 by explicit owner direction after release closure. Exact editor URLs for all six returned AppSheet 404 / `Home/NotFound`; their recorded IDs are historical evidence only. Use PROD saved versions and the release database backup for recovery. [Retirement evidence](../outputs/r011-20260920/production/rc-retirement.md).
 
-Production OLTP inbound AppSheet API access remains enabled for the Linux integration agent's bounded Find requests. The existing enabled application access key is stored outside Git; no replacement key was created. Production OLAP API access was not changed.
+Owner-directed operational change, 21 September: production OLTP and OLAP inbound APIs are enabled for the Debian integration agent. OLTP retains its existing key; OLAP has a separate protected key. Both keys are outside Git. DEV APIs are unchanged. This configuration is explicitly outside the release process. Do not assume API Enable survives App Upgrade; check both production API switches and bounded probes after upgrades. [Operational record](../Change%20Logs/CHANGE_NOTES_PRODUCTION_API_ACCESS_2026-09-21.md).
 
 Companion links join the corresponding pair. DEV uses owner-only Partner delivery data and distinct login identities. Scheduled guards allow only the canonical DEV/PROD name of the corresponding role. See [policy](../AGENTS.md#2-architecture-and-ownership) and [guard procedure](Release_Workflow.md#scheduled-bot-execution-guard); these details are not a new delivery/execution test.
 
