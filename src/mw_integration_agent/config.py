@@ -35,6 +35,27 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
+    for flag in ('partner_conversations_enabled', 'conversation_writes_enabled'):
+        if type(config.get(flag, False)) is not bool:
+            raise ConfigurationError(flag + ' must be boolean')
+    if config.get('conversation_writes_enabled') and not config.get('partner_conversations_enabled'):
+        raise ConfigurationError('conversation writes require conversations')
+    if config.get('partner_conversations_enabled'):
+        from datetime import datetime
+        try:
+            if datetime.fromisoformat(config['partner_conversation_cutoff']).tzinfo is None:
+                raise ValueError()
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ConfigurationError('partner_conversation_cutoff must include timezone') from exc
+        if not all(config.get(k) for k in ('receiver_enabled', 'database_enabled', 'appsheet_enabled')):
+            raise ConfigurationError('conversations require receiver, database and AppSheet')
+        if config.get('appsheet_app_id') != '93844270-6aa5-420b-a960-bcdf08abd357':
+            raise ConfigurationError('conversations require the approved production OLTP app')
+        if config.get('conversation_writes_enabled') and not config.get('appsheet_olap_app_id'):
+            raise ConfigurationError('conversation edits require OLAP readback')
+    timeout = config.get('conversation_timeout_seconds', 600)
+    if type(timeout) is not int or not 30 <= timeout <= 900:
+        raise ConfigurationError('conversation_timeout_seconds must be 30..900')
     for flag in ('partner_review_enabled','partner_review_execution_enabled'):
         if type(config.get(flag,False)) is not bool:raise ConfigurationError(flag+' must be boolean')
     if config.get('partner_review_execution_enabled') and not config.get('partner_review_enabled'):

@@ -50,7 +50,10 @@ class NoticeJournal:
         item=dict(self.db.execute('SELECT * FROM partner_notices WHERE id=?',(item['id'],)).fetchone())
         if item['ig_status'] in ('ACCEPTED','REVIEW') or item['email_status'] in ('SENT','UNKNOWN','REVIEW'):
             return
-        if config.get('receipt_summary_enabled') is not True:
+        conversation = item['event_key'].startswith('conversation:')
+        if conversation and config.get('partner_conversations_enabled') is not True:
+            raise ConfigurationError('PARTNER_CONVERSATIONS_DISABLED')
+        if not conversation and config.get('receipt_summary_enabled') is not True:
             raise ConfigurationError('RECEIPT_NOTICES_DISABLED')
         wanted=json.loads(item['partner'])
         matches=[r for r in rows if r['id']==item['partner_id']]
@@ -58,12 +61,23 @@ class NoticeJournal:
             with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_CHANGED' WHERE id=?",(item['id'],))
             return
         partner=matches[0]
+        if conversation:
+            # Unlike receipt notices, opting out blocks BOTH conversation channels.
+            try:eligible(rows,partner['id'])
+            except ConfigurationError:
+                with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_REVOKED' WHERE id=?",(item['id'],))
+                return
         if item['ig_status']=='PENDING':
             try:
                 eligible(rows,partner['id'])
                 api=api or Instagram(config)
                 recipient=resolver(api,partner)
+                if conversation and recipient != item['recipient_id']:
+                    with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='CONVERSATION_SENDER_CHANGED' WHERE id=?",(item['id'],))
+                    return
                 window(Path(config['state_directory']),recipient)
+                if len(item['body'])>1000:
+                    raise ConfigurationError('COMPLETE_REPLY_REQUIRES_EMAIL')
             except ConfigurationError:
                 with self.db:self.db.execute("UPDATE partner_notices SET ig_status='UNAVAILABLE',detail='IG_ROUTE_OR_WINDOW_UNAVAILABLE' WHERE id=?",(item['id'],))
             else:

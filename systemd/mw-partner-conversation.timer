@@ -1,0 +1,11 @@
+[Unit]
+Description=Check new signed partner messages
+
+[Timer]
+OnBootSec=45s
+OnUnitInactiveSec=15s
+AccuracySec=2s
+Unit=mw-partner-conversation.service
+
+[Install]
+WantedBy=timers.target

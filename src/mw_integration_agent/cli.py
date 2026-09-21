@@ -23,6 +23,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(Path(__file__).resolve().parents[2] / "service-catalogue.json"),
     )
     sub.add_parser("status", help="print the repository runtime status")
+    conversation = sub.add_parser('partner-conversation-cycle', help='process new signed partner messages once')
+    conversation.add_argument('--config', required=True)
+    conversation.add_argument('--catalogue', required=True)
     reconsider=sub.add_parser('receipt-reconsider',help='explicitly reconsider an unexecuted receipt; supersede prior pending review')
     reconsider.add_argument('--config',required=True)
     reconsider.add_argument('--catalogue',required=True)
@@ -74,6 +77,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        if args.command == 'partner-conversation-cycle':
+            from .partner_conversation import run
+            print(json.dumps(run(args.config, args.catalogue)))
+            return 0
         if args.command=='receipt-reconsider':
             from .receipt_reconsider import run
             print(json.dumps(run(args.config,args.catalogue,args.job_id)))
@@ -109,6 +116,8 @@ def main() -> int:
                 "cash_statement_schedule": config["cash_statement_schedule_enabled"],
                 "email_fallback": config["email_fallback_enabled"],
                 "receipt_summary": config.get('receipt_summary_enabled',False),
+                "partner_conversations": config.get('partner_conversations_enabled',False),
+                "conversation_writes": config.get('conversation_writes_enabled',False),
                 "generic_sending": config["sending_enabled"],
                 "processing": config["processing_enabled"], "writes": config["writes_enabled"]}}))
             return 0

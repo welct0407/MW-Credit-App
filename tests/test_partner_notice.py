@@ -74,6 +74,37 @@ class NoticeTests(unittest.TestCase):
     def test_payload_change_cannot_reuse_key(self):
         with self.assertRaises(ConfigurationError):self.j.reserve('event',self.rows[0],'subject','changed')
 
+    def conversation(self, body='response'):
+        self.j.db.execute('DELETE FROM partner_notices');self.j.db.commit()
+        key=self.j.reserve('conversation:synthetic',self.rows[0],'reply',body)
+        with self.j.db:self.j.db.execute('UPDATE partner_notices SET recipient_id=? WHERE id=?',('999',key))
+        self.config['partner_conversations_enabled']=True
+
+    def test_conversation_opt_out_blocks_both_channels(self):
+        self.rows[0]['enabled']=False
+        self.conversation()
+        self.dispatch()
+        self.assertEqual(self.sent+self.mail,[])
+
+    def test_conversation_has_independent_switch(self):
+        self.conversation()
+        self.config['receipt_summary_enabled']=False
+        self.dispatch()
+        self.assertEqual(len(self.sent),1)
+
+    def test_conversation_long_reply_complete_email(self):
+        self.conversation('x'*1001)
+        self.dispatch()
+        self.assertEqual(self.sent,[])
+        self.assertEqual(len(self.mail),1)
+        self.assertIn('x'*1001,self.mail[0][2])
+
+    def test_conversation_remapped_sender_blocks_both_channels(self):
+        self.conversation()
+        with self.j.db:self.j.db.execute("UPDATE partner_notices SET recipient_id='998'")
+        self.dispatch()
+        self.assertEqual(self.sent+self.mail,[])
+
     def test_success_and_summary_distinct_localized_minutes(self):
         receipt={'amount':'1300.00','date':'2026-09-21','time':'12:10:59','account_label':'Test TTB'}
         borrower={'id':'b','name_en':'Test Borrower','name_th':'ผู้กู้ทดสอบ'}
