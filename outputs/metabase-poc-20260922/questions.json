@@ -1,5 +1,5 @@
 {
-  "status": "prepared; not installed in Metabase",
+  "status": "validated with restricted PROD reporting login; installation tracked in implementation.md",
   "database": "loan_manager_prod",
   "source": "public.olap_borrowers_analytics",
   "population": "Hidden Flag IS NOT TRUE; one row per borrower",
@@ -26,7 +26,7 @@
       "sql": "SELECT CASE WHEN \"Has Active Loan\" IS TRUE THEN 'Active loan' ELSE 'No active loan' END AS \"Activity\", count(*) AS \"Borrowers\" FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE GROUP BY 1 ORDER BY 1"
     },
     {
-      "name": "Overdue exposure (THB)",
+      "name": "Borrowers by overdue amount",
       "display": "bar",
       "sql": "SELECT CASE WHEN coalesce(\"Overdue Amount\",0)<=0 THEN 'No overdue amount' WHEN \"Overdue Amount\"<=1000 THEN 'Up to 1,000 THB' WHEN \"Overdue Amount\"<=5000 THEN '1,001 to 5,000 THB' ELSE 'Over 5,000 THB' END AS \"Overdue bucket\", count(*) AS \"Borrowers\" FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE GROUP BY 1 ORDER BY min(coalesce(\"Overdue Amount\",0))"
     },

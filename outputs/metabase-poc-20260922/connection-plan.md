@@ -6,11 +6,11 @@ Owner approved on 22 September 2026: **Cloud SQL Auth Proxy on Railway, then DNS
 
 Metabase on Railway → private/local Google Cloud SQL Auth Proxy → existing Cloud SQL instance `appsheet-pg-prod-20260914` → `loan_manager_prod`, using a dedicated restricted reporting login. Google IAM grants access to the instance; database permissions restrict reporting objects and prevent financial writes. DEV shares the instance, so the PostgreSQL database identity must be explicitly checked.
 
-Proxy requires outbound TCP 443 and 3307. It authenticates/encrypts its Cloud SQL connection without adding Railway IPs to Authorized networks or buying static egress. The [prepared container](../../scripts/metabase/README.md) colocates the processes and binds the application-facing listener to loopback. No public PostgreSQL listener or separate relay service. Build/runtime checks await deployment authorization sign-in; preparation is not deployment evidence.
+Proxy requires outbound TCP 443 and 3307. It authenticates/encrypts its Cloud SQL connection without adding Railway IPs to Authorized networks or buying static egress. The [deployed container](../../scripts/metabase/README.md) colocates the processes and binds the application-facing listener to loopback. No public PostgreSQL listener or separate relay service. The runtime connection test and seven live report queries passed.
 
-Proposed friendly report hostname: `reports.mw-credit.com`, subject to checking existing DNS/owner use. Add Railway custom-domain verification/CNAME records after inspecting exact returned values. Update Metabase site URL and OAuth allowed origin together; validate TLS and Google login at the friendly URL before declaring it usable.
+Live report hostname: `reports.mw-credit.com`. DNS-only CNAME points to `yq8x1vuz.up.railway.app`, with Railway's `_railway-verify.reports` TXT record. Existing DNS records were preserved. Railway terminates HTTPS; Cloudflare is used for DNS, not database transport. Metabase site URL and OAuth origin use the friendly HTTPS address; actual partner Google login succeeded.
 
-## Execution requirements
+## Execution requirements (completed implementation; acceptance details in implementation.md)
 
 1. Capture current platform rollback/settings and back up the Metabase application database before deployment changes.
 2. Verify full GCP instance identity and API availability. Create a dedicated Google service identity and scoped Cloud SQL Client permission; preserve secrets outside Git.
