@@ -6211,6 +6211,259 @@
           }
         },
         "kind": "Panel"
+      },
+      "panel-15": {
+        "spec": {
+          "data": {
+            "spec": {
+              "queryOptions": {},
+              "queries": [
+                {
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "group": "yesoreyeram-infinity-datasource",
+                      "spec": {
+                        "format": "table",
+                        "source": "url",
+                        "columns": [
+                          {
+                            "selector": "VM",
+                            "text": "VM",
+                            "type": "string"
+                          },
+                          {
+                            "selector": "State",
+                            "text": "State",
+                            "type": "string"
+                          },
+                          {
+                            "selector": "Observed",
+                            "text": "Observed",
+                            "type": "timestamp"
+                          },
+                          {
+                            "selector": "Controls",
+                            "text": "Controls",
+                            "type": "string"
+                          }
+                        ],
+                        "parser": "jq-backend",
+                        "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/instanceView?api-version=2025-04-01",
+                        "url_options": {
+                          "method": "GET"
+                        },
+                        "root_selector": "if .error then error(.error.code // \"Azure state unavailable\") else {VM:\"VM-01\",State:([.statuses[]? | select(.code|startswith(\"PowerState/\")) | .code] | first // \"Unknown\"),Observed:(now|todateiso8601),Controls:\"Awaiting Grafana authenticated-action enablement\"} end",
+                        "type": "json"
+                      },
+                      "datasource": {
+                        "name": "cfz1i3v9ruk1sb"
+                      },
+                      "kind": "DataQuery",
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  },
+                  "kind": "PanelQuery"
+                }
+              ],
+              "transformations": [
+                {
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "indexByName": {
+                        "Observed": 2,
+                        "VM": 0,
+                        "Controls": 3,
+                        "State": 1
+                      },
+                      "renameByName": {}
+                    }
+                  },
+                  "kind": "Transformation"
+                }
+              ]
+            },
+            "kind": "QueryGroup"
+          },
+          "description": "Current Azure power state, independent of the selected historical range. Refresh after an action; the dashboard also refreshes every 2 minutes. Azure accepts power operations asynchronously. Deallocation disconnects this Windows desktop and Codex; disk and backup charges can remain.",
+          "title": "VM-01 · power controls",
+          "vizConfig": {
+            "group": "table",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "noValue": "Unknown",
+                  "unit": "none",
+                  "custom": {
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "align": "left",
+                    "filterable": false
+                  },
+                  "decimals": 2,
+                  "color": {
+                    "mode": "palette-classic"
+                  }
+                },
+                "overrides": [
+                  {
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 100
+                      }
+                    ],
+                    "matcher": {
+                      "id": "byName",
+                      "options": "VM"
+                    }
+                  },
+                  {
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 190
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "PowerState/stopped": {
+                                "text": "Stopped · allocated",
+                                "color": "orange"
+                              },
+                              "PowerState/running": {
+                                "text": "Running",
+                                "color": "green"
+                              },
+                              "PowerState/starting": {
+                                "text": "Starting",
+                                "color": "orange"
+                              },
+                              "Unknown": {
+                                "text": "Unknown",
+                                "color": "gray"
+                              },
+                              "PowerState/deallocated": {
+                                "text": "Deallocated",
+                                "color": "gray"
+                              },
+                              "PowerState/deallocating": {
+                                "text": "Deallocating",
+                                "color": "orange"
+                              },
+                              "PowerState/stopping": {
+                                "text": "Stopping",
+                                "color": "orange"
+                              }
+                            },
+                            "type": "value"
+                          }
+                        ]
+                      }
+                    ],
+                    "matcher": {
+                      "id": "byName",
+                      "options": "State"
+                    }
+                  },
+                  {
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Checked (SGT)"
+                      },
+                      {
+                        "id": "unit",
+                        "value": "dateTimeAsIso"
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 210
+                      }
+                    ],
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Observed"
+                    }
+                  },
+                  {
+                    "properties": [
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "auto"
+                        }
+                      },
+                      {
+                        "id": "actions",
+                        "value": [
+                          {
+                            "type": "infinity",
+                            "title": "Start VM",
+                            "confirmation": "Start Azure VM-01 in RG-MWCREDIT? Compute billing resumes when allocated.",
+                            "infinity": {
+                              "headers": [],
+                              "datasourceUid": "cfz1i3v9ruk1sb",
+                              "method": "POST",
+                              "queryParams": [],
+                              "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/start?api-version=2025-04-01"
+                            },
+                            "style": {
+                              "backgroundColor": "green"
+                            }
+                          },
+                          {
+                            "type": "infinity",
+                            "title": "Stop & Deallocate",
+                            "confirmation": "Shut down and deallocate Azure VM-01? This disconnects its Windows desktop, Codex and other running work. Save work first. Compute billing stops after deallocation; disks, backup and other retained resources may still incur charges.",
+                            "infinity": {
+                              "headers": [],
+                              "datasourceUid": "cfz1i3v9ruk1sb",
+                              "method": "POST",
+                              "queryParams": [],
+                              "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/deallocate?api-version=2025-04-01"
+                            },
+                            "style": {
+                              "backgroundColor": "red"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Controls"
+                    }
+                  }
+                ]
+              },
+              "options": {
+                "cellHeight": "md",
+                "showHeader": true,
+                "footer": {
+                  "show": false
+                }
+              }
+            },
+            "kind": "VizConfig",
+            "version": "13.3.0"
+          },
+          "links": [],
+          "id": 15
+        },
+        "kind": "Panel"
       }
     },
     "layout": {
@@ -6218,383 +6471,385 @@
         "rows": [
           {
             "spec": {
+              "collapse": false,
+              "title": "",
               "layout": {
                 "spec": {
                   "items": [
                     {
                       "spec": {
+                        "y": 0,
+                        "x": 0,
+                        "width": 24,
                         "element": {
                           "name": "panel-1",
                           "kind": "ElementReference"
                         },
-                        "y": 0,
-                        "height": 1,
-                        "width": 24,
-                        "x": 0
+                        "height": 1
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 1,
+                        "x": 0,
+                        "width": 6,
                         "element": {
                           "name": "panel-2",
                           "kind": "ElementReference"
                         },
-                        "y": 1,
-                        "height": 4,
-                        "width": 6,
-                        "x": 0
+                        "height": 4
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 1,
+                        "x": 6,
+                        "width": 6,
                         "element": {
                           "name": "panel-3",
                           "kind": "ElementReference"
                         },
-                        "y": 1,
-                        "height": 4,
-                        "width": 6,
-                        "x": 6
+                        "height": 4
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 1,
+                        "x": 12,
+                        "width": 6,
                         "element": {
                           "name": "panel-4",
                           "kind": "ElementReference"
                         },
-                        "y": 1,
-                        "height": 4,
-                        "width": 6,
-                        "x": 12
+                        "height": 4
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 1,
+                        "x": 18,
+                        "width": 6,
                         "element": {
                           "name": "panel-5",
                           "kind": "ElementReference"
                         },
-                        "y": 1,
-                        "height": 4,
-                        "width": 6,
-                        "x": 18
+                        "height": 4
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 5,
+                        "x": 0,
+                        "width": 6,
                         "element": {
                           "name": "panel-6",
                           "kind": "ElementReference"
                         },
-                        "y": 5,
-                        "height": 4,
-                        "width": 6,
-                        "x": 0
+                        "height": 4
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 5,
+                        "x": 6,
+                        "width": 6,
                         "element": {
                           "name": "panel-7",
                           "kind": "ElementReference"
                         },
-                        "y": 5,
-                        "height": 4,
-                        "width": 6,
-                        "x": 6
+                        "height": 4
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 5,
+                        "x": 12,
+                        "width": 6,
                         "element": {
                           "name": "panel-8",
                           "kind": "ElementReference"
                         },
-                        "y": 5,
-                        "height": 4,
-                        "width": 6,
-                        "x": 12
+                        "height": 4
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 5,
+                        "x": 18,
+                        "width": 6,
                         "element": {
                           "name": "panel-9",
                           "kind": "ElementReference"
                         },
-                        "y": 5,
-                        "height": 4,
-                        "width": 6,
-                        "x": 18
+                        "height": 4
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 9,
+                        "x": 0,
+                        "width": 12,
                         "element": {
                           "name": "panel-70",
                           "kind": "ElementReference"
                         },
-                        "y": 9,
-                        "height": 1,
-                        "width": 12,
-                        "x": 0
+                        "height": 1
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 9,
+                        "x": 12,
+                        "width": 12,
                         "element": {
                           "name": "panel-71",
                           "kind": "ElementReference"
                         },
-                        "y": 9,
-                        "height": 1,
-                        "width": 12,
-                        "x": 12
+                        "height": 1
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 10,
+                        "x": 0,
+                        "width": 3,
                         "element": {
                           "name": "panel-51",
                           "kind": "ElementReference"
                         },
-                        "y": 10,
-                        "height": 3,
-                        "width": 3,
-                        "x": 0
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 10,
+                        "x": 3,
+                        "width": 3,
                         "element": {
                           "name": "panel-52",
                           "kind": "ElementReference"
                         },
-                        "y": 10,
-                        "height": 3,
-                        "width": 3,
-                        "x": 3
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 10,
+                        "x": 6,
+                        "width": 3,
                         "element": {
                           "name": "panel-53",
                           "kind": "ElementReference"
                         },
-                        "y": 10,
-                        "height": 3,
-                        "width": 3,
-                        "x": 6
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 10,
+                        "x": 9,
+                        "width": 3,
                         "element": {
                           "name": "panel-60",
                           "kind": "ElementReference"
                         },
-                        "y": 10,
-                        "height": 3,
-                        "width": 3,
-                        "x": 9
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 10,
+                        "x": 12,
+                        "width": 3,
                         "element": {
                           "name": "panel-56",
                           "kind": "ElementReference"
                         },
-                        "y": 10,
-                        "height": 3,
-                        "width": 3,
-                        "x": 12
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 10,
+                        "x": 15,
+                        "width": 3,
                         "element": {
                           "name": "panel-57",
                           "kind": "ElementReference"
                         },
-                        "y": 10,
-                        "height": 3,
-                        "width": 3,
-                        "x": 15
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 10,
+                        "x": 18,
+                        "width": 3,
                         "element": {
                           "name": "panel-54",
                           "kind": "ElementReference"
                         },
-                        "y": 10,
-                        "height": 3,
-                        "width": 3,
-                        "x": 18
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 10,
+                        "x": 21,
+                        "width": 3,
                         "element": {
                           "name": "panel-55",
                           "kind": "ElementReference"
                         },
-                        "y": 10,
-                        "height": 3,
-                        "width": 3,
-                        "x": 21
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 13,
+                        "x": 0,
+                        "width": 12,
                         "element": {
                           "name": "panel-72",
                           "kind": "ElementReference"
                         },
-                        "y": 13,
-                        "height": 1,
-                        "width": 12,
-                        "x": 0
+                        "height": 1
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 13,
+                        "x": 12,
+                        "width": 12,
                         "element": {
                           "name": "panel-73",
                           "kind": "ElementReference"
                         },
-                        "y": 13,
-                        "height": 1,
-                        "width": 12,
-                        "x": 12
+                        "height": 1
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 14,
+                        "x": 0,
+                        "width": 3,
                         "element": {
                           "name": "panel-61",
                           "kind": "ElementReference"
                         },
-                        "y": 14,
-                        "height": 3,
-                        "width": 3,
-                        "x": 0
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 14,
+                        "x": 3,
+                        "width": 3,
                         "element": {
                           "name": "panel-62",
                           "kind": "ElementReference"
                         },
-                        "y": 14,
-                        "height": 3,
-                        "width": 3,
-                        "x": 3
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 14,
+                        "x": 6,
+                        "width": 3,
                         "element": {
                           "name": "panel-63",
                           "kind": "ElementReference"
                         },
-                        "y": 14,
-                        "height": 3,
-                        "width": 3,
-                        "x": 6
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 14,
+                        "x": 9,
+                        "width": 3,
                         "element": {
                           "name": "panel-64",
                           "kind": "ElementReference"
                         },
-                        "y": 14,
-                        "height": 3,
-                        "width": 3,
-                        "x": 9
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 14,
+                        "x": 12,
+                        "width": 3,
                         "element": {
                           "name": "panel-50",
                           "kind": "ElementReference"
                         },
-                        "y": 14,
-                        "height": 3,
-                        "width": 3,
-                        "x": 12
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 14,
+                        "x": 15,
+                        "width": 3,
                         "element": {
                           "name": "panel-65",
                           "kind": "ElementReference"
                         },
-                        "y": 14,
-                        "height": 3,
-                        "width": 3,
-                        "x": 15
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 14,
+                        "x": 18,
+                        "width": 3,
                         "element": {
                           "name": "panel-66",
                           "kind": "ElementReference"
                         },
-                        "y": 14,
-                        "height": 3,
-                        "width": 3,
-                        "x": 18
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 14,
+                        "x": 21,
+                        "width": 3,
                         "element": {
                           "name": "panel-67",
                           "kind": "ElementReference"
                         },
-                        "y": 14,
-                        "height": 3,
-                        "width": 3,
-                        "x": 21
+                        "height": 3
                       },
                       "kind": "GridLayoutItem"
                     }
@@ -6602,66 +6857,79 @@
                 },
                 "kind": "GridLayout"
               },
-              "hideHeader": true,
-              "collapse": false,
-              "title": ""
+              "hideHeader": true
             },
             "kind": "RowsLayoutRow"
           },
           {
             "spec": {
+              "collapse": false,
+              "title": "Azure · VM-01 · Southeast Asia",
               "layout": {
                 "spec": {
                   "items": [
                     {
                       "spec": {
+                        "y": 0,
+                        "x": 0,
+                        "width": 24,
+                        "element": {
+                          "name": "panel-15",
+                          "kind": "ElementReference"
+                        },
+                        "height": 4
+                      },
+                      "kind": "GridLayoutItem"
+                    },
+                    {
+                      "spec": {
+                        "y": 4,
+                        "x": 0,
+                        "width": 12,
                         "element": {
                           "name": "panel-11",
                           "kind": "ElementReference"
                         },
-                        "y": 0,
-                        "height": 7,
-                        "width": 12,
-                        "x": 0
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 4,
+                        "x": 12,
+                        "width": 12,
                         "element": {
                           "name": "panel-12",
                           "kind": "ElementReference"
                         },
-                        "y": 0,
-                        "height": 7,
-                        "width": 12,
-                        "x": 12
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 11,
+                        "x": 0,
+                        "width": 12,
                         "element": {
                           "name": "panel-13",
                           "kind": "ElementReference"
                         },
-                        "y": 7,
-                        "height": 7,
-                        "width": 12,
-                        "x": 0
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 11,
+                        "x": 12,
+                        "width": 12,
                         "element": {
                           "name": "panel-14",
                           "kind": "ElementReference"
                         },
-                        "y": 7,
-                        "height": 7,
-                        "width": 12,
-                        "x": 12
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     }
@@ -6669,66 +6937,66 @@
                 },
                 "kind": "GridLayout"
               },
-              "hideHeader": false,
-              "collapse": false,
-              "title": "Azure · VM-01 · Southeast Asia"
+              "hideHeader": false
             },
             "kind": "RowsLayoutRow"
           },
           {
             "spec": {
+              "collapse": false,
+              "title": "GCP · vm-mw-credit-agent · Singapore",
               "layout": {
                 "spec": {
                   "items": [
                     {
                       "spec": {
+                        "y": 0,
+                        "x": 0,
+                        "width": 12,
                         "element": {
                           "name": "panel-21",
                           "kind": "ElementReference"
                         },
-                        "y": 0,
-                        "height": 7,
-                        "width": 12,
-                        "x": 0
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 0,
+                        "x": 12,
+                        "width": 12,
                         "element": {
                           "name": "panel-22",
                           "kind": "ElementReference"
                         },
-                        "y": 0,
-                        "height": 7,
-                        "width": 12,
-                        "x": 12
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 7,
+                        "x": 0,
+                        "width": 12,
                         "element": {
                           "name": "panel-23",
                           "kind": "ElementReference"
                         },
-                        "y": 7,
-                        "height": 7,
-                        "width": 12,
-                        "x": 0
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 7,
+                        "x": 12,
+                        "width": 12,
                         "element": {
                           "name": "panel-24",
                           "kind": "ElementReference"
                         },
-                        "y": 7,
-                        "height": 7,
-                        "width": 12,
-                        "x": 12
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     }
@@ -6736,66 +7004,66 @@
                 },
                 "kind": "GridLayout"
               },
-              "hideHeader": false,
-              "collapse": false,
-              "title": "GCP · vm-mw-credit-agent · Singapore"
+              "hideHeader": false
             },
             "kind": "RowsLayoutRow"
           },
           {
             "spec": {
+              "collapse": false,
+              "title": "GCP · Cloud SQL · appsheet-pg-prod-20260914",
               "layout": {
                 "spec": {
                   "items": [
                     {
                       "spec": {
+                        "y": 0,
+                        "x": 0,
+                        "width": 12,
                         "element": {
                           "name": "panel-31",
                           "kind": "ElementReference"
                         },
-                        "y": 0,
-                        "height": 7,
-                        "width": 12,
-                        "x": 0
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 0,
+                        "x": 12,
+                        "width": 12,
                         "element": {
                           "name": "panel-32",
                           "kind": "ElementReference"
                         },
-                        "y": 0,
-                        "height": 7,
-                        "width": 12,
-                        "x": 12
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 7,
+                        "x": 0,
+                        "width": 12,
                         "element": {
                           "name": "panel-33",
                           "kind": "ElementReference"
                         },
-                        "y": 7,
-                        "height": 7,
-                        "width": 12,
-                        "x": 0
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 7,
+                        "x": 12,
+                        "width": 12,
                         "element": {
                           "name": "panel-34",
                           "kind": "ElementReference"
                         },
-                        "y": 7,
-                        "height": 7,
-                        "width": 12,
-                        "x": 12
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     }
@@ -6803,53 +7071,53 @@
                 },
                 "kind": "GridLayout"
               },
-              "hideHeader": false,
-              "collapse": false,
-              "title": "GCP · Cloud SQL · appsheet-pg-prod-20260914"
+              "hideHeader": false
             },
             "kind": "RowsLayoutRow"
           },
           {
             "spec": {
+              "collapse": false,
+              "title": "Railway · MW Credit Metabase · production",
               "layout": {
                 "spec": {
                   "items": [
                     {
                       "spec": {
+                        "y": 0,
+                        "x": 0,
+                        "width": 12,
                         "element": {
                           "name": "panel-41",
                           "kind": "ElementReference"
                         },
-                        "y": 0,
-                        "height": 7,
-                        "width": 12,
-                        "x": 0
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 0,
+                        "x": 12,
+                        "width": 12,
                         "element": {
                           "name": "panel-42",
                           "kind": "ElementReference"
                         },
-                        "y": 0,
-                        "height": 7,
-                        "width": 12,
-                        "x": 12
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     },
                     {
                       "spec": {
+                        "y": 7,
+                        "x": 0,
+                        "width": 24,
                         "element": {
                           "name": "panel-43",
                           "kind": "ElementReference"
                         },
-                        "y": 7,
-                        "height": 7,
-                        "width": 24,
-                        "x": 0
+                        "height": 7
                       },
                       "kind": "GridLayoutItem"
                     }
@@ -6857,9 +7125,7 @@
                 },
                 "kind": "GridLayout"
               },
-              "hideHeader": false,
-              "collapse": false,
-              "title": "Railway · MW Credit Metabase · production"
+              "hideHeader": false
             },
             "kind": "RowsLayoutRow"
           }

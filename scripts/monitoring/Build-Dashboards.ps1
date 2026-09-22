@@ -226,6 +226,8 @@ foreach($p in @($perf.panels|Where-Object id -in @(1,70,71,72,73))){
     $p.fieldConfig=@{defaults=@{color=@{mode='fixed';fixedColor='text'};noValue=$label};overrides=@()}
     $p.options=@{reduceOptions=@{calcs=@('lastNotNull');fields='';values=$true};colorMode='none';graphMode='none';textMode='value';justifyMode='left';orientation='horizontal';wideLayout=$true;text=@{valueSize=14}}
 }
+. "$PSScriptRoot/VmControl.Helpers.ps1"
+Add-AzureVmControl $perf
 $perf.panels=@($perf.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 
 $cost=New-Dashboard 'mw-resource-cost' 'MW Resources · Cost' 'now/M' '1h'
