@@ -17,3 +17,9 @@ V33 applied to DEV successfully on 22 September 13:43 Bangkok. Ten capture trigg
 Separate Cloud SQL `mw_agent` database provisioned with central V1–V3; agent source e0f050b published. Before coordinated PROD promotion, agent workers drained and ingress paused; private package/config/state/session archive restored and 3,513 file hashes matched. No production financial test or message is authorized by this check.
 
 Status: DEV verified, production SQL and agent state cutover in progress. Use the single promotion checklist. Backups are private outside Git; published evidence contains only fingerprints/counts. Additive rollback retains audit evidence; never run the old uninstrumented reviewer writer against V33 or restore stale SQLite after new central work.
+
+## Production closure
+
+V33 promoted and validated at 13:53 Bangkok using pinned commit a3b19c8, verified private backup and the existing runner. Dedicated agent database imported/restore-verified and activated; processing resumed at 13:58. Restricted grants and relay verified, with no production financial fixture or notification test. Both apps are unchanged and their current previews/editors clear. No RC existed.
+
+Dictionary DB sheets now include the internal schema and capture definitions; unrelated workbook values/styles/features were preserved. Environment Inventory, Development Changes and Model Overview describe the separate internal database and API-first reviewer boundary. Concurrent Metabase edits are retained outside this commit's scope. The [production report](../outputs/r015-20260922/production-report.md) records tests, limitations and recovery. R015 is released; final evidence is tagged R015.

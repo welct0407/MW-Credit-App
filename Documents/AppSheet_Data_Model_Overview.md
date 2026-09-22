@@ -1,12 +1,14 @@
 # Production model overview
 
-This document explains architecture and business behavior. Exact columns, expressions, types, permissions, Refs and SQL metadata belong in the [data dictionary](AppSheet_Data_Dictionary.xlsx); current versions/identities belong in [Environment Inventory](Environment_Inventory.md). Recorded production baseline: R009. Changes since that baseline are listed in [Development Changes](Development_Changes.md).
+This document explains architecture and business behavior. Exact columns, expressions, types, permissions, Refs and SQL metadata belong in the [data dictionary](AppSheet_Data_Dictionary.xlsx); current versions/identities belong in [Environment Inventory](Environment_Inventory.md). Recorded production baseline: R015. Changes since that baseline are listed in [Development Changes](Development_Changes.md).
 
 ## Architecture and ownership
 
 Each DEV/PROD environment has two AppSheet apps sharing one PostgreSQL database. OLTP owns transaction entry and operational workflows; OLAP owns partner management, cash administration and heavier analytics. Looker presents governed reporting. RC is a temporary app copy bound to PROD, not a separate database. Design decisions and diagrams are in [Solution Design](Solution_Design.md).
 
 ## Entity groups and relationships
+
+The integration agent additionally owns the separate `mw_agent` database on the same Cloud SQL instance. Its runtime journals and append-only audit are excluded from AppSheet. Business databases contain internal `agent_audit` commit/row-change/export tables; capture runs only for the dedicated reviewer DML login. AppSheet operations retain ordinary guards and host-observed audit coverage. Current reviewers use AppSheet first and bounded SQL fallback, including approved exact-key DELETE without bypassing financial or reference guards. See [R015 evidence](../outputs/r015-20260922/production-report.md) and the dictionary DB sheets.
 
 | Group | Entities / grain | Responsibility |
 | --- | --- | --- |

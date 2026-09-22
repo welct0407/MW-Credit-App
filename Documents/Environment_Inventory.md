@@ -8,7 +8,7 @@ Metabase is pinned to v0.63.18.1; its PostgreSQL application database is 16.15. 
 
 ## AppSheet and Cloud SQL checkpoint
 
-Latest recorded checkpoint: **21 September 2026**, from [R014 production evidence](../outputs/r014-20260921/production-report.md) and [DEV database consolidation evidence](../outputs/dev-db-consolidation-20260920/verification.json). Current PROD is R014. Unaffected application facts retain their recorded evidence.
+Latest recorded checkpoint: **22 September 2026**, from [R015 production evidence](../outputs/r015-20260922/production-report.md) and [DEV database consolidation evidence](../outputs/dev-db-consolidation-20260920/verification.json). Current PROD is R015 (SQL/agent only; app definitions retain R014). Unaffected application facts retain their recorded evidence.
 
 ## App identities and bindings
 
@@ -52,7 +52,7 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
 | Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
-| Flyway | V32 migrated and validated (R014) | V32 migrated and validated (R014) | Both include read-only Cash Dashboard, FIFO helper and Partners.AI Reviewer. Both preserve source payment time in new Payment ledger entries. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
+| Flyway | V33 migrated and validated (R015) | V33 migrated and validated (R015) | Both include read-only Cash Dashboard, FIFO helper and Partners.AI Reviewer. Both preserve source payment time in new Payment ledger entries. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
 
 The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. After the consolidated DEV database and natural scheduler run were verified, the owner authorized deletion of former instance `appsheet-pg-dev-20260915`. Cloud SQL completed deletion on 20 September 2026, released public IP `34.158.38.171`, and retained no backups or final backup for that instance. The verified private former-DEV logical dump remains outside Git as recovery evidence.
 
@@ -75,3 +75,11 @@ R014 DEV checkpoint: V32 / OLTP 1.000075 / OLAP 1.000031, both saved editors sho
 R014 production checkpoint: V32 / OLTP 3.000245 / OLAP 1.100194, both Deployed and saved with zero editor issues. All 37 RC source mappings passed, changed production entry points loaded/synced, exact-amount settlement form and account picker passed without saving a financial row. Both existing API keys still authenticate. Scheduled guards allow PROD and exclude the now-retired RC names. [Production verification](../outputs/r014-20260921/production-report.md).
 
 R014 AI Reviewer: Tommy selected and Lisa unselected in DEV and PROD. OLAP owns editing; OLTP imports the field read-only. The Debian reviewer restriction is installed with business code matching `83e1b56`; all 102 VM tests and the installed production master query passed. Existing four timers resumed. A real customer direct-reply event was not forced during promotion.
+
+## R015 internal agent storage — 22 September 2026
+
+The same Cloud SQL instance `appsheet-pg-prod-20260914`, project `clever-oasis-508610-n7`, host `34.21.174.215` now also hosts the separate `mw_agent` database. It is internal agent infrastructure, not another AppSheet environment. Central schema versions V1–V3 contain 29 audit/runtime/migration tables plus deployment history. All six agent journals and three frozen statement snapshots were migrated; Codex-owned session/auth files remain private on Debian.
+
+Both business databases have V33 `agent_audit` (commits, row_changes, exports) and ten capture triggers for the dedicated reviewer role. Audit/runtime tables are not AppSheet data sources. The Debian proxy still uses `127.0.0.1:5432`; reporting, reviewer DML, central worker and relay use separate restricted logins. No instance/network/connection-limit setting changed. Cloud SQL automated backups and PITR are enabled. Private logical restores and schema/data fingerprints were verified; see the R015 report for recovery evidence.
+
+The agent resumed on PostgreSQL at 13:58 Bangkok with original service cutoffs, two conversation bindings and model settings preserved. The new backend generation quarantines newly arriving pre-cutover events. All five original timers and ingress are active, plus the 30-second audit relay. AppSheet versions, themes, recipients and schedules above remain unchanged.
