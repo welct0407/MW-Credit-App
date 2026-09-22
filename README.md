@@ -6,6 +6,8 @@ Status: **daily cash statements, receipt review and Partner conversations active
 
 ## Initial target
 
+Proposed next architecture: [PostgreSQL state, generic audit and reviewer DELETE handover](docs/design/agent-postgresql-20260922/HANDOVER.md). This is a design package with governance and candidate DDL; it is **not deployed** and does not change the current service catalogue.
+
 [Persistent Partner conversations](docs/PARTNER_CONVERSATIONS.md) add isolated follow-up memory, fresh business-data tools and Codex-selected operational API calls. This capability has separate processing/write switches and a signed-message activation cutoff. Codex chooses the API payloads; no fixed business-operation list or per-operation scripts are required. AppSheet GUI automation is not enabled. Deployment status is in the [change log](Change%20Logs/CHANGE_NOTES_PARTNER_CONVERSATIONS_2026-09-22.md).
 
 [Daily cash statements](docs/CASH_STATEMENT.md) cover 00:00–00:00 Bangkok posting activity, per-account English/Thai PNGs and the current Partner opt-in. The [maintained business process](docs/BUSINESS_PROCESS.md) documents the Instagram-first and email-fallback flow.
