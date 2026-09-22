@@ -141,7 +141,18 @@ Fixed limits must be rechecked after configuration changes. Live Railway CPU/mem
 
 ## Cost — scope and reading rules
 
-Cost is delayed, provisional provider data. **No data is not zero spending.** Azure and Railway are shown in USD; GCP is shown in SGD. There is no mixed-currency grand total or forecast. Azure/GCP follow the selected range; Railway always uses its current billing cycle. VM shutdown does not imply all associated storage/backup costs stop.
+Cost is delayed, provisional provider data. **No data is not zero spending.** The top overview converts all available costs to SGD; the detailed sections retain Azure/Railway USD and GCP SGD. There is no forecast. Azure/GCP follow the selected range; Railway always uses its current billing cycle. VM shutdown does not imply all associated storage/backup costs stop.
+
+### Stacked SGD overview
+
+| ID | Visual | Meaning and use |
+|---|---|---|
+| 2 | Total reported cost · SGD | One horizontal stacked bar: **Azure** (blue), **GCP** (orange), **Railway** (purple). Azure's two monitored resource groups are added in USD then converted; GCP uses net SGD after credits; Railway's accrued workspace USD is converted. The legend shows platform values; the coverage table shows **Subtotal (SGD)**, which sums available converted amounts without adding another segment. It is a complete total only when every platform is available. Missing GCP remains No data and contributes no visible segment; it is not claimed to be zero. Negative net costs remain negative. |
+| 3 | Conversion and coverage · missing platform means incomplete total | Shows **Subtotal (SGD)**, **SGD per USD**, the **FX reference date**, live GCP cost-row availability and the **Railway cycle in Singapore dates**. Check this before treating the bar/subtotal as complete. GCP Unavailable can mean first export is pending or no cost rows exist in the selected range. A query failure is shown by Grafana's error indicator; incomplete data must not be treated as a fully reconciled total. |
+
+Conversion uses the latest daily **ECB USD/SGD reference rate via [Frankfurter](https://frankfurter.dev/)**, fetched on dashboard refresh. For example, at the 22 September 2026 verification, 1 USD = 1.2747 SGD. This example is dated; the table reports the rate/date actually used. USD amounts are multiplied by the rate at full precision and displayed to two decimals. It is an indicative current-reference conversion, not transaction-date FX, card fees or the final invoice settlement amount. Historical date-picker ranges still use the latest reference rate. Invalid rates, unexpected source currencies and FX older than seven days are rejected rather than silently converted.
+
+**Period caveat:** the bar combines Azure/GCP selected-range costs with Railway's independently dated billing cycle. It is a consolidated view of reported amounts, not a reconciled common-calendar-period invoice. Changing the date picker changes Azure/GCP but not Railway; the coverage table keeps the Railway dates visible. The three original detail sections remain available for native-currency reconciliation.
 
 | ID | Visual | Meaning |
 |---|---|---|
@@ -191,6 +202,6 @@ Cost scope is **the workspace**, potentially broader than the Metabase/Postgres 
 
 For each added, removed, renamed, regrouped or materially reformatted visual, update its entry and panel ID. For metric/probe changes, update scope, formula, units, freshness, state mapping and limitations. Update verified fixed limits and their verification dates after relevant resource changes. Keep live-limit behavior distinct from fixed snapshots, static instructions distinct from live status, and dated observations distinct from current verification.
 
-Compare coverage against the maintained definitions: currently **44 Performance visual panels plus 4 detail headers**, and **13 Cost visual panels plus 3 section headers**. Update these counts when the design changes. Preserve the operating reference as the authority for credentials/deployment/recovery rather than copying secrets or setup procedures here. Record changes and relevant checks in the existing monitoring change log, and publish intended documentation alongside the dashboard definition changes.
+Compare coverage against the maintained definitions: currently **44 Performance visual panels plus 4 detail headers**, and **15 Cost visual panels plus 3 section headers**. Update these counts when the design changes. Preserve the operating reference as the authority for credentials/deployment/recovery rather than copying secrets or setup procedures here. Record changes and relevant checks in the existing monitoring change log, and publish intended documentation alongside the dashboard definition changes.
 
 Sources for this guide: [dashboard builder](../scripts/monitoring/Build-Dashboards.ps1), [query helpers](../scripts/monitoring/Query.Helpers.ps1), [Debian health checks](../scripts/monitoring/debian-health.py), [saved dashboard definitions](../outputs/resource-monitoring-20260922/) and the [operating reference](Resource_Monitoring.md). This documentation update did not change or re-audit live services.

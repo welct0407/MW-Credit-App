@@ -20,6 +20,8 @@ Every dashboard update must also update the [visual guide](../../Documents/Resou
 
 `test_debian_health.py` checks timer semantics. `test_availability_queries.py <performance-dashboard.json>` uses jq to exercise the actual dashboard selectors against failed, missing and stale fixtures. Run them with Python on Debian, where jq is already installed.
 
+`test_cost_overview_queries.py <cost-dashboard.json>` checks the SGD overview's actual jq selectors for missing billing, source-currency mismatches, provider pagination/incomplete results and stale/invalid FX. The top bar uses `public-fx-source.json` for the credential-free Frankfurter source and shows its ECB reference date/rate. Keep missing GCP null and the provider-period/partial-total caveats visible when changing the conversion or transformations.
+
 The external webhook uptime check is owned by Google Cloud Monitoring, not either VM. Its saved configuration and the credential-free public OpenAI data source are under outputs. Keep the generated uptime check ID and public-source UID synchronized with `Query.Helpers.ps1`/the configuration files. No Azure scheduled probe is retained: VM-01 is not 24x7.
 
 Rollback: restore the private pre-availability dashboard resource, disable/stop only `mw-resource-health.timer` and its service, remove only its dedicated files/units after preserving evidence, and remove the dedicated uptime-check configuration/public-status source if no longer referenced. Existing provider metrics/data sources, workload jobs and historical monitoring samples are unaffected. GCP custom metric history may be retained after collector removal.

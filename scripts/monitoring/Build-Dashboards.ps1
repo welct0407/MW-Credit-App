@@ -267,6 +267,48 @@ $null=Add-Chart $cost 301 'Railway · billing period and accrued usage' $railQ '
 $railStat=Add-Chart $cost 302 'Railway · accrued resource usage' (Shared-Query 301) 'currencyUSD' 0 42 8 4 'stat'
 $railStat.transformations=@(@{id='filterFieldsByName';options=@{include=@{names=@('UsageUSD')}}})
 Add-Text $cost 303 'How to read Railway cost' 'Accrued resource usage is reported by Railway in **USD for its current billing cycle**, independently of the date picker above. It is not the final bill: plan fees, included usage, credits and adjustments are handled on the provider invoice. [Open Railway usage](https://railway.com/workspace/usage).' 49 3
+# One stacked SGD bar. Source summaries share a category, retaining null GCP costs.
+$sgdQueries=@()
+foreach($entry in @(@('rg-mwcredit','Azure compute USD'),@('rg-backup','Azure backup USD'))){
+    $q=New-AzureCostQuery $entry[0]
+    $q.root_selector='if .properties.nextLink then error("Cost response truncated; shorten time range") elif (.properties.rows|type)!="array" then error("Azure cost response unavailable") elif any(.properties.rows[];.[3]!="USD") then error("Unexpected Azure currency") else {Category:"Reported costs",amount:([.properties.rows[][0]]|add // 0)} end'
+    $q.columns=@((Column 'Category' 'string'),(Column $entry[1] 'number' 'amount'))
+    $sgdQueries+=@($q)
+}
+$q=$gcpQ.Clone()
+$q.root_selector='if (.jobComplete != true) then error("Billing query is still running; refresh later") elif .pageToken then error("Billing result truncated; shorten time range") elif any(.rows[]?;.f[6].v!="SGD") then error("Unexpected GCP currency") else [.rows[]? | .f[3].v | select(.!=null) | tonumber] as $costs | {Category:"Reported costs",GCP:(if ($costs|length)>0 then ($costs|add) else null end),GCPStatus:(if ($costs|length)>0 then "Available" else "Unavailable (not zero)" end)} end'
+$q.columns=@((Column 'Category' 'string'),(Column 'GCP'),(Column 'GCP export' 'string' 'GCPStatus'))
+$sgdQueries+=@($q)
+$q=$railQ.Clone()
+$q.root_selector='def sgdate: sub("\\.[0-9]+Z$";"Z")|fromdateiso8601|.+28800|strftime("%d %b %Y"); if .errors then error(.errors|tostring) elif .data.workspace.customer.currentUsage==null then error("Railway usage unavailable") else .data.workspace.customer | {Category:"Reported costs",RailwayUSD:.currentUsage,RailwayCycle:((.billingPeriod.start|sgdate)+" - "+(.billingPeriod.end|sgdate))} end'
+$q.columns=@((Column 'Category' 'string'),(Column 'Railway USD' 'number' 'RailwayUSD'),(Column 'Railway cycle (SGT)' 'string' 'RailwayCycle'))
+$sgdQueries+=@($q)
+$fxSource=Get-Content "$out/public-fx-source.json" -Raw|ConvertFrom-Json
+$q=New-InfinityQuery $fxSource.uid 'https://api.frankfurter.dev/v2/providers/ecb/rate/USD/SGD' 'if .base!="USD" or .quote!="SGD" or (.rate|type)!="number" or .rate<=0 then error("Invalid USD/SGD reference rate") elif (now-(.date+"T00:00:00Z"|fromdateiso8601))>604800 then error("FX reference older than seven days") else {Category:"Reported costs",FX:.rate,FXDate:.date} end' @((Column 'Category' 'string'),(Column 'SGD per USD' 'number' 'FX'),(Column 'FX reference date' 'string' 'FXDate')) 'table'
+$sgdQueries+=@($q)
+foreach($p in $cost.panels){$p.gridPos.y+=11}
+$stack=Add-Chart $cost 2 'Total reported cost · SGD' $sgdQueries 'currencySGD' 0 0 24 7 'barchart' 'One stacked bar: Azure and Railway USD multiplied by the latest ECB USD/SGD reference via Frankfurter; GCP uses net SGD after credits. Azure/GCP follow the date picker; Railway covers its current billing cycle. Missing GCP is not zero: the displayed bar is incomplete until all sources are available. Reference conversion is indicative, not an invoice settlement rate.'
+$stack.datasource=@{type='mixed';uid='-- Mixed --'}
+$stack.options=@{orientation='horizontal';xField='Category';stacking='normal';showValue='always';groupWidth=0.65;barWidth=0.7;barRadius=0.08;fullHighlight=$true;tooltip=@{mode='multi';sort='desc'};legend=@{displayMode='list';placement='bottom';calcs=@('lastNotNull')}}
+$stack.fieldConfig.defaults.decimals=2
+$stack.fieldConfig.defaults.unit='prefix:S$'
+$stack.fieldConfig.defaults.custom=@{lineWidth=0;fillOpacity=90;axisBorderShow=$false;axisCenteredZero=$false;axisColorMode='text';axisLabel='SGD';axisPlacement='auto';gradientMode='none';hideFrom=@{tooltip=$false;viz=$false;legend=$false};scaleDistribution=@{type='linear'}}
+$stack.fieldConfig.overrides=@(foreach($e in @(@('Azure','#5794F2'),@('GCP','#FF9830'),@('Railway','#B877D9'))){@{matcher=@{id='byName';options=$e[0]};properties=@(@{id='color';value=@{mode='fixed';fixedColor=$e[1]}})}})
+function Binary-Cost($Left,$Operator,$Right,$Alias){@{id='calculateField';options=@{mode='binary';binary=@{left=$Left;operator=$Operator;right=$Right};alias=$Alias;replaceFields=$false}}}
+$stack.transformations=@(
+    @{id='merge';options=@{}},
+    (Binary-Cost 'Azure compute USD' '+' 'Azure backup USD' 'Azure USD'),
+    (Binary-Cost 'Azure USD' '*' 'SGD per USD' 'Azure'),
+    (Binary-Cost 'Railway USD' '*' 'SGD per USD' 'Railway'),
+    @{id='filterFieldsByName';options=@{include=@{names=@('Category','Azure','GCP','Railway')}}},
+    @{id='organize';options=@{indexByName=@{Category=0;Azure=1;GCP=2;Railway=3}}}
+)
+$context=Add-Chart $cost 3 'Conversion and coverage · missing platform means incomplete total' (Shared-Query 2) 'none' 0 7 24 4 'table' 'Daily ECB reference conversion, not transaction-date FX. Native-currency cost details remain below. Railway cycle is independent of the date picker; GCP status is live query coverage, not a static setup note.'
+$context.transformations=@(@{id='merge';options=@{}},(Binary-Cost 'Azure compute USD' '+' 'Azure backup USD' 'Azure USD'),(Binary-Cost 'Azure USD' '*' 'SGD per USD' 'Azure'),(Binary-Cost 'Railway USD' '*' 'SGD per USD' 'Railway'),@{id='calculateField';options=@{mode='reduceRow';reduce=@{include=@('Azure','GCP','Railway');reducer='sum'};alias='Subtotal (SGD)';replaceFields=$false}},@{id='filterFieldsByName';options=@{include=@{names=@('Subtotal (SGD)','SGD per USD','FX reference date','GCP export','Railway cycle (SGT)')}}},@{id='organize';options=@{indexByName=@{'Subtotal (SGD)'=0;'SGD per USD'=1;'FX reference date'=2;'GCP export'=3;'Railway cycle (SGT)'=4}}})
+$context.fieldConfig.defaults.decimals=4
+$context.fieldConfig.overrides+=@(@{matcher=@{id='byName';options='Subtotal (SGD)'};properties=@(@{id='unit';value='prefix:S$'},@{id='decimals';value=2})})
+$context.fieldConfig.overrides+=@(@{matcher=@{id='byName';options='SGD per USD'};properties=@(@{id='unit';value='none'},@{id='decimals';value=4})})
+$cost.panels=@($cost.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 Save-MonitoringJson "$out/performance-dashboard.json" $perf
 Save-MonitoringJson "$out/cost-dashboard.json" $cost
 Write-Output "Built performance ($($perf.panels.Count) panels) and cost ($($cost.panels.Count) panels)."
