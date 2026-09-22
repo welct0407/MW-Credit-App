@@ -1,6 +1,6 @@
 # Resource monitoring dashboard — visual guide
 
-Last updated: **23 September 2026**. Covers the maintained Performance and Cost definitions, including VM-01 power state and the pending authenticated controls. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
+Last updated: **23 September 2026**. Covers the maintained Performance and Cost definitions, including the compact, vertically centered group strips. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
 
 - [Open Performance](https://monitor.mw-credit.com/d/mw-resource-performance)
 - [Open Cost](https://monitor.mw-credit.com/d/mw-resource-cost)
@@ -101,12 +101,6 @@ An inactive required timer or failed process result is Down. Exceeding these tim
 ## Performance — detailed charts
 
 ### Azure · VM-01 · Southeast Asia
-
-**VM-01 power controls (ID 15)** sit first in this section, above the detailed charts. VM identifies the target; State reads Azure's current instance view, independently of the dashboard's historical range; Checked (SGT) is the successful query time. Running is green; transitions and Stopped · allocated are orange; Deallocated/Unknown are gray. Missing power-state data is Unknown; provider failures remain query errors. This is a power-state check, not an application-health test. Refresh manually after an operation; normal refresh is two minutes.
-
-**Current limitation:** the Controls column says Awaiting Grafana authenticated-action enablement. The dedicated connection works, but this stack does not expose Infinity in the action Connection picker (`vizActionsAuth` is unavailable). Start and Stop & Deallocate are prepared with confirmations, but are not operational. No VM power operation was executed. Free-plan eligibility has not been confirmed, and no plan upgrade or support submission was made.
-
-Once enabled and verified, Start will allocate/start VM-01 and resume compute charging. Stop & Deallocate will shut it down and release its compute allocation; disks, backup and retained resources can still cost money. It will also disconnect this Windows desktop, Codex and running work: save work first. An accepted API request is not completed deallocation; refresh until Azure reports the final state. The buttons target only VM-01 and are not a GCP shutdown facility.
 
 | ID | Visual | Interpretation and references |
 |---|---|---|
@@ -214,6 +208,6 @@ Cost scope is **the workspace**, potentially broader than the Metabase/Postgres 
 
 For each added, removed, renamed, regrouped or materially reformatted visual, update its entry and panel ID. For metric/probe changes, update scope, formula, units, freshness, state mapping and limitations. Update verified fixed limits and their verification dates after relevant resource changes. Keep live-limit behavior distinct from fixed snapshots, static instructions distinct from live status, and dated observations distinct from current verification.
 
-Compare coverage against the maintained definitions: currently **45 Performance visual panels plus 4 detail headers**, and **19 Cost visual panels plus 3 section headers**. Update these counts when the design changes. Preserve the operating reference as the authority for credentials/deployment/recovery rather than copying secrets or setup procedures here. Record changes and relevant checks in the existing monitoring change log, and publish intended documentation alongside the dashboard definition changes.
+Compare coverage against the maintained definitions: currently **44 Performance visual panels plus 4 detail headers**, and **19 Cost visual panels plus 3 section headers**. Update these counts when the design changes. Preserve the operating reference as the authority for credentials/deployment/recovery rather than copying secrets or setup procedures here. Record changes and relevant checks in the existing monitoring change log, and publish intended documentation alongside the dashboard definition changes.
 
 Sources for this guide: [dashboard builder](../scripts/monitoring/Build-Dashboards.ps1), [query helpers](../scripts/monitoring/Query.Helpers.ps1), [Debian health checks](../scripts/monitoring/debian-health.py), [saved dashboard definitions](../outputs/resource-monitoring-20260922/) and the [operating reference](Resource_Monitoring.md). This documentation update did not change or re-audit live services.
