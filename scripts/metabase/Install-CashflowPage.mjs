@@ -24,7 +24,7 @@ state.snippet_id=snippet.id;
 for(const q of specs){
  const query=`WITH statement AS ({{${tag}}}) ${expand(q.sql)}`;
  const numbers=q.metric?[q.metric]:['Transaction Amount','Money In','Money Out','Balance After'];
- const settings={column_settings:Object.fromEntries(numbers.map(n=>[JSON.stringify(['name',n]),{number_style:q.metric?'currency':'decimal',currency:'THB',currency_style:'symbol',decimals:0,number_separators:'.,',compact:false}])),...(q.metric?{'scalar.field':q.metric,'scalar.segments':[{min:-1e18,max:1e18,color:q.color}]}:{'table.pivot':false})};
+ const settings={column_settings:Object.fromEntries(numbers.map(n=>[JSON.stringify(['name',n]),{number_style:q.metric?'currency':'decimal',currency:'THB',currency_style:'symbol',decimals:0,number_separators:'.,',compact:false}])),...(q.metric?{'scalar.field':['opening','closing'].includes(q.key)?'Balance Display':q.metric,'scalar.segments':[{min:-1e18,max:1e18,color:q.color}]}:{'table.pivot':false})};
  const id=state.cards[q.key];const c=await api(id?'PUT':'POST',id?'card/'+id:'card',{name:q.name,description:'Live selected-period cash statement. All accounts excludes internal transfers from money in/out; individual accounts retain their transfer side. Amounts in THB.',type:'question',collection_id:5,display:q.display,visualization_settings:settings,dataset_query:{database:2,type:'native',native:{query,'template-tags':tags}}});
  state.cards[q.key]=c.id;write('cashflow-state.json',state);
  const result=await api('POST',`card/${c.id}/query`,{});assert.equal(result.status,'completed');console.log('Saved cashflow '+q.key);
@@ -42,9 +42,9 @@ function place(key,col,row,w,h){const id=state.cards[key];cards.push({id:d.dashc
 note(0,'Cashflow statement · selected period · THB');
 ['in','out','net'].forEach((key,i)=>place(key,i*8,1,8,2));
 note(3,'All accounts: internal transfers stay in the ledger but add no inflow or outflow.',2);
-place('period',0,5,24,3);place('opening',0,8,24,2);
-place('transactions',0,10,24,12);place('closing',0,22,24,2);
-note(24,'Opening + money in − money out = closing. Unknown openings stay blank; later corrections restate history.',2);
+place('period',0,5,24,4);place('opening',0,9,24,2);
+place('transactions',0,11,24,12);place('closing',0,23,24,2);
+note(25,'Opening + inflows − outflows = closing. Earlier balances may be unavailable.',2);
 const F=n=>['field',n,{'base-type':'type/Text'}];
 await api('PUT','dashboard/3',{parameters:[...d.parameters.filter(p=>!['cashflow-period','cashflow-account'].includes(p.id)),{id:'cashflow-period',name:'Cashflow period',slug:'cashflow_period',type:'date/all-options',sectionId:'date',default:'thismonth'},{id:'cashflow-account',name:'Account',slug:'cashflow_account',type:'string/=',sectionId:'string',isMultiSelect:false,default:['__ALL__'],values_query_type:'list',values_source_type:'card',values_source_config:{card_id:lookup.id,value_field:F('Scope ID'),label_field:F('Account')}}]});
 await api('PUT','dashboard/3/cards',{tabs:d.tabs,cards});d=await api('GET','dashboard/3');

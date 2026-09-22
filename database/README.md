@@ -1,8 +1,8 @@
 # PostgreSQL development with Flyway
 
-## Open R016 Cashflow candidate — 23 September 2026
+## R016 Cashflow deployed — 23 September 2026
 
-DEV V36 migrated/validated; PROD remains V35 pending scoped owner approval. Two additive full-history cashflow views reuse OLTP account effects and immutable openings. CI and thirteen DEV reconciliations pass. V36 is immutable after DEV application; next migration is V37 or higher. [Candidate record](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md).
+DEV and PROD V36 migrated/validated after scoped owner approval, from exact commit `d9da07a89a39a732bb1d5fcf7994f04dafe56379`. Two additive full-history views reuse OLTP account effects and immutable openings. CI, thirteen DEV/PROD reconciliations and 72 live dashboard checks pass. SELECT-only grants are verified. Existing app/source definitions and financial rows are unchanged. V36 is immutable; next migration is V37 or higher. Earlier checkpoints below are historical. [Deployment record](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md).
 
 ## Current checkpoint — R016 V35, 23 September 2026
 

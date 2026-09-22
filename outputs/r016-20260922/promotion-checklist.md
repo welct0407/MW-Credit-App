@@ -105,3 +105,8 @@ Cash waterfall 189 archived; separate + and = symbols added; income chart title 
 
 ### Cashflow extension candidate — 23 September
 V36 additive views tested and applied to DEV, with 13 reconciliations and 42 prepared visual query cases. PROD approval, exact candidate manifest promotion, SELECT grants, model/page installation, browser/filter checks and dictionary/documentation closure remain pending. Scoped metadata and schema backups captured in `cashflow-before`; previous nine pages unchanged. No AppSheet promotion/RC is involved.
+
+
+### Cashflow extension closure — 23 September
+
+P01/P13/P22/P28/P39/P41/P45/P46 are complete for approved V36/page 10: exact commit `d9da07a89a39a732bb1d5fcf7994f04dafe56379`, verified recovery/hash and unchanged pre-promotion schema, DEV/PROD validation and 13 reconciliations, SELECT-only grants, 72 live dashboard checks, date/account GUI and desktop/390px QA, dictionary/current-document closure. Existing nine pages and permissions preserved. AppSheet/RC/logo/notification steps are N/A; no source definition or financial record changed. P48 publication is completed by the following coherent evidence commit and normal upstream push; final whole-R016 tag/acceptance remains pending. Candidate paragraph above is superseded. Current inventory: 10 tabs, 130 visual placements, 126 distinct questions, 20 models/287 fields, three snippets; source access covers 22 named objects.

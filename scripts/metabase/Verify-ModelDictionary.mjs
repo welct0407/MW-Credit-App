@@ -11,5 +11,6 @@ try{
  await fs.writeFile(privateDir+'/dictionary-final.png',new Uint8Array(await image.arrayBuffer()));
  if(models['income-daily']){const added=await wb.render({sheetName:'Metabase Models',range:'A200:F220',scale:1,format:'png'});await fs.writeFile(privateDir+'/dictionary-income.png',new Uint8Array(await added.arrayBuffer()));}
  if(models['cash-daily']){const added=await wb.render({sheetName:'Metabase Models',range:'A254:F275',scale:1,format:'png'});await fs.writeFile(privateDir+'/dictionary-cash-asof.png',new Uint8Array(await added.arrayBuffer()));}
+ if(models['cashflow-daily']){for(const [name,range] of [['transactions','A276:F294'],['daily','A295:F308']]){const added=await wb.render({sheetName:'Metabase Models',range,scale:1,format:'png'});await fs.writeFile(privateDir+'/dictionary-cashflow-'+name+'.png',new Uint8Array(await added.arrayBuffer()));}}
  console.log('Saved dictionary reimport, model coverage and render passed.');
 }catch(error){console.error(String(error.message));process.exitCode=1;}

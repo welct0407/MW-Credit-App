@@ -2,7 +2,7 @@
   "reservation_commit": "af677e4",
   "sql": "scripts/metabase/reporting-pages-1-2-grants.sql",
   "dashboard": {
-    "visuals": 123,
+    "visuals": 130,
     "collection": 5,
     "id": 3,
     "tabs": [
@@ -14,15 +14,16 @@
       9,
       10,
       11,
-      12
+      12,
+      13
     ],
-    "questions": 119,
+    "questions": 126,
     "source": 2,
-    "heading_and_note_cards": 46
+    "heading_and_note_cards": 50
   },
   "checklist": "promotion-checklist.md",
   "remaining": [
-    "Owner review of remaining migrated pages and date-selectable Income Statement",
+    "Owner review of remaining migrated pages, Income Statement and Cashflow Statement",
     "Borrower daily balance history unavailable in existing source; no new schema authorized",
     "Lisa personal Google sign-in remains unconfirmed",
     "Migration-key revocation and final R016 acceptance/closure"
@@ -35,18 +36,21 @@
   "full_migration_complete": false,
   "flyway": {
     "before": 33,
-    "after": 35,
+    "after": 36,
     "new_migrations": [
       "V34__income_reporting_views.sql",
-      "V35__income_cash_asof.sql"
+      "V35__income_cash_asof.sql",
+      "V36__cashflow_reporting.sql"
     ],
-    "deployment_commit": "e7fd3af40b572ab644856e7cc95d6a243f49a870",
+    "deployment_commit": "d9da07a89a39a732bb1d5fcf7994f04dafe56379",
     "view_verification": "income-db-views-production.json",
     "v34_deployment_commit": "63836d4905f23d5cfd6e1cbd916ec4a5a6091523",
     "v34_migration_sha256": "f9d48e797f1822b6e02a6ef4b40d6473ff792a44bc11160ef8a13fac7a0f39bf",
-    "v35_migration_sha256": "9a6793c5b567006fb8ea3cfabb4616d4a4603f2cc734bd257b059b482f86496e"
+    "v35_migration_sha256": "9a6793c5b567006fb8ea3cfabb4616d4a4603f2cc734bd257b059b482f86496e",
+    "v35_deployment_commit": "e7fd3af40b572ab644856e7cc95d6a243f49a870",
+    "v36_migration_sha256": "2bdf3f3ab797aeda2d62139829dbff96d414c5a2824442d029f82fa87714bdd8"
   },
-  "status": "nine-pages-implemented-for-owner-review",
+  "status": "ten-pages-deployed-for-owner-review",
   "release": "R016",
   "tests": "query-reconciliation.json",
   "final_tag": null,
@@ -75,13 +79,16 @@
       185,
       186,
       187,
-      188
+      188,
+      190,
+      191
     ],
     "definitions": "scripts/metabase/models",
     "metadata": "models.json",
     "verification": "remaining-verification.json",
     "scenario_snippet": 1,
-    "income_period_snippet": 2
+    "income_period_snippet": 2,
+    "cashflow_period_snippet": 3
   },
   "refinement_baseline_commit": "a0e2d394a251bb155e73f667c672785b7bf30e48",
   "dictionary_verification": "dictionary-verification.json",
@@ -94,5 +101,8 @@
   "income_view_switch": "income-db-views-switch.json",
   "income_cash_asof_tests": "income-asof-production.json",
   "income_cash_asof_access": "income-asof-grants.json",
-  "income_presentation_tests": "income-symbols-verification.json"
+  "income_presentation_tests": "income-symbols-verification.json",
+  "cashflow_tests": "cashflow-verification.json",
+  "cashflow_db_tests": "cashflow-production.json",
+  "cashflow_access": "cashflow-grants.json"
 }

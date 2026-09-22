@@ -1,5 +1,5 @@
 {
-  "status": "DEV prepared; PROD approval pending",
+  "status": "PROD deployed and verified; owner review pending",
   "version": 36,
   "views": [
     "reporting_cashflow_transactions",
@@ -12,6 +12,9 @@
   "dev_visual_query_cases": 42,
   "dev_reconciliation_checks": 13,
   "ci_passed": true,
-  "prod_unchanged": true,
-  "baseline_commit": "213eaa7df65a8c6ec8c290fb1896babd81025d95"
+  "prod_unchanged": false,
+  "baseline_commit": "213eaa7df65a8c6ec8c290fb1896babd81025d95",
+  "prod_reconciliation_checks": 13,
+  "live_dashboard_checks": 72,
+  "deployment_commit": "d9da07a89a39a732bb1d5fcf7994f04dafe56379"
 }

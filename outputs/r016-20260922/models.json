@@ -1686,5 +1686,197 @@
       }
     ],
     "rows": 54
+  },
+  "cashflow-transactions": {
+    "id": 190,
+    "name": "Cashflow Transactions",
+    "collection_id": 8,
+    "grain": "One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately.",
+    "grain_field": "Entry ID",
+    "database_view": "public.reporting_cashflow_transactions",
+    "columns": [
+      {
+        "name": "Entry ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "description": "Entry ID. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Scope ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Select exactly one scope; __ALL__ consolidates internal transfers."
+      },
+      {
+        "name": "Account",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Account. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Ledger ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Ledger ID. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Date",
+        "base_type": "type/Date",
+        "description": "Date. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Posted At",
+        "base_type": "type/DateTime",
+        "description": "Posted At. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Transaction Type",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Transaction Type. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Counterparty",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Counterparty. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "From Account",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "From Account. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "To Account",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "To Account. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Internal Transfer",
+        "base_type": "type/Boolean",
+        "description": "Internal Transfer. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Transaction Amount",
+        "base_type": "type/Decimal",
+        "description": "Transaction Amount. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Money In",
+        "base_type": "type/Decimal",
+        "description": "Money In. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Money Out",
+        "base_type": "type/Decimal",
+        "description": "Money Out. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Net Movement",
+        "base_type": "type/Decimal",
+        "description": "Net Movement. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Balance After",
+        "base_type": "type/Decimal",
+        "description": "Signed net cash; unavailable before the known opening. Later corrections restate history."
+      },
+      {
+        "name": "Available From",
+        "base_type": "type/Date",
+        "description": "Available From. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      },
+      {
+        "name": "Notes",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Notes. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+      }
+    ],
+    "rows": 163
+  },
+  "cashflow-daily": {
+    "id": 191,
+    "name": "Cashflow Daily Balances",
+    "collection_id": 8,
+    "grain": "One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts.",
+    "grain_field": "Position ID",
+    "database_view": "public.reporting_cashflow_daily",
+    "columns": [
+      {
+        "name": "Position ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "description": "Position ID. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
+      },
+      {
+        "name": "Scope ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Select exactly one scope; __ALL__ consolidates internal transfers."
+      },
+      {
+        "name": "Account",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Account. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
+      },
+      {
+        "name": "Date",
+        "base_type": "type/Date",
+        "description": "Date. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
+      },
+      {
+        "name": "Opening Balance",
+        "base_type": "type/Decimal",
+        "description": "Signed net cash; unavailable before the known opening. Later corrections restate history."
+      },
+      {
+        "name": "Money In",
+        "base_type": "type/Decimal",
+        "description": "Money In. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
+      },
+      {
+        "name": "Money Out",
+        "base_type": "type/Decimal",
+        "description": "Money Out. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
+      },
+      {
+        "name": "Net Movement",
+        "base_type": "type/Decimal",
+        "description": "Net Movement. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
+      },
+      {
+        "name": "Closing Balance",
+        "base_type": "type/Decimal",
+        "description": "Signed net cash; unavailable before the known opening. Later corrections restate history."
+      },
+      {
+        "name": "Transaction Count",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Quantity",
+        "description": "Transaction Count. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
+      },
+      {
+        "name": "Internal Transfer Count",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Quantity",
+        "description": "Internal Transfer Count. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
+      },
+      {
+        "name": "Available From",
+        "base_type": "type/Date",
+        "description": "Available From. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
+      },
+      {
+        "name": "Balance Status",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Signed net cash; unavailable before the known opening. Later corrections restate history."
+      }
+    ],
+    "rows": 115
   }
 }
