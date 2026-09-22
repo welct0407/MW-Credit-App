@@ -35,8 +35,13 @@
   "full_migration_complete": false,
   "flyway": {
     "before": 33,
-    "after": 33,
-    "new_migrations": []
+    "after": 34,
+    "new_migrations": [
+      "V34__income_reporting_views.sql"
+    ],
+    "deployment_commit": "63836d4905f23d5cfd6e1cbd916ec4a5a6091523",
+    "view_verification": "income-db-views-production.json",
+    "migration_sha256": "f9d48e797f1822b6e02a6ef4b40d6473ff792a44bc11160ef8a13fac7a0f39bf"
   },
   "status": "nine-pages-implemented-for-owner-review",
   "release": "R016",
@@ -79,5 +84,7 @@
   "additional_read_grants": "remaining-grants-applied.json",
   "remaining_batch_baseline": "a3964b43afd076ef8bc6f2d2cd86524a08a62066",
   "income_page_tests": "income-verification.json",
-  "source_access": "reporting-sources-grants-applied.json"
+  "source_access": "reporting-sources-grants-applied.json",
+  "income_view_access": "income-db-views-grants.json",
+  "income_view_switch": "income-db-views-switch.json"
 }

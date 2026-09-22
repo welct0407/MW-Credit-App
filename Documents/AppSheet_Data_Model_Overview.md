@@ -10,6 +10,8 @@ R016 has nine reporting pages available for owner review. Sixteen reusable Metab
 
 ## Entity groups and relationships
 
+R016 V34 moves the six Income Statement model queries into database-owned reporting views in DEV and PROD. Metabase retains the same model IDs and field metadata but reads each view directly. Heavy joins, source aggregation and running balances are defined in the immutable database migration; period filtering, simple totals/ratios and invocation of the existing FIFO function remain in the report query. Both the earlier model SQL and these views execute in PostgreSQL. Ordinary views stay live and do not precompute or cache results.
+
 The integration agent additionally owns the separate `mw_agent` database on the same Cloud SQL instance. Its runtime journals and append-only audit are excluded from AppSheet. Business databases contain internal `agent_audit` commit/row-change/export tables; capture runs only for the dedicated reviewer DML login. AppSheet operations retain ordinary guards and host-observed audit coverage. Current reviewers use AppSheet first and bounded SQL fallback, including approved exact-key DELETE without bypassing financial or reference guards. See [R015 evidence](../outputs/r015-20260922/production-report.md) and the dictionary DB sheets.
 
 | Group | Entities / grain | Responsibility |

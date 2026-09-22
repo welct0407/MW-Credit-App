@@ -1192,7 +1192,8 @@
         "description": "In Current Month. One row per immutable Expense ID through Bangkok today. Existing posted expense amount and category; signed statement amount and month boundaries centralized."
       }
     ],
-    "rows": 6
+    "rows": 6,
+    "database_view": "public.reporting_expenses"
   },
   "cash-accounts": {
     "id": 164,
@@ -1257,7 +1258,8 @@
         "description": "Balance Status. One row per immutable cash account. Existing cash-holder relationship and governed custody balances. Missing openings remain null; a holder with any missing opening has no chart total."
       }
     ],
-    "rows": 4
+    "rows": 4,
+    "database_view": "public.reporting_cash_accounts"
   },
   "income-monthly": {
     "id": 165,
@@ -1316,7 +1318,8 @@
         "description": "In Last 12 Months. One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
       }
     ],
-    "rows": 2
+    "rows": 2,
+    "database_view": "public.reporting_income_monthly"
   },
   "income-statement": {
     "id": 166,
@@ -1422,7 +1425,8 @@
         "description": "Reconciled only when the diagnostic difference is below half a satang; missing account openings stay unavailable."
       }
     ],
-    "rows": 1
+    "rows": 1,
+    "database_view": "public.reporting_income_statement"
   },
   "settlements": {
     "id": 185,
@@ -1472,7 +1476,8 @@
         "description": "Status. One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available."
       }
     ],
-    "rows": 2
+    "rows": 2,
+    "database_view": "public.reporting_settlements"
   },
   "income-daily": {
     "id": 186,
@@ -1549,6 +1554,7 @@
         "description": "Net Profit Through Date. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
       }
     ],
-    "rows": 53
+    "rows": 53,
+    "database_view": "public.reporting_income_daily"
   }
 }

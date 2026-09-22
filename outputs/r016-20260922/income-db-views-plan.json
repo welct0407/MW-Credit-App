@@ -17,6 +17,6 @@
     185,
     186
   ],
-  "status": "Prepared; not deployed",
+  "status": "Deployed to DEV and PROD; six live models switched and verified",
   "authorization": "Owner: heavy calculations should be built in database views and read directly from Metabase."
 }

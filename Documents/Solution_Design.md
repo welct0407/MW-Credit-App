@@ -4,6 +4,8 @@ Read the affected section when designing or changing app workflows, the model or
 
 ## Scope
 
+**Reporting computation rule, owner revision 22 September 2026:** reusable heavy reporting joins, financial aggregates and running calculations belong in governed PostgreSQL views/functions. Metabase models should provide thin source/field metadata, with visuals limited to selection, filters, simple aggregation/arithmetic and presentation. SQL authored in Metabase also executes in PostgreSQL, so moving it to an ordinary view improves ownership/reuse but does not by itself reduce database computation. Use measured query costs to justify any later materialization and its refresh policy. R016's six Income Statement models now follow this rule through V34 reporting views; the earlier ten models remain SQL-backed pending any separately scoped refinement.
+
 Prototype boundaries and execution rules are defined in [AGENTS](../AGENTS.md#3-essential-implementation-rules). This file owns application responsibility and reporting design decisions.
 
 ## OLTP Operations app

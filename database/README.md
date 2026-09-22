@@ -1,5 +1,9 @@
 # PostgreSQL development with Flyway
 
+## Current checkpoint — R016 reporting views, 22 September 2026
+
+DEV and PROD are **V34**. Six additive `public.reporting_*` views own Income Statement source joins, aggregates and running totals. Metabase reads the PROD views with SELECT-only access; existing source objects, AppSheet definitions and financial rows are unchanged. The exact tested deployment commit is `63836d4905f23d5cfd6e1cbd916ec4a5a6091523`. Disposable migration checks, DEV/PROD result parity and report-period checks passed. [R016 evidence](../outputs/r016-20260922/income-db-views-production.json). V34 is immutable; the next migration must be V35 or higher. Earlier checkpoints below are dated history.
+
 ## Current checkpoint — R014 in DEV and PROD, 21 September 2026
 
 DEV and PROD are **V32**. V32 adds Partners.AI Reviewer (NOT NULL, false default), selecting Tommy initially; OLAP owns administration and OLTP reads the field. The coordinated reviewer-only integration-agent policy is deployed. V31 adds the read-only Cash Dashboard and FIFO settlement helper without changing financial posting. Production OLTP 3.000245 / OLAP 1.100194 and DEV 1.000075 / 1.000031 have zero editor issues. The exact tested V31/V32 package passed production migration and 33-entry history validation after a verified restored backup. The next migration must be V33 or higher. [R014 production verification](../outputs/r014-20260921/production-report.md). V30 source-payment timestamps remain unchanged. DEV-only fixtures and recipient data must not be copied to PROD.

@@ -1,5 +1,15 @@
 # R016 — Nine-page Loan Reports review
 
+## Database-owned Income Statement sources — V34
+
+The owner requested reusable heavy calculations in PostgreSQL views. V34 was tested in DEV, then the same commit `63836d4905f23d5cfd6e1cbd916ec4a5a6091523` was promoted to PROD. The live report never changed database: source 2 remains `loan_manager_prod`. Six models now contain only direct SELECTs from `public.reporting_expenses`, `reporting_cash_accounts`, `reporting_income_monthly`, `reporting_income_statement`, `reporting_settlements` and `reporting_income_daily`. Existing columns, grains and model IDs remain identical. The shared period snippet retains date filtering, sums, simple arithmetic and calls to the existing PostgreSQL FIFO function.
+
+The earlier SQL also executed in PostgreSQL. This change centralizes ownership, reduces SQL expanded/submitted by Metabase and allows database consumers to reuse the definitions. Ordinary views do not cache results or eliminate repeated card queries. PROD single-run view execution timings were 0.6–11.5 ms; no measured need for materialization or larger Railway resources was found. These are diagnostic database execution timings, not end-to-end dashboard latency or a billing benchmark. Live source freshness and the current-cash/date-period distinction are unchanged.
+
+Validation: disposable migration rebuild/no-op/checksum and analytics/concurrency checks passed; six complete result multisets match old SQL in DEV and PROD; 101 income/filter checks passed after the switch. All nine layouts/parameters, model metadata and partner permissions match the saved baseline. SELECT-only access now includes six new views plus the original twelve sources; financial data, existing source definitions, AppSheet and infrastructure were untouched. See `income-db-views-development.json`, `income-db-views-production.json`, `income-db-views-switch-verification.json` and `income-db-views-grants.json`.
+
+Recovery: private `income-db-views-before` contains the six exact former model definitions/SQL, dashboard, permissions and dictionary. Restore those model queries if needed; leave the compatible additive views in place until an authorized forward migration. Fresh pre-promotion schema exports match; the verified-restored PROD dump hash was rechecked. The development API key remains retained under the owner's existing instruction. R016 final acceptance/key revocation/tag are still pending.
+
 [Open the dashboard](https://reports.mw-credit.com/dashboard/3). Nine tabs are implemented for review: 126 business visual placements from 122 questions, sixteen reusable models and two shared parameterized snippets. Pages 1–2 retain their accepted layouts and metric definitions. The borrower POC remains at dashboard 2. Full migration acceptance remains pending.
 
 ## Shared reporting models

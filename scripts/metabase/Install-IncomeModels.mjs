@@ -17,7 +17,7 @@ for(const [key,name,grain,description]of definitions){
  const tags={},query=raw(key).replace(/\{\{model:([^}]+)\}\}/g,(_,dep)=>{const m=models[dep];if(!m)throw Error('Missing model dependency');const tag='#'+m.id;tags[tag]={id:'r016-model-'+m.id,name:tag,'display-name':m.name,type:'card','card-id':m.id};return '{{'+tag+'}}';});
  const id=models[key]?.id;
  const c=await api(id?'PUT':'POST',id?'card/'+id:'card',{name,description,type:'model',display:'table',collection_id:8,visualization_settings:{},dataset_query:{database:2,type:'native',native:{query,'template-tags':tags}}});
- models[key]={id:c.id,name,collection_id:8,grain:description,grain_field:grain};write('models.json',models);
+ models[key]={id:c.id,name,collection_id:8,grain:description,grain_field:grain,database_view:query.match(/^SELECT \* FROM (public\.reporting_\w+)$/)?.[1]};write('models.json',models);
  const r=await api('POST',`card/${c.id}/query`,{});if(r.status!=='completed')throw Error('Saved income model failed '+key);
  const columns=r.data.cols.map(col=>({...col,semantic_type:col.name===grain?'type/PK':col.name==='Net Margin'?'type/Percentage':col.base_type==='type/Text'?'type/Category':col.semantic_type,
   description:descriptions[col.name]??`${col.name}. ${description}`,
