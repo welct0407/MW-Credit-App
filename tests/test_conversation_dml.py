@@ -208,5 +208,16 @@ class DatabaseTransactions(unittest.TestCase):
         data=dml.catalogue(self.bridge,'Borrowers')
         self.assertIn('City',data['writable_fields']);self.assertTrue(data['constraints'])
 
+    def test_persistent_session_tool_aliases_use_same_transaction(self):
+        self.bridge.dispatch('data_catalogue',{'app':'database','table':'Borrowers'})
+        observed=self.bridge.dispatch('read_records',{'app':'database','table':'Borrowers','keys':['b1'],
+            'columns':['Row ID'],'offset':0,'limit':1,'match_field':'','match_text':'','filter':''})
+        result=self.bridge.dispatch('api_action',{'app':'database','table':'transaction','action':'Edit',
+            'row_id':'','operation_key':'transaction','observation':'',
+            'row_json':json.dumps([step(observation=observed['observation'])]),
+            'expected_final_json':json.dumps({'reason':'Current reviewer correction'}),
+            'instruction_quote':'Correct these cities'})
+        self.assertTrue(result['write_verified']);self.assertEqual(self.city(),'New city')
+
 
 if __name__=='__main__':unittest.main()

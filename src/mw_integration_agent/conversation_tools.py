@@ -107,6 +107,28 @@ class ConversationTools:
         return sorted(set(definition['columns']) - HIDDEN)
 
     def dispatch(self, name, a):
+        # App Server 0.155.1 persists tool schemas at thread/start and has no
+        # dynamicTools override on thread/resume. Keep the established read /
+        # write tool names as typed compatibility routes; do not replace threads
+        # or edit their saved history to add the reviewer capability.
+        if a.get('app') == 'database':
+            from . import conversation_dml as dml
+            if name == 'data_catalogue':
+                return dml.catalogue(self, a['table'])
+            if name == 'read_records':
+                if (len(a['keys'])!=1 or a['match_field'] or a['match_text'] or a['filter']
+                        or a['offset']!=0 or a['limit']!=1):
+                    raise ConfigurationError('DATABASE_ALIAS_REQUIRES_ONE_EXACT_KEY')
+                return dml.read(self,a['table'],{'Row ID':a['keys'][0]})
+            if name == 'api_action':
+                from .conversation_write import object_json
+                reason=object_json(a['expected_final_json'])
+                if (a['table']!='transaction' or a['action']!='Edit' or a['row_id']
+                        or a['operation_key']!='transaction' or a['observation'] or set(reason)!={'reason'}):
+                    raise ConfigurationError('DATABASE_TRANSACTION_ALIAS_INVALID')
+                return dml.transaction(self,{'steps_json':a['row_json'],
+                    'instruction_quote':a['instruction_quote'],'reason':reason['reason']})
+            raise ConfigurationError('DATABASE_ALIAS_UNSUPPORTED')
         if name == 'data_catalogue':
             schema = self.schema()
             if not a['table']:

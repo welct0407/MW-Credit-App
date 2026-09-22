@@ -20,8 +20,11 @@ Private PROD backup: `C:/Users/MWCredit/Documents/ChatGPT/MW-Integration-Agent/r
 
 The restored rehearsal verified DML role INSERT/UPDATE, payment posting and dependent allocations/repayments/cash triggers. Reviewer self-grant, durable public DDL, direct borrower Delete and posted amount overwrite were rejected. All synthetic financial rows were rolled back. A first rehearsal exposed PostgreSQL's UPDATE privilege requirement for existing cash-account/holder row locks; narrow label-column grants resolved it without changing trigger code or exposing those tables to model mutation.
 
-Disposable PostgreSQL transaction tests: 18 passed, including atomic second-step rollback, stale snapshot rejection, final-state mismatch rollback, reviewer revocation before commit, actor protection, SQL-text-as-literal and lost-commit acknowledgement across journal reopen. Existing suite before new tests: 132 run, 3 platform skips, passed.
+Disposable PostgreSQL transaction tests: 19 passed, including atomic second-step rollback, stale snapshot rejection, final-state mismatch rollback, reviewer revocation before commit, actor protection, SQL-text-as-literal and lost-commit acknowledgement across journal reopen. Existing suite before new tests: 132 run, 3 platform skips, passed.
 
 Deployment/activation: pending final checks at this checkpoint. Package/config/journal backup and live read-only connection evidence will be recorded below. No forced Partner messages or production financial writes are used for acceptance. Owner interaction remains the acceptance test for a real intended correction that existing database guards permit.
 
 Production role provisioning completed with the rehearsed grants; no application data/schema changes. The Debian credential matches the retained private workstation recovery original (digest comparison without printing credentials). Conversation timer stopped for the bounded installation; other schedules retain ownership.
+
+
+Initial Debian package installation passed 150 tests (13 disposable-PostgreSQL tests skipped there; separately run locally). Package/config/journals backup: `/var/lib/mw-integration-agent/rollback/reviewed-20260922T044415Z`. Before activation, inspected installed App Server schema and found resumed threads cannot replace their tool definitions. Added typed database aliases through the existing discovery/read/write tools, retaining thread IDs/history and the identical DML authority checks. Real synthetic two-process acceptance is pending at this refinement checkpoint.
