@@ -120,7 +120,7 @@ class ConversationTools:
             if (name!='api_action' or a['action']!='Edit' or set(carrier)!={'owning_app'}
                     or carrier['owning_app'] not in ('oltp','olap') or object_json(a['expected_final_json'])):
                 raise ConfigurationError('API_DELETE_ALIAS_INVALID')
-            return api_action(self,{**a,'app':carrier['owning_app'],'action':'Delete','row_json':'{}'})
+            return self.observe(api_action(self,{**a,'app':carrier['owning_app'],'action':'Delete','row_json':'{}'}))
         # App Server 0.155.1 persists tool schemas at thread/start and has no
         # dynamicTools override on thread/resume. Keep the established read /
         # write tool names as typed compatibility routes; do not replace threads
