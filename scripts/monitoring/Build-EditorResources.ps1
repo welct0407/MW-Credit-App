@@ -25,6 +25,10 @@ foreach($page in @('performance','cost')) {
     $resource.spec.elements=$elements
     $resource.spec.layout=@{kind='RowsLayout';spec=@{rows=$rows}}
     $resource.spec.timeSettings.timezone=$d.timezone
+    $resource.spec.timeSettings.autoRefresh=$d.refresh
+    if($d.refresh -notin $resource.spec.timeSettings.autoRefreshIntervals){
+        $resource.spec.timeSettings.autoRefreshIntervals+=@($d.refresh)
+    }
     Save-MonitoringJson "outputs/resource-monitoring-20260922/$page-editor-resource.json" $resource
     Write-Output "$page : $($elements.Count) visual panels : $($d.timezone)"
 }

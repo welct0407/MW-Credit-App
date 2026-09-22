@@ -123,6 +123,68 @@ foreach($id in @(13,23,24)){
     $p=$perf.panels|Where-Object id -eq $id
     $p.description+= ' No directly comparable configured hard cap was exposed for this metric; no arbitrary threshold is drawn.'
 }
+# Overview row 2: the same single-value presentation as the CPU cards.
+foreach($id in @(6,7,8,9)) {
+    $p=$perf.panels|Where-Object id -eq $id
+    $p.type='stat';$p.gridPos.h=4
+    $p.options=($perf.panels|Where-Object id -eq 2).options.Clone()
+    $p.options.textMode='value'
+    $p.fieldConfig.overrides=@()
+}
+$sqlRam=$perf.panels|Where-Object id -eq 8
+$sqlRam.title='Cloud SQL · RAM used';$sqlRam.targets=@($sqlRam.targets[0])
+$sqlRam.description='Used component only, excluding Cache and Free. The detailed components chart remains below.'
+$railRam=$perf.panels|Where-Object id -eq 9
+$q=New-RailwayMetricQuery $metabase 'MEMORY_USAGE_GB' 'Used'
+$body=$q.url_options.data|ConvertFrom-Json
+$body.query=$body.query.Replace('measurements:[MEMORY_USAGE_GB]','measurements:[MEMORY_USAGE_GB,MEMORY_LIMIT_GB]')
+$q.url_options.data=$body|ConvertTo-Json -Compress
+$q.root_selector='if .errors then error(.errors|tostring) else ([.data.metrics[] | select(.measurement=="MEMORY_LIMIT_GB") | .values[]] | sort_by(.ts)) as $limits | [.data.metrics[] | select(.measurement=="MEMORY_USAGE_GB") | .values[] | . as $used | ([$limits[] | select(.ts <= $used.ts)] | last) as $limit | select($limit.value > 0) | {time:(.ts*1000),value:(100*.value/$limit.value)}] | sort_by(.time) | .[] end'
+$railRam.targets=@($q);$railRam.fieldConfig.defaults.unit='percent';$railRam.fieldConfig.defaults.decimals=0
+$railRam.fieldConfig.defaults.min=0;$railRam.fieldConfig.defaults.max=100
+$railRam.description='Metabase used RAM divided by its live Railway memory limit. Detailed memory and limit series remain below.'
+$railRam.title='Metabase · RAM used'
+foreach($id in @(6,7)){($perf.panels|Where-Object id -eq $id).title=($perf.panels|Where-Object id -eq $id).title.Replace('memory','RAM')}
+foreach($p in $perf.panels){if($p.gridPos.y -ge 12){$p.gridPos.y+=10}}
+
+function Add-HealthCard($Id,$Title,$Query,$X,$Y,$Description) {
+    $p=Add-Chart $perf $Id $Title $Query 'none' $X $Y 3 5 'stat' $Description
+    $p.options.graphMode='none';$p.options.textMode='value_and_name';$p.options.text=@{titleSize=11}
+    $p.fieldConfig.defaults.displayName=$Title
+    $p.fieldConfig.defaults.noValue='UNKNOWN';$p.fieldConfig.defaults.color=@{mode='thresholds'}
+    $p.fieldConfig.defaults.thresholds=@{mode='absolute';steps=@(@{value=$null;color='gray'})}
+    $p.fieldConfig.defaults.mappings=@(@{type='value';options=@{
+        '0'=@{text='DOWN';color='red'};'1'=@{text='UP';color='green'};
+        '2'=@{text='DEGRADED';color='orange'};'3'=@{text='PAUSED';color='blue'};'4'=@{text='UNKNOWN';color='gray'}
+    }})
+    return $p
+}
+$conn=Add-Chart $perf 50 'SQL · limit 200' ($connections.targets[0]) 'short' 0 11 3 5 'stat' 'Latest interval-average connection count across this shared Cloud SQL instance. Configured max_connections=200; reserved connections reduce client capacity.'
+$conn.fieldConfig.defaults.decimals=0;$conn.options.textMode='value'
+$conn.fieldConfig.defaults.displayName='SQL / 200';$conn.options.textMode='value_and_name';$conn.options.text=@{titleSize=11}
+$null=Add-HealthCard 51 'Webhook' (New-WebhookHealthQuery) 3 11 'External HTTPS check from three GCP regions, every five minutes. Verifies certificate, HTTP 200 and expected health response. UNKNOWN if fewer than three recent checker results; does not submit business events.'
+$null=Add-HealthCard 52 'Tunnel' (New-DebianHealthQuery 'tunnel') 6 11 'Debian cloudflared process and active edge connections: four healthy; fewer than four degraded; zero down. UNKNOWN after six minutes without a fresh report.'
+$null=Add-HealthCard 53 'Tailscale node' (New-DebianHealthQuery 'tailscale_node') 9 11 'Debian node reports Running and Online, with no local health warnings. This is node health, not an external peer connectivity test. UNKNOWN after six minutes without a fresh report.'
+$null=Add-HealthCard 54 'ChatGPT' (New-OpenAiHealthQuery 'chatgpt') 12 11 'OpenAI published status for available ChatGPT components: login, search, file uploads, voice, deep research, agent and desktop Codex. Provider status only; your account/session is not tested. Unrecognized/missing components show UNKNOWN.'
+$null=Add-HealthCard 55 'Codex' (New-OpenAiHealthQuery 'codex') 15 11 'OpenAI published Codex Web, API, CLI and VS Code service status. Independent of Debian; does not run a model prompt or verify your account quota.'
+$null=Add-HealthCard 56 'OLTP API' (New-DebianHealthQuery 'oltp') 18 11 'Bounded authenticated read-only production API probe from Debian. No business writes. Does not certify interactive browser load/sync. UNKNOWN after six minutes without a fresh report.'
+$null=Add-HealthCard 57 'OLAP API' (New-DebianHealthQuery 'olap') 21 11 'Bounded authenticated read-only production API probe from Debian. No business writes. Does not certify interactive browser load/sync. UNKNOWN after six minutes without a fresh report.'
+$cards=@(
+    @('Ingress','webhook_local','Local webhook receiver response and fresh monitor heartbeat.'),
+    @('Converse','conversations','Partner conversation timer, last completion/result and maximum run time.'),
+    @('Receipts','receipts','Receipt worker timer, last completion/result and maximum run time.'),
+    @('IG polling','polling','Instagram API reader timer, last completion/result and maximum run time.'),
+    @('Daily jobs','daily_jobs','Daily cash statement and email retry timers; last result and expected cadence. Idle between runs is healthy.'),
+    @('Database','database','Proxy service plus read-only SELECT 1 against agent state and reporting databases.'),
+    @('Audit relay','audit_relay','Audit relay timer and recent successful process result. Does not assert an empty business backlog.'),
+    @('Codex ready','codex_ready','Local Codex executable and login-status check. No model turn is generated; browser worker remains disabled.')
+)
+for($i=0;$i -lt $cards.Count;$i++){
+    $c=$cards[$i]
+    $null=Add-HealthCard (60+$i) $c[0] (New-DebianHealthQuery $c[1]) ($i*3) 16 ($c[2]+' Checked on Debian every two minutes; UNKNOWN after six minutes without fresh telemetry.')
+}
+$perf.refresh='2m'
+($perf.panels|Where-Object id -eq 1).options.content='**Azure · GCP · Railway** | Singapore time (UTC+8) · refresh 2 minutes. Rows: CPU · RAM · connectivity/providers/apps · Debian services. Availability is current: stale reports become UNKNOWN. Detailed charts and verified limits are below.'
 $perf.panels=@($perf.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 
 $cost=New-Dashboard 'mw-resource-cost' 'MW Resources · Cost' 'now/M' '1h'

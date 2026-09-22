@@ -24,6 +24,26 @@ function New-AzureMetricQuery {
     $selector='[.value[] | .timeseries[] | .data[] | select(.'+$Aggregation.ToLower()+' != null) | {time:.timeStamp,value:.'+$Aggregation.ToLower()+'}] | sort_by(.time) | .[]'
     New-InfinityQuery 'mw-azure-monitoring' $url $selector @((Column 'Time' 'timestamp' 'time'),(Column $Label 'number' 'value'))
 }
+function New-DebianHealthQuery([string]$Component) {
+    $filter=[uri]::EscapeDataString('metric.type = "custom.googleapis.com/mw_resource_monitoring/health" AND resource.labels.instance_id = "8223265527494214160" AND metric.labels.component = "'+$Component+'"')
+    $url='https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter='+$filter+'&interval.startTime='+$TimeFrom+'&interval.endTime='+$TimeTo+'&pageSize=100000'
+    $selector='[.timeSeries[]?.points[]?] | sort_by(.interval.endTime) | last as $p | {time:($p.interval.endTime // (now|todateiso8601)),value:(if $p == null or (now-($p.interval.endTime|sub("\\.[0-9]+Z$";"Z")|fromdateiso8601)) > 360 then 4 else ($p.value.int64Value|tonumber) end)}'
+    New-InfinityQuery 'mw-gcp-monitoring' $url $selector @((Column 'Time' 'timestamp' 'time'),(Column 'Status' 'number' 'value'))
+}
+function New-WebhookHealthQuery {
+    $check=Get-Content 'outputs/resource-monitoring-20260922/webhook-uptime-check.json' -Raw|ConvertFrom-Json
+    $id=($check.name -split '/')[-1]
+    $filter=[uri]::EscapeDataString('metric.type = "monitoring.googleapis.com/uptime_check/check_passed" AND metric.labels.check_id = "'+$id+'"')
+    $url='https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter='+$filter+'&interval.startTime='+$TimeFrom+'&interval.endTime='+$TimeTo+'&pageSize=100000'
+    $selector='[.timeSeries[]? | .points | sort_by(.interval.endTime) | last | select(. != null) | select((now-(.interval.endTime|sub("\\.[0-9]+Z$";"Z")|fromdateiso8601)) < 720)] as $p | {time:(now|todateiso8601),value:(if ($p|length) < 3 then 4 elif all($p[];.value.boolValue == true) then 1 elif all($p[];.value.boolValue == false) then 0 else 2 end)}'
+    New-InfinityQuery 'mw-gcp-monitoring' $url $selector @((Column 'Time' 'timestamp' 'time'),(Column 'Status' 'number' 'value'))
+}
+function New-OpenAiHealthQuery([string]$Product) {
+    $ids=if($Product -eq 'codex'){@('01JVCV8YSWZFRSM1G5CVP253SK','01KMP3KP5MGE23B80K1EK4S8PV','01KMKFAMWKNQ84Z1766MV08ZDE','01KMP3KP5M8X0EBTVW6KN327EE')}else{@('01JMXBNJXG1S2D9V65P1ZZTD94','01JMXBNJXGKKP51D4DEJ2HZJ8Q','01JMXBNJXG1YMQPPCPCQX3MPA2','01JMXBNJXGGT5SR5DB9J7GYY48','01JSYVYQSWMJ9QG35XHP08BHA7','01JSG1XMJ9RVJJQ0E85NVSJ2AZ','01KMKFAMWKQ81YWSE1Z18R6VHR')}
+    $selector=($ids|ConvertTo-Json -Compress)+' as $ids | [.components[] | select(.id as $id | $ids|index($id))] as $c | {time:(now|todateiso8601),value:(if ($c|length) != ($ids|length) then 4 elif any($c[];.status=="major_outage") then 0 elif any($c[];.status!="operational") then 2 else 1 end)}'
+    $source=Get-Content 'outputs/resource-monitoring-20260922/public-status-source.json' -Raw|ConvertFrom-Json
+    New-InfinityQuery $source.uid 'https://status.openai.com/api/v2/summary.json' $selector @((Column 'Time' 'timestamp' 'time'),(Column 'Status' 'number' 'value'))
+}
 function New-RailwayMetricQuery {
     param([string]$Service,[string]$Metric,[string]$Label='Value')
     $query='{ metrics(projectId:"c8e57452-36dc-41f1-8d00-856b521a96c7",environmentId:"df3ba125-0d62-446a-b4d8-5196780982c9",serviceId:"'+$Service+'",startDate:"'+$TimeFrom+'",endDate:"'+$TimeTo+'",measurements:['+$Metric+'],sampleRateSeconds:300,averagingWindowSeconds:300) {measurement values{ts value}} }'

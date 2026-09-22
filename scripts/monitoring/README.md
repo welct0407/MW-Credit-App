@@ -12,6 +12,16 @@ Use PowerShell 7 from the bundled runtime, with repository root as the current d
 
 `Monitoring.Common.ps1` uses the private path documented in the operating reference. A revoked/expired setup token must be replaced through authorized setup; dashboards do not need this token to run.
 
+## Availability collectors
+
+`debian-health.py` is installed independently at `/opt/mw-resource-monitoring/debian-health.py`; `mw-resource-health.service` uses the existing integration-agent Python virtual environment and mwagent identity. The matching systemd timer runs every two minutes. It reads existing private configuration in place and sends only numeric health states through the existing VM identity to GCP Monitoring. No credential copies or new public ports are needed. Installation consists of copying these three files to their respective `/opt/mw-resource-monitoring` and `/etc/systemd/system` paths, `systemctl daemon-reload`, then enabling the dedicated timer. Capture any existing copies before updates. Do not restart or invoke business jobs as part of installation.
+
+`test_debian_health.py` checks timer semantics. `test_availability_queries.py <performance-dashboard.json>` uses jq to exercise the actual dashboard selectors against failed, missing and stale fixtures. Run them with Python on Debian, where jq is already installed.
+
+The external webhook uptime check is owned by Google Cloud Monitoring, not either VM. Its saved configuration and the credential-free public OpenAI data source are under outputs. Keep the generated uptime check ID and public-source UID synchronized with `Query.Helpers.ps1`/the configuration files. No Azure scheduled probe is retained: VM-01 is not 24x7.
+
+Rollback: restore the private pre-availability dashboard resource, disable/stop only `mw-resource-health.timer` and its service, remove only its dedicated files/units after preserving evidence, and remove the dedicated uptime-check configuration/public-status source if no longer referenced. Existing provider metrics/data sources, workload jobs and historical monitoring samples are unaffected. GCP custom metric history may be retained after collector removal.
+
 For authenticated browser updates without a new API token, use Grafana's **Edit → Code** JSON resource editor. Capture its entire JSON to the private `performance-before-refinement-v2.json` / `cost-before-refinement-v2.json` baseline files before editing. `Build-EditorResources.ps1` converts the maintained classic dashboard JSON into that current v2 envelope and preserves the baseline's annotations/preferences. Apply the generated `*-editor-resource.json`, save with a change note, then verify the saved UI. These JSON resources contain dashboard definitions only, no credentials. Both formats are included for recovery; do not import both as separate dashboards.
 
 ## Initial provisioning (already completed)
