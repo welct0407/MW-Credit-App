@@ -1,5 +1,9 @@
 # PostgreSQL development with Flyway
 
+## Current checkpoint — R016 V35, 23 September 2026
+
+DEV and PROD are **V35**. `reporting_cash_account_daily` and `reporting_cash_daily` add read-only period-end custody/pool sources using posted dates and immutable account openings. Pre-opening balances are unavailable; later corrections restate history. Exact tested promotion commit: `e7fd3af40b572ab644856e7cc95d6a243f49a870`. Disposable CI and DEV/PROD reconciliation checks passed. Existing source definitions, posting and AppSheet are unchanged. [Cash-as-of checks](../outputs/r016-20260922/income-asof-production.json). V35 is immutable; next migration is V36 or higher. Earlier checkpoints below are historical.
+
 ## Current checkpoint — R016 reporting views, 22 September 2026
 
 DEV and PROD are **V34**. Six additive `public.reporting_*` views own Income Statement source joins, aggregates and running totals. Metabase reads the PROD views with SELECT-only access; existing source objects, AppSheet definitions and financial rows are unchanged. The exact tested deployment commit is `63836d4905f23d5cfd6e1cbd916ec4a5a6091523`. Disposable migration checks, DEV/PROD result parity and report-period checks passed. [R016 evidence](../outputs/r016-20260922/income-db-views-production.json). V34 is immutable; the next migration must be V35 or higher. Earlier checkpoints below are dated history.

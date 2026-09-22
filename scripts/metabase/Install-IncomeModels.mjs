@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import {api,assertSource,read,write,root,privateDir} from './ReportingApi.mjs';
-import {definitions,descriptions} from './IncomePage.mjs';
+import {definitions,descriptions,modelDescriptions} from './IncomePage.mjs';
 await assertSource();
 if(!fs.existsSync(privateDir+'/income-before/dashboard.json')||!fs.existsSync(root+'/outputs/r016-20260922/income-grants-applied.json'))throw Error('Missing income backup or authorized grant evidence');
 const models=read('models.json');
@@ -21,7 +21,7 @@ for(const [key,name,grain,description]of selectedDefinitions){
  models[key]={id:c.id,name,collection_id:8,grain:description,grain_field:grain,database_view:query.match(/^SELECT \* FROM (public\.reporting_\w+)$/)?.[1]};write('models.json',models);
  const r=await api('POST',`card/${c.id}/query`,{});if(r.status!=='completed')throw Error('Saved income model failed '+key);
  const columns=r.data.cols.map(col=>({...col,semantic_type:col.name===grain?'type/PK':col.name==='Net Margin'?'type/Percentage':col.base_type==='type/Text'?'type/Category':col.semantic_type,
-  description:descriptions[col.name]??`${col.name}. ${description}`,
+  description:modelDescriptions[key]?.[col.name]??descriptions[col.name]??`${col.name}. ${description}`,
   ...(/Decimal|Float|Integer|BigInteger/.test(col.base_type)&&col.name!==grain?{settings:{number_style:col.name==='Net Margin'?'percent':'decimal',decimals:col.name==='Net Margin'?1:2}}:{})}));
  await api('PUT','card/'+c.id,{result_metadata:columns});
  models[key].columns=columns.map(({name,base_type,semantic_type,description})=>({name,base_type,semantic_type,description}));models[key].rows=r.row_count;write('models.json',models);

@@ -23,10 +23,12 @@
       "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Operating Income\"]": {
-          "number_style": "decimal",
+          "number_style": "currency",
           "decimals": 0,
           "number_separators": ".,",
-          "compact": false
+          "compact": false,
+          "currency": "THB",
+          "currency_style": "symbol"
         }
       },
       "scalar.field": "Operating Income",
@@ -68,10 +70,12 @@
       "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Operating Expenses\"]": {
-          "number_style": "decimal",
+          "number_style": "currency",
           "decimals": 0,
           "number_separators": ".,",
-          "compact": false
+          "compact": false,
+          "currency": "THB",
+          "currency_style": "symbol"
         }
       },
       "scalar.field": "Operating Expenses",
@@ -108,10 +112,12 @@
       "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Net Profit\"]": {
-          "number_style": "decimal",
+          "number_style": "currency",
           "decimals": 0,
           "number_separators": ".,",
-          "compact": false
+          "compact": false,
+          "currency": "THB",
+          "currency_style": "symbol"
         }
       },
       "scalar.field": "Net Profit",
@@ -153,10 +159,12 @@
       "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Average Daily Net Profit\"]": {
-          "number_style": "decimal",
+          "number_style": "currency",
           "decimals": 0,
           "number_separators": ".,",
-          "compact": false
+          "compact": false,
+          "currency": "THB",
+          "currency_style": "symbol"
         }
       },
       "scalar.field": "Average Daily Net Profit",
@@ -236,10 +244,12 @@
       "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Tommy Draw\"]": {
-          "number_style": "decimal",
+          "number_style": "currency",
           "decimals": 0,
           "number_separators": ".,",
-          "compact": false
+          "compact": false,
+          "currency": "THB",
+          "currency_style": "symbol"
         }
       },
       "scalar.field": "Tommy Draw",
@@ -276,10 +286,12 @@
       "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Lisa Draw\"]": {
-          "number_style": "decimal",
+          "number_style": "currency",
           "decimals": 0,
           "number_separators": ".,",
-          "compact": false
+          "compact": false,
+          "currency": "THB",
+          "currency_style": "symbol"
         }
       },
       "scalar.field": "Lisa Draw",
@@ -316,10 +328,12 @@
       "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Unsettled Profit\"]": {
-          "number_style": "decimal",
+          "number_style": "currency",
           "decimals": 0,
           "number_separators": ".,",
-          "compact": false
+          "compact": false,
+          "currency": "THB",
+          "currency_style": "symbol"
         }
       },
       "scalar.field": "Unsettled Profit",
@@ -433,10 +447,12 @@
       "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Cash Pool Remaining\"]": {
-          "number_style": "decimal",
+          "number_style": "currency",
           "decimals": 0,
           "number_separators": ".,",
-          "compact": false
+          "compact": false,
+          "currency": "THB",
+          "currency_style": "symbol"
         }
       },
       "scalar.field": "Cash Pool Remaining",
@@ -473,10 +489,12 @@
       "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Business Cash Held\"]": {
-          "number_style": "decimal",
+          "number_style": "currency",
           "decimals": 0,
           "number_separators": ".,",
-          "compact": false
+          "compact": false,
+          "currency": "THB",
+          "currency_style": "symbol"
         }
       },
       "scalar.field": "Business Cash Held",

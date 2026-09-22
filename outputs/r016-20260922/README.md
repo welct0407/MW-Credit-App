@@ -1,6 +1,20 @@
 # R016 — Nine-page Loan Reports review
 
-## Database-owned Income Statement sources — V34
+## Current Income Statement — V35, 23 September 2026
+
+[Open page 9](https://reports.mw-credit.com/dashboard/3?tab=12). Fifteen visuals now show earnings, average daily net profit, partner draws, retained profit, a cash bridge, period-end pool/custody/holder/account balances and expense detail. Lifetime profit and monthly earnings are removed. Nine compact number cards share their dimensions and whole-baht formatting; chart labels/axes show full numbers. Metabase still auto-fits scalar font size to available space. Notes are short enough for phone display, with cash before expenses. The full dashboard now has 124 placements, 120 distinct questions, eighteen models and 256 fields.
+
+**Date semantics:** income/expenses/draw allocation use the selected continuous range. Average daily net profit divides selected net profit by calendar days through today, including zero-activity dates. Cash uses the selected **end date**, not the sum of daily balances. V35 derives pool from dated capital less dated loan principal plus principal repayments, and custody from dated ledger movements plus immutable opening-minus-baseline offsets. Full custody is available from 18 September 2026; earlier/missing account openings remain null. Later corrections restate history. This is reconstructed accounting history, not an immutable historical snapshot.
+
+**Cash bridge:** pool + earlier retained profit + selected-period unsettled profit + advances + reconciliation difference = cash held. Differences remain explicitly diagnostic, not additional income. Individual account balances, positive cash held and advances remain distinct. Unknown total custody suppresses the cash bridge rather than displaying a partial total.
+
+V35 was tested in DEV and promoted to PROD from `e7fd3af40b572ab644856e7cc95d6a243f49a870`; Metabase source 2 stays PROD. Two new thin models (187–188) read the two database views. Fourteen visual projections reuse the shared period snippet; expense categories use the expense model. The reporting login has SELECT-only on twenty named sources. No financial data, posting, existing source definitions, AppSheet or infrastructure changed.
+
+Verification: disposable CI, DEV/PROD dated OLTP statement/current balance comparisons, source/grain/period/FIFO/cash-bridge checks and desktop/390px browser checks. See `income-verification.json`, `income-asof-production.json`, `income-refinement-complete.json` and `income-browser-verification.json`. The period selector was checked against historical cash, not just today's balance. On narrow phones, use presets or landscape/desktop for the native wide custom-date picker; account tables scroll within their cards.
+
+Private recovery is in `income-refinement-before` and `income-refinement-complete`. Removed cards 176, 177 and 181 are recoverably archived after confirming no active dashboard uses them. Restore the prior snippet/cards/layout if rolling back presentation; compatible V35 views may remain unused. Dictionary and documentation record the current source mapping. Whole-R016 owner acceptance, key revocation and final release tag remain pending. The following sections retain earlier migration checkpoints where explicitly labelled.
+
+## V34 migration checkpoint — 22 September 2026
 
 The owner requested reusable heavy calculations in PostgreSQL views. V34 was tested in DEV, then the same commit `63836d4905f23d5cfd6e1cbd916ec4a5a6091523` was promoted to PROD. The live report never changed database: source 2 remains `loan_manager_prod`. Six models now contain only direct SELECTs from `public.reporting_expenses`, `reporting_cash_accounts`, `reporting_income_monthly`, `reporting_income_statement`, `reporting_settlements` and `reporting_income_daily`. Existing columns, grains and model IDs remain identical. The shared period snippet retains date filtering, sums, simple arithmetic and calls to the existing PostgreSQL FIFO function.
 
@@ -10,7 +24,7 @@ Validation: disposable migration rebuild/no-op/checksum and analytics/concurrenc
 
 Recovery: private `income-db-views-before` contains the six exact former model definitions/SQL, dashboard, permissions and dictionary. Restore those model queries if needed; leave the compatible additive views in place until an authorized forward migration. Fresh pre-promotion schema exports match; the verified-restored PROD dump hash was rechecked. The development API key remains retained under the owner's existing instruction. R016 final acceptance/key revocation/tag are still pending.
 
-[Open the dashboard](https://reports.mw-credit.com/dashboard/3). Nine tabs are implemented for review: 126 business visual placements from 122 questions, sixteen reusable models and two shared parameterized snippets. Pages 1–2 retain their accepted layouts and metric definitions. The borrower POC remains at dashboard 2. Full migration acceptance remains pending.
+[Open the dashboard](https://reports.mw-credit.com/dashboard/3). Nine tabs are implemented for review: 124 business visual placements from 120 questions, eighteen reusable models and two shared parameterized snippets. Pages 1–2 retain their accepted layouts and metric definitions. The borrower POC remains at dashboard 2. Full migration acceptance remains pending.
 
 ## Shared reporting models
 
@@ -105,7 +119,7 @@ The owner approved exactly [73 additional SELECT column grants](remaining-propos
 
 To reverse this batch, restore private `remaining-pages-before` dashboard/card definitions, archive new dependent questions/models, then revoke only the 73 added column privileges using the preserved prior ACL. The accepted POC and earlier grants stay intact. Current definitions are exported privately at completion. Owner acceptance and final migration closure remain pending.
 
-## Income Statement — page 9
+## Initial Income Statement checkpoint — superseded by V35 above
 
 [Open Income Statement](https://reports.mw-credit.com/dashboard/3?tab=12). The owner supplied the OLTP Income MTD screenshot and a shared **Business Money Breakdown Infographic** as conceptual references. Their example figures are not hardcoded. The page has 17 visuals: operating income, signed expenses, net profit/margin, a retained-profit waterfall, each partner's draw, unsettled profit, monthly earnings, expense categories, net profit through period end, and current cash/pool/check/holder/account information with statement dates.
 

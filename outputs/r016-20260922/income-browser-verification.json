@@ -1,15 +1,21 @@
 {
-  "verified_at": "2026-09-22T16:24:31.111Z",
+  "verified_at": "2026-09-22T17:22:47.1975037+00:00",
   "desktop": true,
-  "desktop_previous_month_selected": true,
+  "desktop_historical_period": "2026-09-01 through 2026-09-18",
+  "cash_changes_with_slicer": true,
+  "equal_number_card_dimensions": true,
+  "number_font_autofit": true,
+  "full_number_labels": true,
   "mobile_viewport": {
     "width": 390,
     "height": 844
   },
-  "mobile_portrait_totals_notes_tables": true,
-  "mobile_presets_usable": true,
-  "native_fixed_range_picker": "Wider than narrow portrait viewport; use landscape or desktop. Guidance included on page.",
+  "mobile_number_fonts_px": 35.2,
+  "mobile_note_text_height_px": 51,
+  "mobile_note_container_height_px": 64,
+  "mobile_notes_have_no_internal_overflow": true,
   "page_overflow_without_picker": false,
+  "native_fixed_range_picker": "Previously verified wide native picker; use landscape or desktop for custom dates",
   "viewport_reset": true,
   "default_thismonth_restored": true,
   "physical_phone_owner_review": "pending"

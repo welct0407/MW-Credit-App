@@ -1556,5 +1556,135 @@
     ],
     "rows": 53,
     "database_view": "public.reporting_income_daily"
+  },
+  "cash-account-daily": {
+    "id": 187,
+    "name": "Cash Accounts by Date",
+    "collection_id": 8,
+    "grain": "One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history.",
+    "grain_field": "Position ID",
+    "database_view": "public.reporting_cash_account_daily",
+    "columns": [
+      {
+        "name": "Position ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "description": "Position ID. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Date",
+        "base_type": "type/Date",
+        "description": "Date. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Cash Account ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Cash Account ID. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Cash Holder ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Cash Holder ID. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Cash Holder",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Cash Holder. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Account",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Account. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Current Balance",
+        "base_type": "type/Decimal",
+        "description": "Current Balance. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Business Cash Held",
+        "base_type": "type/Decimal",
+        "description": "Business Cash Held. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Advance Due",
+        "base_type": "type/Decimal",
+        "description": "Advance Due. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Available From",
+        "base_type": "type/Date",
+        "description": "Available From. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Balance Status",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Balance Status. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
+      },
+      {
+        "name": "Holder Cash Component",
+        "base_type": "type/Decimal",
+        "description": "Account cash held as of Date, only when all accounts for that holder have known balances at that date; sum by immutable Cash Holder ID."
+      }
+    ],
+    "rows": 216
+  },
+  "cash-daily": {
+    "id": 188,
+    "name": "Cash Position by Date",
+    "collection_id": 8,
+    "grain": "One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct.",
+    "grain_field": "Date",
+    "database_view": "public.reporting_cash_daily",
+    "columns": [
+      {
+        "name": "Date",
+        "base_type": "type/Date",
+        "semantic_type": "type/PK",
+        "description": "Date. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
+      },
+      {
+        "name": "Cash Pool Remaining",
+        "base_type": "type/Decimal",
+        "description": "Cash Pool Remaining. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
+      },
+      {
+        "name": "Business Cash Held",
+        "base_type": "type/Decimal",
+        "description": "Business Cash Held. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
+      },
+      {
+        "name": "Advance Due",
+        "base_type": "type/Decimal",
+        "description": "Advance Due. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
+      },
+      {
+        "name": "Retained Profit Through Date",
+        "base_type": "type/Decimal",
+        "description": "Cumulative net profit less completed partner settlements through Date. Includes earlier periods; distinct from the selected-period unsettled profit."
+      },
+      {
+        "name": "Cash Reconciliation Difference",
+        "base_type": "type/Decimal",
+        "description": "Business cash held minus advances, available cash pool and cumulative retained profit, all as of Date. A diagnostic difference, not additional income."
+      },
+      {
+        "name": "Cash Available From",
+        "base_type": "type/Date",
+        "description": "Latest known account opening date. Total custody remains unavailable if any account opening is missing."
+      },
+      {
+        "name": "Cash Status",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Cash Status. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
+      }
+    ],
+    "rows": 54
   }
 }

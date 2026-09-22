@@ -1,0 +1,10 @@
+{
+  "views": [
+    "reporting_cash_account_daily",
+    "reporting_cash_daily"
+  ],
+  "database": "loan_manager_prod",
+  "select_only": true,
+  "applied_at": "2026-09-22T17:02:50.9123064+00:00",
+  "approval": "Owner requested historical cash reporting through Metabase"
+}

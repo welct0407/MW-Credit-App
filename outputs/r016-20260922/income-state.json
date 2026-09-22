@@ -8,16 +8,19 @@
     "tommy": 173,
     "lisa": 174,
     "retained": 175,
-    "inception": 176,
-    "monthly": 177,
     "expense-category": 178,
     "cash-pool": 179,
     "cash-held": 180,
-    "cash-difference": 181,
     "holders": 182,
     "accounts": 183,
-    "period": 184
+    "period": 184,
+    "cash-bridge": 189
   },
   "tab_id": 12,
-  "snippet_id": 2
+  "snippet_id": 2,
+  "archived_cards": {
+    "inception": 176,
+    "monthly": 177,
+    "cash-difference": 181
+  }
 }

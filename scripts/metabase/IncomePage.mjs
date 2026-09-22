@@ -19,3 +19,11 @@ export const descriptions={
  'Partner Draws MTD':'Positive magnitude of current-month FIFO-allocated Tommy and Lisa withdrawals; not an operating cost.',
  'Unsettled Profit MTD':'Current-month net profit less completed FIFO-allocated partner withdrawals; does not assert all-period cash held.'
 };
+export const modelDescriptions={
+ 'cash-daily':{
+  'Cash Reconciliation Difference':'Business cash held minus advances, available cash pool and cumulative retained profit, all as of Date. A diagnostic difference, not additional income.',
+  'Retained Profit Through Date':'Cumulative net profit less completed partner settlements through Date. Includes earlier periods; distinct from the selected-period unsettled profit.',
+  'Cash Available From':'Latest known account opening date. Total custody remains unavailable if any account opening is missing.'
+ },
+ 'cash-account-daily':{'Holder Cash Component':'Account cash held as of Date, only when all accounts for that holder have known balances at that date; sum by immutable Cash Holder ID.'}
+};

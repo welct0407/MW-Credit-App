@@ -21,4 +21,5 @@ native('holders','Who holds the business cash? · period end','row','SELECT a."C
 native('accounts','Cash by account · period end','table','SELECT a."Cash Holder",a."Account",a."Current Balance",a."Business Cash Held",a."Advance Due",a."Balance Status" FROM statement s JOIN {{model:cash-account-daily}} a ON a."Date"=s."Period End" ORDER BY 1,2',[],['Current Balance','Business Cash Held','Advance Due'],{'table.pivot':false});
 native('period','Statement period & cash availability','table','SELECT "Period Start","Period End","Cash Available From","Selection Status","Cash Status" FROM statement',[],[]);
 for(const q of specs.filter(q=>['income','profit','margin','inception'].includes(q.key)))q.settings['scalar.segments']=[{min:-1e18,max:-0.00000001,color:C.expense},{min:0,max:1e18,color:C.income}];
+for(const q of specs.filter(q=>q.display==='scalar'))for(const format of Object.values(q.settings.column_settings))Object.assign(format,{number_style:'currency',currency:'THB',currency_style:'symbol'});
 write('income-questions.json',specs);console.log(`Built ${specs.length} income-page questions with one shared date-period snippet.`);

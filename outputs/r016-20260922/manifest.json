@@ -2,7 +2,7 @@
   "reservation_commit": "af677e4",
   "sql": "scripts/metabase/reporting-pages-1-2-grants.sql",
   "dashboard": {
-    "visuals": 126,
+    "visuals": 124,
     "collection": 5,
     "id": 3,
     "tabs": [
@@ -16,9 +16,9 @@
       11,
       12
     ],
-    "questions": 122,
+    "questions": 120,
     "source": 2,
-    "heading_and_note_cards": 45
+    "heading_and_note_cards": 44
   },
   "checklist": "promotion-checklist.md",
   "remaining": [
@@ -35,13 +35,16 @@
   "full_migration_complete": false,
   "flyway": {
     "before": 33,
-    "after": 34,
+    "after": 35,
     "new_migrations": [
-      "V34__income_reporting_views.sql"
+      "V34__income_reporting_views.sql",
+      "V35__income_cash_asof.sql"
     ],
-    "deployment_commit": "63836d4905f23d5cfd6e1cbd916ec4a5a6091523",
+    "deployment_commit": "e7fd3af40b572ab644856e7cc95d6a243f49a870",
     "view_verification": "income-db-views-production.json",
-    "migration_sha256": "f9d48e797f1822b6e02a6ef4b40d6473ff792a44bc11160ef8a13fac7a0f39bf"
+    "v34_deployment_commit": "63836d4905f23d5cfd6e1cbd916ec4a5a6091523",
+    "v34_migration_sha256": "f9d48e797f1822b6e02a6ef4b40d6473ff792a44bc11160ef8a13fac7a0f39bf",
+    "v35_migration_sha256": "9a6793c5b567006fb8ea3cfabb4616d4a4603f2cc734bd257b059b482f86496e"
   },
   "status": "nine-pages-implemented-for-owner-review",
   "release": "R016",
@@ -70,7 +73,9 @@
       165,
       166,
       185,
-      186
+      186,
+      187,
+      188
     ],
     "definitions": "scripts/metabase/models",
     "metadata": "models.json",
@@ -86,5 +91,7 @@
   "income_page_tests": "income-verification.json",
   "source_access": "reporting-sources-grants-applied.json",
   "income_view_access": "income-db-views-grants.json",
-  "income_view_switch": "income-db-views-switch.json"
+  "income_view_switch": "income-db-views-switch.json",
+  "income_cash_asof_tests": "income-asof-production.json",
+  "income_cash_asof_access": "income-asof-grants.json"
 }

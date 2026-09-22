@@ -1,5 +1,5 @@
 {
-  "verified_at": "2026-09-22T16:36:32.280Z",
+  "verified_at": "2026-09-22T17:16:13.246Z",
   "checks": [
     {
       "check": "income current month matches OLTP Cash Dashboard",
@@ -66,15 +66,23 @@
       "passed": true
     },
     {
-      "check": "previous-month monthly detail reconciles",
-      "passed": true
-    },
-    {
       "check": "previous-month expense categories reconcile",
       "passed": true
     },
     {
-      "check": "previous-month current cash remains current",
+      "check": "previous-month cash pool follows period end",
+      "passed": true
+    },
+    {
+      "check": "previous-month custody follows period end or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "previous-month cash bridge reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "previous-month account detail reconciles or is unavailable",
       "passed": true
     },
     {
@@ -110,15 +118,23 @@
       "passed": true
     },
     {
-      "check": "partial-month monthly detail reconciles",
-      "passed": true
-    },
-    {
       "check": "partial-month expense categories reconcile",
       "passed": true
     },
     {
-      "check": "partial-month current cash remains current",
+      "check": "partial-month cash pool follows period end",
+      "passed": true
+    },
+    {
+      "check": "partial-month custody follows period end or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "partial-month cash bridge reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "partial-month account detail reconciles or is unavailable",
       "passed": true
     },
     {
@@ -154,15 +170,179 @@
       "passed": true
     },
     {
-      "check": "cross-month monthly detail reconciles",
-      "passed": true
-    },
-    {
       "check": "cross-month expense categories reconcile",
       "passed": true
     },
     {
-      "check": "cross-month current cash remains current",
+      "check": "cross-month cash pool follows period end",
+      "passed": true
+    },
+    {
+      "check": "cross-month custody follows period end or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "cross-month cash bridge reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "cross-month account detail reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "partial-openings income",
+      "passed": true
+    },
+    {
+      "check": "partial-openings expenses",
+      "passed": true
+    },
+    {
+      "check": "partial-openings profit",
+      "passed": true
+    },
+    {
+      "check": "partial-openings tommy",
+      "passed": true
+    },
+    {
+      "check": "partial-openings lisa",
+      "passed": true
+    },
+    {
+      "check": "partial-openings retained",
+      "passed": true
+    },
+    {
+      "check": "partial-openings margin",
+      "passed": true
+    },
+    {
+      "check": "partial-openings waterfall retained total",
+      "passed": true
+    },
+    {
+      "check": "partial-openings expense categories reconcile",
+      "passed": true
+    },
+    {
+      "check": "partial-openings cash pool follows period end",
+      "passed": true
+    },
+    {
+      "check": "partial-openings custody follows period end or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "partial-openings cash bridge reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "partial-openings account detail reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "historical-cash income",
+      "passed": true
+    },
+    {
+      "check": "historical-cash expenses",
+      "passed": true
+    },
+    {
+      "check": "historical-cash profit",
+      "passed": true
+    },
+    {
+      "check": "historical-cash tommy",
+      "passed": true
+    },
+    {
+      "check": "historical-cash lisa",
+      "passed": true
+    },
+    {
+      "check": "historical-cash retained",
+      "passed": true
+    },
+    {
+      "check": "historical-cash margin",
+      "passed": true
+    },
+    {
+      "check": "historical-cash waterfall retained total",
+      "passed": true
+    },
+    {
+      "check": "historical-cash expense categories reconcile",
+      "passed": true
+    },
+    {
+      "check": "historical-cash cash pool follows period end",
+      "passed": true
+    },
+    {
+      "check": "historical-cash custody follows period end or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "historical-cash cash bridge reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "historical-cash account detail reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "prior-day income",
+      "passed": true
+    },
+    {
+      "check": "prior-day expenses",
+      "passed": true
+    },
+    {
+      "check": "prior-day profit",
+      "passed": true
+    },
+    {
+      "check": "prior-day tommy",
+      "passed": true
+    },
+    {
+      "check": "prior-day lisa",
+      "passed": true
+    },
+    {
+      "check": "prior-day retained",
+      "passed": true
+    },
+    {
+      "check": "prior-day margin",
+      "passed": true
+    },
+    {
+      "check": "prior-day waterfall retained total",
+      "passed": true
+    },
+    {
+      "check": "prior-day expense categories reconcile",
+      "passed": true
+    },
+    {
+      "check": "prior-day cash pool follows period end",
+      "passed": true
+    },
+    {
+      "check": "prior-day custody follows period end or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "prior-day cash bridge reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "prior-day account detail reconciles or is unavailable",
       "passed": true
     },
     {
@@ -198,15 +378,23 @@
       "passed": true
     },
     {
-      "check": "single-day monthly detail reconciles",
-      "passed": true
-    },
-    {
       "check": "single-day expense categories reconcile",
       "passed": true
     },
     {
-      "check": "single-day current cash remains current",
+      "check": "single-day cash pool follows period end",
+      "passed": true
+    },
+    {
+      "check": "single-day custody follows period end or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "single-day cash bridge reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "single-day account detail reconciles or is unavailable",
       "passed": true
     },
     {
@@ -242,15 +430,23 @@
       "passed": true
     },
     {
-      "check": "empty-past monthly detail reconciles",
-      "passed": true
-    },
-    {
       "check": "empty-past expense categories reconcile",
       "passed": true
     },
     {
-      "check": "empty-past current cash remains current",
+      "check": "empty-past cash pool follows period end",
+      "passed": true
+    },
+    {
+      "check": "empty-past custody follows period end or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "empty-past cash bridge reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "empty-past account detail reconciles or is unavailable",
       "passed": true
     },
     {
@@ -286,15 +482,23 @@
       "passed": true
     },
     {
-      "check": "all-dates monthly detail reconciles",
-      "passed": true
-    },
-    {
       "check": "all-dates expense categories reconcile",
       "passed": true
     },
     {
-      "check": "all-dates current cash remains current",
+      "check": "all-dates cash pool follows period end",
+      "passed": true
+    },
+    {
+      "check": "all-dates custody follows period end or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "all-dates cash bridge reconciles or is unavailable",
+      "passed": true
+    },
+    {
+      "check": "all-dates account detail reconciles or is unavailable",
       "passed": true
     },
     {
@@ -319,6 +523,14 @@
     },
     {
       "check": "income-daily unique non-null grain",
+      "passed": true
+    },
+    {
+      "check": "cash-account-daily unique non-null grain",
+      "passed": true
+    },
+    {
+      "check": "cash-daily unique non-null grain",
       "passed": true
     },
     {
@@ -354,14 +566,6 @@
       "passed": true
     },
     {
-      "check": "inception shared source",
-      "passed": true
-    },
-    {
-      "check": "monthly shared source",
-      "passed": true
-    },
-    {
       "check": "expense-category shared source",
       "passed": true
     },
@@ -374,7 +578,7 @@
       "passed": true
     },
     {
-      "check": "cash-difference shared source",
+      "check": "cash-bridge shared source",
       "passed": true
     },
     {
@@ -390,7 +594,7 @@
       "passed": true
     },
     {
-      "check": "Nine tabs, 126 visuals, existing eight-page layouts and filters preserved",
+      "check": "Nine tabs, 124 visuals, existing eight-page layouts and filters preserved",
       "passed": true
     },
     {
@@ -404,19 +608,31 @@
     {
       "check": "Non-contiguous exclusion suppresses financial figures and gives selection guidance",
       "passed": true
+    },
+    {
+      "check": "All nine number cards share identical size",
+      "passed": true
+    },
+    {
+      "check": "Lifetime profit and monthly earnings removed",
+      "passed": true
     }
   ],
-  "check_count": 101,
+  "check_count": 154,
   "default_period": "thismonth",
   "periods": [
     "previous-month",
     "partial-month",
     "cross-month",
+    "partial-openings",
+    "historical-cash",
+    "prior-day",
     "single-day",
     "empty-past",
     "all-dates"
   ],
-  "statement_source": "OLTP Cash Dashboard parity; direct source aggregation and independent FIFO arithmetic",
-  "current_cash_not_date_filtered": true,
+  "statement_source": "OLTP parity; independent FIFO arithmetic; historical custody and cash bridge",
+  "cash_filtered_to_period_end": true,
+  "average_daily_profit_denominator": "Calendar dates selected through today; zero-activity days included",
   "financial_values_published": false
 }
