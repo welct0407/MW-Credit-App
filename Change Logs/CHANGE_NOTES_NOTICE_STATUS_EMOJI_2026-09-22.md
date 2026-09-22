@@ -8,4 +8,4 @@ Reserved payloads, event/message keys, review correlation and delivery history a
 
 Rollback: restore the prior package from the reviewed installer backup, preserving current configuration and PostgreSQL journals. Existing successful Cloud SQL recovery remains applicable; no schema migration or operational backfill is performed.
 
-Status: implementation complete; relevant checks, publication and Debian installation pending. No live test message will be forced.
+Complete: 52 relevant local tests completed (51 passed, one platform skip); English/Thai rendering, all status categories and immutable input checks passed. Source 4b88bb4035dc45c87f714ab363c0d77f8deae04f published and installed on Debian through the reviewed updater. Its 185-test suite completed (155 passed, 30 optional skips), installed configuration validation passed and timers resumed. Private package/config backup: /var/lib/mw-integration-agent/rollback/reviewed-20260922T123743Z. No live test message was forced or prior notice replayed.
