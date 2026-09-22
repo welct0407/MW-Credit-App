@@ -81,3 +81,17 @@ Checks: 8 timer/group tests and 13 actual jq selector cases passed, including st
 Rollback restores the private dashboard capture; disables/removes only the new health timer/service/script; deletes the dedicated GCP uptime configuration and public source if unwanted. Existing business timers and provider access remain unchanged. Integration-agent operations documentation records the separate monitor. No AppSheet dictionary/schema/release change applies.
 
 Limits: Tailscale is node health, not a peer-path test. AppSheet checks API access, not interactive load/sync. Codex readiness is local executable/login state, not a model response or quota test. ChatGPT uses the public feed's available components, which does not expose every function separately. Audit relay health verifies the process schedule/result, not an empty business backlog. No alerts/notifications were added.
+
+## Compact grouped status overview — 22 September 2026
+
+Owner requested a smaller header, traffic-light states, logical groups, component icons and removal of duplicate names. Baseline commit `477dd191607a43521f8c4b525e93e3d6f0b5585e`; private rollback resource `performance-before-polish-v2.json` captured from Grafana before editing. Restore that resource in Edit → Code for rollback.
+
+- Replaced the three-unit title block with a one-unit context/legend strip. Native panel titles avoid Grafana text-body padding and HTML style sanitization. Initial markdown strips clipped; the temporary two-unit version was too tall and was superseded at the owner's request.
+- Arranged all 16 tiles into four visible groups: Connectivity, Apps & OpenAI, Agent workflows, Data & runtime. Each component has one label and a distinct Unicode icon (not a vendor logo).
+- Replaced UP/DOWN words with green/red/orange/blue/white lights and a shared legend. Missing/error data remains unknown. SQL remains a count with the verified 200-connection limit; the summary turns red at the limit.
+- Shortened all 16 tiles from five to three grid units (40%), reduced status-light size to 36 px, and moved the detailed charts up to remove empty space.
+- The earlier ChatGPT/Codex UNKNOWN display was the already-open dashboard failing to resolve the newly created public source. Reloading refreshed its source cache. Both showed healthy on this inspection; no change to provider queries or credentials was needed.
+
+Scope: maintained builder, both sanitized performance JSON formats and operating reference. Cost files retain their pre-existing formatting-only working-tree state; no cost behavior, collector, business job, model, schema or credential changed. Singapore timezone and two-minute refresh retained. Validation: JSON generation, no-overlap layout check, Grafana saved-state visual inspection of all groups/tiles and live provider states. No new runtime tests are needed for this presentation-only batch. Final visual verification and publication recorded below.
+
+Final verification: native strip titles render fully at the observed 1024 px browser width; all 16 compact tiles are visible, with 15 healthy status lights and a live SQL count. All 40 pre-existing panel query definitions are semantically unchanged. Grafana saves succeeded; no layout overlap. Owner's requested title/height corrections are included in this same batch.

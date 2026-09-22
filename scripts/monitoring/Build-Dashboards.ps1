@@ -184,7 +184,38 @@ for($i=0;$i -lt $cards.Count;$i++){
     $null=Add-HealthCard (60+$i) $c[0] (New-DebianHealthQuery $c[1]) ($i*3) 16 ($c[2]+' Checked on Debian every two minutes; UNKNOWN after six minutes without fresh telemetry.')
 }
 $perf.refresh='2m'
-($perf.panels|Where-Object id -eq 1).options.content='**Azure · GCP · Railway** | Singapore time (UTC+8) · refresh 2 minutes. Rows: CPU · RAM · connectivity/providers/apps · Debian services. Availability is current: stale reports become UNKNOWN. Detailed charts and verified limits are below.'
+# Compact overview: one-line context/legend, then two labeled pairs of status groups.
+$header=$perf.panels|Where-Object id -eq 1
+$header.title='Azure · GCP · Railway · SGT · 2m  |  🟢 Healthy  🟠 Degraded  🔴 Down  🔵 Paused  ⚪ Unknown';$header.gridPos.h=1
+$header.options.mode='markdown'
+$header.options.content=''
+foreach($p in $perf.panels){if($p.id -in @(2,3,4,5,6,7,8,9)){$p.gridPos.y-=2}}
+$groups=@(
+    @{id=70;name='CONNECTIVITY';x=0;y=9;cards=@(51,52,53,60);labels=@('🔗 Webhook','☁ Tunnel','🛡 Tailscale','📥 Ingress')},
+    @{id=71;name='APPS & OPENAI';x=12;y=9;cards=@(56,57,54,55);labels=@('📱 OLTP API','📊 OLAP API','💬 ChatGPT','⌘ Codex')},
+    @{id=72;name='AGENT WORKFLOWS';x=0;y=13;cards=@(61,62,63,64);labels=@('🗨 Converse','🧾 Receipts','📷 IG polling','📅 Daily jobs')},
+    @{id=73;name='DATA & RUNTIME';x=12;y=13;cards=@(50,65,66,67);labels=@('🛢 SQL / 200','🗄 Database','📋 Audit relay','⚙ Codex ready')}
+)
+foreach($group in $groups){
+    $perf.panels.Add(@{id=$group.id;title=$group.name;type='text';gridPos=@{x=$group.x;y=$group.y;w=12;h=1};options=@{mode='markdown';content=''}})
+    for($i=0;$i -lt $group.cards.Count;$i++){
+        $p=$perf.panels|Where-Object id -eq $group.cards[$i]
+        $p.title='';$p.fieldConfig.defaults.displayName=$group.labels[$i]
+        $p.gridPos=@{x=($group.x+3*$i);y=($group.y+1);w=3;h=3}
+        $p.options.text=@{titleSize=12;valueSize=36};$p.options.orientation='vertical'
+        if($p.id -ne 50){
+            $p.fieldConfig.defaults.noValue='⚪'
+            $p.fieldConfig.defaults.mappings=@(@{type='value';options=@{
+                '0'=@{text='🔴';color='red'};'1'=@{text='🟢';color='green'};
+                '2'=@{text='🟠';color='orange'};'3'=@{text='🔵';color='blue'};'4'=@{text='⚪';color='gray'}
+            }})
+        }
+    }
+}
+
+foreach($p in $perf.panels){if($p.gridPos.y -ge 22 -and $p.id -lt 50){$p.gridPos.y-=4}}
+$conn.fieldConfig.defaults.color=@{mode='thresholds'}
+Set-Limit $conn 200 'Red at the verified instance limit of 200 connections.'
 $perf.panels=@($perf.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 
 $cost=New-Dashboard 'mw-resource-cost' 'MW Resources · Cost' 'now/M' '1h'

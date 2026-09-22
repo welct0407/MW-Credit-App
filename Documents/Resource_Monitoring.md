@@ -13,7 +13,14 @@ The overview has four rows: CPU cards, matching RAM cards, connectivity/provider
 
 ## Availability rows
 
-Row 3 contains SQL connections (configured limit 200), public webhook, tunnel, Tailscale node, OpenAI ChatGPT/Codex published status, and separate production OLTP/OLAP API checks. Row 4 contains local ingress, conversation worker, receipt worker, Instagram polling, daily jobs, database access, audit relay and local Codex readiness.
+The 16 overview tiles are arranged in four visibly labeled groups across two rows:
+
+- **Connectivity:** public webhook, Cloudflare tunnel, Tailscale node, local ingress.
+- **Apps & OpenAI:** production OLTP/OLAP API probes, published ChatGPT/Codex status.
+- **Agent workflows:** conversation worker, receipt worker, Instagram polling, daily jobs.
+- **Data & runtime:** SQL connections (configured limit 200), database access, audit relay, local Codex readiness.
+
+Each tile has one label with a component icon. Status lights replace repeated UP text: green healthy, orange degraded, red down, blue paused, white unknown. The compact context strip contains the legend; the SQL tile remains a numeric count and turns red at 200. Icons are Unicode pictograms, not official vendor logos. The header and group strips use one grid unit with native panel titles; tiles use three units instead of five (40% shorter), with 36 px status lights. CPU/RAM summaries and detailed performance charts retain their existing meaning.
 
 - Debian runs the dedicated `mw-resource-health.timer` every two minutes, using `/opt/mw-resource-monitoring/debian-health.py` with the existing integration-agent virtual environment and `mwagent` identity. It exports only numeric states to `custom.googleapis.com/mw_resource_monitoring/health` through the existing VM identity's Monitoring Metric Writer permission. It starts no business workers and sends no test messages or model prompts. Business schedules/activation flags are unchanged.
 - States are DOWN (0), UP (1), DEGRADED (2), PAUSED (3), UNKNOWN (4). Missing reports or reports older than six minutes return UNKNOWN at query time. Timer checks use recent successful completion and a maximum run duration; a normally inactive one-shot service is healthy between runs. A failed member cannot be hidden by a healthy member in a grouped card.
@@ -21,6 +28,7 @@ Row 3 contains SQL connections (configured limit 200), public webhook, tunnel, T
 - Tailscale checks Debian's Running/Online state and local health warnings, as selected by the owner. It is not an external peer reachability test. Tunnel health checks the local process and Cloudflare HA connection metric: four connections healthy, fewer degraded, zero down.
 - Google Cloud uptime check `mw-webhook-external-health-ySLl0784KgI` independently checks `https://hooks.mw-credit.com/health` every five minutes from Singapore, Belgium and Oregon. It validates HTTPS, HTTP 200 and the expected response body. All three recent checks must pass for UP; mixed results are DEGRADED, all failures DOWN, and missing/stale checker reports UNKNOWN. It does not submit a webhook business event. Saved configuration: `webhook-uptime-check.json`.
 - OpenAI status comes directly from its public summary API via credential-free Infinity source `mw-public-status` (`cfz10a9eaokjkd`), restricted to `https://status.openai.com`. ChatGPT aggregates the feed's available login/search/uploads/voice/deep-research/agent/desktop components; Codex aggregates Web/API/CLI/VS Code. Missing expected components return UNKNOWN. These are published provider reports, not tests of this account/session, and the feed does not expose every ChatGPT function separately.
+- The initial OpenAI UNKNOWN/error display was caused by the already-open dashboard not resolving the newly created data source. Reloading refreshed that source cache; both provider cards subsequently returned healthy. A later UNKNOWN must still be investigated using the panel error or missing-component result rather than assumed to have the same cause.
 - Availability selectors test freshness against current time even if the dashboard range is historical; a historical range cannot turn stale data green. A refresh is required to update the display. Query errors show UNKNOWN with Grafana's error indicator. No new notifications or alert policies were installed.
 
 VM-01 is not available 24x7 and is **not** a monitoring dependency. Its provisional external-probe script and scoped publisher role were removed; no scheduled task was installed. The external webhook check and OpenAI queries are independent of both VMs. Other Debian-local cards become UNKNOWN if Debian stops reporting.
