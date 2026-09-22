@@ -216,6 +216,16 @@ foreach($group in $groups){
 foreach($p in $perf.panels){if($p.gridPos.y -ge 22 -and $p.id -lt 50){$p.gridPos.y-=4}}
 $conn.fieldConfig.defaults.color=@{mode='thresholds'}
 Set-Limit $conn 200 'Red at the verified instance limit of 200 connections.'
+# Static stat labels use native vertical centering without text-panel header padding.
+foreach($p in @($perf.panels|Where-Object id -in @(1,70,71,72,73))){
+    $label=$p.title
+    $p.title='';$p.type='stat'
+    $q=New-InfinityQuery 'cfz10a9eaokjkd' '' '.[]' @((Column 'Label' 'string' 'label')) 'table'
+    $q.source='inline';$q.data=ConvertTo-Json -InputObject @(@{label=$label}) -Compress
+    $p.datasource=$q.datasource;$p.targets=@($q)
+    $p.fieldConfig=@{defaults=@{color=@{mode='fixed';fixedColor='text'};noValue=$label};overrides=@()}
+    $p.options=@{reduceOptions=@{calcs=@('lastNotNull');fields='';values=$true};colorMode='none';graphMode='none';textMode='value';justifyMode='left';orientation='horizontal';wideLayout=$true;text=@{valueSize=14}}
+}
 $perf.panels=@($perf.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 
 $cost=New-Dashboard 'mw-resource-cost' 'MW Resources · Cost' 'now/M' '1h'
