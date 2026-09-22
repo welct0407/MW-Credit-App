@@ -40,5 +40,7 @@
   "reviewer_dml_enabled": false,
   "reviewer_dml_cutoff": null,
   "database_dml_user": "mw_reviewer_dml",
-  "database_dml_password_file": "/etc/mw-integration-agent/secrets/reviewer-dml-password.txt"
+  "database_dml_password_file": "/etc/mw-integration-agent/secrets/reviewer-dml-password.txt",
+  "receipt_auto_payment_enabled": false,
+  "receipt_forwarding_enabled": false
 }

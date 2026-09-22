@@ -85,8 +85,20 @@ def scan(config,api,master,journal,now=None,day=None):
                     if attachments.get('paging',{}).get('next'):raise ConfigurationError('POLL_ATTACHMENTS_INCOMPLETE')
                     items=attachments.get('data',[])
                     valid=sender in allowed
+                    forwarded=False
+                    forwarding_evidence=None
+                    if not valid and config.get('receipt_forwarding_enabled') is True:
+                        from .receipt_identity import forwarded_borrower
+                        from .receipt_rules import ReceiptInvalid
+                        forward_cutoff=datetime.fromisoformat(config['receipt_forwarding_cutoff']).timestamp()
+                        if ts>=forward_cutoff:
+                            try:
+                                matched=forwarded_borrower(config,master,participants,sender)
+                                forwarding_evidence=json.dumps({'forwarded_borrower_id':matched['id']})
+                                valid=forwarded=True
+                            except ReceiptInvalid:pass
                     inserted=db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',
-                       (message['id'],cid,ts,now,'BORROWER' if valid else 'IGNORED')).rowcount
+                       (message['id'],cid,ts,now,'FORWARDED' if forwarded else ('BORROWER' if valid else 'IGNORED'))).rowcount
                     if not inserted:continue
                     added+=1
                     if not valid:continue
@@ -95,8 +107,8 @@ def scan(config,api,master,journal,now=None,day=None):
                         if not url:continue
                         key=hashlib.sha256(f"{message['id']}:{index}".encode()).hexdigest()
                         images+=db.execute('''INSERT OR IGNORE INTO receipt_jobs
-                          (id,message_id,sender_id,url,status,created_at) VALUES (?,?,?,?,'PENDING',?)''',
-                          (key,message['id'],sender,url,now)).rowcount
+                          (id,message_id,sender_id,url,status,created_at,result) VALUES (?,?,?,?,'PENDING',?,?)''',
+                          (key,message['id'],sender,url,now,forwarding_evidence)).rowcount
                 if not day:db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(cid,now))
             counts['new_messages']+=added;counts['image_jobs']+=images
     return counts

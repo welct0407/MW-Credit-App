@@ -119,6 +119,26 @@ class PostgreSQLStateTests(unittest.TestCase):
                 raise RuntimeError('simulated crash before commit')
         self.assertIsNone(store.thread(self.key))
 
+    def test_forwarded_provenance_and_automatic_decision_are_durable(self):
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        review=ReviewStore(receipt.db)
+        key=review.reserve(self.key,{'action':'Lump Sum','synthetic':True})
+        with receipt.db:
+            receipt.db.execute('INSERT OR IGNORE INTO conversation_poll_messages VALUES (?,?,?,?,?)',
+                               (self.key,'synthetic-group',time.time(),time.time(),'FORWARDED'))
+            receipt.db.execute("UPDATE partner_reviews SET state='APPROVED',deciding_partner=?,detail=? WHERE id=? AND state='PENDING'",
+                               ('synthetic-actor','OWNER_AUTHORIZED_AUTO_PAYMENT',key))
+        receipt.close()
+        reopened=ReceiptJournal('receipt-processing.db',self.config)
+        row=reopened.db.execute('SELECT conversation_id,outcome FROM conversation_poll_messages WHERE message_id=?',(self.key,)).fetchone()
+        self.assertEqual((row['conversation_id'],row['outcome']),('synthetic-group','FORWARDED'))
+        row=reopened.db.execute('SELECT state,detail,decision_message FROM partner_reviews WHERE id=?',(key,)).fetchone()
+        self.assertEqual((row['state'],row['detail'],row['decision_message']),('APPROVED','OWNER_AUTHORIZED_AUTO_PAYMENT',None))
+        with reopened.db:
+            self.assertEqual(reopened.db.execute("UPDATE partner_reviews SET state='POSTING',payment_id=? WHERE id=? AND state='APPROVED'",('synthetic-payment',key)).rowcount,1)
+            self.assertEqual(reopened.db.execute("UPDATE partner_reviews SET state='POSTING',payment_id=? WHERE id=? AND state='APPROVED'",('synthetic-payment',key)).rowcount,0)
+        reopened.close()
+
     def test_audit_immutability_and_duplicate_hash(self):
         with state.transaction(self.config) as c:
             op=audit.begin(c,self.config,'test',self.key,plan={'value':1})

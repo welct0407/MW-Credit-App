@@ -33,6 +33,11 @@ class ConfigurationTests(unittest.TestCase):
             with self.assertRaises(ConfigurationError):
                 load_json(path)
 
+    def test_receipt_automation_requires_explicit_policy_configuration(self):
+        for flag in ('receipt_auto_payment_enabled','receipt_forwarding_enabled'):
+            config=load_json(ROOT/'config.example.json');config[flag]=True
+            with self.subTest(flag=flag),self.assertRaises(ConfigurationError):validate_config(config)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -35,7 +35,7 @@
         <mxCell id="validate" value="Receipt worker: map borrower&#10;Extract image and validate receipt" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,receipts">
           <mxGeometry x="500" y="580" width="400" height="115" as="geometry" />
         </mxCell>
-        <mxCell id="post" value="Linked Partner approval&#10;Ordinary payment + exact readback" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,review">
+        <mxCell id="post" value="Ordinary payment: automatic + readback&#10;Other actions: linked reviewer process" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,automatic-receipt">
           <mxGeometry x="940" y="765" width="400" height="115" as="geometry" />
         </mxCell>
         <mxCell id="identity" value="Current Partner identity, language&#10;IG route and messaging window" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,identity">
@@ -257,7 +257,7 @@
         <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s2" value="IG participant ID → username → one AI-enabled Borrower" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s2" value="Borrower sender or verified Lisa forward&#10;Exact group → one AI-enabled borrower" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
@@ -287,7 +287,7 @@
         <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="stop">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Today/yesterday Bangkok only.&#10;Active receiving account; primary or alternative number.&#10;Reference/image duplicate → stop.&#10;Nonreceipt or disabled/unmapped borrower → ignore.&#10;Invalid receipt → REVIEW.&#10;CURRENT: Partner review before ordinary posting; no group reply.&#10;receipt-prepare accepts borrower/date/message parameters and reuses the same extraction and rules." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Today/yesterday Bangkok only.&#10;Active account; primary or alternative number.&#10;Reference/image/manual-payment duplicates stop.&#10;Lisa forwards: exactly Lisa + account + borrower.&#10;Recheck current group before processing/posting.&#10;Ordinary payments: automatic after fresh checks.&#10;Other actions: reviewer/manual process.&#10;No historical replay or group reply." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
         </mxCell>
         <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;receipt_run.py · receipt_rules.py · receipt_image.py · payment_match.py&#10;receipt_master.py · receipt_journal.py · receipt_prepare.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
@@ -1019,7 +1019,7 @@
         <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="Reserve new message IDs and shared receipt image jobs" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s4" value="Reserve borrower / verified Lisa-forwarded images; preserve sender and group" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e12" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
@@ -1037,7 +1037,7 @@
         <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="stop">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;API only; no browser automation.&#10;Observed three-participant conversations are readable through expanded list fields.&#10;Direct group-history endpoint failed.&#10;More than 100 unseen messages → stop; no cursor advance.&#10;Other senders / text / non-images → ignore.&#10;Fresh activation cutoff; no historical replay.&#10;Polled records never refresh signed IG reply windows.&#10;No group send or payment write." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;Official API only; no browser automation.&#10;Read expanded conversation-list fields.&#10;Incomplete history: stop; do not advance.&#10;Lisa forwards: exactly three distinct members.&#10;Third member must be one AI-enabled borrower.&#10;New forwarding cutoff; no historical replay.&#10;Other senders / non-images ignored.&#10;Polled events cannot authorize reviewer replies." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
         </mxCell>
         <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;conversation_poll.py · receipt_journal.py · receipt_run.py&#10;mw-conversation-poll.timer · docs/CONVERSATION_POLL.md" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
@@ -1060,10 +1060,10 @@
         <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
           <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="s0" value="Validated receipt → current balances and existing-payment checks" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s0" value="Review-required proposal (or earlier pending review) → current facts" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="s1" value="Send localized proposal to Partners by IG; email fallback is informational" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s1" value="Send localized proposal only to AI Reviewers; IG first, email backup" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
@@ -1081,13 +1081,13 @@
         <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s4" value="First valid decision wins; ordinary payment → fresh checks and one Add" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s4" value="Approval: manual handling; earlier ordinary reviews retain guarded Add" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e12" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="s5" value="Closure / overpayment → manual; verified posting → Partner result" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+        <mxCell id="s5" value="Closures / overpayments stay manual; verified posting → enabled Partners" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
         </mxCell>
         <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
@@ -1106,6 +1106,68 @@
           <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
         </mxCell>
         <mxCell id="detail" value="DECISION DETAIL&#10;Yes / Approve / Approved / อนุมัติ after trimming, case insensitive?" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="automatic-receipt" name="18 · Automatic receipt payment">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1400" pageHeight="1900">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="18. Automatic ordinary receipt payment" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="30" width="1280" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="status" value="STATUS: LIVE  |  Return to all services" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,overview">
+          <mxGeometry x="60" y="100" width="1280" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="s0" value="New validated receipt after policy cutoff" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="220" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="s1" value="Direct borrower or Lisa forward: verify identity and exact group" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="430" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s0" target="s1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s2" value="Fresh date, account, balance and duplicate/manual-payment checks" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="640" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s1" target="s2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="Proposed action is&#10;Record payment?" style="rhombus;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="850" width="320" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s2" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s4" value="Persist automatic policy decision; one guarded Payments Add as Tommy" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1060" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="s4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s5" value="Verify exact posting; inform enabled Partners by IG in preferred language" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="1270" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s4" target="s5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="stop" value="Other actions → existing reviewer process&#10;Closure / overpayment remains manual" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1" link="data:page/id,review">
+          <mxGeometry x="70" y="850" width="340" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=0;endArrow=block;endFill=1;strokeColor=#475569;fontColor=#334155;fontSize=14;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="s3" target="stop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="context" value="RULES / EXCEPTIONS&#10;&#10;No reviewer approval for ordinary payments.&#10;Tommy Created By; automatic processing note.&#10;Receipt date/time kept to the minute.&#10;New cutoffs; existing reviews stay unchanged.&#10;Changed facts or duplicates: no Add.&#10;UNKNOWN: readback only, never repeat Add.&#10;IG first; email remains backup.&#10;No borrower/group notification." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="990" y="220" width="340" height="720" as="geometry" />
+        </mxCell>
+        <mxCell id="scripts" value="IMPLEMENTING SCRIPTS / RUNTIME&#10;receipt_identity.py · review_cycle.py · review_execution.py&#10;partner_notice.py · activate-receipt-automation.py" style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1480" width="1280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="detail" value="DECISION DETAIL&#10;Only Lump Sum / Record payment is automatic; other actions keep review." style="rounded=1;arcSize=12;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#999999;fontColor=#172b4d;fontSize=16;align=center;verticalAlign=middle;spacing=12;" vertex="1" parent="1">
           <mxGeometry x="60" y="1650" width="1280" height="140" as="geometry" />
         </mxCell>
       </root>

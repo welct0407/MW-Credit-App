@@ -1,11 +1,11 @@
-"""Receipt -> correlated Partner review -> guarded ordinary payment or manual handling."""
+"""Receipt -> automatic ordinary payment or correlated Partner review/manual handling."""
 import json
 import sqlite3
 from .state import connect as state_connect, enabled as state_enabled
 from datetime import datetime
 from pathlib import Path
 from .config import ConfigurationError
-from .receipt_rules import ReceiptInvalid,borrower_for,BANGKOK
+from .receipt_rules import ReceiptInvalid,BANGKOK
 from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
@@ -13,6 +13,14 @@ from .partner_review import ReviewStore,request_text
 from .review_proposal import facts,plan
 from .review_execution import add_payment,readback
 from .cash_statement import read_query
+from .receipt_identity import receipt_borrower
+
+AUTO_POLICY='OWNER_AUTHORIZED_AUTO_PAYMENT'
+
+
+def automatic_payment(config,job,proposal):
+    return (config.get('receipt_auto_payment_enabled') is True and proposal['action']=='Lump Sum'
+            and job['created_at']>=datetime.fromisoformat(config['receipt_auto_payment_cutoff']).timestamp())
 
 
 def reviewer_partners(live):
@@ -30,10 +38,17 @@ def cycle(config,journal,identity_reader):
         for job in db.execute("SELECT * FROM receipt_jobs WHERE status='VALIDATED' AND created_at>=?",(cutoff,)).fetchall():
             result=json.loads(job['result']);live=masters(config)
             try:
-                b=borrower_for(identity_reader(config,job['sender_id']),live['borrowers'])
+                b=receipt_borrower(config,job,journal,live,identity_reader)
                 if b['id']!=result['borrower']['id']:raise ReceiptInvalid('BORROWER_CHANGED')
                 check(config,result['receipt'],b)
                 proposal=plan(result['receipt'],b,facts(config,b['id']))
+                if automatic_payment(config,job,proposal):
+                    key=reviews.reserve(job['id'],proposal)
+                    with db:
+                        db.execute("UPDATE partner_reviews SET state='APPROVED',deciding_partner=?,detail=? WHERE id=? AND state='PENDING'",
+                                   (config['receipt_auto_actor_partner_id'],AUTO_POLICY,key))
+                        db.execute("UPDATE receipt_jobs SET status='REVIEW_REQUESTED' WHERE id=?",(job['id'],))
+                    continue
                 recipients=reviewer_partners(live)
                 if not recipients:
                     journal.mark(job['id'],'VALIDATED','NO_AI_REVIEWER')
@@ -72,7 +87,8 @@ def cycle(config,journal,identity_reader):
                     with db:db.execute("UPDATE partner_reviews SET state='POSTED',payment_id=? WHERE id=?",(key,review['id']))
                 continue
             live=masters(config)
-            if review['deciding_partner'] not in live.get('reviewer_ids',[]):
+            automatic=review['detail']==AUTO_POLICY
+            if not automatic and review['deciding_partner'] not in live.get('reviewer_ids',[]):
                 with db:db.execute("UPDATE partner_reviews SET state='STALE',detail='APPROVING_REVIEWER_REMOVED' WHERE id=?",(review['id'],))
                 continue
             if proposal['action']!='Lump Sum':
@@ -81,12 +97,24 @@ def cycle(config,journal,identity_reader):
             if config.get('partner_review_execution_enabled') is not True:continue
             live=masters(config)
             try:
-                matches=[p for p in reviewer_partners(live) if p['id']==review['deciding_partner'] and p['enabled'] is True]
-                if len(matches)!=1:raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
-                sent=notices.db.execute("SELECT partner FROM partner_notices WHERE event_key=? AND partner_id=? AND ig_status='ACCEPTED'",('review:'+review['id'],review['deciding_partner'])).fetchone()
-                if not sent or json.loads(sent[0])!=matches[0]:raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
                 job=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(review['job_id'],)).fetchone()
-                b=borrower_for(identity_reader(config,job['sender_id']),live['borrowers'])
+                if automatic:
+                    if not automatic_payment(config,job,proposal):continue
+                    if review['deciding_partner']!=config.get('receipt_auto_actor_partner_id'):
+                        raise ReceiptInvalid('AUTO_ACTOR_CHANGED')
+                    matches=[p for p in live['partners'] if p['id']==review['deciding_partner']]
+                    if len(matches)!=1:raise ReceiptInvalid('AUTO_ACTOR_UNMAPPED')
+                else:
+                    matches=[p for p in reviewer_partners(live) if p['id']==review['deciding_partner'] and p['enabled'] is True]
+                    if len(matches)!=1:raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
+                    sent=notices.db.execute("SELECT partner FROM partner_notices WHERE event_key=? AND partner_id=? AND ig_status='ACCEPTED'",('review:'+review['id'],review['deciding_partner'])).fetchone()
+                    if not sent or json.loads(sent[0])!=matches[0]:raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
+                b=receipt_borrower(config,job,journal,live,identity_reader)
+                if b['id']!=proposal['borrower']['id']:raise ReceiptInvalid('BORROWER_CHANGED')
+                from datetime import timedelta
+                today=datetime.now(BANGKOK).date()
+                if proposal['receipt']['date'] not in (today.isoformat(),(today-timedelta(days=1)).isoformat()):
+                    raise ReceiptInvalid('RECEIPT_DATE_TOO_OLD')
                 check(config,proposal['receipt'],b)
                 fresh=plan(proposal['receipt'],b,facts(config,b['id']))
                 if fresh!=proposal:raise ReceiptInvalid('PROPOSAL_FACTS_CHANGED')
@@ -101,13 +129,15 @@ def cycle(config,journal,identity_reader):
             with db:
                 claimed=db.execute("UPDATE partner_reviews SET state='POSTING',payment_id=? WHERE id=? AND state='APPROVED'",(key,review['id'])).rowcount
             if not claimed:continue
-            try:add_payment(config,key,proposal,actors[0])
+            posting_config=dict(config,_receipt_automatic=True) if automatic else config
+            try:add_payment(posting_config,key,proposal,actors[0])
             except Exception:pass
             verified=readback(config,key,proposal)
             with db:db.execute("UPDATE partner_reviews SET state=? WHERE id=?",('POSTED' if verified else 'UNKNOWN',review['id']))
         for review in db.execute("SELECT * FROM partner_reviews WHERE state IN ('POSTED','REJECTED','MANUAL_REQUIRED','STALE','EXPIRED','UNKNOWN')").fetchall():
             proposal=json.loads(review['proposal']);live=masters(config)
             for p in live['partners']:
+                if review['state']=='POSTED' and p['enabled'] is not True:continue
                 if review['state']=='POSTED':subject,body=receipt_notice(proposal['receipt'],proposal['borrower'],p['language'],review['payment_id'])
                 else:
                     thai=p['language']=='ไทย'
@@ -122,6 +152,10 @@ def cycle(config,journal,identity_reader):
         for notice in notices.due():
             if not notice['event_key'].startswith(('review:','review-result:')):continue
             live=masters(config)
+            if notice['event_key'].startswith('review-result:') and notice['event_key'].endswith(':POSTED'):
+                if not any(p['id']==notice['partner_id'] and p['enabled'] is True for p in live['partners']):
+                    with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))
+                    continue
             if notice['event_key'].startswith('review:'):
                 if notice['partner_id'] not in live.get('reviewer_ids',[]):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='NOT_AI_REVIEWER' WHERE id=?",(notice['id'],))

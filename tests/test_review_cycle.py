@@ -19,6 +19,9 @@ class CycleTests(unittest.TestCase):
         self.b={'id':'b','username':'borrower','enabled':True,'name_en':'Test'}
         self.p={'id':'p','username':'partner','enabled':True,'language':'English','email':'test@example.invalid'}
         self.proposal={'action':'Lump Sum','borrower':self.b,'receipt':{'amount':'100.00','date':'2026-09-21','time':'12:10','reference':'TESTREF','account_id':'a','account_label':'Test'},'facts':{},'loan_id':None}
+        from datetime import datetime
+        from mw_integration_agent.receipt_rules import BANGKOK
+        self.proposal['receipt']['date']=datetime.now(BANGKOK).date().isoformat()
         self.store=ReviewStore(self.j.db);self.key=self.store.reserve('job',self.proposal)
         self.j.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,created_at) VALUES ('job','message','123','','REVIEW_REQUESTED',0)")
         self.j.db.execute("UPDATE partner_reviews SET state='APPROVED',deciding_partner='p' WHERE id=?",(self.key,));self.j.db.commit()
@@ -56,6 +59,68 @@ class CycleTests(unittest.TestCase):
         self.j.db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id='old'")
         self.j.db.execute("UPDATE receipt_jobs SET id='new-job',status='VALIDATED',created_at=?,result=?",(time.time(),json.dumps({'receipt':self.proposal['receipt'],'borrower':self.b})))
         self.j.db.commit()
+
+    def enable_auto(self):
+        self.config.update(receipt_auto_payment_enabled=True,receipt_auto_payment_cutoff='2026-01-01T00:00:00+00:00',
+                           receipt_auto_actor_partner_id='p')
+
+    def test_auto_posts_without_reviewer_or_request_and_restarts_safely(self):
+        self.validated_job();self.enable_auto();self.masters.return_value['reviewer_ids']=[]
+        self.run_cycle();self.run_cycle()
+        self.assertEqual(self.add_payment.call_count,1)
+        self.assertTrue(self.add_payment.call_args.args[0]['_receipt_automatic'])
+        self.assertEqual(self.add_payment.call_args.args[3],'actor@example.invalid')
+        row=self.j.db.execute("SELECT id,state,decision_message FROM partner_reviews WHERE job_id='new-job'").fetchone()
+        self.assertEqual(row['state'],'POSTED');self.assertIsNone(row['decision_message'])
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertIsNone(notices.db.execute('SELECT 1 FROM partner_notices WHERE event_key=?',('review:'+row['id'],)).fetchone())
+        finally:notices.close()
+
+    def test_auto_unknown_never_repeats_payment(self):
+        self.validated_job();self.enable_auto();self.readback.return_value=False
+        self.add_payment.side_effect=TimeoutError()
+        self.run_cycle();self.run_cycle();self.assertEqual(self.add_payment.call_count,1)
+
+    def test_auto_manual_actions_still_request_review(self):
+        for action in ('Loan Close','Overpayment review'):
+            with self.subTest(action=action):
+                self.proposal['action']=action
+                # Pure policy check ensures no manual action is auto-authorized.
+                from mw_integration_agent.review_cycle import automatic_payment
+                self.enable_auto()
+                self.assertFalse(automatic_payment(self.config,{'created_at':9999999999},self.proposal))
+        self.validated_job();self.run_cycle();self.add_payment.assert_not_called()
+        self.assertEqual(self.j.db.execute("SELECT state FROM partner_reviews WHERE job_id='new-job'").fetchone()[0],'PENDING')
+
+    def test_auto_duplicate_or_changed_facts_blocks_post(self):
+        from mw_integration_agent.receipt_rules import ReceiptInvalid
+        self.validated_job();self.enable_auto()
+        self.check.side_effect=[None,ReceiptInvalid('PAYMENT_ALREADY_RECORDED')]
+        self.run_cycle();self.add_payment.assert_not_called()
+        self.assertEqual(self.j.db.execute("SELECT state FROM partner_reviews WHERE job_id='new-job'").fetchone()[0],'STALE')
+
+    def test_auto_no_conversion_of_old_pending_review(self):
+        self.enable_auto()
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING'");self.j.db.commit()
+        self.run_cycle();self.add_payment.assert_not_called()
+
+    def test_auto_disabled_after_reservation_does_not_post(self):
+        self.enable_auto()
+        from mw_integration_agent.review_cycle import AUTO_POLICY
+        self.j.db.execute('UPDATE partner_reviews SET detail=?',(AUTO_POLICY,));self.j.db.commit()
+        self.config['receipt_auto_payment_enabled']=False
+        self.run_cycle();self.add_payment.assert_not_called()
+
+    def test_auto_cutoff_keeps_earlier_validated_receipt_in_review(self):
+        self.validated_job();self.enable_auto();self.config['receipt_auto_payment_cutoff']='2099-01-01T00:00:00+00:00'
+        self.run_cycle();self.add_payment.assert_not_called()
+
+    def test_success_only_enabled_partners(self):
+        self.masters.return_value['partners'].append(dict(self.p,id='disabled',enabled=False))
+        self.run_cycle()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertEqual({r[0] for r in notices.db.execute("SELECT partner_id FROM partner_notices WHERE event_key LIKE 'review-result:%'")},{'p'})
+        finally:notices.close()
     def test_new_requests_only_to_reviewer(self):
         self.validated_job()
         self.masters.return_value['partners'].append(dict(self.p,id='other',username='other'))

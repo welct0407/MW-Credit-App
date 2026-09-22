@@ -1,4 +1,4 @@
-"""One approved ordinary receipt -> one Payments Add; unknown results never replay."""
+"""One authorized ordinary receipt -> one Payments Add; unknown results never replay."""
 import json
 import urllib.request
 from decimal import Decimal
@@ -11,6 +11,8 @@ from .cash_statement import read_query
 def add_payment(config,key,proposal,actor):
     if config.get('partner_review_execution_enabled') is not True:raise ConfigurationError('REVIEW_EXECUTION_DISABLED')
     if proposal['action']!='Lump Sum':raise ConfigurationError('PARTNER_MANUAL_HANDLING_REQUIRED')
+    if config.get('_receipt_automatic') and config.get('receipt_auto_payment_enabled') is not True:
+        raise ConfigurationError('AUTOMATIC_PAYMENT_DISABLED')
     if config['appsheet_app_id']!='93844270-6aa5-420b-a960-bcdf08abd357':raise ConfigurationError('WRONG_PAYMENT_APP')
     r=proposal['receipt']
     row={'Row ID':key,'Status':'Processing','Ref Borrower':proposal['borrower']['id'],
@@ -18,7 +20,7 @@ def add_payment(config,key,proposal,actor):
          'Bank Reference':r['reference'],'Ref Received By Cash Account':r['account_id'],
          'Payment Date':r['date'][5:7]+'/'+r['date'][8:10]+'/'+r['date'][:4],
          'Created At':r['date'][5:7]+'/'+r['date'][8:10]+'/'+r['date'][:4]+' '+r['time'][:5]+':00',
-         'Created By':actor,'Notes':'Approved Instagram receipt review '+key}
+         'Created By':actor,'Notes':('Automatic Instagram receipt payment ' if config.get('_receipt_automatic') else 'Approved Instagram receipt review ')+key}
     url='https://www.appsheet.com/api/v2/apps/'+config['appsheet_app_id']+'/tables/Payments/Action'
     req=urllib.request.Request(url,data=json.dumps({'Action':'Add','Properties':{'Locale':'en-US','Timezone':'Asia/Bangkok'},'Rows':[row]}).encode(),
         headers={'Content-Type':'application/json','ApplicationAccessKey':load_secret(config,'appsheet_key_file')},method='POST')

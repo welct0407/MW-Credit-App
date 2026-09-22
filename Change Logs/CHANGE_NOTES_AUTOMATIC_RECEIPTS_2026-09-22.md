@@ -1,0 +1,18 @@
+# Automatic ordinary payments and Lisa-forwarded receipts — 22 September 2026
+
+Owner authorized ordinary Record payment proposals to execute automatically, with successful results sent to all IG Integration Enabled Partners in their preferred language. Other proposals retain reviewer/manual handling. Owner separately chose Tommy for Created By. Lisa-forwarded receipts are authorized only through the exact three-member group containing Lisa, the authenticated tttlll8709 account and the borrower.
+
+Baseline: 1588296e3a9ee95836cf61956d07a3416cc5b6ca; clean tree before changes. Scope is runtime/configuration/documentation only: no AppSheet definition or database schema changes, no new product release. Current PostgreSQL journals remain authoritative.
+
+Implementation:
+- Dedicated automatic-payment flag/cutoff and configured actor Partner ID. Only new Lump Sum proposals qualify. Durable owner-policy marker distinguishes automatic execution from a human reply. Current actor Login Email is read from production Partners; notes identify automatic processing. Existing pending reviews are preserved.
+- Before Add: fresh AI-enabled borrower/group mapping, today/yesterday date, active account, duplicate/manual-payment checks and unchanged proposal/balance facts. POSTING commits first; uncertain outcomes use readback only, never repeat Add. Closures and overpayments still require reviewer/manual handling.
+- Success notices select currently IG Integration Enabled Partners and recheck opt-in at dispatch. Preferred-language IG first, existing email backup retained. No group/borrower notice.
+- Forwarded images preserve the actual sender, poll group provenance and captured borrower ID in existing JSON state. Exactly three unique participant IDs/usernames are required. Current group membership is rechecked before extraction and posting; changing the third member to another valid borrower also rejects. New forwarding cutoff excludes historical ignored messages.
+- Updated service catalogue revision 16, operating guides and process diagram (overview, receipt validation, polling, reviewer page, new page 18 for automatic ordinary payments). Configuration examples keep both new flags disabled.
+
+Verification: 185 tests completed locally, 168 passed and 17 unrelated platform/optional DML tests skipped. PostgreSQL state integration tests ran against the isolated private local lab, including durable forwarding provenance and atomic one-time automatic claim. Negative tests cover unknown outcomes, duplicate/manual payment, no reviewer dependence for automatic payment, existing pending reviews, disabled policy, manual actions, group ambiguity and changed borrower membership. The initial bundled runtime lacked psycopg; verification used the repository venv. The initially stopped lab was started on its configured isolated port before successful integration tests. No production fixture payment or notification was forced.
+
+Recovery: successful full Cloud SQL backup 1790067547833 completed 2026-09-22 09:00:59 UTC on appsheet-pg-prod-20260914, covering business and agent databases. Reviewed updater will preserve package/configuration; activation privately snapshots config before atomic replacement. Disable new policy flags to stop automatic posting/forward intake; preserve current PostgreSQL journals and never restore old journals or switch back to SQLite. Financial outcomes require reconciliation, not package rollback.
+
+Status: local verification complete; production package installation, policy activation and natural scheduled-run verification pending. New cutoffs will be recorded below. No historical replay authorized.

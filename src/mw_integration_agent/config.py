@@ -35,6 +35,21 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
+    for flag,cutoff,identity in (
+            ('receipt_auto_payment_enabled','receipt_auto_payment_cutoff','receipt_auto_actor_partner_id'),
+            ('receipt_forwarding_enabled','receipt_forwarding_cutoff','receipt_forwarder_partner_id')):
+        if type(config.get(flag,False)) is not bool:raise ConfigurationError(flag+' must be boolean')
+        if config.get(flag):
+            from datetime import datetime
+            try:
+                if datetime.fromisoformat(config[cutoff]).tzinfo is None:raise ValueError()
+            except (KeyError,TypeError,ValueError):raise ConfigurationError(cutoff+' required') from None
+            if not config.get(identity):raise ConfigurationError(identity+' required')
+            if not config.get('partner_review_enabled'):raise ConfigurationError('receipt automation requires review flow')
+    if config.get('receipt_auto_payment_enabled') and not config.get('partner_review_execution_enabled'):
+        raise ConfigurationError('automatic payment requires execution enabled')
+    if config.get('receipt_forwarding_enabled') and not config.get('receipt_group_account_username'):
+        raise ConfigurationError('forwarding requires group account username')
     if config.get('state_backend', 'sqlite') not in ('sqlite','postgres'):
         raise ConfigurationError('unknown state backend')
     if config.get('state_backend') == 'postgres':

@@ -11,6 +11,7 @@ from .instagram import Instagram
 from .receipt_image import download,extract
 from .receipt_journal import ReceiptJournal
 from .receipt_master import masters
+from .receipt_identity import receipt_borrower
 from .payment_match import check as check_existing_payment
 from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,validate_receipt,username
 
@@ -72,7 +73,7 @@ def conversation_identity(config,sender,api=None):
 
 def process(job,journal,config,master,fetch=download,extractor=extract,identity_reader=conversation_identity):
     try:
-        borrower=borrower_for(identity_reader(config,job['sender_id']),master['borrowers'])
+        borrower=receipt_borrower(config,job,journal,master,identity_reader)
         if job['image'] is None:
             data,digest=fetch(job['url'])
             journal.image(job['id'],data,digest)
@@ -80,13 +81,14 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
         if journal.duplicate(job['image_hash']):
             journal.mark(job['id'],'DUPLICATE','RECEIPT_ALREADY_PROCESSED'); return
         value=extractor(config,job['image'])
+        provenance={k:v for k,v in json.loads(job.get('result') or '{}').items() if k=='forwarded_borrower_id'}
         with journal.db:
-            journal.db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps({'extraction':value}),job['id']))
+            journal.db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps({'extraction':value,**provenance}),job['id']))
         receipt=validate_receipt(value,master['accounts'])
         if receipt['reference'] in master.get('posted_references',[]):
             journal.mark(job['id'],'DUPLICATE','REFERENCE_ALREADY_IN_PAYMENTS'); return
         check_existing_payment(config,receipt,borrower)
-        journal.accept(job,{'receipt':receipt,'borrower':borrower},[])
+        journal.accept(job,{'receipt':receipt,'borrower':borrower,**provenance},[])
     except ReceiptInvalid as exc:
         if str(exc)=='PAYMENT_ALREADY_RECORDED':
             journal.mark(job['id'],'DUPLICATE',str(exc));return

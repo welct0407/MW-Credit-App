@@ -18,9 +18,16 @@ class ExecutionBoundaryTests(unittest.TestCase):
             data=json.loads(call.call_args.args[0].data);row=data['Rows'][0]
             self.assertEqual(row['Created At'],'09/21/2026 12:10:00');self.assertEqual(row['Amount Received'],'100.00')
             self.assertEqual(row['Allocation Method'],'Lump Sum');self.assertEqual(data['Action'],'Add')
+            c.update(_receipt_automatic=True,receipt_auto_payment_enabled=True)
+            add_payment(c,'igr:auto',p,'actor@example.invalid')
+            auto=json.loads(call.call_args.args[0].data)['Rows'][0]
+            self.assertEqual(auto['Created By'],'actor@example.invalid')
+            self.assertTrue(auto['Notes'].startswith('Automatic Instagram receipt payment'))
+            c['receipt_auto_payment_enabled']=False
+            with self.assertRaises(ConfigurationError):add_payment(c,'igr:blocked',p,'actor@example.invalid')
             p['action']='Loan Close'
             with self.assertRaises(ConfigurationError):add_payment(c,'igr:test',p,'actor@example.invalid')
-            self.assertEqual(call.call_count,1)
+            self.assertEqual(call.call_count,2)
     def test_signed_reply_link_survives_capture(self):
         payload={'object':'instagram','entry':[{'id':'999','messaging':[{'sender':{'id':'123'},'recipient':{'id':'999'},'timestamp':100000,'message':{'mid':'in','text':'YES','reply_to':{'mid':'out'}}}]}]}
         messages=extract_messages(payload,'999',now=101)

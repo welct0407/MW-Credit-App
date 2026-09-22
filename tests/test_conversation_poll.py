@@ -56,3 +56,47 @@ class PollTests(unittest.TestCase):
         message=self.message();message['attachments']['paging']={'next':'unused'}
         with self.assertRaises(ConfigurationError):scan(self.c,self.api([message]),self.master,self.j,self.now)
         self.assertEqual(len(self.j.pending()),0)
+
+    def forwarding(self):
+        self.master['borrowers'][0]['id']='borrower-row'
+        self.c.update(receipt_forwarding_enabled=True,receipt_forwarder_partner_id='p',
+                      receipt_group_account_username='business',receipt_forwarding_cutoff='2026-09-21T00:00:00+00:00')
+        self.master['partners']=[{'id':'p','username':'partner'}]
+
+    def test_forwarded_receipt_preserves_sender_and_group_evidence(self):
+        self.forwarding();api=self.api([self.message('forwarded','456')])
+        self.assertEqual(scan(self.c,api,self.master,self.j,self.now)['image_jobs'],1)
+        self.assertEqual(self.j.pending()[0]['sender_id'],'456')
+        row=self.j.db.execute('SELECT conversation_id,outcome FROM conversation_poll_messages').fetchone()
+        self.assertEqual(tuple(row),('group','FORWARDED'))
+        self.assertEqual(scan(self.c,api,self.master,self.j,self.now)['image_jobs'],0)
+        from mw_integration_agent.receipt_identity import receipt_borrower
+        self.assertEqual(receipt_borrower(self.c,self.j.pending()[0],self.j,self.master,Mock(side_effect=AssertionError()),api=api),
+                         self.master['borrowers'][0])
+
+    def test_forwarding_requires_exact_membership(self):
+        self.forwarding()
+        from mw_integration_agent.receipt_identity import forwarded_borrower
+        from mw_integration_agent.receipt_rules import ReceiptInvalid
+        peers=self.api([]).request.return_value['data'][0]['participants']['data']
+        for people,sender in [(peers+[{'id':'5','username':'unknown'}],'456'),(peers[:2],'456'),
+                              (peers,'999'),(peers,'123'),(peers,'unknown')]:
+            with self.subTest(people=people,sender=sender),self.assertRaises(ReceiptInvalid):
+                forwarded_borrower(self.c,self.master,people,sender)
+        self.master['borrowers'][0]['enabled']=False
+        with self.assertRaises(ReceiptInvalid):forwarded_borrower(self.c,self.master,peers,'456')
+
+    def test_forwarded_earlier_message_not_replayed(self):
+        self.forwarding();self.c['receipt_forwarding_cutoff']='2026-09-21T01:00:00+00:00'
+        self.assertEqual(scan(self.c,self.api([self.message('forwarded','456')]),self.master,self.j,self.now)['image_jobs'],0)
+
+    def test_forwarded_membership_changed_before_processing_blocks(self):
+        self.forwarding();api=self.api([self.message('forwarded','456')])
+        scan(self.c,api,self.master,self.j,self.now)
+        api.request.return_value['data'][0]['participants']['data'][0]['username']='someone_else'
+        from mw_integration_agent.receipt_identity import receipt_borrower
+        from mw_integration_agent.receipt_rules import ReceiptInvalid
+        with self.assertRaises(ReceiptInvalid):receipt_borrower(self.c,self.j.pending()[0],self.j,self.master,Mock(),api=api)
+        self.master['borrowers'].append({'id':'different-borrower','username':'someone_else','enabled':True})
+        with self.assertRaisesRegex(ReceiptInvalid,'FORWARDED_BORROWER_CHANGED'):
+            receipt_borrower(self.c,self.j.pending()[0],self.j,self.master,Mock(),api=api)
