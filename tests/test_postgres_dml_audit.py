@@ -78,6 +78,24 @@ class TransactionAudit(unittest.TestCase):
             self.assertEqual(c.execute("SELECT count(*) FROM audit.events WHERE operation_id=%s AND event_kind='row_changed'",(op,)).fetchone()[0],1)
             self.assertEqual(c.execute('SELECT state FROM runtime.operation_state WHERE operation_id=%s',(op,)).fetchone()[0],'VERIFIED')
 
+    def test_unapproved_trigger_delete_rolls_back_all_rows(self):
+        from psycopg import sql
+        child=self.key+'-unapproved'
+        name='synthetic_delete_'+uuid.uuid4().hex
+        with psycopg.connect(**self.base,dbname='loan_manager_prod') as c:
+            c.execute('INSERT INTO public."Borrowers" ("Row ID","Borrower Name") VALUES (%s,%s)',(child,'Synthetic dependent'))
+            c.execute(sql.SQL('CREATE FUNCTION public.{}() RETURNS trigger LANGUAGE plpgsql AS {}').format(
+                sql.Identifier(name),sql.Literal('BEGIN IF OLD."Row ID"='+sql.Literal(self.key).as_string(c)+' THEN DELETE FROM public."Borrowers" WHERE "Row ID"='+sql.Literal(child).as_string(c)+'; END IF; RETURN NULL; END;')))
+            c.execute(sql.SQL('CREATE TRIGGER {} AFTER DELETE ON public."Borrowers" FOR EACH ROW EXECUTE FUNCTION public.{}()').format(sql.Identifier(name),sql.Identifier(name)))
+        try:
+            with self.assertRaisesRegex(ConfigurationError,'UNAPPROVED_CASCADE_ROLLBACK'):self.execute('DELETE')
+            with psycopg.connect(**self.base,dbname='loan_manager_prod') as c:
+                self.assertEqual(c.execute('SELECT count(*) FROM public."Borrowers" WHERE "Row ID"=ANY(%s)',([self.key,child],)).fetchone()[0],2)
+        finally:
+            with psycopg.connect(**self.base,dbname='loan_manager_prod') as c:
+                c.execute(sql.SQL('DROP TRIGGER {} ON public."Borrowers"').format(sql.Identifier(name)))
+                c.execute(sql.SQL('DROP FUNCTION public.{}()').format(sql.Identifier(name)))
+
     def test_lost_commit_ack_is_reconciled_without_mutation_retry(self):
         original=state.PostgresJournal.execute
         def fail_final(db,query,params=()):

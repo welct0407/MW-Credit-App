@@ -12,3 +12,5 @@ python scripts/generate-vm-connectivity-architecture.py
 ```
 
 The diagram describes connectivity; it does not authorize a new integration, public listener, data write or notification route.
+
+R015 adds `mw_agent` for runtime journals/audit alongside `loan_manager_prod` on the existing Cloud SQL instance. Separate reporting, reviewer DML, worker and relay logins use the same loopback proxy. The VM retains Codex-owned session/auth files and frozen recovery copies. Existing network routes and instance settings are unchanged.

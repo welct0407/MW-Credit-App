@@ -25,3 +25,11 @@ Generation 601f93f8-b73e-46bc-b495-af3ebc562154 is active. Existing cutoffs/mode
 The systemd relay smoke test found an omitted CLI catalogue argument; corrected before enabling its timer. A compatibility review found the old-thread Delete alias omitted registration of the returned verification observation; corrected with tests for observation retention and rejected extra fields. These refinements do not change migrated data or the installed immutable schema.
 
 Remaining closure: final live app/worker checks, real synthetic resumed-model Delete test, documentation and final publication. No business correction, production deletion or outbound test was submitted.
+
+## Verified closure
+
+Both production AppSheet editors remain Deployed, with Save disabled, no visible configuration issue badges, unchanged versions and loaded fresh previews. No app definitions or data sources changed. Normal PostgreSQL-backed receipt, conversation, polling, retry and relay jobs completed successfully; outbox backlog is zero. Real two-process Codex resume preserved its thread and memory and selected the old-schema Delete alias in a synthetic-only test (one simulated delete, zero production writes/messages).
+
+All 18 PostgreSQL backend tests pass (15 live lab integration and three dialect checks), including unexpected trigger deletion rollback, late transaction commit queue visibility and audit-unavailable pre-dispatch denial. Final deployed code checkpoint is 477405f8f7b277d59578ec8d8a3788909fd23013; 168 Debian tests completed (142 passed, 26 optional database tests skipped on the production VM). Separate local PostgreSQL tests supply that database coverage. No instance resize/network/connection-limit change was required. The next daily cash-statement send follows its existing schedule; no live notification was forced for validation.
+
+R015 business release records, dictionary and architecture record the deployed internal objects; generic state/audit schema and operations are owned here. Retain all private pre-cutover archives and the source SQLite files as dated recovery evidence. Do not reactivate stale SQLite or drop audit history. Work is implemented and verified; final Git publication records recovery coverage for source/evidence, not private runtime data.

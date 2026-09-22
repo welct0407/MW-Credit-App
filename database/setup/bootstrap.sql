@@ -1,4 +1,4 @@
--- DESIGN ONLY. Not applied, not a migration reservation, not a deployment script.
+-- Owner-authorized R015 instance setup. Separate from central schema migrations.
 -- Operator session on postgres in the verified Cloud SQL instance, outside a transaction.
 -- Also usable in an isolated PostgreSQL 18 lab with identical database names.
 -- This acknowledgement is an accident guard, NOT authorization by itself.

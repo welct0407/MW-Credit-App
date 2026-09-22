@@ -135,3 +135,24 @@ class PostgreSQLStateTests(unittest.TestCase):
         bad=dict(self.config,state_generation=str(uuid.uuid4()))
         with self.assertRaisesRegex(ConfigurationError,'GENERATION_INACTIVE'):
             ConversationStore('partner-conversations.db',bad).thread(self.key)
+
+    def test_late_commit_is_not_skipped_by_queue(self):
+        ingress=IngressJournal('instagram-ingress.db',self.config)
+        receipt=ReceiptJournal('receipt-processing.db',self.config)
+        now=time.time()
+        with psycopg.connect(**self.admin) as slow:
+            slow.execute("INSERT INTO runtime.ingress_messages(message_id,sender_id,event_timestamp,text,captured_at,status,attachments,reply_to) VALUES (%s,'synthetic',%s,'',%s,'CAPTURED_NO_PROCESSING','[]','')",(self.key+'-slow',now,now))
+            slow.execute("INSERT INTO runtime.ingress_work(message_id,state,eligible_at) VALUES (%s,'PENDING',clock_timestamp())",(self.key+'-slow',))
+            ingress.capture(self.key,[{'message_id':self.key,'sender_id':'synthetic','timestamp':now,'text':'','attachments':[]}])
+            receipt.ingest(ingress.db,1)
+            slow.commit()
+        receipt.ingest(ingress.db,1)
+        with psycopg.connect(**self.admin) as c:
+            self.assertEqual(c.execute('SELECT count(*) FROM runtime.receipt_jobs WHERE message_id=ANY(%s)',([self.key,self.key+'-slow'],)).fetchone()[0],2)
+
+    def test_unavailable_audit_prevents_provider_dispatch(self):
+        called=False
+        with patch.object(state,'transaction',side_effect=ConfigurationError('unavailable')):
+            with self.assertRaisesRegex(ConfigurationError,'unavailable'):
+                with audit.activity(self.config,'synthetic-provider',effect=True):called=True
+        self.assertFalse(called)

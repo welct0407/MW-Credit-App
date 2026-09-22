@@ -59,8 +59,10 @@ Use device-code authentication on the headless VM. Treat `/var/lib/mw-integratio
 
 The Instagram receiver binds only to `127.0.0.1:8000` and is intended to sit behind the authenticated Cloudflare tunnel. Captured messages are durably deduplicated with status `CAPTURED_NO_PROCESSING`. The outbound adapter cannot send while `instagram_delivery` or `sending_enabled` is false.
 
-`appsheet-probe` performs a bounded official-API `Find` against the production OLTP Partners table and reports only metadata, never row contents. PostgreSQL connects only through the Cloud SQL Auth Proxy on loopback; the reporting role defaults to read-only transactions and has SELECT plus TEMPORARY privileges. The separate reviewer DML role has bounded operational grants and no schema ownership; the model uses parameterized INSERT/UPDATE tools.
+`appsheet-probe` performs a bounded official-API `Find` against the production OLTP Partners table and reports only metadata, never row contents. PostgreSQL connects only through the Cloud SQL Auth Proxy on loopback; the reporting role defaults to read-only transactions and has SELECT plus TEMPORARY privileges. The separate reviewer DML role has bounded operational grants and no schema ownership; the model uses parameterized INSERT/UPDATE/DELETE tools.
 
 See [migration plan](docs/MIGRATION_PLAN.md), [operations](docs/OPERATIONS.md), and the [service catalogue](SERVICE_CATALOGUE.md).
 
 The editable [Debian VM connectivity architecture](docs/VM_CONNECTIVITY_ARCHITECTURE.drawio) shows the current network and service boundaries; see its [maintainer notes and preview](docs/VM_CONNECTIVITY_ARCHITECTURE.md).
+
+R015 PostgreSQL state, audit governance, role boundaries, cutover and recovery are maintained in [PostgreSQL operations](docs/POSTGRESQL_OPERATIONS.md).

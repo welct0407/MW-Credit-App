@@ -1,6 +1,6 @@
 # Service catalogue
 
-Current runtime status, 22 September 2026 at 11:48 Bangkok: reviewer-only DML is active with a separate connection and fresh cutoff; conversational API edits also require AI Reviewer. Earlier at 02:17, owner resumed Partner conversations and operational API writes. Both dedicated switches are true; timer enabled/active. A fresh cutoff excludes messages received during the pause. Other active services continue.
+Current runtime status, 22 September 2026 at 13:58 Bangkok: the Debian agent uses the separate Cloud SQL `mw_agent` database for all six application journals and append-only audit. Existing conversation bindings, cutoffs and model settings are preserved. Reviewer-only API-first operations include approved exact-key DELETE, with bounded SQL fallback and transaction capture/relay. Ingress and all existing schedules are active; the audit relay runs every 30 seconds.
 
 Revision 15 — PostgreSQL state/audit and reviewer-only API-first operations; persistent Partner conversations and Codex-selected operational API calls, 22 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 

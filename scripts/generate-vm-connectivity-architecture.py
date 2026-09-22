@@ -272,7 +272,7 @@ vertex(
 )
 vertex(
     "agent",
-    "MW Integration Agent runtime\nSigned webhook · receipt validation · Partner review\nConversation polling · daily cash statement · bounded delivery",
+    "MW Integration Agent runtime\nSigned webhook · receipt validation · Partner review\nConversation polling · cash statements · audit relay",
     470,
     640,
     760,
@@ -281,7 +281,7 @@ vertex(
 )
 vertex(
     "proxy",
-    "Cloud SQL Auth Proxy 2.25.4\n127.0.0.1:5432\nDedicated read-only database role",
+    "Cloud SQL Auth Proxy 2.25.4\n127.0.0.1:5432\nSeparate reporting, reviewer, worker/relay roles",
     470,
     790,
     350,
@@ -308,7 +308,7 @@ vertex(
 )
 vertex(
     "disk",
-    "Persistent disk + private runtime state\nSnapshot policy default-schedule-1\nSecrets stay outside Git and metadata",
+    "Persistent disk + Codex sessions/secrets\nSnapshot policy default-schedule-1\nSecrets stay outside Git and metadata",
     880,
     930,
     350,
@@ -318,7 +318,7 @@ vertex(
 
 vertex(
     "cloudsql",
-    "Cloud SQL\nappsheet-pg-prod-20260914\nloan_manager_prod",
+    "Cloud SQL\nappsheet-pg-prod-20260914\nloan_manager_prod + mw_agent",
     1385,
     665,
     330,
@@ -327,7 +327,7 @@ vertex(
 )
 vertex(
     "appsheet",
-    "AppSheet PROD OLTP + OLAP APIs\nHTTPS 443 · bounded Find reads\nScoped approved write path",
+    "AppSheet PROD OLTP + OLAP APIs\nHTTPS 443 · API-first Find/Add/Edit/Delete\nCurrent reviewer approval",
     1385,
     235,
     330,

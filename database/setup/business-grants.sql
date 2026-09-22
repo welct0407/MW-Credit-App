@@ -1,5 +1,5 @@
--- DESIGN ONLY. Separate operator-managed role/grant change, not Flyway history.
--- Run only after 03 has passed DEV tests and after scoped production execution
+-- Owner-authorized R015 operator-managed grants, separate from Flyway history.
+-- Run only after business V33 has passed DEV tests and after scoped production execution
 -- is authorized. Permissions are not substitutes for current reviewer approval.
 BEGIN;
 DO $$ BEGIN

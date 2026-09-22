@@ -2,19 +2,19 @@
 
 ## Current state
 
-Persistent Partner conversations now have an independent [operations guide](PARTNER_CONVERSATIONS.md), switches and `mw-partner-conversation.timer`. Catalogue revision 13 adds current-data conversations and Codex-selected Add/Edit calls for inspected business tables; earlier statements below about all general commands being unavailable describe the pre-conversation baseline. Conversation operations use general API primitives; GUI workflows remain unavailable. Check the conversation change log for verified deployment status.
+R015 is active from 22 September 2026, 13:58 Bangkok. Catalogue revision 15 uses PostgreSQL state/audit and current-reviewer API-first Add/Edit/Delete, with bounded SQL fallback. Read [PostgreSQL operations and recovery](POSTGRESQL_OPERATIONS.md) before a runtime update or recovery. The previous SQLite updater is not the current cutover procedure. [Partner conversations](PARTNER_CONVERSATIONS.md) retain their separate switches, durable threads and history.
 
 Daily cash statements are implemented and scheduled under catalogue revision 9; see [cash statement operations](CASH_STATEMENT.md). The owner authorized a 00:15 Asia/Bangkok daily production timer for current Partners with `IG Integration Enabled=true`, plus Microsoft Graph email fallback to each Partner's current Email. The dedicated schedule and fallback controls are enabled; generic sending, processing and writes remain false.
 
-Catalogue revision 9 adds [receipt-only borrower processing and IG-first Partner summaries with email fallback](RECEIPTS.md) active under a dedicated activation switch and cutoff (21 September 2026, 02:50:41 Bangkok). AppSheet Find reads and dedicated PostgreSQL connectivity remain bounded. AppSheet edits and durable SQL DML remain disabled. A one-time Instagram reply was accepted by Meta on 20 September 2026, and `sending_enabled` was immediately restored to `false`.
+Catalogue revision 9 adds [receipt-only borrower processing and IG-first Partner summaries with email fallback](RECEIPTS.md) active under a dedicated activation switch and cutoff (21 September 2026, 02:50:41 Bangkok). AppSheet Find reads and dedicated PostgreSQL connectivity remain bounded. At that earlier revision, AppSheet edits and durable SQL DML were disabled; current R015 authority is described above. A one-time Instagram reply was accepted by Meta on 20 September 2026, and `sending_enabled` was immediately restored to `false`.
 
 ## Production API connections — owner update, 21 September
 
-Both PROD OLTP and OLAP inbound APIs are enabled directly outside the product release process; DEV is unchanged. `appsheet-probe --app oltp` and `--app olap` verify each named connection. OLTP keeps the existing key; OLAP uses its own protected `appsheet-olap-key.txt`. `scripts/configure-appsheet-apis.py` backs up configuration and installs the owner-authorized OLAP connection without displaying credentials. The API client remains Find-only; financial writes need the separate implemented receipt workflow.
+Both PROD OLTP and OLAP inbound APIs are enabled directly outside the product release process; DEV is unchanged. `appsheet-probe --app oltp` and `--app olap` verify each named connection. OLTP keeps the existing key; OLAP uses its own protected `appsheet-olap-key.txt`. `scripts/configure-appsheet-apis.py` backs up configuration and installs the owner-authorized OLAP connection without displaying credentials. The read client is Find-only; current reviewer mutations use the separate generic audited transport. Receipt posting retains its independent approval workflow.
 
 Do not assume App Upgrade preserves API Enable. The previous recorded enabled OLTP state was found disabled on 21 September. The vendor upgrade guide does not explicitly guarantee this setting; check both production APIs after upgrades without enabling DEV as a workaround.
 
-All Partner notices are Instagram first, email fallback. The reviewed runtime updater backs up package/configuration and integrity-checks online SQLite backups, preserves activation controls, and sets a separate notification cutoff once. It never resets receipt activation or replays history. See the [16-page process diagram](BUSINESS_PROCESS.md).
+All Partner notices are Instagram first, email fallback. The former SQLite updater is historical. Current journal recovery uses Cloud SQL backups/PITR and a verified private logical restore; package/configuration/Codex files retain private VM recovery copies. It never resets receipt activation or replays history. See the [16-page process diagram](BUSINESS_PROCESS.md).
 
 ## Filesystem layout
 
