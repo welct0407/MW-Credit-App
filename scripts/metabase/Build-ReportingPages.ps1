@@ -1,4 +1,6 @@
 param([string]$OutputDirectory='outputs/r016-20260922')
+# Retained source-parity oracle only. The live visual builder is Build-ModelPages.mjs.
+# Do not install these native queries as dashboard questions.
 $ErrorActionPreference='Stop'
 $questions=[Collections.Generic.List[object]]::new()
 function Add-Question($Key,$Name,$Display,$Sql,$Settings,$Description,$DateField=0) {

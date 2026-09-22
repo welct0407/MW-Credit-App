@@ -1,0 +1,54 @@
+{
+  "checked_at": "2026-09-22T11:35:14.551Z",
+  "models": [
+    {
+      "model": "borrower-performance",
+      "id": 72,
+      "rows": 29,
+      "unique_nonnull_grain": true,
+      "field_count": 10
+    },
+    {
+      "model": "borrowers",
+      "id": 69,
+      "rows": 30,
+      "unique_nonnull_grain": true,
+      "field_count": 7
+    },
+    {
+      "model": "portfolio",
+      "id": 73,
+      "rows": 1,
+      "unique_nonnull_grain": true,
+      "field_count": 18
+    },
+    {
+      "model": "repayments",
+      "id": 71,
+      "rows": 852,
+      "unique_nonnull_grain": true,
+      "field_count": 13
+    },
+    {
+      "model": "loans",
+      "id": 70,
+      "rows": 77,
+      "unique_nonnull_grain": true,
+      "field_count": 8
+    },
+    {
+      "model": "daily",
+      "id": 74,
+      "rows": 49,
+      "unique_nonnull_grain": true,
+      "field_count": 12
+    }
+  ],
+  "visuals_from_models": 22,
+  "visual_sql_count": 0,
+  "visual_join_count": 0,
+  "visual_business_expression_count": 0,
+  "relationship_metadata_passed": true,
+  "partner_only_collection_permissions": true,
+  "dashboard_placements": 26
+}

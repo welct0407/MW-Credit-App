@@ -10,7 +10,8 @@
       5
     ],
     "questions": 22,
-    "source": 2
+    "source": 2,
+    "heading_and_note_cards": 9
   },
   "checklist": "promotion-checklist.md",
   "remaining": [
@@ -29,7 +30,7 @@
     "after": 33,
     "new_migrations": []
   },
-  "status": "pages-1-2-ready-for-owner-review",
+  "status": "revised-pages-1-2-ready-for-owner-review",
   "release": "R016",
   "tests": "query-reconciliation.json",
   "final_tag": null,
@@ -37,5 +38,21 @@
     "R015 / PROD SQL V33",
     "accepted Metabase borrower POC"
   ],
-  "runtime_evidence": "infrastructure-verification.json"
+  "runtime_evidence": "infrastructure-verification.json",
+  "models": {
+    "collection": 8,
+    "ids": [
+      69,
+      70,
+      71,
+      72,
+      73,
+      74
+    ],
+    "definitions": "scripts/metabase/models",
+    "metadata": "models.json",
+    "verification": "model-verification.json"
+  },
+  "refinement_baseline_commit": "a0e2d394a251bb155e73f667c672785b7bf30e48",
+  "dictionary_verification": "dictionary-verification.json"
 }

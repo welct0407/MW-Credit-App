@@ -6,6 +6,8 @@ This document explains architecture and business behavior. Exact columns, expres
 
 Each DEV/PROD environment has two AppSheet apps sharing one PostgreSQL database. OLTP owns transaction entry and operational workflows; OLAP owns partner management, cash administration and heavier analytics. Looker presents governed reporting. RC is a temporary app copy bound to PROD, not a separate database. Design decisions and diagrams are in [Solution Design](Solution_Design.md).
 
+R016 is migrating reporting to Metabase, with Overview and Cash available for owner review. Six reusable Metabase models centralize the borrower/loan/repayment joins, reporting periods and shared calculations over the existing PROD OLAP providers. Every migrated visual reads a model through the query builder; relationships and business expressions are not rebuilt in individual visuals. Financial posting and governed source balances remain owned by PostgreSQL. Exact reporting fields and semantic relationships are in the dictionary's **Metabase Models** sheet and [model inventory](../outputs/r016-20260922/models.json).
+
 ## Entity groups and relationships
 
 The integration agent additionally owns the separate `mw_agent` database on the same Cloud SQL instance. Its runtime journals and append-only audit are excluded from AppSheet. Business databases contain internal `agent_audit` commit/row-change/export tables; capture runs only for the dedicated reviewer DML login. AppSheet operations retain ordinary guards and host-observed audit coverage. Current reviewers use AppSheet first and bounded SQL fallback, including approved exact-key DELETE without bypassing financial or reference guards. See [R015 evidence](../outputs/r015-20260922/production-report.md) and the dictionary DB sheets.

@@ -1,219 +1,219 @@
 [
   {
-    "mode": "all-dates",
-    "card_id": 47,
     "rows": 1,
     "key": "cash-pool",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 47
   },
   {
-    "mode": "all-dates",
-    "card_id": 48,
     "rows": 1,
     "key": "principal",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 48
   },
   {
-    "mode": "all-dates",
-    "card_id": 49,
     "rows": 1,
     "key": "available",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 49
   },
   {
-    "mode": "all-dates",
-    "card_id": 50,
     "rows": 1,
     "key": "daily-interest",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 50
   },
   {
-    "mode": "all-dates",
-    "card_id": 51,
     "rows": 1,
     "key": "mtd",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 51
   },
   {
-    "mode": "all-dates",
-    "card_id": 52,
     "rows": 1,
     "key": "projected",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 52
   },
   {
-    "mode": "all-dates",
-    "card_id": 53,
     "rows": 1,
     "key": "account-balance",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 53
   },
   {
-    "mode": "all-dates",
-    "card_id": 54,
     "rows": 1,
     "key": "utilization",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 54
   },
   {
-    "mode": "all-dates",
-    "card_id": 68,
     "rows": 1,
     "key": "utilization-gauge",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 68
   },
   {
-    "mode": "all-dates",
-    "card_id": 55,
     "rows": 1,
     "key": "active-loans",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 55
   },
   {
-    "mode": "all-dates",
-    "card_id": 56,
     "rows": 1,
     "key": "growth",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 56
   },
   {
-    "mode": "all-dates",
-    "card_id": 57,
     "rows": 1,
     "key": "profit-30",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 57
   },
   {
-    "mode": "all-dates",
-    "card_id": 58,
     "rows": 1,
     "key": "interest-paid",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 58
   },
   {
-    "mode": "all-dates",
-    "card_id": 59,
     "rows": 1,
     "key": "top-borrower",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 59
   },
   {
-    "mode": "all-dates",
-    "card_id": 60,
     "rows": 5,
     "key": "borrower-principal",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 60
   },
   {
-    "mode": "all-dates",
-    "card_id": 61,
     "rows": 5,
     "key": "borrower-profit",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 61
   },
   {
-    "mode": "all-dates",
-    "card_id": 62,
     "rows": 49,
     "key": "daily-principal",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 62
   },
   {
-    "mode": "all-dates",
-    "card_id": 63,
     "rows": 49,
     "key": "daily-profit",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 63
   },
   {
-    "mode": "all-dates",
-    "card_id": 64,
     "rows": 48,
     "key": "daily-overdue",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 64
   },
   {
-    "mode": "all-dates",
-    "card_id": 65,
     "rows": 1,
     "key": "composition",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 65
   },
   {
-    "mode": "all-dates",
-    "card_id": 66,
     "rows": 3,
     "key": "loan-type",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 66
   },
   {
-    "mode": "all-dates",
-    "card_id": 67,
     "rows": 49,
     "key": "principal-flows",
-    "all_values_match": true
+    "mode": "all-dates",
+    "all_values_match": true,
+    "card_id": 67
   },
   {
-    "mode": "date-filter",
+    "all_values_match": true,
     "card_id": 47,
-    "rows": 1,
     "key": "cash-pool",
-    "all_values_match": true
+    "rows": 1,
+    "mode": "date-filter"
   },
   {
-    "mode": "date-filter",
+    "all_values_match": true,
     "card_id": 48,
-    "rows": 1,
     "key": "principal",
-    "all_values_match": true
+    "rows": 1,
+    "mode": "date-filter"
   },
   {
-    "mode": "date-filter",
+    "all_values_match": true,
     "card_id": 49,
-    "rows": 1,
     "key": "available",
-    "all_values_match": true
+    "rows": 1,
+    "mode": "date-filter"
   },
   {
-    "mode": "date-filter",
+    "all_values_match": true,
     "card_id": 53,
-    "rows": 1,
     "key": "account-balance",
-    "all_values_match": true
+    "rows": 1,
+    "mode": "date-filter"
   },
   {
-    "mode": "date-filter",
+    "all_values_match": true,
     "card_id": 68,
-    "rows": 1,
     "key": "utilization-gauge",
-    "all_values_match": true
+    "rows": 1,
+    "mode": "date-filter"
   },
   {
-    "mode": "date-filter",
+    "all_values_match": true,
     "card_id": 62,
-    "rows": 15,
     "key": "daily-principal",
-    "all_values_match": true
-  },
-  {
-    "mode": "date-filter",
-    "card_id": 65,
-    "rows": 1,
-    "key": "composition",
-    "all_values_match": true
-  },
-  {
-    "mode": "date-filter",
-    "card_id": 66,
-    "rows": 1,
-    "key": "loan-type",
-    "all_values_match": true
-  },
-  {
-    "mode": "date-filter",
-    "card_id": 67,
     "rows": 15,
+    "mode": "date-filter"
+  },
+  {
+    "all_values_match": true,
+    "card_id": 65,
+    "key": "composition",
+    "rows": 1,
+    "mode": "date-filter"
+  },
+  {
+    "all_values_match": true,
+    "card_id": 66,
+    "key": "loan-type",
+    "rows": 1,
+    "mode": "date-filter"
+  },
+  {
+    "all_values_match": true,
+    "card_id": 67,
     "key": "principal-flows",
-    "all_values_match": true
+    "rows": 15,
+    "mode": "date-filter"
   }
 ]

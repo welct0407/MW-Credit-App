@@ -65,3 +65,15 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 - RC cleanup / verified deleted IDs and evidence: N/A, no AppSheet RC.
 
 Released requires applicable activities, documentation, RC cleanup and publication complete. If only documents/publication remain, repair them without redeploying. Record final outcome in the manifest/tracker before the final evidence commit and verify publication afterward; do not create self-referential commit hashes.
+
+## Model and presentation refinement
+
+The owner's subsequent review requested central reusable models and a redesigned presentation. Added six models (69–74), semantic keys/FKs and collection 8. All 22 questions now use query-builder model sources, with no per-visual SQL/joins/business expressions. All 26 business visual placements remain, with seven section headings and two notes. All 31 source-reconciliation cases pass; model grains, relationships, permissions and desktop/390px browser checks pass. See `model-verification.json`, `browser-verification.json` and the updated metric contract.
+
+| Additional affected document | Disposition | Evidence |
+| --- | --- | --- |
+| AppSheet Data Dictionary | Updated | Metabase Models sheet: six model grains and 68 fields; 13 original worksheet parts preserved. |
+| AppSheet Data Model Overview / Solution Design | Updated | Shared reporting layer, grains, ownership and centralization rule. |
+| Metabase runbook / model definitions | Updated | Model installation, model-only visual build, dashboard filter verification, recovery. |
+
+Existing Tracker, Environment Inventory and Development Changes rows are updated for this refinement. Pre-change and completed object exports are private; all credentials stay outside Git. This is another checked review checkpoint, not full R016 acceptance or a final release tag.

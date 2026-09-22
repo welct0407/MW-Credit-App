@@ -4,7 +4,7 @@ Current production baseline is R015. This register contains open product differe
 
 ## R016 — Metabase reporting migration
 
-The owner accepted the borrower POC on PC and mobile. Overview and Cash Analysis are implemented for initial review in [dashboard 3](https://reports.mw-credit.com/dashboard/3), using existing PROD OLAP views and database joins. Later source pages remain unbuilt; full R016 acceptance/closure is pending. Railway Hobby sizing and a Singapore rebuild are included. AppSheet definitions and financial data are unchanged. [Scope, verification and recovery](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md).
+The owner accepted the borrower POC on PC and mobile. Overview and Cash Analysis have been revised for another review in [dashboard 3](https://reports.mw-credit.com/dashboard/3): six reusable Metabase models centralize relationships and shared calculations, all 22 questions use those models, and the 26 visuals have compact grouped metrics and coordinated charts. Later source pages remain unbuilt; full R016 acceptance/closure is pending. Railway Hobby sizing and a Singapore rebuild are included. AppSheet definitions and financial data are unchanged. [Scope, verification and recovery](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md).
 
 There are no open R011/R012 product differences. The owner merged the reserved R012 Cash Ledger Recent scope into R011, and R011 was released on 21 September 2026 at PROD SQL V29 / OLTP 3.000240 / OLAP 1.100189. R012 was never promoted independently and its number is retired. See the [R011 production report](../outputs/r011-20260920/production/REPORT.md).
 

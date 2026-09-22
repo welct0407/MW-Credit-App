@@ -1,0 +1,600 @@
+{
+  "borrower-performance": {
+    "collection_id": 8,
+    "columns": [
+      {
+        "name": "Borrower",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Borrower. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      },
+      {
+        "name": "Outstanding Principal",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Outstanding Principal. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      },
+      {
+        "name": "Profit 30D",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Profit 30D. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      },
+      {
+        "name": "Payments 30D",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Payments 30D. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      },
+      {
+        "name": "Principal Rank",
+        "base_type": "type/BigInteger",
+        "semantic_type": null,
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Principal Rank. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      },
+      {
+        "name": "Profit Rank",
+        "base_type": "type/BigInteger",
+        "semantic_type": null,
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Profit Rank. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      },
+      {
+        "name": "Principal Group",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Principal Group. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      },
+      {
+        "name": "Profit Group",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Profit Group. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      },
+      {
+        "name": "Principal Group Order",
+        "base_type": "type/BigInteger",
+        "semantic_type": null,
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Principal Group Order. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      },
+      {
+        "name": "Profit Group Order",
+        "base_type": "type/BigInteger",
+        "semantic_type": null,
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Profit Group Order. One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+      }
+    ],
+    "grain": "One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals are aggregated independently before joining. Shared rank groups preserve top four plus Others.",
+    "id": 72,
+    "name": "Borrower Performance",
+    "rows": 29
+  },
+  "borrowers": {
+    "collection_id": 8,
+    "columns": [
+      {
+        "name": "Borrower ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "id": 72,
+        "fk_target_field_id": null,
+        "description": "Borrower ID. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+      },
+      {
+        "name": "Borrower",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": 115,
+        "fk_target_field_id": null,
+        "description": "Borrower. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+      },
+      {
+        "name": "Created Date",
+        "base_type": "type/Date",
+        "semantic_type": null,
+        "id": 74,
+        "fk_target_field_id": null,
+        "description": "Created Date. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+      },
+      {
+        "name": "Hidden",
+        "base_type": "type/Boolean",
+        "semantic_type": "type/Category",
+        "id": 75,
+        "fk_target_field_id": null,
+        "description": "Hidden. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+      },
+      {
+        "name": "Outstanding Principal",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 76,
+        "fk_target_field_id": null,
+        "description": "Outstanding Principal. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+      },
+      {
+        "name": "Active Loans",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Quantity",
+        "id": 79,
+        "fk_target_field_id": null,
+        "description": "Active Loans. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+      },
+      {
+        "name": "Overdue Amount",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 80,
+        "fk_target_field_id": null,
+        "description": "Overdue Amount. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+      }
+    ],
+    "grain": "One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population.",
+    "id": 69,
+    "name": "Borrowers",
+    "rows": 30
+  },
+  "portfolio": {
+    "collection_id": 8,
+    "columns": [
+      {
+        "name": "Portfolio ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "id": 99,
+        "fk_target_field_id": null,
+        "description": "Portfolio ID. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "As Of Date",
+        "base_type": "type/Date",
+        "semantic_type": null,
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "As Of Date. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Peak Cash Pool Date 30D",
+        "base_type": "type/Date",
+        "semantic_type": null,
+        "id": 104,
+        "fk_target_field_id": null,
+        "description": "Peak Cash Pool Date 30D. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Total Cash Pool",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 106,
+        "fk_target_field_id": null,
+        "description": "Total Cash Pool. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Outstanding Principal",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 100,
+        "fk_target_field_id": null,
+        "description": "Outstanding Principal. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Available Cash",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Available Cash. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Cash Pool Utilization",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Cash Pool Utilization. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Expected Daily Interest",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 105,
+        "fk_target_field_id": null,
+        "description": "Expected Daily Interest. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Realized Profit MTD",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 102,
+        "fk_target_field_id": null,
+        "description": "Realized Profit MTD. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Projected Monthly Profit",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 103,
+        "fk_target_field_id": null,
+        "description": "Projected Monthly Profit. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Active Loans",
+        "base_type": "type/BigInteger",
+        "semantic_type": null,
+        "id": 101,
+        "fk_target_field_id": null,
+        "description": "Active Loans. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Loan Account Balance",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 108,
+        "fk_target_field_id": null,
+        "description": "Loan Account Balance. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Unsettled Profit",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 107,
+        "fk_target_field_id": null,
+        "description": "Unsettled Profit. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Account",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Account. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Interest Paid",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Interest Paid. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Profit in Past 30 Days",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Profit in Past 30 Days. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "7-Day Profit Growth %",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "7-Day Profit Growth %. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      },
+      {
+        "name": "Top Borrower",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Top Borrower. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+      }
+    ],
+    "grain": "One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance.",
+    "id": 73,
+    "name": "Portfolio Overview",
+    "rows": 1
+  },
+  "repayments": {
+    "collection_id": 8,
+    "columns": [
+      {
+        "name": "Repayment ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "id": 109,
+        "fk_target_field_id": null,
+        "description": "Repayment ID. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Loan ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/FK",
+        "id": 113,
+        "fk_target_field_id": 94,
+        "description": "Loan ID. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Borrower ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Borrower ID. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Borrower",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Borrower. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Hidden",
+        "base_type": "type/Boolean",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Hidden. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Loan Type",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Loan Type. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Payment Date",
+        "base_type": "type/Date",
+        "semantic_type": null,
+        "id": 110,
+        "fk_target_field_id": null,
+        "description": "Payment Date. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Interest Paid",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 112,
+        "fk_target_field_id": null,
+        "description": "Interest Paid. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Principal Paid",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 111,
+        "fk_target_field_id": null,
+        "description": "Principal Paid. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Interest 30D",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Interest 30D. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Interest Recent 7D",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Interest Recent 7D. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "Interest Prior 7D",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Interest Prior 7D. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      },
+      {
+        "name": "In Last 30 Days",
+        "base_type": "type/Boolean",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "In Last 30 Days. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+      }
+    ],
+    "grain": "One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped.",
+    "id": 71,
+    "name": "Repayment Ledger",
+    "rows": 852
+  },
+  "loans": {
+    "collection_id": 8,
+    "columns": [
+      {
+        "name": "Loan ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "id": 94,
+        "fk_target_field_id": null,
+        "description": "Loan ID. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+      },
+      {
+        "name": "Borrower ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/FK",
+        "id": 96,
+        "fk_target_field_id": 72,
+        "description": "Borrower ID. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+      },
+      {
+        "name": "Borrower",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Borrower. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+      },
+      {
+        "name": "Hidden",
+        "base_type": "type/Boolean",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Hidden. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+      },
+      {
+        "name": "Loan Date",
+        "base_type": "type/Date",
+        "semantic_type": null,
+        "id": 95,
+        "fk_target_field_id": null,
+        "description": "Loan Date. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+      },
+      {
+        "name": "Loan Type",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Loan Type. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+      },
+      {
+        "name": "Loan Type Thai",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Loan Type Thai. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+      },
+      {
+        "name": "Outstanding Principal",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 98,
+        "fk_target_field_id": null,
+        "description": "Outstanding Principal. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+      }
+    ],
+    "grain": "One row per Loan ID. The borrower relationship and readable loan types are defined once here.",
+    "id": 70,
+    "name": "Loan Book",
+    "rows": 77
+  },
+  "daily": {
+    "collection_id": 8,
+    "columns": [
+      {
+        "name": "Snapshot ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "id": 81,
+        "fk_target_field_id": null,
+        "description": "Snapshot ID. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Date",
+        "base_type": "type/Date",
+        "semantic_type": null,
+        "id": 82,
+        "fk_target_field_id": null,
+        "description": "Date. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Generated At",
+        "base_type": "type/DateTime",
+        "semantic_type": null,
+        "id": 83,
+        "fk_target_field_id": null,
+        "description": "Generated At. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Model Version",
+        "base_type": "type/Integer",
+        "semantic_type": null,
+        "id": 84,
+        "fk_target_field_id": null,
+        "description": "Model Version. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Outstanding Principal",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 88,
+        "fk_target_field_id": null,
+        "description": "Outstanding Principal. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Profit",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 87,
+        "fk_target_field_id": null,
+        "description": "Profit. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Overdue Charges",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 114,
+        "fk_target_field_id": null,
+        "description": "Overdue Charges. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Principal Issued",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 85,
+        "fk_target_field_id": null,
+        "description": "Principal Issued. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Principal Returned",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": 86,
+        "fk_target_field_id": null,
+        "description": "Principal Returned. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Issued Chart Amount",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Issued Chart Amount. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Returned Chart Amount",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Currency",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Returned Chart Amount. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      },
+      {
+        "name": "Include Overdue Trend",
+        "base_type": "type/Boolean",
+        "semantic_type": "type/Category",
+        "id": null,
+        "fk_target_field_id": null,
+        "description": "Include Overdue Trend. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+      }
+    ],
+    "grain": "One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received.",
+    "id": 74,
+    "name": "Daily Performance",
+    "rows": 49
+  }
+}
