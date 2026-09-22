@@ -1,9 +1,10 @@
 # Release tracker
 
-Recorded PROD baseline: **R015**. Next available number: **R016**. Numbering/approval rules are in [AGENTS](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026).
+Recorded PROD baseline: **R015**. Next available number: **R017**. Numbering/approval rules are in [AGENTS](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026).
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
+| R016 | Metabase migration of existing Loan Reports; initial review limited to Overview and Cash Analysis; depends on accepted Metabase POC and existing R015 database | In development | 2026-09-22: PC/mobile POC accepted; source visual inventory and SQL relationship mapping underway | [Migration log](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md) |
 | R015 | Internal agent transaction audit and reviewer DELETE grants; coordinated PostgreSQL agent-state migration; depends on R014 | Released — SQL and agent; apps unchanged | 2026-09-22: V33 and separate mw_agent active; reviewer DELETE and audit relay verified | [Release log](../Change%20Logs/CHANGE_NOTES_R015_2026-09-22.md) · [Report](../outputs/r015-20260922/production-report.md) · [Checklist](../outputs/r015-20260922/promotion-checklist.md) |
 | R014 | Cash Ledger account selection, account-level custody balances, Income MTD dashboard, partial settlements, borrower grouping/principal, disabled record swipes and Partner AI Reviewer routing; depends on R013 | Released | 2026-09-21: PROD V32 / OLTP 3.000245 / OLAP 1.100194; reviewer runtime installed, both editors clear | [Release log](../Change%20Logs/CHANGE_NOTES_R014_2026-09-21.md) · [Production report](../outputs/r014-20260921/production-report.md) · [checklist](../outputs/r014-20260921/promotion-checklist.md) · [manifest](../outputs/r014-20260921/release-manifest.json) |
 | R013 | Receipt transfer time through existing Payments/Cash Ledger timestamps and both cash statements; depends on R011 | Released — SQL only; apps unchanged | 2026-09-21: PROD V30 / OLTP 3.000240 / OLAP 1.100189 | [Production report](../outputs/r013-20260921/production/REPORT.md) · [manifest](../outputs/r013-20260921/release-manifest.json) · [checklist](../outputs/r013-20260921/promotion-checklist.md) |
