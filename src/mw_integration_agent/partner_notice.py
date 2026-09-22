@@ -13,6 +13,19 @@ from .instagram import Instagram
 from .statement_delivery import eligible, resolve_recipient, check_window
 
 
+def display_notice(item):
+    """Status decoration at delivery; keep reserved payloads and reply keys immutable."""
+    event=item['event_key']
+    icon=''
+    if event.startswith('review:'):icon='❓'
+    elif event.startswith('review-result:'):
+        icon={'POSTED':'✅','REJECTED':'❌','MANUAL_REQUIRED':'📝',
+              'STALE':'⚠️','EXPIRED':'⌛','UNKNOWN':'⚠️'}.get(event.rsplit(':',1)[-1],'')
+    elif event.startswith('receipt:'):icon='📩'
+    prefix=icon+' ' if icon else ''
+    return prefix+item['subject'],prefix+item['body']
+
+
 class NoticeJournal:
     def __init__(self,path,config=None):
         self.db=state_connect(path,config)
@@ -58,6 +71,7 @@ class NoticeJournal:
         item=dict(self.db.execute('SELECT * FROM partner_notices WHERE id=?',(item['id'],)).fetchone())
         if item['ig_status'] in ('ACCEPTED','REVIEW') or item['email_status'] in ('SENT','UNKNOWN','REVIEW'):
             return
+        subject,body=display_notice(item)
         conversation = item['event_key'].startswith('conversation:')
         if conversation and config.get('partner_conversations_enabled') is not True:
             raise ConfigurationError('PARTNER_CONVERSATIONS_DISABLED')
@@ -84,7 +98,7 @@ class NoticeJournal:
                     with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='CONVERSATION_SENDER_CHANGED' WHERE id=?",(item['id'],))
                     return
                 window(Path(config['state_directory']),recipient, **({'config':config} if window is check_window else {}))
-                if len(item['body'])>1000:
+                if len(body)>1000:
                     raise ConfigurationError('COMPLETE_REPLY_REQUIRES_EMAIL')
             except ConfigurationError:
                 with self.db:self.db.execute("UPDATE partner_notices SET ig_status='UNAVAILABLE',detail='IG_ROUTE_OR_WINDOW_UNAVAILABLE' WHERE id=?",(item['id'],))
@@ -93,7 +107,7 @@ class NoticeJournal:
                     claimed=self.db.execute("UPDATE partner_notices SET ig_status='UNKNOWN',recipient_id=? WHERE id=? AND ig_status='PENDING'",(recipient,item['id'])).rowcount
                 if not claimed:return
                 try:
-                    response=api.request(config['instagram_account_id']+'/messages',body={'recipient':{'id':recipient},'message':{'text':item['body']}})
+                    response=api.request(config['instagram_account_id']+'/messages',body={'recipient':{'id':recipient},'message':{'text':body}})
                     if not response.get('message_id'):raise ConfigurationError('IG_OUTCOME_UNKNOWN')
                 except Exception:
                     # Do not resend uncertain IG. Email fallback can explicitly duplicate a delivered IG notice.
@@ -109,11 +123,11 @@ class NoticeJournal:
               WHERE id=? AND email_status IN ('PENDING','REJECTED') AND attempts<3 AND retry_after<=?""",(item['id'],time.time())).rowcount
         if not claimed:return
         try:
-            fallback_body=item['body']
+            fallback_body=body
             if item['event_key'].startswith('review:'):
                 fallback_body+=('\nอีเมลนี้แจ้งข้อมูลเท่านั้น การตอบอีเมลไม่ใช่การอนุมัติ หากไม่มีข้อความคำขอใน Instagram ให้ดำเนินการเอง' if partner['language']=='ไทย' else
                     '\nThis email is informational. Email replies cannot approve. If no Instagram request was delivered, handle the payment manually.')
-            (mailer or GraphEmail(config)).send(partner['email'],item['subject'],
+            (mailer or GraphEmail(config)).send(partner['email'],subject,
                 '<p>'+html.escape(fallback_body).replace('\n','<br>')+'</p>',[],item['id'])
         except EmailRejected:
             with self.db:self.db.execute("UPDATE partner_notices SET email_status='REJECTED',retry_after=? WHERE id=?",(time.time()+300,item['id']))

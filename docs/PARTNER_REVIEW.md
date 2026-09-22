@@ -1,5 +1,7 @@
 # Receipt posting and partner review
 
+Outgoing receipt headings use one status emoji in both languages: ❓ review requested, ✅ payment processed, ❌ rejected, 📝 manual handling, ⚠️ changed facts or unconfirmed posting, ⌛ expired, and 📩 receipt received without posting. Decoration is applied at delivery, including email fallback, without changing reserved payloads or replaying delivered messages. Free-form Partner conversations keep their original wording.
+
 Notification retries preserve completed or held journal entries unchanged, including unknown email outcomes. Later Partner preference changes do not reopen those entries or block new reviews. Pending payload conflicts still fail closed; current recipient validation remains required before sending.
 
 Owner authority: 21 September 2026. Use the same queue for group API polling and signed webhook receipts. Do not replay historical receipts when enabling review. Valid new receipts are checked against manually recorded Payments, then proposed with borrower, amount, receipt date/time to the minute, receiving account and proposed action. Proposals retain current loan/charge facts; changed facts invalidate approval.
