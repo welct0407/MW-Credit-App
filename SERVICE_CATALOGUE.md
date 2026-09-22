@@ -1,6 +1,6 @@
 # Service catalogue
 
-Current runtime status, 22 September 2026 at 02:17 Bangkok: owner resumed Partner conversations and operational API writes. Both dedicated switches are true; timer enabled/active. A fresh cutoff excludes messages received during the pause. Other active services continue.
+Current runtime status, 22 September 2026 at 11:48 Bangkok: reviewer-only DML is active with a separate connection and fresh cutoff; conversational API edits also require AI Reviewer. Earlier at 02:17, owner resumed Partner conversations and operational API writes. Both dedicated switches are true; timer enabled/active. A fresh cutoff excludes messages received during the pause. Other active services continue.
 
 Revision 14 — reviewer-only DML and API edits; persistent Partner conversations and Codex-selected operational API calls, 22 September 2026. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
@@ -20,7 +20,7 @@ Signed Instagram webhook ingress and explicit Instagram delivery are authorized 
 | database_connectivity | enabled | Dedicated loopback/Cloud SQL Auth Proxy login with business-table SELECT and TEMP only; no durable operational DML on the reporting role; reviewer DML uses a separate login. |
 | persistent_codex_conversation | enabled; dedicated activation switch | Signed post-cutoff Partner text enters an isolated durable App Server thread per account/Partner/sender. Current Find reads, exact decimal sums, general API Add/Edit and localized replies. No historical replay. |
 | partner_oltp_gui | disabled | Linux/Chromium compatibility must be proven before migration. |
-| reviewer_database_dml | implemented; dedicated activation switch | Current AI Reviewers only. Codex selects bounded INSERT/UPDATE plans from live database metadata. One atomic serializable transaction, fresh observations, durable before/after audit and commit verification. No DDL, Delete, arbitrary SQL, trigger/permission bypass or financial-history overwrite. |
+| reviewer_database_dml | enabled; dedicated activation switch | Current AI Reviewers only. Codex selects bounded INSERT/UPDATE plans from live database metadata. One atomic serializable transaction, fresh observations, durable before/after audit and commit verification. No DDL, Delete, arbitrary SQL, trigger/permission bypass or financial-history overwrite. |
 | operational_data_api | enabled; dedicated conversation write switch | Current AI Reviewers only; Codex chooses OLTP/OLAP tables, fields and sequential Add/Edit calls from inspected app metadata. Generic transport, authenticated actor, durable intents, current observations and readback. No per-business-operation scripts. Deletes, identity/configuration changes and computed-field bypass remain denied. |
 | instagram_delivery | enabled | Official API transport. Statements, receipt notices and conversations use dedicated switches; manual sends require `sending_enabled=true`. Conversation replies are bound to the authenticated sender and current opt-in. |
 | email_fallback | enabled for Partner notifications | Instagram first; current Partner Email is fallback. Definite non-delivery retries at most three total attempts; unknown email outcomes never replay. |

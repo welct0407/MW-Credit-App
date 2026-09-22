@@ -1,5 +1,7 @@
 # Reviewer-only operational DML — 22 September 2026
 
+**Outcome: deployed and active on Debian at 11:48:59 Bangkok.** Reviewer DML and reviewer-only API authority are installed; the specific historical posted-payment correction was not executed and its immutable financial fields remain protected.
+
 ## Scope and authority
 
 Owner requested operational corrections/database DML (not DDL), reviewer-only authority and a database connection. Preserve the earlier requirement that Codex choose operations without fixed scripts for every business case. Current `Partners.AI Reviewer` governs this capability and existing conversational API writes. Ordinary Partner questions remain available. No historical request replay or execution of the previously discussed closing-payment correction is included.
@@ -28,3 +30,17 @@ Production role provisioning completed with the rehearsed grants; no application
 
 
 Initial Debian package installation passed 150 tests (13 disposable-PostgreSQL tests skipped there; separately run locally). Package/config/journals backup: `/var/lib/mw-integration-agent/rollback/reviewed-20260922T044415Z`. Before activation, inspected installed App Server schema and found resumed threads cannot replace their tool definitions. Added typed database aliases through the existing discovery/read/write tools, retaining thread IDs/history and the identical DML authority checks. Real synthetic two-process acceptance is pending at this refinement checkpoint.
+
+
+## Deployment and closure
+
+- Implementation commits `e2f0dee802cdbaf99bbf96e8916306a12e9b898d` and `5bd6c7ebb52e347424ec35b07f2f92b0456c53eb` published to `origin/main`, installed in the Debian Python 3.13 environment. Final package/config/journal backup: `/var/lib/mw-integration-agent/rollback/reviewed-20260922T044807Z`; original pre-feature backup above remains available.
+- Final Debian suite: 151 tests, 14 disposable-PostgreSQL tests skipped. All 14 database tests plus 5 shared boundary tests passed in the local PostgreSQL 18 runner (19 total), covering the skipped paths. Full production-schema restoration and synthetic posting rehearsal also passed.
+- Live read-only checks: role `mw_reviewer_dml`, database `loan_manager_prod`, proxy loopback verified; schema/database CREATE and AI Reviewer column UPDATE denied; all nine operational table INSERT/UPDATE grants present. One current reviewer authorized, one non-reviewer denied. Live metadata/constraints/trigger discovery passed for all nine resources. No business rows printed or mutated.
+- Actual Codex App Server two-process test passed: same thread ID, remembered synthetic token, database operation chosen via the pre-existing tool schema aliases, one simulated transaction, zero production writes and zero outbound messages. Service model/settings were preserved.
+- Activated `reviewer_dml_enabled=true` with cutoff `2026-09-22T04:48:59.453352+00:00` (11:48:59 Bangkok). Activation config backup: `/var/lib/mw-integration-agent/rollback/reviewer-dml-20260922T044859Z`. Existing conversation/receipt flags, cutoffs and journals were retained. Credential installation digest matched its private retained workstation recovery original; no credentials are in Git.
+- Post-activation: conversation timer enabled/active; last worker result success, exit 0. Poll, receipt, cash-statement and email-retry timers all active. No historical replay requested or performed.
+- Rollback: disable the dedicated DML flag and stop the conversation worker before restoring compatible package/config; preserve all journals and accepted changes. Retain the reviewer-only API gate. Role LOGIN may be disabled separately; do not restore old data over accepted financial events.
+- Limitations/acceptance: current posted-payment/repayment guards still reject amount overwrites, and controlled cash adjustment flags are not exposed. Direct DML does not invoke AppSheet-only validation/bots. A real intended reviewer correction through Partner messaging remains owner acceptance; no production financial fixture or forced notification was used for testing.
+
+Sanitized result: [verification](../outputs/reviewer-dml-20260922/verification.json). No AppSheet/Flyway release, model-workbook update or app promotion applies: this batch changes only the integration runtime, its own journal schema, and separately managed database role/grants.
