@@ -1,0 +1,13 @@
+{
+  "approval": "Owner approved the 21 read-only column grants in this task on 22 September 2026.",
+  "columns": 21,
+  "database": "loan_manager_prod",
+  "backup_reused": "backup-verification.json",
+  "applied_at": "2026-09-22T15:55:28.5450644+00:00",
+  "sql_sha256": "AF38640AF563510EE5A798B1851FD5AB6E34B07E1E5089E3C140521DDD5077A9",
+  "instance": "appsheet-pg-prod-20260914",
+  "role": "metabase_borrower_reader",
+  "schema_changed": false,
+  "relations": 3,
+  "data_changed": false
+}

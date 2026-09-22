@@ -2,7 +2,7 @@
   "reservation_commit": "af677e4",
   "sql": "scripts/metabase/reporting-pages-1-2-grants.sql",
   "dashboard": {
-    "visuals": 109,
+    "visuals": 126,
     "collection": 5,
     "id": 3,
     "tabs": [
@@ -13,15 +13,16 @@
       8,
       9,
       10,
-      11
+      11,
+      12
     ],
-    "questions": 105,
+    "questions": 122,
     "source": 2,
-    "heading_and_note_cards": 37
+    "heading_and_note_cards": 45
   },
   "checklist": "promotion-checklist.md",
   "remaining": [
-    "Owner review of pages 3–8 and any refinements",
+    "Owner review of remaining migrated pages and date-selectable Income Statement",
     "Borrower daily balance history unavailable in existing source; no new schema authorized",
     "Lisa personal Google sign-in remains unconfirmed",
     "Migration-key revocation and final R016 acceptance/closure"
@@ -37,7 +38,7 @@
     "after": 33,
     "new_migrations": []
   },
-  "status": "all-eight-pages-implemented-for-owner-review",
+  "status": "nine-pages-implemented-for-owner-review",
   "release": "R016",
   "tests": "query-reconciliation.json",
   "final_tag": null,
@@ -58,16 +59,25 @@
       75,
       76,
       77,
-      162
+      162,
+      163,
+      164,
+      165,
+      166,
+      185,
+      186
     ],
     "definitions": "scripts/metabase/models",
     "metadata": "models.json",
     "verification": "remaining-verification.json",
-    "scenario_snippet": 1
+    "scenario_snippet": 1,
+    "income_period_snippet": 2
   },
   "refinement_baseline_commit": "a0e2d394a251bb155e73f667c672785b7bf30e48",
   "dictionary_verification": "dictionary-verification.json",
   "remaining_page_tests": "remaining-verification.json",
   "additional_read_grants": "remaining-grants-applied.json",
-  "remaining_batch_baseline": "a3964b43afd076ef8bc6f2d2cd86524a08a62066"
+  "remaining_batch_baseline": "a3964b43afd076ef8bc6f2d2cd86524a08a62066",
+  "income_page_tests": "income-verification.json",
+  "source_access": "reporting-sources-grants-applied.json"
 }

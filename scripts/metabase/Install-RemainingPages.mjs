@@ -43,7 +43,7 @@ let dashboard=await api('GET','dashboard/3');
 const names=['3 · Borrowers','4 · Performance','5 · Risks','6 · Daily Collection','7 · Borrower Insight','8 · Forecast & Partners'];
 let temporary=-1;const tabs=[...dashboard.tabs];for(const name of names)if(!tabs.some(t=>t.name===name))tabs.push({id:temporary--,name,position:tabs.length});
 await api('PUT','dashboard/3/cards',{tabs,cards:dashboard.dashcards});dashboard=await api('GET','dashboard/3');
-if(dashboard.tabs.length!==8)throw Error('Remaining tabs were not saved');
+if(dashboard.tabs.length<8)throw Error('Remaining tabs were not saved');
 const parameters=[...dashboard.parameters.filter(p=>!['performance-date','insight-borrower','proposed-amount'].includes(p.id)),
  {id:'performance-date',name:'Performance date',slug:'performance_date',type:'date/all-options',sectionId:'date'},
  {id:'insight-borrower',name:'Borrower',slug:'borrower',type:'string/=',sectionId:'string',isMultiSelect:false,values_query_type:'list',values_source_type:'card',values_source_config:{card_id:lookup.id,value_field:F('Borrower ID'),label_field:F('Borrower')}},
@@ -70,6 +70,6 @@ for(const tab of newTabs){const page=Number(tab.name[0]);let row=0;for(const [ti
 await api('PUT','dashboard/3',{name:'Loan Reports',parameters});
 await api('PUT','dashboard/3/cards',{cards:placements,tabs:dashboard.tabs});
 const saved=await api('GET','dashboard/3');
-if(saved.tabs.length!==8||saved.dashcards.filter(c=>c.card_id).length!==109)throw Error('Saved dashboard coverage mismatch');
+if(saved.tabs.length<8||saved.dashcards.filter(c=>c.card_id&&saved.tabs.filter(t=>Number(t.name[0])<=8).some(t=>t.id===c.dashboard_tab_id)).length!==109)throw Error('Saved dashboard coverage mismatch');
 write('remaining-dashboard-verification.json',{saved_at:new Date().toISOString(),dashboard_id:3,url:'https://reports.mw-credit.com/dashboard/3',tabs:saved.tabs,questions:questions.length,placements:saved.dashcards.filter(c=>c.card_id).length,cards:state.cards,scenario_snippet:snippet.id,source_page_7_history:'explicitly unavailable; no database change requested'});
 console.log('Saved all eight report tabs, preserving first two pages.');

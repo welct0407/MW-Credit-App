@@ -1,0 +1,16 @@
+{
+  "verified_at": "2026-09-22T16:24:31.111Z",
+  "desktop": true,
+  "desktop_previous_month_selected": true,
+  "mobile_viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "mobile_portrait_totals_notes_tables": true,
+  "mobile_presets_usable": true,
+  "native_fixed_range_picker": "Wider than narrow portrait viewport; use landscape or desktop. Guidance included on page.",
+  "page_overflow_without_picker": false,
+  "viewport_reset": true,
+  "default_thismonth_restored": true,
+  "physical_phone_owner_review": "pending"
+}

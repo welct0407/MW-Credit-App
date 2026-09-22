@@ -1,0 +1,27 @@
+import {read,write} from './ReportingApi.mjs';
+const models=read('models.json'),specs=[];
+const C={income:'#13855B',expense:'#D1495B',balance:'#267DCC',neutral:'#24435A'};
+const F=(m,n)=>['field',n,{'base-type':models[m].columns.find(c=>c.name===n)?.base_type??'type/Decimal'}];
+const sum=(m,f)=>['aggregation-options',['sum',F(m,f)],{name:f,'display-name':f}];
+function settings(dims,metrics){return {'graph.dimensions':dims,'graph.metrics':metrics,'graph.colors':[C.income,C.expense,C.balance],'graph.show_values':true,'graph.show_legend':metrics.length>1,'graph.show_dots':false,'graph.x_axis.title_enabled':false,'graph.y_axis.title_enabled':false,'graph.label_value_formatting':'compact',column_settings:Object.fromEntries(metrics.map(f=>[JSON.stringify(['name',f]),{number_style:f==='Net Margin'?'percent':'decimal',decimals:f==='Net Margin'?1:0,number_separators:'.,'}]))};}
+function native(key,name,display,select,dims,metrics,extra={}){specs.push({key,name,display,native_select:select,description:'Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.',settings:{...settings(dims,metrics),...extra}});}
+function model(key,name,m,display,query,dims=[],metrics=[],extra={},date_field){specs.push({key,name,model:m,display,dataset_query:{database:2,type:'query',query:{'source-table':'card__'+models[m].id,...query}},description:date_field?'Selected-period detail from shared reporting models. THB; Bangkok dates.':'Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.',settings:{...settings(dims,metrics),...extra},...(date_field?{date_field}:{})});}
+function scalar(key,title,field,color,current=false){const extra={'scalar.field':field,'scalar.segments':[{min:-1e18,max:1e18,color}]};if(current)model(key,title,'income-statement','scalar',{fields:[F('income-statement',field)]},[],[field],extra);else native(key,title,'scalar',`SELECT "${field}" FROM statement`,[],[field],extra);}
+scalar('income','Operating income','Operating Income',C.income);
+scalar('expenses','Operating expenses','Operating Expenses',C.expense);
+scalar('profit','Net profit','Net Profit',C.income);
+scalar('margin','Net margin','Net Margin',C.income);
+native('bridge','Income → retained profit · selected period','waterfall',`SELECT v.movement AS "Movement",v.amount AS "Amount" FROM statement s CROSS JOIN LATERAL (VALUES (1,'1 · Income',s."Operating Income"),(2,'2 · Expenses',s."Operating Expenses"),(3,'3 · Tommy draw',s."Tommy Draw"),(4,'4 · Lisa draw',s."Lisa Draw")) v(step,movement,amount) ORDER BY step`,['Movement'],['Amount'],{'waterfall.increase_color':C.income,'waterfall.decrease_color':C.expense,'waterfall.total_color':C.balance,'waterfall.show_total':true});
+scalar('tommy','Tommy draw','Tommy Draw',C.expense);scalar('lisa','Lisa draw','Lisa Draw',C.expense);scalar('retained','Unsettled profit','Unsettled Profit',C.balance);
+scalar('inception','Net profit · through period end','Net Profit Through Period End',C.income);
+model('monthly','Earnings by month · selected period','income-daily','bar',{breakout:[F('income-daily','Month')],aggregation:['Operating Income','Signed Expenses','Net Profit'].map(f=>sum('income-daily',f)),'order-by':[['asc',F('income-daily','Month')]]},['Month'],['Operating Income','Signed Expenses','Net Profit'],{'graph.show_values':false,series_settings:{'Operating Income':{color:C.income,display:'bar'},'Signed Expenses':{color:C.expense,display:'bar'},'Net Profit':{color:C.balance,display:'line'}}},'Date');
+model('expense-category','Where expenses went · selected period','expenses','row',{breakout:[F('expenses','Expense Category')],aggregation:[sum('expenses','Expense Amount')],'order-by':[['desc',['aggregation',0]]]},['Expense Category'],['Expense Amount'],{'graph.colors':[C.expense]},'Expense Date');
+scalar('cash-pool','Cash pool remaining · now','Cash Pool Remaining',C.balance,true);
+scalar('cash-held','Business cash held · now','Business Cash Held',C.balance,true);
+scalar('cash-difference','Current cash check · difference','Cash Reconciliation Difference',C.neutral,true);
+model('holders','Who holds the business cash?','cash-accounts','row',{breakout:[F('cash-accounts','Cash Holder ID'),F('cash-accounts','Cash Holder')],aggregation:[sum('cash-accounts','Holder Cash Component')],'order-by':[['desc',['aggregation',0]]]},['Cash Holder'],['Holder Cash Component'],{'graph.colors':[C.balance]});
+model('accounts','Cash by account · current balances','cash-accounts','table',{fields:['Cash Holder','Account','Current Balance','Business Cash Held','Advance Due','Balance Status'].map(n=>F('cash-accounts',n)),'order-by':[['asc',F('cash-accounts','Cash Holder')],['asc',F('cash-accounts','Account')]]},[],['Current Balance','Business Cash Held','Advance Due'],{'table.pivot':false});
+native('period','Statement dates · available activity range','table','SELECT "Period Start","Period End","Selection Status" FROM statement',[],[]);
+for(const q of specs.filter(q=>['income','profit','margin','inception'].includes(q.key)))q.settings['scalar.segments']=[{min:-1e18,max:-0.00000001,color:C.expense},{min:0,max:1e18,color:C.income}];
+specs.find(q=>q.key==='monthly').settings['graph.show_dots']=true;
+write('income-questions.json',specs);console.log(`Built ${specs.length} income-page questions with one shared date-period snippet.`);

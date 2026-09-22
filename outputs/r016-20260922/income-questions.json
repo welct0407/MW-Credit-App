@@ -1,0 +1,975 @@
+[
+  {
+    "key": "income",
+    "name": "Operating income",
+    "display": "scalar",
+    "native_select": "SELECT \"Operating Income\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Operating Income"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Operating Income\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Operating Income",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": -1e-8,
+          "color": "#D1495B"
+        },
+        {
+          "min": 0,
+          "max": 1000000000000000000,
+          "color": "#13855B"
+        }
+      ]
+    }
+  },
+  {
+    "key": "expenses",
+    "name": "Operating expenses",
+    "display": "scalar",
+    "native_select": "SELECT \"Operating Expenses\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Operating Expenses"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Operating Expenses\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Operating Expenses",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": 1000000000000000000,
+          "color": "#D1495B"
+        }
+      ]
+    }
+  },
+  {
+    "key": "profit",
+    "name": "Net profit",
+    "display": "scalar",
+    "native_select": "SELECT \"Net Profit\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Net Profit"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Net Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Net Profit",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": -1e-8,
+          "color": "#D1495B"
+        },
+        {
+          "min": 0,
+          "max": 1000000000000000000,
+          "color": "#13855B"
+        }
+      ]
+    }
+  },
+  {
+    "key": "margin",
+    "name": "Net margin",
+    "display": "scalar",
+    "native_select": "SELECT \"Net Margin\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Net Margin"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Net Margin\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Net Margin",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": -1e-8,
+          "color": "#D1495B"
+        },
+        {
+          "min": 0,
+          "max": 1000000000000000000,
+          "color": "#13855B"
+        }
+      ]
+    }
+  },
+  {
+    "key": "bridge",
+    "name": "Income → retained profit · selected period",
+    "display": "waterfall",
+    "native_select": "SELECT v.movement AS \"Movement\",v.amount AS \"Amount\" FROM statement s CROSS JOIN LATERAL (VALUES (1,'1 · Income',s.\"Operating Income\"),(2,'2 · Expenses',s.\"Operating Expenses\"),(3,'3 · Tommy draw',s.\"Tommy Draw\"),(4,'4 · Lisa draw',s.\"Lisa Draw\")) v(step,movement,amount) ORDER BY step",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [
+        "Movement"
+      ],
+      "graph.metrics": [
+        "Amount"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "waterfall.increase_color": "#13855B",
+      "waterfall.decrease_color": "#D1495B",
+      "waterfall.total_color": "#267DCC",
+      "waterfall.show_total": true
+    }
+  },
+  {
+    "key": "tommy",
+    "name": "Tommy draw",
+    "display": "scalar",
+    "native_select": "SELECT \"Tommy Draw\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Tommy Draw"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Tommy Draw\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Tommy Draw",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": 1000000000000000000,
+          "color": "#D1495B"
+        }
+      ]
+    }
+  },
+  {
+    "key": "lisa",
+    "name": "Lisa draw",
+    "display": "scalar",
+    "native_select": "SELECT \"Lisa Draw\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Lisa Draw"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Lisa Draw\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Lisa Draw",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": 1000000000000000000,
+          "color": "#D1495B"
+        }
+      ]
+    }
+  },
+  {
+    "key": "retained",
+    "name": "Unsettled profit",
+    "display": "scalar",
+    "native_select": "SELECT \"Unsettled Profit\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Unsettled Profit"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Unsettled Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Unsettled Profit",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": 1000000000000000000,
+          "color": "#267DCC"
+        }
+      ]
+    }
+  },
+  {
+    "key": "inception",
+    "name": "Net profit · through period end",
+    "display": "scalar",
+    "native_select": "SELECT \"Net Profit Through Period End\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Net Profit Through Period End"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Net Profit Through Period End\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Net Profit Through Period End",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": -1e-8,
+          "color": "#D1495B"
+        },
+        {
+          "min": 0,
+          "max": 1000000000000000000,
+          "color": "#13855B"
+        }
+      ]
+    }
+  },
+  {
+    "key": "monthly",
+    "name": "Earnings by month · selected period",
+    "model": "income-daily",
+    "display": "bar",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__186",
+        "breakout": [
+          [
+            "field",
+            "Month",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Operating Income",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Operating Income",
+              "display-name": "Operating Income"
+            }
+          ],
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Signed Expenses",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Signed Expenses",
+              "display-name": "Signed Expenses"
+            }
+          ],
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Net Profit",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Net Profit",
+              "display-name": "Net Profit"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Month",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "description": "Selected-period detail from shared reporting models. THB; Bangkok dates.",
+    "settings": {
+      "graph.dimensions": [
+        "Month"
+      ],
+      "graph.metrics": [
+        "Operating Income",
+        "Signed Expenses",
+        "Net Profit"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.show_dots": true,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Operating Income\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Signed Expenses\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Net Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "series_settings": {
+        "Operating Income": {
+          "color": "#13855B",
+          "display": "bar"
+        },
+        "Signed Expenses": {
+          "color": "#D1495B",
+          "display": "bar"
+        },
+        "Net Profit": {
+          "color": "#267DCC",
+          "display": "line"
+        }
+      }
+    },
+    "date_field": "Date"
+  },
+  {
+    "key": "expense-category",
+    "name": "Where expenses went · selected period",
+    "model": "expenses",
+    "display": "row",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__163",
+        "breakout": [
+          [
+            "field",
+            "Expense Category",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Expense Amount",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Expense Amount",
+              "display-name": "Expense Amount"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "description": "Selected-period detail from shared reporting models. THB; Bangkok dates.",
+    "settings": {
+      "graph.dimensions": [
+        "Expense Category"
+      ],
+      "graph.metrics": [
+        "Expense Amount"
+      ],
+      "graph.colors": [
+        "#D1495B"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Expense Amount\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    },
+    "date_field": "Expense Date"
+  },
+  {
+    "key": "cash-pool",
+    "name": "Cash pool remaining · now",
+    "model": "income-statement",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__166",
+        "fields": [
+          [
+            "field",
+            "Cash Pool Remaining",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ]
+      }
+    },
+    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Cash Pool Remaining"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Cash Pool Remaining\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Cash Pool Remaining",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": 1000000000000000000,
+          "color": "#267DCC"
+        }
+      ]
+    }
+  },
+  {
+    "key": "cash-held",
+    "name": "Business cash held · now",
+    "model": "income-statement",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__166",
+        "fields": [
+          [
+            "field",
+            "Business Cash Held",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ]
+      }
+    },
+    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Business Cash Held"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Business Cash Held\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Business Cash Held",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": 1000000000000000000,
+          "color": "#267DCC"
+        }
+      ]
+    }
+  },
+  {
+    "key": "cash-difference",
+    "name": "Current cash check · difference",
+    "model": "income-statement",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__166",
+        "fields": [
+          [
+            "field",
+            "Cash Reconciliation Difference",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        ]
+      }
+    },
+    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Cash Reconciliation Difference"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Cash Reconciliation Difference\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "scalar.field": "Cash Reconciliation Difference",
+      "scalar.segments": [
+        {
+          "min": -1000000000000000000,
+          "max": 1000000000000000000,
+          "color": "#24435A"
+        }
+      ]
+    }
+  },
+  {
+    "key": "holders",
+    "name": "Who holds the business cash?",
+    "model": "cash-accounts",
+    "display": "row",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__164",
+        "breakout": [
+          [
+            "field",
+            "Cash Holder ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Cash Holder",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "aggregation": [
+          [
+            "aggregation-options",
+            [
+              "sum",
+              [
+                "field",
+                "Holder Cash Component",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            {
+              "name": "Holder Cash Component",
+              "display-name": "Holder Cash Component"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "desc",
+            [
+              "aggregation",
+              0
+            ]
+          ]
+        ]
+      }
+    },
+    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "settings": {
+      "graph.dimensions": [
+        "Cash Holder"
+      ],
+      "graph.metrics": [
+        "Holder Cash Component"
+      ],
+      "graph.colors": [
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Holder Cash Component\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      }
+    }
+  },
+  {
+    "key": "accounts",
+    "name": "Cash by account · current balances",
+    "model": "cash-accounts",
+    "display": "table",
+    "dataset_query": {
+      "database": 2,
+      "type": "query",
+      "query": {
+        "source-table": "card__164",
+        "fields": [
+          [
+            "field",
+            "Cash Holder",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Account",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          [
+            "field",
+            "Current Balance",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Business Cash Held",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Advance Due",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          [
+            "field",
+            "Balance Status",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        ],
+        "order-by": [
+          [
+            "asc",
+            [
+              "field",
+              "Cash Holder",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ],
+          [
+            "asc",
+            [
+              "field",
+              "Account",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ]
+        ]
+      }
+    },
+    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [
+        "Current Balance",
+        "Business Cash Held",
+        "Advance Due"
+      ],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": true,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {
+        "[\"name\",\"Current Balance\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Business Cash Held\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Advance Due\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,"
+        }
+      },
+      "table.pivot": false
+    }
+  },
+  {
+    "key": "period",
+    "name": "Statement dates · available activity range",
+    "display": "table",
+    "native_select": "SELECT \"Period Start\",\"Period End\",\"Selection Status\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
+    "settings": {
+      "graph.dimensions": [],
+      "graph.metrics": [],
+      "graph.colors": [
+        "#13855B",
+        "#D1495B",
+        "#267DCC"
+      ],
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.show_dots": false,
+      "graph.x_axis.title_enabled": false,
+      "graph.y_axis.title_enabled": false,
+      "graph.label_value_formatting": "compact",
+      "column_settings": {}
+    }
+  }
+]

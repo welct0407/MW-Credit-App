@@ -1,10 +1,10 @@
-# R016 — Eight-page Loan Reports review
+# R016 — Nine-page Loan Reports review
 
-[Open the dashboard](https://reports.mw-credit.com/dashboard/3). All eight tabs are implemented for review: 109 business visual placements from 105 questions, ten reusable models and one shared scenario snippet. Pages 1–2 retain their accepted layouts and metric definitions. The borrower POC remains at dashboard 2. Full migration acceptance remains pending.
+[Open the dashboard](https://reports.mw-credit.com/dashboard/3). Nine tabs are implemented for review: 126 business visual placements from 122 questions, sixteen reusable models and two shared parameterized snippets. Pages 1–2 retain their accepted layouts and metric definitions. The borrower POC remains at dashboard 2. Full migration acceptance remains pending.
 
 ## Shared reporting models
 
-[Reporting Models](https://reports.mw-credit.com/collection/8) is inside the partner-only Loan Reports collection. PostgreSQL remains the owner of financial posting and source balances. Metabase's reusable SQL models centralize reporting joins, time windows, labels, signed values and rankings; 102 visual questions contain no SQL, joins or business expressions. Three proposed-loan visuals reference one shared parameterized snippet, because model definitions cannot contain input variables.
+[Reporting Models](https://reports.mw-credit.com/collection/8) is inside the partner-only Loan Reports collection. PostgreSQL remains the owner of financial posting and source balances. Metabase's reusable SQL models centralize reporting joins, time windows, labels, signed values and rankings; 109 questions use the model query builder. Three proposed-loan visuals and ten Income Statement visuals reference their respective shared parameterized snippets, because model definitions cannot contain input variables.
 
 | Model / ID | Grain and reusable responsibility |
 | --- | --- |
@@ -18,8 +18,14 @@
 | Partner Outlook / 76 | One role A/B Partner ID; current shares from the existing Loan Form Context view. |
 | Collection Worklist / 77 | One borrower with a current collection status; posted receipts aggregated before joining. |
 | Collection Status Summary / 162 | Four governed statuses, including zero counts/amounts for empty statuses. |
+| Business Expenses / 163 | Expense ID; signed amounts, category and Bangkok month boundaries. |
+| Cash Account Positions / 164 | Cash Account ID; recorded holder, custody/advance balances and missing-opening status. |
+| Monthly Income / 165 | Calendar month; separately aggregated live income and expenses. |
+| Income Statement / 166 | Current OLTP Cash Dashboard row; MTD benchmark and current cash reconciliation. |
+| Settlement Ledger / 185 | Settlement ID; immutable partner reference and existing completion/date semantics. |
+| Daily Income Ledger / 186 | Calendar date; daily net profit, partner allocations and cumulative FIFO inputs calculated before period filtering. |
 
-Metabase maps the corresponding database columns and declares Loans.Ref Borrowers → Borrowers.Row ID and Repayments.Ref Loans → Loans.Row ID as foreign keys. These are semantic metadata settings over the existing views, not new PostgreSQL constraints. Exact columns/IDs are in [models.json](models.json), the dictionary's **Metabase Models** sheet, and maintained [model SQL](../../scripts/metabase/models). Current visuals are defined by [model-questions.json](model-questions.json). Extend the owning model when future pages need reusable logic; do not copy joins into a visual.
+Metabase maps the corresponding database columns and declares Loans.Ref Borrowers → Borrowers.Row ID and Repayments.Ref Loans → Loans.Row ID as foreign keys. These are semantic metadata settings over the existing views, not new PostgreSQL constraints. Exact columns/IDs are in [models.json](models.json), the dictionary's **Metabase Models** sheet, and maintained [model SQL](../../scripts/metabase/models). Visual definitions are in `model-questions.json`, `remaining-questions.json` and `income-questions.json`. Extend the owning model when future pages need reusable logic; do not copy joins into a visual.
 
 ## Source and metric contract
 
@@ -88,3 +94,21 @@ The owner approved exactly [73 additional SELECT column grants](remaining-propos
 [Remaining checks](remaining-verification.json) cover independent source reconciliation, ten unique grains, 80 model-only questions, scenario boundaries, dashboard parameter mappings, first-two-page preservation and partner permissions. The earlier 31 parity cases pass after model expansion. [New dashboard inventory](remaining-dashboard-verification.json) and [question definitions](remaining-questions.json) provide sanitized recovery metadata. These checks establish this implementation, not exact parity with broken legacy source bindings.
 
 To reverse this batch, restore private `remaining-pages-before` dashboard/card definitions, archive new dependent questions/models, then revoke only the 73 added column privileges using the preserved prior ACL. The accepted POC and earlier grants stay intact. Current definitions are exported privately at completion. Owner acceptance and final migration closure remain pending.
+
+## Income Statement — page 9
+
+[Open Income Statement](https://reports.mw-credit.com/dashboard/3?tab=12). The owner supplied the OLTP Income MTD screenshot and a shared **Business Money Breakdown Infographic** as conceptual references. Their example figures are not hardcoded. The page has 17 visuals: operating income, signed expenses, net profit/margin, a retained-profit waterfall, each partner's draw, unsettled profit, monthly earnings, expense categories, net profit through period end, and current cash/pool/check/holder/account information with statement dates.
+
+**Statement period** defaults to **This month** and accepts relative periods or a custom date range. Clearing it selects all recorded dates. Twelve cards are mapped: ten native projections of one shared statement snippet, plus the monthly and expense-category model queries. Five current-cash cards remain deliberately unfiltered and clearly labelled. Monthly bars include only dates in the selected range. Activity ends at Bangkok today; the displayed date row shows the available date range intersecting the selection. Income comes from posted interest (including the existing negative default adjustment convention), and expenses from Business Expenses; no hourly snapshot delay is introduced.
+
+The shared `income-period-snippet.sql` selects Daily Income Ledger after its running prior-profit and settlement amounts are calculated. For each partner, allocated draw = min(max(selected net profit,0), max(completed settlements through period end − max(prior net profit,0),0)), through the existing `fifo_current_month_settled` function. This is the OLTP's earlier-profit-first rule extended to any continuous date interval. It is **profit allocation as of the selected period end**, not simply settlements whose transfer date falls inside the interval. Expenses reduce net profit; draws reduce unsettled profit. The waterfall contains only the four signed movements, so its total does not double count profit subtotals.
+
+Current business cash uses Cash Account Balances, with immutable holder/account grouping and missing openings left null. The separate current cash check is cash held minus current pool remaining minus current-month unsettled profit. It is a diagnostic, not an attribution of differences to additional income. Selecting a historical period does not fabricate historical cash custody. Ordinary account current balances, nonnegative cash held and advance due remain distinct in the detail table.
+
+The owner initially approved 21 column grants, then explicitly chose **SELECT on all 12 existing sources used by Metabase** instead of column-by-column access. [Exact source list](../../scripts/metabase/reporting-sources-grants.sql) and [live grant/read-only verification](reporting-sources-grants-applied.json) supersede the unexecuted nine-column period proposal. Future columns in those objects are covered; future tables and unrelated sources are not. No write, CREATE, role-administration or default privileges were granted. Existing narrower column grants remain for recovery.
+
+[101 income checks](income-verification.json) cover current-month parity with all eight OLTP figures; prior/partial/cross-month, single-day, empty and cleared selections; independent FIFO arithmetic; waterfall/month/category reconciliation; unchanged current cash; six new model grains; shared sources; preserved earlier-page layouts/filters and partner permissions. The six new models bring the dictionary to sixteen models and 236 fields; all 13 operational worksheets remain byte-identical. Existing 31/37 checks are retained as earlier checkpoints; their source logic and first eight pages were not edited.
+
+Private rollback exports are under `income-before`, with completed objects exported after verification. Restore the pre-page dashboard, archive its 17 questions and six new models/snippet after dependency removal, then revoke the object-level grants and the 21 new column grants if reversing the entire batch. The original narrower ACLs are preserved. The superseded fixed-MTD bridge model 167 was archived after the date-selectable snippet replaced it. Full owner acceptance and development-key revocation remain pending.
+
+Date-slicer edge-case verification: non-contiguous exclusion filters are rejected with selection guidance, avoiding incorrect FIFO allocation. Mobile preset selection is usable in portrait; Metabase’s native two-calendar custom range picker is wider than a narrow phone, so use landscape or desktop for custom dates. This is noted on the page; the report itself has no horizontal page overflow, and account tables scroll within their cards.

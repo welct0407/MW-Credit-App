@@ -1,0 +1,422 @@
+{
+  "verified_at": "2026-09-22T16:23:23.359Z",
+  "checks": [
+    {
+      "check": "income current month matches OLTP Cash Dashboard",
+      "passed": true
+    },
+    {
+      "check": "expenses current month matches OLTP Cash Dashboard",
+      "passed": true
+    },
+    {
+      "check": "profit current month matches OLTP Cash Dashboard",
+      "passed": true
+    },
+    {
+      "check": "tommy current month matches OLTP Cash Dashboard",
+      "passed": true
+    },
+    {
+      "check": "lisa current month matches OLTP Cash Dashboard",
+      "passed": true
+    },
+    {
+      "check": "retained current month matches OLTP Cash Dashboard",
+      "passed": true
+    },
+    {
+      "check": "cash-pool current month matches OLTP Cash Dashboard",
+      "passed": true
+    },
+    {
+      "check": "cash-held current month matches OLTP Cash Dashboard",
+      "passed": true
+    },
+    {
+      "check": "previous-month income",
+      "passed": true
+    },
+    {
+      "check": "previous-month expenses",
+      "passed": true
+    },
+    {
+      "check": "previous-month profit",
+      "passed": true
+    },
+    {
+      "check": "previous-month tommy",
+      "passed": true
+    },
+    {
+      "check": "previous-month lisa",
+      "passed": true
+    },
+    {
+      "check": "previous-month retained",
+      "passed": true
+    },
+    {
+      "check": "previous-month margin",
+      "passed": true
+    },
+    {
+      "check": "previous-month waterfall retained total",
+      "passed": true
+    },
+    {
+      "check": "previous-month monthly detail reconciles",
+      "passed": true
+    },
+    {
+      "check": "previous-month expense categories reconcile",
+      "passed": true
+    },
+    {
+      "check": "previous-month current cash remains current",
+      "passed": true
+    },
+    {
+      "check": "partial-month income",
+      "passed": true
+    },
+    {
+      "check": "partial-month expenses",
+      "passed": true
+    },
+    {
+      "check": "partial-month profit",
+      "passed": true
+    },
+    {
+      "check": "partial-month tommy",
+      "passed": true
+    },
+    {
+      "check": "partial-month lisa",
+      "passed": true
+    },
+    {
+      "check": "partial-month retained",
+      "passed": true
+    },
+    {
+      "check": "partial-month margin",
+      "passed": true
+    },
+    {
+      "check": "partial-month waterfall retained total",
+      "passed": true
+    },
+    {
+      "check": "partial-month monthly detail reconciles",
+      "passed": true
+    },
+    {
+      "check": "partial-month expense categories reconcile",
+      "passed": true
+    },
+    {
+      "check": "partial-month current cash remains current",
+      "passed": true
+    },
+    {
+      "check": "cross-month income",
+      "passed": true
+    },
+    {
+      "check": "cross-month expenses",
+      "passed": true
+    },
+    {
+      "check": "cross-month profit",
+      "passed": true
+    },
+    {
+      "check": "cross-month tommy",
+      "passed": true
+    },
+    {
+      "check": "cross-month lisa",
+      "passed": true
+    },
+    {
+      "check": "cross-month retained",
+      "passed": true
+    },
+    {
+      "check": "cross-month margin",
+      "passed": true
+    },
+    {
+      "check": "cross-month waterfall retained total",
+      "passed": true
+    },
+    {
+      "check": "cross-month monthly detail reconciles",
+      "passed": true
+    },
+    {
+      "check": "cross-month expense categories reconcile",
+      "passed": true
+    },
+    {
+      "check": "cross-month current cash remains current",
+      "passed": true
+    },
+    {
+      "check": "single-day income",
+      "passed": true
+    },
+    {
+      "check": "single-day expenses",
+      "passed": true
+    },
+    {
+      "check": "single-day profit",
+      "passed": true
+    },
+    {
+      "check": "single-day tommy",
+      "passed": true
+    },
+    {
+      "check": "single-day lisa",
+      "passed": true
+    },
+    {
+      "check": "single-day retained",
+      "passed": true
+    },
+    {
+      "check": "single-day margin",
+      "passed": true
+    },
+    {
+      "check": "single-day waterfall retained total",
+      "passed": true
+    },
+    {
+      "check": "single-day monthly detail reconciles",
+      "passed": true
+    },
+    {
+      "check": "single-day expense categories reconcile",
+      "passed": true
+    },
+    {
+      "check": "single-day current cash remains current",
+      "passed": true
+    },
+    {
+      "check": "empty-past income",
+      "passed": true
+    },
+    {
+      "check": "empty-past expenses",
+      "passed": true
+    },
+    {
+      "check": "empty-past profit",
+      "passed": true
+    },
+    {
+      "check": "empty-past tommy",
+      "passed": true
+    },
+    {
+      "check": "empty-past lisa",
+      "passed": true
+    },
+    {
+      "check": "empty-past retained",
+      "passed": true
+    },
+    {
+      "check": "empty-past margin",
+      "passed": true
+    },
+    {
+      "check": "empty-past waterfall retained total",
+      "passed": true
+    },
+    {
+      "check": "empty-past monthly detail reconciles",
+      "passed": true
+    },
+    {
+      "check": "empty-past expense categories reconcile",
+      "passed": true
+    },
+    {
+      "check": "empty-past current cash remains current",
+      "passed": true
+    },
+    {
+      "check": "all-dates income",
+      "passed": true
+    },
+    {
+      "check": "all-dates expenses",
+      "passed": true
+    },
+    {
+      "check": "all-dates profit",
+      "passed": true
+    },
+    {
+      "check": "all-dates tommy",
+      "passed": true
+    },
+    {
+      "check": "all-dates lisa",
+      "passed": true
+    },
+    {
+      "check": "all-dates retained",
+      "passed": true
+    },
+    {
+      "check": "all-dates margin",
+      "passed": true
+    },
+    {
+      "check": "all-dates waterfall retained total",
+      "passed": true
+    },
+    {
+      "check": "all-dates monthly detail reconciles",
+      "passed": true
+    },
+    {
+      "check": "all-dates expense categories reconcile",
+      "passed": true
+    },
+    {
+      "check": "all-dates current cash remains current",
+      "passed": true
+    },
+    {
+      "check": "expenses unique non-null grain",
+      "passed": true
+    },
+    {
+      "check": "cash-accounts unique non-null grain",
+      "passed": true
+    },
+    {
+      "check": "income-monthly unique non-null grain",
+      "passed": true
+    },
+    {
+      "check": "income-statement unique non-null grain",
+      "passed": true
+    },
+    {
+      "check": "settlements unique non-null grain",
+      "passed": true
+    },
+    {
+      "check": "income-daily unique non-null grain",
+      "passed": true
+    },
+    {
+      "check": "income shared source",
+      "passed": true
+    },
+    {
+      "check": "expenses shared source",
+      "passed": true
+    },
+    {
+      "check": "profit shared source",
+      "passed": true
+    },
+    {
+      "check": "margin shared source",
+      "passed": true
+    },
+    {
+      "check": "bridge shared source",
+      "passed": true
+    },
+    {
+      "check": "tommy shared source",
+      "passed": true
+    },
+    {
+      "check": "lisa shared source",
+      "passed": true
+    },
+    {
+      "check": "retained shared source",
+      "passed": true
+    },
+    {
+      "check": "inception shared source",
+      "passed": true
+    },
+    {
+      "check": "monthly shared source",
+      "passed": true
+    },
+    {
+      "check": "expense-category shared source",
+      "passed": true
+    },
+    {
+      "check": "cash-pool shared source",
+      "passed": true
+    },
+    {
+      "check": "cash-held shared source",
+      "passed": true
+    },
+    {
+      "check": "cash-difference shared source",
+      "passed": true
+    },
+    {
+      "check": "holders shared source",
+      "passed": true
+    },
+    {
+      "check": "accounts shared source",
+      "passed": true
+    },
+    {
+      "check": "period shared source",
+      "passed": true
+    },
+    {
+      "check": "Nine tabs, 126 visuals, existing eight-page layouts and filters preserved",
+      "passed": true
+    },
+    {
+      "check": "Existing partner-only collection permissions unchanged",
+      "passed": true
+    },
+    {
+      "check": "Reporting login has no schema/role/database administration privileges",
+      "passed": true
+    },
+    {
+      "check": "Non-contiguous exclusion suppresses financial figures and gives selection guidance",
+      "passed": true
+    }
+  ],
+  "check_count": 101,
+  "default_period": "thismonth",
+  "periods": [
+    "previous-month",
+    "partial-month",
+    "cross-month",
+    "single-day",
+    "empty-past",
+    "all-dates"
+  ],
+  "statement_source": "OLTP Cash Dashboard parity; direct source aggregation and independent FIFO arithmetic",
+  "current_cash_not_date_filtered": true,
+  "financial_values_published": false
+}

@@ -3,9 +3,9 @@ await assertSource();
 const models=read('models.json'),questions=read('model-questions.json'),checks=[];
 for(const [key,m] of Object.entries(models)){
  const card=await api('GET','card/'+m.id),result=await api('POST',`card/${m.id}/query`,{});
- const grain={borrowers:'Borrower ID',loans:'Loan ID',repayments:'Repayment ID','borrower-performance':'Borrower',portfolio:'Portfolio ID',daily:'Date',charges:'Charge ID',partners:'Partner ID',collections:'Borrower ID','collection-summary':'Collection Status'}[key];
+ const grain=m.grain_field??{borrowers:'Borrower ID',loans:'Loan ID',repayments:'Repayment ID','borrower-performance':'Borrower',portfolio:'Portfolio ID',daily:'Date',charges:'Charge ID',partners:'Partner ID',collections:'Borrower ID','collection-summary':'Collection Status'}[key];
  const col=result.data.cols.findIndex(c=>c.name===grain),values=result.data.rows.map(row=>row[col]);
- const ok=card.type==='model'&&result.status==='completed'&&values.every(v=>v!==null)&&new Set(values).size===values.length;
+ const ok=col>=0&&card.type==='model'&&result.status==='completed'&&values.every(v=>v!=null)&&new Set(values).size===values.length;
  if(!ok)throw Error('Model grain failure '+key);
  checks.push({model:key,id:m.id,rows:result.row_count,unique_nonnull_grain:true,field_count:result.data.cols.length});
 }
