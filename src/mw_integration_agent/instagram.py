@@ -13,7 +13,13 @@ class Instagram:
     def __init__(self, config: dict[str, Any]):
         self.config = config
 
-    def request(self, path: str, query: dict[str, Any] | None = None, body: dict[str, Any] | None = None) -> dict[str, Any]:
+    def request(self, path, query=None, body=None):
+        from .audit import activity, digest
+        with activity(self.config,'instagram',action='SEND' if body is not None else 'READ',route='instagram',
+                      plan={'path':path,'request_digest':digest([query,body])},effect=body is not None):
+            return self._request(path,query,body)
+
+    def _request(self, path: str, query: dict[str, Any] | None = None, body: dict[str, Any] | None = None) -> dict[str, Any]:
         if not re.fullmatch(r"[A-Za-z0-9_-]+(?:/[a-z_]+)?", path):
             raise ConfigurationError("invalid Instagram API path")
         url = f"https://graph.instagram.com/{self.config['instagram_api_version']}/{path}"

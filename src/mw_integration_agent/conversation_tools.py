@@ -29,7 +29,7 @@ TOOLS = [
           'offset': {'type': 'integer', 'minimum': 0}, 'limit': {'type': 'integer', 'minimum': 1, 'maximum': 100}}),
     spec('sum_field', 'Exact decimal sum of current-turn observed rows only; result explicitly reports partial pages. Never extrapolate a partial sum.',
          {'observation': STR, 'field': STR, 'group_by': STR}),
-    spec('api_action', 'Execute an AppSheet Add or Edit selected by you. Choose app/table/field values from data_catalogue and current records. row_json is a JSON object of supplied column values WITHOUT the key; row_id identifies an Edit or is empty for Add (host generates key). operation_key is stable and unique per logical step. observation must show the edited fields or complete duplicate search for Add. expected_final_json is a JSON object of additional final checks and intentional server transitions; supplied values otherwise must match readback. Use __ACTOR__ for actor fields. API initial values apply to omitted Add fields. Up to 10 sequential row calls; verify effects after every call. Never repeat UNKNOWN. No Delete, configuration, identities or computed-field writes.',
+    spec('api_action', 'Execute an AppSheet Add or Edit selected by you. Choose app/table/field values from data_catalogue and current records. row_json is a JSON object of supplied column values WITHOUT the key; row_id identifies an Edit or is empty for Add (host generates key). operation_key is stable and unique per logical step. observation must show the edited fields or complete duplicate search for Add. expected_final_json is a JSON object of additional final checks and intentional server transitions; supplied values otherwise must match readback. Use __ACTOR__ for actor fields. API initial values apply to omitted Add fields. Up to 10 sequential row calls; verify effects after every call. Never repeat UNKNOWN. Approved Delete uses app=appsheet_delete with action=Edit carrier, row_json containing only owning_app, and empty expected_final_json. No configuration, identities or computed-field writes.',
          {'app': STR, 'table': STR, 'action': {'type':'string','enum':['Add','Edit']},
           'row_id': STR, 'row_json': STR, 'expected_final_json': STR,
           'operation_key': STR, 'observation': STR, 'instruction_quote': STR}),
@@ -37,7 +37,7 @@ TOOLS = [
          {'operation': STR}),
     spec('database_catalogue', 'Reviewer only. Empty table lists allowed resources. Otherwise inspect live database columns, defaults, constraints, triggers and writable fields before planning DML. No SQL input.', {'table': STR}),
     spec('database_read', 'Reviewer only. Fresh database rows using a nonempty JSON object of equality filters. All columns returned, maximum 100 matching rows; narrow filter if exceeded. Use exact Row ID for an absent INSERT key. No SQL expressions.', {'table': STR, 'where_json': STR}),
-    spec('database_transaction', 'Reviewer only. One atomic transaction per turn; 1..10 INSERT/UPDATE exact-key steps. steps_json is an array of objects with action,table,row_id,values,expected_after,observation. values/expected_after are scalar objects without Row ID. All submitted fields are checked unless overridden by expected_after for a documented trigger transition. Actor values must be __ACTOR__. Observe existing complete rows or absent INSERT key first. Requires current instruction quote and audit reason. No Delete/DDL/SQL/functions/settings. AppSheet bots and initial values do not run. Never mix with API writes or replay UNKNOWN.', {'steps_json': STR, 'instruction_quote': STR, 'reason': STR}),
+    spec('database_transaction', 'Reviewer only. One atomic transaction per turn; 1..10 INSERT/UPDATE/DELETE exact-key steps. DELETE has empty values/expected_after; include every child key as a DELETE step, child before parent. steps_json is an array of objects with action,table,row_id,values,expected_after,observation. values/expected_after are scalar objects without Row ID. All submitted fields are checked unless overridden by expected_after for a documented trigger transition. Actor values must be __ACTOR__. Observe existing complete rows or absent INSERT key first. Requires current instruction quote and audit reason. No DDL/SQL/functions/settings. Reason starts api_gap: or atomic: with concrete capability/transaction evidence. AppSheet bots and initial values do not run. Never mix with API writes or replay UNKNOWN.', {'steps_json': STR, 'instruction_quote': STR, 'reason': STR}),
     spec('finish', 'Finish once. VERIFIED requires current-turn evidence; use CLARIFY or REFUSE when unavailable. Never claim an uncertain edit succeeded. Reply in the specified partner language. No more tools after finish.',
          {'status': {'type': 'string', 'enum': ['VERIFIED', 'CLARIFY', 'REFUSE']},
           'message': STR, 'observations': STRINGS}),
@@ -80,6 +80,13 @@ class ConversationTools:
         return {'observation': ident, 'as_of': datetime.now(BANGKOK).isoformat(), **value}
 
     def call(self, name, args, call_id):
+        from .audit import activity, digest
+        config = getattr(self.store.db,'config',{})
+        with activity(config,'conversation_tool',plan={'name':name,'call_id':call_id,'message_id':self.message_id,
+                    'argument_keys':sorted(args) if isinstance(args,dict) else [],'arguments_sha256':digest(args)}):
+            return self._call(name,args,call_id)
+
+    def _call(self, name, args, call_id):
         self.authorize()
         if self.result is not None:
             raise ConfigurationError('TURN_ALREADY_FINISHED')
@@ -107,6 +114,13 @@ class ConversationTools:
         return sorted(set(definition['columns']) - HIDDEN)
 
     def dispatch(self, name, a):
+        if a.get('app') == 'appsheet_delete':
+            from .conversation_write import api_action, object_json
+            carrier = object_json(a['row_json'])
+            if (name!='api_action' or a['action']!='Edit' or set(carrier)!={'owning_app'}
+                    or carrier['owning_app'] not in ('oltp','olap') or object_json(a['expected_final_json'])):
+                raise ConfigurationError('API_DELETE_ALIAS_INVALID')
+            return api_action(self,{**a,'app':carrier['owning_app'],'action':'Delete','row_json':'{}'})
         # App Server 0.155.1 persists tool schemas at thread/start and has no
         # dynamicTools override on thread/resume. Keep the established read /
         # write tool names as typed compatibility routes; do not replace threads
@@ -141,7 +155,7 @@ class ConversationTools:
                     'writable_fields': {action:[k for k in table['columns'] if writable(a['table'],table,k,action)]
                                         for action in ('Add','Edit')},
                     'protected_table': a['table'] in PROTECTED_TABLES,
-                    'guidance': 'Use current app rules and Ref keys. AppSheet enforces its live validation. Existing automation and database triggers execute normally. Inspect related effects before claiming workflow completion. No physical deletes.'}
+                    'guidance': 'Use current app rules and Ref keys. AppSheet enforces its live validation. Existing automation and database triggers execute normally. Inspect related effects before claiming workflow completion. Reviewer-approved exact-key Delete is available with dependency checks; atomic/cascading effects require the SQL fallback.'}
         if name == 'read_records':
             table = a['table']
             app = a['app']

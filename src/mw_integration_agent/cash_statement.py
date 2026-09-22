@@ -8,6 +8,7 @@ from datetime import datetime, time, timedelta
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
+from .audit import audited
 from .config import ConfigurationError, load_secret
 
 BANGKOK = ZoneInfo('Asia/Bangkok')
@@ -27,6 +28,7 @@ def period(day: str | None = None, now: datetime | None = None):
     return start, end
 
 
+@audited('business_read',route='postgres',action='READ')
 def read_query(config, sql):
     if not config.get('database_enabled'):
         raise ConfigurationError('database_enabled is false')

@@ -35,11 +35,13 @@ def scan(config,api,master,journal,now=None,day=None):
         if day!=datetime.fromtimestamp(now,BANGKOK).date().isoformat():raise ConfigurationError('BACKFILL_TODAY_ONLY')
         cutoff=datetime.fromisoformat(day+'T00:00:00+07:00').timestamp()
     db=journal.db
-    db.executescript('''CREATE TABLE IF NOT EXISTS conversation_poll_state
-      (conversation_id TEXT PRIMARY KEY, checked_through REAL NOT NULL);
-      CREATE TABLE IF NOT EXISTS conversation_poll_messages
-      (message_id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, event_time REAL NOT NULL,
-       captured_at REAL NOT NULL, outcome TEXT NOT NULL);''')
+    from .state import is_postgres
+    if not is_postgres(db):
+        db.executescript('''CREATE TABLE IF NOT EXISTS conversation_poll_state
+          (conversation_id TEXT PRIMARY KEY, checked_through REAL NOT NULL);
+          CREATE TABLE IF NOT EXISTS conversation_poll_messages
+          (message_id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, event_time REAL NOT NULL,
+           captured_at REAL NOT NULL, outcome TEXT NOT NULL);''')
     enabled={username(b['username']) for b in master['borrowers'] if b['enabled'] is True and username(b['username'])}
     counts={'conversations':0,'eligible_conversations':0,'new_messages':0,'image_jobs':0}
     for batch in pages(api,config['instagram_account_id']+'/conversations',
@@ -109,6 +111,6 @@ def run(config_path,catalogue_path,day=None):
     with (root/'conversation-poll.lock').open('a') as lock:
         try:fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:return {'status':'already_running'}
-        journal=ReceiptJournal(root/'receipt-processing.db')
+        journal=ReceiptJournal(root/'receipt-processing.db', config=config)
         try:return scan(config,Instagram(config),masters(config),journal,day=day)
         finally:journal.close()

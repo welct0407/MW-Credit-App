@@ -105,12 +105,19 @@ def run(config_path, catalogue_path, day=None, send=False, scheduled=False):
     except BlockingIOError as exc:
         lock.close()
         raise ConfigurationError('A cash statement run is already active') from exc
-    journal = DeliveryJournal(state / 'cash-statement-delivery.db')
+    journal = DeliveryJournal(state / 'cash-statement-delivery.db', config=config)
     try:
         start, end = period(day)
         folder = state / 'cash-statements' / 'calendar-day' / start.date().isoformat()
         folder.mkdir(parents=True, exist_ok=True)
         saved = folder / 'snapshot.json'
+        from .statement_snapshot import load as load_snapshot, save as save_snapshot
+        snapshot_key='calendar-day/'+start.date().isoformat()
+        central_snapshot=load_snapshot(config,snapshot_key)
+        if central_snapshot is not None:
+            if saved.exists() and saved.read_text(encoding='utf-8')!=central_snapshot:
+                raise ConfigurationError('LOCAL_CENTRAL_STATEMENT_SNAPSHOT_MISMATCH')
+            if not saved.exists():saved.write_text(central_snapshot,encoding='utf-8')
         reused = saved.exists()
         if reused:
             report = json.loads(saved.read_text(), parse_float=Decimal)
@@ -122,6 +129,7 @@ def run(config_path, catalogue_path, day=None, send=False, scheduled=False):
             temp = folder / 'snapshot.tmp'
             temp.write_text(json.dumps(report, ensure_ascii=False, default=str), encoding='utf-8')
             temp.replace(saved)
+        save_snapshot(config,snapshot_key,saved.read_text(encoding='utf-8'),str(saved))
         rows = partners(config)
         results = []
         images = {}
@@ -142,7 +150,7 @@ def run(config_path, catalogue_path, day=None, send=False, scheduled=False):
                     try:
                         api = Instagram(config)
                         recipient = resolve_recipient(api, partner)
-                        check_window(state, recipient)
+                        check_window(state, recipient, config=config)
                         for account in report['accounts']:
                             for number, path in enumerate(images[(account['id'], partner['language'])], 1):
                                 key = json.dumps([report['start'], report['end'], partner['id'], account['id'], number])
@@ -159,12 +167,12 @@ def run(config_path, catalogue_path, day=None, send=False, scheduled=False):
                                 live_api = Instagram(fresh)
                                 if resolve_recipient(live_api, current) != recipient:
                                     raise InstagramDeliveryError('Partner Instagram recipient changed')
-                                check_window(state, recipient)
+                                check_window(state, recipient, config=config)
                                 attachment = upload_image(fresh, path, authorized=scheduled)
                                 final, _ = _fresh_controls(config_path, catalogue_path, scheduled)
                                 if eligible(partners(final), partner['id']) != partner:
                                     raise ConfigurationError('Partner master changed after image upload')
-                                check_window(state, recipient)
+                                check_window(state, recipient, config=config)
                                 journal.send_once(key, recipient, partner['language'],
                                                   hashlib.sha256(path.read_bytes()).hexdigest(),
                                                   attachment, live_api, authorized=scheduled)
@@ -204,7 +212,7 @@ def retry_emails(config_path, catalogue_path):
     require_services(catalogue, ['email_fallback'])
     if not config.get('email_fallback_enabled'):
         raise ConfigurationError('email_fallback_enabled is false')
-    journal = DeliveryJournal(Path(config['state_directory']) / 'cash-statement-delivery.db')
+    journal = DeliveryJournal(Path(config['state_directory']) / 'cash-statement-delivery.db', config=config)
     results = []
     try:
         rows = partners(config)

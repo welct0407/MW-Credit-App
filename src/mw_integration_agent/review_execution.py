@@ -2,10 +2,12 @@
 import json
 import urllib.request
 from decimal import Decimal
+from .audit import audited
 from .config import ConfigurationError,load_secret
 from .cash_statement import read_query
 
 
+@audited('receipt_payment',route='appsheet',action='INSERT',effect=True)
 def add_payment(config,key,proposal,actor):
     if config.get('partner_review_execution_enabled') is not True:raise ConfigurationError('REVIEW_EXECUTION_DISABLED')
     if proposal['action']!='Lump Sum':raise ConfigurationError('PARTNER_MANUAL_HANDLING_REQUIRED')

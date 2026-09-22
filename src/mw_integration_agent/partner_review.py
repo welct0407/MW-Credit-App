@@ -11,6 +11,9 @@ APPROVE={'yes','approve','approved','อนุมัติ'}
 class ReviewStore:
     def __init__(self,db):
         self.db=db
+        from .state import is_postgres
+        if is_postgres(db):
+            return
         db.executescript('''CREATE TABLE IF NOT EXISTS partner_reviews (
           id TEXT PRIMARY KEY,job_id TEXT NOT NULL UNIQUE,proposal TEXT NOT NULL,
           state TEXT NOT NULL DEFAULT 'PENDING',created_at REAL NOT NULL,

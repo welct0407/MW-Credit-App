@@ -1,0 +1,11 @@
+[Unit]
+Description=Relay committed business audit every 30 seconds
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=30s
+AccuracySec=2s
+Unit=mw-audit-relay.service
+
+[Install]
+WantedBy=timers.target

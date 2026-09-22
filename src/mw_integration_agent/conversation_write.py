@@ -13,6 +13,8 @@ from datetime import datetime
 from .config import ConfigurationError, load_secret
 from .conversation_reviewer import require_reviewer
 from .conversation_schema import ACTOR_FIELDS, PROTECTED_TABLES, table_schema, writable
+from .state import is_postgres
+from . import audit
 
 
 def object_json(value):
@@ -50,9 +52,11 @@ def actor_email(config, partner_id):
 def dispatch_action(config, app, table, action, row, actor):
     if config.get('conversation_writes_enabled') is not True:
         raise ConfigurationError('CONVERSATION_WRITES_DISABLED')
+    if action=='Delete' and (not config.get('reviewer_delete_enabled') or config.get('state_backend')!='postgres'):
+        raise ConfigurationError('REVIEWER_DELETE_DISABLED')
     id_key, secret_key = ('appsheet_app_id','appsheet_key_file') if app == 'oltp' else ('appsheet_olap_app_id','appsheet_olap_key_file')
     expected = {'oltp':'93844270-6aa5-420b-a960-bcdf08abd357','olap':'e74dd368-654f-44d7-bccf-83cf361d1cdb'}
-    if app not in expected or config.get(id_key) != expected[app] or action not in ('Add','Edit'):
+    if app not in expected or config.get(id_key) != expected[app] or action not in ('Add','Edit','Delete'):
         raise ConfigurationError('UNAPPROVED_API_TARGET_OR_ACTION')
     request = urllib.request.Request(
         'https://www.appsheet.com/api/v2/apps/' + config[id_key] + '/tables/' + urllib.parse.quote(table, safe='') + '/Action',
@@ -104,6 +108,9 @@ def read_one(bridge, app, table, key, ident):
 
 
 def journal(bridge):
+    from .state import is_postgres
+    if is_postgres(bridge.store.db):
+        return bridge.store.db
     bridge.store.db.execute('''CREATE TABLE IF NOT EXISTS conversation_operations (
       id TEXT PRIMARY KEY, message_id TEXT NOT NULL, fingerprint TEXT NOT NULL,
       app TEXT NOT NULL, table_name TEXT NOT NULL, row_id TEXT NOT NULL,
@@ -122,13 +129,16 @@ def verify_operation(bridge, operation):
     schema = table_schema(bridge.schema(),op['app'],op['table_name'])
     actual = read_one(bridge,op['app'],op['table_name'],schema['key'],op['row_id'])
     expected = json.loads(op['verification'])
-    verified = len(actual)==1 and all(k in actual[0] and same(actual[0][k],v,schema['columns'][k]) for k,v in expected.items())
+    verified = (not actual) if op['action']=='Delete' else (len(actual)==1 and all(k in actual[0] and same(actual[0][k],v,schema['columns'][k]) for k,v in expected.items()))
     result = {'operation':operation,'app':op['app'],'table':op['table_name'],'row_id':op['row_id'],
               'state':'VERIFIED' if verified else 'UNKNOWN','write_verified':verified,
               'rows':actual,'expected_final':expected,'complete':True}
     with db:
         db.execute('UPDATE conversation_operations SET state=?,result=? WHERE id=?',
                    (result['state'],json.dumps(result,ensure_ascii=False),operation))
+        if is_postgres(db):
+            audit.event(db.conn,audit.stable('reviewer_api:'+operation),'verified' if verified else 'unknown',
+                result,'appsheet','VERIFIED' if verified else 'UNKNOWN')
     bridge.write_verified = not db.execute("SELECT 1 FROM conversation_operations WHERE message_id=? AND state='UNKNOWN'",(bridge.message_id,)).fetchone()
     bridge.cache.clear()
     return result
@@ -146,7 +156,7 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
         raise ConfigurationError('DO_NOT_MIX_API_AND_DML')
     app, table, action = args['app'], args['table'], args['action']
     definition = table_schema(bridge.schema(),app,table)
-    modes = {'Add':{'ALL_CHANGES','ADDS_ONLY','ADDS_AND_UPDATES'},'Edit':{'ALL_CHANGES','UPDATES_ONLY','ADDS_AND_UPDATES'}}
+    modes = {'Add':{'ALL_CHANGES','ADDS_ONLY','ADDS_AND_UPDATES'},'Edit':{'ALL_CHANGES','UPDATES_ONLY','ADDS_AND_UPDATES'},'Delete':{'ALL_CHANGES'}}
     if action not in modes or definition['permission'] not in modes[action] or table in PROTECTED_TABLES:
         raise ConfigurationError('TABLE_OR_ACTION_NOT_WRITABLE')
     quote = args['instruction_quote']
@@ -158,8 +168,14 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
     row, expected = object_json(args['row_json']), object_json(args['expected_final_json'])
     key = definition['key']
     ident = args['row_id']
-    if not isinstance(ident,str) or not row or key in row:
+    if not isinstance(ident,str) or (not row and action!='Delete') or key in row:
         raise ConfigurationError('SUPPLY_FIELDS_WITHOUT_KEY')
+    if action=='Delete':
+        if not is_postgres(bridge.store.db) or not config.get('reviewer_delete_enabled'):
+            raise ConfigurationError('REVIEWER_DELETE_DISABLED')
+        if not ident or row or expected:
+            raise ConfigurationError('DELETE_EXACT_KEY_EMPTY_VALUES_REQUIRED')
+        api_delete_scope(config,table,ident)
     if action == 'Add' and ident:
         raise ConfigurationError('ADD_KEY_IS_HOST_GENERATED')
     if any(k not in definition['columns'] for k in expected):
@@ -186,7 +202,7 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
     source = bridge.observations.get(args['observation'])
     if not source or source.get('app') != app or source.get('table') != table or 'rows' not in source:
         raise ConfigurationError('CURRENT_TABLE_OBSERVATION_REQUIRED')
-    if action == 'Edit':
+    if action in ('Edit','Delete'):
         observed = [r for r in source['rows'] if str(r.get(key)) == ident]
         if len(observed) != 1 or any(f not in observed[0] for f in row):
             raise ConfigurationError('OBSERVE_EXISTING_FIELDS_BEFORE_EDIT')
@@ -212,6 +228,13 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
     with db:
         inserted = db.execute('INSERT OR IGNORE INTO conversation_operations VALUES (?,?,?,?,?,?,?,?,?,?,NULL)',
             (operation,bridge.message_id,fingerprint,app,table,ident,action,json.dumps({key:ident,**row}),json.dumps(expected),'UNKNOWN')).rowcount
+        if inserted and is_postgres(db):
+            op=audit.begin(db.conn,config,'reviewer_api',operation,{'Add':'INSERT','Edit':'UPDATE','Delete':'DELETE'}[action],
+                {'app':app,'table':table,'action':action,'row_id':ident,'values':row,'before':source['rows'],
+                 'expected':expected,'instruction_quote':quote,'coverage':'observed_not_atomic'},
+                {'kind':'reviewer','id':bridge.partner_id,'login':actor,'authorization':{'current_ai_reviewer':True}},bridge.message_id)
+            audit.event(db.conn,op,'route_selected',{'capability':'owning_app_permits_action','route':'appsheet'},'appsheet','AUTHORIZED')
+            audit.event(db.conn,op,'dispatch_started',route='appsheet',state='DISPATCHING')
     if not inserted:
         raise ConfigurationError('OPERATION_ALREADY_ATTEMPTED_NO_REPLAY')
     bridge.possible_write, bridge.write_verified = True,False
@@ -222,3 +245,29 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
     except Exception:
         raise ConfigurationError('API_OUTCOME_UNCERTAIN_NO_REPLAY operation='+operation) from None
     return verify_operation(bridge,operation)
+
+
+def api_delete_scope(config, table, row_id):
+    """An API call cannot enforce a dependent deletion manifest atomically.
+
+    Permit the API when there are no FK children and no business DELETE trigger;
+    otherwise explain the atomicity gap, allowing the reviewer SQL route.
+    """
+    from .conversation_dml import connect, TABLES, identifier
+    from psycopg import sql
+    if table not in TABLES:
+        raise ConfigurationError('DELETE_RESOURCE_DENIED')
+    with connect(config) as conn:
+        if conn.execute('''SELECT 1 FROM pg_trigger WHERE tgrelid=to_regclass(format('public.%%I',%s::text))
+            AND NOT tgisinternal AND (tgtype & 8)<>0 AND tgname<>'mw_agent_capture' LIMIT 1''',(table,)).fetchone():
+            raise ConfigurationError('API_DELETE_ATOMICITY_GAP_USE_SQL_AND_INSPECT_TRIGGERS')
+        refs=conn.execute('''SELECT n.nspname AS schema,c.relname AS table,a.attname AS column,cardinality(k.conkey) AS width,k.confdeltype AS delete_action
+            FROM pg_constraint k JOIN pg_class c ON c.oid=k.conrelid JOIN pg_namespace n ON n.oid=c.relnamespace
+            JOIN pg_attribute a ON a.attrelid=c.oid AND a.attnum=k.conkey[1]
+            WHERE k.contype='f' AND k.confrelid=to_regclass(format('public.%%I',%s::text))''',(table,)).fetchall()
+        for ref in refs:
+            if ref['width']!=1 or ref['schema']!='public' or ref['delete_action'] not in ('a','r'):
+                raise ConfigurationError('API_DELETE_DEPENDENCY_REQUIRES_SQL')
+            query=sql.SQL('SELECT 1 FROM {}.{} WHERE {}=%s LIMIT 1').format(identifier(ref['schema']),identifier(ref['table']),identifier(ref['column']))
+            if conn.execute(query,(row_id,)).fetchone():
+                raise ConfigurationError('API_DELETE_HAS_CHILDREN_REQUIRE_APPROVED_SQL_PLAN')

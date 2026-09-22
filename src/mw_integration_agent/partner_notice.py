@@ -3,6 +3,7 @@ import hashlib
 import html
 import json
 import sqlite3
+from .state import connect as state_connect, enabled as state_enabled, is_postgres
 import time
 from pathlib import Path
 
@@ -13,8 +14,10 @@ from .statement_delivery import eligible, resolve_recipient, check_window
 
 
 class NoticeJournal:
-    def __init__(self,path):
-        self.db=sqlite3.connect(path,timeout=30)
+    def __init__(self,path,config=None):
+        self.db=state_connect(path,config)
+        if is_postgres(self.db):
+            return
         self.db.row_factory=sqlite3.Row
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.execute('PRAGMA synchronous=FULL')
@@ -80,7 +83,7 @@ class NoticeJournal:
                 if conversation and recipient != item['recipient_id']:
                     with self.db:self.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='CONVERSATION_SENDER_CHANGED' WHERE id=?",(item['id'],))
                     return
-                window(Path(config['state_directory']),recipient)
+                window(Path(config['state_directory']),recipient, **({'config':config} if window is check_window else {}))
                 if len(item['body'])>1000:
                     raise ConfigurationError('COMPLETE_REPLY_REQUIRES_EMAIL')
             except ConfigurationError:

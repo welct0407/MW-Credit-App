@@ -35,9 +35,25 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
-    for flag in ('partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled'):
+    if config.get('state_backend', 'sqlite') not in ('sqlite','postgres'):
+        raise ConfigurationError('unknown state backend')
+    if config.get('state_backend') == 'postgres':
+        from datetime import datetime
+        from uuid import UUID
+        if (config.get('agent_database_host') not in ('127.0.0.1','::1') or
+                config.get('agent_database_port') != 5432 or config.get('agent_database_name') != 'mw_agent'):
+            raise ConfigurationError('unapproved agent database')
+        _validate_secret_path(config, 'agent_database_worker_password_file')
+        try:
+            UUID(config['state_generation'])
+            if datetime.fromisoformat(config['state_cutover_at']).tzinfo is None: raise ValueError()
+        except (KeyError, TypeError, ValueError):
+            raise ConfigurationError('state generation and timezone cutover required') from None
+    for flag in ('partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled', 'reviewer_delete_enabled'):
         if type(config.get(flag, False)) is not bool:
             raise ConfigurationError(flag + ' must be boolean')
+    if config.get('reviewer_delete_enabled') and (config.get('state_backend')!='postgres' or not config.get('reviewer_dml_enabled')):
+        raise ConfigurationError('DELETE requires PostgreSQL audit and reviewer DML')
     if config.get('conversation_writes_enabled') and not config.get('partner_conversations_enabled'):
         raise ConfigurationError('conversation writes require conversations')
     if config.get('partner_conversations_enabled'):

@@ -11,6 +11,8 @@ from contextlib import contextmanager
 from .config import ConfigurationError, load_secret
 from .conversation_reviewer import require_reviewer
 from .conversation_schema import ACTOR_FIELDS, PROTECTED_FIELDS, writable
+from .state import is_postgres
+from . import audit
 
 # Resource boundary, not a list of supported business operations. Trigger-owned
 # allocations and derived values cannot be edited directly by the model.
@@ -20,6 +22,9 @@ TABLES = ('Borrowers', 'Loans', 'Charges', 'Repayments', 'Payments',
 
 def journal(bridge):
     db = bridge.store.db
+    from .state import is_postgres
+    if is_postgres(db):
+        return db
     db.execute('''CREATE TABLE IF NOT EXISTS conversation_dml (
       id TEXT PRIMARY KEY, message_id TEXT NOT NULL UNIQUE, actor TEXT NOT NULL,
       request TEXT NOT NULL, state TEXT NOT NULL, result TEXT)''')
@@ -107,8 +112,8 @@ def writable_fields(bridge, table, columns):
 def catalogue(bridge, table):
     config, _ = authorize(bridge)
     if not table:
-        return {'tables': list(TABLES), 'actions': ['INSERT', 'UPDATE'],
-                'limits': 'One atomic transaction per turn, at most 10 exact-key rows. No DELETE, DDL, SQL expressions, settings, functions or trigger bypass. Existing database guards remain authoritative. AppSheet-only actions/bots/validation do not run through direct SQL.'}
+        return {'tables': list(TABLES), 'actions': ['INSERT', 'UPDATE', 'DELETE'],
+                'limits': 'API first. SQL fallback reason must start api_gap: or atomic:. One atomic transaction per turn, at most 10 exact-key rows. DELETE requires empty values/expected_after; every deleted child key must also be an explicitly planned DELETE step, ordered child before parent. No DDL, SQL expressions, settings, functions or trigger bypass. Existing database guards remain authoritative.'}
     with connect(config) as conn:
         columns = metadata(conn, table)
         constraints = conn.execute('''SELECT conname AS name, pg_get_constraintdef(oid) AS definition
@@ -144,7 +149,8 @@ def select(conn, table, columns, where, lock=False):
     predicate = sql.SQL(' AND ').join(sql.SQL('{} IS NOT DISTINCT FROM CAST(%s AS {} )').format(identifier(k),sql.SQL(columns[k]['type'])) for k in where)
     query = sql.SQL('SELECT row_to_json(r)::text AS row FROM (SELECT * FROM public.{} WHERE {} LIMIT 101{}) r').format(
         identifier(table), predicate, sql.SQL(' FOR UPDATE' if lock else ''))
-    rows = [json.loads(r['row']) for r in conn.execute(query, list(where.values())).fetchall()]
+    from decimal import Decimal
+    rows = [json.loads(r['row'], parse_float=lambda value: str(Decimal(value))) for r in conn.execute(query, list(where.values())).fetchall()]
     if len(rows)>100:
         raise ConfigurationError('DML_READ_BOUND_NARROW_FILTER')
     return rows
@@ -178,7 +184,7 @@ def parse_plan(raw):
     for step in plan:
         if not isinstance(step,dict) or set(step)!={'action','table','row_id','values','expected_after','observation'}:
             raise ConfigurationError('DML_STEP_FIELDS_INVALID')
-        if step['action'] not in ('INSERT','UPDATE') or step['table'] not in TABLES:
+        if step['action'] not in ('INSERT','UPDATE','DELETE') or step['table'] not in TABLES:
             raise ConfigurationError('DML_ACTION_OR_TABLE_DENIED')
         if not isinstance(step['row_id'],str) or not step['row_id'] or len(step['row_id'])>200:
             raise ConfigurationError('DML_EXACT_KEY_REQUIRED')
@@ -186,7 +192,10 @@ def parse_plan(raw):
         if key in seen: raise ConfigurationError('DML_DUPLICATE_TARGET')
         seen.add(key)
         scalar_map(step['values']); scalar_map(step['expected_after'])
-        if not step['values'] or 'Row ID' in step['values'] or 'Row ID' in step['expected_after']:
+        if step['action']=='DELETE':
+            if step['values'] or step['expected_after']:
+                raise ConfigurationError('DELETE_REQUIRES_EMPTY_VALUES_AND_FINAL_STATE')
+        elif not step['values'] or 'Row ID' in step['values'] or 'Row ID' in step['expected_after']:
             raise ConfigurationError('DML_KEY_IMMUTABLE')
     return plan
 
@@ -200,6 +209,11 @@ def transaction(bridge, args):
     if not isinstance(reason,str) or not 5<=len(reason.strip())<=1000:
         raise ConfigurationError('DML_AUDIT_REASON_REQUIRED')
     plan=parse_plan(args['steps_json'])
+    central = is_postgres(bridge.store.db)
+    if any(s['action']=='DELETE' for s in plan) and (not central or not config.get('reviewer_delete_enabled')):
+        raise ConfigurationError('REVIEWER_DELETE_DISABLED')
+    if central:
+        require_fallback(bridge, plan, reason)
     from .conversation_write import journal as api_journal
     if api_journal(bridge).execute("SELECT 1 FROM conversation_operations WHERE state='UNKNOWN'").fetchone() or unknown(bridge):
         raise ConfigurationError('PRIOR_OPERATION_UNCERTAIN_RECONCILE_FIRST')
@@ -231,10 +245,22 @@ def transaction(bridge, args):
         db.executemany('INSERT INTO conversation_dml_inserts VALUES (?,?)',[(fp,operation) for fp in fingerprints])
         db.execute('INSERT INTO conversation_dml VALUES (?,?,?,?,?,NULL)',
             (operation,bridge.message_id,actor,json.dumps({'reason':reason,'quote':quote,'plan':plan,'before':sources}), 'UNKNOWN'))
+        if central:
+            central_op = audit.begin(db.conn,config,'reviewer_dml',operation,'PROCESS',
+                {'reason':reason,'quote':quote,'plan':plan,'before':sources},
+                {'kind':'reviewer','id':bridge.partner_id,'login':actor,
+                 'authorization':{'current_ai_reviewer':True}},bridge.message_id)
+            audit.event(db.conn,central_op,'route_selected',{'reason':reason,'route':'postgres'},'postgres','AUTHORIZED')
+            audit.event(db.conn,central_op,'dispatch_started',route='postgres',state='DISPATCHING')
     bridge.possible_write, bridge.write_verified=True,False
     committing=False
     try:
         with connect(config,write=True) as conn:
+            if central:
+                conn.execute('SELECT agent_audit.begin_operation(%s,%s,%s,%s,%s,%s::jsonb,%s)',
+                    (central_op,bridge.partner_id,actor,audit.digest({'reason':reason,'quote':quote,'plan':plan,'before':sources}),
+                     reason,audit.canonical([{'action':s['action'],'table':s['table'],'row_id':s['row_id']} for s in plan]),
+                     config.get('code_version','unknown')))
             actual=[]
             for step,source in zip(plan,sources):
                 columns=metadata(conn,step['table'])
@@ -255,13 +281,17 @@ def transaction(bridge, args):
                 if any(k not in columns for k in expected):
                     raise ConfigurationError('DML_UNKNOWN_CHECK_FIELD')
                 before=select(conn,step['table'],columns,{'Row ID':step['row_id']},lock=True)
-                if step['action']=='UPDATE':
+                if step['action'] in ('UPDATE','DELETE'):
                     observed=[r for r in source['rows'] if r['Row ID']==step['row_id']]
                     if before!=observed:
                         raise ConfigurationError('DML_ROW_CHANGED_SINCE_OBSERVATION')
-                    query=sql.SQL('UPDATE public.{} SET {} WHERE "Row ID"=%s').format(identifier(step['table']),
-                        sql.SQL(',').join(sql.SQL('{}=%s').format(identifier(k)) for k in values))
-                    params=[*values.values(),step['row_id']]
+                    if step['action']=='DELETE':
+                        query=sql.SQL('DELETE FROM public.{} WHERE "Row ID"=%s').format(identifier(step['table']))
+                        params=[step['row_id']]
+                    else:
+                        query=sql.SQL('UPDATE public.{} SET {} WHERE "Row ID"=%s').format(identifier(step['table']),
+                            sql.SQL(',').join(sql.SQL('{}=%s').format(identifier(k)) for k in values))
+                        params=[*values.values(),step['row_id']]
                 else:
                     if before: raise ConfigurationError('DML_INSERT_KEY_EXISTS')
                     if 'Created By' in columns:
@@ -275,10 +305,20 @@ def transaction(bridge, args):
                 actual.append((step,columns,expected))
             # Check final states after ALL steps, including deferred constraints.
             conn.execute('SET CONSTRAINTS ALL IMMEDIATE')
+            if central:
+                changes=conn.execute('''SELECT table_name,action,row_key,
+                    octet_length(coalesce(before_row::text,''))+octet_length(coalesce(after_row::text,'')) AS bytes
+                    FROM agent_audit.row_changes WHERE operation_id=%s''',(central_op,)).fetchall()
+                deleted={(r['table_name'],r['row_key']['Row ID']) for r in changes if r['action']=='DELETE'}
+                approved={(s['table'],s['row_id']) for s in plan if s['action']=='DELETE'}
+                if deleted!=approved:
+                    raise ConfigurationError('UNAPPROVED_CASCADE_ROLLBACK')
+                if len(changes)>1000 or sum(r['bytes'] for r in changes)>10*1024*1024:
+                    raise ConfigurationError('DML_AUDIT_EFFECT_LIMIT')
             final=[]
             for step,columns,expected in actual:
                 rows=select(conn,step['table'],columns,{'Row ID':step['row_id'],**expected})
-                if len(rows)!=1:
+                if (step['action']=='DELETE' and rows) or (step['action']!='DELETE' and len(rows)!=1):
                     raise ConfigurationError('DML_FINAL_STATE_MISMATCH')
                 final.append({'table':step['table'],'rows':rows})
             if authorize(bridge)[1]!=actor:
@@ -288,6 +328,8 @@ def transaction(bridge, args):
         result={'operation':operation,'state':'VERIFIED','write_verified':True,'atomic':True,'records':final}
         with db:
             db.execute('UPDATE conversation_dml SET state=?,result=? WHERE id=?',('VERIFIED',json.dumps(result),operation))
+            if central:
+                audit.event(db.conn,central_op,'verified',{'operation':operation,'records':final},'postgres','VERIFIED',key='worker-verified')
         bridge.write_verified=True
         bridge.cache.clear()
         return bridge.observe(result)
@@ -299,6 +341,29 @@ def transaction(bridge, args):
         code=str(exc) if isinstance(exc,ConfigurationError) else ('SQLSTATE_'+str(exc.sqlstate) if isinstance(exc,PgError) else type(exc).__name__)
         with db:
             db.execute('UPDATE conversation_dml SET state=?,result=? WHERE id=?',('ROLLED_BACK',json.dumps({'reason':code}),operation))
+            if central:
+                audit.event(db.conn,central_op,'rolled_back',{'reason':code},'postgres','ROLLED_BACK')
         bridge.possible_write=False
         bridge.write_verified=False
         raise ConfigurationError('DML_ROLLED_BACK '+code) from None
+
+
+def require_fallback(bridge, plan, reason):
+    """Require capability evidence; rejection/timeouts do not authorize bypass."""
+    if reason.startswith('atomic:') and len(reason.removeprefix('atomic:').strip())>=10:
+        return
+    if not reason.startswith('api_gap:'):
+        raise ConfigurationError('API_FIRST_FALLBACK_REASON_REQUIRED')
+    modes={'INSERT':{'ALL_CHANGES','ADDS_ONLY','ADDS_AND_UPDATES'},
+           'UPDATE':{'ALL_CHANGES','UPDATES_ONLY','ADDS_AND_UPDATES'},'DELETE':{'ALL_CHANGES'}}
+    for step in plan:
+        supported=False
+        for app in bridge.schema()['apps'].values():
+            definition=app['tables'].get(step['table'])
+            action='Add' if step['action']=='INSERT' else 'Edit'
+            if definition and definition['permission'] in modes[step['action']] and all(
+                f in ACTOR_FIELDS or writable(step['table'],definition,f,action) for f in step['values']):
+                supported=True
+        if not supported:
+            return
+    raise ConfigurationError('APPSHEET_SUPPORTS_PLAN_USE_API_FIRST')

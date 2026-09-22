@@ -66,7 +66,7 @@ def handler(config_path: str):
                     self.respond(403, "Forbidden")
                     return
                 messages = extract_messages(json.loads(raw), config["instagram_account_id"])
-                journal = IngressJournal(Path(config["state_directory"]) / "instagram-ingress.db")
+                journal = IngressJournal(Path(config["state_directory"]) / "instagram-ingress.db", config=config)
                 try:
                     journal.capture(hashlib.sha256(raw).hexdigest(), messages)
                 finally:

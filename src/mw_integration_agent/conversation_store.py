@@ -2,6 +2,7 @@
 import hashlib
 import json
 import sqlite3
+from .state import connect as state_connect, enabled as state_enabled, is_postgres
 import time
 
 from .config import ConfigurationError
@@ -12,8 +13,10 @@ def binding_key(account, partner, sender):
 
 
 class ConversationStore:
-    def __init__(self, path):
-        self.db = sqlite3.connect(path, timeout=30)
+    def __init__(self, path, config=None):
+        self.db = state_connect(path, config)
+        if is_postgres(self.db):
+            return
         self.db.row_factory = sqlite3.Row
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.execute('PRAGMA synchronous=FULL')

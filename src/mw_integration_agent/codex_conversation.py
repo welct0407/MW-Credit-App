@@ -7,6 +7,7 @@ import subprocess
 import threading
 import time
 
+from .audit import audited
 from .config import ConfigurationError
 
 
@@ -77,6 +78,7 @@ class CodexConversation:
                     raise ConfigurationError('CONVERSATION_PROTOCOL_ERROR')
                 return event['result']
 
+    @audited('model_turn',route='codex')
     def run(self, instructions, request):
         # Fresh per-binding home: no owner plugins, MCP servers, rules or cross-partner memory.
         home = self.folder / 'codex-home'

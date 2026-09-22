@@ -1,6 +1,7 @@
 """Receipt -> correlated Partner review -> guarded ordinary payment or manual handling."""
 import json
 import sqlite3
+from .state import connect as state_connect, enabled as state_enabled
 from datetime import datetime
 from pathlib import Path
 from .config import ConfigurationError
@@ -21,7 +22,7 @@ def reviewer_partners(live):
 
 def cycle(config,journal,identity_reader):
     root=Path(config['state_directory']);db=journal.db;reviews=ReviewStore(db)
-    notices=NoticeJournal(root/'partner-notices.db')
+    notices=NoticeJournal(root/'partner-notices.db', config=config)
     cutoff=datetime.fromisoformat(config['partner_review_cutoff']).timestamp()
     try:
         import time
@@ -49,11 +50,11 @@ def cycle(config,journal,identity_reader):
         # Signed direct-message replies only. API-polled borrower content cannot authorize.
         # Apply the additive local schema before the first new webhook arrives.
         from .journal import IngressJournal
-        migrated=IngressJournal(root/'instagram-ingress.db');migrated.close()
-        ingress=sqlite3.connect(f'file:{root / "instagram-ingress.db"}?mode=ro',uri=True)
-        ingress.row_factory=sqlite3.Row
+        migrated=IngressJournal(root/'instagram-ingress.db', config=config);migrated.close()
+        ingress=state_connect(root/'instagram-ingress.db',config,readonly=True)
+        pass  # row format supplied by state adapter
         try:
-            events=ingress.execute("SELECT * FROM messages WHERE captured_at>=? AND reply_to<>'' ORDER BY event_timestamp,message_id",(cutoff,)).fetchall()
+            events=ingress.execute("SELECT * FROM messages WHERE captured_at>=? AND reply_to<>'' " + ("AND message_id NOT IN (SELECT message_id FROM ingress_work WHERE state='REVIEW') " if state_enabled(config) else "") + "ORDER BY event_timestamp,message_id",(cutoff,)).fetchall()
         finally:ingress.close()
         for event in events:
             event=dict(event)

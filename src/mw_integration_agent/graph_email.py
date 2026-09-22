@@ -11,6 +11,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
+from .audit import audited
 from .config import ConfigurationError
 
 
@@ -83,6 +84,7 @@ class GraphEmail:
         except Exception as exc:
             raise EmailRejected("Email authorization unavailable") from exc
 
+    @audited('email_send',route='email',action='SEND',effect=True)
     def send(self, recipient, subject, body, attachments, operation_key):
         if not valid_email(recipient):
             raise EmailRejected("Partner email is missing or invalid")

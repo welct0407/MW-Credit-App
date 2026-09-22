@@ -18,6 +18,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     check = sub.add_parser("check", help="validate disabled scaffold configuration")
     check.add_argument("--config", required=True)
+    relay = sub.add_parser('audit-relay', help='relay committed audit and reconcile proven SQL outcomes; never replay DML')
+    relay.add_argument('--config',required=True)
     check.add_argument(
         "--catalogue",
         default=str(Path(__file__).resolve().parents[2] / "service-catalogue.json"),
@@ -76,7 +78,27 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.command in ('serve-webhook','status','check'):
+        return execute(args)
+    from .audit import job
     try:
+        config=load_json(args.config)
+        with job(config,args.command) as outcome:
+            outcome['exit_code']=execute(args)
+            return outcome['exit_code']
+    except ConfigurationError as exc:
+        print(json.dumps({'status':'error','error':str(exc)}))
+        return 2
+
+
+def execute(args) -> int:
+    try:
+        if args.command == 'audit-relay':
+            from .outbox import relay,reconcile
+            config=load_json(args.config)
+            validate_config(config)
+            print(json.dumps({'relay':relay(config),'reconciliation':reconcile(config)}))
+            return 0
         if args.command == 'partner-conversation-cycle':
             from .partner_conversation import run
             print(json.dumps(run(args.config, args.catalogue)))
@@ -138,7 +160,7 @@ def main() -> int:
             validate_config(config)
             if not 1 <= args.limit <= 100:
                 raise ConfigurationError("limit must be from 1 to 100")
-            journal = IngressJournal(Path(config["state_directory"]) / "instagram-ingress.db")
+            journal = IngressJournal(Path(config["state_directory"]) / "instagram-ingress.db", config=config)
             try:
                 rows = journal.latest(args.limit)
             finally:

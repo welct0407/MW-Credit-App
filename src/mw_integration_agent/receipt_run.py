@@ -1,6 +1,7 @@
 """Receipt-only orchestration. No AppSheet or PostgreSQL mutation clients."""
 import json
 import sqlite3
+from .state import connect as state_connect, enabled as state_enabled
 from datetime import datetime
 from pathlib import Path
 
@@ -131,10 +132,10 @@ def run(config_path,catalogue_path):
             fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         except BlockingIOError:
             return {'status':'already_running'}
-        journal=ReceiptJournal(root/'receipt-processing.db')
+        journal=ReceiptJournal(root/'receipt-processing.db', config=config)
         try:
-            ingress=sqlite3.connect(f'file:{root / "instagram-ingress.db"}?mode=ro',uri=True)
-            ingress.row_factory=sqlite3.Row
+            ingress=state_connect(root/'instagram-ingress.db',config,readonly=True)
+            pass  # row format supplied by state adapter
             try:
                 journal.ingest(ingress,datetime.fromisoformat(config['receipt_activation_cutoff']).timestamp())
             finally:
@@ -149,7 +150,7 @@ def run(config_path,catalogue_path):
             # Supersede definitely unsent legacy direct-email work. SENT/UNKNOWN history stays intact.
             with journal.db:
                 journal.db.execute("UPDATE receipt_emails SET status='SUPERSEDED' WHERE status IN ('PENDING','REJECTED')")
-            notices=NoticeJournal(root/'partner-notices.db')
+            notices=NoticeJournal(root/'partner-notices.db', config=config)
             try:
                 config=controls(config_path,catalogue_path)
                 cutoff=config.get('partner_notice_cutoff')

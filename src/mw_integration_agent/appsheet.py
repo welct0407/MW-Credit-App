@@ -7,6 +7,7 @@ import urllib.error
 import urllib.request
 from typing import Any
 
+from .audit import audited
 from .config import ConfigurationError, load_secret
 
 
@@ -22,6 +23,7 @@ class AppSheet:
             self.config['appsheet_app_id'] = config['appsheet_olap_app_id']
             self.config['appsheet_key_file'] = config['appsheet_olap_key_file']
 
+    @audited('appsheet_find',route='appsheet',action='READ')
     def find(self, table: str, selector: str) -> list[dict[str, Any]]:
         if not re.fullmatch(r"[A-Za-z][A-Za-z0-9 _-]{0,63}", table):
             raise ConfigurationError("invalid AppSheet table name")

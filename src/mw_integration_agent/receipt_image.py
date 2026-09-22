@@ -17,6 +17,7 @@ from PIL import Image, ImageOps
 
 from .config import ConfigurationError
 from .graph_email import NoRedirect
+from .audit import audited
 
 SCHEMA = {'type':'object','additionalProperties':False,'properties':{
     'is_payment_receipt':{'type':'boolean'},'transfer_successful':{'type':'boolean'},
@@ -95,6 +96,7 @@ def download(url):
         raise ConfigurationError('RECEIPT_DOWNLOAD_FAILED') from exc
 
 
+@audited('receipt_image_extraction',route='codex',action='PROCESS')
 def extract(config, image_data):
     root=Path(config['state_directory'])/'receipt-extraction'
     root.mkdir(parents=True,exist_ok=True,mode=0o700)

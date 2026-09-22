@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+from .state import connect as state_connect, enabled as state_enabled, is_postgres
 import time
 import urllib.error
 import urllib.request
@@ -11,6 +12,7 @@ import uuid
 from contextlib import closing
 from pathlib import Path
 
+from .audit import audited
 from .config import ConfigurationError, load_secret
 from .instagram import Instagram
 
@@ -87,11 +89,11 @@ def resolve_recipient(api, partner):
     return recipient
 
 
-def check_window(state, recipient, now=None):
+def check_window(state, recipient, now=None, config=None):
     now = time.time() if now is None else now
     path = Path(state)/'instagram-ingress.db'
     try:
-        with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True)) as db:
+        with closing(state_connect(path,config,readonly=True)) as db:
             stamp = db.execute('SELECT max(event_timestamp) FROM messages WHERE sender_id=?',(recipient,)).fetchone()[0]
     except sqlite3.Error as exc:
         raise InstagramDeliveryError('Instagram delivery-window evidence is unavailable') from exc
@@ -104,6 +106,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
+@audited('image_upload',route='instagram',action='SEND',effect=True)
 def upload_image(config, path, authorized=False):
     """Upload directly to Meta; never publish a financial image at a public URL."""
     if not (config.get('sending_enabled') or authorized):
@@ -139,8 +142,10 @@ def upload_image(config, path, authorized=False):
 
 
 class DeliveryJournal:
-    def __init__(self,path):
-        self.db=sqlite3.connect(path)
+    def __init__(self,path,config=None):
+        self.db=state_connect(path,config)
+        if is_postgres(self.db):
+            return
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.execute('''CREATE TABLE IF NOT EXISTS cash_statement_sends (
           delivery_key TEXT PRIMARY KEY, recipient TEXT NOT NULL, language TEXT NOT NULL,
@@ -206,13 +211,13 @@ class DeliveryJournal:
     def due_emails(self,now=None):
         now=time.time() if now is None else now
         rows=self.db.execute('SELECT delivery_key,partner_id,payload,attempts FROM cash_statement_emails '
-            'WHERE status="EMAIL_REJECTED" AND attempts<3 AND retry_after<=? ORDER BY retry_after',(now,)).fetchall()
+            "WHERE status='EMAIL_REJECTED' AND attempts<3 AND retry_after<=? ORDER BY retry_after",(now,)).fetchall()
         return [{'key':r[0],'partner_id':r[1],'payload':json.loads(r[2]),'attempts':r[3]} for r in rows]
 
     def begin_email_retry(self,key,attempts):
         with self.db:
-            changed=self.db.execute('UPDATE cash_statement_emails SET status="EMAIL_UNKNOWN",attempts=?,updated_at=? '
-                'WHERE delivery_key=? AND status="EMAIL_REJECTED"',(attempts,time.time(),key)).rowcount
+            changed=self.db.execute("UPDATE cash_statement_emails SET status='EMAIL_UNKNOWN',attempts=?,updated_at=? "
+                "WHERE delivery_key=? AND status='EMAIL_REJECTED'",(attempts,time.time(),key)).rowcount
         return bool(changed)
 
     def close(self):

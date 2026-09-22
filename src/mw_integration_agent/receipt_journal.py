@@ -2,12 +2,15 @@
 import hashlib
 import json
 import sqlite3
+from .state import connect as state_connect, enabled as state_enabled, is_postgres
 import time
 
 
 class ReceiptJournal:
-    def __init__(self,path):
-        self.db=sqlite3.connect(path,timeout=30)
+    def __init__(self,path,config=None):
+        self.db=state_connect(path,config)
+        if is_postgres(self.db):
+            return
         self.db.row_factory=sqlite3.Row
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.execute('PRAGMA synchronous=FULL')
@@ -29,6 +32,8 @@ class ReceiptJournal:
         ''')
 
     def ingest(self,ingress,cutoff):
+        if is_postgres(self.db):
+            return self._ingest_postgres(cutoff)
         cursor=self.db.execute('SELECT value FROM receipt_cursor WHERE id=1').fetchone()[0]
         rows=ingress.execute('''SELECT rowid,message_id,sender_id,attachments FROM messages
             WHERE rowid>? AND event_timestamp>=? AND captured_at>=? ORDER BY rowid LIMIT 500''',(cursor,cutoff,cutoff))
@@ -43,6 +48,24 @@ class ReceiptJournal:
                         (key,row['message_id'],row['sender_id'],attachment['url'],
                          'PENDING' if attachment['url'] else 'IGNORED',time.time()))
                 self.db.execute('UPDATE receipt_cursor SET value=? WHERE id=1',(row['rowid'],))
+
+    def _ingest_postgres(self, cutoff):
+        with self.db:
+            conn = self.db.conn
+            rows = conn.execute('''SELECT m.message_id,m.sender_id,m.attachments,m.event_timestamp,m.captured_at
+                FROM runtime.ingress_work w JOIN runtime.ingress_messages m USING(message_id)
+                WHERE w.state='PENDING' AND w.eligible_at<=clock_timestamp()
+                ORDER BY w.eligible_at,w.message_id LIMIT 500 FOR UPDATE OF w SKIP LOCKED''').fetchall()
+            for message_id,sender,raw,stamp,captured in rows:
+                state = 'IGNORED'
+                if stamp >= cutoff and captured >= cutoff:
+                    for index,attachment in enumerate(json.loads(raw) or [{'url':''}]):
+                        key = hashlib.sha256(f'{message_id}:{index}'.encode()).hexdigest()
+                        self.db.execute('''INSERT OR IGNORE INTO receipt_jobs
+                            (id,message_id,sender_id,url,status,created_at) VALUES (?,?,?,?,?,?)''',
+                            (key,message_id,sender,attachment['url'],'PENDING' if attachment['url'] else 'IGNORED',time.time()))
+                    state = 'DONE'
+                conn.execute('UPDATE runtime.ingress_work SET state=%s,updated_at=clock_timestamp() WHERE message_id=%s',(state,message_id))
 
     def pending(self):
         return [dict(r) for r in self.db.execute('''SELECT * FROM receipt_jobs

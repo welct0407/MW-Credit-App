@@ -1,0 +1,160 @@
+{
+  "batch_id": "2e3826cb-4432-4dc8-bffc-e0349c47a9b2",
+  "tables": [
+    {
+      "source_file": "instagram-ingress.db",
+      "source_table": "receipts",
+      "present": true,
+      "rows": 1,
+      "digest": "1e14fcea74ab34fe0f4dc6390ef165edc2d65bd8789496ef9522409828982290"
+    },
+    {
+      "source_file": "instagram-ingress.db",
+      "source_table": "messages",
+      "present": true,
+      "rows": 1,
+      "digest": "3ee89ef78d0e13165c86c75963c9df57235d6413b0d5248b701e696966e25443"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_cursor",
+      "present": true,
+      "rows": 1,
+      "digest": "26c8d8a6a472facbb67aba4394f3fb960e25f735db56f125f7d21d8082cac4ba"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_jobs",
+      "present": true,
+      "rows": 1,
+      "digest": "ad5d39863acf2f61febbf1f1f0579bea1242af89ce2847c64f819dcb2989188a"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_keys",
+      "present": true,
+      "rows": 0,
+      "digest": "88a43277af97fbf17c351369b3928a1d814a4ba89ba18bdd4dddde07aa516b24"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_emails",
+      "present": true,
+      "rows": 0,
+      "digest": "79ff724a1ecea3bfde234e1c8657f011ef214d888bff3384803979094aa048d9"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "partner_reviews",
+      "present": true,
+      "rows": 0,
+      "digest": "fa31dc03f2a52b1e4e6248be5d2a4d7f96a36b6be146e8df6f3c213da46b37ca"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "partner_review_replies",
+      "present": true,
+      "rows": 0,
+      "digest": "cefca7891cd60761b9ee0ae539822d022b59fc44a9bdcfafaeb329853300a122"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "conversation_poll_state",
+      "present": true,
+      "rows": 0,
+      "digest": "2665cee127adf6d1afcf04175f596b15afe19c5b875e3b4943101827a3e541fb"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "conversation_poll_messages",
+      "present": true,
+      "rows": 0,
+      "digest": "7772624cb3625b32236c081df497b62d7767b9aeb51524dd46c57e8d52613a7f"
+    },
+    {
+      "source_file": "receipt-processing.db",
+      "source_table": "receipt_reconsiderations",
+      "present": true,
+      "rows": 1,
+      "digest": "6eee93d5db4815a14be43a38f61c03aaadd2e0355f7afe78c3e3f6825d5faca2"
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "conversations",
+      "present": true,
+      "rows": 1,
+      "digest": "6ab7cf72e14e2da90a309e6420a6fe86ee91d5b49b459c84072ac801bcb7379e"
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "turns",
+      "present": true,
+      "rows": 1,
+      "digest": "f14828f40f030152c0966b9772824d54164688d5476b2e598afbf58af5d43edf"
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "tool_calls",
+      "present": true,
+      "rows": 0,
+      "digest": "3e92dc0583f17635800fc69b0c5f69ac75175f5ba5f74a2edce471040f2cd227"
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "conversation_operations",
+      "present": true,
+      "rows": 0,
+      "digest": "ffa007c41e7bfc5fa391cf511165430a3b727bb39f925a071781765a4fe2a3b2"
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "conversation_dml",
+      "present": true,
+      "rows": 0,
+      "digest": "34e04a5dc01e5ba009f1b0a2ed625028d8b8f8fc067ba282c3b56ef58ef7a9f9"
+    },
+    {
+      "source_file": "partner-conversations.db",
+      "source_table": "conversation_dml_inserts",
+      "present": true,
+      "rows": 0,
+      "digest": "b4170a7379e69855fcfa1ec8d32f5570e6c7969ba0743699a3af44c44bc05f1b"
+    },
+    {
+      "source_file": "partner-notices.db",
+      "source_table": "partner_notices",
+      "present": true,
+      "rows": 1,
+      "digest": "a6297e6352db9ad103ce758cea68d4165ea4e5d3ccafbd31dcce755edb6ef0fb"
+    },
+    {
+      "source_file": "conversation-notices.db",
+      "source_table": "partner_notices",
+      "present": true,
+      "rows": 1,
+      "digest": "21430de2aa2c04f6aaa8a85f6724a3cd54d688fc652d575ac7f1e5817a4f5aba"
+    },
+    {
+      "source_file": "cash-statement-delivery.db",
+      "source_table": "cash_statement_sends",
+      "present": true,
+      "rows": 0,
+      "digest": "c281cdc6dd42cf42384f41a0b556ca4c282cd1f533d53e59e42ee733db16273a"
+    },
+    {
+      "source_file": "cash-statement-delivery.db",
+      "source_table": "cash_statement_emails",
+      "present": true,
+      "rows": 0,
+      "digest": "79944ed177d20a71f008417b2a30aba7ba9b4a5ed2ba519317cb61be502abdd9"
+    }
+  ],
+  "rows": 9,
+  "snapshots": 0,
+  "status": "passed",
+  "synthetic_only": true,
+  "repeat_import_rejected": true,
+  "checksum_tampering_rejected": true,
+  "binary_text_epoch_memory_preserved": true,
+  "identity_advanced": true
+}

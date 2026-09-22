@@ -16,7 +16,7 @@ def run(config_path,catalogue_path,job_id):
     config=controls(config_path,catalogue_path);root=Path(config['state_directory'])
     with (root/'receipt-worker.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        journal=ReceiptJournal(root/'receipt-processing.db');db=journal.db
+        journal=ReceiptJournal(root/'receipt-processing.db', config=config);db=journal.db
         try:
             ReviewStore(db)
             job=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(job_id,)).fetchone()
@@ -37,8 +37,10 @@ def run(config_path,catalogue_path,job_id):
                                 if hashlib.sha256(f"{msg['id']}:{index}".encode()).hexdigest()==job_id:
                                     url=att.get('image_data',{}).get('url')
                 if not url:raise ConfigurationError('ORIGINAL_IMAGE_UNAVAILABLE')
-            db.execute('''CREATE TABLE IF NOT EXISTS receipt_reconsiderations
-               (id INTEGER PRIMARY KEY,job_id TEXT NOT NULL,created_at REAL NOT NULL,previous TEXT NOT NULL)''')
+            from .state import is_postgres
+            if not is_postgres(db):
+                db.execute('''CREATE TABLE IF NOT EXISTS receipt_reconsiderations
+                   (id INTEGER PRIMARY KEY,job_id TEXT NOT NULL,created_at REAL NOT NULL,previous TEXT NOT NULL)''')
             with db:
                 previous={k:job[k] for k in ('status','detail','result')}
                 db.execute('INSERT INTO receipt_reconsiderations(job_id,created_at,previous) VALUES (?,?,?)',(job_id,time.time(),json.dumps(previous)))

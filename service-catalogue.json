@@ -1,5 +1,5 @@
 {
-  "revision": 14,
+  "revision": 15,
   "default_policy": "deny",
   "services": {
     "partner_receipt_review": {

@@ -1,6 +1,7 @@
 """Signed partner messages -> isolated durable Codex turns -> durable partner replies."""
 import json
 import sqlite3
+from .state import connect as state_connect, enabled as state_enabled
 import time
 from datetime import datetime
 from pathlib import Path
@@ -29,7 +30,7 @@ Account for all pages; never present a partial sum as a complete total. Include 
 Use only supplied host tools. No shell/code, raw SQL, arbitrary URLs, borrower messaging, credentials,
 identity changes, administrative or app/schema changes. Do not try to enable unavailable tools.
 Choose AppSheet API calls yourself using data_catalogue and current records. The host exposes
-Add/Edit primitives for the inspected business tables in OLTP and OLAP; there is no predefined
+Add/Edit/Delete primitives for the inspected business tables in OLTP and OLAP; there is no predefined
 list of business operations. Discover field types, references, initial values and validation first.
 Select the owning writable app. Respect immutable posted records and app rules; use existing
 reversal/void/adjustment semantics, never overwrite history to simulate a correction. Do not make
@@ -44,8 +45,8 @@ API format MM/DD/YYYY and timestamps MM/DD/YYYY HH:mm:ss in Asia/Bangkok. Omitte
 app initial values. Do not write derived totals or allocations to bypass normal posting.
 Only a CURRENT AI Reviewer may make any conversational edit, through API or database.
 Other Partners may ask questions. Reviewer database tools discover live columns, constraints and
-trigger definitions, read bounded rows, and execute a single atomic INSERT/UPDATE transaction.
-Choose the operations yourself; there are no per-business-operation scripts. No DDL, DELETE,
+trigger definitions, read bounded rows, and execute a single atomic INSERT/UPDATE/DELETE transaction.
+Choose the operations yourself; there are no per-business-operation scripts. No DDL,
 SQL expressions, functions, session settings, permission changes or trigger bypass is available.
 Use database_catalogue and database_read before database_transaction. All rows need a current
 observation and final-state checks. Use stable unique keys for INSERT and check for duplicates.
@@ -65,9 +66,24 @@ the full database row or establishes that an INSERT key is absent. For an atomic
 api_action(app="database",table="transaction",action="Edit",row_id="",operation_key="transaction",
 observation="",row_json=STEPS_ARRAY_JSON,expected_final_json=JSON_OBJECT_WITH_REASON,
 instruction_quote=CURRENT_QUOTE) executes database_transaction. STEPS_ARRAY_JSON has 1..10 objects
-with action INSERT/UPDATE, table, row_id, values object, expected_after object and observation ID.
+with action INSERT/UPDATE/DELETE, table, row_id, values object, expected_after object and observation ID.
 JSON_OBJECT_WITH_REASON is {"reason":"a concrete correction reason"}. These are aliases for the
 same reviewer tools, not a permission workaround. Existing conversation history stays intact.
+AppSheet API is the first route for reads and changes. SQL is a fallback when inspected API
+capabilities cannot express the request or an atomic transaction/approved deletion-set guarantee
+is required. Give a reason starting api_gap: for a demonstrated unsupported API capability, or
+atomic: followed by the concrete transaction requirement. API rejection or uncertain completion
+never permits switching to SQL. A clear current reviewer request is approval; no extra confirmation
+is needed just because it is DELETE. Clarify ambiguous keys or destructive dependent-record scope.
+For DELETE inspect referencing foreign keys and triggers and obtain current observations. Every
+record to be deleted, including children, must be an explicit DELETE step, child before parent,
+within the ten-direct-row limit. DELETE values and expected_after are empty objects. Unexpected
+cascades roll back; never disable guards or audit. Database before-images and outcomes are retained.
+For an existing session without a Delete enum, use api_action(app="appsheet_delete",action="Edit",
+table=ACTUAL_TABLE,row_id=EXACT_KEY,row_json='{"owning_app":"oltp"}',expected_final_json="{}",
+operation_key=STABLE_KEY,observation=CURRENT_OBSERVATION,instruction_quote=CURRENT_QUOTE).
+Use oltp or olap as owning_app. This carrier maps only to Delete; it is not an Edit. API DELETE
+with dependent/cascading effects may report an atomicity gap: inspect and use approved SQL instead.
 Correlated receipt approvals are processed separately, never through you.
 A read request does not authorize an edit. Edit only when the CURRENT partner explicitly asks,
 using their exact instruction quote and current observed expected values; clarify missing or
@@ -117,13 +133,13 @@ def authenticate(config, sender, rows=None, identity_reader=conversation_identit
         raise PartnerDenied('PARTNER_NOT_ENABLED_OR_LANGUAGE_INVALID') from None
 
 
-def is_receipt_reply(root, event):
+def is_receipt_reply(root, event, config=None):
     if not event.get('reply_to'):
         return False
     path = root / 'partner-notices.db'
-    if not path.exists():
+    if not state_enabled(config) and not path.exists():
         return False
-    db = sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)
+    db = state_connect(path,config,readonly=True)
     try:
         # Every direct reply to a receipt proposal belongs solely to the review
         # coordinator, including unauthorized, rejected and expired replies.
@@ -188,17 +204,17 @@ def run(config_path, catalogue_path):
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             return {'status': 'already_running'}
-        store = ConversationStore(root / 'partner-conversations.db')
-        notices = NoticeJournal(root / 'conversation-notices.db')
+        store = ConversationStore(root / 'partner-conversations.db', config=config)
+        notices = NoticeJournal(root / 'conversation-notices.db', config=config)
         try:
             store.recover()
             cutoff = datetime.fromisoformat(config['partner_conversation_cutoff']).timestamp()
-            ingress = sqlite3.connect((root / 'instagram-ingress.db').resolve().as_uri() + '?mode=ro', uri=True)
-            ingress.row_factory = sqlite3.Row
+            ingress = state_connect(root/'instagram-ingress.db',config,readonly=True)
+            pass  # row format supplied by state adapter
             try:
                 # Signed ingress only: polling writes to a different journal.
-                events = ingress.execute('SELECT * FROM messages WHERE captured_at>=? AND event_timestamp>=? '
-                    'ORDER BY event_timestamp,message_id', (cutoff, cutoff)).fetchall()
+                events = ingress.execute('SELECT * FROM messages WHERE captured_at>=? AND event_timestamp>=? ' +
+                    ('AND message_id NOT IN (SELECT message_id FROM ingress_work WHERE state=\'REVIEW\') ' if state_enabled(config) else '') + 'ORDER BY event_timestamp,message_id', (cutoff, cutoff)).fetchall()
             finally:
                 ingress.close()
             attempted = 0
@@ -209,7 +225,7 @@ def run(config_path, catalogue_path):
                 if attempted >= 1:
                     break
                 reason = None
-                if is_receipt_reply(root, event):
+                if is_receipt_reply(root, event, config):
                     reason = 'RECEIPT_REVIEW_OWNS_REPLY'
                 elif not event['text'].strip():
                     reason = 'NO_PARTNER_TEXT'

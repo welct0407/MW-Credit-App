@@ -1,0 +1,70 @@
+{
+  "database": "loan_manager_prod",
+  "function_write_targets": {
+    "seed_cash_statement_context": [
+      "Cash Statement Context"
+    ],
+    "close_payment_loans": [
+      "Loans"
+    ],
+    "post_payment": [
+      "Payment Allocations",
+      "Payments",
+      "Repayments"
+    ],
+    "refresh_daily_analytics": [
+      "Daily Analytics"
+    ],
+    "first_day_receipt": [
+      "Payments"
+    ],
+    "create_first_day_charge": [
+      "Charges"
+    ],
+    "prepare_loan_close": [
+      "Charges"
+    ],
+    "generate_loan_charge": [
+      "Charges"
+    ],
+    "post_loan_default": [
+      "Charges",
+      "Repayments"
+    ],
+    "vc_refresh_charge": [
+      "Charges"
+    ],
+    "vc_refresh_loan": [
+      "Loans"
+    ],
+    "vc_refresh_borrower": [
+      "Borrowers"
+    ],
+    "vc_refresh_payment": [
+      "Payments"
+    ],
+    "recalculate_business_expenses_from_date": [
+      "Business Expenses"
+    ],
+    "referral_loan_closed": [
+      "Business Expenses"
+    ],
+    "create_referral_rebate": [
+      "Business Expenses"
+    ],
+    "guard_cash_account": [
+      "Cash Accounts"
+    ],
+    "sync_cash_ledger": [
+      "Cash Ledger"
+    ],
+    "quick_payment_request": [
+      "Payments"
+    ]
+  },
+  "schemas": [
+    "assessment_lab",
+    "public"
+  ],
+  "agent_db_exists": false
+}
