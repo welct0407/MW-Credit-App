@@ -1,0 +1,17 @@
+{
+  "status": "DEV prepared; PROD approval pending",
+  "version": 36,
+  "views": [
+    "reporting_cashflow_transactions",
+    "reporting_cashflow_daily"
+  ],
+  "visuals": 7,
+  "models": 2,
+  "default_period": "thismonth",
+  "default_scope": "__ALL__",
+  "dev_visual_query_cases": 42,
+  "dev_reconciliation_checks": 13,
+  "ci_passed": true,
+  "prod_unchanged": true,
+  "baseline_commit": "213eaa7df65a8c6ec8c290fb1896babd81025d95"
+}

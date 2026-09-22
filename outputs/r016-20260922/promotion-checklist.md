@@ -102,3 +102,6 @@ P01/P13/P22/P28/P39/P41/P45/P46 are complete for this review checkpoint, with pr
 
 ### 23 September presentation-only follow-up
 Cash waterfall 189 archived; separate + and = symbols added; income chart title maps native Total to Unsettled Profit (axis rename unsupported). Private metadata rollback and eleven focused checks recorded in `income-symbols-verification.json`. Current counts supersede the preceding dated checkpoint: 14 Income Statement visuals, 123 placements/119 questions. No SQL/model/permission/AppSheet deployment; prior calculations unchanged. Full release acceptance remains open.
+
+### Cashflow extension candidate — 23 September
+V36 additive views tested and applied to DEV, with 13 reconciliations and 42 prepared visual query cases. PROD approval, exact candidate manifest promotion, SELECT grants, model/page installation, browser/filter checks and dictionary/documentation closure remain pending. Scoped metadata and schema backups captured in `cashflow-before`; previous nine pages unchanged. No AppSheet promotion/RC is involved.

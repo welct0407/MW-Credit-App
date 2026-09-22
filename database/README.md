@@ -1,5 +1,9 @@
 # PostgreSQL development with Flyway
 
+## Open R016 Cashflow candidate — 23 September 2026
+
+DEV V36 migrated/validated; PROD remains V35 pending scoped owner approval. Two additive full-history cashflow views reuse OLTP account effects and immutable openings. CI and thirteen DEV reconciliations pass. V36 is immutable after DEV application; next migration is V37 or higher. [Candidate record](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md).
+
 ## Current checkpoint — R016 V35, 23 September 2026
 
 DEV and PROD are **V35**. `reporting_cash_account_daily` and `reporting_cash_daily` add read-only period-end custody/pool sources using posted dates and immutable account openings. Pre-opening balances are unavailable; later corrections restate history. Exact tested promotion commit: `e7fd3af40b572ab644856e7cc95d6a243f49a870`. Disposable CI and DEV/PROD reconciliation checks passed. Existing source definitions, posting and AppSheet are unchanged. [Cash-as-of checks](../outputs/r016-20260922/income-asof-production.json). V35 is immutable; next migration is V36 or higher. Earlier checkpoints below are historical.

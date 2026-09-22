@@ -2,6 +2,8 @@
 
 ## Metabase reporting — 23 September 2026
 
+Cashflow extension: DEV has V36 with two full-history reporting views. PROD remains V35 and the published dashboard has nine pages; approval of PROD views and SELECT access is pending. Existing source/app definitions are unchanged.
+
 Railway project **MW Credit Metabase** (`c8e57452-36dc-41f1-8d00-856b521a96c7`) hosts the accepted [borrower POC](https://reports.mw-credit.com/dashboard/2) and [R016 nine-page review dashboard](https://reports.mw-credit.com/dashboard/3). Its separate Railway PostgreSQL application database stores Metabase configuration. Source `2`, **PROD Loan Reporting**, connects to **loan_manager_prod** through the colocated Cloud SQL Auth Proxy and restricted `metabase_borrower_reader` role. The role has SELECT on the 12 original reporting sources, the six R016 V34 reporting views and the two V35 dated cash views. Future columns in those named objects are covered; unrelated/future tables, writes and schema administration are not. Prior column ACLs remain for rollback. SQL joins resolve existing immutable references. V34 adds read-only reporting views without changing financial data or existing source definitions.
 
 The six Income Statement models now select directly from `public.reporting_expenses`, `reporting_cash_accounts`, `reporting_income_monthly`, `reporting_income_statement`, `reporting_settlements` and `reporting_income_daily`. PostgreSQL owns their reusable joins, aggregates and running totals. The selected-period snippet keeps filters, sums, ratios and calls to the existing database FIFO function. Source 2 remains PROD. [DEV/PROD parity and timings](../outputs/r016-20260922/income-db-views-production.json).
@@ -58,7 +60,7 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
 | Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
-| Flyway | V35 migrated and validated (R016) | V35 migrated and validated (R016) | V34 six Income Statement views and V35 two dated cash views; earlier posting, audit and source behavior preserved. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
+| Flyway | V36 migrated and validated (R016 cashflow candidate) | V35 migrated and validated (R016) | V34 six Income Statement views and V35 two dated cash views; earlier posting, audit and source behavior preserved. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
 
 The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. After the consolidated DEV database and natural scheduler run were verified, the owner authorized deletion of former instance `appsheet-pg-dev-20260915`. Cloud SQL completed deletion on 20 September 2026, released public IP `34.158.38.171`, and retained no backups or final backup for that instance. The verified private former-DEV logical dump remains outside Git as recovery evidence.
 
