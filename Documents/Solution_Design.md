@@ -40,6 +40,12 @@ Preserve the page order unless the owner requests a change:
 
 App workflows take priority. Review direct downstream impacts, but test/edit reports only when explicitly in scope or directly affected; record limitations rather than auditing unrelated reports. Back up the affected report before editing, including when a task also changes AppSheet.
 
+## Metabase migration
+
+R016 copies the existing report semantics for owner review, beginning with Overview and Cash Analysis. Metabase is a presentation layer over restricted PROD OLAP views and stored Daily Analytics snapshots. Resolve Borrowers → Loans → Repayments using immutable database keys; aggregate repayments at loan grain before joining. Do not recreate report-side blends or introduce charge/repayment fan-out. No operational editing belongs in Metabase.
+
+The [page metric contract](../outputs/r016-20260922/README.md) records source/date behavior, including legacy gross-interest profit, the source's skipped comparison day and fixed chart references. Preserve those during the copy and identify them for owner review instead of silently substituting newer net-profit metrics. Saved questions and layout definitions live beside the database project; the encrypted Metabase application database remains the authority for users, permissions and live dashboard state. Its private backups are separate from Git publication.
+
 ## Business and ecosystem diagrams
 
 - [OLTP lifecycle diagram](OLTP_Business_Processes.drawio): three editable pages cover loan lifecycle, payment processing and controls/ownership. Update only depicted behavior, not version numbers, formula refinements or presentation-only changes. Its synthesis baseline is 12 September; current business explanations/verified release evidence take precedence. It does not claim fresh lifecycle or delivery acceptance.

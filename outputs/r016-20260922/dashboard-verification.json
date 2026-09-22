@@ -1,0 +1,162 @@
+{
+  "visual_count": 26,
+  "source_id": 2,
+  "tabs": [
+    {
+      "id": 4,
+      "dashboard_id": 3,
+      "name": "1 · Overview",
+      "position": 0,
+      "entity_id": "XNUTfCABMppJ6qAOrGoLc",
+      "created_at": "2026-09-22T10:01:48.177376Z",
+      "updated_at": "2026-09-22T10:01:48.177376Z"
+    },
+    {
+      "id": 5,
+      "dashboard_id": 3,
+      "name": "2 · Cash Analysis",
+      "position": 1,
+      "entity_id": "SBU_laq40VCDEtMPGXRdY",
+      "created_at": "2026-09-22T10:01:48.177376Z",
+      "updated_at": "2026-09-22T10:01:48.177376Z"
+    }
+  ],
+  "url": "https://reports.mw-credit.com/dashboard/3",
+  "verified_at": "2026-09-22T10:39:42.3814766+00:00",
+  "collection_id": 5,
+  "dashboard_id": 3,
+  "cards": {
+    "daily-principal": {
+      "rows": 49,
+      "name": "Daily Outstanding Principal",
+      "id": 62,
+      "date_field": 82
+    },
+    "loan-type": {
+      "rows": 3,
+      "name": "Outstanding Principal by Loan Type",
+      "id": 66,
+      "date_field": 95
+    },
+    "active-loans": {
+      "rows": 1,
+      "name": "Active Loans",
+      "id": 55,
+      "date_field": 0
+    },
+    "utilization-gauge": {
+      "rows": 1,
+      "name": "Cash Pool Utilization · Gauge",
+      "id": 68,
+      "date_field": 104
+    },
+    "daily-overdue": {
+      "rows": 48,
+      "name": "Daily Overdue Charges (Excluding Today)",
+      "id": 64,
+      "date_field": 82
+    },
+    "top-borrower": {
+      "rows": 1,
+      "name": "Top Borrower",
+      "id": 59,
+      "date_field": 0
+    },
+    "growth": {
+      "rows": 1,
+      "name": "7-Day Profit Growth %",
+      "id": 56,
+      "date_field": 0
+    },
+    "composition": {
+      "rows": 1,
+      "name": "Loan Account Balance Composition",
+      "id": 65,
+      "date_field": 104
+    },
+    "profit-30": {
+      "rows": 1,
+      "name": "Profit in Past 30 Days",
+      "id": 57,
+      "date_field": 0
+    },
+    "available": {
+      "rows": 1,
+      "name": "Available Cash",
+      "id": 49,
+      "date_field": 104
+    },
+    "account-balance": {
+      "rows": 1,
+      "name": "Loan Account Balance",
+      "id": 53,
+      "date_field": 104
+    },
+    "cash-pool": {
+      "rows": 1,
+      "name": "Total Cash Pool",
+      "id": 47,
+      "date_field": 104
+    },
+    "daily-profit": {
+      "rows": 49,
+      "name": "Daily Profit",
+      "id": 63,
+      "date_field": 82
+    },
+    "projected": {
+      "rows": 1,
+      "name": "Projected Monthly Profit",
+      "id": 52,
+      "date_field": 104
+    },
+    "interest-paid": {
+      "rows": 1,
+      "name": "Interest Paid",
+      "id": 58,
+      "date_field": 0
+    },
+    "utilization": {
+      "rows": 1,
+      "name": "Cash Pool Utilization",
+      "id": 54,
+      "date_field": 104
+    },
+    "principal": {
+      "rows": 1,
+      "name": "Outstanding Principal",
+      "id": 48,
+      "date_field": 104
+    },
+    "borrower-principal": {
+      "rows": 5,
+      "name": "Outstanding Principal by Borrower",
+      "id": 60,
+      "date_field": 0
+    },
+    "principal-flows": {
+      "rows": 49,
+      "name": "Principal Issued vs Principal Returned",
+      "id": 67,
+      "date_field": 82
+    },
+    "mtd": {
+      "rows": 1,
+      "name": "Realized Profit MTD",
+      "id": 51,
+      "date_field": 104
+    },
+    "borrower-profit": {
+      "rows": 5,
+      "name": "30 Days Profit by Borrower",
+      "id": 61,
+      "date_field": 0
+    },
+    "daily-interest": {
+      "rows": 1,
+      "name": "Expected Daily Interest",
+      "id": 50,
+      "date_field": 104
+    }
+  }
+}

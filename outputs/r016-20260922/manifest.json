@@ -1,0 +1,41 @@
+{
+  "reservation_commit": "af677e4",
+  "sql": "scripts/metabase/reporting-pages-1-2-grants.sql",
+  "dashboard": {
+    "visuals": 26,
+    "collection": 5,
+    "id": 3,
+    "tabs": [
+      4,
+      5
+    ],
+    "questions": 22,
+    "source": 2
+  },
+  "checklist": "promotion-checklist.md",
+  "remaining": [
+    "Owner review of pages 1–2",
+    "Remaining Data Studio pages",
+    "Full migration key revocation and final closure"
+  ],
+  "appsheet": {
+    "olap": "unchanged",
+    "oltp": "unchanged"
+  },
+  "baseline_commit": "cd0283f397a47c922b375e2b903f61a5af8cb73b",
+  "full_migration_complete": false,
+  "flyway": {
+    "before": 33,
+    "after": 33,
+    "new_migrations": []
+  },
+  "status": "pages-1-2-ready-for-owner-review",
+  "release": "R016",
+  "tests": "query-reconciliation.json",
+  "final_tag": null,
+  "dependencies": [
+    "R015 / PROD SQL V33",
+    "accepted Metabase borrower POC"
+  ],
+  "runtime_evidence": "infrastructure-verification.json"
+}

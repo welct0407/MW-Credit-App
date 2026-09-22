@@ -1,6 +1,6 @@
 # Borrower reporting POC — live implementation
 
-22 September 2026. [Open dashboard](https://reports.mw-credit.com/dashboard/2). The PROD reporting connection, seven visuals and Google sign-in are deployed. Desktop and 390px browser checks are performed; Lisa's actual sign-in and a physical-phone test remain owner acceptance checks. Full Data Studio migration follows POC acceptance; existing Looker reports are unchanged.
+22 September 2026. [Open dashboard](https://reports.mw-credit.com/dashboard/2). The owner accepted the POC after testing both PC and physical mobile browsers. Lisa's own sign-in remains unconfirmed. The implementation below records the original POC checkpoint; [R016](../r016-20260922/README.md) owns subsequent Hobby sizing, Singapore rebuild and page migration. The POC setup keys were revoked; the separately authorized R016 migration key is retained until all pages are developed.
 
 ## Source and metric contract
 
