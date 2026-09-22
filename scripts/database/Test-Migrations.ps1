@@ -20,6 +20,10 @@ try {
     $start.WaitForExit()
     if ($start.ExitCode) { throw 'Local PostgreSQL failed to start' }
     $started=$true
+    # V33's NOLOGIN owner is operator-managed in Cloud SQL. Provision it only
+    # in this verified disposable server before rebuilding the migration chain.
+    & (Join-Path $bin 'psql.exe') -X -q -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres -f (Join-Path $DbRepoRoot 'scripts/database/Test-AgentAuditPrerequisites.sql')
+    if ($LASTEXITCODE) { throw 'Disposable audit owner prerequisite failed' }
     $env:FLYWAY_URL="jdbc:postgresql://127.0.0.1:$port/postgres"
     $env:FLYWAY_USER='postgres'
     $env:FLYWAY_CONFIG_FILES=Join-Path $DbRepoRoot 'database/flyway.conf'
