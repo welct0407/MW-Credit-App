@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $MonitoringPrivate = 'C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\resource-monitoring'
-$GrafanaUrl = 'https://olivecrab1199.grafana.net'
+$GrafanaUrl = 'https://monitor.mw-credit.com'
 function Invoke-Grafana {
     param([string]$Path, [string]$Method='Get', $Body)
     $params=@{Uri="$GrafanaUrl$Path";Method=$Method;Headers=@{Authorization='Bearer '+[IO.File]::ReadAllText((Join-Path $MonitoringPrivate 'grafana-setup-token.txt')).Trim()};TimeoutSec=90}

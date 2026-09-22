@@ -1,7 +1,7 @@
 . "$PSScriptRoot/Query.Helpers.ps1"
 $out='outputs/resource-monitoring-20260922'
 function New-Dashboard($Uid,$Title,$From,$Refresh) {
-    return @{uid=$Uid;title=$Title;schemaVersion=41;version=0;editable=$true;tags=@('mw-credit','resource-monitoring');timezone='Asia/Bangkok';time=@{from=$From;to='now'};refresh=$Refresh;panels=[Collections.Generic.List[object]]::new();templating=@{list=@()};links=@(
+    return @{uid=$Uid;title=$Title;schemaVersion=41;version=0;editable=$true;tags=@('mw-credit','resource-monitoring');timezone='Asia/Singapore';time=@{from=$From;to='now'};refresh=$Refresh;panels=[Collections.Generic.List[object]]::new();templating=@{list=@()};links=@(
         @{title='Performance';type='link';url='/d/mw-resource-performance';keepTime=$false;targetBlank=$false},
         @{title='Cost';type='link';url='/d/mw-resource-cost';keepTime=$false;targetBlank=$false}
     )}
@@ -16,6 +16,10 @@ function Add-Chart($D,$Id,$Title,$Queries,$Unit,$X,$Y,$W=12,$H=7,$Type='timeseri
     if ($Type -eq 'table') { $panel.options=@{showHeader=$true;cellHeight='sm';footer=@{show=$false}}; $panel.fieldConfig.overrides=@(@{matcher=@{id='byType';options='time'};properties=@(@{id='unit';value='dateTimeAsIso'})}) }
     if($Unit -eq 'percentunit'){$panel.fieldConfig.defaults.min=0;$panel.fieldConfig.defaults.max=1}
     if($Unit -eq 'percent'){$panel.fieldConfig.defaults.min=0;$panel.fieldConfig.defaults.max=100}
+    if($Unit -in @('percent','percentunit','short','bytes','Bps')){$panel.fieldConfig.defaults.decimals=0}
+    if($Unit -eq 'suffix:GB'){$panel.fieldConfig.defaults.decimals=1}
+    if($Unit -eq 'cores'){$panel.fieldConfig.defaults.decimals=1}
+    if($Unit -eq 'cores' -and $Type -eq 'stat'){$panel.fieldConfig.defaults.decimals=2}
     $D.panels.Add($panel)
     return $panel
 }
@@ -30,7 +34,7 @@ $sqlFilter='resource.labels.database_id = "clever-oasis-508610-n7:appsheet-pg-pr
 $metabase='2959d509-c829-4420-8650-e72827d88170'
 $postgres='6ba627ff-bc6d-41e7-8182-6c0f1fb03998'
 $perf=New-Dashboard 'mw-resource-performance' 'MW Resources · Performance' 'now-6h' '5m'
-Add-Text $perf 1 'Infrastructure performance' '**Azure · GCP · Railway** | Live provider metrics · refresh every 5 minutes · display time: Bangkok. Gaps mean unavailable samples, not zero. Cloud SQL is shared by DEV, PROD and the internal agent; its charts describe the whole instance.' 0 3
+Add-Text $perf 1 'Infrastructure performance' '**Azure · GCP · Railway** | Singapore time (UTC+8) · refresh 5 minutes. Red/orange lines mark verified capacity/configured limits. Shared Cloud SQL covers DEV, PROD and the agent. Missing samples are gaps, not zero.' 0 3
 $null=Add-Chart $perf 2 'Azure VM · CPU' (New-AzureMetricQuery 'Percentage CPU') 'percent' 0 3 6 4 'stat'
 $null=Add-Chart $perf 3 'GCP VM · CPU' (New-GcpMetricQuery 'compute.googleapis.com/instance/cpu/utilization' $vmFilter) 'percentunit' 6 3 6 4 'stat'
 $null=Add-Chart $perf 4 'Cloud SQL · CPU' (New-GcpMetricQuery 'cloudsql.googleapis.com/database/cpu/utilization' $sqlFilter) 'percentunit' 12 3 6 4 'stat'
@@ -55,6 +59,56 @@ $null=Add-Chart $perf 41 'CPU usage · cores' @((New-RailwayMetricQuery $metabas
 $null=Add-Chart $perf 42 'Memory usage · GB' @((New-RailwayMetricQuery $metabase 'MEMORY_USAGE_GB' 'Metabase'),(New-RailwayMetricQuery $postgres 'MEMORY_USAGE_GB' 'Postgres')) 'suffix:GB' 12 53
 $null=Add-Chart $perf 43 'Persistent volume usage · GB' @((New-RailwayMetricQuery $metabase 'DISK_USAGE_GB' 'Metabase'),(New-RailwayMetricQuery $postgres 'DISK_USAGE_GB' 'Postgres')) 'suffix:GB' 0 60 24
 
+# Keep the four memory summaries directly beneath their matching CPU cards.
+foreach($p in $perf.panels){if($p.gridPos.y -ge 7){$p.gridPos.y+=5}}
+$azureUsed=New-AzureMetricQuery 'Available Memory Percentage' 'Average' 'Used'
+$azureUsed.root_selector=$azureUsed.root_selector.Replace('value:.average','value:(100-.average)')
+$null=Add-Chart $perf 6 'Azure VM · memory used' $azureUsed 'percent' 0 7 6 5 'timeseries'
+$null=Add-Chart $perf 7 'GCP VM · memory used' (New-GcpMetricQuery 'agent.googleapis.com/memory/percent_used' ($vmFilter+' AND metric.labels.state = "used"') 'ALIGN_MEAN' 'Used') 'percent' 6 7 6 5 'timeseries'
+$null=Add-Chart $perf 8 'Cloud SQL · memory' (New-GcpMetricQuery 'cloudsql.googleapis.com/database/memory/utilization' $sqlFilter 'ALIGN_MEAN' 'Used') 'percentunit' 12 7 6 5 'timeseries'
+$null=Add-Chart $perf 9 'Metabase · memory' @((New-RailwayMetricQuery $metabase 'MEMORY_USAGE_GB' 'Used'),(New-RailwayMetricQuery $metabase 'MEMORY_LIMIT_GB' 'Limit')) 'suffix:GB' 18 7 6 5 'timeseries'
+function Set-Limit($Panel,$Value,$Description) {
+    $Panel.fieldConfig.defaults.thresholds=@{mode='absolute';steps=@(@{color='green';value=$null},@{color='red';value=$Value})}
+    $Panel.fieldConfig.defaults.custom.thresholdsStyle=@{mode='dashed'}
+    $Panel.fieldConfig.defaults.Remove('max')
+    $Panel.fieldConfig.defaults.custom.axisSoftMax=$Value*1.05
+    $Panel.description=($Panel.description+' '+$Description).Trim()
+}
+foreach($p in $perf.panels){
+    if($p.fieldConfig.defaults.unit -in @('percent','percentunit') -and $p.id -ne 12){
+        $limit=if($p.fieldConfig.defaults.unit -eq 'percentunit'){1}else{100}
+        Set-Limit $p $limit 'Red line: 100% of provider-reported capacity/quota. This is capacity, not an invented warning level.'
+        $p.fieldConfig.defaults.max=$limit
+        $p.fieldConfig.defaults.custom.axisSoftMax=$limit
+    }
+}
+$connections=$perf.panels|Where-Object id -eq 34
+$connections.title='Database connections · limit 200'
+Set-Limit $connections 200 'Live Cloud SQL database flag max_connections=200, verified 22 September 2026. Instance-wide ceiling; reserved PostgreSQL connections reduce ordinary-client availability. Samples are interval averages.'
+$available=$perf.panels|Where-Object id -eq 12
+$available.fieldConfig.defaults.thresholds=@{mode='absolute';steps=@(@{color='red';value=$null},@{color='green';value=0})}
+$available.fieldConfig.defaults.custom.thresholdsStyle=@{mode='dashed'}
+$available.description='Available memory reaches exhaustion at 0%; the upper capacity reference is 100%. The summary above displays used memory.'
+$disk=$perf.panels|Where-Object id -eq 14
+Set-Limit $disk 100000000 'Red line: configured OS disk baseline throughput 100 MB/s (diskMBpsReadWrite). Shared by reads and writes; this is not an independent allowance for each series. Bursting/cache/VM limits may alter observed throughput.'
+$railCpu=$perf.panels|Where-Object id -eq 41
+$railCpu.targets+=@((New-RailwayMetricQuery $metabase 'CPU_LIMIT' 'Metabase limit'),(New-RailwayMetricQuery $postgres 'CPU_LIMIT' 'Postgres limit'))
+$railMem=$perf.panels|Where-Object id -eq 42
+$railMem.targets+=@((New-RailwayMetricQuery $metabase 'MEMORY_LIMIT_GB' 'Metabase limit'),(New-RailwayMetricQuery $postgres 'MEMORY_LIMIT_GB' 'Postgres limit'))
+foreach($p in @($railCpu,$railMem,($perf.panels|Where-Object id -eq 9))){
+    for($i=0;$i -lt $p.targets.Count;$i++){$p.targets[$i].refId=[string][char](65+$i)}
+    $p.description='Dashed limit series come from Railway CPU_LIMIT/MEMORY_LIMIT_GB and follow changes over time. Each service has its own limit.'
+    $p.fieldConfig.overrides+=@(@{matcher=@{id='byRegexp';options='.*[Ll]imit.*'};properties=@(@{id='color';value=@{mode='fixed';fixedColor='red'}},@{id='custom.fillOpacity';value=0},@{id='custom.lineStyle';value=@{fill='dash';dash=@(6,4)}},@{id='custom.lineWidth';value=1})})
+}
+$volume=$perf.panels|Where-Object id -eq 43
+$volume.targets=@(New-RailwayMetricQuery $postgres 'DISK_USAGE_GB' 'Postgres')
+Set-Limit $volume 5 'Postgres attached volume sizeMB=5000 (5 GB), verified 22 September 2026. Metabase has no attached persistent volume and is omitted.'
+foreach($id in @(13,23,24)){
+    $p=$perf.panels|Where-Object id -eq $id
+    $p.description+= ' No directly comparable configured hard cap was exposed for this metric; no arbitrary threshold is drawn.'
+}
+$perf.panels=@($perf.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
+
 $cost=New-Dashboard 'mw-resource-cost' 'MW Resources · Cost' 'now/M' '1h'
 Add-Text $cost 1 'Cloud spending' '**Azure USD · GCP SGD · Railway USD** | Azure/GCP: selected dates. Railway: current billing cycle. Costs are delayed and provisional. Refresh hourly; frequent manual refreshes can reach provider limits.' 0 3
 Add-Row $cost 10 'Azure · VM, disks, network, monitoring and backup' 3
@@ -63,6 +117,7 @@ $azureRaw.transformations=@(@{id='merge';options=@{}},@{id='organize';options=@{
 $azureStat=Add-Chart $cost 102 'Azure · selected-range cost' (Shared-Query 101) 'currencyUSD' 0 4 8 4 'stat'
 $azureStat.transformations=@(@{id='merge';options=@{}},(Group-Transform @('Currency') @('Cost')))
 $azureDaily=Add-Chart $cost 103 'Azure · daily cost' (Shared-Query 101) 'currencyUSD' 8 4 16 11
+$azureDaily.fieldConfig.defaults.decimals=0
 $azureDaily.transformations=@(@{id='merge';options=@{}},(Group-Transform @('Date') @('Cost')),@{id='sortBy';options=@{sort=@(@{field='Date'})}})
 $azureResources=Add-Chart $cost 104 'Azure · cost by resource (USD)' (Shared-Query 101) 'currencyUSD' 0 8 8 7 'table'
 $azureResources.transformations=@(@{id='merge';options=@{}},(Group-Transform @('Resource') @('Cost')),@{id='sortBy';options=@{sort=@(@{field='Cost (sum)';desc=$true})}})
@@ -73,11 +128,11 @@ SET export_table=(SELECT table_name FROM `clever-oasis-508610-n7.mw_cloud_billin
 IF export_table IS NULL THEN
  SELECT CAST(NULL AS TIMESTAMP) AS Date, CAST(NULL AS FLOAT64) AS Gross, CAST(NULL AS FLOAT64) AS Credits, CAST(NULL AS FLOAT64) AS Net, 'Awaiting first billing export' AS Service, '' AS Resource, 'SGD' AS Currency;
 ELSE
- EXECUTE IMMEDIATE FORMAT('''SELECT TIMESTAMP(DATE(usage_start_time,'Asia/Bangkok'),'Asia/Bangkok') AS Date, SUM(cost) AS Gross, SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Credits, SUM(cost+IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Net, service.description AS Service, COALESCE(NULLIF(resource.name,''),'Unallocated / service-level') AS Resource, currency AS Currency FROM `clever-oasis-508610-n7.mw_cloud_billing.%s` WHERE project.id='clever-oasis-508610-n7' AND usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}') GROUP BY Date, Service, Resource, Currency ORDER BY Date''',export_table);
+ EXECUTE IMMEDIATE FORMAT('''SELECT TIMESTAMP(DATE(usage_start_time,'Asia/Singapore'),'Asia/Singapore') AS Date, SUM(cost) AS Gross, SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Credits, SUM(cost+IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Net, service.description AS Service, COALESCE(NULLIF(resource.name,''),'Unallocated / service-level') AS Resource, currency AS Currency FROM `clever-oasis-508610-n7.mw_cloud_billing.%s` WHERE project.id='clever-oasis-508610-n7' AND usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}') GROUP BY Date, Service, Resource, Currency ORDER BY Date''',export_table);
 END IF;
 '@
 $gcpQ=New-InfinityQuery 'mw-gcp-monitoring' 'https://bigquery.googleapis.com/bigquery/v2/projects/clever-oasis-508610-n7/queries' 'if (.jobComplete != true) then error("Billing query is still running; refresh later") elif .pageToken then error("Billing result truncated; shorten time range") else .rows[]? | {Date:(if .f[0].v == null then null else ((.f[0].v|tonumber)*1000) end),Gross:(.f[1].v|if .==null then null else tonumber end),Credits:(.f[2].v|if .==null then null else tonumber end),Net:(.f[3].v|if .==null then null else tonumber end),Service:.f[4].v,Resource:.f[5].v,Currency:.f[6].v} end' @((Column 'Date' 'timestamp_epoch'),(Column 'Gross'),(Column 'Credits'),(Column 'Net'),(Column 'Service' 'string'),(Column 'Resource' 'string'),(Column 'Currency' 'string')) 'table' @{query=$gcpSql;useLegacySql=$false;location='US';timeoutMs=20000;maxResults=10000;maximumBytesBilled='100000000';useQueryCache=$true}
-$gcpRaw=Add-Chart $cost 201 'GCP · daily resource detail' $gcpQ 'currencySGD' 0 32 24 9 'table' 'Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Bangkok. Restricted to the AppSheet project; query capped at 100 MB billed.'
+$gcpRaw=Add-Chart $cost 201 'GCP · daily resource detail' $gcpQ 'currencySGD' 0 32 24 9 'table' 'Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Singapore. Restricted to the AppSheet project; query capped at 100 MB billed.'
 $gcpRaw.transformations=@(@{id='organize';options=@{indexByName=@{Service=0;Date=1;Gross=2;Credits=3;Net=4;Currency=5;Resource=6}}})
 $gcpGross=Add-Chart $cost 202 'GCP · before credits (SGD)' (Shared-Query 201) 'currencySGD' 0 25 8 4 'stat'
 $gcpGross.transformations=@((NonNull-Transform 'Gross'),(Group-Transform @('Currency') @('Gross')))

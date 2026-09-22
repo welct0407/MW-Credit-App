@@ -12,6 +12,8 @@ Use PowerShell 7 from the bundled runtime, with repository root as the current d
 
 `Monitoring.Common.ps1` uses the private path documented in the operating reference. A revoked/expired setup token must be replaced through authorized setup; dashboards do not need this token to run.
 
+For authenticated browser updates without a new API token, use Grafana's **Edit → Code** JSON resource editor. Capture its entire JSON to the private `performance-before-refinement-v2.json` / `cost-before-refinement-v2.json` baseline files before editing. `Build-EditorResources.ps1` converts the maintained classic dashboard JSON into that current v2 envelope and preserves the baseline's annotations/preferences. Apply the generated `*-editor-resource.json`, save with a change note, then verify the saved UI. These JSON resources contain dashboard definitions only, no credentials. Both formats are included for recovery; do not import both as separate dashboards.
+
 ## Initial provisioning (already completed)
 
 `Initialize-Azure.ps1` checks the signed-in tenant/subscription/account, creates a dedicated one-year service-principal secret and group-scoped read permissions. It refuses existing principals/credentials.
