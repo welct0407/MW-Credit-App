@@ -308,6 +308,26 @@ $context.transformations=@(@{id='merge';options=@{}},(Binary-Cost 'Azure compute
 $context.fieldConfig.defaults.decimals=4
 $context.fieldConfig.overrides+=@(@{matcher=@{id='byName';options='Subtotal (SGD)'};properties=@(@{id='unit';value='prefix:S$'},@{id='decimals';value=2})})
 $context.fieldConfig.overrides+=@(@{matcher=@{id='byName';options='SGD per USD'};properties=@(@{id='unit';value='none'},@{id='decimals';value=4})})
+# Parent total on the left; three child amounts and their smaller stack on the right.
+$stack.title='Platform breakdown · SGD'
+$stack.gridPos=@{x=6;y=4;w=18;h=3}
+$stack.options.legend=@{showLegend=$false;displayMode='hidden';placement='bottom';calcs=@()}
+$stack.fieldConfig.defaults.custom.axisPlacement='hidden'
+$stack.options.showValue='never'
+foreach($entry in @(@(4,'TOTAL · SGD','Total',0,7,'yellow'),@(5,'Azure · SGD','Azure',6,4,'#5794F2'),@(6,'GCP · SGD','GCP',12,4,'#FF9830'),@(7,'Railway · SGD','Railway',18,4,'#B877D9'))){
+    $q=Shared-Query 2;$q.withTransforms=$true
+    $p=Add-Chart $cost $entry[0] $entry[1] $q 'prefix:S$' $entry[3] 0 6 $entry[4] 'stat' 'SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage are shown below.'
+    $p.options.graphMode='none';$p.options.textMode='value'
+    $p.fieldConfig.defaults.decimals=2
+    $p.fieldConfig.defaults.color=@{mode='fixed';fixedColor=$entry[5]}
+    if($entry[2] -eq 'Total'){
+        $p.transformations=@(@{id='calculateField';options=@{mode='reduceRow';reduce=@{include=@('Azure','GCP','Railway');reducer='sum'};alias='Total';replaceFields=$true}})
+        $p.options.textMode='value_and_name';$p.options.text=@{titleSize=12}
+        $p.fieldConfig.overrides=@(@{matcher=@{id='byName';options='Total'};properties=@(@{id='displayName';value='Available costs only'})})
+    }else{
+        $p.transformations=@(@{id='filterFieldsByName';options=@{include=@{names=@($entry[2])}}})
+    }
+}
 $cost.panels=@($cost.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 Save-MonitoringJson "$out/performance-dashboard.json" $perf
 Save-MonitoringJson "$out/cost-dashboard.json" $cost

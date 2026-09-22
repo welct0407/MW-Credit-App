@@ -59,6 +59,8 @@ The follow-up inspection verified **Detailed usage cost: Enabled** in the Cloud 
 
 ## Access and maintenance
 
+Cost overview layout: a larger yellow available-total card on the left; three blue/orange/purple Azure/GCP/Railway SGD cards on the right, with their shortened stacked breakdown beneath. The four cards reuse panel 2's transformed query results without new provider reads. The total card says Available costs only, with an explicit incomplete-total warning in the coverage panel below. The coverage table retains the numeric subtotal, rate/date and period/availability context.
+
 The SGD overview adds credential-free Infinity source `mw-public-fx` (`efz19dcu6cwzka`), restricted to `https://api.frankfurter.dev`. It requests only public USD/SGD reference data; no cloud costs or provider credentials are sent to that service. Its sanitized definition is `outputs/resource-monitoring-20260922/public-fx-source.json`. FX is queried on the hourly cost-dashboard refresh. The coverage panel reuses the overview query results. The overview itself makes additional aggregate reads of the existing cost providers; avoid repeated manual cost refreshes because Azure throttling still applies. Restore private `cost-before-sgd-v2.json` for this overview's rollback; remove the FX source only after no panels reference it.
 
 All three data sources use the installed Infinity plugin's backend parser and encrypted credentials. Their allowed destination hosts are restricted to the corresponding provider APIs. UIDs: `mw-azure-monitoring`, `mw-gcp-monitoring`, `mw-railway-monitoring`.
