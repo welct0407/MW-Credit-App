@@ -1,5 +1,13 @@
 # Environment inventory
 
+## Metabase platform preparation — 22 September 2026
+
+Railway project **MW Credit Metabase** (`c8e57452-36dc-41f1-8d00-856b521a96c7`) hosts a new Metabase trial platform at <https://metabase-production-ca3f.up.railway.app>. Its separate Railway PostgreSQL application database stores Metabase configuration. The Railway environment is named `production`; it is **not connected to the loan PROD database**. Existing Looker reports and AppSheet/Cloud SQL configuration are unchanged.
+
+Metabase is pinned to v0.63.18.1; its PostgreSQL application database is 16.15. A 384 MB Java heap allows startup under the trial's 1 GB service limit. Java and reporting timezones are `Asia/Bangkok`; `/api/health` returned `ok`. Owner administrator setup is complete, telemetry is disabled, and the **Loan Reports** collection is prepared. A bundled sample chart executed successfully after the pinned deployment became Active. The reporting-source connection remains pending. Limited Trial networking/capacity, missing backup/recovery setup and data-source credential encryption prevent claiming live-reporting readiness. Exact service/volume identities, setup state and recovery limitations are in the [platform setup log](../Change%20Logs/CHANGE_NOTES_METABASE_RAILWAY_2026-09-22.md).
+
+## AppSheet and Cloud SQL checkpoint
+
 Latest recorded checkpoint: **21 September 2026**, from [R014 production evidence](../outputs/r014-20260921/production-report.md) and [DEV database consolidation evidence](../outputs/dev-db-consolidation-20260920/verification.json). Current PROD is R014. Unaffected application facts retain their recorded evidence.
 
 ## App identities and bindings
