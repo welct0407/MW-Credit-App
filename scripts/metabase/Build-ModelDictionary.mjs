@@ -8,7 +8,7 @@ const models=read('models.json'),rows=[['Model','ID','Field / grain','Type / sou
 const first=['borrowers','loans','repayments','borrower-performance','portfolio','daily','charges','partners','collections','collection-summary'];
 const keys=[...first,...Object.keys(models).filter(k=>!first.includes(k))];
 for(const key of keys){
- const m=models[key];rows.push([m.name,m.id,'Model grain','scripts/metabase/models/'+key+'.sql','PROD reporting / collection 8',m.grain]);
+ const m=models[key];rows.push([m.name,m.id,'Model grain',m.database_view??'scripts/metabase/models/'+key+'.sql','PROD reporting / collection 8',m.grain]);
  for(const c of m.columns)rows.push([m.name,m.id,c.name,c.base_type+(c.id?' / field '+c.id:''),[c.semantic_type,c.fk_target_field_id?'FK to field '+c.fk_target_field_id:''].filter(Boolean).join('; '),c.description.split('. '+m.grain)[0]]);
 }
 sheet.getRange(`A1:F${rows.length}`).values=rows;

@@ -1,0 +1,22 @@
+{
+  "baseline": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/income-db-views-before",
+  "version": 34,
+  "views": {
+    "expenses": "reporting_expenses",
+    "cash-accounts": "reporting_cash_accounts",
+    "income-monthly": "reporting_income_monthly",
+    "income-statement": "reporting_income_statement",
+    "settlements": "reporting_settlements",
+    "income-daily": "reporting_income_daily"
+  },
+  "model_ids": [
+    163,
+    164,
+    165,
+    166,
+    185,
+    186
+  ],
+  "status": "Prepared; not deployed",
+  "authorization": "Owner: heavy calculations should be built in database views and read directly from Metabase."
+}
