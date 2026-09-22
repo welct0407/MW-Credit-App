@@ -2,7 +2,9 @@
 
 ## Current Income Statement — V35, 23 September 2026
 
-[Open page 9](https://reports.mw-credit.com/dashboard/3?tab=12). Fifteen visuals now show earnings, average daily net profit, partner draws, retained profit, a cash bridge, period-end pool/custody/holder/account balances and expense detail. Lifetime profit and monthly earnings are removed. Nine compact number cards share their dimensions and whole-baht formatting; chart labels/axes show full numbers. Metabase still auto-fits scalar font size to available space. Notes are short enough for phone display, with cash before expenses. The full dashboard now has 124 placements, 120 distinct questions, eighteen models and 256 fields.
+The cash waterfall was removed on 23 September. Separate + and = symbols now connect the three cash cards; a short footnote preserves the distinction between selected-period profit and cumulative cash. Native waterfall Total cannot be renamed in this Metabase version, so its chart title states **Total = Unsettled Profit**. Queries, models and date mappings are unchanged; eleven focused checks passed ([evidence](income-symbols-verification.json)).
+
+[Open page 9](https://reports.mw-credit.com/dashboard/3?tab=12). Fourteen visuals now show earnings, average daily net profit, partner draws, retained profit, period-end pool/custody/holder/account balances and expense detail. Lifetime profit and monthly earnings are removed. Number cards share compact height and whole-baht formatting; the three cash cards have equal widths with separate + and = symbols; chart labels/axes show full numbers. Metabase still auto-fits scalar font size to available space. Notes are short enough for phone display, with cash before expenses. The full dashboard now has 123 placements, 119 distinct questions, eighteen models and 256 fields.
 
 **Date semantics:** income/expenses/draw allocation use the selected continuous range. Average daily net profit divides selected net profit by calendar days through today, including zero-activity dates. Cash uses the selected **end date**, not the sum of daily balances. V35 derives pool from dated capital less dated loan principal plus principal repayments, and custody from dated ledger movements plus immutable opening-minus-baseline offsets. Full custody is available from 18 September 2026; earlier/missing account openings remain null. Later corrections restate history. This is reconstructed accounting history, not an immutable historical snapshot.
 
@@ -24,7 +26,7 @@ Validation: disposable migration rebuild/no-op/checksum and analytics/concurrenc
 
 Recovery: private `income-db-views-before` contains the six exact former model definitions/SQL, dashboard, permissions and dictionary. Restore those model queries if needed; leave the compatible additive views in place until an authorized forward migration. Fresh pre-promotion schema exports match; the verified-restored PROD dump hash was rechecked. The development API key remains retained under the owner's existing instruction. R016 final acceptance/key revocation/tag are still pending.
 
-[Open the dashboard](https://reports.mw-credit.com/dashboard/3). Nine tabs are implemented for review: 124 business visual placements from 120 questions, eighteen reusable models and two shared parameterized snippets. Pages 1–2 retain their accepted layouts and metric definitions. The borrower POC remains at dashboard 2. Full migration acceptance remains pending.
+[Open the dashboard](https://reports.mw-credit.com/dashboard/3). Nine tabs are implemented for review: 123 business visual placements from 119 questions, eighteen reusable models and two shared parameterized snippets. Pages 1–2 retain their accepted layouts and metric definitions. The borrower POC remains at dashboard 2. Full migration acceptance remains pending.
 
 ## Shared reporting models
 

@@ -24,12 +24,16 @@ note(0,'Income statement · selected period · THB');
 ['income','expenses','profit','margin','tommy','lisa'].forEach((k,i)=>place(k,(i%3)*8,1+Math.floor(i/3)*2,8,2));
 note(5,'1 · From earnings to profit retained');place('bridge',0,6,24,5);
 note(11,'Average uses calendar days. Draws consume earlier profit first.',2);
-note(13,'2 · From retained profit to cash held');['retained','cash-pool','cash-held'].forEach((k,i)=>place(k,i*8,14,8,2));
-place('cash-bridge',0,16,24,6);
-note(22,'Cash is at period end; the bridge explains any difference.',2);
-place('holders',0,24,24,4);place('accounts',0,28,24,5);place('period',0,33,24,3);
-note(36,'3 · Expense breakdown');place('expense-category',0,37,24,5);
-note(42,'Cash needs known openings. Later corrections restate history.',2);
+note(13,'2 · From retained profit to cash held');
+place('retained',0,14,7,2);place('cash-pool',8,14,7,2);place('cash-held',17,14,7,2);
+for(const [text,col,width] of [['+',7,1],['=',15,2]]){
+ note(14,text);Object.assign(cards.at(-1),{col,size_x:width,size_y:2});
+ Object.assign(cards.at(-1).visualization_settings.virtual_card.visualization_settings,{'text.align_horizontal':'center','text.align_vertical':'middle'});
+}
+note(16,'\\* Cash is at period end; earlier profit or adjustments can change this equation.',2);
+place('holders',0,18,24,4);place('accounts',0,22,24,5);place('period',0,27,24,3);
+note(30,'3 · Expense breakdown');place('expense-category',0,31,24,5);
+note(36,'Cash needs known openings. Later corrections restate history.',2);
 await api('PUT','dashboard/3',{parameters:[...d.parameters.filter(p=>p.id!=='income-period'),{id:'income-period',name:'Statement period',slug:'statement_period',type:'date/all-options',sectionId:'date',default:'thismonth'}]});
 await api('PUT','dashboard/3/cards',{tabs:d.tabs,cards});d=await api('GET','dashboard/3');
 const project=c=>Object.fromEntries(['id','card_id','dashboard_tab_id','col','row','size_x','size_y','parameter_mappings','visualization_settings'].map(k=>[k,c[k]]));

@@ -2,7 +2,7 @@
   "reservation_commit": "af677e4",
   "sql": "scripts/metabase/reporting-pages-1-2-grants.sql",
   "dashboard": {
-    "visuals": 124,
+    "visuals": 123,
     "collection": 5,
     "id": 3,
     "tabs": [
@@ -16,9 +16,9 @@
       11,
       12
     ],
-    "questions": 120,
+    "questions": 119,
     "source": 2,
-    "heading_and_note_cards": 44
+    "heading_and_note_cards": 46
   },
   "checklist": "promotion-checklist.md",
   "remaining": [
@@ -93,5 +93,6 @@
   "income_view_access": "income-db-views-grants.json",
   "income_view_switch": "income-db-views-switch.json",
   "income_cash_asof_tests": "income-asof-production.json",
-  "income_cash_asof_access": "income-asof-grants.json"
+  "income_cash_asof_access": "income-asof-grants.json",
+  "income_presentation_tests": "income-symbols-verification.json"
 }

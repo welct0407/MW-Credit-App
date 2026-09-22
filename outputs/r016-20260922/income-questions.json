@@ -184,7 +184,7 @@
   },
   {
     "key": "bridge",
-    "name": "Income → retained profit · selected period",
+    "name": "Income waterfall · Total = Unsettled Profit",
     "display": "waterfall",
     "native_select": "SELECT v.movement AS \"Movement\",v.amount AS \"Amount\" FROM statement s CROSS JOIN LATERAL (VALUES (1,'1 · Income',s.\"Operating Income\"),(2,'2 · Expenses',s.\"Operating Expenses\"),(3,'3 · Tommy draw',s.\"Tommy Draw\"),(4,'4 · Lisa draw',s.\"Lisa Draw\")) v(step,movement,amount) ORDER BY step",
     "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
@@ -425,7 +425,7 @@
   },
   {
     "key": "cash-pool",
-    "name": "Cash pool remaining · period end",
+    "name": "Cash pool remaining",
     "display": "scalar",
     "native_select": "SELECT \"Cash Pool Remaining\" FROM statement",
     "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
@@ -467,7 +467,7 @@
   },
   {
     "key": "cash-held",
-    "name": "Business cash held · period end",
+    "name": "Business cash held*",
     "display": "scalar",
     "native_select": "SELECT \"Business Cash Held\" FROM statement",
     "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
@@ -505,44 +505,6 @@
           "color": "#267DCC"
         }
       ]
-    }
-  },
-  {
-    "key": "cash-bridge",
-    "name": "Cash pool → business cash held · period end",
-    "display": "waterfall",
-    "native_select": "SELECT v.movement AS \"Movement\",v.amount AS \"Amount\" FROM statement s CROSS JOIN LATERAL (VALUES (1,'1 · Cash pool',s.\"Cash Pool Remaining\"),(2,'2 · Earlier retained profit',s.\"Earlier Retained Profit\"),(3,'3 · Selected-period retained profit',s.\"Unsettled Profit\"),(4,'4 · Advances',s.\"Advance Due\"),(5,'5 · Reconciliation difference',s.\"Cash Reconciliation Difference\")) v(step,movement,amount) WHERE s.\"Business Cash Held\" IS NOT NULL ORDER BY step",
-    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
-    "settings": {
-      "graph.dimensions": [
-        "Movement"
-      ],
-      "graph.metrics": [
-        "Amount"
-      ],
-      "graph.colors": [
-        "#13855B",
-        "#D1495B",
-        "#267DCC"
-      ],
-      "graph.show_values": true,
-      "graph.show_legend": false,
-      "graph.show_dots": false,
-      "graph.x_axis.title_enabled": false,
-      "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "full",
-      "column_settings": {
-        "[\"name\",\"Amount\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,",
-          "compact": false
-        }
-      },
-      "waterfall.increase_color": "#13855B",
-      "waterfall.decrease_color": "#D1495B",
-      "waterfall.total_color": "#267DCC",
-      "waterfall.show_total": true
     }
   },
   {

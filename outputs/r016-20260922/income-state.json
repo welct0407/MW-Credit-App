@@ -13,14 +13,14 @@
     "cash-held": 180,
     "holders": 182,
     "accounts": 183,
-    "period": 184,
-    "cash-bridge": 189
+    "period": 184
   },
   "tab_id": 12,
   "snippet_id": 2,
   "archived_cards": {
     "inception": 176,
     "monthly": 177,
-    "cash-difference": 181
+    "cash-difference": 181,
+    "cash-bridge": 189
   }
 }
