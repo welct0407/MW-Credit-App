@@ -104,3 +104,11 @@ See [Partner review](PARTNER_REVIEW.md). Scoped ordinary receipt execution requi
 ## Reviewer-only corrections and DML — 22 September 2026
 
 The earlier no-DML/general-command status above is superseded for current AI Reviewers by [Reviewer DML](REVIEWER_DML.md). Reporting connectivity and receipt-review authority remain separate. Both conversational API edits and the new structured database operations require fresh reviewer membership. Runtime setup grants no schema/trigger administration to the agent and does not modify AppSheet definitions or Flyway history.
+
+## Resource monitoring — 22 September 2026
+
+Owner-authorized infrastructure monitoring now runs separately from the business runtime: `/opt/mw-resource-monitoring/debian-health.py`, executed by `mw-resource-health.service`/`.timer` as mwagent every two minutes using the existing Python virtual environment. Maintained source, tests, GCP uptime check definition and Grafana definitions belong to `C:\GitHub\AppSheet-Loan-Project\scripts\monitoring` and its Resource_Monitoring.md reference. The business catalogue and activation flags are unchanged.
+
+The collector reads timer results/cadence, local webhook and Cloudflare connection health, Tailscale node state, read-only database connectivity, existing bounded AppSheet probes and local Codex login readiness. It invokes no business cycle and sends no test message/model prompt. It exports numeric health only through the existing VM identity to GCP Monitoring; stale reports become UNKNOWN in Grafana. Public webhook checks run independently in Google Cloud. Azure VM-01 is not a monitoring dependency. Tailscale is node health, not external peer reachability.
+
+For rollback, disable/stop only `mw-resource-health.timer` and its service, then remove only its dedicated script/units after preserving evidence. Do not stop the existing business timers or restore application journals. See the linked monitoring change record in the AppSheet repository for dashboard/uptime-check rollback and verification.
