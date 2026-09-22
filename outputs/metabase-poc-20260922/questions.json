@@ -1,0 +1,44 @@
+{
+  "status": "prepared; not installed in Metabase",
+  "database": "loan_manager_prod",
+  "source": "public.olap_borrowers_analytics",
+  "population": "Hidden Flag IS NOT TRUE; one row per borrower",
+  "timezone": "Asia/Bangkok",
+  "questions": [
+    {
+      "name": "Borrowers",
+      "display": "scalar",
+      "sql": "SELECT count(*) AS \"Borrowers\" FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE"
+    },
+    {
+      "name": "Active borrowers",
+      "display": "scalar",
+      "sql": "SELECT count(*) AS \"Active borrowers\" FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE AND \"Has Active Loan\" IS TRUE"
+    },
+    {
+      "name": "Outstanding principal (THB)",
+      "display": "scalar",
+      "sql": "SELECT coalesce(sum(\"Total Outstanding Principal\"),0) AS \"Outstanding principal (THB)\" FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE"
+    },
+    {
+      "name": "Borrower activity",
+      "display": "pie",
+      "sql": "SELECT CASE WHEN \"Has Active Loan\" IS TRUE THEN 'Active loan' ELSE 'No active loan' END AS \"Activity\", count(*) AS \"Borrowers\" FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE GROUP BY 1 ORDER BY 1"
+    },
+    {
+      "name": "Overdue exposure (THB)",
+      "display": "bar",
+      "sql": "SELECT CASE WHEN coalesce(\"Overdue Amount\",0)<=0 THEN 'No overdue amount' WHEN \"Overdue Amount\"<=1000 THEN 'Up to 1,000 THB' WHEN \"Overdue Amount\"<=5000 THEN '1,001 to 5,000 THB' ELSE 'Over 5,000 THB' END AS \"Overdue bucket\", count(*) AS \"Borrowers\" FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE GROUP BY 1 ORDER BY min(coalesce(\"Overdue Amount\",0))"
+    },
+    {
+      "name": "Borrower registrations by month",
+      "display": "line",
+      "sql": "WITH months AS (SELECT generate_series(date_trunc('month',min(\"Creation Date\")),date_trunc('month',(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date),interval '1 month')::date AS month FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE), registrations AS (SELECT date_trunc('month',\"Creation Date\")::date AS month,count(*) AS n FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE GROUP BY 1) SELECT months.month AS \"Month\",coalesce(registrations.n,0) AS \"New borrowers\" FROM months LEFT JOIN registrations USING (month) ORDER BY 1"
+    },
+    {
+      "name": "Borrower portfolio",
+      "display": "table",
+      "sql": "SELECT \"Borrower Name\" AS \"Borrower\",\"Active Loan Count\" AS \"Active loans\",\"Total Outstanding Principal\" AS \"Principal (THB)\",\"Overdue Amount\" AS \"Overdue (THB)\",\"Profit Last 30 Days\" AS \"Interest received, last 30 days (THB)\" FROM public.olap_borrowers_analytics WHERE \"Hidden Flag\" IS NOT TRUE ORDER BY \"Total Outstanding Principal\" DESC,\"Row ID\" LIMIT 100"
+    }
+  ]
+}
