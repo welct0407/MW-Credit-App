@@ -4,16 +4,17 @@ import {definitions,descriptions} from './IncomePage.mjs';
 await assertSource();
 if(!fs.existsSync(privateDir+'/income-before/dashboard.json')||!fs.existsSync(root+'/outputs/r016-20260922/income-grants-applied.json'))throw Error('Missing income backup or authorized grant evidence');
 const models=read('models.json');
+const selectedDefinitions=process.argv.includes('--cash-only')?definitions.filter(([k])=>['cash-account-daily','cash-daily'].includes(k)):definitions;
 const raw=key=>fs.readFileSync(`${root}/scripts/metabase/models/${key}.sql`,'utf8').trim();
 const expand=key=>raw(key).replace(/\{\{model:([^}]+)\}\}/g,(_,dep)=>'('+expand(dep)+')');
-for(const [key,,grain]of definitions){
+for(const [key,,grain]of selectedDefinitions){
  const r=await api('POST','dataset',{database:2,type:'native',native:{query:expand(key)}});
  if(r.status!=='completed'){fs.writeFileSync(privateDir+'/income-query-error.json',JSON.stringify(r));throw Error('Income preflight failed '+key);}
  const index=r.data.cols.findIndex(c=>c.name===grain),values=r.data.rows.map(row=>row[index]);
  if(index<0||values.some(v=>v==null)||new Set(values).size!==values.length)throw Error('Invalid grain '+key);
  console.log('Preflight passed '+key);
 }
-for(const [key,name,grain,description]of definitions){
+for(const [key,name,grain,description]of selectedDefinitions){
  const tags={},query=raw(key).replace(/\{\{model:([^}]+)\}\}/g,(_,dep)=>{const m=models[dep];if(!m)throw Error('Missing model dependency');const tag='#'+m.id;tags[tag]={id:'r016-model-'+m.id,name:tag,'display-name':m.name,type:'card','card-id':m.id};return '{{'+tag+'}}';});
  const id=models[key]?.id;
  const c=await api(id?'PUT':'POST',id?'card/'+id:'card',{name,description,type:'model',display:'table',collection_id:8,visualization_settings:{},dataset_query:{database:2,type:'native',native:{query,'template-tags':tags}}});

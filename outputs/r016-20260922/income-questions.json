@@ -20,12 +20,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Operating Income\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "scalar.field": "Operating Income",
@@ -64,12 +65,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Operating Expenses\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "scalar.field": "Operating Expenses",
@@ -103,12 +105,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Net Profit\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "scalar.field": "Net Profit",
@@ -128,14 +131,14 @@
   },
   {
     "key": "margin",
-    "name": "Net margin",
+    "name": "Average daily net profit",
     "display": "scalar",
-    "native_select": "SELECT \"Net Margin\" FROM statement",
+    "native_select": "SELECT \"Average Daily Net Profit\" FROM statement",
     "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
     "settings": {
       "graph.dimensions": [],
       "graph.metrics": [
-        "Net Margin"
+        "Average Daily Net Profit"
       ],
       "graph.colors": [
         "#13855B",
@@ -147,15 +150,16 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
-        "[\"name\",\"Net Margin\"]": {
-          "number_style": "percent",
-          "decimals": 1,
-          "number_separators": ".,"
+        "[\"name\",\"Average Daily Net Profit\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
         }
       },
-      "scalar.field": "Net Margin",
+      "scalar.field": "Average Daily Net Profit",
       "scalar.segments": [
         {
           "min": -1000000000000000000,
@@ -193,12 +197,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Amount\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "waterfall.increase_color": "#13855B",
@@ -228,12 +233,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Tommy Draw\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "scalar.field": "Tommy Draw",
@@ -267,12 +273,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Lisa Draw\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "scalar.field": "Lisa Draw",
@@ -306,12 +313,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Unsettled Profit\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "scalar.field": "Unsettled Profit",
@@ -323,191 +331,6 @@
         }
       ]
     }
-  },
-  {
-    "key": "inception",
-    "name": "Net profit · through period end",
-    "display": "scalar",
-    "native_select": "SELECT \"Net Profit Through Period End\" FROM statement",
-    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
-    "settings": {
-      "graph.dimensions": [],
-      "graph.metrics": [
-        "Net Profit Through Period End"
-      ],
-      "graph.colors": [
-        "#13855B",
-        "#D1495B",
-        "#267DCC"
-      ],
-      "graph.show_values": true,
-      "graph.show_legend": false,
-      "graph.show_dots": false,
-      "graph.x_axis.title_enabled": false,
-      "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
-      "column_settings": {
-        "[\"name\",\"Net Profit Through Period End\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,"
-        }
-      },
-      "scalar.field": "Net Profit Through Period End",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": -1e-8,
-          "color": "#D1495B"
-        },
-        {
-          "min": 0,
-          "max": 1000000000000000000,
-          "color": "#13855B"
-        }
-      ]
-    }
-  },
-  {
-    "key": "monthly",
-    "name": "Earnings by month · selected period",
-    "model": "income-daily",
-    "display": "bar",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__186",
-        "breakout": [
-          [
-            "field",
-            "Month",
-            {
-              "base-type": "type/Date"
-            }
-          ]
-        ],
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Operating Income",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Operating Income",
-              "display-name": "Operating Income"
-            }
-          ],
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Signed Expenses",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Signed Expenses",
-              "display-name": "Signed Expenses"
-            }
-          ],
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Net Profit",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Net Profit",
-              "display-name": "Net Profit"
-            }
-          ]
-        ],
-        "order-by": [
-          [
-            "asc",
-            [
-              "field",
-              "Month",
-              {
-                "base-type": "type/Date"
-              }
-            ]
-          ]
-        ]
-      }
-    },
-    "description": "Selected-period detail from shared reporting models. THB; Bangkok dates.",
-    "settings": {
-      "graph.dimensions": [
-        "Month"
-      ],
-      "graph.metrics": [
-        "Operating Income",
-        "Signed Expenses",
-        "Net Profit"
-      ],
-      "graph.colors": [
-        "#13855B",
-        "#D1495B",
-        "#267DCC"
-      ],
-      "graph.show_values": false,
-      "graph.show_legend": true,
-      "graph.show_dots": true,
-      "graph.x_axis.title_enabled": false,
-      "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
-      "column_settings": {
-        "[\"name\",\"Operating Income\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,"
-        },
-        "[\"name\",\"Signed Expenses\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,"
-        },
-        "[\"name\",\"Net Profit\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,"
-        }
-      },
-      "series_settings": {
-        "Operating Income": {
-          "color": "#13855B",
-          "display": "bar"
-        },
-        "Signed Expenses": {
-          "color": "#D1495B",
-          "display": "bar"
-        },
-        "Net Profit": {
-          "color": "#267DCC",
-          "display": "line"
-        }
-      }
-    },
-    "date_field": "Date"
   },
   {
     "key": "expense-category",
@@ -574,12 +397,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Expense Amount\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       }
     },
@@ -587,26 +411,10 @@
   },
   {
     "key": "cash-pool",
-    "name": "Cash pool remaining · now",
-    "model": "income-statement",
+    "name": "Cash pool remaining · period end",
     "display": "scalar",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__166",
-        "fields": [
-          [
-            "field",
-            "Cash Pool Remaining",
-            {
-              "base-type": "type/Decimal"
-            }
-          ]
-        ]
-      }
-    },
-    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "native_select": "SELECT \"Cash Pool Remaining\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
     "settings": {
       "graph.dimensions": [],
       "graph.metrics": [
@@ -622,12 +430,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Cash Pool Remaining\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "scalar.field": "Cash Pool Remaining",
@@ -642,26 +451,10 @@
   },
   {
     "key": "cash-held",
-    "name": "Business cash held · now",
-    "model": "income-statement",
+    "name": "Business cash held · period end",
     "display": "scalar",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__166",
-        "fields": [
-          [
-            "field",
-            "Business Cash Held",
-            {
-              "base-type": "type/Decimal"
-            }
-          ]
-        ]
-      }
-    },
-    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "native_select": "SELECT \"Business Cash Held\" FROM statement",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
     "settings": {
       "graph.dimensions": [],
       "graph.metrics": [
@@ -677,12 +470,13 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Business Cash Held\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "scalar.field": "Business Cash Held",
@@ -696,31 +490,17 @@
     }
   },
   {
-    "key": "cash-difference",
-    "name": "Current cash check · difference",
-    "model": "income-statement",
-    "display": "scalar",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__166",
-        "fields": [
-          [
-            "field",
-            "Cash Reconciliation Difference",
-            {
-              "base-type": "type/Decimal"
-            }
-          ]
-        ]
-      }
-    },
-    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "key": "cash-bridge",
+    "name": "Cash pool → business cash held · period end",
+    "display": "waterfall",
+    "native_select": "SELECT v.movement AS \"Movement\",v.amount AS \"Amount\" FROM statement s CROSS JOIN LATERAL (VALUES (1,'1 · Cash pool',s.\"Cash Pool Remaining\"),(2,'2 · Earlier retained profit',s.\"Earlier Retained Profit\"),(3,'3 · Selected-period retained profit',s.\"Unsettled Profit\"),(4,'4 · Advances',s.\"Advance Due\"),(5,'5 · Reconciliation difference',s.\"Cash Reconciliation Difference\")) v(step,movement,amount) WHERE s.\"Business Cash Held\" IS NOT NULL ORDER BY step",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
     "settings": {
-      "graph.dimensions": [],
+      "graph.dimensions": [
+        "Movement"
+      ],
       "graph.metrics": [
-        "Cash Reconciliation Difference"
+        "Amount"
       ],
       "graph.colors": [
         "#13855B",
@@ -732,87 +512,33 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
-        "[\"name\",\"Cash Reconciliation Difference\"]": {
+        "[\"name\",\"Amount\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
-      "scalar.field": "Cash Reconciliation Difference",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": 1000000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "waterfall.increase_color": "#13855B",
+      "waterfall.decrease_color": "#D1495B",
+      "waterfall.total_color": "#267DCC",
+      "waterfall.show_total": true
     }
   },
   {
     "key": "holders",
-    "name": "Who holds the business cash?",
-    "model": "cash-accounts",
+    "name": "Who holds the business cash? · period end",
     "display": "row",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__164",
-        "breakout": [
-          [
-            "field",
-            "Cash Holder ID",
-            {
-              "base-type": "type/Text"
-            }
-          ],
-          [
-            "field",
-            "Cash Holder",
-            {
-              "base-type": "type/Text"
-            }
-          ]
-        ],
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Holder Cash Component",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Holder Cash Component",
-              "display-name": "Holder Cash Component"
-            }
-          ]
-        ],
-        "order-by": [
-          [
-            "desc",
-            [
-              "aggregation",
-              0
-            ]
-          ]
-        ]
-      }
-    },
-    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "native_select": "SELECT a.\"Cash Holder ID\",a.\"Cash Holder\",CASE WHEN bool_and(a.\"Current Balance\" IS NOT NULL) THEN sum(a.\"Business Cash Held\") END AS \"Business Cash Held\" FROM statement s JOIN {{model:cash-account-daily}} a ON a.\"Date\"=s.\"Period End\" GROUP BY 1,2 ORDER BY 3 DESC",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
     "settings": {
       "graph.dimensions": [
         "Cash Holder"
       ],
       "graph.metrics": [
-        "Holder Cash Component"
+        "Business Cash Held"
       ],
       "graph.colors": [
         "#267DCC"
@@ -822,95 +548,23 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
-        "[\"name\",\"Holder Cash Component\"]": {
+        "[\"name\",\"Business Cash Held\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       }
     }
   },
   {
     "key": "accounts",
-    "name": "Cash by account · current balances",
-    "model": "cash-accounts",
+    "name": "Cash by account · period end",
     "display": "table",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__164",
-        "fields": [
-          [
-            "field",
-            "Cash Holder",
-            {
-              "base-type": "type/Text"
-            }
-          ],
-          [
-            "field",
-            "Account",
-            {
-              "base-type": "type/Text"
-            }
-          ],
-          [
-            "field",
-            "Current Balance",
-            {
-              "base-type": "type/Decimal"
-            }
-          ],
-          [
-            "field",
-            "Business Cash Held",
-            {
-              "base-type": "type/Decimal"
-            }
-          ],
-          [
-            "field",
-            "Advance Due",
-            {
-              "base-type": "type/Decimal"
-            }
-          ],
-          [
-            "field",
-            "Balance Status",
-            {
-              "base-type": "type/Text"
-            }
-          ]
-        ],
-        "order-by": [
-          [
-            "asc",
-            [
-              "field",
-              "Cash Holder",
-              {
-                "base-type": "type/Text"
-              }
-            ]
-          ],
-          [
-            "asc",
-            [
-              "field",
-              "Account",
-              {
-                "base-type": "type/Text"
-              }
-            ]
-          ]
-        ]
-      }
-    },
-    "description": "Current cash position from the governed Cash Dashboard/Cash Account Balances. Independent of the statement period.",
+    "native_select": "SELECT a.\"Cash Holder\",a.\"Account\",a.\"Current Balance\",a.\"Business Cash Held\",a.\"Advance Due\",a.\"Balance Status\" FROM statement s JOIN {{model:cash-account-daily}} a ON a.\"Date\"=s.\"Period End\" ORDER BY 1,2",
+    "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
     "settings": {
       "graph.dimensions": [],
       "graph.metrics": [
@@ -928,22 +582,25 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {
         "[\"name\",\"Current Balance\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         },
         "[\"name\",\"Business Cash Held\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         },
         "[\"name\",\"Advance Due\"]": {
           "number_style": "decimal",
           "decimals": 0,
-          "number_separators": ".,"
+          "number_separators": ".,",
+          "compact": false
         }
       },
       "table.pivot": false
@@ -951,9 +608,9 @@
   },
   {
     "key": "period",
-    "name": "Statement dates · available activity range",
+    "name": "Statement period & cash availability",
     "display": "table",
-    "native_select": "SELECT \"Period Start\",\"Period End\",\"Selection Status\" FROM statement",
+    "native_select": "SELECT \"Period Start\",\"Period End\",\"Cash Available From\",\"Selection Status\",\"Cash Status\" FROM statement",
     "description": "Selected-period result from the shared Income statement period snippet and Daily Income Ledger. Existing FIFO allocation is centralized; no financial write.",
     "settings": {
       "graph.dimensions": [],
@@ -968,7 +625,7 @@
       "graph.show_dots": false,
       "graph.x_axis.title_enabled": false,
       "graph.y_axis.title_enabled": false,
-      "graph.label_value_formatting": "compact",
+      "graph.label_value_formatting": "full",
       "column_settings": {}
     }
   }

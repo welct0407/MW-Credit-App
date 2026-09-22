@@ -13,8 +13,9 @@ allocated AS (
  FROM totals t LEFT JOIN opening o ON true LEFT JOIN closing c ON true
 ), valid AS (SELECT * FROM allocated WHERE starts IS NULL OR days=ends-starts+1)
 SELECT a.starts AS "Period Start",a.ends AS "Period End",v.income AS "Operating Income",-v.expenses AS "Operating Expenses",
- v.income-v.expenses AS "Net Profit",(v.income-v.expenses)/NULLIF(v.income,0) AS "Net Margin",
+ v.income-v.expenses AS "Net Profit",(v.income-v.expenses)/NULLIF(v.days,0) AS "Average Daily Net Profit",
  -v.draw_a AS "Tommy Draw",-v.draw_b AS "Lisa Draw",v.income-v.expenses-v.draw_a-v.draw_b AS "Unsettled Profit",
- v.profit_to_end AS "Net Profit Through Period End",
+ c."Cash Pool Remaining",c."Business Cash Held",c."Advance Due",c."Cash Reconciliation Difference",c."Cash Available From",c."Cash Status",
+ c."Retained Profit Through Date"-(v.income-v.expenses-v.draw_a-v.draw_b) AS "Earlier Retained Profit",
  CASE WHEN a.starts IS NULL THEN 'No recorded activity' WHEN v.starts IS NULL THEN 'Select one continuous period; exclusions are not supported' ELSE 'Ready' END AS "Selection Status"
-FROM allocated a LEFT JOIN valid v ON true
+FROM allocated a LEFT JOIN valid v ON true LEFT JOIN {{model:cash-daily}} c ON c."Date"=v.ends

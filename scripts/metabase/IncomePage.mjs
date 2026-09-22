@@ -4,7 +4,9 @@ export const definitions=[
  ['income-monthly','Monthly Income','Month','One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots.'],
  ['income-statement','Income Statement','Statement ID','One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks.'],
  ['settlements','Settlement Ledger','Settlement ID','One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available.'],
- ['income-daily','Daily Income Ledger','Date','One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering.']
+ ['income-daily','Daily Income Ledger','Date','One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering.'],
+ ['cash-account-daily','Cash Accounts by Date','Position ID','One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history.'],
+ ['cash-daily','Cash Position by Date','Date','One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct.']
 ];
 export const descriptions={
  'Cash Reconciliation Difference':'Business cash held minus remaining cash pool minus current-month unsettled profit. A diagnostic difference, not additional income or a claimed allocation to prior profits.',
