@@ -20,6 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("--config", required=True)
     relay = sub.add_parser('audit-relay', help='relay committed audit and reconcile proven SQL outcomes; never replay DML')
     relay.add_argument('--config',required=True)
+    relay.add_argument('--catalogue',required=True)
     check.add_argument(
         "--catalogue",
         default=str(Path(__file__).resolve().parents[2] / "service-catalogue.json"),
@@ -97,6 +98,7 @@ def execute(args) -> int:
             from .outbox import relay,reconcile
             config=load_json(args.config)
             validate_config(config)
+            validate_catalogue(load_json(args.catalogue))
             print(json.dumps({'relay':relay(config),'reconciliation':reconcile(config)}))
             return 0
         if args.command == 'partner-conversation-cycle':
@@ -135,6 +137,8 @@ def execute(args) -> int:
             validate_config(config)
             validate_catalogue(load_json(args.catalogue))
             print(json.dumps({"status": "ok", "activation": {
+                "state_backend": config.get('state_backend','sqlite'),
+                "reviewer_delete": config.get('reviewer_delete_enabled',False),
                 "cash_statement_schedule": config["cash_statement_schedule_enabled"],
                 "email_fallback": config["email_fallback_enabled"],
                 "receipt_summary": config.get('receipt_summary_enabled',False),

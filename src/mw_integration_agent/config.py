@@ -44,6 +44,7 @@ def validate_config(config: dict[str, Any]) -> None:
                 config.get('agent_database_port') != 5432 or config.get('agent_database_name') != 'mw_agent'):
             raise ConfigurationError('unapproved agent database')
         _validate_secret_path(config, 'agent_database_worker_password_file')
+        _validate_secret_path(config, 'agent_database_relay_password_file')
         try:
             UUID(config['state_generation'])
             if datetime.fromisoformat(config['state_cutover_at']).tzinfo is None: raise ValueError()
