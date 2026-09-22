@@ -99,3 +99,11 @@ Final verification: native strip titles render fully at the observed 1024 px bro
 ### Vertically centered strip labels
 
 Owner requested vertical centering without taller strips. Baseline `5dc247b916ca4d06c1d559f08c8e84c402d5ec80`; private UI rollback capture `performance-before-centering-v2.json`. Converted only the legend and four group strips to static stat labels, using inline constant text in the existing Infinity source. Native stat layout centers the text within the unchanged one-unit strips, avoiding fixed panel-title padding. No external provider request is needed for these labels; monitored component queries, tile sizes and collection remain unchanged. Maintained generator, performance definitions and operating reference updated. Grafana save and screenshot verified all five labels centered and fully visible, all 16 compact tiles retained. No runtime tests apply to the presentation-only change.
+
+### Maintained dashboard visual guide
+
+Owner requested a document in Documents explaining each visual and ongoing maintenance with future dashboard updates. Starting commit `c63cfea85cdbf7807177a58d7224fe3987c4e3bc`; tracked documentation rollback is available at that commit. Preserved the two pre-existing cost JSON formatting differences.
+
+Added `Documents/Resource_Monitoring_Dashboard_Guide.md`, covering all 44 Performance visuals/four detail headers and 13 Cost visuals/three section headers. Explains each panel's meaning, scope, units, formulas, status/freshness, limits and limitations, including shared Cloud SQL memory components/connections, API versus interactive app health, provider versus local Codex health, delayed billing and currency/cycle boundaries. Based on saved definitions, query helpers and collector code; no live service audit or configuration change. Added navigation in Documents/README and the operating reference, and made future guide maintenance an explicit owner rule in AGENTS and the monitoring scripts guide. No AppSheet model/dictionary or release-number change applies.
+
+Validation: checked visual/header ID coverage against both saved definitions, reviewed calculations and probe tolerances against implementation, checked new document links and Markdown diff. Documentation-only scope requires no runtime tests. Publish these documentation changes together; rollback reverts this documentation batch only.

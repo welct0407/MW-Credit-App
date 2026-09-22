@@ -1,5 +1,7 @@
 # Centralized resource monitoring
 
+For an explanation of every visual on both pages, see the maintained [Dashboard visual guide](Resource_Monitoring_Dashboard_Guide.md). Update that guide with every dashboard change; this document owns operational setup/access/recovery details.
+
 Configured 22 September 2026 in Grafana Cloud stack `olivecrab1199`, using the work account.
 
 Friendly hostname: **monitor.mw-credit.com**. Cloudflare DNS-only CNAME points to `olivecrab1199.grafana.net`; Grafana's instance URL is configured as `https://monitor.mw-credit.com`, with provider-managed HTTPS. Grafana authentication still applies. The work account has Performance as its personal home dashboard, so the root hostname opens it after sign-in; the user timezone preference is also Singapore. Reverting the domain requires restoring the original instance URL in the Cloud Portal before removing the dedicated CNAME.

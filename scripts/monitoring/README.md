@@ -10,6 +10,8 @@ Use PowerShell 7 from the bundled runtime, with repository root as the current d
 4. Run `Publish-Dashboards.ps1 -Update`, which backs up current definitions before replacing the two named dashboards. Creation without `-Update` refuses overwrite. Newly created folder permissions can take time to propagate; inspect existing assets before resuming a failed initial publication with `-Update`.
 5. Verify the current Grafana UI, revoke temporary setup access, update the change log and publish sanitized files.
 
+Every dashboard update must also update the [visual guide](../../Documents/Resource_Monitoring_Dashboard_Guide.md) before completion, per the owner's standing instruction. Reconcile all affected panel IDs, labels/groups, metric/probe meaning, units, limits, freshness, status mappings and limitations with the saved definition. Keep implementation/access/recovery details in the operating reference.
+
 `Monitoring.Common.ps1` uses the private path documented in the operating reference. A revoked/expired setup token must be replaced through authorized setup; dashboards do not need this token to run.
 
 ## Availability collectors
