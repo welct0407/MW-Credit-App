@@ -3,7 +3,7 @@ await assertSource();
 const models=read('models.json'),questions=read('model-questions.json'),checks=[];
 for(const [key,m] of Object.entries(models)){
  const card=await api('GET','card/'+m.id),result=await api('POST',`card/${m.id}/query`,{});
- const grain={borrowers:'Borrower ID',loans:'Loan ID',repayments:'Repayment ID','borrower-performance':'Borrower',portfolio:'Portfolio ID',daily:'Date'}[key];
+ const grain={borrowers:'Borrower ID',loans:'Loan ID',repayments:'Repayment ID','borrower-performance':'Borrower',portfolio:'Portfolio ID',daily:'Date',charges:'Charge ID',partners:'Partner ID',collections:'Borrower ID','collection-summary':'Collection Status'}[key];
  const col=result.data.cols.findIndex(c=>c.name===grain),values=result.data.rows.map(row=>row[col]);
  const ok=card.type==='model'&&result.status==='completed'&&values.every(v=>v!==null)&&new Set(values).size===values.length;
  if(!ok)throw Error('Model grain failure '+key);
@@ -17,6 +17,6 @@ for(const [id,target] of [[96,72],[113,94]]){const f=await api('GET','field/'+id
 const permissions=await api('GET','collection/graph');
 if(permissions.groups['5']['8']!=='read'||permissions.groups['1']?.['8'])throw Error('Unexpected model collection permissions');
 const d=await api('GET','dashboard/3');
-if(d.dashcards.filter(c=>c.card_id).length!==26||d.dashcards.filter(c=>c.dashboard_tab_id===5&&c.card_id).some(c=>c.parameter_mappings.length!==1))throw Error('Dashboard coverage/filter binding mismatch');
+if(d.dashcards.filter(c=>c.card_id&&[4,5].includes(c.dashboard_tab_id)).length!==26||d.dashcards.filter(c=>c.dashboard_tab_id===5&&c.card_id).some(c=>c.parameter_mappings.length!==1))throw Error('Dashboard coverage/filter binding mismatch');
 write('model-verification.json',{checked_at:new Date().toISOString(),models:checks,visuals_from_models:questions.length,visual_sql_count:0,visual_join_count:0,visual_business_expression_count:0,relationship_metadata_passed:true,partner_only_collection_permissions:true,dashboard_placements:26});
-console.log('Verified six model grains, 22 model-only questions, relationship metadata, partner permissions and 26 placements.');
+console.log(`Verified ${Object.keys(models).length} model grains, 22 first-page model questions, relationship metadata, partner permissions and 26 first-page placements.`);

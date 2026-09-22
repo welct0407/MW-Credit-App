@@ -1,10 +1,10 @@
-# R016 — Overview and Cash review
+# R016 — Eight-page Loan Reports review
 
-[Open the dashboard](https://reports.mw-credit.com/dashboard/3). The revised Overview and Cash tabs contain 26 business visuals backed by 22 query-builder questions and six reusable models. Compact grouped metrics, teal capital charts, purple interest charts and muted coral overdue charts replace the initial oversized cards. Section headings and phone-readable notes organize the information. The borrower POC remains at dashboard 2. Later source pages and full migration acceptance remain pending.
+[Open the dashboard](https://reports.mw-credit.com/dashboard/3). All eight tabs are implemented for review: 109 business visual placements from 105 questions, ten reusable models and one shared scenario snippet. Pages 1–2 retain their accepted layouts and metric definitions. The borrower POC remains at dashboard 2. Full migration acceptance remains pending.
 
 ## Shared reporting models
 
-[Reporting Models](https://reports.mw-credit.com/collection/8) is inside the partner-only Loan Reports collection. PostgreSQL remains the owner of financial posting and source balances. Metabase's reusable SQL models centralize reporting joins, time windows, labels, signed values and rankings; individual visual questions contain no SQL, joins or business expressions.
+[Reporting Models](https://reports.mw-credit.com/collection/8) is inside the partner-only Loan Reports collection. PostgreSQL remains the owner of financial posting and source balances. Metabase's reusable SQL models centralize reporting joins, time windows, labels, signed values and rankings; 102 visual questions contain no SQL, joins or business expressions. Three proposed-loan visuals reference one shared parameterized snippet, because model definitions cannot contain input variables.
 
 | Model / ID | Grain and reusable responsibility |
 | --- | --- |
@@ -14,6 +14,10 @@
 | Borrower Performance / 72 | One visible borrower display name, preserving source grouping; separately aggregate loan and repayment totals before joining, then rank top four plus Others. Do not use display names as transactional keys. |
 | Portfolio Overview / 73 | One current portfolio row; available cash, utilization, gross-interest KPIs and top borrower. |
 | Daily Performance / 74 | One stored snapshot per Date; signed flow amounts and overdue date exclusion. |
+| Charge History / 75 | One Charge ID; loan/borrower joins, historical payment timing and past-due remaining amounts. |
+| Partner Outlook / 76 | One role A/B Partner ID; current shares from the existing Loan Form Context view. |
+| Collection Worklist / 77 | One borrower with a current collection status; posted receipts aggregated before joining. |
+| Collection Status Summary / 162 | Four governed statuses, including zero counts/amounts for empty statuses. |
 
 Metabase maps the corresponding database columns and declares Loans.Ref Borrowers → Borrowers.Row ID and Repayments.Ref Loans → Loans.Row ID as foreign keys. These are semantic metadata settings over the existing views, not new PostgreSQL constraints. Exact columns/IDs are in [models.json](models.json), the dictionary's **Metabase Models** sheet, and maintained [model SQL](../../scripts/metabase/models). Current visuals are defined by [model-questions.json](model-questions.json). Extend the owning model when future pages need reusable logic; do not copy joins into a visual.
 
@@ -39,7 +43,7 @@ Overview shows all-time/current metrics with each question's intrinsic date rule
 ## Verification and review limits
 
 - [SQL reconciliation](query-reconciliation.json): every value in all 22 questions and nine filtered Cash cases matches direct SQL using the restricted reporting login.
-- [Model verification](model-verification.json): all six grains are unique/non-null; every question reads its owning model, with zero visual SQL/joins/business expressions; FK metadata and partner-only permissions pass. Filter checks run through the dashboard endpoint and saved mappings.
+- [Model verification](model-verification.json): the original six grains are unique/non-null; every question reads its owning model, with zero visual SQL/joins/business expressions; FK metadata and partner-only permissions pass. Filter checks run through the dashboard endpoint and saved mappings.
 - [Relationship checks](relationship-verification.json): required keys are unique and loan/borrower and repayment/loan references resolve; snapshot dates are unique.
 - [Backup proof](backup-verification.json): PROD recovery established before column-grant changes. [Infrastructure evidence](infrastructure-verification.json) records application restore, region and resource caps.
 - Partner desktop and 390 px responsive browser checks are recorded in the change log. The owner previously accepted the POC on a physical PC and phone; that is distinct from accepting these new pages. Lisa's personal Google sign-in remains unconfirmed.
@@ -59,3 +63,28 @@ Before this refinement, exact dashboard, 22 card definitions, source metadata an
 ## Maintained tooling
 
 `Install-ReportingModels.ps1` installs shared model SQL and metadata. `Build-ModelPages.mjs` generates model-backed visual definitions, and `Install-ModelPages.mjs` applies the questions/layout. The compatibility `Install-ReportingPages.ps1` delegates to those two scripts. `Verify-ReportingModels.mjs` checks reusable sources, grains and relationships; `Verify-ReportingPages.ps1` compares results to the retained source SQL without publishing private values. See the [maintained runbook](../../scripts/metabase/README.md). The repository is not yet connected for Railway auto-deploy; the owner asked for advice, and keeping reporting code with the loan project was recommended.
+
+## Remaining pages implemented on 22 September
+
+Inspection used recovery report `e599bb99-b9fe-417f-8708-a0d49220b15d`, preserving the original report. Several legacy blends/data sources in that copy were already blank or errored. The migration uses existing governed fields and clearly named measures, rather than claiming numerical parity with broken visuals.
+
+| Page / source page ID | Implemented information |
+| --- | --- |
+| 3 Borrowers / `gre6F` | 16 visuals: four KPIs, principal/30-day interest shares and rankings, return/coverage, lifetime interest, loan counts, daily contribution, value/stability bubbles, capital/profit scatter and score-component detail. Return uses 30D Return on Average Principal; coverage uses Return on Active Principal, as in the source. |
+| 4 Performance / `p_9cb4yu8p6d` | 14 visuals: four KPIs, daily/cumulative gross interest, issued principal/counts, capital yield, interest by loan type, weekly average loan size, 30-day active-loan/borrower trends and daily period detail. Yield divides interest by closing principal plus principal returned, with zero for a nonpositive denominator. |
+| 5 Risks / `p_4qw5e58q6d` | 11 visuals: balances, lifetime interest, top-three concentration, past-due charges, borrower concentration, status, active loan age counts/principal, risk bubbles excluding largest exposure, default losses and borrower risk detail. |
+| 6 Daily Collection / `p_ja4vkalv6d` | 20 visuals: eight headline counts/amounts, then borrower count, amount and worklist for each of Fully Paid, Partially Paid, Not Paid and Overdue. Grouping uses governed borrower status to avoid blended row multiplication. Posted receipts today may settle older charges and remain distinct from due/collected/remaining measures. |
+| 7 Borrower Insight / `p_b41wmvnx6d` | 11 visuals plus the history limitation: four borrower KPIs, current/proposed exposure and shares, monthly timing, loan history, credit-history inputs and risk detail. One selector passes an immutable Borrower ID to all relevant questions. Source timing remains Historical Late true = Late, otherwise On time. No credit decision or loan write is performed. |
+| 8 Forecast & Partners / `p_aidfjya16d` | 11 visuals: four forecast KPIs, realized/remaining comparison, loan-type expected interest, borrower daily/monthly interest shares, current partner shares, forecast detail and interest history. Loan expected-interest totals are not a reconciliation of the differently defined portfolio forecast. |
+
+Current borrower/risk/collection pages show current measures without the source's incidental Last Late Payment Date filter. Performance filters use payment, loan or snapshot date. Weekly averages group Monday-start weeks; cumulative interest includes earlier stored dates when the displayed date range is shortened. Forecast measures are current-month values. Cash retains its earlier source date behavior.
+
+Metabase models cannot accept SQL input variables, so the three scenario charts reference one **Borrower loan scenario** snippet and Borrowers model. No join/formula is duplicated in visual SQL. The proposed amount increases selected exposure and total portfolio equally; other borrowers stay unchanged. Blank selection gives no scenario, zero gives no proposed-share donut (source behavior), and negative amounts give no scenario. See [Metabase model guidance](https://www.metabase.com/learn/metabase-basics/querying-and-dashboards/models) and [shared snippets](https://www.metabase.com/docs/latest/questions/native-editor/snippets).
+
+**Unavailable source information:** continuous borrower outstanding-principal history has no borrower/date snapshot provider. Page 7 explains this; current balances and loan issue dates are not presented as that history. No new history table, view or collection job was introduced.
+
+The owner approved exactly [73 additional SELECT column grants](remaining-proposed-grants.sql), applied to `loan_manager_prod` for `metabase_borrower_reader` after verified backup reuse and fresh ACL capture. [Execution](remaining-grants-applied.json) and [restricted SELECT checks](remaining-grants-verified.json) are recorded separately from the earlier proposal. No DDL, data writes, blanket table grants or new identity were introduced.
+
+[Remaining checks](remaining-verification.json) cover independent source reconciliation, ten unique grains, 80 model-only questions, scenario boundaries, dashboard parameter mappings, first-two-page preservation and partner permissions. The earlier 31 parity cases pass after model expansion. [New dashboard inventory](remaining-dashboard-verification.json) and [question definitions](remaining-questions.json) provide sanitized recovery metadata. These checks establish this implementation, not exact parity with broken legacy source bindings.
+
+To reverse this batch, restore private `remaining-pages-before` dashboard/card definitions, archive new dependent questions/models, then revoke only the 73 added column privileges using the preserved prior ACL. The accepted POC and earlier grants stay intact. Current definitions are exported privately at completion. Owner acceptance and final migration closure remain pending.

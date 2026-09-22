@@ -14,5 +14,11 @@ SELECT s."Row ID" AS "Portfolio ID",(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangko
        'Loan account'::text AS "Account",i.all_time AS "Interest Paid",i.last_30d AS "Profit in Past 30 Days",
        (i.recent_7d-i.prior_7d)/NULLIF(i.prior_7d,0) AS "7-Day Profit Growth %",
        (SELECT "Borrower" FROM {{model:borrowers}} b WHERE b."Hidden" IS NOT TRUE
-        ORDER BY b."Outstanding Principal" DESC NULLS LAST,b."Borrower ID" LIMIT 1) AS "Top Borrower"
+        ORDER BY b."Outstanding Principal" DESC NULLS LAST,b."Borrower ID" LIMIT 1) AS "Top Borrower",
+       s."Top 3 Borrower Concentration", s."Borrowers Fully Paid Today", s."Borrowers Partially Paid Today",
+       s."Borrowers with Overdue Payment", s."Borrowers Not Paid Today", s."Amount Due Today",
+       s."Amount Collected Today", s."Amount Outstanding Today", s."Amount Collection Rate Today",
+       s."Projected Monthly Profit"-s."Realized Profit MTD" AS "Remaining Forecast Profit",
+       s."Realized Profit MTD"/NULLIF(s."Projected Monthly Profit",0) AS "Forecast Realization",
+       (SELECT count(*) FROM {{model:borrowers}} WHERE "Daily Collection Status" IS NOT NULL) AS "Borrowers Due Today"
 FROM public.olap_portfolio_summary s CROSS JOIN interest i

@@ -2,22 +2,29 @@
   "reservation_commit": "af677e4",
   "sql": "scripts/metabase/reporting-pages-1-2-grants.sql",
   "dashboard": {
-    "visuals": 26,
+    "visuals": 109,
     "collection": 5,
     "id": 3,
     "tabs": [
       4,
-      5
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
     ],
-    "questions": 22,
+    "questions": 105,
     "source": 2,
-    "heading_and_note_cards": 9
+    "heading_and_note_cards": 37
   },
   "checklist": "promotion-checklist.md",
   "remaining": [
-    "Owner review of pages 1–2",
-    "Remaining Data Studio pages",
-    "Full migration key revocation and final closure"
+    "Owner review of pages 3–8 and any refinements",
+    "Borrower daily balance history unavailable in existing source; no new schema authorized",
+    "Lisa personal Google sign-in remains unconfirmed",
+    "Migration-key revocation and final R016 acceptance/closure"
   ],
   "appsheet": {
     "olap": "unchanged",
@@ -30,7 +37,7 @@
     "after": 33,
     "new_migrations": []
   },
-  "status": "revised-pages-1-2-ready-for-owner-review",
+  "status": "all-eight-pages-implemented-for-owner-review",
   "release": "R016",
   "tests": "query-reconciliation.json",
   "final_tag": null,
@@ -42,17 +49,25 @@
   "models": {
     "collection": 8,
     "ids": [
-      69,
-      70,
-      71,
       72,
+      69,
       73,
-      74
+      71,
+      70,
+      74,
+      75,
+      76,
+      77,
+      162
     ],
     "definitions": "scripts/metabase/models",
     "metadata": "models.json",
-    "verification": "model-verification.json"
+    "verification": "remaining-verification.json",
+    "scenario_snippet": 1
   },
   "refinement_baseline_commit": "a0e2d394a251bb155e73f667c672785b7bf30e48",
-  "dictionary_verification": "dictionary-verification.json"
+  "dictionary_verification": "dictionary-verification.json",
+  "remaining_page_tests": "remaining-verification.json",
+  "additional_read_grants": "remaining-grants-applied.json",
+  "remaining_batch_baseline": "a3964b43afd076ef8bc6f2d2cd86524a08a62066"
 }

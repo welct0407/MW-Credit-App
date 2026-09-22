@@ -96,59 +96,260 @@
         "base_type": "type/Text",
         "semantic_type": "type/PK",
         "id": 72,
-        "fk_target_field_id": null,
-        "description": "Borrower ID. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+        "description": "Borrower ID. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
       },
       {
         "name": "Borrower",
         "base_type": "type/Text",
         "semantic_type": "type/Category",
         "id": 115,
-        "fk_target_field_id": null,
-        "description": "Borrower. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+        "description": "Borrower. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
       },
       {
         "name": "Created Date",
         "base_type": "type/Date",
-        "semantic_type": null,
+        "semantic_type": "type/CreationDate",
         "id": 74,
-        "fk_target_field_id": null,
-        "description": "Created Date. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+        "description": "Created Date. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
       },
       {
         "name": "Hidden",
         "base_type": "type/Boolean",
         "semantic_type": "type/Category",
         "id": 75,
-        "fk_target_field_id": null,
-        "description": "Hidden. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+        "description": "Hidden. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
       },
       {
         "name": "Outstanding Principal",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 76,
-        "fk_target_field_id": null,
-        "description": "Outstanding Principal. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+        "description": "Outstanding Principal. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
       },
       {
         "name": "Active Loans",
         "base_type": "type/BigInteger",
         "semantic_type": "type/Quantity",
         "id": 79,
-        "fk_target_field_id": null,
-        "description": "Active Loans. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+        "description": "Active Loans. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
       },
       {
         "name": "Overdue Amount",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 80,
-        "fk_target_field_id": null,
-        "description": "Overdue Amount. One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population."
+        "description": "Overdue Amount. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Has Active Loan",
+        "base_type": "type/Boolean",
+        "description": "Has Active Loan. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Total Interest Earned",
+        "base_type": "type/Decimal",
+        "description": "Total Interest Earned. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Total Number of Loans",
+        "base_type": "type/Integer",
+        "semantic_type": "type/Quantity",
+        "description": "Total Number of Loans. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Return on Active Principal",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "Return on Active Principal. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Profit Last 30 Days",
+        "base_type": "type/Decimal",
+        "description": "Profit Last 30 Days. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "30D Average Outstanding Principal",
+        "base_type": "type/Decimal",
+        "description": "30D Average Outstanding Principal. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "30D Return on Average Principal",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "30D Return on Average Principal. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Daily Collection Status",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Daily Collection Status. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Todays Amount Due",
+        "base_type": "type/Decimal",
+        "description": "Todays Amount Due. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Todays Amount Collected",
+        "base_type": "type/Decimal",
+        "description": "Todays Amount Collected. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Todays Amount Remaining",
+        "base_type": "type/Decimal",
+        "description": "Todays Amount Remaining. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Portfolio Exposure %",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "Portfolio Exposure %. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Oldest Active Loan Age",
+        "base_type": "type/Integer",
+        "description": "Oldest Active Loan Age. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Historical Charge Count",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Quantity",
+        "description": "Historical Charge Count. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Lifetime On Time Rate",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "Lifetime On Time Rate. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Recent 30D On Time Rate",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "Recent 30D On Time Rate. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Lifetime Late Payment Count",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Quantity",
+        "description": "Lifetime Late Payment Count. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Recent 30D Late Payment Count",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Quantity",
+        "description": "Recent 30D Late Payment Count. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Maximum Days Late",
+        "base_type": "type/Integer",
+        "description": "Maximum Days Late. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Last Late Payment Date",
+        "base_type": "type/Date",
+        "description": "Last Late Payment Date. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Largest Successful Loan",
+        "base_type": "type/Decimal",
+        "description": "Largest Successful Loan. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Average Successful Loan Size",
+        "base_type": "type/Decimal",
+        "description": "Average Successful Loan Size. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Default Count",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Quantity",
+        "description": "Default Count. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Lifetime Default Loss",
+        "base_type": "type/Decimal",
+        "description": "Lifetime Default Loss. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Portfolio Outstanding Principal",
+        "base_type": "type/Decimal",
+        "description": "Portfolio Outstanding Principal. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Projected Monthly Profit Contribution",
+        "base_type": "type/Decimal",
+        "description": "Projected Monthly Profit Contribution. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix Economic Contribution",
+        "base_type": "type/Decimal",
+        "description": "Matrix Economic Contribution. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix Recent Reliability Score",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Score",
+        "description": "Matrix Recent Reliability Score. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix Historical Reliability Score",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Score",
+        "description": "Matrix Historical Reliability Score. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix Delay Severity Score",
+        "base_type": "type/Integer",
+        "semantic_type": "type/Score",
+        "description": "Matrix Delay Severity Score. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix Current Condition Score",
+        "base_type": "type/Integer",
+        "semantic_type": "type/Score",
+        "description": "Matrix Current Condition Score. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix History Sufficient",
+        "base_type": "type/Boolean",
+        "description": "Matrix History Sufficient. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix Stability Score",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Score",
+        "description": "Matrix Stability Score. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix Quadrant",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Matrix Quadrant. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix Scaled Economic Contribution",
+        "base_type": "type/Decimal",
+        "description": "Matrix Scaled Economic Contribution. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Matrix Label",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Matrix Label. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Principal Rank",
+        "base_type": "type/BigInteger",
+        "description": "Principal Rank. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
+      },
+      {
+        "name": "Has Closed Loan",
+        "base_type": "type/Boolean",
+        "description": "Has Closed Loan. One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers."
       }
     ],
-    "grain": "One row per Borrower ID, including hidden borrowers. Reporting consumers choose the population.",
+    "grain": "One row per immutable Borrower ID. Existing governed borrower metrics, matrix scores and collection state; includes hidden borrowers.",
     "id": 69,
     "name": "Borrowers",
     "rows": 30
@@ -161,147 +362,181 @@
         "base_type": "type/Text",
         "semantic_type": "type/PK",
         "id": 99,
-        "fk_target_field_id": null,
-        "description": "Portfolio ID. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Portfolio ID. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "As Of Date",
         "base_type": "type/Date",
-        "semantic_type": null,
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "As Of Date. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "As Of Date. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Peak Cash Pool Date 30D",
         "base_type": "type/Date",
-        "semantic_type": null,
         "id": 104,
-        "fk_target_field_id": null,
-        "description": "Peak Cash Pool Date 30D. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Peak Cash Pool Date 30D. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Total Cash Pool",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 106,
-        "fk_target_field_id": null,
-        "description": "Total Cash Pool. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Total Cash Pool. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Outstanding Principal",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 100,
-        "fk_target_field_id": null,
-        "description": "Outstanding Principal. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Outstanding Principal. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Available Cash",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Available Cash. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Available Cash. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Cash Pool Utilization",
         "base_type": "type/Decimal",
         "semantic_type": "type/Percentage",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Cash Pool Utilization. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Cash Pool Utilization. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Expected Daily Interest",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 105,
-        "fk_target_field_id": null,
-        "description": "Expected Daily Interest. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Expected Daily Interest. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Realized Profit MTD",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 102,
-        "fk_target_field_id": null,
-        "description": "Realized Profit MTD. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Realized Profit MTD. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Projected Monthly Profit",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 103,
-        "fk_target_field_id": null,
-        "description": "Projected Monthly Profit. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Projected Monthly Profit. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Active Loans",
         "base_type": "type/BigInteger",
-        "semantic_type": null,
         "id": 101,
-        "fk_target_field_id": null,
-        "description": "Active Loans. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Active Loans. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Loan Account Balance",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 108,
-        "fk_target_field_id": null,
-        "description": "Loan Account Balance. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Loan Account Balance. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Unsettled Profit",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 107,
-        "fk_target_field_id": null,
-        "description": "Unsettled Profit. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Unsettled Profit. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Account",
         "base_type": "type/Text",
         "semantic_type": "type/Category",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Account. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Account. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Interest Paid",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Interest Paid. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Interest Paid. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Profit in Past 30 Days",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Profit in Past 30 Days. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Profit in Past 30 Days. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "7-Day Profit Growth %",
         "base_type": "type/Decimal",
         "semantic_type": "type/Percentage",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "7-Day Profit Growth %. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "7-Day Profit Growth %. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       },
       {
         "name": "Top Borrower",
         "base_type": "type/Text",
         "semantic_type": "type/Category",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Top Borrower. One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance."
+        "description": "Top Borrower. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Top 3 Borrower Concentration",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "Top 3 Borrower Concentration. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Borrowers Fully Paid Today",
+        "base_type": "type/BigInteger",
+        "description": "Borrowers Fully Paid Today. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Borrowers Partially Paid Today",
+        "base_type": "type/BigInteger",
+        "description": "Borrowers Partially Paid Today. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Borrowers with Overdue Payment",
+        "base_type": "type/BigInteger",
+        "description": "Borrowers with Overdue Payment. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Borrowers Not Paid Today",
+        "base_type": "type/BigInteger",
+        "description": "Borrowers Not Paid Today. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Amount Due Today",
+        "base_type": "type/Decimal",
+        "description": "Amount Due Today. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Amount Collected Today",
+        "base_type": "type/Decimal",
+        "description": "Amount Collected Today. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Amount Outstanding Today",
+        "base_type": "type/Decimal",
+        "description": "Amount Outstanding Today. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Amount Collection Rate Today",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "Amount Collection Rate Today. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Remaining Forecast Profit",
+        "base_type": "type/Decimal",
+        "description": "Remaining Forecast Profit. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Forecast Realization",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "Forecast Realization. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
+      },
+      {
+        "name": "Borrowers Due Today",
+        "base_type": "type/BigInteger",
+        "description": "Borrowers Due Today. One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances."
       }
     ],
-    "grain": "One current portfolio row. Central source for available cash, utilization, gross-interest KPIs and top borrower. Peak Cash Pool Date 30D retains the source Cash-filter behavior; it is not an as-of balance.",
+    "grain": "One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all balances are current, not historical as-of balances.",
     "id": 73,
     "name": "Portfolio Overview",
     "rows": 1
@@ -427,8 +662,7 @@
         "base_type": "type/Text",
         "semantic_type": "type/PK",
         "id": 94,
-        "fk_target_field_id": null,
-        "description": "Loan ID. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+        "description": "Loan ID. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
       },
       {
         "name": "Borrower ID",
@@ -436,58 +670,114 @@
         "semantic_type": "type/FK",
         "id": 96,
         "fk_target_field_id": 72,
-        "description": "Borrower ID. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+        "description": "Borrower ID. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
       },
       {
         "name": "Borrower",
         "base_type": "type/Text",
         "semantic_type": "type/Category",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Borrower. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+        "description": "Borrower. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
       },
       {
         "name": "Hidden",
         "base_type": "type/Boolean",
         "semantic_type": "type/Category",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Hidden. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+        "description": "Hidden. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
       },
       {
         "name": "Loan Date",
         "base_type": "type/Date",
-        "semantic_type": null,
         "id": 95,
-        "fk_target_field_id": null,
-        "description": "Loan Date. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+        "description": "Loan Date. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
       },
       {
         "name": "Loan Type",
         "base_type": "type/Text",
         "semantic_type": "type/Category",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Loan Type. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+        "description": "Loan Type. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
       },
       {
         "name": "Loan Type Thai",
         "base_type": "type/Text",
         "semantic_type": "type/Category",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Loan Type Thai. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+        "description": "Loan Type Thai. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
       },
       {
         "name": "Outstanding Principal",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 98,
-        "fk_target_field_id": null,
-        "description": "Outstanding Principal. One row per Loan ID. The borrower relationship and readable loan types are defined once here."
+        "description": "Outstanding Principal. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Principal Amount",
+        "base_type": "type/Decimal",
+        "description": "Principal Amount. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Close Date",
+        "base_type": "type/Date",
+        "description": "Close Date. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Due Date",
+        "base_type": "type/Date",
+        "description": "Due Date. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Loan Status",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Loan Status. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Current Daily Interest",
+        "base_type": "type/Decimal",
+        "description": "Current Daily Interest. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Expected Interest This Month",
+        "base_type": "type/Decimal",
+        "description": "Expected Interest This Month. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Total Interest Received",
+        "base_type": "type/Decimal",
+        "description": "Total Interest Received. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Total Principal Received",
+        "base_type": "type/Decimal",
+        "description": "Total Principal Received. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Loan Age Days",
+        "base_type": "type/Integer",
+        "description": "Loan Age Days. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Loan Age Bucket",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Loan Age Bucket. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Defaulted Flag",
+        "base_type": "type/Boolean",
+        "description": "Defaulted Flag. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Default Loss Amount",
+        "base_type": "type/Decimal",
+        "description": "Default Loss Amount. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
+      },
+      {
+        "name": "Loan Week",
+        "base_type": "type/Date",
+        "description": "Loan Week. One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized."
       }
     ],
-    "grain": "One row per Loan ID. The borrower relationship and readable loan types are defined once here.",
+    "grain": "One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast inputs are centralized.",
     "id": 70,
     "name": "Loan Book",
     "rows": 77
@@ -498,103 +788,363 @@
       {
         "name": "Snapshot ID",
         "base_type": "type/Text",
-        "semantic_type": "type/PK",
+        "semantic_type": "type/Category",
         "id": 81,
-        "fk_target_field_id": null,
-        "description": "Snapshot ID. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Snapshot ID. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Date",
         "base_type": "type/Date",
-        "semantic_type": null,
+        "semantic_type": "type/PK",
         "id": 82,
-        "fk_target_field_id": null,
-        "description": "Date. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Date. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Generated At",
         "base_type": "type/DateTime",
-        "semantic_type": null,
         "id": 83,
-        "fk_target_field_id": null,
-        "description": "Generated At. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Generated At. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Model Version",
         "base_type": "type/Integer",
-        "semantic_type": null,
         "id": 84,
-        "fk_target_field_id": null,
-        "description": "Model Version. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Model Version. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Outstanding Principal",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 88,
-        "fk_target_field_id": null,
-        "description": "Outstanding Principal. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Outstanding Principal. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Profit",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 87,
-        "fk_target_field_id": null,
-        "description": "Profit. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Profit. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Overdue Charges",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 114,
-        "fk_target_field_id": null,
-        "description": "Overdue Charges. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Overdue Charges. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Principal Issued",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 85,
-        "fk_target_field_id": null,
-        "description": "Principal Issued. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Principal Issued. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Principal Returned",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
         "id": 86,
-        "fk_target_field_id": null,
-        "description": "Principal Returned. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Principal Returned. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Issued Chart Amount",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Issued Chart Amount. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Issued Chart Amount. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Returned Chart Amount",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Returned Chart Amount. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Returned Chart Amount. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
         "name": "Include Overdue Trend",
         "base_type": "type/Boolean",
         "semantic_type": "type/Category",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Include Overdue Trend. One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received."
+        "description": "Include Overdue Trend. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
+      },
+      {
+        "name": "Loans Issued",
+        "base_type": "type/Integer",
+        "description": "Loans Issued. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
+      },
+      {
+        "name": "Active Loans EOD",
+        "base_type": "type/Integer",
+        "description": "Active Loans EOD. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
+      },
+      {
+        "name": "Active Borrowers EOD",
+        "base_type": "type/Integer",
+        "description": "Active Borrowers EOD. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
+      },
+      {
+        "name": "Cumulative Profit",
+        "base_type": "type/Decimal",
+        "description": "Cumulative Profit. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
+      },
+      {
+        "name": "Daily Capital Yield",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "Daily Capital Yield. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
+      },
+      {
+        "name": "In Last 30 Days",
+        "base_type": "type/Boolean",
+        "description": "In Last 30 Days. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       }
     ],
-    "grain": "One stored snapshot per Date. Central signed principal-flow amounts and overdue exclusion flag. Daily profit means gross interest received.",
+    "grain": "One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows.",
     "id": 74,
     "name": "Daily Performance",
     "rows": 49
+  },
+  "charges": {
+    "id": 75,
+    "name": "Charge History",
+    "collection_id": 8,
+    "grain": "One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time.",
+    "columns": [
+      {
+        "name": "Charge ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "description": "Charge ID. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Loan ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/FK",
+        "fk_target_field_id": 94,
+        "description": "Loan ID. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Borrower ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/FK",
+        "fk_target_field_id": 72,
+        "description": "Borrower ID. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Borrower",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Borrower. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Hidden",
+        "base_type": "type/Boolean",
+        "semantic_type": null,
+        "description": "Hidden. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Loan Type",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Loan Type. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Charge Date",
+        "base_type": "type/Date",
+        "semantic_type": null,
+        "description": "Charge Date. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Charge Month",
+        "base_type": "type/Date",
+        "semantic_type": null,
+        "description": "Charge Month. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Amount Due",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "description": "Amount Due. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Amount Remaining",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "description": "Amount Remaining. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Total Paid",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "description": "Total Paid. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Payment Status",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Payment Status. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Payment Date",
+        "base_type": "type/Date",
+        "semantic_type": null,
+        "description": "Payment Date. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Days Late",
+        "base_type": "type/Integer",
+        "semantic_type": null,
+        "description": "Days Late. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Historical On Time",
+        "base_type": "type/Boolean",
+        "semantic_type": null,
+        "description": "Historical On Time. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Historical Late",
+        "base_type": "type/Boolean",
+        "semantic_type": null,
+        "description": "Historical Late. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Payment Timing",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Payment Timing. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      },
+      {
+        "name": "Past Due Amount",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "description": "Past Due Amount. One row per immutable Charge ID, joined once to Loan Book and Borrowers. Payment Timing preserves source: Historical Late true = Late, otherwise On time."
+      }
+    ],
+    "rows": 1003
+  },
+  "partners": {
+    "id": 76,
+    "name": "Partner Outlook",
+    "collection_id": 8,
+    "grain": "One row per partner with role A or B. Current pool ratio from the existing Loan Form Context view; this is a current allocation basis, not historical settlement.",
+    "columns": [
+      {
+        "name": "Partner ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "description": "Partner ID. One row per partner with role A or B. Current pool ratio from the existing Loan Form Context view; this is a current allocation basis, not historical settlement."
+      },
+      {
+        "name": "Partner",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Partner. One row per partner with role A or B. Current pool ratio from the existing Loan Form Context view; this is a current allocation basis, not historical settlement."
+      },
+      {
+        "name": "Partner Role",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Partner Role. One row per partner with role A or B. Current pool ratio from the existing Loan Form Context view; this is a current allocation basis, not historical settlement."
+      },
+      {
+        "name": "Current Pool Share",
+        "base_type": "type/Decimal",
+        "semantic_type": "type/Percentage",
+        "description": "Current Pool Share. One row per partner with role A or B. Current pool ratio from the existing Loan Form Context view; this is a current allocation basis, not historical settlement."
+      }
+    ],
+    "rows": 2
+  },
+  "collections": {
+    "id": 77,
+    "name": "Collection Worklist",
+    "collection_id": 8,
+    "grain": "One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate.",
+    "columns": [
+      {
+        "name": "Borrower ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "description": "Borrower ID. One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate."
+      },
+      {
+        "name": "Borrower",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Borrower. One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate."
+      },
+      {
+        "name": "Hidden",
+        "base_type": "type/Boolean",
+        "semantic_type": null,
+        "description": "Hidden. One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate."
+      },
+      {
+        "name": "Daily Collection Status",
+        "base_type": "type/Text",
+        "semantic_type": "type/Category",
+        "description": "Daily Collection Status. One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate."
+      },
+      {
+        "name": "Amount Due",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "description": "Amount Due. One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate."
+      },
+      {
+        "name": "Amount Collected",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "description": "Amount Collected. One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate."
+      },
+      {
+        "name": "Amount Remaining",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "description": "Amount Remaining. One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate."
+      },
+      {
+        "name": "Overdue Amount",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "description": "Overdue Amount. One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate."
+      },
+      {
+        "name": "Receipts Today",
+        "base_type": "type/Decimal",
+        "semantic_type": null,
+        "description": "Receipts Today. One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed due, collected, remaining and overdue measures remain separate."
+      }
+    ],
+    "rows": 17
+  },
+  "collection-summary": {
+    "id": 162,
+    "name": "Collection Status Summary",
+    "collection_id": 8,
+    "grain": "One row per governed collection status, including zero counts and amounts for empty statuses.",
+    "columns": [
+      {
+        "name": "Collection Status",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "description": "Collection Status. One row per governed collection status, including zero counts and amounts for empty statuses."
+      },
+      {
+        "name": "Borrower Count",
+        "base_type": "type/BigInteger",
+        "semantic_type": "type/Quantity",
+        "description": "Borrower Count. One row per governed collection status, including zero counts and amounts for empty statuses."
+      },
+      {
+        "name": "Receipts Today",
+        "base_type": "type/Decimal",
+        "description": "Receipts Today. One row per governed collection status, including zero counts and amounts for empty statuses."
+      },
+      {
+        "name": "Amount Remaining",
+        "base_type": "type/Decimal",
+        "description": "Amount Remaining. One row per governed collection status, including zero counts and amounts for empty statuses."
+      }
+    ],
+    "rows": 4
   }
 }

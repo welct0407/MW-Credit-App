@@ -8,7 +8,7 @@ for(const q of questions){
  cards[q.key]={id:card.id,name:card.name,rows:result.row_count,date_field:q.date_field,model:q.model};
  console.log(`Verified ${q.key}: ${result.row_count} rows, ${result.data.cols.length} columns`);
 }
-const dashboard=await api('GET','dashboard/3'), placements=[];
+const dashboard=await api('GET','dashboard/3'), placements=dashboard.dashcards.filter(c=>![4,5].includes(c.dashboard_tab_id));
 const tabs=dashboard.tabs, overview=tabs.find(t=>t.name==='1 · Overview').id,cash=tabs.find(t=>t.name==='2 · Cash Analysis').id;
 let nextId=-1;
 function add(key,tab,col,row,w,h,title){
@@ -38,6 +38,6 @@ add('principal-flows',cash,0,18,24,7,'Principal issued & returned · THB');
 note(cash,25,'**Date range:** balances use the peak cash-pool date; loan types use loan date; trends use snapshot date. This is not an as-of balance. Returned principal is negative.');
 await api('PUT','dashboard/3/cards',{cards:placements,tabs});
 const saved=await api('GET','dashboard/3');
-if(saved.dashcards.filter(c=>c.card_id).length!==26||saved.tabs.length!==2)throw Error('Visual coverage mismatch');
+if(saved.dashcards.filter(c=>c.card_id&&[4,5].includes(c.dashboard_tab_id)).length!==26||saved.tabs.length<2)throw Error('Visual coverage mismatch');
 write('dashboard-verification.json',{dashboard_id:3,url:'https://reports.mw-credit.com/dashboard/3',source_id:2,collection_id:5,tabs:saved.tabs,cards,visual_count:26,heading_note_count:saved.dashcards.filter(c=>!c.card_id).length,verified_at:new Date().toISOString()});
 console.log('Saved redesigned Overview and Cash pages, retaining all 26 visual placements.');
