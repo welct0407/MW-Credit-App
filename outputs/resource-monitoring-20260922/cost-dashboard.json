@@ -1,0 +1,1240 @@
+{
+  "links": [
+    {
+      "targetBlank": false,
+      "title": "Performance",
+      "keepTime": false,
+      "url": "/d/mw-resource-performance",
+      "type": "link"
+    },
+    {
+      "targetBlank": false,
+      "title": "Cost",
+      "keepTime": false,
+      "url": "/d/mw-resource-cost",
+      "type": "link"
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "uid": "mw-resource-cost",
+  "schemaVersion": 41,
+  "refresh": "1h",
+  "timezone": "Asia/Bangkok",
+  "time": {
+    "from": "now/M",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "h": 3,
+        "w": 24
+      },
+      "id": 1,
+      "title": "Cloud spending",
+      "options": {
+        "mode": "markdown",
+        "content": "**Azure USD · GCP SGD · Railway USD** | Azure/GCP: selected dates. Railway: current billing cycle. Costs are delayed and provisional. Refresh hourly; frequent manual refreshes can reach provider limits."
+      },
+      "type": "text"
+    },
+    {
+      "panels": [],
+      "id": 10,
+      "collapsed": false,
+      "title": "Azure · VM, disks, network, monitoring and backup",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "h": 1,
+        "w": 24
+      },
+      "type": "row"
+    },
+    {
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Date": 0,
+              "Currency": 3,
+              "Resource": 1,
+              "Cost": 2
+            }
+          }
+        }
+      ],
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 101,
+      "targets": [
+        {
+          "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") else .properties.rows[] | {Date:((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\"),Cost:.[0],Resource:(.[2]|split(\"/\")|last),Currency:.[3]} end",
+          "source": "url",
+          "parser": "jq-backend",
+          "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-mwcredit/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
+          "columns": [
+            {
+              "text": "Date",
+              "selector": "Date",
+              "type": "timestamp"
+            },
+            {
+              "text": "Cost",
+              "selector": "Cost",
+              "type": "number"
+            },
+            {
+              "text": "Resource",
+              "selector": "Resource",
+              "type": "string"
+            },
+            {
+              "text": "Currency",
+              "selector": "Currency",
+              "type": "string"
+            }
+          ],
+          "format": "table",
+          "refId": "A",
+          "url_options": {
+            "data": "{\"timePeriod\":{\"from\":\"${__timeFrom:date:iso}\",\"to\":\"${__timeTo:date:iso}\"},\"dataset\":{\"granularity\":\"Daily\",\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"grouping\":[{\"name\":\"ResourceId\",\"type\":\"Dimension\"}]},\"timeframe\":\"Custom\",\"type\":\"ActualCost\"}",
+            "method": "POST",
+            "body_type": "raw",
+            "headers": [
+              {
+                "value": "MWCreditGrafanaMonitoring",
+                "key": "ClientType"
+              }
+            ],
+            "body_content_type": "application/json"
+          },
+          "hide": false,
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-azure-monitoring"
+          },
+          "type": "json"
+        },
+        {
+          "root_selector": "if .properties.nextLink then error(\"Cost response truncated; shorten time range\") else .properties.rows[] | {Date:((.[1]|tostring)|.[0:4]+\"-\"+.[4:6]+\"-\"+.[6:8]+\"T00:00:00Z\"),Cost:.[0],Resource:(.[2]|split(\"/\")|last),Currency:.[3]} end",
+          "source": "url",
+          "parser": "jq-backend",
+          "url": "https://management.azure.com/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/rg-backup/providers/Microsoft.CostManagement/query?api-version=2025-03-01",
+          "columns": [
+            {
+              "text": "Date",
+              "selector": "Date",
+              "type": "timestamp"
+            },
+            {
+              "text": "Cost",
+              "selector": "Cost",
+              "type": "number"
+            },
+            {
+              "text": "Resource",
+              "selector": "Resource",
+              "type": "string"
+            },
+            {
+              "text": "Currency",
+              "selector": "Currency",
+              "type": "string"
+            }
+          ],
+          "format": "table",
+          "refId": "B",
+          "url_options": {
+            "data": "{\"timePeriod\":{\"from\":\"${__timeFrom:date:iso}\",\"to\":\"${__timeTo:date:iso}\"},\"dataset\":{\"granularity\":\"Daily\",\"aggregation\":{\"totalCost\":{\"function\":\"Sum\",\"name\":\"Cost\"}},\"grouping\":[{\"name\":\"ResourceId\",\"type\":\"Dimension\"}]},\"timeframe\":\"Custom\",\"type\":\"ActualCost\"}",
+            "method": "POST",
+            "body_type": "raw",
+            "headers": [
+              {
+                "value": "MWCreditGrafanaMonitoring",
+                "key": "ClientType"
+              }
+            ],
+            "body_content_type": "application/json"
+          },
+          "hide": false,
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-azure-monitoring"
+          },
+          "type": "json"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "h": 9,
+        "w": 24
+      },
+      "description": "Actual cost for rg-mwcredit and rg-backup. Includes retained disks, VM-related services and backup. Source cost data is not a final invoice.",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "mw-azure-monitoring"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencyUSD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byType",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsIso"
+              }
+            ]
+          }
+        ]
+      },
+      "type": "table",
+      "title": "Azure · daily resource detail (USD)"
+    },
+    {
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Cost": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum"
+                ]
+              },
+              "Currency": {
+                "operation": "groupby",
+                "aggregations": []
+              }
+            }
+          }
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 102,
+      "targets": [
+        {
+          "refId": "A",
+          "withTransforms": false,
+          "panelId": 101,
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "h": 4,
+        "w": 8
+      },
+      "description": "",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "fieldConfig": {
+        "overrides": [],
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencyUSD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "type": "stat",
+      "title": "Azure · selected-range cost"
+    },
+    {
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Cost": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum"
+                ]
+              },
+              "Date": {
+                "operation": "groupby",
+                "aggregations": []
+              }
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Date"
+              }
+            ]
+          }
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 103,
+      "targets": [
+        {
+          "refId": "A",
+          "withTransforms": false,
+          "panelId": 101,
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "h": 11,
+        "w": 16
+      },
+      "description": "",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "fieldConfig": {
+        "overrides": [],
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencyUSD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "type": "timeseries",
+      "title": "Azure · daily cost"
+    },
+    {
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Cost": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum"
+                ]
+              },
+              "Resource": {
+                "operation": "groupby",
+                "aggregations": []
+              }
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "desc": true,
+                "field": "Cost (sum)"
+              }
+            ]
+          }
+        }
+      ],
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 104,
+      "targets": [
+        {
+          "refId": "A",
+          "withTransforms": false,
+          "panelId": 101,
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "h": 7,
+        "w": 8
+      },
+      "description": "",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencyUSD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byType",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsIso"
+              }
+            ]
+          }
+        ]
+      },
+      "type": "table",
+      "title": "Azure · cost by resource (USD)"
+    },
+    {
+      "panels": [],
+      "id": 20,
+      "collapsed": false,
+      "title": "GCP · detailed billing export · credits shown separately",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "h": 1,
+        "w": 24
+      },
+      "type": "row"
+    },
+    {
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Gross": 2,
+              "Credits": 3,
+              "Date": 1,
+              "Resource": 6,
+              "Currency": 5,
+              "Service": 0,
+              "Net": 4
+            }
+          }
+        }
+      ],
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 201,
+      "targets": [
+        {
+          "root_selector": "if (.jobComplete != true) then error(\"Billing query is still running; refresh later\") elif .pageToken then error(\"Billing result truncated; shorten time range\") else .rows[]? | {Date:(if .f[0].v == null then null else ((.f[0].v|tonumber)*1000) end),Gross:(.f[1].v|if .==null then null else tonumber end),Credits:(.f[2].v|if .==null then null else tonumber end),Net:(.f[3].v|if .==null then null else tonumber end),Service:.f[4].v,Resource:.f[5].v,Currency:.f[6].v} end",
+          "source": "url",
+          "parser": "jq-backend",
+          "url": "https://bigquery.googleapis.com/bigquery/v2/projects/clever-oasis-508610-n7/queries",
+          "columns": [
+            {
+              "text": "Date",
+              "selector": "Date",
+              "type": "timestamp_epoch"
+            },
+            {
+              "text": "Gross",
+              "selector": "Gross",
+              "type": "number"
+            },
+            {
+              "text": "Credits",
+              "selector": "Credits",
+              "type": "number"
+            },
+            {
+              "text": "Net",
+              "selector": "Net",
+              "type": "number"
+            },
+            {
+              "text": "Service",
+              "selector": "Service",
+              "type": "string"
+            },
+            {
+              "text": "Resource",
+              "selector": "Resource",
+              "type": "string"
+            },
+            {
+              "text": "Currency",
+              "selector": "Currency",
+              "type": "string"
+            }
+          ],
+          "format": "table",
+          "refId": "A",
+          "url_options": {
+            "data": "{\"timeoutMs\":20000,\"query\":\"DECLARE export_table STRING;\\nSET export_table=(SELECT table_name FROM `clever-oasis-508610-n7.mw_cloud_billing.INFORMATION_SCHEMA.TABLES` WHERE STARTS_WITH(table_name,'gcp_billing_export_resource_v1_') ORDER BY table_name LIMIT 1);\\nIF export_table IS NULL THEN\\n SELECT CAST(NULL AS TIMESTAMP) AS Date, CAST(NULL AS FLOAT64) AS Gross, CAST(NULL AS FLOAT64) AS Credits, CAST(NULL AS FLOAT64) AS Net, 'Awaiting first billing export' AS Service, '' AS Resource, 'SGD' AS Currency;\\nELSE\\n EXECUTE IMMEDIATE FORMAT('''SELECT TIMESTAMP(DATE(usage_start_time,'Asia/Bangkok'),'Asia/Bangkok') AS Date, SUM(cost) AS Gross, SUM(IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Credits, SUM(cost+IFNULL((SELECT SUM(c.amount) FROM UNNEST(credits) c),0)) AS Net, service.description AS Service, COALESCE(NULLIF(resource.name,''),'Unallocated / service-level') AS Resource, currency AS Currency FROM `clever-oasis-508610-n7.mw_cloud_billing.%s` WHERE project.id='clever-oasis-508610-n7' AND usage_start_time >= TIMESTAMP('${__timeFrom:date:iso}') AND usage_start_time < TIMESTAMP('${__timeTo:date:iso}') GROUP BY Date, Service, Resource, Currency ORDER BY Date''',export_table);\\nEND IF;\",\"useLegacySql\":false,\"maximumBytesBilled\":\"100000000\",\"maxResults\":10000,\"useQueryCache\":true,\"location\":\"US\"}",
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json"
+          },
+          "hide": false,
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "type": "json"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "h": 9,
+        "w": 24
+      },
+      "description": "Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Bangkok. Restricted to the AppSheet project; query capped at 100 MB billed.",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "mw-gcp-monitoring"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencySGD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byType",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsIso"
+              }
+            ]
+          }
+        ]
+      },
+      "type": "table",
+      "title": "GCP · daily resource detail"
+    },
+    {
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                },
+                "fieldName": "Gross"
+              }
+            ],
+            "match": "all",
+            "type": "include"
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Currency": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Gross": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 202,
+      "targets": [
+        {
+          "refId": "A",
+          "withTransforms": false,
+          "panelId": 201,
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "h": 4,
+        "w": 8
+      },
+      "description": "",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "fieldConfig": {
+        "overrides": [],
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencySGD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "type": "stat",
+      "title": "GCP · before credits (SGD)"
+    },
+    {
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                },
+                "fieldName": "Credits"
+              }
+            ],
+            "match": "all",
+            "type": "include"
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Currency": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Credits": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 203,
+      "targets": [
+        {
+          "refId": "A",
+          "withTransforms": false,
+          "panelId": 201,
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 25,
+        "h": 4,
+        "w": 8
+      },
+      "description": "",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "fieldConfig": {
+        "overrides": [],
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencySGD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "type": "stat",
+      "title": "GCP · credits (SGD)"
+    },
+    {
+      "transformations": [
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                },
+                "fieldName": "Net"
+              }
+            ],
+            "match": "all",
+            "type": "include"
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "Currency": {
+                "operation": "groupby",
+                "aggregations": []
+              },
+              "Net": {
+                "operation": "aggregate",
+                "aggregations": [
+                  "sum"
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 204,
+      "targets": [
+        {
+          "refId": "A",
+          "withTransforms": false,
+          "panelId": 201,
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 25,
+        "h": 4,
+        "w": 8
+      },
+      "description": "",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "fieldConfig": {
+        "overrides": [],
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencySGD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "type": "stat",
+      "title": "GCP · net cost (SGD)"
+    },
+    {
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "h": 3,
+        "w": 24
+      },
+      "id": 205,
+      "title": "GCP export status",
+      "options": {
+        "mode": "markdown",
+        "content": "Export enabled **22 September 2026**. Before the first delivery, totals show **No data**, not zero. Once Google delivers records, this page loads them automatically. **Net = gross + credits.**"
+      },
+      "type": "text"
+    },
+    {
+      "panels": [],
+      "id": 30,
+      "collapsed": false,
+      "title": "Railway · workspace usage · current billing cycle",
+      "gridPos": {
+        "x": 0,
+        "y": 41,
+        "h": 1,
+        "w": 24
+      },
+      "type": "row"
+    },
+    {
+      "options": {
+        "footer": {
+          "show": false
+        },
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "id": 301,
+      "targets": [
+        {
+          "root_selector": "if .errors then error(.errors|tostring) else .data.workspace | {Workspace:.name,Plan:.plan,UsageUSD:.customer.currentUsage,BillingStart:.customer.billingPeriod.start,BillingEnd:.customer.billingPeriod.end,Currency:\"USD\"} end",
+          "source": "url",
+          "parser": "jq-backend",
+          "url": "https://backboard.railway.com/graphql/v2",
+          "columns": [
+            {
+              "text": "Workspace",
+              "selector": "Workspace",
+              "type": "string"
+            },
+            {
+              "text": "Plan",
+              "selector": "Plan",
+              "type": "string"
+            },
+            {
+              "text": "UsageUSD",
+              "selector": "UsageUSD",
+              "type": "number"
+            },
+            {
+              "text": "BillingStart",
+              "selector": "BillingStart",
+              "type": "timestamp"
+            },
+            {
+              "text": "BillingEnd",
+              "selector": "BillingEnd",
+              "type": "timestamp"
+            },
+            {
+              "text": "Currency",
+              "selector": "Currency",
+              "type": "string"
+            }
+          ],
+          "format": "table",
+          "refId": "A",
+          "url_options": {
+            "data": "{\"query\":\"{ workspace(workspaceId:\\\"39dfde08-39a7-4ebf-a9ad-a7701d65fc55\\\") {name plan customer {currentUsage billingPeriod{start end}}} }\"}",
+            "method": "POST",
+            "body_type": "raw",
+            "body_content_type": "application/json"
+          },
+          "hide": false,
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-railway-monitoring"
+          },
+          "type": "json"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 42,
+        "h": 7,
+        "w": 16
+      },
+      "description": "",
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "mw-railway-monitoring"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencyUSD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byType",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsIso"
+              }
+            ]
+          }
+        ]
+      },
+      "type": "table",
+      "title": "Railway · billing period and accrued usage"
+    },
+    {
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "UsageUSD"
+              ]
+            }
+          }
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "legend": {
+          "displayMode": "table",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "id": 302,
+      "targets": [
+        {
+          "refId": "A",
+          "withTransforms": false,
+          "panelId": 301,
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          }
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 42,
+        "h": 4,
+        "w": 8
+      },
+      "description": "",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "fieldConfig": {
+        "overrides": [],
+        "defaults": {
+          "noValue": "No data",
+          "unit": "currencyUSD",
+          "custom": {
+            "drawStyle": "line",
+            "showPoints": "never",
+            "spanNulls": false,
+            "lineInterpolation": "smooth",
+            "axisBorderShow": false,
+            "fillOpacity": 12,
+            "lineWidth": 2
+          },
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "type": "stat",
+      "title": "Railway · accrued resource usage"
+    },
+    {
+      "gridPos": {
+        "x": 0,
+        "y": 49,
+        "h": 3,
+        "w": 24
+      },
+      "id": 303,
+      "title": "How to read Railway cost",
+      "options": {
+        "mode": "markdown",
+        "content": "Accrued resource usage is reported by Railway in **USD for its current billing cycle**, independently of the date picker above. It is not the final bill: plan fees, included usage, credits and adjustments are handled on the provider invoice. [Open Railway usage](https://railway.com/workspace/usage)."
+      },
+      "type": "text"
+    }
+  ],
+  "version": 0,
+  "tags": [
+    "mw-credit",
+    "resource-monitoring"
+  ],
+  "editable": true,
+  "title": "MW Resources · Cost"
+}
