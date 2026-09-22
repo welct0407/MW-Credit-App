@@ -9,7 +9,7 @@ Friendly hostname: **monitor.mw-credit.com**. Cloudflare DNS-only CNAME points t
 
 Both pages are in **MW Resource Monitoring**, link to each other and display times in Asia/Singapore. Provider retention applies: these dashboards query provider APIs directly and do not copy time series into Grafana Cloud metrics storage. Panels load as they enter the viewport. No notification channels or new alerts were created.
 
-The performance overview has four CPU cards followed by matching Azure VM, GCP VM, Cloud SQL and Metabase memory charts. Percentage/count/throughput labels use whole numbers; fractional core/GB charts retain useful precision. Currency totals and tables retain cents; the daily cost chart uses whole-dollar labels.
+The performance overview has four CPU cards followed by matching Azure VM, GCP VM, Cloud SQL and Metabase memory charts. Both Cloud SQL memory panels use `cloudsql.googleapis.com/database/memory/components`, with separate Usage (displayed as Used), Cache and Free series. Live component labels are case-sensitive `Usage`, `Cache`, `Free`; returned values are already 0–100 percentages. The previous utilization metric has been removed from these panels; its 100% reading did not establish memory pressure. Percentage/count/throughput labels use whole numbers; fractional core/GB charts retain useful precision. Currency totals and tables retain cents; the daily cost chart uses whole-dollar labels.
 
 ## Verified limits (22 September 2026)
 

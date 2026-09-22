@@ -1,0 +1,29 @@
+{
+  "metric": "cloudsql.googleapis.com/database/memory/components",
+  "scale": "percent (0-100); no multiplication",
+  "checkedAt": "2026-09-22T13:03:50.7302203Z",
+  "panelIds": [
+    8,
+    32
+  ],
+  "queries": [
+    {
+      "points": 6,
+      "label": "Used",
+      "component": "Usage",
+      "latestPercent": 21.636500871513945
+    },
+    {
+      "points": 6,
+      "label": "Cache",
+      "component": "Cache",
+      "latestPercent": 9.104791770418327
+    },
+    {
+      "points": 6,
+      "label": "Free",
+      "component": "Free",
+      "latestPercent": 69.25870735806774
+    }
+  ]
+}

@@ -31,6 +31,15 @@ function Group-Transform($Groups,$Sums) {
 function NonNull-Transform($Field) { return @{id='filterByValue';options=@{type='include';match='all';filters=@(@{fieldName=$Field;config=@{id='isNotNull';options=@{}}})}} }
 $vmFilter='resource.labels.instance_id = "8223265527494214160"'
 $sqlFilter='resource.labels.database_id = "clever-oasis-508610-n7:appsheet-pg-prod-20260914"'
+function New-CloudSqlMemoryQueries {
+    $i=0
+    foreach($component in @('Usage','Cache','Free')) {
+        $label=if($component -eq 'Usage'){'Used'}else{$component}
+        $q=New-GcpMetricQuery 'cloudsql.googleapis.com/database/memory/components' ($sqlFilter+' AND metric.labels.component = "'+$component+'"') 'ALIGN_MEAN' $label
+        $q.refId=[string][char](65+$i);$i++
+        $q
+    }
+}
 $metabase='2959d509-c829-4420-8650-e72827d88170'
 $postgres='6ba627ff-bc6d-41e7-8182-6c0f1fb03998'
 $perf=New-Dashboard 'mw-resource-performance' 'MW Resources · Performance' 'now-6h' '5m'
@@ -51,7 +60,7 @@ $null=Add-Chart $perf 23 'Network throughput' @((New-GcpMetricQuery 'compute.goo
 $null=Add-Chart $perf 24 'Disk throughput' @((New-GcpMetricQuery 'compute.googleapis.com/instance/disk/read_bytes_count' $vmFilter 'ALIGN_RATE' 'Read' 'REDUCE_SUM'),(New-GcpMetricQuery 'compute.googleapis.com/instance/disk/write_bytes_count' $vmFilter 'ALIGN_RATE' 'Write' 'REDUCE_SUM')) 'Bps' 12 30
 Add-Row $perf 30 'GCP · Cloud SQL · appsheet-pg-prod-20260914' 37
 $null=Add-Chart $perf 31 'CPU utilization' (New-GcpMetricQuery 'cloudsql.googleapis.com/database/cpu/utilization' $sqlFilter 'ALIGN_MEAN' 'CPU') 'percentunit' 0 38
-$null=Add-Chart $perf 32 'Memory utilization' (New-GcpMetricQuery 'cloudsql.googleapis.com/database/memory/utilization' $sqlFilter 'ALIGN_MEAN' 'Memory') 'percentunit' 12 38
+$null=Add-Chart $perf 32 'Memory components' (New-CloudSqlMemoryQueries) 'percent' 12 38
 $null=Add-Chart $perf 33 'Storage utilization' (New-GcpMetricQuery 'cloudsql.googleapis.com/database/disk/utilization' $sqlFilter 'ALIGN_MEAN' 'Storage') 'percentunit' 0 45
 $null=Add-Chart $perf 34 'Database connections · all databases' (New-GcpMetricQuery 'cloudsql.googleapis.com/database/postgresql/num_backends' $sqlFilter 'ALIGN_MEAN' 'Connections' 'REDUCE_SUM') 'short' 12 45
 Add-Row $perf 40 'Railway · MW Credit Metabase · production' 52
@@ -65,7 +74,7 @@ $azureUsed=New-AzureMetricQuery 'Available Memory Percentage' 'Average' 'Used'
 $azureUsed.root_selector=$azureUsed.root_selector.Replace('value:.average','value:(100-.average)')
 $null=Add-Chart $perf 6 'Azure VM · memory used' $azureUsed 'percent' 0 7 6 5 'timeseries'
 $null=Add-Chart $perf 7 'GCP VM · memory used' (New-GcpMetricQuery 'agent.googleapis.com/memory/percent_used' ($vmFilter+' AND metric.labels.state = "used"') 'ALIGN_MEAN' 'Used') 'percent' 6 7 6 5 'timeseries'
-$null=Add-Chart $perf 8 'Cloud SQL · memory' (New-GcpMetricQuery 'cloudsql.googleapis.com/database/memory/utilization' $sqlFilter 'ALIGN_MEAN' 'Used') 'percentunit' 12 7 6 5 'timeseries'
+$null=Add-Chart $perf 8 'Cloud SQL · memory components' (New-CloudSqlMemoryQueries) 'percent' 12 7 6 5 'timeseries'
 $null=Add-Chart $perf 9 'Metabase · memory' @((New-RailwayMetricQuery $metabase 'MEMORY_USAGE_GB' 'Used'),(New-RailwayMetricQuery $metabase 'MEMORY_LIMIT_GB' 'Limit')) 'suffix:GB' 18 7 6 5 'timeseries'
 function Set-Limit($Panel,$Value,$Description) {
     $Panel.fieldConfig.defaults.thresholds=@{mode='absolute';steps=@(@{color='green';value=$null},@{color='red';value=$Value})}
@@ -83,6 +92,13 @@ foreach($p in $perf.panels){
     }
 }
 $connections=$perf.panels|Where-Object id -eq 34
+foreach($p in @($perf.panels|Where-Object id -in @(8,32))) {
+    $p.description='Cloud SQL database/memory/components: Usage (displayed as Used), Cache and Free, each as a percentage of instance memory. Values are already 0–100 percentages. The 100% line is total capacity, not a memory-pressure warning. Cache is shown separately from Used.'
+    $p.options.legend=@{displayMode='list';placement='bottom';calcs=@()}
+    $p.fieldConfig.overrides=@(foreach($entry in @(@('Used','orange'),@('Cache','blue'),@('Free','green'))) {
+        @{matcher=@{id='byRegexp';options='(^|.* )'+$entry[0]+'$'};properties=@(@{id='color';value=@{mode='fixed';fixedColor=$entry[1]}})}
+    })
+}
 $connections.title='Database connections · limit 200'
 Set-Limit $connections 200 'Live Cloud SQL database flag max_connections=200, verified 22 September 2026. Instance-wide ceiling; reserved PostgreSQL connections reduce ordinary-client availability. Samples are interval averages.'
 $available=$perf.panels|Where-Object id -eq 12
