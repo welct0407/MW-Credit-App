@@ -27,6 +27,8 @@ ROW = {'Row ID': 'b1', 'Borrower Name': 'Synthetic', 'Description': 'Example', '
 
 class Conversations(unittest.TestCase):
     def setUp(self):
+        reviewer_patch = patch('mw_integration_agent.conversation_write.require_reviewer', return_value='actor@example.com')
+        reviewer_patch.start(); self.addCleanup(reviewer_patch.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.store = ConversationStore(self.root / 'conversations.db')

@@ -1,21 +1,70 @@
 {
-  "revision": 13,
+  "revision": 14,
   "default_policy": "deny",
   "services": {
-    "partner_receipt_review": {"enabled": true, "implemented": true},
-    "conversation_poll": {"enabled": true, "implemented": true},
-    "signed_webhook_ingress": {"enabled": true, "implemented": true},
-    "receipt_summary": {"enabled": true, "implemented": true},
-    "partner_authentication": {"enabled": true, "implemented": true},
-    "daily_cash_statement": {"enabled": true, "implemented": true},
-    "operational_data_read": {"enabled": true, "implemented": true},
-    "database_connectivity": {"enabled": true, "implemented": true},
-    "persistent_codex_conversation": {"enabled": true, "implemented": true},
-    "partner_oltp_gui": {"enabled": false, "implemented": false},
-    "operational_data_api": {"enabled": true, "implemented": true},
-    "instagram_delivery": {"enabled": true, "implemented": true},
-    "email_fallback": {"enabled": true, "implemented": true},
-    "daily_briefing": {"enabled": false, "implemented": false},
-    "pattaya_weather": {"enabled": false, "implemented": false}
+    "partner_receipt_review": {
+      "enabled": true,
+      "implemented": true
+    },
+    "conversation_poll": {
+      "enabled": true,
+      "implemented": true
+    },
+    "signed_webhook_ingress": {
+      "enabled": true,
+      "implemented": true
+    },
+    "receipt_summary": {
+      "enabled": true,
+      "implemented": true
+    },
+    "partner_authentication": {
+      "enabled": true,
+      "implemented": true
+    },
+    "daily_cash_statement": {
+      "enabled": true,
+      "implemented": true
+    },
+    "operational_data_read": {
+      "enabled": true,
+      "implemented": true
+    },
+    "database_connectivity": {
+      "enabled": true,
+      "implemented": true
+    },
+    "persistent_codex_conversation": {
+      "enabled": true,
+      "implemented": true
+    },
+    "partner_oltp_gui": {
+      "enabled": false,
+      "implemented": false
+    },
+    "operational_data_api": {
+      "enabled": true,
+      "implemented": true
+    },
+    "instagram_delivery": {
+      "enabled": true,
+      "implemented": true
+    },
+    "email_fallback": {
+      "enabled": true,
+      "implemented": true
+    },
+    "daily_briefing": {
+      "enabled": false,
+      "implemented": false
+    },
+    "pattaya_weather": {
+      "enabled": false,
+      "implemented": false
+    },
+    "reviewer_database_dml": {
+      "enabled": true,
+      "implemented": true
+    }
   }
 }

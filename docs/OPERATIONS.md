@@ -99,3 +99,8 @@ The owner-authorized [API-only conversation reader](CONVERSATION_POLL.md) runs e
 ## Partner receipt review
 
 See [Partner review](PARTNER_REVIEW.md). Scoped ordinary receipt execution requires a linked Partner approval; potential loan closes and overpayments remain manual-only. This supersedes earlier statements that all financial writes are unavailable. General commands and direct SQL writes remain disabled.
+
+
+## Reviewer-only corrections and DML — 22 September 2026
+
+The earlier no-DML/general-command status above is superseded for current AI Reviewers by [Reviewer DML](REVIEWER_DML.md). Reporting connectivity and receipt-review authority remain separate. Both conversational API edits and the new structured database operations require fresh reviewer membership. Runtime setup grants no schema/trigger administration to the agent and does not modify AppSheet definitions or Flyway history.

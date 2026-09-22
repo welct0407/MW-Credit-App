@@ -11,6 +11,7 @@ import urllib.request
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
 from .config import ConfigurationError, load_secret
+from .conversation_reviewer import require_reviewer
 from .conversation_schema import ACTOR_FIELDS, PROTECTED_TABLES, table_schema, writable
 
 
@@ -137,6 +138,12 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
     config = bridge.authorize()
     if config.get('conversation_writes_enabled') is not True:
         raise ConfigurationError('CONVERSATION_WRITES_DISABLED')
+    require_reviewer(config, bridge.partner_id)
+    from .conversation_dml import unknown, journal as dml_journal
+    if unknown(bridge):
+        raise ConfigurationError('PRIOR_OPERATION_UNCERTAIN_RECONCILE_FIRST')
+    if dml_journal(bridge).execute('SELECT 1 FROM conversation_dml WHERE message_id=?',(bridge.message_id,)).fetchone():
+        raise ConfigurationError('DO_NOT_MIX_API_AND_DML')
     app, table, action = args['app'], args['table'], args['action']
     definition = table_schema(bridge.schema(),app,table)
     modes = {'Add':{'ALL_CHANGES','ADDS_ONLY','ADDS_AND_UPDATES'},'Edit':{'ALL_CHANGES','UPDATES_ONLY','ADDS_AND_UPDATES'}}
@@ -209,7 +216,9 @@ def api_action(bridge, args, writer=dispatch_action, actor_reader=actor_email):
         raise ConfigurationError('OPERATION_ALREADY_ATTEMPTED_NO_REPLAY')
     bridge.possible_write, bridge.write_verified = True,False
     try:
-        writer(bridge.authorize(),app,table,action,{key:ident,**row},actor)
+        fresh_config = bridge.authorize()
+        require_reviewer(fresh_config, bridge.partner_id)
+        writer(fresh_config,app,table,action,{key:ident,**row},actor)
     except Exception:
         raise ConfigurationError('API_OUTCOME_UNCERTAIN_NO_REPLAY operation='+operation) from None
     return verify_operation(bridge,operation)

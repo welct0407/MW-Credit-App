@@ -35,7 +35,7 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
-    for flag in ('partner_conversations_enabled', 'conversation_writes_enabled'):
+    for flag in ('partner_conversations_enabled', 'conversation_writes_enabled', 'reviewer_dml_enabled'):
         if type(config.get(flag, False)) is not bool:
             raise ConfigurationError(flag + ' must be boolean')
     if config.get('conversation_writes_enabled') and not config.get('partner_conversations_enabled'):
@@ -55,6 +55,17 @@ def validate_config(config: dict[str, Any]) -> None:
             raise ConfigurationError('conversation edits require OLAP readback')
         from .conversation_schema import load_schema
         load_schema(config)
+    if config.get('reviewer_dml_enabled'):
+        from datetime import datetime
+        if not config.get('partner_conversations_enabled') or not config.get('database_enabled'):
+            raise ConfigurationError('reviewer DML requires conversations and database')
+        if config.get('database_dml_user') != 'mw_reviewer_dml':
+            raise ConfigurationError('reviewer DML requires dedicated role')
+        _validate_secret_path(config, 'database_dml_password_file')
+        try:
+            if datetime.fromisoformat(config['reviewer_dml_cutoff']).tzinfo is None: raise ValueError()
+        except (KeyError, TypeError, ValueError):
+            raise ConfigurationError('reviewer_dml_cutoff must include timezone') from None
     timeout = config.get('conversation_timeout_seconds', 600)
     if type(timeout) is not int or not 30 <= timeout <= 900:
         raise ConfigurationError('conversation_timeout_seconds must be 30..900')
@@ -191,7 +202,7 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
     for name, service in services.items():
         if name not in {"signed_webhook_ingress", "partner_authentication", "operational_data_read",
                         "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
-                        "operational_data_api", "instagram_delivery", "email_fallback", "daily_briefing",
+                        "operational_data_api", "reviewer_database_dml", "instagram_delivery", "email_fallback", "daily_briefing",
                         "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):

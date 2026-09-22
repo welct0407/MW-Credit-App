@@ -2,7 +2,7 @@
 
 Linux-native foundation for MW Credit integrations on a Debian 13 Google Compute Engine VM.
 
-Status: **daily cash statements, receipt review and Partner conversations active on Debian; conversations resumed by the owner on 22 September 2026 at 02:17 Bangkok**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. PostgreSQL uses a dedicated loopback role restricted to business-table SELECT and temporary objects. The statement runs at 00:15 Asia/Bangkok with Partner-master Instagram routing and Microsoft Graph email fallback. Receipt review/payment processing and persistent Partner conversations have separate activation switches; see their operating guides and deployment logs. Codex selects general AppSheet Add/Edit calls from inspected schema metadata, and approved receipt payments retain their separate adapter. No durable SQL writes are enabled. The existing Windows Partner Operations worker and webhooks remain stopped.
+Status: **daily cash statements, receipt review and Partner conversations active on Debian; conversations resumed by the owner on 22 September 2026 at 02:17 Bangkok**. The Debian receiver is live through `https://hooks.mw-credit.com/instagram`. PostgreSQL uses a dedicated loopback role restricted to business-table SELECT and temporary objects. The statement runs at 00:15 Asia/Bangkok with Partner-master Instagram routing and Microsoft Graph email fallback. Receipt review/payment processing and persistent Partner conversations have separate activation switches; see their operating guides and deployment logs. Codex selects general AppSheet Add/Edit calls from inspected schema metadata, and approved receipt payments retain their separate adapter. Reviewer-only structured database DML is implemented under its own switch; see [Reviewer DML](docs/REVIEWER_DML.md) for activation evidence and boundaries. The existing Windows Partner Operations worker and webhooks remain stopped.
 
 ## Initial target
 
@@ -57,7 +57,7 @@ Use device-code authentication on the headless VM. Treat `/var/lib/mw-integratio
 
 The Instagram receiver binds only to `127.0.0.1:8000` and is intended to sit behind the authenticated Cloudflare tunnel. Captured messages are durably deduplicated with status `CAPTURED_NO_PROCESSING`. The outbound adapter cannot send while `instagram_delivery` or `sending_enabled` is false.
 
-`appsheet-probe` performs a bounded official-API `Find` against the production OLTP Partners table and reports only metadata, never row contents. PostgreSQL connects only through the Cloud SQL Auth Proxy on loopback; its dedicated role defaults to read-only transactions and has SELECT plus TEMPORARY privileges, not durable table DML.
+`appsheet-probe` performs a bounded official-API `Find` against the production OLTP Partners table and reports only metadata, never row contents. PostgreSQL connects only through the Cloud SQL Auth Proxy on loopback; the reporting role defaults to read-only transactions and has SELECT plus TEMPORARY privileges. The separate reviewer DML role has bounded operational grants and no schema ownership; the model uses parameterized INSERT/UPDATE tools.
 
 See [migration plan](docs/MIGRATION_PLAN.md), [operations](docs/OPERATIONS.md), and the [service catalogue](SERVICE_CATALOGUE.md).
 

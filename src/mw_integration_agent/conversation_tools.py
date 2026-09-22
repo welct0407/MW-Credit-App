@@ -35,6 +35,9 @@ TOOLS = [
           'operation_key': STR, 'observation': STR, 'instruction_quote': STR}),
     spec('verify_operation', 'Read-only recheck of a current-turn operation with its immutable planned final state. Does not resubmit a write. Use for asynchronous completion or uncertain response.',
          {'operation': STR}),
+    spec('database_catalogue', 'Reviewer only. Empty table lists allowed resources. Otherwise inspect live database columns, defaults, constraints, triggers and writable fields before planning DML. No SQL input.', {'table': STR}),
+    spec('database_read', 'Reviewer only. Fresh database rows using a nonempty JSON object of equality filters. All columns returned, maximum 100 matching rows; narrow filter if exceeded. Use exact Row ID for an absent INSERT key. No SQL expressions.', {'table': STR, 'where_json': STR}),
+    spec('database_transaction', 'Reviewer only. One atomic transaction per turn; 1..10 INSERT/UPDATE exact-key steps. steps_json is an array of objects with action,table,row_id,values,expected_after,observation. values/expected_after are scalar objects without Row ID. All submitted fields are checked unless overridden by expected_after for a documented trigger transition. Actor values must be __ACTOR__. Observe existing complete rows or absent INSERT key first. Requires current instruction quote and audit reason. No Delete/DDL/SQL/functions/settings. AppSheet bots and initial values do not run. Never mix with API writes or replay UNKNOWN.', {'steps_json': STR, 'instruction_quote': STR, 'reason': STR}),
     spec('finish', 'Finish once. VERIFIED requires current-turn evidence; use CLARIFY or REFUSE when unavailable. Never claim an uncertain edit succeeded. Reply in the specified partner language. No more tools after finish.',
          {'status': {'type': 'string', 'enum': ['VERIFIED', 'CLARIFY', 'REFUSE']},
           'message': STR, 'observations': STRINGS}),
@@ -189,6 +192,13 @@ class ConversationTools:
         if name == 'verify_operation':
             from .conversation_write import verify_operation
             return self.observe(verify_operation(self, a['operation']))
+        if name in ('database_catalogue', 'database_read', 'database_transaction'):
+            from . import conversation_dml as dml
+            if name == 'database_catalogue': return dml.catalogue(self, a['table'])
+            if name == 'database_read':
+                from .conversation_write import object_json
+                return dml.read(self, a['table'], object_json(a['where_json']))
+            return dml.transaction(self, a)
         if name == 'finish':
             if (a['status'] not in ('VERIFIED', 'CLARIFY', 'REFUSE') or not isinstance(a['message'], str)
                     or not a['message'].strip() or len(a['message']) > 12000 or not isinstance(a['observations'], list)
