@@ -22,3 +22,11 @@ Correct the 22 September production closing payment on Oey's 21 September loan f
 - Post-commit SQL readback: payment received/planned/posted each ฿1,200; allocation and repayment each ฿1,100 principal + ฿100 interest; charge paid ฿1,200 with zero remaining; cash receipt ฿1,200 dated 22 September; loan closed with zero outstanding principal.
 - Current PROD OLTP GUI synced successfully. Oey's loan detail showed closed status and the 22 September charge at ฿1,200; charge detail showed ฿1,100 principal due, ฿100 interest due, payment received, and one ฿1,200 repayment.
 - Status: production data correction complete. No manual tests remain for this scoped transaction.
+
+## 23 September referral-rebate reconciliation
+
+- Corrected the automatic Nan referral rebate linked to this loan from ฿22 to ฿21. The transaction retains its original 22 September expense date. Its gross-profit basis now matches the corrected lifetime interest of ฿210, and the stored partner expense split reconciles to ฿13 / ฿8 at the existing 60% / 40% shares.
+- The source-linked Lisa cash expense was recalculated from ฿22 to ฿21. The automatic expense row retains its immutable identity and source fields; an audit note records the reason and before/after values. No rows were deleted.
+- Starting Git commit for this refinement: `5e213e3105ef3c493ff7a743052516fa9697a117`; repository was clean. Private pre-write PROD dump: `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\r005-20260917\nan-rebate-before-20260923.dump`, SHA-256 `668D0154766FCDF0EA5861252C88F233E4BC18EDCB63F188498CB2A8CF31BE3C`.
+- The maintained legacy restore check initially omitted the newer `agent_audit` dependency and failed before restoring the public triggers. The same dump was then restored with `public`, `assessment_lab`, and `agent_audit`; restore succeeded and the normalized `public` / `assessment_lab` schema matched. Cloud SQL cron extension/settings remain outside the dump's scope.
+- The guarded serializable correction succeeded first with rollback and then commit. Post-commit SQL readback confirmed expense ฿21, basis ฿210, partner split ฿13 / ฿8, linked cash expense ฿21, and the expense guard enabled. PROD OLTP synced successfully and displayed Nan's 22 September referral rebate as ฿21 in Expenses.
