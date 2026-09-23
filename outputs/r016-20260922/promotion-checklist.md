@@ -2,19 +2,23 @@
 
 Template revision: 2026-09-21. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Release_Workflow.md); exceptions: [Recovery](../../Documents/Release_Recovery_Runbook.md).
 
-## Daily snapshot part 1 closure — 23 September 2026
+## 2R snapshot report part 2 closure — 23 September 2026
+
+Owner resumed the held 2R integration. P01/P13/P28/P39/P41/P45/P46 are complete for this report-only continuation: scoped private metadata/dictionary rollback, 49 focused source/filter/preservation checks, desktop/390px review and affected documentation. No new database migration, AppSheet changes, RC, grants or infrastructure work; reuse part-1 V37/zero-editor-issue evidence because those assets are unchanged. [Current contract and recovery](cash-snapshot-report.md). P48 publishes this completion checkpoint; whole-R016 acceptance/key retirement/tag remain open.
+
+## Earlier daily snapshot part 1 closure — 23 September 2026
 
 Owner authorized database logic and history reconstruction and explicitly held all 2R report changes. DEV/PROD V37 deployed and backfilled from `98ae765b319bdcb956d6a1f34caeb5106f745c87`; no AppSheet edits/RC. Each environment has 54 portfolio and 216 account/date rows; verified cash history begins 18 September. P01/P04/P10/P13/P22/P28/P39/P41/P45/P46 complete for database part 1. DEV current-editor bot Run proves the existing Recent path updates yesterday/today together; PROD schedule/guard unchanged. Both app pairs have zero editor issues; live clients and direct reporting consumers pass. [Part 1 contract/evidence](daily-snapshots/README.md). P48 publishes this completion checkpoint; full R016 tag/acceptance and owner-held report part 2 remain pending.
 
 ## Continue here
 
-- Scope: database part 1 complete; 2R report updates held for another task/model. Existing ten original and three review pages unchanged.
+- Scope: database part 1 and 2R report part 2 complete for owner review; the twelve other tabs are unchanged.
 - Manifest/log/evidence: manifest.json, ../../Change Logs/CHANGE_NOTES_R016_2026-09-22.md, daily-snapshots/README.md and production-checkpoint.json.
 - DEV readiness/authorization: approved discussed database/history scope; CI, DEV and PROD reconciliations pass. Whole reporting migration owner acceptance remains pending.
 - Versions: DEV/PROD V37; apps unchanged. Current observed PROD OLTP 3.000246 / OLAP 1.100195; DEV 1.000075 / 1.000031. No RC or upgrade.
 - Exact implementation commit: 98ae765b319bdcb956d6a1f34caeb5106f745c87; daily-snapshots/flyway-manifest.json. Final R016 tag deferred.
-- Next: owner-held part-2 live-today versus stored-past 2R integration, following the database contract. No database redeployment needed for this handoff.
-- Documentation impact: tracker, inventory, differences, dictionary DB rows, model overview/design, database operating README and the part-1 contract. Metabase definitions and workflow drawings untouched because reporting/UI workflows are held and transaction processing unchanged.
+- Next: owner review of the completed 2R design and remaining full-R016 acceptance/closure. No database redeployment needed.
+- Documentation impact: tracker, inventory, differences, dictionary DB rows, model overview/design, database operating README and the part-1 contract. Metabase 2R definitions updated; operational workflow drawings remain accurate because transaction processing is unchanged.
 
 ## Execution rules
 
@@ -28,7 +32,7 @@ Execute applicable rows in order; one result/evidence link per coherent check. S
 
 | ID | Stage | When required | Activity / completion criterion | Status | Evidence / reason |
 | --- | --- | --- | --- | --- | --- |
-| P01 | A Readiness | Always | Confirm Rnnn scope, integrated DEV features/PROD fixes, dependencies and app Upgrade/Unchanged decisions. Reuse the existing manifest/log and DEV/model checkpoint; resolve unrelated unreleased work. Record readiness/owner acceptance. | Done | Current complete batch: V37 database part 1 plus prior published report scope. Part 2 held; no AppSheet upgrade. |
+| P01 | A Readiness | Always | Confirm Rnnn scope, integrated DEV features/PROD fixes, dependencies and app Upgrade/Unchanged decisions. Reuse the existing manifest/log and DEV/model checkpoint; resolve unrelated unreleased work. Record readiness/owner acceptance. | Done | Current complete batch: V37 database part 1 plus prior published report scope. Part 2 report integration complete; no AppSheet upgrade. |
 | P10 | A Readiness | Always; reuse passing evidence | Accept recorded integrated DEV tests and both apps’ final zero-warning/error diagnostics. Rerun only checks invalidated by changed behavior, dependencies or data. No new full regression or live audit merely to start promotion. | Done | Both DEV editors No issues found; versions unchanged; OLAP sync/validation view and current-editor bot Run passed. production-checkpoint.json links closure. |
 | P06 | A Readiness | First use / guard changed | Install/test scheduled guards in DEV before copy, including child calls and per-row filters. Prove canonical DEV allowed and harmless copy excluded in scheduled context. Reuse this proof in later releases. | N/A | No scheduled AppSheet guard change. |
 | P08 | A Readiness | DEV setup / routing changed | Use DEV preparation only for missing/changed setup: DEV sources/links, owner-only Partner delivery data, distinct Login Email and initial deployment if needed. Keep audit fields and channels. Unmapped actors must be resolved for affected tests. | N/A | No DEV app setup or routing change. |
@@ -46,11 +50,11 @@ Execute applicable rows in order; one result/evidence link per coherent check. S
 | P39 | F Validate | Always; mappings if upgraded | One PROD pass: verify version/Deployed state, sources/substitutions, PROD-allowed/RC-excluded guards, both editors clear and both apps open/sync with changed entry points. Visually verify each upgraded logo loads and matches its pre-promotion appearance; use resources/ originals if restoration is needed and recheck the affected logo. Check recipients only if changed. Reuse DEV tests; no repeat Deployment Check. | Done | Both PROD editors No issues found, Deployed, preview loads/syncs passed; existing hourly bot/guard retained. No upgraded logo/source substitution/RC to validate. |
 | P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | Done | 17 cash checks and 54 independent daily reconciliations per environment, existing model 74 and actual restricted reader queries passed. DEV GUI Run exercised Recent; next normal PROD hourly event not separately awaited. |
 | P38 | F Validate | Paused jobs / cutover steps | Complete approved external cutover steps and resume temporary pauses. Keep integrity triggers and one active scheduler per job/environment. | N/A | No jobs paused; existing single hourly scheduler retained. |
-| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Done | Required core records and affected dictionary/model/database references updated. Report definitions held, architecture drawings remain accurate. |
+| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Done | Required core records and affected dictionary/model/database references updated. 2R report definitions and metadata updated; architecture drawings remain accurate. |
 | P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Done | Manifest/log/checkpoint and coverage reconciled; targeted dictionary edits read back/rendered, all other workbook parts preserved. |
 | P49 | G Close | RC exists | After all upgrades and required PROD validation pass, automatically delete the recorded RC apps for this promotion, including rejected/superseded attempts; no further owner confirmation. Delete definitions only, preserving DEV/PROD, shared data/files/logos and recovery evidence. Verify deletion and update manifest/log/inventory/checklist before P48. Keep failed/incomplete promotion RCs contained; report cleanup failures as pending. No DEV refresh. | N/A | No RC definitions created. |
-| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | In progress | Publish final database-part-1 evidence/docs to master. Final whole-R016 tag deferred until remaining owner-held report work/acceptance closes. |
-| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | In progress | Database part 1 complete; do not claim entire R016 Released. Held report integration and remaining migration acceptance are listed in manifest. |
+| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | In progress | Publish the checked part-2 report evidence/docs to master. Final whole-R016 tag deferred until acceptance and migration closure. |
+| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | In progress | Parts 1 and 2 complete for owner review; do not claim entire R016 Released. Remaining migration acceptance is listed in manifest. |
 | P51 | X Exception | Failure / drift / required gap only | Stop affected dependent steps, record actual partial state and follow only the matching recovery branch. Preserve later writes/work; no blind replay or manual PROD fallback. Ask only for missing authority/material decisions. Reconcile resulting status and documents. | Done | Trial OOM resolved by bounded Hobby sizing. Failed volume moves superseded by Singapore rebuild; source incidental revisions restored. |
 
 ## Documentation impact and closure
@@ -61,17 +65,17 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | Database part 1 complete in DEV/PROD V37; 2R integration held. |
-| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | Database part 1 complete in DEV/PROD V37; 2R integration held. |
-| [Development Changes](../../Documents/Development_Changes.md) | Updated | Database part 1 complete in DEV/PROD V37; 2R integration held. |
-| Data Dictionary DB Columns / Constraints / Logic | Updated | 109 targeted rows; original other workbook parts byte-preserved; dictionary.json and private render/readback. |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | DEV/PROD V37 unchanged; 2R snapshot integration complete for review. |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | DEV/PROD V37 unchanged; 2R snapshot integration complete for review. |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | DEV/PROD V37 unchanged; 2R snapshot integration complete for review. |
+| Data Dictionary Metabase Models / DB Logic | Updated | Part 2 adds 34 model/field rows and updates three provider notes; all other parts preserved; cash-snapshot-dictionary.json. Earlier part-1 DB metadata retained. |
 | Model Overview / Solution Design | Updated | Historical snapshot versus live boundary, partial-charge correction and ownership. |
 | database/README.md / daily-snapshots/README.md | Updated | Common rebuild command, provenance, recovery, deployed state and part-2 contract. |
 
 ## Close
 
-- Outcome / limitations / rollback: database part 1 complete; report integration held. Cash before verified openings unavailable. Higher-version forward fix plus derived rebuild is the preferred SQL rollback; private restored DEV/PROD backups retain before-images. Existing report recovery remains unchanged.
-- Final evidence commit / Rnnn tag / remote verification: checked checkpoint publication; final R016 tag awaits full migration completion.
+- Outcome / limitations / rollback: parts 1 and 2 complete for owner review. Cash before verified openings unavailable. Higher-version forward fix plus derived rebuild is the preferred SQL rollback; private restored DEV/PROD backups retain before-images. Existing report recovery remains unchanged.
+- Final evidence commit / Rnnn tag / remote verification: checked report-completion checkpoint publication; final R016 tag awaits full migration acceptance/closure.
 - RC cleanup / verified deleted IDs and evidence: N/A, no AppSheet RC.
 
 Released requires applicable activities, documentation, RC cleanup and publication complete. If only documents/publication remain, repair them without redeploying. Record final outcome in the manifest/tracker before the final evidence commit and verify publication afterward; do not create self-referential commit hashes.

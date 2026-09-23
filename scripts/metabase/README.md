@@ -1,5 +1,11 @@
 # Metabase with local Cloud SQL Auth Proxy
 
+### 2R snapshot integration — current, 23 September 2026
+
+`CashSnapshotReport.mjs --install` owns tab 14 after the part-1 V37 handoff. It adds/reuses thin stored portfolio/account models and a shared date/source snippet, reuses live capital cards, and changes only 2R's trend question 202. Today queries live OLAP; past positions/trends query snapshots. `Inspect-CashSnapshotReport.mjs` captures scoped private rollback once; `Verify-CashSnapshotReport.mjs` checks actual dashboard mappings, source parity, missing dates/openings, model grains and preservation. `Document-CashSnapshotReport.py/.mjs` apply targeted Artifact-authored dictionary rows, preserving unrelated workbook parts. [Contract, IDs, tests and recovery](../../outputs/r016-20260922/cash-snapshot-report.md).
+
+The older three-page `CashReviewPages.mjs --install` now refuses to run after snapshot integration; reconcile 9R/10R changes separately rather than reinstating the earlier 2R layout. Its verifier/finalizer and historical plan below describe the earlier checkpoint. There are now 22 models / 319 fields and four snippets. No service redeploy, database migration or permission expansion is part of this report change.
+
 ### Additive cash review pages — 23 September 2026
 
 `Use-CashReviewGauge.mjs` is the one-time scoped 2R scalar-to-existing-gauge replacement. It takes fresh private rollback metadata, reuses question 68, preserves all other tabs and verifies scalar/gauge parity. Do not replay it after the replacement. The normal builder now includes the gauge and its adjusted spacing.

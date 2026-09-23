@@ -4,7 +4,7 @@ Owner scope, 23 September 2026: implement database logic and reconstruct history
 
 ## State
 
-V37 is deployed and verified in DEV and PROD from exact commit `98ae765b319bdcb956d6a1f34caeb5106f745c87`. Database part 1 is complete. Existing AppSheet definitions, schedules, report models/questions, 2R layouts and live providers remain unchanged. The R016 final acceptance/tag remains deferred while report work is held.
+V37 is deployed and verified in DEV and PROD from exact commit `98ae765b319bdcb956d6a1f34caeb5106f745c87`. Database part 1 is complete. AppSheet definitions, schedules and live providers remain unchanged. The owner subsequently resumed part 2; 2R integration is now implemented and verified for review. [Current report contract](../cash-snapshot-report.md). Full R016 acceptance/tag remains pending.
 
 ## Data contract for part 2
 
@@ -21,7 +21,7 @@ Partner inputs follow the existing rounded per-repayment/expense allocation defi
 
 `Pending Charges EOD` is corrected in Model 3 to sum `max(charge principal + interest due - posted principal/interest paid through date, 0)` for each charge dated through the snapshot day. Partially paid charges retain their residual. Other legacy snapshot definitions remain unchanged, including gross role A/B unsettled-profit semantics.
 
-`Generated At` is Bangkok time, shared atomically across both tables for a refresh. `Model Version` is 3. `Provisional` is true for Bangkok today; Freshness Basis is `Hourly snapshot`. There is no immutable-close assertion: these are restated snapshots of currently available dated source facts, not an as-recorded audit archive. No report has yet been rebound to these providers.
+`Generated At` is Bangkok time, shared atomically across both tables for a refresh. `Model Version` is 3. `Provisional` is true for Bangkok today; Freshness Basis is `Hourly snapshot`. There is no immutable-close assertion: these are restated snapshots of currently available dated source facts, not an as-recorded audit archive. 2R now uses these providers for past positions and completed-day trends; today uses live OLAP.
 
 ## Common refresh / reconstruction
 
@@ -62,6 +62,6 @@ Cash coverage preserves V36's current account population rule: every included ac
 
 Recovery uses a reviewed higher-version forward fix restoring affected function semantics; retain additive tables/columns and preserve financial source rows. Rebuild derived data afterward. The private pre-change backups provide before-images and tested restore recovery. Do not repair Flyway checksums or restore a whole database over subsequent operational writes as a routine rollback.
 
-## Next task — 2R held
+## Part 2 — implemented for owner review
 
-Implement the agreed live-today versus stored-past routing and freshness labels; use date-selected closing positions and snapshot historical trends. Remove the retained-profit bridge from the main page; preserve negative balances and meaningful diagnostics. Reuse existing live providers for current cards and ledger providers for transaction detail. No Metabase edits, metadata sync or report publication were performed in part 1.
+The agreed live-today versus stored-past routing, source/freshness labels, signed balances and stored trends are implemented in 2R. Its retained-profit/advance bridge is removed; other tabs and transaction details are unchanged. [Part-2 implementation and evidence](../cash-snapshot-report.md). No Metabase edits were performed during the earlier part-1 database batch.

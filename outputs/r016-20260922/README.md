@@ -1,8 +1,12 @@
 # R016 — Loan Reports review
 
-## Additive cash-reporting review — 23 September 2026
+## Current 2R snapshot integration — 23 September 2026
 
-2R now reuses utilization gauge question **68** instead of scalar **54**, with the two capital figures stacked beside it. Shared gauge settings and all other tabs remain unchanged. [Scoped verification](cash-review-gauge-verification.json). The label “Partner advances” currently represents negative account balances, not an independently recorded partner liability; see the [metric clarification](../../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md#2r-utilization-gauge-and-metric-explanation--23-september-2026).
+2R now uses live OLAP for today and V37 stored snapshots for past positions/completed-day trends, with explicit source/freshness. The retained-profit/advance bridge is removed while negative balances remain visible. The other twelve tabs are preserved. Current inventory: 157 placements, 124 questions, 22 models / 319 fields and four snippets. [Current contract, implementation and tests](cash-snapshot-report.md).
+
+## Earlier additive cash-reporting checkpoint — 23 September 2026
+
+2R now reuses utilization gauge question **68** instead of scalar **54**, with the two capital figures stacked beside it. Shared gauge settings and all other tabs remain unchanged. [Scoped verification](cash-review-gauge-verification.json). At that earlier checkpoint, the label “Partner advances” represented negative account balances, not an independently recorded partner liability; see the [metric clarification](../../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md#2r-utilization-gauge-and-metric-explanation--23-september-2026).
 
 The ten original pages remain unchanged. Three appended tabs offer an alternative design for owner review:
 
@@ -18,7 +22,7 @@ Cash position is reconstructed, with unavailable custody before known openings a
 
 Rollback: exact pre-change dashboard, 124 existing question/model definitions, snippets and permissions are privately preserved under `r016-20260922/cash-review-before`; final metadata under `cash-review-complete`. Remove only review tabs/parameters/placements and recoverably archive 200–204 after dependency checks. Preserve any subsequent owner edits; do not blindly restore the full dashboard. No SQL/AppSheet rollback is needed. This is a published review checkpoint; design acceptance and final R016 closure remain pending.
 
-## Current question reuse — 23 September 2026
+## Earlier question-reuse checkpoint — 23 September 2026
 
 The ten-page dashboard has 130 visual placements using 116 distinct questions, twenty models and 287 model fields. Ten redundant questions were replaced with existing canonical questions and recoverably archived. Page titles, number formats, layout and filter mappings stay on each placement; the query is owned by the shared question. Overview and Performance now both use question 56 for seven-day growth. [Mapping, comparisons and recovery](question-reuse-verification.json). The original POC and intentionally different chart types, populations and date contracts remain separate. Earlier counts below are dated checkpoints.
 

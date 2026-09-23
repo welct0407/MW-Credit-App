@@ -88,6 +88,7 @@ export function layout(state,d){
  return cards;
 }
 if(process.argv.includes('--install')){
+ if(fs.existsSync(new URL('../../outputs/r016-20260922/cash-snapshot-report-state.json',import.meta.url)))throw Error('2R now uses stored snapshots. Use CashSnapshotReport.mjs; reconcile any 9R/10R work before using this legacy three-page installer.');
  await assertSource();let d=await api('GET','dashboard/3');assertPreserved(d);
  let state;try{state=read('cash-review-state.json');}catch{state={cards:{},baseline_commit:'909fe5374b5383fa8171c5ff90d6ca7007abe2f5'};}
  for(const q of specs){

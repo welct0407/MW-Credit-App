@@ -1,0 +1,558 @@
+{
+  "tab": 14,
+  "models": [
+    {
+      "id": 205,
+      "name": "Daily Cash Snapshots",
+      "collection_id": 8,
+      "grain": "One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates.",
+      "grain_field": "Snapshot ID",
+      "database_view": "public.reporting_daily_snapshot",
+      "columns": [
+        {
+          "name": "Snapshot ID",
+          "base_type": "type/Text",
+          "semantic_type": "type/PK",
+          "description": "Snapshot ID. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Date",
+          "base_type": "type/Date",
+          "description": "Date. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Generated At",
+          "base_type": "type/DateTime",
+          "description": "Generated At. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Model Version",
+          "base_type": "type/Integer",
+          "description": "Model Version. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Total Cash Pool",
+          "base_type": "type/Decimal",
+          "description": "Total Cash Pool. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Outstanding Principal",
+          "base_type": "type/Decimal",
+          "description": "Outstanding Principal. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Remaining Lending Capital",
+          "base_type": "type/Decimal",
+          "description": "Remaining Lending Capital. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Opening Cash",
+          "base_type": "type/Decimal",
+          "description": "Opening Cash. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Net Cash Balance",
+          "base_type": "type/Decimal",
+          "description": "Net Cash Balance. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Money In",
+          "base_type": "type/Decimal",
+          "description": "Money In. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Money Out",
+          "base_type": "type/Decimal",
+          "description": "Money Out. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Available From",
+          "base_type": "type/Date",
+          "description": "Available From. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Balance Status",
+          "base_type": "type/Text",
+          "description": "Balance Status. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Provisional",
+          "base_type": "type/Boolean",
+          "description": "Provisional. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        },
+        {
+          "name": "Freshness Basis",
+          "base_type": "type/Text",
+          "description": "Freshness Basis. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        }
+      ]
+    },
+    {
+      "id": 206,
+      "name": "Account Cash Snapshots",
+      "collection_id": 8,
+      "grain": "One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership.",
+      "grain_field": "Snapshot ID",
+      "database_view": "public.reporting_cash_account_snapshot",
+      "columns": [
+        {
+          "name": "Snapshot ID",
+          "base_type": "type/Text",
+          "semantic_type": "type/PK",
+          "description": "Snapshot ID. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Date",
+          "base_type": "type/Date",
+          "description": "Date. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Generated At",
+          "base_type": "type/DateTime",
+          "description": "Generated At. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Model Version",
+          "base_type": "type/Integer",
+          "description": "Model Version. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Cash Account ID",
+          "base_type": "type/Text",
+          "description": "Cash Account ID. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Cash Holder ID",
+          "base_type": "type/Text",
+          "description": "Cash Holder ID. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Cash Holder",
+          "base_type": "type/Text",
+          "description": "Cash Holder. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Account",
+          "base_type": "type/Text",
+          "description": "Account. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Opening Balance",
+          "base_type": "type/Decimal",
+          "description": "Opening Balance. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Balance",
+          "base_type": "type/Decimal",
+          "description": "Balance. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Money In",
+          "base_type": "type/Decimal",
+          "description": "Money In. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Money Out",
+          "base_type": "type/Decimal",
+          "description": "Money Out. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Net Movement",
+          "base_type": "type/Decimal",
+          "description": "Net Movement. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Available From",
+          "base_type": "type/Date",
+          "description": "Available From. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Balance Status",
+          "base_type": "type/Text",
+          "description": "Balance Status. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Provisional",
+          "base_type": "type/Boolean",
+          "description": "Provisional. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        },
+        {
+          "name": "Freshness Basis",
+          "base_type": "type/Text",
+          "description": "Freshness Basis. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+        }
+      ]
+    }
+  ],
+  "snippet_id": 4,
+  "cards": {
+    "remaining": 207,
+    "cash": 208,
+    "status": 209,
+    "holders": 210,
+    "accounts": 211,
+    "trend": 202
+  },
+  "layout": [
+    {
+      "id": 526,
+      "card_id": null,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Cash position"
+          }
+        }
+      }
+    },
+    {
+      "id": 539,
+      "card_id": null,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 1,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Live today. Hourly snapshots for past dates. Amounts in baht."
+          }
+        }
+      }
+    },
+    {
+      "id": 528,
+      "card_id": null,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 3,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "1 · Capital today · real-time"
+          }
+        }
+      }
+    },
+    {
+      "id": 467,
+      "card_id": 47,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 4,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Total cash pool · live"
+      }
+    },
+    {
+      "id": 468,
+      "card_id": 48,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 6,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Principal outstanding · live"
+      }
+    },
+    {
+      "id": 469,
+      "card_id": 68,
+      "dashboard_tab_id": 14,
+      "col": 12,
+      "row": 4,
+      "size_x": 12,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.title": "Capital utilization · live"
+      }
+    },
+    {
+      "id": 529,
+      "card_id": null,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 8,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "2 · Selected cash position"
+          }
+        }
+      }
+    },
+    {
+      "id": 540,
+      "card_id": null,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 9,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "A range uses its latest date through today. See the source below."
+          }
+        }
+      }
+    },
+    {
+      "id": 531,
+      "card_id": 207,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 11,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-position",
+          "card_id": 207,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Remaining lending capital"
+      }
+    },
+    {
+      "id": 532,
+      "card_id": 208,
+      "dashboard_tab_id": 14,
+      "col": 12,
+      "row": 11,
+      "size_x": 12,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-position",
+          "card_id": 208,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Net cash balance"
+      }
+    },
+    {
+      "id": 533,
+      "card_id": 209,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 13,
+      "size_x": 24,
+      "size_y": 6,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-position",
+          "card_id": 209,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Position & freshness"
+      }
+    },
+    {
+      "id": 534,
+      "card_id": null,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 19,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Lending capital is not a bank balance. Net cash includes negative account balances."
+          }
+        }
+      }
+    },
+    {
+      "id": 535,
+      "card_id": 210,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 21,
+      "size_x": 10,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-position",
+          "card_id": 210,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Net cash by holder · selected date"
+      }
+    },
+    {
+      "id": 536,
+      "card_id": 211,
+      "dashboard_tab_id": 14,
+      "col": 10,
+      "row": 21,
+      "size_x": 14,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-position",
+          "card_id": 211,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_date"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Account balances · selected date"
+      }
+    },
+    {
+      "id": 537,
+      "card_id": null,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 28,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "3 · Historical trend · Daily Analytics"
+          }
+        }
+      }
+    },
+    {
+      "id": 482,
+      "card_id": 202,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 29,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-position-trend",
+          "card_id": 202,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "position_trend"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Daily closing positions"
+      }
+    },
+    {
+      "id": 541,
+      "card_id": null,
+      "dashboard_tab_id": 14,
+      "col": 0,
+      "row": 36,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Hourly snapshots exclude today. Unknown cash stays blank."
+          }
+        }
+      }
+    }
+  ],
+  "reporting_only": true,
+  "other_tabs_preserved": true
+}
