@@ -4,6 +4,10 @@
 
 The ten-page dashboard has 130 visual placements using 116 distinct questions, twenty models and 287 model fields. Ten redundant questions were replaced with existing canonical questions and recoverably archived. Page titles, number formats, layout and filter mappings stay on each placement; the query is owned by the shared question. Overview and Performance now both use question 56 for seven-day growth. [Mapping, comparisons and recovery](question-reuse-verification.json). The original POC and intentionally different chart types, populations and date contracts remain separate. Earlier counts below are dated checkpoints.
 
+## Overview trend window and labels — 23 September 2026
+
+The three Overview Portfolio trends use a shared **Portfolio trend period** dashboard filter, defaulting to Metabase's **Past 30 days** preset. This means the last 30 completed Bangkok dates (today−30 through yesterday). The filter is mapped only to the three Overview chart placements; the shared principal question on Cash Analysis retains its separate Cash date range. Headings, card titles, saved question names and the proposed-loan filter label no longer repeat THB. Chart axes, data fields and currency formatting still identify monetary units. [Saved-state and date verification](overview-trend-refinement.json).
+
 ## Income Statement checkpoint — V35, 23 September 2026
 
 The cash waterfall was removed on 23 September. Separate + and = symbols now connect the three cash cards; a short footnote preserves the distinction between selected-period profit and cumulative cash. Native waterfall Total cannot be renamed in this Metabase version, so its chart title states **Total = Unsettled Profit**. Queries, models and date mappings are unchanged; eleven focused checks passed ([evidence](income-symbols-verification.json)).
@@ -68,13 +72,13 @@ Source: Workspace Data Studio report `52954065-a261-4b97-8d19-df84126bbdc6`, pag
 | Overview: profit in past 30 days; interest paid | Repayment interest during Bangkok dates today−29 through today, and all-time, respectively. |
 | Overview: top borrower | Borrower Description with largest current outstanding principal, excluding hidden borrowers. |
 | Overview: two borrower horizontal bars | Borrowers → Loans using Row ID / Ref Borrowers; repayment interest aggregated per loan before Loans → Borrowers join. Four named borrowers plus Others. No charge fan-out. |
-| Overview: daily principal, profit and overdue area charts | Stored Daily Analytics snapshots by Snapshot Date. Overdue uses Pending Charges EOD and excludes today. Original fixed references of THB 120,000 principal and THB 10,000 daily profit are preserved. Axis ranges adapt so points remain visible. |
+| Overview: daily principal, profit and overdue area charts | Stored Daily Analytics snapshots by Snapshot Date. The three placements default to the last 30 completed Bangkok dates and can be adjusted with Portfolio trend period. Overdue uses Pending Charges EOD and excludes today. Original fixed references of THB 120,000 principal and THB 10,000 daily profit are preserved. Axis ranges adapt so points remain visible. |
 | Cash: pool, principal, available cash, loan account balance; utilization gauge | Existing portfolio summary. Gauge scale 0–100%, boundaries 60%, 85%, 95%. |
 | Cash: balance composition | Horizontal 100% stacked bar: available cash plus unsettled gross profit. |
 | Cash: principal by loan type | Current loan outstanding principal, grouped by short English labels for phone readability; the Thai source type remains available in Loan Book. |
 | Cash: daily principal; issued versus returned | Daily snapshots; issued positive and returned negative, as in the source. Zero bars have no labels. |
 
-Overview shows all-time/current metrics with each question's intrinsic date rule. The Cash date control binds portfolio visuals to **Peak Cash Pool Date 30D**, loan type to **Loan Date**, and daily charts to **Snapshot Date**, preserving the source's unusual mixed semantics. It is not a historical as-of balance control. All dates are selected by default. Source cache timing and ongoing PROD activity can cause transient differences; no totals are hardcoded.
+Overview shows all-time/current metrics with each question's intrinsic date rule, except the three Portfolio trends that use the adjustable Portfolio trend period filter. The Cash date control binds portfolio visuals to **Peak Cash Pool Date 30D**, loan type to **Loan Date**, and daily charts to **Snapshot Date**, preserving the source's unusual mixed semantics. It is not a historical as-of balance control. Cash dates are selected by default. Source cache timing and ongoing PROD activity can cause transient differences; no totals are hardcoded.
 
 ## Verification and review limits
 

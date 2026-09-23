@@ -20,7 +20,7 @@ assert.ok(tab);state.tab_id=tab.id;write('income-state.json',state);
 const keep=d.dashcards.filter(c=>c.dashboard_tab_id!==tab.id),cards=[...keep];let next=-1;
 function note(row,text,height=1){cards.push({id:d.dashcards.find(c=>c.dashboard_tab_id===tab.id&&!c.card_id&&c.visualization_settings?.virtual_card?.visualization_settings?.text===text)?.id??next--,card_id:null,dashboard_tab_id:tab.id,col:0,row,size_x:24,size_y:height,series:[],parameter_mappings:[],visualization_settings:{'card.background':false,virtual_card:{display:height===1?'heading':'text',visualization_settings:{text}}}});}
 function place(key,col,row,w,h){const id=state.cards[key],q=questions.find(q=>q.key===key),parameter_mappings=[];if(q.native_select)parameter_mappings.push({parameter_id:'income-period',card_id:id,target:['dimension',['template-tag','statement_period']]});if(q.date_field)parameter_mappings.push({parameter_id:'income-period',card_id:id,target:['dimension',['field',q.date_field,{'base-type':'type/Date'}]]});cards.push({id:d.dashcards.find(c=>c.dashboard_tab_id===tab.id&&c.card_id===id)?.id??next--,card_id:id,dashboard_tab_id:tab.id,col,row,size_x:w,size_y:h,series:[],parameter_mappings,visualization_settings:{}});}
-note(0,'Income statement · selected period · THB');
+note(0,'Income statement · selected period');
 ['income','expenses','profit','margin','tommy','lisa'].forEach((k,i)=>place(k,(i%3)*8,1+Math.floor(i/3)*2,8,2));
 note(5,'1 · From earnings to profit retained');place('bridge',0,6,24,5);
 note(11,'Average uses calendar days. Draws consume earlier profit first.',2);

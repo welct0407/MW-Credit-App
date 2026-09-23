@@ -74,7 +74,7 @@
   {
     "key": "b-principal",
     "page": 3,
-    "name": "Principal outstanding · THB",
+    "name": "Principal outstanding",
     "model": "portfolio",
     "display": "scalar",
     "settings": {
@@ -154,7 +154,7 @@
   {
     "key": "b-interest",
     "page": 3,
-    "name": "Lifetime interest · THB",
+    "name": "Lifetime interest",
     "model": "borrowers",
     "display": "scalar",
     "settings": {
@@ -1543,7 +1543,7 @@
   {
     "key": "p-interest",
     "page": 4,
-    "name": "Gross interest · THB",
+    "name": "Gross interest",
     "model": "repayments",
     "display": "scalar",
     "settings": {
@@ -1717,7 +1717,7 @@
   {
     "key": "p-principal",
     "page": 4,
-    "name": "Principal issued · THB",
+    "name": "Principal issued",
     "model": "loans",
     "display": "scalar",
     "settings": {
@@ -2786,7 +2786,7 @@
   {
     "key": "r-principal",
     "page": 5,
-    "name": "Principal outstanding · THB",
+    "name": "Principal outstanding",
     "model": "portfolio",
     "display": "scalar",
     "settings": {
@@ -2829,7 +2829,7 @@
   {
     "key": "r-interest",
     "page": 5,
-    "name": "Lifetime interest · THB",
+    "name": "Lifetime interest",
     "model": "borrowers",
     "display": "scalar",
     "settings": {
@@ -2940,7 +2940,7 @@
   {
     "key": "r-past-due",
     "page": 5,
-    "name": "Past-due amount · THB",
+    "name": "Past-due amount",
     "model": "charges",
     "display": "scalar",
     "settings": {
@@ -4111,7 +4111,7 @@
   {
     "key": "c-due",
     "page": 6,
-    "name": "Amount due · THB",
+    "name": "Amount due",
     "model": "portfolio",
     "display": "scalar",
     "settings": {
@@ -4179,7 +4179,7 @@
   {
     "key": "c-collected",
     "page": 6,
-    "name": "Collected · THB",
+    "name": "Collected",
     "model": "portfolio",
     "display": "scalar",
     "settings": {
@@ -4247,7 +4247,7 @@
   {
     "key": "c-remaining",
     "page": 6,
-    "name": "Outstanding · THB",
+    "name": "Outstanding",
     "model": "portfolio",
     "display": "scalar",
     "settings": {
@@ -5515,7 +5515,7 @@
   {
     "key": "i-principal",
     "page": 7,
-    "name": "Current principal · THB",
+    "name": "Current principal",
     "model": "borrowers",
     "display": "scalar",
     "settings": {
@@ -5653,7 +5653,7 @@
   {
     "key": "i-overdue",
     "page": 7,
-    "name": "Overdue · THB",
+    "name": "Overdue",
     "model": "borrowers",
     "display": "scalar",
     "settings": {
@@ -5722,7 +5722,7 @@
   {
     "key": "i-interest",
     "page": 7,
-    "name": "Lifetime interest · THB",
+    "name": "Lifetime interest",
     "model": "borrowers",
     "display": "scalar",
     "settings": {
@@ -6378,7 +6378,7 @@
   {
     "key": "f-realized",
     "page": 8,
-    "name": "Realized this month · THB",
+    "name": "Realized this month",
     "model": "portfolio",
     "display": "scalar",
     "settings": {
@@ -6421,7 +6421,7 @@
   {
     "key": "f-remaining",
     "page": 8,
-    "name": "Remaining forecast · THB",
+    "name": "Remaining forecast",
     "model": "portfolio",
     "display": "scalar",
     "settings": {
@@ -6489,7 +6489,7 @@
   {
     "key": "f-estimate",
     "page": 8,
-    "name": "Estimated month · THB",
+    "name": "Estimated month",
     "model": "portfolio",
     "display": "scalar",
     "settings": {
@@ -7077,7 +7077,7 @@
   {
     "key": "f-detail",
     "page": 8,
-    "name": "Borrower forecast detail · THB",
+    "name": "Borrower forecast detail",
     "model": "loans",
     "display": "table",
     "settings": {

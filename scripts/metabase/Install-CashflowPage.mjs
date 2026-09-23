@@ -39,7 +39,7 @@ state.tab_id=tab.id;write('cashflow-state.json',state);
 const cards=d.dashcards.filter(c=>c.dashboard_tab_id!==tab.id);let next=-1;
 function note(row,text,height=1){cards.push({id:next--,card_id:null,dashboard_tab_id:tab.id,col:0,row,size_x:24,size_y:height,series:[],parameter_mappings:[],visualization_settings:{'card.background':false,virtual_card:{display:height===1?'heading':'text',visualization_settings:{text}}}});}
 function place(key,col,row,w,h){const id=state.cards[key];cards.push({id:d.dashcards.find(c=>c.dashboard_tab_id===tab.id&&c.card_id===id)?.id??next--,card_id:id,dashboard_tab_id:tab.id,col,row,size_x:w,size_y:h,series:[],parameter_mappings:[{parameter_id:'cashflow-period',card_id:id,target:['dimension',['template-tag','cashflow_period']]},{parameter_id:'cashflow-account',card_id:id,target:['variable',['template-tag','cash_account']]}],visualization_settings:{}});}
-note(0,'Cashflow statement · selected period · THB');
+note(0,'Cashflow statement · selected period');
 ['in','out','net'].forEach((key,i)=>place(key,i*8,1,8,2));
 note(3,'All accounts: internal transfers stay in the ledger but add no inflow or outflow.',2);
 place('period',0,5,24,4);place('opening',0,9,24,2);

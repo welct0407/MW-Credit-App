@@ -23,9 +23,9 @@ function chart(key,p,title,m,display,dimension,metrics,{filter,order='desc',limi
 function table(key,p,title,m,fields,filter,extra={}){add(key,p,title,m,'table',{fields:fields.map(f=>F(m,f)),...(filter?{filter}:{})},[],fields,extra);}
 // 3 — Borrowers: current governed borrower metrics; stable keys remain in detail datasets.
 scalar('b-active',3,'Active borrowers','borrowers',null,'count',active);
-scalar('b-principal',3,'Principal outstanding · THB','portfolio','Outstanding Principal');
+scalar('b-principal',3,'Principal outstanding','portfolio','Outstanding Principal');
 add('b-top',3,'Largest borrower','portfolio','scalar',{fields:[F('portfolio','Top Borrower')]},[],['Top Borrower']);
-scalar('b-interest',3,'Lifetime interest · THB','borrowers','Total Interest Earned');
+scalar('b-interest',3,'Lifetime interest','borrowers','Total Interest Earned');
 for(const [key,f,title]of [['principal','Outstanding Principal','Principal'],['profit','Profit Last 30 Days','Interest · past 30 days']]){
  chart('b-share-'+key,3,title+' share','borrowers','pie','Borrower',[f],{filter:visible});
  chart('b-rank-'+key,3,title+' by borrower','borrowers','row','Borrower',[f],{filter:visible});
@@ -36,9 +36,9 @@ table('b-stability',3,'Borrower value & stability','borrowers',['Matrix Label','
 table('b-capital-profit',3,'Average capital vs 30-day interest','borrowers',['Borrower','30D Average Outstanding Principal','Profit Last 30 Days'],visible,{display:'scatter',settings:{'graph.dimensions':['30D Average Outstanding Principal','Borrower'],'graph.metrics':['Profit Last 30 Days'],'graph.show_legend':false}});
 table('b-matrix-detail',3,'Stability score components','borrowers',['Borrower','Matrix Quadrant','Matrix Stability Score','Matrix Recent Reliability Score','Matrix Historical Reliability Score','Matrix Delay Severity Score','Matrix Current Condition Score']);
 // 4 — Performance. Date filtering operates on event or snapshot date as appropriate.
-scalar('p-interest',4,'Gross interest · THB','repayments','Interest Paid');
+scalar('p-interest',4,'Gross interest','repayments','Interest Paid');
 add('p-growth',4,'7-day profit growth','portfolio','scalar',{fields:[F('portfolio','7-Day Profit Growth %')]},[],['7-Day Profit Growth %']);
-scalar('p-count',4,'Loans issued','loans',null,'count');scalar('p-principal',4,'Principal issued · THB','loans','Principal Amount');
+scalar('p-count',4,'Loans issued','loans',null,'count');scalar('p-principal',4,'Principal issued','loans','Principal Amount');
 for(const [key,f,title]of [['daily','Profit','Daily gross interest'],['cumulative','Cumulative Profit','Cumulative gross interest'],['yield','Daily Capital Yield','Daily capital yield'],['active-loans','Active Loans EOD','Active loans · past 30 days'],['active-borrowers','Active Borrowers EOD','Active borrowers · past 30 days']])chart('p-'+key,4,title,'daily','line','Date',[f],{order:'asc',filter:key.startsWith('active')?eq('daily','In Last 30 Days',true):undefined});
 chart('p-issued',4,'Principal issued over time','loans','bar','Loan Date',['Principal Amount'],{order:'asc'});
 chart('p-issued-count',4,'Loans issued over time','loans','bar','Loan Date',[null],{order:'asc',aggregation:'count'});
@@ -47,7 +47,7 @@ chart('p-average',4,'Average loan size · weekly','loans','bar','Loan Week',['Pr
 chart('p-period',4,'Period performance · daily','daily','table','Date',['Principal Issued','Principal Returned','Profit','Loans Issued'],{order:'asc'});
 for(const q of specs.filter(q=>q.page===4&&q.model!=='portfolio'))q.date_field={repayments:'Payment Date',loans:'Loan Date',daily:'Date'}[q.model];
 // 5 — Risks.
-scalar('r-principal',5,'Principal outstanding · THB','portfolio','Outstanding Principal');scalar('r-interest',5,'Lifetime interest · THB','borrowers','Total Interest Earned');scalar('r-top3',5,'Top three concentration','portfolio','Top 3 Borrower Concentration');scalar('r-past-due',5,'Past-due amount · THB','charges','Past Due Amount');
+scalar('r-principal',5,'Principal outstanding','portfolio','Outstanding Principal');scalar('r-interest',5,'Lifetime interest','borrowers','Total Interest Earned');scalar('r-top3',5,'Top three concentration','portfolio','Top 3 Borrower Concentration');scalar('r-past-due',5,'Past-due amount','charges','Past Due Amount');
 chart('r-borrowers',5,'Principal by borrower','borrowers','row','Borrower',['Outstanding Principal'],{filter:active});
 chart('r-status',5,'Loan status','loans','pie','Loan Status',[null],{aggregation:'count'});
 chart('r-age-count',5,'Active loan count by age','loans','row','Loan Age Bucket',[null],{aggregation:'count',filter:eq('loans','Loan Status','Active'),order:'asc'});
@@ -61,7 +61,7 @@ scalar('c-due-count',6,'Borrowers due today','collections',null,'count');
 scalar('c-paid-count',6,'Fully paid','collections',null,'count',eq('collections','Daily Collection Status','Fully Paid'));
 scalar('c-partial-count',6,'Partially paid','collections',null,'count',eq('collections','Daily Collection Status','Partially Paid'));
 scalar('c-unpaid-count',6,'Not paid / overdue','collections',null,'count',['or',eq('collections','Daily Collection Status','Not Paid'),eq('collections','Daily Collection Status','Overdue')]);
-for(const [k,f,title]of [['due','Amount Due Today','Amount due · THB'],['collected','Amount Collected Today','Collected · THB'],['remaining','Amount Outstanding Today','Outstanding · THB'],['rate','Amount Collection Rate Today','Collection rate']])scalar('c-'+k,6,title,'portfolio',f);
+for(const [k,f,title]of [['due','Amount Due Today','Amount due'],['collected','Amount Collected Today','Collected'],['remaining','Amount Outstanding Today','Outstanding'],['rate','Amount Collection Rate Today','Collection rate']])scalar('c-'+k,6,title,'portfolio',f);
 for(const [key,status]of [['paid','Fully Paid'],['partial','Partially Paid'],['unpaid','Not Paid'],['overdue','Overdue']]){
  const filter=eq('collections','Daily Collection Status',status),summaryFilter=eq('collection-summary','Collection Status',status);
  scalar('c-'+key+'-borrowers',6,status+' · borrowers','collection-summary','Borrower Count','sum',summaryFilter);
@@ -69,20 +69,20 @@ for(const [key,status]of [['paid','Fully Paid'],['partial','Partially Paid'],['u
  table('c-'+key+'-detail',6,status+' · collection worklist','collections',['Borrower','Amount Due','Amount Collected','Amount Remaining','Receipts Today','Overdue Amount'],filter);
 }
 // 7 — Borrower Insight. All record-based questions share the immutable borrower-key filter.
-for(const [k,f,title]of [['principal','Outstanding Principal','Current principal · THB'],['active','Active Loans','Active loans'],['overdue','Overdue Amount','Overdue · THB'],['interest','Total Interest Earned','Lifetime interest · THB']])scalar('i-'+k,7,title,'borrowers',f);
+for(const [k,f,title]of [['principal','Outstanding Principal','Current principal'],['active','Active Loans','Active loans'],['overdue','Overdue Amount','Overdue'],['interest','Total Interest Earned','Lifetime interest']])scalar('i-'+k,7,title,'borrowers',f);
 chart('i-timing',7,'Monthly payment behaviour','charges','bar',['Charge Month','Payment Timing'],[null],{order:'asc',aggregation:'count',settings:{'stackable.stack_type':'stacked','graph.show_legend':true}});
 table('i-loans',7,'Borrower loan history','loans',['Loan Date','Loan ID','Loan Type','Loan Status','Principal Amount','Outstanding Principal','Current Daily Interest']);
 table('i-assessment',7,'Credit history & assessment inputs','borrowers',['Borrower','Hidden','Has Closed Loan','Has Active Loan','Default Count','Lifetime Default Loss','Largest Successful Loan','Average Successful Loan Size','Historical Charge Count','Matrix History Sufficient','Matrix Quadrant']);
 table('i-risk',7,'Borrower risk monitor','borrowers',riskFields);
 for(const q of specs.filter(q=>q.page===7))q.borrower_field='Borrower ID';
 // 8 — Forecasts are current-month values; source loan forecasts are not a decomposition of portfolio estimates.
-for(const [k,f,title]of [['realized','Realized Profit MTD','Realized this month · THB'],['remaining','Remaining Forecast Profit','Remaining forecast · THB'],['estimate','Projected Monthly Profit','Estimated month · THB'],['realization','Forecast Realization','Forecast realization']])scalar('f-'+k,8,title,'portfolio',f);
+for(const [k,f,title]of [['realized','Realized Profit MTD','Realized this month'],['remaining','Remaining Forecast Profit','Remaining forecast'],['estimate','Projected Monthly Profit','Estimated month'],['realization','Forecast Realization','Forecast realization']])scalar('f-'+k,8,title,'portfolio',f);
 chart('f-progress',8,'Realized and remaining forecast','portfolio','bar','As Of Date',['Realized Profit MTD','Remaining Forecast Profit'],{settings:{'stackable.stack_type':'stacked'}});
 chart('f-type',8,'Expected interest by loan type','loans','row','Loan Type',['Expected Interest This Month']);
 chart('f-daily-borrower',8,'Current daily interest by borrower','loans','pie','Borrower',['Current Daily Interest']);
 chart('f-month-borrower',8,'Expected monthly interest by borrower','loans','pie','Borrower',['Expected Interest This Month']);
 chart('f-partner',8,'Current partner pool shares','partners','pie','Partner',['Current Pool Share']);
-chart('f-detail',8,'Borrower forecast detail · THB','loans','table','Borrower',['Current Daily Interest','Expected Interest This Month','Outstanding Principal']);
+chart('f-detail',8,'Borrower forecast detail','loans','table','Borrower',['Current Daily Interest','Expected Interest This Month','Outstanding Principal']);
 chart('f-interest-trend',8,'Interest received over time','repayments','line','Payment Date',['Interest Paid'],{order:'asc'});
 specs.find(q=>q.key==='b-stability').settings.column_settings[JSON.stringify(['name','Matrix Scaled Economic Contribution'])]={number_style:'decimal',decimals:2};
 write('remaining-questions.json',specs.map(reuseQuestionSpec));console.log(`Built ${specs.length} page definitions with shared question references.`);
