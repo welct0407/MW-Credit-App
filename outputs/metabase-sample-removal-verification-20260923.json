@@ -1,0 +1,21 @@
+{
+  "verified_at": "2026-09-23T04:04:14.1857324+00:00",
+  "sample_database_absent": true,
+  "remaining_database_id": 2,
+  "remaining_database_name": "PROD Loan Reporting",
+  "production_source_identity_verified": true,
+  "saved_cards": 155,
+  "dashboards": [
+    {
+      "dashboard_id": 2,
+      "name": "Borrower overview · PROD POC",
+      "placements": 7
+    },
+    {
+      "dashboard_id": 3,
+      "name": "Loan Reports",
+      "placements": 180
+    }
+  ],
+  "snippets": 3
+}
