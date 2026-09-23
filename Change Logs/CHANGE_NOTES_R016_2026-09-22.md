@@ -166,3 +166,24 @@ The owner corrected the comparison to the last seven completed Bangkok dates, ex
 Starting Git commit `dac2c6de8d6e8a7f73e06a81fc3e95fea422aa2b`, clean tree. Before live edits, exact card 71/73/56/95 and dashboard 3 definitions plus the dictionary were saved privately under `r016-20260922/growth-window-before-20260923/`; rollback restores affected Metabase metadata from those files and reverts this repository batch. Updated the maintained model SQL, saved model/question descriptions, source contract, runbook and the affected dictionary rows. The historical original-question SQL remains dated source-parity evidence and is not a deployment definition.
 
 Replacement model SQL passed restricted PROD preflight at the same 853-row, 13-column grain. Saved model and question descriptions read back. Both live questions returned one row and matched an independent direct aggregation of `olap_repayments_analytics` without printing amounts. A generated-date boundary check confirmed seven dates in each window and exclusion of today. The affected dictionary range rendered and its three edited cells read back; every other XLSX part remained byte-identical. Model field mappings, card bindings and dashboard placements also remained unchanged. [Sanitized verification](../outputs/r016-20260922/growth-window-verification.json). Full R016 owner acceptance and closure remain pending.
+
+## Reuse saved questions across pages — 23 September 2026
+
+The owner requested a review of current questions and removal of duplicates. Starting commit `90a0c472fcc083bc2f74aaf41d3238f7e29c3062`, clean tree. Reviewed all 155 active cards (questions/models/lookups) and both dashboards. Exact definitions and both dashboard layouts were saved privately in `r016-20260922/question-reuse-before/`; affected questions also have individual backups. Ten duplicate questions were replaced with existing shared questions and recoverably archived after reference checks:
+
+| Retired questions | Shared question | Metric |
+| --- | --- | --- |
+| 79, 108 | 48 | Outstanding principal |
+| 80 | 59 | Largest borrower |
+| 95 | 56 | Seven-day profit growth |
+| 109, 142 | 81 | Borrower lifetime interest; page 7 retains its borrower filter |
+| 147 | 51 | Realized profit MTD |
+| 149 | 52 | Projected monthly profit |
+| 127 | 120 | Fully paid borrower count |
+| 130 | 121 | Partially paid borrower count |
+
+The report keeps all 130 visuals across ten tabs, now using 116 distinct questions (93 model-backed queries, three borrower scenarios, thirteen Income SQL projections and seven Cashflow SQL projections). Existing page titles, scalar formats, owner colors, placement IDs/coordinates and parameter mappings were preserved; canonical query definitions were not edited. Same-name questions with distinct populations/date contracts and different chart types remain intentional variants, documented in [verification](../outputs/r016-20260922/question-reuse-verification.json). No equivalent same-display group remains after normalized-query review. The separate POC explicitly excludes hidden borrowers and remains unchanged.
+
+Verification: ten original/canonical result comparisons and twelve real dashboard placement/filter cases passed, including selected and nonexistent borrower keys for the shared lifetime-interest card. Reviewed portfolio one-row and collection summary definitions establish equivalence beyond today's values; both empty collection counts render zero. Saved-state checks confirm all layout/title/format/filter expectations, canonical definitions, ten archived flags and absence of question/snippet dependencies. Browser checks cover Performance, repeated Daily Collection counts and Borrower Insight. No private result rows were published.
+
+`QuestionReuse.mjs` owns the reuse map; generated page aliases now contain `reuse_card_id` instead of duplicate queries. The installer reuses canonical questions without overwriting them and preserves distinct placement IDs for repeated questions on the same page. Current state/manifest, tracker, environment/development records, source contract, model overview, solution design, runbook and existing checklist were updated. The dictionary's twenty models/287 fields, source schema/data, AppSheet, grants and financial behavior are unchanged; no model workbook, Flyway, diagram or RC change is needed. Rollback: unarchive the ten saved questions, restore dashboard 3 from its private baseline and revert this repository batch. Full R016 owner acceptance and final closure remain pending.

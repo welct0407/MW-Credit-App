@@ -1,6 +1,10 @@
-# R016 — Nine-page Loan Reports review
+# R016 — Ten-page Loan Reports review
 
-## Current Income Statement — V35, 23 September 2026
+## Current question reuse — 23 September 2026
+
+The ten-page dashboard has 130 visual placements using 116 distinct questions, twenty models and 287 model fields. Ten redundant questions were replaced with existing canonical questions and recoverably archived. Page titles, number formats, layout and filter mappings stay on each placement; the query is owned by the shared question. Overview and Performance now both use question 56 for seven-day growth. [Mapping, comparisons and recovery](question-reuse-verification.json). The original POC and intentionally different chart types, populations and date contracts remain separate. Earlier counts below are dated checkpoints.
+
+## Income Statement checkpoint — V35, 23 September 2026
 
 The cash waterfall was removed on 23 September. Separate + and = symbols now connect the three cash cards; a short footnote preserves the distinction between selected-period profit and cumulative cash. Native waterfall Total cannot be renamed in this Metabase version, so its chart title states **Total = Unsettled Profit**. Queries, models and date mappings are unchanged; eleven focused checks passed ([evidence](income-symbols-verification.json)).
 

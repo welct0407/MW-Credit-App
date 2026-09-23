@@ -6,14 +6,16 @@
       "rows": 1
     },
     "b-principal": {
-      "id": 79,
+      "id": 48,
       "page": 3,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "b-top": {
-      "id": 80,
+      "id": 59,
       "page": 3,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "b-interest": {
       "id": 81,
@@ -86,9 +88,10 @@
       "rows": 1
     },
     "p-growth": {
-      "id": 95,
+      "id": 56,
       "page": 4,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "p-count": {
       "id": 96,
@@ -151,14 +154,16 @@
       "rows": 49
     },
     "r-principal": {
-      "id": 108,
+      "id": 48,
       "page": 5,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "r-interest": {
-      "id": 109,
+      "id": 81,
       "page": 5,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "r-top3": {
       "id": 110,
@@ -246,9 +251,10 @@
       "rows": 1
     },
     "c-paid-borrowers": {
-      "id": 127,
+      "id": 120,
       "page": 6,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "c-paid-amount": {
       "id": 128,
@@ -261,9 +267,10 @@
       "rows": 9
     },
     "c-partial-borrowers": {
-      "id": 130,
+      "id": 121,
       "page": 6,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "c-partial-amount": {
       "id": 131,
@@ -321,9 +328,10 @@
       "rows": 1
     },
     "i-interest": {
-      "id": 142,
+      "id": 81,
       "page": 7,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "i-timing": {
       "id": 143,
@@ -346,9 +354,10 @@
       "rows": 30
     },
     "f-realized": {
-      "id": 147,
+      "id": 51,
       "page": 8,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "f-remaining": {
       "id": 148,
@@ -356,9 +365,10 @@
       "rows": 1
     },
     "f-estimate": {
-      "id": 149,
+      "id": 52,
       "page": 8,
-      "rows": 1
+      "rows": 1,
+      "reused": true
     },
     "f-realization": {
       "id": 150,

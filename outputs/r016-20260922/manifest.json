@@ -17,7 +17,7 @@
       12,
       13
     ],
-    "questions": 126,
+    "questions": 116,
     "source": 2,
     "heading_and_note_cards": 50
   },
@@ -106,5 +106,6 @@
   "cashflow_db_tests": "cashflow-production.json",
   "cashflow_access": "cashflow-grants.json",
   "cashflow_table_refinement": "cashflow-table-refinement.json",
-  "scalar_hover_cleanup": "scalar-hover-cleanup.json"
+  "scalar_hover_cleanup": "scalar-hover-cleanup.json",
+  "question_reuse_evidence": "question-reuse-verification.json"
 }

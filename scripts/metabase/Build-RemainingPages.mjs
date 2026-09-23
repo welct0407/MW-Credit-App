@@ -1,4 +1,5 @@
 import {read,write} from './ReportingApi.mjs';
+import {reuseQuestionSpec} from './QuestionReuse.mjs';
 const models=read('models.json'), specs=[];
 const C=['#178F8A','#7472BE','#D6816B','#24435A','#D4AD60'];
 const type=(m,f)=>models[m].columns.find(c=>c.name===f)?.base_type??'type/Decimal';
@@ -84,4 +85,4 @@ chart('f-partner',8,'Current partner pool shares','partners','pie','Partner',['C
 chart('f-detail',8,'Borrower forecast detail · THB','loans','table','Borrower',['Current Daily Interest','Expected Interest This Month','Outstanding Principal']);
 chart('f-interest-trend',8,'Interest received over time','repayments','line','Payment Date',['Interest Paid'],{order:'asc'});
 specs.find(q=>q.key==='b-stability').settings.column_settings[JSON.stringify(['name','Matrix Scaled Economic Contribution'])]={number_style:'decimal',decimals:2};
-write('remaining-questions.json',specs);console.log(`Built ${specs.length} model-based questions for pages 3–8.`);
+write('remaining-questions.json',specs.map(reuseQuestionSpec));console.log(`Built ${specs.length} page definitions with shared question references.`);

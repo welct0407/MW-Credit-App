@@ -5,7 +5,10 @@ if(!fs.existsSync(privateDir+'/remaining-pages-before/dashboard.json'))throw Err
 const models=read('models.json'),questions=read('remaining-questions.json');
 let state;try{state=read('remaining-install-state.json');}catch{state={cards:{}};}
 const save=()=>write('remaining-install-state.json',state);
+for(const q of questions.filter(q=>q.reuse_card_id))state.cards[q.key]={...state.cards[q.key],id:q.reuse_card_id,page:q.page,reused:true};
+save();
 for(const q of (process.argv.includes('--layout-only')?[]:questions)){
+ if(q.reuse_card_id)continue;
  const body={name:q.name,description:q.description,collection_id:5,type:'question',display:q.display,dataset_query:q.dataset_query,visualization_settings:q.settings};
  const id=state.cards[q.key]?.id, card=await api(id?'PUT':'POST',id?'card/'+id:'card',body);state.cards[q.key]={id:card.id,page:q.page};save();
  const result=await api('POST',`card/${card.id}/query`,{});
@@ -56,7 +59,8 @@ function place(key,tab,col,row,w,h){const q=questions.find(x=>x.key===key);if(!q
  if(q.date_field)mappings.push({parameter_id:'performance-date',card_id:id,target:['dimension',F(q.date_field,'type/Date')]});
  if(q.borrower_field)mappings.push({parameter_id:'insight-borrower',card_id:id,target:['dimension',F(q.borrower_field)]});
  if(q.scenario)mappings.push({parameter_id:'insight-borrower',card_id:id,target:['variable',['template-tag','borrower_id']]},{parameter_id:'proposed-amount',card_id:id,target:['variable',['template-tag','proposed_amount']]});
- placements.push({id:dashboard.dashcards.find(c=>c.dashboard_tab_id===tab&&c.card_id===id)?.id??next--,card_id:id,dashboard_tab_id:tab,col,row,size_x:w,size_y:h,series:[],visualization_settings:{},parameter_mappings:mappings});}
+ const existing=dashboard.dashcards.find(c=>c.dashboard_tab_id===tab&&c.card_id===id&&c.row===row&&c.col===col)??dashboard.dashcards.find(c=>c.dashboard_tab_id===tab&&c.card_id===id&&!placements.some(p=>p.id===c.id));
+ placements.push({id:existing?.id??next--,card_id:id,dashboard_tab_id:tab,col,row,size_x:w,size_y:h,series:[],visualization_settings:q.reuse_card_id?{...q.settings,'card.title':q.name}:{},parameter_mappings:mappings});}
 const layouts={
  3:[['Borrower portfolio · THB',['b-active','b-principal','b-top','b-interest']],['Capital & earnings concentration',['b-share-principal','b-share-profit','b-rank-principal','b-rank-profit']],['Returns & lending history',['b-return','b-coverage','b-lifetime','b-loans','b-contribution']],['Value & reliability',['b-stability','b-capital-profit','b-matrix-detail']]],
  4:[['Lending performance · gross interest',['p-interest','p-growth','p-count','p-principal']],['Profit & lending activity',['p-daily','p-cumulative','p-issued','p-issued-count','p-yield','p-type-profit','p-average']],['Portfolio activity & period detail',['p-active-loans','p-active-borrowers','p-period']]],

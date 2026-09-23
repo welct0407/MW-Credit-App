@@ -111,33 +111,8 @@
       },
       "scalar.field": "Outstanding Principal"
     },
-    "description": "Page 3. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__73",
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Outstanding Principal",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Outstanding Principal",
-              "display-name": "Outstanding Principal"
-            }
-          ]
-        ]
-      }
-    }
+    "description": "Reuses saved question 48. One-row Portfolio Overview outstanding principal.",
+    "reuse_card_id": 48
   },
   {
     "key": "b-top",
@@ -173,23 +148,8 @@
       "column_settings": {},
       "scalar.field": "Top Borrower"
     },
-    "description": "Page 3. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__73",
-        "fields": [
-          [
-            "field",
-            "Top Borrower",
-            {
-              "base-type": "type/Text"
-            }
-          ]
-        ]
-      }
-    }
+    "description": "Reuses saved question 59. Same Portfolio Overview top borrower field.",
+    "reuse_card_id": 59
   },
   {
     "key": "b-interest",
@@ -1689,23 +1649,8 @@
       },
       "scalar.field": "7-Day Profit Growth %"
     },
-    "description": "Page 4. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__73",
-        "fields": [
-          [
-            "field",
-            "7-Day Profit Growth %",
-            {
-              "base-type": "type/Decimal"
-            }
-          ]
-        ]
-      }
-    }
+    "description": "Reuses saved question 56. Same completed seven-day growth field.",
+    "reuse_card_id": 56
   },
   {
     "key": "p-count",
@@ -2878,33 +2823,8 @@
       },
       "scalar.field": "Outstanding Principal"
     },
-    "description": "Page 5. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__73",
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Outstanding Principal",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Outstanding Principal",
-              "display-name": "Outstanding Principal"
-            }
-          ]
-        ]
-      }
-    }
+    "description": "Reuses saved question 48. One-row Portfolio Overview outstanding principal.",
+    "reuse_card_id": 48
   },
   {
     "key": "r-interest",
@@ -2946,33 +2866,8 @@
       },
       "scalar.field": "Total Interest Earned"
     },
-    "description": "Page 5. Built from the shared Borrowers model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__69",
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Total Interest Earned",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Total Interest Earned",
-              "display-name": "Total Interest Earned"
-            }
-          ]
-        ]
-      }
-    }
+    "description": "Reuses saved question 81. Same borrower lifetime-interest aggregate.",
+    "reuse_card_id": 81
   },
   {
     "key": "r-top3",
@@ -4489,12 +4384,12 @@
     "key": "c-paid-borrowers",
     "page": 6,
     "name": "Fully Paid · borrowers",
-    "model": "collection-summary",
+    "model": "collections",
     "display": "scalar",
     "settings": {
       "graph.dimensions": [],
       "graph.metrics": [
-        "Borrower Count"
+        "Fully paid"
       ],
       "graph.colors": [
         "#178F8A",
@@ -4504,7 +4399,7 @@
         "#D4AD60"
       ],
       "series_settings": {
-        "Borrower Count": {
+        "Fully paid": {
           "color": "#178F8A"
         }
       },
@@ -4517,52 +4412,16 @@
       "table.pivot": false,
       "table.cell_column_widths": null,
       "column_settings": {
-        "[\"name\",\"Borrower Count\"]": {
+        "[\"name\",\"Fully paid\"]": {
           "number_style": "decimal",
           "decimals": 0,
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Borrower Count"
+      "scalar.field": "Fully paid"
     },
-    "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__162",
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Borrower Count",
-                {
-                  "base-type": "type/BigInteger"
-                }
-              ]
-            ],
-            {
-              "name": "Borrower Count",
-              "display-name": "Borrower Count"
-            }
-          ]
-        ],
-        "filter": [
-          "=",
-          [
-            "field",
-            "Collection Status",
-            {
-              "base-type": "type/Text"
-            }
-          ],
-          "Fully Paid"
-        ]
-      }
-    }
+    "description": "Reuses saved question 120. Summary count is the same Fully Paid worklist population.",
+    "reuse_card_id": 120
   },
   {
     "key": "c-paid-amount",
@@ -4790,12 +4649,12 @@
     "key": "c-partial-borrowers",
     "page": 6,
     "name": "Partially Paid · borrowers",
-    "model": "collection-summary",
+    "model": "collections",
     "display": "scalar",
     "settings": {
       "graph.dimensions": [],
       "graph.metrics": [
-        "Borrower Count"
+        "Partially paid"
       ],
       "graph.colors": [
         "#178F8A",
@@ -4805,7 +4664,7 @@
         "#D4AD60"
       ],
       "series_settings": {
-        "Borrower Count": {
+        "Partially paid": {
           "color": "#178F8A"
         }
       },
@@ -4818,52 +4677,16 @@
       "table.pivot": false,
       "table.cell_column_widths": null,
       "column_settings": {
-        "[\"name\",\"Borrower Count\"]": {
+        "[\"name\",\"Partially paid\"]": {
           "number_style": "decimal",
           "decimals": 0,
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Borrower Count"
+      "scalar.field": "Partially paid"
     },
-    "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__162",
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Borrower Count",
-                {
-                  "base-type": "type/BigInteger"
-                }
-              ]
-            ],
-            {
-              "name": "Borrower Count",
-              "display-name": "Borrower Count"
-            }
-          ]
-        ],
-        "filter": [
-          "=",
-          [
-            "field",
-            "Collection Status",
-            {
-              "base-type": "type/Text"
-            }
-          ],
-          "Partially Paid"
-        ]
-      }
-    }
+    "description": "Reuses saved question 121. Summary count is the same Partially Paid worklist population.",
+    "reuse_card_id": 121
   },
   {
     "key": "c-partial-amount",
@@ -5936,34 +5759,9 @@
       },
       "scalar.field": "Total Interest Earned"
     },
-    "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__69",
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Total Interest Earned",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Total Interest Earned",
-              "display-name": "Total Interest Earned"
-            }
-          ]
-        ]
-      }
-    },
-    "borrower_field": "Borrower ID"
+    "description": "Reuses saved question 81. Same borrower lifetime-interest aggregate; borrower filter belongs to placement.",
+    "borrower_field": "Borrower ID",
+    "reuse_card_id": 81
   },
   {
     "key": "i-timing",
@@ -6617,33 +6415,8 @@
       },
       "scalar.field": "Realized Profit MTD"
     },
-    "description": "Page 8. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__73",
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Realized Profit MTD",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Realized Profit MTD",
-              "display-name": "Realized Profit MTD"
-            }
-          ]
-        ]
-      }
-    }
+    "description": "Reuses saved question 51. One-row Portfolio Overview realized MTD profit.",
+    "reuse_card_id": 51
   },
   {
     "key": "f-remaining",
@@ -6753,33 +6526,8 @@
       },
       "scalar.field": "Projected Monthly Profit"
     },
-    "description": "Page 8. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
-    "dataset_query": {
-      "database": 2,
-      "type": "query",
-      "query": {
-        "source-table": "card__73",
-        "aggregation": [
-          [
-            "aggregation-options",
-            [
-              "sum",
-              [
-                "field",
-                "Projected Monthly Profit",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Projected Monthly Profit",
-              "display-name": "Projected Monthly Profit"
-            }
-          ]
-        ]
-      }
-    }
+    "description": "Reuses saved question 52. One-row Portfolio Overview projected monthly profit.",
+    "reuse_card_id": 52
   },
   {
     "key": "f-realization",
