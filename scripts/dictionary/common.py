@@ -265,5 +265,8 @@ def validate(root, check_index=True, overrides=None):
         if not workbook.is_file() or digest(workbook.read_bytes()) != migration["sha256"]:
             errors.append({"file": migration["workbook"], "error": "Frozen migration workbook changed or missing"})
     unresolved = load(root / "unresolved.yaml")
+    items = unresolved.get("items", [])
     return {"documents": len(paths), "errors": errors, "reconciliation": "deferred by owner",
-            "recorded_limitations": len(unresolved.get("items", []))}
+            "recorded_limitations": sum(item.get("status") not in ("resolved", "informational") for item in items),
+            "resolved_items": sum(item.get("status") == "resolved" for item in items),
+            "informational_items": sum(item.get("status") == "informational" for item in items)}

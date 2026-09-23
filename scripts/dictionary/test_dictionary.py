@@ -138,6 +138,16 @@ class DictionaryTests(unittest.TestCase):
         self.assertEqual(len(set(identities)), 2)
         self.assertEqual(len(migration.locations), 2)
 
+    def test_resolved_and_future_coverage_are_not_open_limitations(self):
+        write_yaml(self.root / "unresolved.yaml", {"format": 1, "items": [
+            {"id": "A", "status": "deferred"}, {"id": "B", "status": "resolved"},
+            {"id": "C", "status": "informational"},
+        ]})
+        report = validate(self.root)
+        self.assertEqual(report["recorded_limitations"], 1)
+        self.assertEqual(report["resolved_items"], 1)
+        self.assertEqual(report["informational_items"], 1)
+
     def test_invalid_evidence_and_planned_system_fail_validation(self):
         doc = copy.deepcopy(self.doc)
         doc["evidence"] = {"/content/missing": {"reference": "test.md", "reason": "test", "state": "value"}}

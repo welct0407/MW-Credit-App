@@ -15,8 +15,9 @@
     \ must not be automatically applied as current DEV overrides."
   "path": "imports/excel-20260923/dev-differences"
 - "id": "UNPLACED"
-  "status": "preserved"
-  "detail": "Seven nonempty rows have incomplete object identities. They remain text records rather than invented objects."
+  "status": "resolved"
+  "detail": "Removed seven empty-identity residue rows: five held only v1.100081 and two held only ordinals 1 and 2. They\
+    \ define no object. Original records remain in frozen Excel and migration commit faa51d2."
   "source_rows":
   - - "Prod Tables"
     - 33
@@ -32,16 +33,18 @@
     - 56
   - - "Slice Columns"
     - 57
+  "resolution_evidence": "outputs/dictionary-migration-20260923/cleanup.json"
 - "id": "LABELS"
   "status": "deferred"
-  "detail": "Different environment labels, removed-app labels and property spellings remain separate. Database/Metabase instance\
-    \ identity is unassigned where the workbook does not establish it."
+  "detail": "Environment label variants and property spellings remain separate; database/Metabase instance identity is unassigned\
+    \ where the workbook does not establish it. Consolidation requires evidence reconciliation. The obsolete OLAP Calendar\
+    \ records were deleted at owner request."
 - "id": "EXCEL-FORMULA"
-  "status": "preserved"
-  "detail": "App Settings D121 is an Excel formula. Both exact formula text and its stored cached value are preserved; no\
-    \ expression evaluation or reinterpretation was performed."
+  "status": "resolved"
+  "detail": "Normalized App Settings D121 to the literal string ADDS_AND_UPDATES. The original constant Excel formula and\
+    \ cached result agree; both original values remain in migration evidence and Git. No live configuration claim."
+  "resolution_evidence": "outputs/dictionary-migration-20260923/cleanup.json"
 - "id": "COVERAGE"
-  "status": "deferred"
-  "detail": "This is a complete migration of the workbook's records, not a complete inventory of the ecosystem. Grafana is\
-    \ a planned namespace with no imported definitions. AppSheet action/view/automation details remain in their source supplements\
-    \ until later reconciliation."
+  "status": "informational"
+  "detail": "Future ecosystem expansion, not an import failure: all source rows were imported. Grafana has no source definitions;\
+    \ add them in a later scoped task. AppSheet action/view/automation records remain in source supplements pending reconciliation."

@@ -11790,16 +11790,6 @@
       ]
     },
     {
-      "file": "imports/excel-20260923/prod-tables/unplaced.yaml",
-      "system": "workbook-evidence",
-      "component": "excel-20260923/prod-tables",
-      "kind": "sheet-records",
-      "name": "unplaced",
-      "scope": "as-recorded",
-      "status": "imported-unreconciled",
-      "lookup": []
-    },
-    {
       "file": "imports/excel-20260923/r008-production/olap.yaml",
       "system": "workbook-evidence",
       "component": "excel-20260923/r008-production",
@@ -12616,16 +12606,6 @@
           "pointer": "/content/records/row-00188"
         }
       ]
-    },
-    {
-      "file": "imports/excel-20260923/slice-columns/unplaced.yaml",
-      "system": "workbook-evidence",
-      "component": "excel-20260923/slice-columns",
-      "kind": "sheet-records",
-      "name": "unplaced",
-      "scope": "as-recorded",
-      "status": "imported-unreconciled",
-      "lookup": []
     },
     {
       "file": "systems/appsheet/olap/slices/borrowers-with-outstanding-loans.yaml",
@@ -14808,65 +14788,6 @@
         {
           "subject": "Header - Income Statement MTD",
           "pointer": "/content/columns/Header - Income Statement MTD"
-        }
-      ]
-    },
-    {
-      "file": "systems/appsheet/olap-removed-2026-09-16/tables/calendar.yaml",
-      "system": "appsheet",
-      "component": "olap-removed-2026-09-16",
-      "kind": "table",
-      "name": "Calendar",
-      "scope": "recorded-production",
-      "status": "imported-unreconciled",
-      "lookup": [
-        {
-          "subject": "_RowNumber",
-          "pointer": "/content/columns/_RowNumber"
-        },
-        {
-          "subject": "Date",
-          "pointer": "/content/columns/Date"
-        },
-        {
-          "subject": "Year",
-          "pointer": "/content/columns/Year"
-        },
-        {
-          "subject": "Month",
-          "pointer": "/content/columns/Month"
-        },
-        {
-          "subject": "Month Name",
-          "pointer": "/content/columns/Month Name"
-        },
-        {
-          "subject": "Year Month",
-          "pointer": "/content/columns/Year Month"
-        },
-        {
-          "subject": "Week",
-          "pointer": "/content/columns/Week"
-        },
-        {
-          "subject": "Year Week",
-          "pointer": "/content/columns/Year Week"
-        },
-        {
-          "subject": "Week Start",
-          "pointer": "/content/columns/Week Start"
-        },
-        {
-          "subject": "Quarter",
-          "pointer": "/content/columns/Quarter"
-        },
-        {
-          "subject": "Day of Week",
-          "pointer": "/content/columns/Day of Week"
-        },
-        {
-          "subject": "Day of Month",
-          "pointer": "/content/columns/Day of Month"
         }
       ]
     },

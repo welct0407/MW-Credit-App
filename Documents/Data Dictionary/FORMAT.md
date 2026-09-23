@@ -48,7 +48,7 @@ YAML is restricted to JSON-compatible values: mappings with unique string keys, 
 
 Inventory fields and similarly named rule fields remain in their original namespaces. The migration does not assume they are synonyms, deduplicate them, apply supplements or choose a winner. Missing inventory or rule coverage remains missing. SQL source labels such as `DEV Business Expenses` are preserved exactly, without inferring a physical relation or database.
 
-The exceptional Excel formula is represented as `{"excel_formula":"=...","cached_value":"..."}`. Both values are evidence, not an instruction to execute the formula. Other cell annotations/structural features are accounted for in the source manifest and frozen workbook. The migration's row map links each meaningful source row to its text destination; header order and row positions are recorded in the manifest. Blank formatting rows and workbook styling stay in the frozen workbook.
+At initial import, the exceptional Excel formula was represented as `{"excel_formula":"=...","cached_value":"..."}`. Owner-authorized cleanup later normalized that single constant to `ADDS_AND_UPDATES`, because its literal and cached value agree; exact original values remain in migration evidence. This does not authorize evaluating or rewriting other expressions. Other cell annotations/structural features are accounted for in the source manifest and frozen workbook. The migration's row map records destinations at migration commit `faa51d2`; later documented edits or deletions may change those destinations. Header order and row positions are recorded in the manifest. Blank formatting rows and workbook styling stay in the frozen workbook.
 
 ## Development and historical evidence
 
@@ -59,5 +59,7 @@ Imported differences and supplements remain under `imports/` with their original
 Validation rejects malformed YAML, duplicate keys/identities, unregistered systems/kinds, invalid content containers, invalid slice ordinals, stale navigation indices and a changed frozen workbook. It validates the common envelope and imported structural contracts. It does not parse arbitrary AppSheet expressions or SQL, prove live correctness, or fill missing coverage.
 
 Ref relationships, constraint definitions and source links are retained exactly. Semantic referential validation is deferred with reconciliation: a missing base column might be defined in a supplement, and imported database labels do not establish current physical identities. Existing ambiguity is recorded in `unresolved.yaml`; it must not be silently repaired to make a structural check pass.
+
+The register separates `deferred` reconciliation topics, `resolved` cleanup items, and `informational` future coverage. Validation counts these separately; a deferred topic is not an import failure. Original migration verification establishes complete source coverage independently.
 
 `index.json` is derived and contains only identity, status and lookup locations. Rebuild it with the helper. Keep UTF-8 text and stable property ordering; normal edits should affect only the requested object and its evidence. No generated Excel mirror is maintained.

@@ -273,9 +273,7 @@
       "Environment / app": "OLAP PROD"
       "Group": "Cash Ledger"
       "Setting / bot": "Expression for update mode"
-      "Value":
-        "excel_formula": "=\"ADDS_AND_UPDATES\""
-        "cached_value": "ADDS_AND_UPDATES"
+      "Value": "ADDS_AND_UPDATES"
       "Evidence": "R005 production-saved-readback.json / 1.100122"
     "row-00122":
       "Environment / app": "OLAP PROD"
@@ -313,3 +311,9 @@
       "Setting / bot": "Partitioned across many worksheets?"
       "Value": "No"
       "Evidence": "R005 production-saved-readback.json / 1.100122"
+"evidence":
+  "/content/records/row-00121/Value":
+    "reference": "outputs/dictionary-migration-20260923/cleanup.json"
+    "reason": "Normalize a constant Excel string whose literal and cached result both equal ADDS_AND_UPDATES. No live property\
+      \ reconciliation."
+    "state": "value"

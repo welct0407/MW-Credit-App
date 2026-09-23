@@ -2,7 +2,9 @@
 
 This folder is the maintained home for exact model and configuration documentation across the loan ecosystem. Start with the relevant system and object; do not read the complete dictionary for an ordinary change.
 
-**Migration status, 23 September 2026:** all 16,496 nonempty data rows from the 14-sheet Excel dictionary were migrated into 185 text documents. Values, labels, source order and dated evidence were preserved. All imported objects are `imported-unreconciled`: the owner explicitly deferred live AppSheet inspection and reconciliation. A path under `recorded-production` describes the source sheet's label, not freshly verified production truth. Base definitions and release supplements can disagree.
+**Original migration, 23 September 2026:** all 16,496 nonempty data rows from the 14-sheet Excel dictionary were migrated into 185 text documents. Values, labels, source order and dated evidence were preserved. Imported objects are `imported-unreconciled`: the owner explicitly deferred live AppSheet inspection and reconciliation. A path under `recorded-production` describes the source sheet's label, not freshly verified production truth. Base definitions and release supplements can disagree.
+
+**Subsequent owner-authorized cleanup:** 182 documents remain after deleting the obsolete Calendar inventory and seven empty-identity residue rows. The single constant Excel formula was normalized to its matching literal value. There were no failed imports. The [register](unresolved.yaml) distinguishes four deferred reconciliation topics, two resolved cleanup items and one informational future-coverage item. Original migration evidence remains dated and unchanged.
 
 | Need | Start here |
 | --- | --- |
@@ -16,7 +18,7 @@ This folder is the maintained home for exact model and configuration documentati
 | Future Grafana definitions | [Grafana namespace](systems/grafana/README.md) |
 | Imported release supplements and old differences | [Workbook evidence](imports/excel-20260923/README.md) |
 | Later reconciled DEV changes | [Development conventions](development/README.md) |
-| Known limitations and incomplete records | [Unresolved items](unresolved.yaml) |
+| Deferred reconciliation, resolved cleanup and future coverage | [Status register](unresolved.yaml) |
 | File contract and adding another system | [Format](FORMAT.md) / [System registry](catalog.yaml) |
 | Targeted reads, guarded updates and validation | [Tool guide](../../scripts/dictionary/README.md) |
 

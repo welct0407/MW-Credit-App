@@ -56,4 +56,6 @@ New objects and systems use [FORMAT.md](../../Documents/Data%20Dictionary/FORMAT
 
 After normal future dictionary edits, the original migration equality check is expected to differ; use `validate` for ongoing work. The original migration report remains dated evidence. Never rerun the migration over the maintained dictionary.
 
+Owner-authorized cleanup removed obsolete/residue records and normalized one constant after the initial migration. To reproduce the original complete equality check, use an isolated checkout of migration commit `faa51d2`; the source manifest and row map describe that commit. Current validation reports deferred, resolved and informational register entries separately.
+
 The former Excel helper `scripts/releases/dictionary.mjs` and dated dictionary writers are historical tooling. They are not the update path for the maintained dictionary. Existing release payloads and historical artifacts retain their original meaning.

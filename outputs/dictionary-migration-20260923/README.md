@@ -36,3 +36,9 @@ The original workbook bytes are unchanged. A normal Git revert of the migration 
 `verify_migration.py` is a dated equality check against the imported state. Legitimate later dictionary edits will change imported hashes/values; use `dictionary.py validate` for ongoing maintenance. Keep this evidence as the original migration proof.
 
 The authoritative change record is [CHANGE_NOTES_DATA_DICTIONARY_MIGRATION_2026-09-23.md](../../Change%20Logs/CHANGE_NOTES_DATA_DICTIONARY_MIGRATION_2026-09-23.md).
+
+## Subsequent cleanup — 23 September 2026
+
+At owner request, the obsolete 12-column OLAP Calendar inventory was deleted. The seven unplaced rows were identified as version/ordinal-only workbook residue and deleted. App Settings D121 was normalized from a constant Excel formula/cached-value pair to the matching text `ADDS_AND_UPDATES`. Four reconciliation topics remain deferred; future ecosystem coverage is informational. No live access or semantic reconciliation occurred.
+
+[Cleanup decisions](cleanup.json) and [cleanup verification](cleanup-checks.json) record the refinement. The original source manifest, row map and verification report remain unchanged and correspond to commit `faa51d2`; use that commit to reproduce initial import equality. The maintained dictionary now contains 182 documents.
