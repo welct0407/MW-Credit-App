@@ -4,7 +4,7 @@ Owner scope, 23 September 2026: implement database logic and reconstruct history
 
 ## State
 
-V37 is implemented and verified in DEV. PROD deployment is pending. Existing AppSheet definitions, schedules, report models/questions, 2R layouts and live providers remain unchanged. This document will be updated after deployment. The R016 final acceptance/tag remains deferred while report work is held.
+V37 is deployed and verified in DEV and PROD from exact commit `98ae765b319bdcb956d6a1f34caeb5106f745c87`. Database part 1 is complete. Existing AppSheet definitions, schedules, report models/questions, 2R layouts and live providers remain unchanged. The R016 final acceptance/tag remains deferred while report work is held.
 
 ## Data contract for part 2
 
@@ -15,7 +15,7 @@ V37 is implemented and verified in DEV. PROD deployment is pending. Existing App
 | Current operational position | Existing `Cash Account Balances`, `Cash Dashboard`, `Loan Form Context`, governed OLAP providers | Continue querying live providers. Snapshot freshness is hourly, not real time. |
 | Transaction detail | Existing ledger/cashflow transaction providers | Keep transaction grain. Do not replace with daily totals. |
 
-New Daily Analytics fields: Capital Contributed, Capital Withdrawn, Partner Settlements; Partner A/B Net Profit and Partner A/B Settlements; Cash Money In, Cash Money Out, Cash Opening Balance, Cash Balance EOD, Cash Available From, Cash Balance Status. Net movement is Money In minus Money Out. Existing Available Cash EOD means remaining contributed lending capital, not actual custody. Existing legacy Unsettled Profit fields remain compatible; no new retained-profit, advance or selected-period FIFO fields are stored.
+All monetary measures are THB. New Daily Analytics fields: Capital Contributed, Capital Withdrawn, Partner Settlements; Partner A/B Net Profit and Partner A/B Settlements; Cash Money In, Cash Money Out, Cash Opening Balance, Cash Balance EOD, Cash Available From, Cash Balance Status. Net movement is Money In minus Money Out. Existing Available Cash EOD means remaining contributed lending capital, not actual custody. Existing legacy Unsettled Profit fields remain compatible; no new retained-profit, advance or selected-period FIFO fields are stored.
 
 Partner inputs follow the existing rounded per-repayment/expense allocation definitions, preserving FIFO semantics for future selected-period reporting. Partner Settlements records completed transfers on their actual Transfer Date, excluding Pending/Cancelled; it is not an allocation to a profit month. Account transfers cancel from consolidated inflow/outflow but retain both account sides. Signed closing cash includes negative accounts.
 
@@ -47,14 +47,16 @@ Equivalent database call: `SELECT public.refresh_daily_analytics(DATE '2026-09-0
 
 ## Coverage and limits
 
-DEV backfill: 54 portfolio dates from 1 August to 23 September 2026 and 216 account/date rows for four accounts. Consolidated cash is available from 18 September; earlier movements can be recorded without asserting a known cash opening/closing balance. Historical source edits/deletions and missing past facts limit reconstruction. No historical financial transactions, account openings or capital movements are fabricated.
+DEV and PROD backfill: 54 portfolio dates from 1 August to 23 September 2026 and 216 account/date rows for four accounts. Consolidated cash is available from 18 September; earlier movements can be recorded without asserting a known cash opening/closing balance. Historical source edits/deletions and missing past facts limit reconstruction. No historical financial transactions, account openings or capital movements are fabricated.
 
 Cash coverage preserves V36's current account population rule: every included account needs a verified opening by the requested date; uninitialized/new accounts can affect consolidated availability. Rebuild history after relevant account/opening/source changes. Labels remain current, not historized. The initial cash opening is an effective reconstructed day opening derived using existing cutover offsets, consistent with V36; it is not claimed to be a separately observed midnight balance.
 
 ## Verification / recovery
 
 - Disposable migration chain, no-op remigration/checksum rejection, existing payment/close/charge/default regressions and concurrency suites; dedicated snapshot tests for partial balances, transfers, negatives, zero dates, unknown openings, bounded/full equivalence, key preservation, backdated correction and atomic failure.
-- [DEV checks](development-verification.json): 17 cash checks plus 54 independent daily portfolio reconciliations.
+- [DEV checks](development-verification.json) and [PROD checks](production-verification.json): each passes 17 cash checks plus 54 independent daily portfolio reconciliations. [Deployment/current-GUI evidence](production-checkpoint.json) and [pinned manifest](flyway-manifest.json).
+- DEV current-editor Run exercised the existing hourly bot: only yesterday/today updated, with equal portfolio/account generation times. Both DEV and PROD app editors have zero issues and current clients load/sync. No app definition was edited. The next normal PROD hourly event was not separately awaited; existing scheduling/guard evidence is reused.
+- Existing Metabase Daily Performance model 74 executes successfully with 54 rows. Both new views execute through the actual restricted reporting connection with no write privileges. [Consumer](report-consumer.json), [access](reader-access.json).
 - Private DEV/PROD backups restored with table fingerprints equal, affected function bodies matched V15, and V37/full rebuild rehearsed on each restored copy. [DEV backup](development-backup.json), [PROD backup](production-backup.json). Backups/credentials remain outside Git; instance settings/roles/cron are separate.
 - Existing AppSheet tables intentionally retain their configured columns; new snapshot fields/table are SQL reporting sources only. No regeneration or App Upgrade is needed if current clients sync and final diagnostics remain clear.
 

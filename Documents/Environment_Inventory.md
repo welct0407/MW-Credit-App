@@ -1,6 +1,6 @@
 # Environment inventory
 
-R016 part 1 development checkpoint: DEV V37 validated with unified portfolio/account daily snapshots; PROD remains V36 pending scoped rollout. App definitions and all report sources/layouts unchanged. [Evidence](../outputs/r016-20260922/daily-snapshots/development-checkpoint.json).
+R016 part 1: DEV and PROD V37 validated with unified portfolio/account daily snapshots and reconstructed history. The restricted reporting role also has SELECT-only access to reporting_daily_snapshot and reporting_cash_account_snapshot; no new report model or metadata sync. App definitions and all report sources/layouts unchanged. [Evidence](../outputs/r016-20260922/daily-snapshots/production-checkpoint.json).
 
 ## Metabase reporting — 23 September 2026
 
@@ -28,8 +28,8 @@ Latest recorded checkpoint: **22 September 2026**, from [R015 production evidenc
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000245 (R014) | database-2 | 18 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100194 (R014) | database-2 | 19 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000246 (observed R016; unchanged) | database-2 | 18 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100195 (observed R016; unchanged) | database-2 | 19 |
 | Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000075 (R014) | database-3 | 18 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000031 (R014) | database-3 | 19 |
 
@@ -66,7 +66,7 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
 | Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
-| Flyway | V36 migrated and validated (R016) | V36 migrated and validated (R016) | V34 six Income Statement views, V35 two dated cash views and V36 two cashflow views; earlier posting, audit and source behavior preserved. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
+| Flyway | V37 migrated and validated (R016) | V37 migrated and validated (R016) | V37 unified daily cash snapshots plus V34–V36 reporting views; earlier posting, audit and source behavior preserved. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
 
 The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. After the consolidated DEV database and natural scheduler run were verified, the owner authorized deletion of former instance `appsheet-pg-dev-20260915`. Cloud SQL completed deletion on 20 September 2026, released public IP `34.158.38.171`, and retained no backups or final backup for that instance. The verified private former-DEV logical dump remains outside Git as recovery evidence.
 

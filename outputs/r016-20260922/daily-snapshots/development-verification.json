@@ -1,7 +1,16 @@
 {
-  "verified_at": "2026-09-23T13:00:37.0302674+00:00",
   "financial_values_published": false,
-  "database": "loan_manager_dev",
+  "portfolio": {
+    "verification": "Model 3 independent portfolio reconciliation",
+    "dates": 54,
+    "matched": 54,
+    "mismatches": 0,
+    "first_date": "2026-08-01",
+    "last_date": "2026-09-23",
+    "oldest_generation": "2026-09-23T20:00:34.018366",
+    "newest_generation": "2026-09-23T20:19:10.604922"
+  },
+  "verified_at": "2026-09-23T13:19:11.8217078+00:00",
   "checks": [
     {
       "name": "Complete portfolio calendar through Bangkok today",
@@ -72,16 +81,7 @@
       "passed": true
     }
   ],
-  "portfolio": {
-    "verification": "Model 3 independent portfolio reconciliation",
-    "dates": 54,
-    "matched": 54,
-    "mismatches": 0,
-    "first_date": "2026-08-01",
-    "last_date": "2026-09-23",
-    "oldest_generation": "2026-09-23T20:00:34.018366",
-    "newest_generation": "2026-09-23T20:00:34.018366"
-  },
+  "database": "loan_manager_dev",
   "environment": "development",
   "coverage": {
     "first_date": "2026-08-01",
@@ -89,6 +89,6 @@
     "portfolio_rows": 54,
     "account_rows": 216,
     "cash_available_from": "2026-09-18",
-    "latest_generation": "2026-09-23T20:00:34.018366"
+    "latest_generation": "2026-09-23T20:19:10.604922"
   }
 }

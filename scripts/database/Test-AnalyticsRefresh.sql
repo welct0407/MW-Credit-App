@@ -62,5 +62,13 @@ DO $$ BEGIN
 END $$;
 SELECT pg_temp.check_ok(NOT EXISTS((SELECT * FROM "Daily Analytics" EXCEPT SELECT * FROM original_snapshots)
  UNION ALL (SELECT * FROM original_snapshots EXCEPT SELECT * FROM "Daily Analytics")),'Whole refresh rolled back');
+DROP TRIGGER test_late_failure ON "Daily Analytics";
+UPDATE "Settlements" SET "Status"='Cancelled',"Notes"=' | Synthetic reversal' WHERE "Row ID"='DA11-S';
+SELECT pg_temp.check_ok("Partner Settlements"=0 AND "Partner A Settlements"=0
+ AND "Cash Money Out"=0 AND "Unsettled Profit EOD"=17.78::money,
+ 'Completed settlement reversal automatically refreshes both cash and entitlement history')
+ FROM "Daily Analytics" WHERE "Snapshot Date"=current_date;
+SELECT pg_temp.check_ok("Money Out"=0,'Settlement reversal updates account snapshot through existing trigger')
+ FROM "Cash Account Daily Analytics" WHERE "Snapshot Date"=current_date AND "Ref Cash Account"='CI-LISA';
 SELECT 'Analytics refresh regressions passed';
 ROLLBACK;

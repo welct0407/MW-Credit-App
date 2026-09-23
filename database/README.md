@@ -2,7 +2,7 @@
 
 ## R016 unified daily snapshots — 23 September 2026
 
-V37 is applied/validated in DEV; PROD rollout pending. The existing hourly Recent request refreshes yesterday/today in both portfolio and account snapshot tables. `Invoke-AnalyticsRebuild.ps1 -Environment development -From YYYY-MM-DD` calls the same date-range routine through today; `-Full` starts at the earliest supported source date. [Contract, evidence, recovery and report handoff](../outputs/r016-20260922/daily-snapshots/README.md). V37 is immutable after DEV application. The backup/documentation utilities use psycopg[binary] 3.2.9 under `%LOCALAPPDATA%/AppSheetLoanTools/python-deps`, outside the repository and bundled runtime; install there with the bundled Python's `-m pip install --target` only if missing.
+V37 is applied/validated in DEV and PROD from exact tested commit `98ae765b319bdcb956d6a1f34caeb5106f745c87`; both histories are backfilled. Next migration is V38 or higher. The existing hourly Recent request refreshes yesterday/today in both portfolio and account snapshot tables. `Invoke-AnalyticsRebuild.ps1 -Environment development -From YYYY-MM-DD` calls the same date-range routine through today; `-Full` starts at the earliest supported source date. [Contract, evidence, recovery and report handoff](../outputs/r016-20260922/daily-snapshots/README.md). V37 is immutable after DEV application. The backup/documentation utilities use psycopg[binary] 3.2.9 under `%LOCALAPPDATA%/AppSheetLoanTools/python-deps`, outside the repository and bundled runtime; install there with the bundled Python's `-m pip install --target` only if missing.
 
 
 ## R016 Cashflow deployed — 23 September 2026

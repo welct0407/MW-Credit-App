@@ -23,4 +23,7 @@ try {
  $result=& "$(Get-PgBin)/psql.exe" @arguments -c $sql
  if($LASTEXITCODE){throw 'Analytics rebuild failed; transaction rolled back'}
  $result
-} finally {foreach($name in $saved.Keys){[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}}
+} finally {foreach($name in $saved.Keys){
+ if([string]::IsNullOrEmpty($saved[$name])){Remove-Item "Env:$name" -ErrorAction SilentlyContinue}
+ else{[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}
+}}

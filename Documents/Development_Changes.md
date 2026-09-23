@@ -1,6 +1,6 @@
 # Open development differences
 
-R016 part 1: DEV V37 unified daily portfolio/account snapshots implemented and backfilled; PROD rollout pending. The existing hourly bot handles yesterday/today; one engine also rebuilds history. All 2R/Metabase changes held by owner. [Contract and evidence](../outputs/r016-20260922/daily-snapshots/README.md).
+R016 part 1: DEV and PROD V37 unified daily portfolio/account snapshots are deployed and backfilled; no open database difference remains. The existing hourly bot handles yesterday/today; one engine also rebuilds history. All 2R/Metabase changes held by owner. [Contract and evidence](../outputs/r016-20260922/daily-snapshots/README.md).
 
 Current production baseline is R015. This register contains open product differences and intentional environment differences, not completed-release narratives.
 
@@ -29,7 +29,7 @@ R015 is promoted and closed: both databases have V33 internal transaction audit.
 - Separate DEV database and app identities, DEV themes and within-DEV companion links. DEV uses `loan_manager_dev` and PROD uses `loan_manager_prod` on the same Cloud SQL instance; see [Environment Inventory](Environment_Inventory.md).
 - DEV Partners.Email delivers only to the owner, while Login Email remains distinct. RC/PROD use PROD contacts with the shared actor-ID rule in [AGENTS §2](../AGENTS.md#2-architecture-and-ownership).
 - The former five-account zero-opening fixture was replaced by the owner-requested refresh. Current DEV has four initialized accounts. R014 retains one audited, cancelled synthetic settlement with no cash effect; DEV test records do not establish PROD balances.
-- DEV and PROD may advance through owner saves independently. Current DEV is OLTP 1.000075 / OLAP 1.000031 while PROD is OLTP 3.000245 / OLAP 1.100194. Production APIs remain enabled for the integration agent; DEV API settings remain unchanged.
+- DEV and PROD may advance through owner saves independently. Current DEV is OLTP 1.000075 / OLAP 1.000031 while PROD is OLTP 3.000246 / OLAP 1.100195 (current saved versions observed during R016; no app edit in that database task). Production APIs remain enabled for the integration agent; DEV API settings remain unchanged.
 
 ## Closed differences
 

@@ -40,21 +40,24 @@
   "full_migration_complete": false,
   "flyway": {
     "before": 33,
-    "after": 36,
+    "after": 37,
     "new_migrations": [
       "V34__income_reporting_views.sql",
       "V35__income_cash_asof.sql",
-      "V36__cashflow_reporting.sql"
+      "V36__cashflow_reporting.sql",
+      "V37__unified_daily_cash_snapshots.sql"
     ],
-    "deployment_commit": "d9da07a89a39a732bb1d5fcf7994f04dafe56379",
+    "deployment_commit": "98ae765b319bdcb956d6a1f34caeb5106f745c87",
     "view_verification": "income-db-views-production.json",
     "v34_deployment_commit": "63836d4905f23d5cfd6e1cbd916ec4a5a6091523",
     "v34_migration_sha256": "f9d48e797f1822b6e02a6ef4b40d6473ff792a44bc11160ef8a13fac7a0f39bf",
     "v35_migration_sha256": "9a6793c5b567006fb8ea3cfabb4616d4a4603f2cc734bd257b059b482f86496e",
     "v35_deployment_commit": "e7fd3af40b572ab644856e7cc95d6a243f49a870",
-    "v36_migration_sha256": "2bdf3f3ab797aeda2d62139829dbff96d414c5a2824442d029f82fa87714bdd8"
+    "v36_migration_sha256": "2bdf3f3ab797aeda2d62139829dbff96d414c5a2824442d029f82fa87714bdd8",
+    "v36_deployment_commit": "d9da07a89a39a732bb1d5fcf7994f04dafe56379",
+    "v37_migration_sha256": "5f7bd0edb7340c8a476c728b4403bd9d9f6d004079dfcda845d02cf98ccf2930"
   },
-  "status": "ten-original-pages-plus-three-additive-review-pages",
+  "status": "database-snapshot-part-1-complete-2r-integration-held",
   "release": "R016",
   "tests": "query-reconciliation.json",
   "final_tag": null,
@@ -146,15 +149,23 @@
   },
   "daily_snapshots": {
     "scope": "Part 1 database engine and backfill; part 2 report edits held by owner",
-    "status": "development-verified",
+    "status": "database-part-1-complete-report-part-2-held",
     "migration": "V37__unified_daily_cash_snapshots.sql",
     "migration_sha256": "5f7bd0edb7340c8a476c728b4403bd9d9f6d004079dfcda845d02cf98ccf2930",
     "before": 36,
     "development": 37,
-    "production": 36,
+    "production": 37,
     "contract": "daily-snapshots/README.md",
-    "verification": "daily-snapshots/development-checkpoint.json",
+    "verification": "daily-snapshots/production-checkpoint.json",
     "new_snapshot_table": "Cash Account Daily Analytics",
-    "report_definitions_changed": false
+    "report_definitions_changed": false,
+    "implementation_commit": "98ae765b319bdcb956d6a1f34caeb5106f745c87",
+    "coverage": {
+      "first_date": "2026-08-01",
+      "last_date": "2026-09-23",
+      "portfolio_rows": 54,
+      "account_rows": 216,
+      "cash_available_from": "2026-09-18"
+    }
   }
 }

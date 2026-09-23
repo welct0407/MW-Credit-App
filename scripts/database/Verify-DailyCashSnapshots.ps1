@@ -1,9 +1,9 @@
 param([Parameter(Mandatory)][ValidateSet('development','production')][string]$Environment)
 . "$PSScriptRoot/Common.ps1"
 $target=Get-DbEnvironment $Environment
-$oldPassword=$env:PGPASSWORD;$oldSsl=$env:PGSSLMODE
+$oldPassword=$env:PGPASSWORD;$oldSsl=$env:PGSSLMODE;$oldTimeout=$env:PGCONNECT_TIMEOUT
 try {
- $env:PGPASSWORD=[IO.File]::ReadAllText($target.passwordFile).Trim();$env:PGSSLMODE='require'
+ $env:PGPASSWORD=[IO.File]::ReadAllText($target.passwordFile).Trim();$env:PGSSLMODE='require';$env:PGCONNECT_TIMEOUT='10'
  $arguments=@('-X','-At','-v','ON_ERROR_STOP=1','-h',$target.host,'-U',$target.user,'-d',$target.database)
  $result=& "$(Get-PgBin)/psql.exe" @arguments -f "$PSScriptRoot/Verify-DailyCashSnapshots.sql"
  if($LASTEXITCODE){throw 'Snapshot verification query failed'}
@@ -19,4 +19,7 @@ try {
  $failures=@($checks|Where-Object {-not $_.passed})
  if($failures.Count -or $legacy.mismatches -ne 0){throw "Snapshot verification failed: $($failures.name -join ', '); portfolio mismatches $($legacy.mismatches)"}
  "${Environment}: $($checks.Count) cash checks and $($legacy.matched) daily portfolio reconciliations passed"
-} finally {$env:PGPASSWORD=$oldPassword;$env:PGSSLMODE=$oldSsl}
+} finally {
+ $env:PGPASSWORD=$oldPassword;$env:PGSSLMODE=$oldSsl
+ if([string]::IsNullOrEmpty($oldTimeout)){Remove-Item Env:PGCONNECT_TIMEOUT -ErrorAction SilentlyContinue}else{$env:PGCONNECT_TIMEOUT=$oldTimeout}
+}
