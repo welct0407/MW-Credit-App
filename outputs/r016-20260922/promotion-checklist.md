@@ -114,3 +114,7 @@ P01/P13/P22/P28/P39/P41/P45/P46 are complete for approved V36/page 10: exact com
 ### Cashflow table presentation refinement — 23 September
 
 Question 196 only: nine displayed columns, compact statement date/OLTP posting time and green/red positive money movement cells. Scoped private metadata backup and 93 live dashboard checks, including previous page/permission preservation. No new SQL/AppSheet promotion or RC. Source and model dictionary are unchanged; change log, current inventory, manifest and maintained installer record the presentation. Full R016 acceptance, key retirement and tag remain pending.
+
+### Number-card hover cleanup — 23 September
+
+Sixty-three active scalar questions had decorative ranges that generated giant hover legends. Private exact card/dashboard metadata backed up; saved queries, dashboard placements/parameters and access compared before/after. Removed the ranges and visually checked the borrower page. Number cards use Metabase default color; chart data tooltips and Cashflow table conditional colors remain. No SQL, model, AppSheet or RC action. Maintained builders and generated question inventories updated. Full R016 acceptance, key retirement and tag remain pending.

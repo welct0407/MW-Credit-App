@@ -31,19 +31,7 @@
           "currency_style": "symbol"
         }
       },
-      "scalar.field": "Operating Income",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": -1e-8,
-          "color": "#D1495B"
-        },
-        {
-          "min": 0,
-          "max": 1000000000000000000,
-          "color": "#13855B"
-        }
-      ]
+      "scalar.field": "Operating Income"
     }
   },
   {
@@ -78,14 +66,7 @@
           "currency_style": "symbol"
         }
       },
-      "scalar.field": "Operating Expenses",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": 1000000000000000000,
-          "color": "#D1495B"
-        }
-      ]
+      "scalar.field": "Operating Expenses"
     }
   },
   {
@@ -120,19 +101,7 @@
           "currency_style": "symbol"
         }
       },
-      "scalar.field": "Net Profit",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": -1e-8,
-          "color": "#D1495B"
-        },
-        {
-          "min": 0,
-          "max": 1000000000000000000,
-          "color": "#13855B"
-        }
-      ]
+      "scalar.field": "Net Profit"
     }
   },
   {
@@ -167,19 +136,7 @@
           "currency_style": "symbol"
         }
       },
-      "scalar.field": "Average Daily Net Profit",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": -1e-8,
-          "color": "#D1495B"
-        },
-        {
-          "min": 0,
-          "max": 1000000000000000000,
-          "color": "#13855B"
-        }
-      ]
+      "scalar.field": "Average Daily Net Profit"
     }
   },
   {
@@ -252,14 +209,7 @@
           "currency_style": "symbol"
         }
       },
-      "scalar.field": "Tommy Draw",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": 1000000000000000000,
-          "color": "#D1495B"
-        }
-      ]
+      "scalar.field": "Tommy Draw"
     }
   },
   {
@@ -294,14 +244,7 @@
           "currency_style": "symbol"
         }
       },
-      "scalar.field": "Lisa Draw",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": 1000000000000000000,
-          "color": "#D1495B"
-        }
-      ]
+      "scalar.field": "Lisa Draw"
     }
   },
   {
@@ -336,14 +279,7 @@
           "currency_style": "symbol"
         }
       },
-      "scalar.field": "Unsettled Profit",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": 1000000000000000000,
-          "color": "#267DCC"
-        }
-      ]
+      "scalar.field": "Unsettled Profit"
     }
   },
   {
@@ -455,14 +391,7 @@
           "currency_style": "symbol"
         }
       },
-      "scalar.field": "Cash Pool Remaining",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": 1000000000000000000,
-          "color": "#267DCC"
-        }
-      ]
+      "scalar.field": "Cash Pool Remaining"
     }
   },
   {
@@ -497,14 +426,7 @@
           "currency_style": "symbol"
         }
       },
-      "scalar.field": "Business Cash Held",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000000,
-          "max": 1000000000000000000,
-          "color": "#267DCC"
-        }
-      ]
+      "scalar.field": "Business Cash Held"
     }
   },
   {

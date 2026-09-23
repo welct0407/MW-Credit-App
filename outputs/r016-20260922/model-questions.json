@@ -14,14 +14,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Total Cash Pool",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Total Cash Pool"
     },
     "date_field": 104,
     "date_target": [
@@ -66,14 +59,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Outstanding Principal",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Outstanding Principal"
     },
     "date_field": 104,
     "date_target": [
@@ -118,14 +104,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Available Cash",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Available Cash"
     },
     "date_field": 104,
     "date_target": [
@@ -170,14 +149,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Expected Daily Interest",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#7472BE"
-        }
-      ]
+      "scalar.field": "Expected Daily Interest"
     },
     "date_field": 104,
     "date_target": [
@@ -222,14 +194,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Realized Profit MTD",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#7472BE"
-        }
-      ]
+      "scalar.field": "Realized Profit MTD"
     },
     "date_field": 104,
     "date_target": [
@@ -274,14 +239,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Projected Monthly Profit",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#7472BE"
-        }
-      ]
+      "scalar.field": "Projected Monthly Profit"
     },
     "date_field": 104,
     "date_target": [
@@ -326,14 +284,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Loan Account Balance",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Loan Account Balance"
     },
     "date_field": 104,
     "date_target": [
@@ -378,14 +329,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Cash Pool Utilization",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Cash Pool Utilization"
     },
     "date_field": 104,
     "date_target": [
@@ -456,14 +400,7 @@
         0,
         1
       ],
-      "scalar.field": "Cash Pool Utilization",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Cash Pool Utilization"
     },
     "date_field": 104,
     "date_target": [
@@ -508,14 +445,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Active Loans",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Active Loans"
     },
     "date_field": 0,
     "date_target": null,
@@ -551,14 +481,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "7-Day Profit Growth %",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#7472BE"
-        }
-      ]
+      "scalar.field": "7-Day Profit Growth %"
     },
     "date_field": 0,
     "date_target": null,
@@ -594,14 +517,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Profit in Past 30 Days",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#7472BE"
-        }
-      ]
+      "scalar.field": "Profit in Past 30 Days"
     },
     "date_field": 0,
     "date_target": null,
@@ -637,14 +553,7 @@
           "decimals": 0
         }
       },
-      "scalar.field": "Interest Paid",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#7472BE"
-        }
-      ]
+      "scalar.field": "Interest Paid"
     },
     "date_field": 0,
     "date_target": null,
@@ -674,14 +583,7 @@
     "description": "Borrower with the largest current outstanding principal, displayed using the source Description field. Stable Row ID breaks ties. Built from Portfolio Overview; shared logic is maintained in the Reporting Models collection.",
     "settings": {
       "column_settings": {},
-      "scalar.field": "Top Borrower",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Top Borrower"
     },
     "date_field": 0,
     "date_target": null,

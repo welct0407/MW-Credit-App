@@ -37,14 +37,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Active borrowers",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Active borrowers"
     },
     "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -116,14 +109,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Outstanding Principal",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Outstanding Principal"
     },
     "description": "Page 3. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -185,14 +171,7 @@
       "table.pivot": false,
       "table.cell_column_widths": null,
       "column_settings": {},
-      "scalar.field": "Top Borrower",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Top Borrower"
     },
     "description": "Page 3. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -250,14 +229,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Total Interest Earned",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Total Interest Earned"
     },
     "description": "Page 3. Built from the shared Borrowers model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -1646,14 +1618,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Interest Paid",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Interest Paid"
     },
     "description": "Page 4. Built from the shared Repayment Ledger model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -1722,14 +1687,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "7-Day Profit Growth %",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "7-Day Profit Growth %"
     },
     "description": "Page 4. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -1787,14 +1745,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Loans issued",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Loans issued"
     },
     "description": "Page 4. Built from the shared Loan Book model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -1856,14 +1807,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Principal Amount",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Principal Amount"
     },
     "description": "Page 4. Built from the shared Loan Book model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -2932,14 +2876,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Outstanding Principal",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Outstanding Principal"
     },
     "description": "Page 5. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -3007,14 +2944,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Total Interest Earned",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Total Interest Earned"
     },
     "description": "Page 5. Built from the shared Borrowers model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -3082,14 +3012,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Top 3 Borrower Concentration",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Top 3 Borrower Concentration"
     },
     "description": "Page 5. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -3157,14 +3080,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Past Due Amount",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Past Due Amount"
     },
     "description": "Page 5. Built from the shared Charge History model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4044,14 +3960,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Borrowers due today",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Borrowers due today"
     },
     "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4112,14 +4021,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Fully paid",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Fully paid"
     },
     "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4191,14 +4093,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Partially paid",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Partially paid"
     },
     "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4270,14 +4165,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Not paid / overdue",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Not paid / overdue"
     },
     "description": "Page 6. Built from the shared Collection Worklist model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4363,14 +4251,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Amount Due Today",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Amount Due Today"
     },
     "description": "Page 6. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4438,14 +4319,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Amount Collected Today",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#7472BE"
-        }
-      ]
+      "scalar.field": "Amount Collected Today"
     },
     "description": "Page 6. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4513,14 +4387,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Amount Outstanding Today",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Amount Outstanding Today"
     },
     "description": "Page 6. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4588,14 +4455,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Amount Collection Rate Today",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Amount Collection Rate Today"
     },
     "description": "Page 6. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4663,14 +4523,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Borrower Count",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Borrower Count"
     },
     "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4749,14 +4602,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Receipts Today",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Receipts Today"
     },
     "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -4978,14 +4824,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Borrower Count",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Borrower Count"
     },
     "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -5064,14 +4903,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Receipts Today",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Receipts Today"
     },
     "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -5293,14 +5125,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Borrower Count",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Borrower Count"
     },
     "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -5379,14 +5204,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Amount Remaining",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Amount Remaining"
     },
     "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -5608,14 +5426,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Borrower Count",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Borrower Count"
     },
     "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -5694,14 +5505,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Amount Remaining",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Amount Remaining"
     },
     "description": "Page 6. Built from the shared Collection Status Summary model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -5923,14 +5727,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Outstanding Principal",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Outstanding Principal"
     },
     "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -5999,14 +5796,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Active Loans",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Active Loans"
     },
     "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -6075,14 +5865,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Overdue Amount",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Overdue Amount"
     },
     "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -6151,14 +5934,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Total Interest Earned",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Total Interest Earned"
     },
     "description": "Page 7. Built from the shared Borrowers model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -6839,14 +6615,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Realized Profit MTD",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Realized Profit MTD"
     },
     "description": "Page 8. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -6914,14 +6683,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Remaining Forecast Profit",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Remaining Forecast Profit"
     },
     "description": "Page 8. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -6989,14 +6751,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Projected Monthly Profit",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Projected Monthly Profit"
     },
     "description": "Page 8. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {
@@ -7064,14 +6819,7 @@
           "number_separators": ".,"
         }
       },
-      "scalar.field": "Forecast Realization",
-      "scalar.segments": [
-        {
-          "min": -1000000000000000,
-          "max": 1000000000000000,
-          "color": "#24435A"
-        }
-      ]
+      "scalar.field": "Forecast Realization"
     },
     "description": "Page 8. Built from the shared Portfolio Overview model; gross profit means interest before expenses.",
     "dataset_query": {

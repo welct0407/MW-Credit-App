@@ -105,5 +105,6 @@
   "cashflow_tests": "cashflow-verification.json",
   "cashflow_db_tests": "cashflow-production.json",
   "cashflow_access": "cashflow-grants.json",
-  "cashflow_table_refinement": "cashflow-table-refinement.json"
+  "cashflow_table_refinement": "cashflow-table-refinement.json",
+  "scalar_hover_cleanup": "scalar-hover-cleanup.json"
 }

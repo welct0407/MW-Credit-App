@@ -5,7 +5,7 @@ const models=read('models.json'), old=read('questions.json');
 const F=(name,type='type/Decimal')=>['field',name,{'base-type':type}];
 const S=(field,name)=>['aggregation-options',['sum',F(field)],{name,'display-name':name}];
 const A=i=>['aggregation',i];
-const teal='#178F8A', navy='#24435A', indigo='#7472BE', coral='#D6816B';
+const teal='#178F8A', indigo='#7472BE', coral='#D6816B';
 const specs=[];
 for(const q of old){
  let model='portfolio', query={}, display=q.display, dims=[],metrics=[],color=teal;
@@ -15,7 +15,7 @@ for(const q of old){
    query.fields=[F(field,q.key==='top-borrower'?'type/Text':'type/Decimal')];
    settings['scalar.field']=field;
    if(q.key!=='top-borrower')settings.column_settings[JSON.stringify(['name',field])]={number_style:['utilization','utilization-gauge','growth'].includes(q.key)?'percent':'decimal',number_separators:'.,',decimals:0};
-   settings['scalar.segments']=[{min:-1e15,max:1e15,color:['mtd','projected','profit-30','interest-paid','growth','daily-interest'].includes(q.key)?indigo:navy}];
+   delete settings['scalar.segments'];
  } else if(q.key.startsWith('borrower-')){
    model='borrower-performance'; const principal=q.key==='borrower-principal';
    dims=[principal?'Principal Group':'Profit Group'];metrics=['Amount (THB)'];color=principal?teal:indigo;
