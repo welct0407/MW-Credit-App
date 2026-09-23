@@ -1,5 +1,7 @@
 # Performance tab redesign — implementation handoff
 
+**Implementation update, 24 September:** the owner subsequently authorized a **new parallel review page**, preserving the original Performance page. This design is retained as the proposal; its replacement/removal instructions are superseded for the current implementation. See [implemented page, exact scope and verification](IMPLEMENTATION.md).
+
 Date: 24 September 2026 (Asia/Bangkok). Status: **proposed design, not implemented**.
 
 The owner requested a review/design and will use another model to implement it. This task made read-only Metabase API inspections and read-only source queries, and created documentation only. It did not change any dashboard, question, model, database object, data, permission or schedule. Starting repository commit: `308bd93a80cf31bd0ce801b0fa6adfd051f22d85`; clean tree. Continue R016 rather than reserving a new release just for this design.

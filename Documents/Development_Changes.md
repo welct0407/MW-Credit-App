@@ -6,6 +6,8 @@ Current production baseline is R015; final R016 owner acceptance and migration-k
 
 ## R016 — Metabase reporting migration
 
+**Performance review, 24 September:** implemented separate tab **6R · Performance Review** (18) using the existing live models and completed-day Daily Analytics. Original Performance (7) is preserved; replacement/retirement awaits the owner's decision. No new schema, snapshot engine, AppSheet or financial-data change. [Saved definitions, verification and rollback](../outputs/r016-20260922/performance-redesign/IMPLEMENTATION.md).
+
 Cash Position keeps today/live and past/snapshot routing. Income and Cashflow statement totals and detail remain live for every selected period. Their separately labeled completed-day trends use stored portfolio/account snapshots, with missing-day counts and actual refresh times. Income excludes principal, capital movements and partner payments; no FIFO distributions or retained-profit bridge appears. Cashflow uses a fresh source opening seed and selected-period running balances. Transfers cancel only in All accounts; unknown balances remain unavailable. The database retains superseded providers for compatible rollback under expand/contract.
 
 There are no open R011/R012 product differences. The owner merged the reserved R012 Cash Ledger Recent scope into R011, and R011 was released on 21 September 2026 at PROD SQL V29 / OLTP 3.000240 / OLAP 1.100189. R012 was never promoted independently and its number is retired. See the [R011 production report](../outputs/r011-20260920/production/REPORT.md).

@@ -1,0 +1,19 @@
+{
+  "cards": {
+    "interest": 217,
+    "principal": 218,
+    "loans": 219,
+    "type": 220,
+    "live-status": 221,
+    "daily-interest": 222,
+    "daily-principal": 223,
+    "daily-loans": 224,
+    "weekly-average": 225,
+    "active": 226,
+    "detail": 227,
+    "snapshot-status": 228
+  },
+  "baseline_commit": "52a8bd44cfade2ec43c54ccb39889b1037b3329c",
+  "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r016-20260922/performance-review-before-20260924",
+  "tab": 18
+}
