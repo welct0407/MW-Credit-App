@@ -42,7 +42,10 @@ for(const q of old){
    for(const m of metrics)settings.column_settings[JSON.stringify(['name',m])]={number_style:'decimal',decimals:0,number_separators:'.,'};
  }
  const dateName={104:'Peak Cash Pool Date 30D',95:'Loan Date',82:'Date'}[q.date_field];
- specs.push({key:q.key,id:read('dashboard-verification.json').cards[q.key].id,name:q.name,model,display,description:q.description+' Built from '+models[model].name+'; shared logic is maintained in the Reporting Models collection.',settings,date_field:q.date_field,date_target:dateName?['dimension',F(dateName,'type/Date')]:null,dataset_query:{database:2,type:'query',query:{'source-table':'card__'+models[model].id,...query}}});
+ const description=q.key==='growth'
+  ?'Last seven completed Bangkok dates (yesterday through seven days ago) versus the seven dates immediately before (eight through fourteen days ago). Today is excluded. No value when the previous period is zero. Built from Portfolio Overview; shared logic is maintained in the Reporting Models collection.'
+  :q.description+' Built from '+models[model].name+'; shared logic is maintained in the Reporting Models collection.';
+ specs.push({key:q.key,id:read('dashboard-verification.json').cards[q.key].id,name:q.name,model,display,description,settings,date_field:q.date_field,date_target:dateName?['dimension',F(dateName,'type/Date')]:null,dataset_query:{database:2,type:'query',query:{'source-table':'card__'+models[model].id,...query}}});
 }
 write('model-questions.json',specs);
 console.log(`Built ${specs.length} model-based visual definitions; no visual SQL, joins or expressions.`);

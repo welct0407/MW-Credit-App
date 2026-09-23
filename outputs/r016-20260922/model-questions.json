@@ -472,7 +472,7 @@
     "name": "7-Day Profit Growth %",
     "model": "portfolio",
     "display": "scalar",
-    "description": "Original formula preserved: days 0–6 versus days 8–14; day 7 is skipped. Includes today. No value when the previous period is zero. Built from Portfolio Overview; shared logic is maintained in the Reporting Models collection.",
+    "description": "Last seven completed Bangkok dates (yesterday through seven days ago) versus the seven dates immediately before (eight through fourteen days ago). Today is excluded. No value when the previous period is zero. Built from Portfolio Overview; shared logic is maintained in the Reporting Models collection.",
     "settings": {
       "column_settings": {
         "[\"name\",\"7-Day Profit Growth %\"]": {

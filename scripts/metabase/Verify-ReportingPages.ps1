@@ -22,6 +22,16 @@ try {
     $parameters=@(@{id='cash-date';type='date/range';value='2026-09-01~2026-09-15'})
    }
    $sql=$q.sql.Replace('[[AND {{report_date}}]]',$where)
+   if($q.key -eq 'growth'){
+    # The source-report SQL is retained as dated migration evidence. Owner correction uses two completed, contiguous seven-day windows.
+    $sql=@'
+WITH context AS (SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')::date AS today), totals AS (
+ SELECT coalesce(sum(r."Interest Paid"::numeric) FILTER(WHERE r."Payment Date" BETWEEN c.today-7 AND c.today-1),0) recent,
+        coalesce(sum(r."Interest Paid"::numeric) FILTER(WHERE r."Payment Date" BETWEEN c.today-14 AND c.today-8),0) prior
+ FROM public.olap_repayments_analytics r CROSS JOIN context c
+) SELECT (recent-prior)/NULLIF(prior,0) AS "7-Day Profit Growth %" FROM totals
+'@
+   }
    $raw=('SELECT coalesce(json_agg(t),''[]''::json) FROM ('+$sql+') t')|& "$(Get-PgBin)/psql.exe" -X -At -v ON_ERROR_STOP=1 -h $target.host -U metabase_borrower_reader -d $target.database
    if($LASTEXITCODE -ne 0){throw "Restricted SQL failed: $($q.key)"}
    $expected=@(($raw -join "`n")|ConvertFrom-Json)

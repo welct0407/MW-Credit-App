@@ -550,7 +550,7 @@
         "semantic_type": "type/PK",
         "id": 109,
         "fk_target_field_id": null,
-        "description": "Repayment ID. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Repayment ID. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Loan ID",
@@ -558,7 +558,7 @@
         "semantic_type": "type/FK",
         "id": 113,
         "fk_target_field_id": 94,
-        "description": "Loan ID. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Loan ID. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Borrower ID",
@@ -566,7 +566,7 @@
         "semantic_type": "type/Category",
         "id": null,
         "fk_target_field_id": null,
-        "description": "Borrower ID. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Borrower ID. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Borrower",
@@ -574,7 +574,7 @@
         "semantic_type": "type/Category",
         "id": null,
         "fk_target_field_id": null,
-        "description": "Borrower. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Borrower. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Hidden",
@@ -582,7 +582,7 @@
         "semantic_type": "type/Category",
         "id": null,
         "fk_target_field_id": null,
-        "description": "Hidden. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Hidden. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Loan Type",
@@ -590,7 +590,7 @@
         "semantic_type": "type/Category",
         "id": null,
         "fk_target_field_id": null,
-        "description": "Loan Type. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Loan Type. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Payment Date",
@@ -598,7 +598,7 @@
         "semantic_type": null,
         "id": 110,
         "fk_target_field_id": null,
-        "description": "Payment Date. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Payment Date. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Interest Paid",
@@ -606,7 +606,7 @@
         "semantic_type": "type/Currency",
         "id": 112,
         "fk_target_field_id": null,
-        "description": "Interest Paid. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Interest Paid. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Principal Paid",
@@ -614,7 +614,7 @@
         "semantic_type": "type/Currency",
         "id": 111,
         "fk_target_field_id": null,
-        "description": "Principal Paid. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Principal Paid. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Interest 30D",
@@ -622,7 +622,7 @@
         "semantic_type": "type/Currency",
         "id": null,
         "fk_target_field_id": null,
-        "description": "Interest 30D. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Interest 30D. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Interest Recent 7D",
@@ -630,7 +630,7 @@
         "semantic_type": "type/Currency",
         "id": null,
         "fk_target_field_id": null,
-        "description": "Interest Recent 7D. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Interest Recent 7D. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "Interest Prior 7D",
@@ -638,7 +638,7 @@
         "semantic_type": "type/Currency",
         "id": null,
         "fk_target_field_id": null,
-        "description": "Interest Prior 7D. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "Interest Prior 7D. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       },
       {
         "name": "In Last 30 Days",
@@ -646,10 +646,10 @@
         "semantic_type": "type/Category",
         "id": null,
         "fk_target_field_id": null,
-        "description": "In Last 30 Days. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped."
+        "description": "In Last 30 Days. One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded."
       }
     ],
-    "grain": "One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Legacy prior seven days are days 8–14; day 7 is intentionally skipped.",
+    "grain": "One row per Repayment ID, with its loan and borrower. Bangkok reporting windows are centralized here. Recent seven days are yesterday through seven days ago; prior seven days are eight through fourteen days ago. Today is excluded.",
     "id": 71,
     "name": "Repayment Ledger",
     "rows": 852

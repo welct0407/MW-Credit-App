@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-09-23T05:03:35.845Z",
+  "change": "Recent Interest Paid uses Bangkok today-7 through today-1; prior uses today-14 through today-8",
+  "cards": [
+    56,
+    95
+  ],
+  "models": [
+    71,
+    73
+  ],
+  "checks": {
+    "source": "PROD Loan Reporting / loan_manager_prod",
+    "repayment_model_saved": true,
+    "prior_window_preserved": true,
+    "repayment_field_metadata_preserved": true,
+    "portfolio_model_unchanged": true,
+    "overview_binding_unchanged": true,
+    "performance_binding_unchanged": true,
+    "dashboard_placements_unchanged": true,
+    "dashboard_tab_count_unchanged": true
+  },
+  "independent_result_reconciliation": "Both live cards matched direct PROD repayment aggregation; one row each; amounts withheld",
+  "date_boundary": "Seven dates per window, no gap, today excluded",
+  "rollback": "Private growth-window-before-20260923 metadata and dictionary snapshot"
+}

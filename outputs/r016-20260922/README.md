@@ -60,7 +60,7 @@ Source: Workspace Data Studio report `52954065-a261-4b97-8d19-df84126bbdc6`, pag
 | Page / visuals | Governed source and behavior |
 | --- | --- |
 | Overview: cash pool, principal, available cash, utilization, expected daily interest, MTD profit, projected monthly profit, active loans | Existing `olap_portfolio_summary`; available cash = pool − principal; utilization = principal / pool. Profit retains the original gross-interest meaning. |
-| Overview: 7-day growth | Repayment interest, Bangkok days 0–6 versus 8–14. The source skips day 7; preserved explicitly for review. Zero prior period returns no value. |
+| Overview: 7-day growth | Repayment interest over the last seven completed Bangkok dates (yesterday through seven days ago) versus the seven dates immediately before (eight through fourteen days ago). Today is excluded; the periods are contiguous. Zero prior period returns no value. |
 | Overview: profit in past 30 days; interest paid | Repayment interest during Bangkok dates today−29 through today, and all-time, respectively. |
 | Overview: top borrower | Borrower Description with largest current outstanding principal, excluding hidden borrowers. |
 | Overview: two borrower horizontal bars | Borrowers → Loans using Row ID / Ref Borrowers; repayment interest aggregated per loan before Loans → Borrowers join. Four named borrowers plus Others. No charge fan-out. |
