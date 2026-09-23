@@ -394,7 +394,7 @@
         - - "template-tag"
           - "statement_period"
       "visualization_settings":
-        "card.title": "Daily income, expenses & net profit"
+        "card.title": "Daily income & expenses"
     - "id": 549
       "card_id": 214
       "dashboard_tab_id": 16
@@ -999,7 +999,7 @@
     - "id": 178
       "key": "expense-category"
       "name": "Expenses by category · live period"
-      "display": "bar"
+      "display": "row"
       "dataset_query":
         "database": 2
         "type": "native"
@@ -1519,15 +1519,15 @@
           "template-tags": {}
       "visualization_settings": {}
     - "key": "income-trend"
-      "name": "Daily profitability · hourly snapshots"
-      "display": "combo"
+      "name": "Daily income & expenses · hourly snapshots"
+      "display": "bar"
       "dataset_query":
         "database": 2
         "type": "native"
         "native":
           "query": |-
             WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE d."Date"<public.olap_reporting_date() [[AND {{statement_period}}]])
-             SELECT d."Date",s."Income",s."Expenses",s."Net Profit",
+             SELECT d."Date",s."Income",s."Expenses",
              s."Generated At" AS "Generated At"
              FROM selected d LEFT JOIN {{#205}} s ON s."Date"=d."Date" ORDER BY d."Date"
           "template-tags":
@@ -1554,13 +1554,12 @@
         "graph.metrics":
         - "Income"
         - "Expenses"
-        - "Net Profit"
         "graph.colors":
         - "#13855B"
         - "#D1495B"
-        - "#267DCC"
         "graph.show_legend": true
         "graph.missing": "none"
+        "graph.y_axis.auto_split": false
         "series_settings":
           "Income":
             "display": "bar"
@@ -1568,9 +1567,6 @@
           "Expenses":
             "display": "bar"
             "color": "#D1495B"
-          "Net Profit":
-            "display": "line"
-            "color": "#267DCC"
         "column_settings":
           "[\"name\",\"Income\"]":
             "number_style": "decimal"
@@ -1578,11 +1574,6 @@
             "number_separators": ".,"
             "compact": false
           "[\"name\",\"Expenses\"]":
-            "number_style": "decimal"
-            "decimals": 0
-            "number_separators": ".,"
-            "compact": false
-          "[\"name\",\"Net Profit\"]":
             "number_style": "decimal"
             "decimals": 0
             "number_separators": ".,"
@@ -1597,7 +1588,7 @@
         "native":
           "query": |-
             WITH trend AS (WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE d."Date"<public.olap_reporting_date() [[AND {{statement_period}}]])
-             SELECT d."Date",s."Income",s."Expenses",s."Net Profit",
+             SELECT d."Date",s."Income",s."Expenses",
              s."Generated At" AS "Generated At"
              FROM selected d LEFT JOIN {{#205}} s ON s."Date"=d."Date" ORDER BY d."Date"), totals AS (SELECT count(*) n,count(*) FILTER(WHERE "Generated At" IS NULL) missing,min("Generated At") oldest,max("Generated At") latest FROM trend) SELECT v.detail AS "Detail",v.value AS "Value" FROM totals CROSS JOIN LATERAL (VALUES (1,'Completed dates',n::text),(2,'Missing snapshots',missing::text),(3,'Oldest refresh',coalesce(to_char(oldest,'YYYY-MM-DD HH24:MI'),'Unavailable')),(4,'Latest refresh',coalesce(to_char(latest,'YYYY-MM-DD HH24:MI'),'Unavailable'))) v(step,detail,value) ORDER BY step
           "template-tags":
@@ -1805,4 +1796,12 @@
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
     "reason": "Final numeric balance display and mobile layout refinement"
+    "state": "value"
+  "/content/cash_pages/question_definitions":
+    "reference": "outputs/r016-20260922/statement-cleanup/income-chart-refinement.json"
+    "reason": "Keep freshness question on the same slim daily query as its chart"
+    "state": "value"
+  "/content/cash_pages/layout":
+    "reference": "outputs/r016-20260922/statement-cleanup/income-chart-refinement.json"
+    "reason": "Tab 9 category labels and daily income/expense comparison"
     "state": "value"

@@ -22,7 +22,7 @@ export const specs=[
  ...[[168,'Operating income','Operating Income'],[169,'Operating expenses','Operating Expenses'],[170,'Net profit','Net Profit'],[171,'Average daily net profit','Average Daily Net Profit']].map(([id,name,field])=>({id,key:'q'+id,name,display:'scalar',dataset_query:inc(`SELECT "${field}" FROM statement`),visualization_settings:{'scalar.field':field,...fmt([field])}})),
  {id:184,key:'income-status',name:'Income period & freshness',display:'table',dataset_query:inc(status('Selection Status')),visualization_settings:{'table.pivot':false}},
  {id:204,key:'profit-bridge',name:'Income less expenses · Total = Net profit',display:'waterfall',dataset_query:inc(`SELECT v.movement AS "Movement",v.amount AS "Amount" FROM statement s CROSS JOIN LATERAL (VALUES (1,'Income',s."Operating Income"),(2,'Expenses',s."Operating Expenses")) v(step,movement,amount) ORDER BY v.step`),visualization_settings:prior('card-204').visualization_settings},
- {id:178,key:'expense-category',name:'Expenses by category · live period',display:'bar',dataset_query:{...inc('SELECT e."Expense Category",sum(e."Expense Amount") AS "Expenses" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" GROUP BY 1 ORDER BY 2 DESC,1'),native:{...inc('').native,query:'WITH statement AS ({{snippet: Income statement period}}) SELECT e."Expense Category",sum(e."Expense Amount") AS "Expenses" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" GROUP BY 1 ORDER BY 2 DESC,1','template-tags':{...itags,'#163':cardTag(163)}}},visualization_settings:{'graph.dimensions':['Expense Category'],'graph.metrics':['Expenses'],'graph.colors':['#D1495B'],'graph.show_values':true,...fmt(['Expenses'])}},
+ {id:178,key:'expense-category',name:'Expenses by category · live period',display:'row',dataset_query:{...inc('SELECT e."Expense Category",sum(e."Expense Amount") AS "Expenses" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" GROUP BY 1 ORDER BY 2 DESC,1'),native:{...inc('').native,query:'WITH statement AS ({{snippet: Income statement period}}) SELECT e."Expense Category",sum(e."Expense Amount") AS "Expenses" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" GROUP BY 1 ORDER BY 2 DESC,1','template-tags':{...itags,'#163':cardTag(163)}}},visualization_settings:{'graph.dimensions':['Expense Category'],'graph.metrics':['Expenses'],'graph.colors':['#D1495B'],'graph.show_values':true,...fmt(['Expenses'])}},
  {key:'expense-detail',name:'Expense detail · live period',display:'table',dataset_query:native('WITH statement AS ({{snippet: Income statement period}}) SELECT e."Expense Date",e."Expense Category",e."Expense Amount" AS "Expenses",e."Expense ID" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" ORDER BY e."Expense Date",e."Expense ID"',{...itags,'#163':cardTag(163)}),visualization_settings:{'table.pivot':false,...fmt(['Expenses'])}},
  ...[[195,'Opening cash','Opening Balance'],[192,'Money in','Money In'],[193,'Money out','Money Out'],[197,'Closing cash','Closing Balance'],[194,'Net cash movement','Net Movement']].map(([id,name,field])=>({id,key:'q'+id,name,display:'scalar',dataset_query:flow(`SELECT "${field}" FROM statement`),visualization_settings:{'scalar.field':field,...fmt([field])}})),
  {id:198,key:'flow-status',name:'Cashflow period & freshness',display:'table',dataset_query:flow(status('Statement Status',`,(5,'Account',coalesce(s."Account",'Unavailable')),(6,'Known opening from',coalesce(to_char(s."Available From",'YYYY-MM-DD'),'Unknown'))`)),visualization_settings:{'table.pivot':false}},
@@ -37,12 +37,12 @@ for(const id of [195,197]){
 }
 specs.find(s=>s.key==='expense-detail').visualization_settings['table.columns']=['Expense Date','Expense Category','Expenses','Expense ID'].map(name=>({name,enabled:name!=='Expense ID'}));
 const trendQuery=(income)=>native(`WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE d."Date"<public.olap_reporting_date() [[AND {{${income?'statement_period':'cashflow_period'}}}]])
- SELECT d."Date",${income?'s."Income",s."Expenses",s."Net Profit"':'CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Money In" ELSE a."Money In" END AS "Money In",CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Money Out" ELSE a."Money Out" END AS "Money Out"'},
+ SELECT d."Date",${income?'s."Income",s."Expenses"':'CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Money In" ELSE a."Money In" END AS "Money In",CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Money Out" ELSE a."Money Out" END AS "Money Out"'},
  ${income?'s."Generated At"':'CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Generated At" ELSE a."Generated At" END'} AS "Generated At"
  FROM selected d LEFT JOIN {{#205}} s ON s."Date"=d."Date"${income?'':' LEFT JOIN {{#206}} a ON a."Date"=d."Date" AND a."Cash Account ID"={{cash_account}}'} ORDER BY d."Date"`,{[income?'statement_period':'cashflow_period']:dateTag(income?'statement_period':'cashflow_period'),'#205':cardTag(205),...(income?{}:{cash_account:account,'#206':cardTag(206)})});
 for(const income of [true,false]){
- const base=trendQuery(income),metrics=income?['Income','Expenses','Net Profit']:['Money In','Money Out'];
- specs.push({key:income?'income-trend':'flow-trend',name:income?'Daily profitability · hourly snapshots':'Daily cash movement · hourly snapshots',display:income?'combo':'bar',dataset_query:base,visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':metrics,'graph.colors':income?['#13855B','#D1495B','#267DCC']:['#13855B','#D1495B'],'graph.show_legend':true,'graph.missing':'none','series_settings':income?{Income:{display:'bar',color:'#13855B'},Expenses:{display:'bar',color:'#D1495B'},'Net Profit':{display:'line',color:'#267DCC'}}:{},...fmt(metrics)}});
+ const base=trendQuery(income),metrics=income?['Income','Expenses']:['Money In','Money Out'];
+ specs.push({key:income?'income-trend':'flow-trend',name:income?'Daily income & expenses · hourly snapshots':'Daily cash movement · hourly snapshots',display:'bar',dataset_query:base,visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':metrics,'graph.colors':income?['#13855B','#D1495B']:['#13855B','#D1495B'],'graph.show_legend':true,'graph.missing':'none',...(income?{'graph.y_axis.auto_split':false}:{}),'series_settings':income?{Income:{display:'bar',color:'#13855B'},Expenses:{display:'bar',color:'#D1495B'}}:{},...fmt(metrics)}});
  specs.push({key:income?'income-snapshot-status':'flow-snapshot-status',name:income?'Profit trend snapshot freshness':'Cash trend snapshot freshness',display:'table',dataset_query:{...base,native:{...base.native,query:`WITH trend AS (${base.native.query}), totals AS (SELECT count(*) n,count(*) FILTER(WHERE "Generated At" IS NULL) missing,min("Generated At") oldest,max("Generated At") latest FROM trend) SELECT v.detail AS "Detail",v.value AS "Value" FROM totals CROSS JOIN LATERAL (VALUES (1,'Completed dates',n::text),(2,'Missing snapshots',missing::text),(3,'Oldest refresh',coalesce(to_char(oldest,'YYYY-MM-DD HH24:MI'),'Unavailable')),(4,'Latest refresh',coalesce(to_char(latest,'YYYY-MM-DD HH24:MI'),'Unavailable'))) v(step,detail,value) ORDER BY step`}},visualization_settings:{'table.pivot':false}});
 }
 
@@ -57,7 +57,7 @@ export function layout(d,state){
  place(16,204,0,14,24,6,'Income − expenses = net profit');place(16,178,0,20,24,6,'Expenses by category');
  place(16,state.cards['expense-detail'],0,26,24,7,'Expense detail · live');
  note(16,33,'Historical daily trend · hourly snapshots',1);note(16,34,'Completed days only. Gaps stay blank; corrections need a refresh.');
- place(16,state.cards['income-trend'],0,36,24,7,'Daily income, expenses & net profit');place(16,state.cards['income-snapshot-status'],0,43,24,6,'Snapshot coverage & actual refresh times');
+ place(16,state.cards['income-trend'],0,36,24,7,'Daily income & expenses');place(16,state.cards['income-snapshot-status'],0,43,24,6,'Snapshot coverage & actual refresh times');
  note(15,0,'Cashflow statement · live on refresh',1);note(15,1,'All accounts nets transfers to zero. Amounts in baht.');
  [[195,'Opening cash'],[192,'Money in'],[193,'Money out'],[197,'Closing cash']].forEach(([id,t],j)=>place(15,id,j*6,3,6,3,t));
  place(15,198,0,6,16,8,'Period, account & freshness');place(15,194,16,6,8,3,'Net cash movement');
@@ -68,6 +68,52 @@ export function layout(d,state){
  place(15,196,0,40,24,12,'Transactions · live chronological balances');
  note(15,52,'Statement date + posting time. Repayments keep their recorded type.');
  return out;
+}
+
+if(process.argv.includes('--income-chart-refine')){
+ await assertSource();
+ const state=read('statement-cleanup-state.json');
+ const baselineDir=privateDir+'/income-chart-refinement-before-20260924';
+ const previous=id=>JSON.parse(fs.readFileSync(`${baselineDir}/card-${id}.json`));
+ const updates=[[178,'expense-category'],[state.cards['income-trend'],'income-trend'],[state.cards['income-snapshot-status'],'income-snapshot-status']];
+ const sql=q=>q.native?.query??q.stages?.[0]?.native;
+ for(const [id,key] of updates){
+  const current=await api('GET',`card/${id}`),before=previous(id),spec=specs.find(s=>s.key===key);
+  const unchanged=current.display===before.display&&sql(current.dataset_query)===sql(before.dataset_query);
+  const updated=current.display===spec.display&&sql(current.dataset_query)===sql(spec.dataset_query);
+  assert.ok(unchanged||updated,`Card ${id} changed unexpectedly since rollback capture`);
+ }
+ const dashboard=await api('GET','dashboard/3');
+ const baseline=JSON.parse(fs.readFileSync(`${baselineDir}/dashboard.json`));
+ const shape=items=>items.map(c=>({id:c.id,card_id:c.card_id,dashboard_tab_id:c.dashboard_tab_id,col:c.col,row:c.row,size_x:c.size_x,size_y:c.size_y,parameter_mappings:c.parameter_mappings,visualization_settings:c.dashboard_tab_id===16&&c.card_id===state.cards['income-trend']?{...c.visualization_settings,'card.title':'Daily income, expenses & net profit'}:c.visualization_settings})).sort((a,b)=>a.id-b.id);
+ assert.ok(JSON.stringify(shape(dashboard.dashcards))===JSON.stringify(shape(baseline.dashcards)),'Dashboard placement changed since rollback capture');
+ const trend=specs.find(s=>s.key==='income-trend');
+ const result=await api('POST','dataset',trend.dataset_query);
+ assert.equal(result.status,'completed');
+ assert.ok(!result.data.rows_truncated);
+ assert.deepEqual(result.data.cols.map(c=>c.name),['Date','Income','Expenses','Generated At']);
+ for(const [id,key] of updates){
+  const spec=specs.find(s=>s.key===key);
+  const current=await api('GET',`card/${id}`);
+  if(current.display!==spec.display||sql(current.dataset_query)!==sql(spec.dataset_query))await api('PUT',`card/${id}`,{name:spec.name,display:spec.display,dataset_query:spec.dataset_query,visualization_settings:spec.visualization_settings});
+ }
+ const cards=dashboard.dashcards.map(c=>c.dashboard_tab_id===16&&c.card_id===state.cards['income-trend']?{...c,visualization_settings:{...c.visualization_settings,'card.title':'Daily income & expenses'}}:c);
+ if(dashboard.dashcards.find(c=>c.dashboard_tab_id===16&&c.card_id===state.cards['income-trend']).visualization_settings['card.title']!=='Daily income & expenses')await api('PUT','dashboard/3/cards',{tabs:dashboard.tabs,cards});
+ for(const [id,key] of updates){
+  const saved=await api('GET',`card/${id}`),spec=specs.find(s=>s.key===key);
+  for(const field of ['name','display','visualization_settings'])assert.deepEqual(saved[field],spec[field],`Card ${id} readback: ${field}`);
+  assert.equal(sql(saved.dataset_query),sql(spec.dataset_query),`Card ${id} SQL readback`);
+ }
+ const after=await api('GET','dashboard/3');
+ assert.equal(after.dashcards.find(c=>c.dashboard_tab_id===16&&c.card_id===state.cards['income-trend']).visualization_settings['card.title'],'Daily income & expenses');
+ assert.equal(after.dashcards.length,dashboard.dashcards.length);
+ const plan=read('statement-cleanup-plan.json');
+ for(const [id,key] of updates){const spec=specs.find(s=>s.key===key),i=plan.questions.findIndex(q=>q.id===id);assert.ok(i>=0);plan.questions[i]={...spec,id};}
+ const placement=plan.layout.find(c=>c.dashboard_tab_id===16&&c.card_id===state.cards['income-trend']);
+ assert.ok(placement);placement.visualization_settings['card.title']='Daily income & expenses';
+ write('statement-cleanup-plan.json',plan);
+ write('statement-cleanup/income-chart-refinement.json',{date:'2026-09-24',dashboard_id:3,tab_id:16,question_ids:updates.map(([id])=>id),trend_columns:result.data.cols.map(c=>c.name),trend_rows:result.data.rows.length,trend_rows_truncated:result.data.rows_truncated,category_display:'row',trend_display:'bar',trend_metrics:trend.visualization_settings['graph.metrics'],split_y_axis:trend.visualization_settings['graph.y_axis.auto_split'],dashboard_placements:after.dashcards.length,rollback:'Private income-chart-refinement-before-20260924 card/dashboard definitions'});
+ console.log('Income charts updated and saved definitions verified.');
 }
 
 if(process.argv.includes('--refine')){
