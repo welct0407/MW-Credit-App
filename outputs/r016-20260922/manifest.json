@@ -140,6 +140,7 @@
     "new_snippets": 0,
     "verification": "cash-review-verification.json",
     "plan": "cash-review-plan.json",
-    "baseline_commit": "909fe5374b5383fa8171c5ff90d6ca7007abe2f5"
+    "baseline_commit": "909fe5374b5383fa8171c5ff90d6ca7007abe2f5",
+    "gauge_verification": "cash-review-gauge-verification.json"
   }
 }

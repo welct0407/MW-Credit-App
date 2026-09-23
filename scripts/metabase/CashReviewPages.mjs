@@ -44,7 +44,9 @@ export function layout(state,d){
  note(p,0,'Cash position · where the money sits');
  note(p,1,'Capital: today. Cash: selected date or period end. Amounts in baht.',2);
  note(p,3,'1 · Capital deployed today');
- [[47,'Total cash pool · today'],[48,'Principal outstanding · today'],[54,'Capital utilization · today']].forEach(([id,t],j)=>place(p,id,j*8,4,8,2,t));
+ place(p,47,0,4,12,2,'Total cash pool · today');
+ place(p,48,0,6,12,2,'Principal outstanding · today');
+ place(p,68,12,4,12,4,'Capital utilization · today');
  note(p,6,'2 · Cash at the selected date');
  [[179,'Remaining lending capital',asof],[197,'Net cash balance',cashdate],[180,'Business cash held',asof],[state.cards.advance,'Partner advances',asof]].forEach(([id,t,m],j)=>place(p,id,j*6,7,6,2,t,m));
  note(p,9,'Cash held − advances = net cash. Lending capital is not a bank balance.',2);
@@ -79,6 +81,8 @@ export function layout(state,d){
  [[173,'Tommy · allocated draw'],[174,'Lisa · allocated draw'],[175,'Unsettled period profit']].forEach(([id,t],j)=>place(i,id,j*8,22,8,2,t,income));
  note(i,24,'Draws use earlier profit first. Allocations are not period cash payments.',2);
  note(i,26,'Draws are not expenses. Daily averages include zero-activity days.',2);
+ // Gauge occupies four rows alongside the two stacked capital scalars.
+ for(const c of cards.filter(c=>c.dashboard_tab_id===p&&![47,48,68].includes(c.card_id)&&c.row>=6))c.row+=2;
  // Retain placement identities across scoped refinements so open tabs keep valid query endpoints.
  for(const c of cards){const old=d.dashcards.find(o=>o.dashboard_tab_id===c.dashboard_tab_id&&(c.card_id?o.card_id===c.card_id:!o.card_id&&o.visualization_settings?.virtual_card?.visualization_settings?.text===c.visualization_settings.virtual_card.visualization_settings.text));if(old)c.id=old.id;}
  return cards;

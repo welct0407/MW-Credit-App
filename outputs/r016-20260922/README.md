@@ -2,6 +2,8 @@
 
 ## Additive cash-reporting review — 23 September 2026
 
+2R now reuses utilization gauge question **68** instead of scalar **54**, with the two capital figures stacked beside it. Shared gauge settings and all other tabs remain unchanged. [Scoped verification](cash-review-gauge-verification.json). The label “Partner advances” currently represents negative account balances, not an independently recorded partner liability; see the [metric clarification](../../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md#2r-utilization-gauge-and-metric-explanation--23-september-2026).
+
 The ten original pages remain unchanged. Three appended tabs offer an alternative design for owner review:
 
 | Tab | Purpose and filters | Reuse |

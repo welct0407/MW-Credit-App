@@ -1,0 +1,23 @@
+{
+  "verified_at": "2026-09-23T09:49:35.660Z",
+  "baseline_commit": "4cfd6054acc32ee874c6cb6cca762e935994b702",
+  "tab_id": 14,
+  "placement_id": 469,
+  "previous_question": 54,
+  "reused_gauge_question": 68,
+  "new_questions": 0,
+  "checks": [
+    "Gauge and previous scalar return identical utilization",
+    "Saved gauge placement query completes",
+    "Only 2R capital layout and downstream spacing changed",
+    "All tabs and parameter definitions unchanged",
+    "Shared gauge query/settings and scalar query unchanged"
+  ],
+  "reused_existing_gauge_scale_and_thresholds": true,
+  "financial_values_published": false,
+  "browser": {
+    "desktop_gauge_visible": true,
+    "spacing_checked": true,
+    "checked_at": "2026-09-23T09:50:58.041Z"
+  }
+}
