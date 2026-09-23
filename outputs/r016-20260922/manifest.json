@@ -104,5 +104,6 @@
   "income_presentation_tests": "income-symbols-verification.json",
   "cashflow_tests": "cashflow-verification.json",
   "cashflow_db_tests": "cashflow-production.json",
-  "cashflow_access": "cashflow-grants.json"
+  "cashflow_access": "cashflow-grants.json",
+  "cashflow_table_refinement": "cashflow-table-refinement.json"
 }

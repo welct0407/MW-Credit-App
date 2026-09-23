@@ -1,6 +1,6 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';
 import {api,assertSource,read,write,privateDir,root} from './ReportingApi.mjs';
-import {definitions,specs} from './CashflowPage.mjs';
+import {definitions,specs,transactionFormatting} from './CashflowPage.mjs';
 await assertSource();
 const baseline=JSON.parse(fs.readFileSync(privateDir+'/cashflow-before/dashboard-3.json'));
 if(!fs.existsSync(root+'/outputs/r016-20260922/cashflow-production.json'))throw Error('PROD verification required');
@@ -23,8 +23,8 @@ tags.cash_account={id:'r016-cash-account',name:'cash_account','display-name':'Ac
 state.snippet_id=snippet.id;
 for(const q of specs){
  const query=`WITH statement AS ({{${tag}}}) ${expand(q.sql)}`;
- const numbers=q.metric?[q.metric]:['Transaction Amount','Money In','Money Out','Balance After'];
- const settings={column_settings:Object.fromEntries(numbers.map(n=>[JSON.stringify(['name',n]),{number_style:q.metric?'currency':'decimal',currency:'THB',currency_style:'symbol',decimals:0,number_separators:'.,',compact:false}])),...(q.metric?{'scalar.field':['opening','closing'].includes(q.key)?'Balance Display':q.metric,'scalar.segments':[{min:-1e18,max:1e18,color:q.color}]}:{'table.pivot':false})};
+ const numbers=q.metric?[q.metric]:q.key==='transactions'?['Money In','Money Out','Balance After']:[];
+ const settings={column_settings:Object.fromEntries(numbers.map(n=>[JSON.stringify(['name',n]),{number_style:q.metric?'currency':'decimal',currency:'THB',currency_style:'symbol',decimals:0,number_separators:'.,',compact:false}])),...(q.metric?{'scalar.field':['opening','closing'].includes(q.key)?'Balance Display':q.metric,'scalar.segments':[{min:-1e18,max:1e18,color:q.color}]}:{'table.pivot':false,...(q.key==='transactions'?{'table.column_formatting':transactionFormatting}:{})})};
  const id=state.cards[q.key];const c=await api(id?'PUT':'POST',id?'card/'+id:'card',{name:q.name,description:'Live selected-period cash statement. All accounts excludes internal transfers from money in/out; individual accounts retain their transfer side. Amounts in THB.',type:'question',collection_id:5,display:q.display,visualization_settings:settings,dataset_query:{database:2,type:'native',native:{query,'template-tags':tags}}});
  state.cards[q.key]=c.id;write('cashflow-state.json',state);
  const result=await api('POST',`card/${c.id}/query`,{});assert.equal(result.status,'completed');console.log('Saved cashflow '+q.key);

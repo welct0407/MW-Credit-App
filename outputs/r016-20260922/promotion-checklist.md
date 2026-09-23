@@ -110,3 +110,7 @@ V36 additive views tested and applied to DEV, with 13 reconciliations and 42 pre
 ### Cashflow extension closure — 23 September
 
 P01/P13/P22/P28/P39/P41/P45/P46 are complete for approved V36/page 10: exact commit `d9da07a89a39a732bb1d5fcf7994f04dafe56379`, verified recovery/hash and unchanged pre-promotion schema, DEV/PROD validation and 13 reconciliations, SELECT-only grants, 72 live dashboard checks, date/account GUI and desktop/390px QA, dictionary/current-document closure. Existing nine pages and permissions preserved. AppSheet/RC/logo/notification steps are N/A; no source definition or financial record changed. P48 publication is completed by the following coherent evidence commit and normal upstream push; final whole-R016 tag/acceptance remains pending. Candidate paragraph above is superseded. Current inventory: 10 tabs, 130 visual placements, 126 distinct questions, 20 models/287 fields, three snippets; source access covers 22 named objects.
+
+### Cashflow table presentation refinement — 23 September
+
+Question 196 only: nine displayed columns, compact statement date/OLTP posting time and green/red positive money movement cells. Scoped private metadata backup and 93 live dashboard checks, including previous page/permission preservation. No new SQL/AppSheet promotion or RC. Source and model dictionary are unchanged; change log, current inventory, manifest and maintained installer record the presentation. Full R016 acceptance, key retirement and tag remain pending.

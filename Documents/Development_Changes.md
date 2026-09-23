@@ -4,7 +4,7 @@ Current production baseline is R015. This register contains open product differe
 
 ## R016 — Metabase reporting migration
 
-Cashflow Statement page 10 is deployed for owner review. DEV and PROD are V36; two additive reporting views and SELECT-only grants are verified. Seven visuals use two shared models and one date/account snippet. All 13 PROD reconciliations and 72 live dashboard checks pass. Previous nine pages and partner permissions are preserved; no AppSheet or financial-data changes.
+Cashflow Statement page 10 is deployed for owner review. DEV and PROD are V36; two additive reporting views and SELECT-only grants are verified. Seven visuals use two shared models and one date/account snippet. All 13 PROD reconciliations and 93 live dashboard checks pass. Previous nine pages and partner permissions are preserved; no AppSheet or financial-data changes.
 
 No unpromoted V36 database difference remains. The report has 20 reusable models, 287 fields, three shared snippets and 130 visual placements (126 distinct questions), with SELECT-only access to 22 named sources. Source 2 remains PROD; no DEV financial data was copied. Cashflow opening/closing balances are signed net custody and are unavailable before each account opening; All accounts coverage starts 18 September 2026. Full R016 owner acceptance and migration-key revocation remain pending. Borrower daily balance history on page 7 remains outside this scope. Railway Hobby sizing, Singapore hosting and Google sign-in are unchanged. [Evidence and recovery](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md).
 
