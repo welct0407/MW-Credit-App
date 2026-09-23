@@ -1,0 +1,23 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "Rebuild Yesterday and Today's Analytics Output"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLAP"
+  "source_table": "Rebuild Yesterday and Today's Analytics Output"
+  "binding":
+    "App": "OLAP"
+    "Version": "v1.100101"
+    "Table": "Rebuild Yesterday and Today's Analytics Output"
+    "Source": "native"
+    "Source path": "/ProcessStateTables/e74dd368-654f-44d7-bccf-83cf361d1cdb/58749b74-0749-4212-983a-73b13ab90ccc/StepOutput_Rebuild\
+      \ Yesterday and Today's Analytics"
+    "Schema": "Rebuild Yesterday and Today's Analytics Output_Schema"
+    "Update permission": "READ_ONLY"
+    "Scope": "AppSheet internal"

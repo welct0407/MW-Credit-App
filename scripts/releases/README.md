@@ -49,6 +49,12 @@ Optional `node scripts/releases/delta.mjs fingerprint INPUT.json` prints file ha
 
 ## Targeted dictionary edits
 
+The maintained dictionary is now [Documents/Data Dictionary](../../Documents/Data%20Dictionary/README.md). Use [scripts/dictionary](../dictionary/README.md) for selective reads, guarded text edits and validation. The Excel workbook is frozen evidence from the migration on 23 September 2026. Do not use legacy workbook writers for new changes.
+
+### Historical Excel helper
+
+The interface below remains documented for old payloads and isolated historical fixtures. It does not update the maintained text dictionary, and the helper rejects the frozen source workbook as an input.
+
 `dictionary.mjs` updates existing rows only, using header names, unique row keys and exact old-value guards. It derives new values from delta items where possible. It writes a new workbook, leaving the source untouched. Row creation/deletion, formula edits and complex workbook features use the existing spreadsheet workflow; this helper does not rebuild inventories.
 
 ```powershell

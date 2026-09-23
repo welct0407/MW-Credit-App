@@ -1,0 +1,158 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Borrowers"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Borrowers"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Borrower Name":
+      "Table / view": "Borrowers"
+      "Column": "Borrower Name"
+      "Position": 2
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Description":
+      "Table / view": "Borrowers"
+      "Column": "Description"
+      "Position": 3
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Creation Date":
+      "Table / view": "Borrowers"
+      "Column": "Creation Date"
+      "Position": 4
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Hidden Flag":
+      "Table / view": "Borrowers"
+      "Column": "Hidden Flag"
+      "Position": 5
+      "PostgreSQL type": "boolean"
+      "Nullable": "YES"
+      "Default": null
+    "Communication Name":
+      "Table / view": "Borrowers"
+      "Column": "Communication Name"
+      "Position": 6
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Instagram Username":
+      "Table / view": "Borrowers"
+      "Column": "Instagram Username"
+      "Position": 7
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "AI Collection Enabled":
+      "Table / view": "Borrowers"
+      "Column": "AI Collection Enabled"
+      "Position": 8
+      "PostgreSQL type": "boolean"
+      "Nullable": "YES"
+      "Default": null
+    "City":
+      "Table / view": "Borrowers"
+      "Column": "City"
+      "Position": 9
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Working Location":
+      "Table / view": "Borrowers"
+      "Column": "Working Location"
+      "Position": 10
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Address":
+      "Table / view": "Borrowers"
+      "Column": "Address"
+      "Position": 11
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Total Interest Earned":
+      "Table / view": "Borrowers"
+      "Column": "Total Interest Earned"
+      "Position": 12
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Total Amount Loaned":
+      "Table / view": "Borrowers"
+      "Column": "Total Amount Loaned"
+      "Position": 13
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Total Number of Loans":
+      "Table / view": "Borrowers"
+      "Column": "Total Number of Loans"
+      "Position": 14
+      "PostgreSQL type": "integer"
+      "Nullable": "YES"
+      "Default": null
+    "Total Outstanding Principal":
+      "Table / view": "Borrowers"
+      "Column": "Total Outstanding Principal"
+      "Position": 15
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Active Loan Interest Earned":
+      "Table / view": "Borrowers"
+      "Column": "Active Loan Interest Earned"
+      "Position": 16
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Active Daily Interest":
+      "Table / view": "Borrowers"
+      "Column": "Active Daily Interest"
+      "Position": 17
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Has Closed Loan":
+      "Table / view": "Borrowers"
+      "Column": "Has Closed Loan"
+      "Position": 18
+      "PostgreSQL type": "boolean"
+      "Nullable": "YES"
+      "Default": null
+    "Has Active Loan":
+      "Table / view": "Borrowers"
+      "Column": "Has Active Loan"
+      "Position": 19
+      "PostgreSQL type": "boolean"
+      "Nullable": "YES"
+      "Default": null
+  "constraints":
+    "Borrowers_Row ID_not_null":
+      "Table": "Borrowers"
+      "Constraint": "Borrowers_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Borrowers_pkey":
+      "Table": "Borrowers"
+      "Constraint": "Borrowers_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"

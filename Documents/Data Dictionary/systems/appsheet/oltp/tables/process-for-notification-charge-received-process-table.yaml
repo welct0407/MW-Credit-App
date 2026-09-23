@@ -1,0 +1,22 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Process for Notification - Charge Received Process Table"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLTP"
+  "source_table": "Process for Notification - Charge Received Process Table"
+  "binding":
+    "App": "OLTP"
+    "Version": "v3.000121"
+    "Table": "Process for Notification - Charge Received Process Table"
+    "Source": "native"
+    "Source path": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/d93019b5-64f3-4a8f-840f-44cc8566a206/State Table"
+    "Schema": "Process for Notification - Charge Received Process Table_Schema"
+    "Update permission": "READ_ONLY"
+    "Scope": "AppSheet internal"

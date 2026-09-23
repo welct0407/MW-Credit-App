@@ -1,0 +1,63 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/dev-differences"
+  "kind": "sheet-records"
+  "name": "R006 applied / PROD OLTP 3.000173; DEV OLTP 1.000134"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "Dev Differences"
+  "records":
+    "row-01282":
+      "App": "R006 applied / PROD OLTP 3.000173; DEV OLTP 1.000134"
+      "Object": "Payments.Eligible Charges"
+      "Property": "App formula"
+      "Production": "PROD App formula (saved 3.000173): IF(IN([Status], LIST(\"Processing\", \"Error\")), SELECT(Charges[Row\
+        \ ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], [Amount Remaining] > 0, IFS(IN([_THISROW].[Allocation\
+        \ Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge],\
+        \ [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = [_THISROW].[Ref Target Charge].[Ref Loans], IN([_THISROW].[Allocation\
+        \ Method], LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], TRUE, FALSE))), LIST())\
+        \ Evidence: outputs/r006-20260918/prod-readback-r1.json and prod-saved-observations.json."
+      "Development": "DEV App formula (saved 1.000134): IF(IN([Status], LIST(\"Processing\", \"Error\")), SELECT(Charges[Row\
+        \ ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], [Amount Remaining] > 0, IFS(IN([_THISROW].[Allocation\
+        \ Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge],\
+        \ [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = [_THISROW].[Ref Target Charge].[Ref Loans], IN([_THISROW].[Allocation\
+        \ Method], LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], TRUE, FALSE))), LIST())\
+        \ Promoted target matches PROD. No SQL/type/Ref change."
+    "row-01283":
+      "App": "R006 applied / PROD OLTP 3.000173; DEV OLTP 1.000134"
+      "Object": "Payments.Eligible Outstanding"
+      "Property": "App formula"
+      "Production": "PROD App formula (saved 3.000173): IF(IN([Status], LIST(\"Processing\", \"Error\")), SUM([Eligible Charges][Amount\
+        \ Remaining]), 0) Evidence: outputs/r006-20260918/prod-readback-r1.json and prod-saved-observations.json."
+      "Development": "DEV App formula (saved 1.000134): IF(IN([Status], LIST(\"Processing\", \"Error\")), SUM([Eligible Charges][Amount\
+        \ Remaining]), 0) Promoted target matches PROD. No SQL/type/Ref change."
+    "row-01284":
+      "App": "R006 applied / PROD OLTP 3.000173; DEV OLTP 1.000134"
+      "Object": "Payments.Visible Allocations"
+      "Property": "App formula"
+      "Production": "PROD App formula (saved 3.000173): SELECT([Related Payment Allocations][Row ID], [Allocated Amount] >\
+        \ 0) Evidence: outputs/r006-20260918/prod-readback-r1.json and prod-saved-observations.json."
+      "Development": "DEV App formula (saved 1.000134): SELECT([Related Payment Allocations][Row ID], [Allocated Amount] >\
+        \ 0) Promoted target matches PROD. No SQL/type/Ref change."
+    "row-01285":
+      "App": "R006 applied / PROD OLTP 3.000173; DEV OLTP 1.000134"
+      "Object": "Borrowers.Daily Collection Status"
+      "Property": "App formula"
+      "Production": "PROD App formula (saved 3.000173): IFS( COUNT([Todays Collection Charges]) = 0, \"\", COUNT( SELECT(\
+        \ [Todays Collection Charges][Row ID], AND( [Charge Date] < TODAY(), [Payment Status] <> \"ชำระแล้ว\" ) ) ) > 0, \"\
+        Overdue\", AND( NOT(IN(\"รอชำระ\", [Todays Collection Charges][Payment Status])), NOT(IN(\"ชำระบางส่วน\", [Todays\
+        \ Collection Charges][Payment Status])) ), \"Fully Paid\", OR( IN(\"ชำระบางส่วน\", [Todays Collection Charges][Payment\
+        \ Status]), AND( IN(\"ชำระแล้ว\", [Todays Collection Charges][Payment Status]), IN(\"รอชำระ\", [Todays Collection\
+        \ Charges][Payment Status]) ) ), \"Partially Paid\", TRUE, \"Not Paid\") Evidence: outputs/r006-20260918/prod-readback-r1.json\
+        \ and prod-saved-observations.json."
+      "Development": "DEV App formula (saved 1.000134): IFS( COUNT([Todays Collection Charges]) = 0, \"\", COUNT( SELECT(\
+        \ [Todays Collection Charges][Row ID], AND( [Charge Date] < TODAY(), [Payment Status] <> \"ชำระแล้ว\" ) ) ) > 0, \"\
+        Overdue\", AND( NOT(IN(\"รอชำระ\", [Todays Collection Charges][Payment Status])), NOT(IN(\"ชำระบางส่วน\", [Todays\
+        \ Collection Charges][Payment Status])) ), \"Fully Paid\", OR( IN(\"ชำระบางส่วน\", [Todays Collection Charges][Payment\
+        \ Status]), AND( IN(\"ชำระแล้ว\", [Todays Collection Charges][Payment Status]), IN(\"รอชำระ\", [Todays Collection\
+        \ Charges][Payment Status]) ) ), \"Partially Paid\", TRUE, \"Not Paid\") Promoted target matches PROD. No SQL/type/Ref\
+        \ change."

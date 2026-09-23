@@ -1,0 +1,20 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/dev-differences"
+  "kind": "sheet-records"
+  "name": "R005 Released"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "Dev Differences"
+  "records":
+    "row-01281":
+      "App": "R005 Released"
+      "Object": "Current scope"
+      "Property": "Reconciliation"
+      "Production": "PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21; 2408 core properties and 20 dashboard items verified."
+      "Development": "No remaining R005 business configuration differences. DEV uses database-3, its own app links/theme,\
+        \ owner-only delivery, Prototype mode and synthetic fixtures. See PRODUCTION_REPORT.md."

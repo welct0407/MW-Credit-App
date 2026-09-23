@@ -1,0 +1,119 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Repayments"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Repayments"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Payment Date":
+      "Table / view": "Repayments"
+      "Column": "Payment Date"
+      "Position": 2
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Principal Paid":
+      "Table / view": "Repayments"
+      "Column": "Principal Paid"
+      "Position": 3
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Interest Paid":
+      "Table / view": "Repayments"
+      "Column": "Interest Paid"
+      "Position": 4
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Notes":
+      "Table / view": "Repayments"
+      "Column": "Notes"
+      "Position": 5
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Loans":
+      "Table / view": "Repayments"
+      "Column": "Ref Loans"
+      "Position": 6
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Charges":
+      "Table / view": "Repayments"
+      "Column": "Ref Charges"
+      "Position": 7
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Created By":
+      "Table / view": "Repayments"
+      "Column": "Created By"
+      "Position": 8
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Payment":
+      "Table / view": "Repayments"
+      "Column": "Ref Payment"
+      "Position": 9
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Payment Allocation":
+      "Table / view": "Repayments"
+      "Column": "Ref Payment Allocation"
+      "Position": 10
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+  "constraints":
+    "Repayments_Row ID_not_null":
+      "Table": "Repayments"
+      "Constraint": "Repayments_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Repayments_pkey":
+      "Table": "Repayments"
+      "Constraint": "Repayments_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"
+    "appsheet_ref_02":
+      "Table": "Repayments"
+      "Constraint": "appsheet_ref_02"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Loans\") REFERENCES \"Loans\"(\"Row ID\")"
+    "appsheet_ref_03":
+      "Table": "Repayments"
+      "Constraint": "appsheet_ref_03"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Charges\") REFERENCES \"Charges\"(\"Row ID\")"
+    "appsheet_ref_04":
+      "Table": "Repayments"
+      "Constraint": "appsheet_ref_04"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\")"
+    "appsheet_ref_05":
+      "Table": "Repayments"
+      "Constraint": "appsheet_ref_05"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Payment Allocation\") REFERENCES \"Payment Allocations\"(\"Row ID\")"

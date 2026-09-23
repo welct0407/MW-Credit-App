@@ -1,0 +1,146 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Daily Performance"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Model grain"
+      "Type / source": "scripts/metabase/models/daily.sql"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield\
+        \ on closing principal plus principal returned, and Bangkok date windows."
+    "Snapshot ID":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Snapshot ID"
+      "Type / source": "type/Text / field 81"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Snapshot ID"
+    "Date":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Date"
+      "Type / source": "type/Date / field 82"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Date"
+    "Generated At":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Generated At"
+      "Type / source": "type/DateTime / field 83"
+      "Semantic / relationship": null
+      "Definition": "Generated At"
+    "Model Version":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Model Version"
+      "Type / source": "type/Integer / field 84"
+      "Semantic / relationship": null
+      "Definition": "Model Version"
+    "Outstanding Principal":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Outstanding Principal"
+      "Type / source": "type/Decimal / field 88"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Outstanding Principal"
+    "Profit":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Profit"
+      "Type / source": "type/Decimal / field 87"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Profit"
+    "Overdue Charges":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Overdue Charges"
+      "Type / source": "type/Decimal / field 114"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Overdue Charges"
+    "Principal Issued":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Principal Issued"
+      "Type / source": "type/Decimal / field 85"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Principal Issued"
+    "Principal Returned":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Principal Returned"
+      "Type / source": "type/Decimal / field 86"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Principal Returned"
+    "Issued Chart Amount":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Issued Chart Amount"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Issued Chart Amount"
+    "Returned Chart Amount":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Returned Chart Amount"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Returned Chart Amount"
+    "Include Overdue Trend":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Include Overdue Trend"
+      "Type / source": "type/Boolean"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Include Overdue Trend"
+    "Loans Issued":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Loans Issued"
+      "Type / source": "type/Integer"
+      "Semantic / relationship": null
+      "Definition": "Loans Issued"
+    "Active Loans EOD":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Active Loans EOD"
+      "Type / source": "type/Integer"
+      "Semantic / relationship": null
+      "Definition": "Active Loans EOD"
+    "Active Borrowers EOD":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Active Borrowers EOD"
+      "Type / source": "type/Integer"
+      "Semantic / relationship": null
+      "Definition": "Active Borrowers EOD"
+    "Cumulative Profit":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Cumulative Profit"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Cumulative Profit"
+    "Daily Capital Yield":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "Daily Capital Yield"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Percentage"
+      "Definition": "Daily Capital Yield"
+    "In Last 30 Days":
+      "Model": "Daily Performance"
+      "ID": 74
+      "Field / grain": "In Last 30 Days"
+      "Type / source": "type/Boolean"
+      "Semantic / relationship": null
+      "Definition": "In Last 30 Days"

@@ -1,0 +1,168 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Payments"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Payments"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Status":
+      "Table / view": "Payments"
+      "Column": "Status"
+      "Position": 2
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Borrower":
+      "Table / view": "Payments"
+      "Column": "Ref Borrower"
+      "Position": 3
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Amount Received":
+      "Table / view": "Payments"
+      "Column": "Amount Received"
+      "Position": 4
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Payment Method":
+      "Table / view": "Payments"
+      "Column": "Payment Method"
+      "Position": 5
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Allocation Method":
+      "Table / view": "Payments"
+      "Column": "Allocation Method"
+      "Position": 6
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Bank Reference":
+      "Table / view": "Payments"
+      "Column": "Bank Reference"
+      "Position": 7
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Notes":
+      "Table / view": "Payments"
+      "Column": "Notes"
+      "Position": 8
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Created By":
+      "Table / view": "Payments"
+      "Column": "Created By"
+      "Position": 9
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Payment Date":
+      "Table / view": "Payments"
+      "Column": "Payment Date"
+      "Position": 10
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Created At":
+      "Table / view": "Payments"
+      "Column": "Created At"
+      "Position": 11
+      "PostgreSQL type": "timestamp without time zone"
+      "Nullable": "YES"
+      "Default": null
+    "Processed At":
+      "Table / view": "Payments"
+      "Column": "Processed At"
+      "Position": 12
+      "PostgreSQL type": "timestamp without time zone"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Target Charge":
+      "Table / view": "Payments"
+      "Column": "Ref Target Charge"
+      "Position": 13
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Target Loan":
+      "Table / view": "Payments"
+      "Column": "Ref Target Loan"
+      "Position": 14
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Planned Allocation Amount":
+      "Table / view": "Payments"
+      "Column": "Planned Allocation Amount"
+      "Position": 15
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Posted Amount":
+      "Table / view": "Payments"
+      "Column": "Posted Amount"
+      "Position": 16
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Received By Cash Holder":
+      "Table / view": "Payments"
+      "Column": "Ref Received By Cash Holder"
+      "Position": 17
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": "'ch:dad'::text"
+  "constraints":
+    "Payments_Row ID_not_null":
+      "Table": "Payments"
+      "Constraint": "Payments_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Payments_pkey":
+      "Table": "Payments"
+      "Constraint": "Payments_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"
+    "appsheet_ref_12":
+      "Table": "Payments"
+      "Constraint": "appsheet_ref_12"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\")"
+    "appsheet_ref_13":
+      "Table": "Payments"
+      "Constraint": "appsheet_ref_13"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Target Charge\") REFERENCES \"Charges\"(\"Row ID\")"
+    "Payments_Ref Target Loan_fkey":
+      "Table": "Payments"
+      "Constraint": "Payments_Ref Target Loan_fkey"
+      "Type": "f"
+      "Validated": "true"
+      "Definition": "FOREIGN KEY (\"Ref Target Loan\") REFERENCES \"Loans\"(\"Row ID\")"
+    "Payments_Ref Received By Cash Holder_fkey":
+      "Table": "Payments"
+      "Constraint": "Payments_Ref Received By Cash Holder_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Received By Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"

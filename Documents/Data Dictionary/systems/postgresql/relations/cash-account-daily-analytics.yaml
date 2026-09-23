@@ -1,0 +1,187 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Cash Account Daily Analytics"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Snapshot Date":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Snapshot Date"
+      "Position": 2
+      "PostgreSQL type": "date"
+      "Nullable": "NO"
+      "Default": null
+    "Ref Cash Account":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Ref Cash Account"
+      "Position": 3
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Generated At":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Generated At"
+      "Position": 4
+      "PostgreSQL type": "timestamp without time zone"
+      "Nullable": "NO"
+      "Default": null
+    "Model Version":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Model Version"
+      "Position": 5
+      "PostgreSQL type": "integer"
+      "Nullable": "NO"
+      "Default": null
+    "Money In":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Money In"
+      "Position": 6
+      "PostgreSQL type": "numeric"
+      "Nullable": "NO"
+      "Default": null
+    "Money Out":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Money Out"
+      "Position": 7
+      "PostgreSQL type": "numeric"
+      "Nullable": "NO"
+      "Default": null
+    "Opening Balance":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Opening Balance"
+      "Position": 8
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Closing Balance":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Closing Balance"
+      "Position": 9
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Transaction Count":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Transaction Count"
+      "Position": 10
+      "PostgreSQL type": "bigint"
+      "Nullable": "NO"
+      "Default": null
+    "Available From":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Available From"
+      "Position": 11
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Balance Status":
+      "Table / view": "Cash Account Daily Analytics"
+      "Column": "Balance Status"
+      "Position": 12
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+  "constraints":
+    "Cash Account Daily Analytics_Balance Status_not_null":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Balance Status_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Balance Status\""
+    "Cash Account Daily Analytics_Generated At_not_null":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Generated At_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Generated At\""
+    "Cash Account Daily Analytics_Model Version_not_null":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Model Version_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Model Version\""
+    "Cash Account Daily Analytics_Money In_not_null":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Money In_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Money In\""
+    "Cash Account Daily Analytics_Money Out_not_null":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Money Out_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Money Out\""
+    "Cash Account Daily Analytics_Ref Cash Account_fkey":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Ref Cash Account_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\")"
+    "Cash Account Daily Analytics_Ref Cash Account_not_null":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Ref Cash Account_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Ref Cash Account\""
+    "Cash Account Daily Analytics_Row ID_not_null":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Cash Account Daily Analytics_Snapshot Date_Ref Cash Account_key":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Snapshot Date_Ref Cash Account_key"
+      "Type": "u"
+      "Validated": true
+      "Definition": "UNIQUE (\"Snapshot Date\", \"Ref Cash Account\")"
+    "Cash Account Daily Analytics_Snapshot Date_not_null":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Snapshot Date_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Snapshot Date\""
+    "Cash Account Daily Analytics_Transaction Count_not_null":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_Transaction Count_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Transaction Count\""
+    "Cash Account Daily Analytics_check":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK (((\"Money In\" >= (0)::numeric) AND (\"Money Out\" >= (0)::numeric)))"
+    "Cash Account Daily Analytics_check1":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_check1"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK (((\"Opening Balance\" IS NULL) = (\"Closing Balance\" IS NULL)))"
+    "Cash Account Daily Analytics_check2":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_check2"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((\"Closing Balance\" = ((\"Opening Balance\" + \"Money In\") - \"Money Out\")))"
+    "Cash Account Daily Analytics_pkey":
+      "Table": "Cash Account Daily Analytics"
+      "Constraint": "Cash Account Daily Analytics_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"

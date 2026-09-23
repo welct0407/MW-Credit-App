@@ -1,0 +1,149 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "slice"
+  "name": "Daily Analytics 90 Days"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "definition":
+    "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Permission": "READ_ONLY"
+    "Filter": "=[Snapshot Date] >= NOW() - 90"
+    "Actions": "**auto**"
+  "members":
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 1
+    "Column": "_RowNumber"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 2
+    "Column": "Row ID"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 3
+    "Column": "Snapshot Date"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 4
+    "Column": "Generated At"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 5
+    "Column": "Model Version"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 6
+    "Column": "Principal Issued"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 7
+    "Column": "Loans Issued"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 8
+    "Column": "Principal Returned"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 9
+    "Column": "Interest Received"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 10
+    "Column": "Repayments Count"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 11
+    "Column": "Outstanding Principal EOD"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 12
+    "Column": "Active Loans EOD"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 13
+    "Column": "Active Borrowers EOD"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 14
+    "Column": "Pending Charges EOD"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 15
+    "Column": "Total Cash Pool EOD"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 16
+    "Column": "Available Cash EOD"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 17
+    "Column": "Unsettled Profit EOD"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 18
+    "Column": "Week"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 19
+    "Column": "Month"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 20
+    "Column": "Daily Capital Employed"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 21
+    "Column": "Daily Capital Yield"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 22
+    "Column": "Portfolio Share Join Key"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 23
+    "Column": "Portfolio Slice"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 24
+    "Column": "Business Expenses"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 25
+    "Column": "Net Profit"
+  - "App": "OLAP"
+    "Slice": "Daily Analytics 90 Days"
+    "Source table": "Daily Analytics"
+    "Ordinal": 26
+    "Column": "Net Unsettled Profit EOD"

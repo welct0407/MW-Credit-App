@@ -1,0 +1,20 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "mw_agent"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00183":
+      "Kind": "Internal database"
+      "Schema / table": "mw_agent"
+      "Name": "Agent state and audit"
+      "Status / hash": "R015; excluded from AppSheet"
+      "Definition / arguments": "Separate database on appsheet-pg-prod-20260914. Central immutable V1-V3 in MW-Integration-Agent/database/migrations.\
+        \ 29 audit/runtime/migration tables plus deployment history. Model tools cannot issue DDL; worker cannot rewrite audit."

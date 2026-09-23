@@ -1,0 +1,587 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "Cash Holders"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLAP"
+  "source_table": "Cash Holders"
+  "binding":
+    "App": "OLAP"
+    "Version": "v1.100122"
+    "Table": "Cash Holders"
+    "Source": "database-2"
+    "Source path": "Cash Holders"
+    "Schema": "Cash Holders_Schema"
+    "Update permission": "READ_ONLY"
+    "Scope": "R005 saved PROD; "
+  "columns":
+    "_RowNumber":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "_RowNumber"
+        "Type": "Number"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Number of this row"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "Yes"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.MaxValue": null
+        "Type Qualifier.MinValue": null
+        "Type Qualifier.StepValue": null
+        "Type Qualifier.NumericDigits": null
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Row ID":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Row ID"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "Yes"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "Yes"
+        "Part of Key?": "Yes"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.MaxLength": null
+        "Type Qualifier.MinLength": null
+        "Type Qualifier.LongTextFormatting": "Plain Text"
+        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Holder Name":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Holder Name"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "Yes"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "Yes"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.MaxLength": null
+        "Type Qualifier.MinLength": null
+        "Type Qualifier.LongTextFormatting": "Plain Text"
+        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Active":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Active"
+        "Type": "Yes/No"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Yes/No"
+        "Type Qualifier": "{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.YesLabel": null
+        "Type Qualifier.NoLabel": null
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Sort Order":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Sort Order"
+        "Type": "Number"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.MaxValue": null
+        "Type Qualifier.MinValue": null
+        "Type Qualifier.StepValue": null
+        "Type Qualifier.NumericDigits": null
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Created At":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Created At"
+        "Type": "DateTime"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "DateTime"
+        "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
+          :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\"\
+          :null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "NOW()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.MinValue": null
+        "Type Qualifier.MaxValue": null
+        "Type Qualifier.UseLongDateFormat": "false"
+        "Type Qualifier.IgnoreSeconds": "false"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Related Cash Holder Balances":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Related Cash Holder Balances"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Cash Holder Balances entries that reference this entry in the Ref Cash Holder column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Holder\
+          \ Balances\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Holder Balances\\\",\\\"ReferencedType\\\":\\\"Ref\\\",\\\
+          \"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Cash Holders\\\\\\\",\\\\\\\"ReferencedRootTableName\\\
+          \\\\\":\\\\\\\"Cash Holders\\\\\\\",\\\\\\\"ReferencedType\\\\\\\":\\\\\\\"Text\\\\\\\",\\\\\\\"ReferencedTypeQualifier\\\
+          \\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"MinLength\\\\\\\\\\\\\\\":null,\\\
+          \\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Plain Text\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\
+          \\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\
+          \\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\
+          \\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\
+          \\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"ReferencedKeyColumn\\\\\\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\"\
+          :false,\\\\\\\"RelationshipName\\\\\\\":null,\\\\\\\"InputMode\\\\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\
+          \\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\"\
+          :null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\"\
+          ,\\\"ReferencedKeyColumn\\\":\\\"Ref Cash Holder\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"\
+          InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"\
+          Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\"\
+          :\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Cash Holder Balances\", \"Ref Cash Holder\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.ElementType": "Ref"
+        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Cash Holder Balances\",\"ReferencedRootTableName\"\
+          :\"Cash Holder Balances\",\"ReferencedType\":\"Ref\",\"ReferencedTypeQualifier\":\"{\\\"ReferencedTableName\\\"\
+          :\\\"Cash Holders\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\
+          \"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\
+          \\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"\
+          Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\
+          \\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\"\
+          :\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\
+          \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\"\
+          :null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Ref Cash Holder\",\"IsAPartOf\"\
+          :false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ItemSeparator": " , "
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Related Payments":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Related Payments"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Payments entries that reference this entry in the Ref Received By Cash Holder column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payments\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Payments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Payments\", \"Ref Received By Cash Holder\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.ElementType": "Ref"
+        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Payments\",\"ReferencedRootTableName\":\"Payments\"\
+          ,\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
+          \":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ItemSeparator": " , "
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Related Business Expenses":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Related Business Expenses"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Business Expenses entries that reference this entry in the Ref Paid By Cash Holder column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Business Expenses\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Business Expenses\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Business Expenses\", \"Ref Paid By Cash Holder\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.ElementType": "Ref"
+        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Business Expenses\",\"ReferencedRootTableName\"\
+          :\"Business Expenses\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\
+          \":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"\
+          Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\
+          \":null,\\\"Suggested_Values\\\":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\"\
+          :null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ItemSeparator": " , "
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Related Cash Ledgers By Ref From Cash Holder":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Related Cash Ledgers By Ref From Cash Holder"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Cash Ledger entries that reference this entry in the Ref From Cash Holder column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Ledger\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Cash Ledger\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Cash Ledger\", \"Ref From Cash Holder\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.ElementType": "Ref"
+        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Cash Ledger\",\"ReferencedRootTableName\":\"Cash\
+          \ Ledger\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\
+          \"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ItemSeparator": " , "
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Related Cash Ledgers By Ref To Cash Holder":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Holders"
+        "Column": "Related Cash Ledgers By Ref To Cash Holder"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Cash Ledger entries that reference this entry in the Ref To Cash Holder column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Ledger\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Cash Ledger\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Cash Ledger\", \"Ref To Cash Holder\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.ElementType": "Ref"
+        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Cash Ledger\",\"ReferencedRootTableName\":\"Cash\
+          \ Ledger\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\
+          \"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ItemSeparator": " , "
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null

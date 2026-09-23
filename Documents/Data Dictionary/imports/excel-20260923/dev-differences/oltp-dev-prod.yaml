@@ -1,0 +1,20 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/dev-differences"
+  "kind": "sheet-records"
+  "name": "OLTP DEV / PROD"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "Dev Differences"
+  "records":
+    "row-01158":
+      "App": "OLTP DEV / PROD"
+      "Object": "Business Expenses.Expense Category / R004"
+      "Property": "Valid_If and SQL label"
+      "Production": "English-only automatic category; manual rebate absent"
+      "Development": "Referral Rebate / เงินคืนค่าแนะนำลูกค้า. Manual dropdown added. Internal Source Type remains Referral\
+        \ Rebate for automatic rows and Manual for manual rows. SQL V19; see R004 release log for deployment status."

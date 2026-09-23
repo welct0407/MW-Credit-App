@@ -1,0 +1,396 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "public"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00012":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "appsheet_normalize_blank_refs"
+      "Status / hash": "1bbfb91756b3ed8012755308d7bffcfb"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00013":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "charge_generation_request"
+      "Status / hash": "ee60eef9f7ed33ed149c5ec544f2d0db"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00014":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "close_payment_loans"
+      "Status / hash": "3f9b6e56666f460735ecb7f0e8f9b44c"
+      "Definition / arguments": "p_id text; exact versioned definition in database/migrations (V1–V10)"
+    "row-00015":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "closing_payment_guard"
+      "Status / hash": "b8571a9321f047ed0803ce9ac2ef1912"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00016":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "create_first_day_charge"
+      "Status / hash": "ff08c6b87158aacf65b1d55d5a1dbb5b"
+      "Definition / arguments": "p_loan text; exact versioned definition in database/migrations (V1–V10)"
+    "row-00017":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "default_loan_transition"
+      "Status / hash": "46a43912ac92f117bb23d9b0f468fea5"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00018":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "default_posting_guard"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00019":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "first_day_charge_trigger"
+      "Status / hash": "9122609484df3ba65a93561842edd5bb"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00020":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "first_day_loan_trigger"
+      "Status / hash": "8bccb5b98138a148e1e83a3188b51230"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00021":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "first_day_receipt"
+      "Status / hash": "535abc3837683a734ad3f476c6b23c8e"
+      "Definition / arguments": "p_charge text; exact versioned definition in database/migrations (V1–V10)"
+    "row-00022":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "generate_due_charges"
+      "Status / hash": "8b190edf1ef84dd602f417e30be98b1a"
+      "Definition / arguments": "p_business_date date, p_loans text[]; exact versioned definition in database/migrations (V1–V10)"
+    "row-00023":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "generate_loan_charge"
+      "Status / hash": "e3a82fc80d4fd0ffeb08913169aaff21"
+      "Definition / arguments": "p_loan text, p_business_date date, p_manual_request boolean; exact versioned definition in\
+        \ database/migrations (V1–V10)"
+    "row-00024":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "lump_sum_child_guard"
+      "Status / hash": "dab6513a565faefa540561fe2be892d2"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00025":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "lump_sum_receipt_guard"
+      "Status / hash": "0a6a22aee8b612d75122797281160dfc"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00026":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "payment_charge_balances"
+      "Status / hash": "5c8683394a3d5cd9a41a97bb57e25244"
+      "Definition / arguments": "p_id text; exact versioned definition in database/migrations (V1–V10)"
+    "row-00027":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "post_loan_default"
+      "Status / hash": "8479020a91f99460026eb36df08a8793"
+      "Definition / arguments": "p_loan \"Loans\", p_date date, p_actor text; exact versioned definition in database/migrations\
+        \ (V1–V10)"
+    "row-00028":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "post_payment"
+      "Status / hash": "f45b2be08a38ab23d883030f17dd7502"
+      "Definition / arguments": "p_id text; exact versioned definition in database/migrations (V1–V10)"
+    "row-00029":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "prepare_loan_close"
+      "Status / hash": "91236de7155311191e1f9192831a5c45"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00030":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "process_lump_sum"
+      "Status / hash": "b3f6e893a792513bf839e9e67fcd8f20"
+      "Definition / arguments": "; exact versioned definition in database/migrations (V1–V10)"
+    "row-00061":
+      "Kind": "Production and development function"
+      "Schema / table": "public"
+      "Name": "refresh_daily_analytics(date,date)"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Model 3 atomic portfolio/account date-range upsert; same advisory lock; partial charge residuals;\
+        \ raw-source opening seed; hourly Recent=yesterday/today, Full/history through today. V37__unified_daily_cash_snapshots.sql."
+    "row-00063":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_charge_values"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00064":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_charge_row"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00065":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_loan_row"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00066":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_refresh_charge"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00067":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_refresh_loan"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00068":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_lock_parents"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00069":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_repayment_changed"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00070":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_loan_status_changed"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00078":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_daily_interest"
+      "Status / hash": "V13; production and development"
+      "Definition / arguments": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00079":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_daily_interest_row"
+      "Status / hash": "V13; production and development"
+      "Definition / arguments": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00080":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_borrower_values"
+      "Status / hash": "V13; production and development"
+      "Definition / arguments": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00081":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_borrower_row"
+      "Status / hash": "V13; production and development"
+      "Definition / arguments": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00082":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_refresh_borrower"
+      "Status / hash": "V13; production and development"
+      "Definition / arguments": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00083":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_borrower_changed"
+      "Status / hash": "V13; production and development"
+      "Definition / arguments": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00084":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_lock_daily_parent"
+      "Status / hash": "V13; production and development"
+      "Definition / arguments": "See immutable migration V13__borrower_materialized_rollups.sql; derived rollup ownership,\
+        \ refresh and transaction safety."
+    "row-00090":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_payment_row"
+      "Status / hash": "V14; production and development"
+      "Definition / arguments": "See immutable migration V14__payment_materialized_totals.sql; derived rollup ownership, refresh\
+        \ and transaction safety."
+    "row-00091":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_refresh_payment"
+      "Status / hash": "V14; production and development"
+      "Definition / arguments": "See immutable migration V14__payment_materialized_totals.sql; derived rollup ownership, refresh\
+        \ and transaction safety."
+    "row-00092":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_payment_changed"
+      "Status / hash": "V14; production and development"
+      "Definition / arguments": "See immutable migration V14__payment_materialized_totals.sql; derived rollup ownership, refresh\
+        \ and transaction safety."
+    "row-00093":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "vc_lock_payment_parents"
+      "Status / hash": "V14; production and development"
+      "Definition / arguments": "See immutable migration V14__payment_materialized_totals.sql; derived rollup ownership, refresh\
+        \ and transaction safety."
+    "row-00107":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "expense_allocation_lock"
+      "Status / hash": "V15"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00108":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "partner_pool_share_at_date"
+      "Status / hash": "V15"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00109":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "calculate_business_expense"
+      "Status / hash": "V15"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00110":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "recalculate_business_expenses_from_date"
+      "Status / hash": "V15"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00111":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "expense_contribution_changed"
+      "Status / hash": "V15"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00112":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "create_referral_rebate"
+      "Status / hash": "V15"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00113":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "referral_loan_closed"
+      "Status / hash": "V15"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00114":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "partner_net_profit"
+      "Status / hash": "V16"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00115":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "validate_net_settlement"
+      "Status / hash": "V15"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00116":
+      "Kind": "Production and development function"
+      "Schema / table": "public"
+      "Name": "refresh_daily_analytics"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Model 3 atomic portfolio/account date-range upsert; same advisory lock; partial charge residuals;\
+        \ raw-source opening seed; hourly Recent=yesterday/today, Full/history through today. V37__unified_daily_cash_snapshots.sql."
+    "row-00117":
+      "Kind": "Development function"
+      "Schema / table": "public"
+      "Name": "analytics_refresh_request"
+      "Status / hash": "V15"
+      "Definition / arguments": "Immutable migration; referral/expense integrity and recalculation, net settlement or analytics.\
+        \ See business-expenses report."
+    "row-00165":
+      "Kind": "View calculation"
+      "Schema / table": "public"
+      "Name": "olap_loans_analytics.Effective Daily Interest Rate"
+      "Status / hash": "R009 / V26"
+      "Definition / arguments": "Applicable daily income / Outstanding Principal; zero for nonpositive balance. Exact SQL:\
+        \ database/migrations/V26__effective_daily_interest_rate_outstanding_principal.sql. View signature retained."
+    "row-00184":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "analytics_history_start()"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Earliest dated loans, repayments, charges, expenses, contributions, completed settlements,\
+        \ ledger, cash cutover or existing snapshot; excludes future dates."
+    "row-00185":
+      "Kind": "Function"
+      "Schema / table": "public"
+      "Name": "analytics_refresh_request()"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Existing Statistics command contract preserved. Recent refreshes exactly yesterday/today;\
+        \ Full invokes unified engine from analytics_history_start(). No new scheduler."
+    "row-00186":
+      "Kind": "Table"
+      "Schema / table": "public"
+      "Name": "Cash Account Daily Analytics"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Account/date snapshots; unique date/account and immutable Row ID on refresh. Account FK;\
+        \ zero-activity dates; unknown/pre-opening balances NULL. SQL-only; not loaded into AppSheet."
+    "row-00187":
+      "Kind": "View"
+      "Schema / table": "public"
+      "Name": "reporting_daily_snapshot"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Thin stored portfolio snapshots. SELECT-only reporting grant. Daily Cash Snapshots model\
+        \ supports 2R past-date positions and completed-day trends."
+    "row-00188":
+      "Kind": "View"
+      "Schema / table": "public"
+      "Name": "reporting_cash_account_snapshot"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Thin stored account snapshots and current labels/immutable holder. Account Cash Snapshots\
+        \ model supports 2R past-date account/holder positions."
+    "row-00191":
+      "Kind": "Availability"
+      "Schema / table": "public"
+      "Name": "R016 snapshot extension"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "13 added Daily Analytics columns, account snapshot table and two views. 2R report integration\
+        \ complete; today uses live OLAP, past dates stored snapshots. AppSheet schema unchanged."

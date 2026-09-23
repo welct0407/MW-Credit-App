@@ -1,0 +1,32 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Calendar"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Date":
+      "Table / view": "Calendar"
+      "Column": "Date"
+      "Position": 1
+      "PostgreSQL type": "date"
+      "Nullable": "NO"
+      "Default": null
+  "constraints":
+    "Calendar_Date_not_null":
+      "Table": "Calendar"
+      "Constraint": "Calendar_Date_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Date\""
+    "Calendar_pkey":
+      "Table": "Calendar"
+      "Constraint": "Calendar_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Date\")"

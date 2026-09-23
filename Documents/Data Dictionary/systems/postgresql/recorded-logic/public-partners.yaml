@@ -1,0 +1,26 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "public.Partners"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00164":
+      "Kind": "Unique index"
+      "Schema / table": "public.Partners"
+      "Name": "partners_login_email_unique"
+      "Status / hash": "R009 / V25"
+      "Definition / arguments": "UNIQUE (lower(btrim(\"Login Email\"))) WHERE \"Login Email\" IS NOT NULL"
+    "row-00166":
+      "Kind": "Column semantics"
+      "Schema / table": "public.Partners"
+      "Name": "Login Email / Email"
+      "Status / hash": "R009 / V25"
+      "Definition / arguments": "Login Email uniquely identifies the signed-in actor. Email is notification delivery and may\
+        \ be shared. PROD Email values retained; DEV Email owner-only."

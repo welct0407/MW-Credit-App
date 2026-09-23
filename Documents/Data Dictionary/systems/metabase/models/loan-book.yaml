@@ -1,0 +1,167 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Loan Book"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Model grain"
+      "Type / source": "scripts/metabase/models/loans.sql"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One row per immutable Loan ID. Borrower relationship, loan status/type labels, balances and forecast\
+        \ inputs are centralized."
+    "Loan ID":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Loan ID"
+      "Type / source": "type/Text / field 94"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Loan ID"
+    "Borrower ID":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Borrower ID"
+      "Type / source": "type/Text / field 96"
+      "Semantic / relationship": "type/FK; FK to field 72"
+      "Definition": "Borrower ID"
+    "Borrower":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Borrower"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Borrower"
+    "Hidden":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Hidden"
+      "Type / source": "type/Boolean"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Hidden"
+    "Loan Date":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Loan Date"
+      "Type / source": "type/Date / field 95"
+      "Semantic / relationship": null
+      "Definition": "Loan Date"
+    "Loan Type":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Loan Type"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Loan Type"
+    "Loan Type Thai":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Loan Type Thai"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Loan Type Thai"
+    "Outstanding Principal":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Outstanding Principal"
+      "Type / source": "type/Decimal / field 98"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Outstanding Principal"
+    "Principal Amount":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Principal Amount"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Principal Amount"
+    "Close Date":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Close Date"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Close Date"
+    "Due Date":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Due Date"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Due Date"
+    "Loan Status":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Loan Status"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Loan Status"
+    "Current Daily Interest":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Current Daily Interest"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Current Daily Interest"
+    "Expected Interest This Month":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Expected Interest This Month"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Expected Interest This Month"
+    "Total Interest Received":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Total Interest Received"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Total Interest Received"
+    "Total Principal Received":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Total Principal Received"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Total Principal Received"
+    "Loan Age Days":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Loan Age Days"
+      "Type / source": "type/Integer"
+      "Semantic / relationship": null
+      "Definition": "Loan Age Days"
+    "Loan Age Bucket":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Loan Age Bucket"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Loan Age Bucket"
+    "Defaulted Flag":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Defaulted Flag"
+      "Type / source": "type/Boolean"
+      "Semantic / relationship": null
+      "Definition": "Defaulted Flag"
+    "Default Loss Amount":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Default Loss Amount"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Default Loss Amount"
+    "Loan Week":
+      "Model": "Loan Book"
+      "ID": 70
+      "Field / grain": "Loan Week"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Loan Week"

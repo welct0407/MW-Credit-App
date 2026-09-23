@@ -1,6 +1,6 @@
 # Production model overview
 
-This document explains architecture and business behavior. Exact columns, expressions, types, permissions, Refs and SQL metadata belong in the [data dictionary](AppSheet_Data_Dictionary.xlsx); current versions/identities belong in [Environment Inventory](Environment_Inventory.md). Recorded production baseline: R015. Changes since that baseline are listed in [Development Changes](Development_Changes.md).
+This document explains architecture and business behavior. Exact columns, expressions, types, permissions, Refs and SQL metadata belong in the [data dictionary](Data%20Dictionary/README.md); current versions/identities belong in [Environment Inventory](Environment_Inventory.md). Recorded production baseline: R015. Changes since that baseline are listed in [Development Changes](Development_Changes.md).
 
 ## Architecture and ownership
 
@@ -12,7 +12,7 @@ R016 has ten original reporting pages plus three review tabs, with 22 reusable m
 
 R016 V34 moves the six Income Statement model queries into database-owned reporting views in DEV and PROD. Metabase retains the same model IDs and field metadata but reads each view directly. Heavy joins, source aggregation and running balances are defined in the immutable database migration; period filtering, simple totals/ratios and invocation of the existing FIFO function remain in the report query. Both the earlier model SQL and these views execute in PostgreSQL. Ordinary views stay live and do not precompute or cache results.
 
-The integration agent additionally owns the separate `mw_agent` database on the same Cloud SQL instance. Its runtime journals and append-only audit are excluded from AppSheet. Business databases contain internal `agent_audit` commit/row-change/export tables; capture runs only for the dedicated reviewer DML login. AppSheet operations retain ordinary guards and host-observed audit coverage. Current reviewers use AppSheet first and bounded SQL fallback, including approved exact-key DELETE without bypassing financial or reference guards. See [R015 evidence](../outputs/r015-20260922/production-report.md) and the dictionary DB sheets.
+The integration agent additionally owns the separate `mw_agent` database on the same Cloud SQL instance. Its runtime journals and append-only audit are excluded from AppSheet. Business databases contain internal `agent_audit` commit/row-change/export tables; capture runs only for the dedicated reviewer DML login. AppSheet operations retain ordinary guards and host-observed audit coverage. Current reviewers use AppSheet first and bounded SQL fallback, including approved exact-key DELETE without bypassing financial or reference guards. See [R015 evidence](../outputs/r015-20260922/production-report.md) and the dictionary PostgreSQL records.
 
 | Group | Entities / grain | Responsibility |
 | --- | --- | --- |
@@ -79,7 +79,7 @@ OLTP stores an optional persistent note directly on each Borrower. Collectors ca
 
 ## Maintenance and evidence
 
-Update this overview only when architecture, relationships, ownership or explained business behavior changes. An exact formula/property change updates dictionary rows and the release log; it does not require rewriting unchanged prose. Keep one current explanation, without appending a release narrative. SQL changes remain immutable Flyway migrations under [database procedure](../database/README.md#each-change).
+Update this overview only when architecture, relationships, ownership or explained business behavior changes. An exact formula/property change updates the owning dictionary object and the release log; it does not require rewriting unchanged prose. Keep one current explanation, without appending a release narrative. SQL changes remain immutable Flyway migrations under [database procedure](../database/README.md#each-change).
 
 Detailed prior checkpoints, unique decisions and dated limitations are preserved in the [pre-cleanup overview](archive/2026-09-20/AppSheet_Data_Model_Overview.md) and linked release logs. The dictionary retains dated exact configuration evidence where it is not redundant; latest applicable verified values take precedence. No model recapture or live behavioral validation was performed by this restructuring.
 

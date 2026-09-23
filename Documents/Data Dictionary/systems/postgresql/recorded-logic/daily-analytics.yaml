@@ -1,0 +1,47 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "Daily Analytics"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00060":
+      "Kind": "Production and development index"
+      "Schema / table": "Daily Analytics"
+      "Name": "daily_analytics_snapshot_date_unique"
+      "Status / hash": "V11"
+      "Definition / arguments": "UNIQUE (Snapshot Date); preserves one snapshot per date and existing row keys"
+    "row-00189":
+      "Kind": "Metric"
+      "Schema / table": "Daily Analytics"
+      "Name": "Pending Charges EOD"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Sum per charge max(principal due + interest due - posted principal/interest through date,0).\
+        \ Replaces first-payment exclusion; fully/partially paid balances reconstructed."
+    "row-00190":
+      "Kind": "Metric"
+      "Schema / table": "Daily Analytics"
+      "Name": "Available Cash EOD"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Remaining contributed lending capital, not cash custody. Existing name retained for app/report\
+        \ compatibility."
+    "row-00192":
+      "Kind": "Semantics"
+      "Schema / table": "Daily Analytics"
+      "Name": "Partner A/B Net Profit and Settlements"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Daily governed rounded partner net allocations and actual completed dated settlements. These\
+        \ are inputs to selected-period FIFO; no stored retained-profit, advances or selected-period allocation fields."
+    "row-00193":
+      "Kind": "Semantics"
+      "Schema / table": "Daily Analytics"
+      "Name": "Cash Money In / Out and Cash Balance EOD"
+      "Status / hash": "DEV/PROD V37"
+      "Definition / arguments": "Cash Ledger account effects; internal transfers cancel at portfolio grain. Signed balances\
+        \ include negatives. Complete cash requires known openings for every account; same current account population as V36."

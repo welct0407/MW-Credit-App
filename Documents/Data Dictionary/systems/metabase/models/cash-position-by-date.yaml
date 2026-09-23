@@ -1,0 +1,78 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Cash Position by Date"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Cash Position by Date"
+      "ID": 188
+      "Field / grain": "Model grain"
+      "Type / source": "public.reporting_cash_daily"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when\
+        \ every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
+    "Date":
+      "Model": "Cash Position by Date"
+      "ID": 188
+      "Field / grain": "Date"
+      "Type / source": "type/Date"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Date"
+    "Cash Pool Remaining":
+      "Model": "Cash Position by Date"
+      "ID": 188
+      "Field / grain": "Cash Pool Remaining"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Cash Pool Remaining"
+    "Business Cash Held":
+      "Model": "Cash Position by Date"
+      "ID": 188
+      "Field / grain": "Business Cash Held"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Business Cash Held"
+    "Advance Due":
+      "Model": "Cash Position by Date"
+      "ID": 188
+      "Field / grain": "Advance Due"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Advance Due"
+    "Retained Profit Through Date":
+      "Model": "Cash Position by Date"
+      "ID": 188
+      "Field / grain": "Retained Profit Through Date"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Cumulative net profit less completed partner settlements through Date. Includes earlier periods; distinct\
+        \ from the selected-period unsettled profit."
+    "Cash Reconciliation Difference":
+      "Model": "Cash Position by Date"
+      "ID": 188
+      "Field / grain": "Cash Reconciliation Difference"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Business cash held minus advances, available cash pool and cumulative retained profit, all as of Date.\
+        \ A diagnostic difference, not additional income."
+    "Cash Available From":
+      "Model": "Cash Position by Date"
+      "ID": 188
+      "Field / grain": "Cash Available From"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Latest known account opening date. Total custody remains unavailable if any account opening is missing."
+    "Cash Status":
+      "Model": "Cash Position by Date"
+      "ID": 188
+      "Field / grain": "Cash Status"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Cash Status"

@@ -1,0 +1,83 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Monthly Income"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "Model grain"
+      "Type / source": "public.reporting_income_monthly"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One row per calendar month from first posted income/expense through the current month. Each source is\
+        \ aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
+    "Month":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "Month"
+      "Type / source": "type/Date"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Month"
+    "Operating Income":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "Operating Income"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Income"
+      "Definition": "Operating Income"
+    "Expenses":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "Expenses"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Expenses"
+    "Signed Expenses":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "Signed Expenses"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Signed Expenses"
+    "Net Profit":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "Net Profit"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Net Profit"
+    "Net Margin":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "Net Margin"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Percentage"
+      "Definition": "Net operating profit divided by operating income; null when income is zero."
+    "Is Current Month":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "Is Current Month"
+      "Type / source": "type/Boolean"
+      "Semantic / relationship": null
+      "Definition": "Is Current Month"
+    "Period Coverage":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "Period Coverage"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Period Coverage"
+    "In Last 12 Months":
+      "Model": "Monthly Income"
+      "ID": 165
+      "Field / grain": "In Last 12 Months"
+      "Type / source": "type/Boolean"
+      "Semantic / relationship": null
+      "Definition": "In Last 12 Months"

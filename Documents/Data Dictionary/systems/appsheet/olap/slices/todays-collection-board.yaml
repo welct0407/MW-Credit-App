@@ -1,0 +1,109 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "slice"
+  "name": "Todays Collection Board"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "definition":
+    "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Permission": "READ_ONLY"
+    "Filter": "=ISNOTBLANK([Daily Collection Status])"
+    "Actions": "**auto**"
+  "members":
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 1
+    "Column": "_RowNumber"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 2
+    "Column": "Row ID"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 3
+    "Column": "Borrower Name"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 4
+    "Column": "Description"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 5
+    "Column": "Hidden Flag"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 6
+    "Column": "Daily Collection Status"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 7
+    "Column": "Todays Collection Charges"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 8
+    "Column": "Todays Amount Due"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 9
+    "Column": "Todays Amount Collected"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 10
+    "Column": "Todays Amount Remaining"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 11
+    "Column": "Overdue Amount"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 12
+    "Column": "Related Payments"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 13
+    "Column": "City"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 14
+    "Column": "Working Location"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 15
+    "Column": "Address"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 16
+    "Column": "Ref Referrer"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 17
+    "Column": "Related Business Expenses By Ref Payee Borrower"
+  - "App": "OLAP"
+    "Slice": "Todays Collection Board"
+    "Source table": "Borrowers"
+    "Ordinal": 18
+    "Column": "Related Business Expenses By Ref Related Borrower"

@@ -1,0 +1,140 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Daily Cash Snapshots"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Model grain"
+      "Type / source": "public.reporting_daily_snapshot"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum\
+        \ balances across dates."
+    "Snapshot ID":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Snapshot ID"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Snapshot ID. One stored row per Bangkok date. Past-date closing positions and completed-day trends only;\
+        \ never sum balances across dates."
+    "Date":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Date"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Date. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never\
+        \ sum balances across dates."
+    "Generated At":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Generated At"
+      "Type / source": "type/DateTime"
+      "Semantic / relationship": null
+      "Definition": "Generated At. One stored row per Bangkok date. Past-date closing positions and completed-day trends only;\
+        \ never sum balances across dates."
+    "Model Version":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Model Version"
+      "Type / source": "type/Integer"
+      "Semantic / relationship": null
+      "Definition": "Model Version. One stored row per Bangkok date. Past-date closing positions and completed-day trends\
+        \ only; never sum balances across dates."
+    "Total Cash Pool":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Total Cash Pool"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Total Cash Pool. One stored row per Bangkok date. Past-date closing positions and completed-day trends\
+        \ only; never sum balances across dates."
+    "Outstanding Principal":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Outstanding Principal"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Outstanding Principal. One stored row per Bangkok date. Past-date closing positions and completed-day\
+        \ trends only; never sum balances across dates."
+    "Remaining Lending Capital":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Remaining Lending Capital"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Remaining Lending Capital. One stored row per Bangkok date. Past-date closing positions and completed-day\
+        \ trends only; never sum balances across dates."
+    "Opening Cash":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Opening Cash"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Opening Cash. One stored row per Bangkok date. Past-date closing positions and completed-day trends only;\
+        \ never sum balances across dates."
+    "Net Cash Balance":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Net Cash Balance"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Net Cash Balance. One stored row per Bangkok date. Past-date closing positions and completed-day trends\
+        \ only; never sum balances across dates."
+    "Money In":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Money In"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Money In. One stored row per Bangkok date. Past-date closing positions and completed-day trends only;\
+        \ never sum balances across dates."
+    "Money Out":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Money Out"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Money Out. One stored row per Bangkok date. Past-date closing positions and completed-day trends only;\
+        \ never sum balances across dates."
+    "Available From":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Available From"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Available From. One stored row per Bangkok date. Past-date closing positions and completed-day trends\
+        \ only; never sum balances across dates."
+    "Balance Status":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Balance Status"
+      "Type / source": "type/Text"
+      "Semantic / relationship": null
+      "Definition": "Balance Status. One stored row per Bangkok date. Past-date closing positions and completed-day trends\
+        \ only; never sum balances across dates."
+    "Provisional":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Provisional"
+      "Type / source": "type/Boolean"
+      "Semantic / relationship": null
+      "Definition": "Provisional. One stored row per Bangkok date. Past-date closing positions and completed-day trends only;\
+        \ never sum balances across dates."
+    "Freshness Basis":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Freshness Basis"
+      "Type / source": "type/Text"
+      "Semantic / relationship": null
+      "Definition": "Freshness Basis. One stored row per Bangkok date. Past-date closing positions and completed-day trends\
+        \ only; never sum balances across dates."

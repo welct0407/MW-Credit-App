@@ -1,0 +1,204 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "agent_audit.commits"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "operation_id":
+      "Table / view": "agent_audit.commits"
+      "Column": "operation_id"
+      "Position": 1
+      "PostgreSQL type": "uuid"
+      "Nullable": "NO"
+      "Default": null
+    "database_txid":
+      "Table / view": "agent_audit.commits"
+      "Column": "database_txid"
+      "Position": 2
+      "PostgreSQL type": "xid8"
+      "Nullable": "NO"
+      "Default": "pg_current_xact_id()"
+    "database_name":
+      "Table / view": "agent_audit.commits"
+      "Column": "database_name"
+      "Position": 3
+      "PostgreSQL type": "name"
+      "Nullable": "NO"
+      "Default": "current_database()"
+    "reviewer_id":
+      "Table / view": "agent_audit.commits"
+      "Column": "reviewer_id"
+      "Position": 4
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "reviewer_login":
+      "Table / view": "agent_audit.commits"
+      "Column": "reviewer_login"
+      "Position": 5
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "plan_sha256":
+      "Table / view": "agent_audit.commits"
+      "Column": "plan_sha256"
+      "Position": 6
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "request_reason":
+      "Table / view": "agent_audit.commits"
+      "Column": "request_reason"
+      "Position": 7
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "direct_targets":
+      "Table / view": "agent_audit.commits"
+      "Column": "direct_targets"
+      "Position": 8
+      "PostgreSQL type": "jsonb"
+      "Nullable": "NO"
+      "Default": null
+    "code_version":
+      "Table / view": "agent_audit.commits"
+      "Column": "code_version"
+      "Position": 9
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "recorded_in_transaction_at":
+      "Table / view": "agent_audit.commits"
+      "Column": "recorded_in_transaction_at"
+      "Position": 10
+      "PostgreSQL type": "timestamp with time zone"
+      "Nullable": "NO"
+      "Default": "clock_timestamp()"
+    "database_session_role":
+      "Table / view": "agent_audit.commits"
+      "Column": "database_session_role"
+      "Position": 11
+      "PostgreSQL type": "name"
+      "Nullable": "NO"
+      "Default": "SESSION_USER"
+  "constraints":
+    "commits_code_version_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_code_version_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL code_version"
+    "commits_database_name_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_database_name_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL database_name"
+    "commits_database_session_role_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_database_session_role_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL database_session_role"
+    "commits_database_txid_key":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_database_txid_key"
+      "Type": "u"
+      "Validated": true
+      "Definition": "UNIQUE (database_txid)"
+    "commits_database_txid_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_database_txid_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL database_txid"
+    "commits_direct_targets_check":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_direct_targets_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((jsonb_typeof(direct_targets) = 'array'::text))"
+    "commits_direct_targets_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_direct_targets_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL direct_targets"
+    "commits_operation_id_database_txid_key":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_operation_id_database_txid_key"
+      "Type": "u"
+      "Validated": true
+      "Definition": "UNIQUE (operation_id, database_txid)"
+    "commits_operation_id_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_operation_id_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL operation_id"
+    "commits_pkey":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (operation_id)"
+    "commits_plan_sha256_check":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_plan_sha256_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((plan_sha256 ~ '^[0-9a-f]{64}$'::text))"
+    "commits_plan_sha256_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_plan_sha256_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL plan_sha256"
+    "commits_recorded_in_transaction_at_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_recorded_in_transaction_at_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL recorded_in_transaction_at"
+    "commits_request_reason_check":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_request_reason_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((btrim(request_reason) <> ''::text))"
+    "commits_request_reason_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_request_reason_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL request_reason"
+    "commits_reviewer_id_check":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_reviewer_id_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((btrim(reviewer_id) <> ''::text))"
+    "commits_reviewer_id_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_reviewer_id_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL reviewer_id"
+    "commits_reviewer_login_check":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_reviewer_login_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((btrim(reviewer_login) <> ''::text))"
+    "commits_reviewer_login_not_null":
+      "Table": "agent_audit.commits"
+      "Constraint": "commits_reviewer_login_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL reviewer_login"

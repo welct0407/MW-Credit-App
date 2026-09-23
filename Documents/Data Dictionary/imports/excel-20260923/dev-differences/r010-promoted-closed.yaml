@@ -1,0 +1,489 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/dev-differences"
+  "kind": "sheet-records"
+  "name": "R010 promoted / closed"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "Dev Differences"
+  "records":
+    "row-02790":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Ref Borrower"
+      "Property": "Required_If"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=NOT(IN([Row ID], Payments[Row ID]))"
+    "row-02791":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Ref Borrower"
+      "Property": "Error_Message_If_Invalid"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=\"ผู้กู้นี้มีรายการรับชำระที่กำลังประมวลผลหรือผิดพลาด กรุณาดำเนินการรายการเดิมให้เสร็จก่อน / Finish\
+        \ or retry the existing payment for this borrower before creating another receipt.\""
+    "row-02792":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Amount Received"
+      "Property": "Required_If"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=NOT(IN([Row ID], Payments[Row ID]))"
+    "row-02793":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Amount Received"
+      "Property": "Valid_If"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=OR(IN([Row ID], Payments[Row ID]), AND([Allocation Method] = \"Loan Close\", ISNOTBLANK([Ref Target\
+        \ Loan]), [Ref Target Loan].[Ref Borrowers] = [Ref Borrower], [_THIS] > 0, [_THIS] = ROUND([_THIS])), AND([_THIS]\
+        \ > 0, [_THIS] = ROUND([_THIS]), [_THIS] <= [Eligible Outstanding], IF(IN([Allocation Method], LIST(\"Single Full\"\
+        , \"Receive All\", \"First-day Auto\", \"Loan Close\")), [_THIS] = [Eligible Outstanding], TRUE)))"
+    "row-02794":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Amount Received"
+      "Property": "Error_Message_If_Invalid"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=\"กรอกจำนวนเงินบาทเต็มจำนวนที่มากกว่าศูนย์และไม่เกินยอดค้างที่ชำระได้ วิธีชำระเต็มจำนวนต้องเท่ากับยอดค้าง\
+        \ / Enter a positive whole-baht amount within the eligible outstanding balance. Full-payment methods must equal that\
+        \ balance.\""
+    "row-02795":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Payment Date"
+      "Property": "Required_If"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=NOT(IN([Row ID], Payments[Row ID]))"
+    "row-02796":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Payment Date"
+      "Property": "Error_Message_If_Invalid"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=\"วันที่รับชำระต้องไม่เกินวันนี้ / Payment date must be today or earlier.\""
+    "row-02797":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Ref Received By Cash Account"
+      "Property": "Error_Message_If_Invalid"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=\"เลือกบัญชีรับเงินที่ยัง Active / Select an active receiving account.\""
+    "row-02798":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Notes"
+      "Property": "Valid_If"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=OR(NOT(AND(IN([Row ID], Payments[Row ID]), [Status] = \"Posted\", OR([Ref Received By Cash Account]\
+        \ <> [_THISROW_BEFORE].[Ref Received By Cash Account], [Ref Received By Cash Holder] <> [_THISROW_BEFORE].[Ref Received\
+        \ By Cash Holder]))), AND(ISNOTBLANK([_THIS]), [_THIS] <> [_THISROW_BEFORE].[Notes], OR(ISBLANK([_THISROW_BEFORE].[Notes]),\
+        \ STARTSWITH([_THIS], [_THISROW_BEFORE].[Notes]))))"
+    "row-02799":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Notes"
+      "Property": "Required_If"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=AND(IN([Row ID], Payments[Row ID]), [Status] = \"Posted\", OR([Ref Received By Cash Account] <> [_THISROW_BEFORE].[Ref\
+        \ Received By Cash Account], [Ref Received By Cash Holder] <> [_THISROW_BEFORE].[Ref Received By Cash Holder]))"
+    "row-02800":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Notes"
+      "Property": "Error_Message_If_Invalid"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=\"รายการ Posted ที่แก้บัญชีหรือผู้รับเงินต้องเก็บข้อความเดิมและต่อท้ายเหตุผล / When changing the account\
+        \ or cash holder on a Posted payment, keep the existing note and append the reason.\""
+    "row-02801":
+      "App": "R010 promoted / closed"
+      "Object": "Payments.Notes"
+      "Property": "Description"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=\"เมื่อแก้บัญชีหรือผู้รับเงินของรายการ Posted ให้เก็บข้อความเดิมและต่อท้ายเหตุผล / For a Posted payment\
+        \ account or cash-holder correction, keep the existing note and append the reason.\""
+    "row-02802":
+      "App": "R010 promoted / closed"
+      "Object": "Charges.Payment Request Cash Account"
+      "Property": "Valid_If"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=IF([Amount Remaining] > 0, SELECT(Cash Accounts[Row ID], [Active] = TRUE), LIST())"
+    "row-02803":
+      "App": "R010 promoted / closed"
+      "Object": "Charges.Payment Request Cash Account"
+      "Property": "Error_Message_If_Invalid"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=\"รายการนี้ไม่มียอดคงเหลือให้รับชำระ กรุณายกเลิกและซิงค์ข้อมูลก่อนลองใหม่ / No eligible balance remains.\
+        \ Cancel and sync before trying again.\""
+    "row-02804":
+      "App": "R010 promoted / closed"
+      "Object": "Charges.Payment Request Cash Account"
+      "Property": "Description"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=CONCATENATE(\"ยอดคงเหลือที่จะรับชำระ / Amount remaining: ฿\", [Amount Remaining])"
+    "row-02805":
+      "App": "R010 promoted / closed"
+      "Object": "Borrowers.Payment Request Cash Account"
+      "Property": "Valid_If"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=IF([Todays Amount Remaining] > 0, SELECT(Cash Accounts[Row ID], [Active] = TRUE), LIST())"
+    "row-02806":
+      "App": "R010 promoted / closed"
+      "Object": "Borrowers.Payment Request Cash Account"
+      "Property": "Error_Message_If_Invalid"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=\"รายการนี้ไม่มียอดคงเหลือให้รับชำระ กรุณายกเลิกและซิงค์ข้อมูลก่อนลองใหม่ / No eligible balance remains.\
+        \ Cancel and sync before trying again.\""
+    "row-02807":
+      "App": "R010 promoted / closed"
+      "Object": "Borrowers.Payment Request Cash Account"
+      "Property": "Description"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=CONCATENATE(\"ยอดคงเหลือวันนี้ที่จะรับชำระ / Today eligible amount: ฿\", [Todays Amount Remaining])"
+    "row-02808":
+      "App": "R010 promoted / closed"
+      "Object": "Loans.Payment Request Cash Account"
+      "Property": "Valid_If"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=IF(AND([Loan Status] = \"ยังไม่ปิดยอด\", [Loan Type] = \"ดอกเบี้ยรายวัน\", [Auto Charge Enabled] =\
+        \ TRUE, ISNOTBLANK([Loan Date]), [Loan Date] <= TODAY(), ISNOTBLANK([Current Daily Interest]), [Current Daily Interest]\
+        \ >= 0, [Outstanding Principal] > 0), SELECT(Cash Accounts[Row ID], [Active] = TRUE), LIST())"
+    "row-02809":
+      "App": "R010 promoted / closed"
+      "Object": "Loans.Payment Request Cash Account"
+      "Property": "Error_Message_If_Invalid"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=\"ปิดยอดไม่ได้ กรุณาซิงค์และตรวจว่าสินเชื่อยังเปิดอยู่ เป็นดอกเบี้ยรายวัน เปิด Auto Charge มีวันที่และดอกเบี้ยที่ถูกต้อง\
+        \ และมีเงินต้นคงเหลือ / Cannot close this loan. Sync and confirm it is open, daily-interest, auto-charge enabled,\
+        \ has valid date/rate, and positive outstanding principal.\""
+    "row-02810":
+      "App": "R010 promoted / closed"
+      "Object": "Loans.Payment Request Cash Account"
+      "Property": "Description"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "=CONCATENATE(\"เงินต้นคงเหลือที่จะปิดยอด / Outstanding principal: ฿\", [Outstanding Principal])"
+    "row-02811":
+      "App": "R010 promoted / closed"
+      "Object": "R010 verification"
+      "Property": "Saved definition / GUI"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "DEV OLTP 1.000036; No issues found. Blank required receipt and Posted-account correction without appended\
+        \ note were blocked in-form and cancelled; unchanged Posted receipt opened without validation error; no financial\
+        \ row written."
+    "row-02812":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Context"
+      "Property": "SQL / AppSheet contract"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "V27 table. Ref Partner immutable PK/FK Partners; optional Ref Cash Account FK Cash Accounts; Statement\
+        \ Date Bangkok today default; Updated At SQL-maintained. Partner insert seeds row. App UPDATES_ONLY, database-2."
+    "row-02813":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Context[Ref Partner]"
+      "Property": "Key / type / access"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Ref -> Partners; Key TRUE; Show FALSE; Editable FALSE; Required TRUE. _RowNumber is not key. IsPartOf\
+        \ FALSE."
+    "row-02814":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Context"
+      "Property": "Security filter"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "AND(ISNOTBLANK(USEREMAIL()), IN([Ref Partner], SELECT(Partners[Row ID], LOWER(TRIM([Login Email])) =\
+        \ LOWER(TRIM(USEREMAIL())))))"
+    "row-02815":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Context[Ref Cash Account]"
+      "Property": "Type / validation"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Ref -> Cash Accounts; visible/editable, optional, label TRUE; IsPartOf FALSE. Valid_If: SELECT(Cash\
+        \ Accounts[Row ID], [Active])"
+    "row-02816":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Context[Statement Date]"
+      "Property": "Type / validation"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Date; visible/editable/required. Valid_If: AND([_THIS] >= MIN(Cash Account Daily Summary Recent[Statement\
+        \ Date]), [_THIS] <= MAX(Cash Account Daily Summary Recent[Statement Date]))"
+    "row-02817":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Context[Statement Date]"
+      "Property": "Initial value"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "MAX(Cash Account Daily Summary Recent[Statement Date])"
+    "row-02818":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Context[Updated At]"
+      "Property": "Type / access"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "DateTime; hidden/read-only; existing import initial NOW(); SQL trigger is authoritative."
+    "row-02819":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent"
+      "Property": "SQL / AppSheet contract"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "V27 read-only view; account-side ledger grain; latest 15 Bangkok dates AFTER full-history running sum.\
+        \ READ_ONLY; Row ID Text key; database-2. Stable JSON ledger/direction/account key. No full Cash Ledger loaded."
+    "row-02820":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent"
+      "Property": "Running balance"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Initialized opening - captured baseline in + captured baseline out + all account effects, ordered movement\
+        \ date, created timestamp, ledger ID C, direction C. NULL when uninitialized."
+    "row-02821":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Ref Cash Account]"
+      "Property": "Ref relationship"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Ref -> Cash Accounts; IsPartOf FALSE. Native source/detail navigation. Read-only."
+    "row-02822":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Ref Borrower]"
+      "Property": "Ref relationship"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Ref -> Borrowers; IsPartOf FALSE. Native source/detail navigation. Read-only."
+    "row-02823":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Ref Other Cash Account]"
+      "Property": "Ref relationship"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Ref -> Cash Accounts; IsPartOf FALSE. Native source/detail navigation. Read-only."
+    "row-02824":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Ref Partner]"
+      "Property": "Ref relationship"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Ref -> Partners; IsPartOf FALSE. Native source/detail navigation. Read-only."
+    "row-02825":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Ref Payment]"
+      "Property": "Ref relationship"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Ref -> Payments; IsPartOf FALSE. Native source/detail navigation. Read-only."
+    "row-02826":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Ref Loan]"
+      "Property": "Ref relationship"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Ref -> Loans; IsPartOf FALSE. Native source/detail navigation. Read-only."
+    "row-02827":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Ref Business Expense]"
+      "Property": "Ref relationship"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Ref -> Business Expenses; IsPartOf FALSE. Native source/detail navigation. Read-only."
+    "row-02828":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent"
+      "Property": "Hidden metadata"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Row ID, Statement Date, Sort Timestamp, Transaction Type Code, Counterparty Kind, Counterparty Text,\
+        \ Settlement Row ID, Is Initialized, Source Type, Source Key, User Language, _RowNumber."
+    "row-02829":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent"
+      "Property": "Physical display types"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Statement Time: Time, Ignore seconds TRUE, label TRUE. Signed Amount and Balance After: Price, zero\
+        \ decimal places, currency ฿. Notes retains LongText. Source metadata remains available in SQL."
+    "row-02830":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[User Language]"
+      "Property": "Text virtual column app formula"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"ไทย\", \"English\")"
+    "row-02831":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Transaction]"
+      "Property": "Text virtual column app formula"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF([User Language]=\"ไทย\", SWITCH([Transaction Type Code],\"LOAN_PAYMENT\",\"รับชำระเงินกู้\",\"FIRST_DAY_PAYMENT\"\
+        ,\"รับชำระวันแรก\",\"LOAN_DISBURSEMENT\",\"จ่ายเงินกู้\",\"BUSINESS_EXPENSE\",\"ค่าใช้จ่ายธุรกิจ\",\"REFERRAL_REBATE\"\
+        ,\"เงินคืนค่าแนะนำลูกค้า\",\"PARTNER_SETTLEMENT\",\"ชำระให้หุ้นส่วน\",\"ACCOUNT_TRANSFER\",\"โอนระหว่างบัญชี\",\"\
+        CASH_TRANSFER\",\"โอนเงิน\",\"EXPENSE_REIMBURSEMENT\",\"คืนค่าใช้จ่าย\",\"OPENING_BALANCE\",\"ยอดยกมา\",\"MANUAL_CORRECTION\"\
+        ,\"ปรับปรุงยอด\",\"รายการอื่น\"), SWITCH([Transaction Type Code],\"LOAN_PAYMENT\",\"Loan Payment\",\"FIRST_DAY_PAYMENT\"\
+        ,\"First-day Payment\",\"LOAN_DISBURSEMENT\",\"Loan Disbursement\",\"BUSINESS_EXPENSE\",\"Business Expense\",\"REFERRAL_REBATE\"\
+        ,\"Referral Rebate\",\"PARTNER_SETTLEMENT\",\"Partner Settlement\",\"ACCOUNT_TRANSFER\",\"Account Transfer\",\"CASH_TRANSFER\"\
+        ,\"Cash Transfer\",\"EXPENSE_REIMBURSEMENT\",\"Expense Reimbursement\",\"OPENING_BALANCE\",\"Opening Balance\",\"\
+        MANUAL_CORRECTION\",\"Manual Correction\",\"Other\"))"
+    "row-02832":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Counterparty]"
+      "Property": "Text virtual column app formula"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "SWITCH([Counterparty Kind], \"BORROWER\", IF(AND([User Language] <> \"ไทย\", ISNOTBLANK([Ref Borrower].[Description])),\
+        \ [Ref Borrower].[Description], [Ref Borrower].[Borrower Name]), \"ACCOUNT\", [Ref Other Cash Account].[Account Label],\
+        \ \"PARTNER\", [Ref Partner].[Partner Name], \"ADJUSTMENT\", IF([User Language]=\"ไทย\", \"ปรับปรุงยอด\", \"Adjustment\"\
+        ), [Counterparty Text])"
+    "row-02833":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Amount Display]"
+      "Property": "Text virtual column app formula"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "CONCATENATE(IF([Signed Amount] > 0, \"+\", \"-\"), TEXT(ABS([Signed Amount])))"
+    "row-02834":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Daily Summary Recent"
+      "Property": "SQL / AppSheet contract"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "V27 READ_ONLY view, database-2; 15 dates x Cash Accounts including zero-movement days. Row ID Text key\
+        \ (JSON account/date); Ref Cash Account -> Cash Accounts. Opening/closing NULL when uninitialized."
+    "row-02835":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Daily Summary Recent"
+      "Property": "Types / visibility"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Opening Balance, Money In, Money Out, Closing Balance: visible Price, zero decimals, ฿. Hidden: Row\
+        \ ID, Ref Cash Account, Statement Date, Net Movement (Price), Transaction Count (Number), Is Initialized (Yes/No),\
+        \ _RowNumber."
+    "row-02836":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Daily Summary Recent[Balance Status]"
+      "Property": "Text virtual column app formula"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF([Is Initialized], \"\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) =\
+        \ LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ยังไม่ได้กำหนดยอดตั้งต้น\", \"Balance not initialized\"))"
+    "row-02837":
+      "App": "R010 promoted / closed"
+      "Object": "Selected Cash Statement"
+      "Property": "Read-only slice filter"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "AND([Ref Cash Account] = ANY(Cash Statement Context[Ref Cash Account]), [Statement Date] = ANY(Cash\
+        \ Statement Context[Statement Date]))"
+    "row-02838":
+      "App": "R010 promoted / closed"
+      "Object": "Selected Cash Statement Summary"
+      "Property": "Read-only slice filter"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "AND([Ref Cash Account] = ANY(Cash Statement Context[Ref Cash Account]), [Statement Date] = ANY(Cash\
+        \ Statement Context[Statement Date]))"
+    "row-02839":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Controls"
+      "Property": "View configuration"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "{\"type\":\"Detail\",\"source\":\"Cash Statement Context\",\"position\":\"ref\",\"quickEdit\":[\"Ref\
+        \ Cash Account\",\"Statement Date\"],\"displayMode\":\"Side-by-side\",\"slideshow\":false,\"displayName\":\"IF(ANY(SELECT(Partners[Language\
+        \ Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \\\"ไทย\\\", \\\"ตัวเลือก\\\", \\\"Controls\\\
+        \")\"}"
+    "row-02840":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Summary"
+      "Property": "View configuration"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "{\"type\":\"Detail\",\"source\":\"Selected Cash Statement Summary\",\"position\":\"ref\",\"displayMode\"\
+        :\"Side-by-side\",\"slideshow\":false,\"displayName\":\"IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+        \ Email])) = LOWER(TRIM(USEREMAIL())))) = \\\"ไทย\\\", \\\"สรุปรายวัน\\\", \\\"Daily summary\\\")\"}"
+    "row-02841":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Transactions"
+      "Property": "View configuration"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "{\"type\":\"Table\",\"source\":\"Selected Cash Statement\",\"position\":\"ref\",\"sort\":[\"Statement\
+        \ Date ASC\",\"Sort Timestamp ASC\",\"Row ID ASC\"],\"columns\":[\"Statement Time\",\"Transaction\",\"Counterparty\"\
+        ,\"Amount Display\",\"Balance After\"],\"width\":\"Narrow\",\"quickEdit\":false,\"displayName\":\"IF(ANY(SELECT(Partners[Language\
+        \ Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \\\"ไทย\\\", \\\"รายการ\\\", \\\"Transactions\\\
+        \")\"}"
+    "row-02842":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement"
+      "Property": "View configuration"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "{\"type\":\"Dashboard\",\"position\":\"menu\",\"entries\":[[\"Cash Statement Controls\",\"Small\"],[\"\
+        Cash Statement Summary\",\"Small\"],[\"Cash Statement Transactions\",\"Large\"]],\"mobileTabs\":false,\"interactive\"\
+        :false,\"displayName\":\"IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \\\"ไทย\\\", \\\"รายการบัญชีเงินสด\\\", \\\"Cash Statement\\\")\"}"
+    "row-02843":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Context[Ref Cash Account]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"บัญชี\", \"Account\")"
+    "row-02844":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Statement Context[Statement Date]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"วันที่\", \"Date\")"
+    "row-02845":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Statement Time]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"เวลา\", \"Time\")"
+    "row-02846":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Transaction]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"รายการ\", \"Transaction\")"
+    "row-02847":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Counterparty]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"จาก / ถึง\", \"From / To\")"
+    "row-02848":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Signed Amount]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"จำนวนเงิน\", \"Amount\")"
+    "row-02849":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Amount Display]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"จำนวนเงิน\", \"Amount\")"
+    "row-02850":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Statement Recent[Balance After]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"ยอดคงเหลือ\", \"Balance\")"
+    "row-02851":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Daily Summary Recent[Opening Balance]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"ยอดยกมา\", \"Opening\")"
+    "row-02852":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Daily Summary Recent[Money In]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"เข้า\", \"In\")"
+    "row-02853":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Daily Summary Recent[Money Out]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"ออก\", \"Out\")"
+    "row-02854":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Daily Summary Recent[Closing Balance]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"ยอดคงเหลือ\", \"Closing\")"
+    "row-02855":
+      "App": "R010 promoted / closed"
+      "Object": "Cash Account Daily Summary Recent[Balance Status]"
+      "Property": "Display name"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+        \ = \"ไทย\", \"สถานะ\", \"Status\")"
+    "row-02856":
+      "App": "R010 promoted / closed"
+      "Object": "SQL V27"
+      "Property": "Dependencies / unaffected consumers"
+      "Production": "Promoted 20 Sep 2026: PROD SQL V27 / OLTP 3.000235. Definition matches frozen RC2 1.000004."
+      "Development": "Internal cash_statement_account_effects uses Cash Ledger and source enrichment. Existing financial posting\
+        \ unchanged. Partners seed trigger adds only neutral context. OLAP definition unchanged by feature; full history remains\
+        \ there. Source views and SQL tests are authoritative exact DDL."

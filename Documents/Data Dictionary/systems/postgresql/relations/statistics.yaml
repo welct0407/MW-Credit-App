@@ -1,0 +1,46 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Statistics"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Statistics"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Statistics ID":
+      "Table / view": "Statistics"
+      "Column": "Statistics ID"
+      "Position": 2
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Analytics Refresh Request":
+      "Table / view": "Statistics"
+      "Column": "Analytics Refresh Request"
+      "Position": 3
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+  "constraints":
+    "Statistics_Row ID_not_null":
+      "Table": "Statistics"
+      "Constraint": "Statistics_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Statistics_pkey":
+      "Table": "Statistics"
+      "Constraint": "Statistics_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"

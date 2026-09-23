@@ -1,0 +1,51 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "r005_cash_cutover_sources"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "source_type":
+      "Table / view": "r005_cash_cutover_sources"
+      "Column": "source_type"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "source_row_id":
+      "Table / view": "r005_cash_cutover_sources"
+      "Column": "source_row_id"
+      "Position": 2
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+  "constraints":
+    "r005_cash_cutover_sources_pkey":
+      "Table": "r005_cash_cutover_sources"
+      "Constraint": "r005_cash_cutover_sources_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (source_type, source_row_id)"
+    "r005_cash_cutover_sources_source_row_id_not_null":
+      "Table": "r005_cash_cutover_sources"
+      "Constraint": "r005_cash_cutover_sources_source_row_id_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL source_row_id"
+    "r005_cash_cutover_sources_source_type_check":
+      "Table": "r005_cash_cutover_sources"
+      "Constraint": "r005_cash_cutover_sources_source_type_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((source_type = ANY (ARRAY['Payment'::text, 'Loan'::text, 'Business Expense'::text, 'Settlement'::text])))"
+    "r005_cash_cutover_sources_source_type_not_null":
+      "Table": "r005_cash_cutover_sources"
+      "Constraint": "r005_cash_cutover_sources_source_type_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL source_type"

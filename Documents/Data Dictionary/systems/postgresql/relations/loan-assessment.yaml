@@ -1,0 +1,66 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Loan Assessment"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Loan Assessment"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Assessment ID":
+      "Table / view": "Loan Assessment"
+      "Column": "Assessment ID"
+      "Position": 2
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Borrower":
+      "Table / view": "Loan Assessment"
+      "Column": "Ref Borrower"
+      "Position": 3
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Proposed Loan Amount":
+      "Table / view": "Loan Assessment"
+      "Column": "Proposed Loan Amount"
+      "Position": 4
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Minimum Daily Profit Rate":
+      "Table / view": "Loan Assessment"
+      "Column": "Minimum Daily Profit Rate"
+      "Position": 5
+      "PostgreSQL type": "real"
+      "Nullable": "YES"
+      "Default": null
+  "constraints":
+    "Loan Assessment_Row ID_not_null":
+      "Table": "Loan Assessment"
+      "Constraint": "Loan Assessment_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Loan Assessment_pkey":
+      "Table": "Loan Assessment"
+      "Constraint": "Loan Assessment_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"
+    "appsheet_ref_07":
+      "Table": "Loan Assessment"
+      "Constraint": "appsheet_ref_07"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\")"

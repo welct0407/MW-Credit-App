@@ -1,0 +1,69 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "slice"
+  "name": "Reporting Repayments"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "definition":
+    "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Permission": "READ_ONLY"
+    "Filter": null
+    "Actions": "**auto**"
+  "members":
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 1
+    "Column": "_RowNumber"
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 2
+    "Column": "Row ID"
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 3
+    "Column": "Payment Date"
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 4
+    "Column": "Amount Received"
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 5
+    "Column": "Principal Paid"
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 6
+    "Column": "Interest Paid"
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 7
+    "Column": "Ref Loans"
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 8
+    "Column": "Ref Charges"
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 9
+    "Column": "Ref Payment"
+  - "App": "OLAP"
+    "Slice": "Reporting Repayments"
+    "Source table": "Repayments"
+    "Ordinal": 10
+    "Column": "Ref Payment Allocation"

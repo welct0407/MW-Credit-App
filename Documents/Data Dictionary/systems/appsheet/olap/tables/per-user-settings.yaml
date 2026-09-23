@@ -1,0 +1,22 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "_Per User Settings"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLAP"
+  "source_table": "_Per User Settings"
+  "binding":
+    "App": "OLAP"
+    "Version": "v1.100101"
+    "Table": "_Per User Settings"
+    "Source": "native"
+    "Source path": "_Per User Settings"
+    "Schema": "_Per User Settings_Schema"
+    "Update permission": "UPDATES_ONLY"
+    "Scope": "AppSheet internal"

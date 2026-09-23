@@ -1,0 +1,3544 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/dev-differences"
+  "kind": "sheet-records"
+  "name": "OLTP"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "Dev Differences"
+  "records":
+    "row-00002":
+      "App": "OLTP"
+      "Object": "tables: Borrowers"
+      "Property": "Data locale"
+      "Production": "en-US"
+      "Development": null
+    "row-00003":
+      "App": "OLTP"
+      "Object": "tables: Borrowers"
+      "Property": "Data Source"
+      "Production": "database-2"
+      "Development": "database-3"
+    "row-00004":
+      "App": "OLTP"
+      "Object": "tables: Loans"
+      "Property": "Data locale"
+      "Production": "en-US"
+      "Development": null
+    "row-00005":
+      "App": "OLTP"
+      "Object": "tables: Loans"
+      "Property": "Data Source"
+      "Production": "database-2"
+      "Development": "database-3"
+    "row-00006":
+      "App": "OLTP"
+      "Object": "tables: Repayments"
+      "Property": "Data locale"
+      "Production": "en-US"
+      "Development": null
+    "row-00007":
+      "App": "OLTP"
+      "Object": "tables: Repayments"
+      "Property": "Data Source"
+      "Production": "database-2"
+      "Development": "database-3"
+    "row-00008":
+      "App": "OLTP"
+      "Object": "tables: Statistics"
+      "Property": "Data locale"
+      "Production": "en-US"
+      "Development": null
+    "row-00009":
+      "App": "OLTP"
+      "Object": "tables: Statistics"
+      "Property": "Data Source"
+      "Production": "database-2"
+      "Development": "database-3"
+    "row-00010":
+      "App": "OLTP"
+      "Object": "tables: Charges"
+      "Property": "Data locale"
+      "Production": "en-US"
+      "Development": null
+    "row-00011":
+      "App": "OLTP"
+      "Object": "tables: Charges"
+      "Property": "Data Source"
+      "Production": "database-2"
+      "Development": "database-3"
+    "row-00012":
+      "App": "OLTP"
+      "Object": "tables: Partners"
+      "Property": "Data locale"
+      "Production": "en-US"
+      "Development": null
+    "row-00013":
+      "App": "OLTP"
+      "Object": "tables: Partners"
+      "Property": "Data Source"
+      "Production": "database-2"
+      "Development": "database-3"
+    "row-00014":
+      "App": "OLTP"
+      "Object": "tables: Payment Allocations"
+      "Property": "Data locale"
+      "Production": "en-US"
+      "Development": null
+    "row-00015":
+      "App": "OLTP"
+      "Object": "tables: Payment Allocations"
+      "Property": "Data Source"
+      "Production": "database-2"
+      "Development": "database-3"
+    "row-00016":
+      "App": "OLTP"
+      "Object": "tables: Payments"
+      "Property": "Data locale"
+      "Production": "en-US"
+      "Development": null
+    "row-00017":
+      "App": "OLTP"
+      "Object": "tables: Payments"
+      "Property": "Data Source"
+      "Production": "database-2"
+      "Development": "database-3"
+    "row-00018":
+      "App": "OLTP"
+      "Object": "tables: Process for Create First-Day Charge Process Table"
+      "Property": "Source Path"
+      "Production": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/9ba6c95e-3ada-4103-9609-22da34accd14/State Table"
+      "Development": "/ProcessStateTables/65faacd8-2b0d-43bf-9e0a-58eb915dcf9b/efce8d52-c0c9-4b00-9f98-15e2f46d6959/State\
+        \ Table"
+    "row-00019":
+      "App": "OLTP"
+      "Object": "tables: Create First-Day Charge Output"
+      "Property": "Source Path"
+      "Production": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/9ba6c95e-3ada-4103-9609-22da34accd14/StepOutput_Create\
+        \ First-Day Charge"
+      "Development": "/ProcessStateTables/65faacd8-2b0d-43bf-9e0a-58eb915dcf9b/efce8d52-c0c9-4b00-9f98-15e2f46d6959/StepOutput_Create\
+        \ First-Day Charge"
+    "row-00020":
+      "App": "OLTP"
+      "Object": "tables: Process for Generate Daily Charges - 1 Process Table"
+      "Property": "Availability"
+      "Production": "Present"
+      "Development": "Absent"
+    "row-00021":
+      "App": "OLTP"
+      "Object": "tables: Generate Today's Charge Output"
+      "Property": "Availability"
+      "Production": "Present"
+      "Development": "Absent"
+    "row-00022":
+      "App": "OLTP"
+      "Object": "tables: Process for Notification - New Loan Created Process Table"
+      "Property": "Availability"
+      "Production": "Present"
+      "Development": "Absent"
+    "row-00023":
+      "App": "OLTP"
+      "Object": "tables: Process for Notification - Loan Closed Process Table"
+      "Property": "Availability"
+      "Production": "Present"
+      "Development": "Absent"
+    "row-00024":
+      "App": "OLTP"
+      "Object": "tables: Process for Notification - Charge Received Process Table"
+      "Property": "Availability"
+      "Production": "Present"
+      "Development": "Absent"
+    "row-00025":
+      "App": "OLTP"
+      "Object": "tables: Process for Auto Receive First-Day Charge - 1 Process Table"
+      "Property": "Source Path"
+      "Production": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/60128599-b96a-4e31-b611-7a8940567cec/State Table"
+      "Development": "/ProcessStateTables/65faacd8-2b0d-43bf-9e0a-58eb915dcf9b/fbd493fd-4689-4f3e-8eab-3df3588dc3f4/State\
+        \ Table"
+    "row-00026":
+      "App": "OLTP"
+      "Object": "tables: Receive First-Day Charge Output"
+      "Property": "Source Path"
+      "Production": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/60128599-b96a-4e31-b611-7a8940567cec/StepOutput_Receive\
+        \ First-Day Charge"
+      "Development": "/ProcessStateTables/65faacd8-2b0d-43bf-9e0a-58eb915dcf9b/fbd493fd-4689-4f3e-8eab-3df3588dc3f4/StepOutput_Receive\
+        \ First-Day Charge"
+    "row-00027":
+      "App": "OLTP"
+      "Object": "tables: Process for Payments - Process Receipt - 1 Process Table"
+      "Property": "Source Path"
+      "Production": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/6a0b47c0-7343-454a-9bd0-516eb7136e8a/State Table"
+      "Development": "/ProcessStateTables/65faacd8-2b0d-43bf-9e0a-58eb915dcf9b/dee5a7a7-028c-4c42-80d2-b3511add28a3/State\
+        \ Table"
+    "row-00028":
+      "App": "OLTP"
+      "Object": "tables: Payment - Process Receipt Output"
+      "Property": "Source Path"
+      "Production": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/6a0b47c0-7343-454a-9bd0-516eb7136e8a/StepOutput_Payment\
+        \ - Process Receipt"
+      "Development": "/ProcessStateTables/65faacd8-2b0d-43bf-9e0a-58eb915dcf9b/dee5a7a7-028c-4c42-80d2-b3511add28a3/StepOutput_Payment\
+        \ - Process Receipt"
+    "row-00029":
+      "App": "OLTP"
+      "Object": "actions: Open Loan Business Insights"
+      "Property": "With these properties"
+      "Production": "{\"NavigateTarget\":\"=LINKTOAPP(\\\"LoanBusinessInsights-975338008\\\")\",\"Prominence\":\"Display_Prominently\"\
+        ,\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\":false}"
+      "Development": "{\"NavigateTarget\":\"=LINKTOAPP(\\\"LoanInsightsPGTrial20260914-578763613\\\")\",\"Prominence\":\"\
+        Display_Prominently\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\"\
+        :false}"
+    "row-00115":
+      "App": "OLTP"
+      "Object": "Payments - Process Receipt"
+      "Property": "Only if this condition is true"
+      "Production": "Promoted 15 Sep 2026. [Status] = \"Processing\" (same in both apps; V4 retains existing notification-triggering\
+        \ finalization)"
+      "Development": "[Status] = \"Processing\" (same in both apps; V4 retains existing notification-triggering finalization)"
+    "row-00116":
+      "App": "OLTP"
+      "Object": "Payments - Process Receipt / Payment queued or retried"
+      "Property": "Bot event condition"
+      "Production": "[Status] = \"Processing\""
+      "Development": "[Status] = \"Processing\" (same in both apps; V4 retains existing notification-triggering finalization)"
+    "row-00130":
+      "App": "OLTP"
+      "Object": "Action: Payment - Create Snapshots"
+      "Property": "Only if this condition is true"
+      "Production": "IF([Allocation Method] = \"Lump Sum\", FALSE, AND([Status] = \"Processing\", [Amount Received] > 0, [Amount\
+        \ Received] <= [Eligible Outstanding], COUNT([Eligible Charges]) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower]\
+        \ = [_THISROW].[Ref Borrower], [Status] = \"Processing\"))) = 1, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref\
+        \ Payment] = [_THISROW].[Row ID], [Allocation Order] > 0))) = 0, COUNT([Related Repayments]) = 0))"
+      "Development": "IF([Allocation Method] = \"Lump Sum\", FALSE, AND([Status] = \"Processing\", [Amount Received] > 0,\
+        \ [Amount Received] <= [Eligible Outstanding], COUNT([Eligible Charges]) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref\
+        \ Borrower] = [_THISROW].[Ref Borrower], [Status] = \"Processing\"))) = 1, COUNT(SELECT(Payment Allocations[Row ID],\
+        \ AND([Ref Payment] = [_THISROW].[Row ID], [Allocation Order] > 0))) = 0, COUNT([Related Repayments]) = 0))"
+    "row-00131":
+      "App": "OLTP"
+      "Object": "Action: Payment - Freeze Plan"
+      "Property": "Only if this condition is true"
+      "Production": "IF([Allocation Method] = \"Lump Sum\", FALSE, AND([Status] = \"Processing\", COUNT(SELECT(Payments[Row\
+        \ ID], AND([Ref Borrower] = [_THISROW].[Ref Borrower], [Status] = \"Processing\"))) = 1))"
+      "Development": "IF([Allocation Method] = \"Lump Sum\", FALSE, AND([Status] = \"Processing\", COUNT(SELECT(Payments[Row\
+        \ ID], AND([Ref Borrower] = [_THISROW].[Ref Borrower], [Status] = \"Processing\"))) = 1))"
+    "row-00132":
+      "App": "OLTP"
+      "Object": "Action: Payment - Post Plan"
+      "Property": "Only if this condition is true"
+      "Production": "IF([Allocation Method] = \"Lump Sum\", FALSE, AND([Status] = \"Processing\", COUNT(SELECT(Payments[Row\
+        \ ID], AND([Ref Borrower] = [_THISROW].[Ref Borrower], [Status] = \"Processing\"))) = 1, [Amount Received] > 0, [Amount\
+        \ Received] = SUM(SELECT(Payment Allocations[Allocated Amount], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Payment\
+        \ Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref\
+        \ Payment] = [_THISROW].[Row ID], [Allocation Order] = 0))) = 0))"
+      "Development": "IF([Allocation Method] = \"Lump Sum\", FALSE, AND([Status] = \"Processing\", COUNT(SELECT(Payments[Row\
+        \ ID], AND([Ref Borrower] = [_THISROW].[Ref Borrower], [Status] = \"Processing\"))) = 1, [Amount Received] > 0, [Amount\
+        \ Received] = SUM(SELECT(Payment Allocations[Allocated Amount], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Payment\
+        \ Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref\
+        \ Payment] = [_THISROW].[Row ID], [Allocation Order] = 0))) = 0))"
+    "row-00133":
+      "App": "OLTP"
+      "Object": "Action: Payment - Reconcile"
+      "Property": "Status"
+      "Production": "IF([Allocation Method] = \"Lump Sum\", \"Posted\", IF(AND(AND([Amount Received] > 0, [Amount Received]\
+        \ = SUM(SELECT(Payment Allocations[Allocated Amount], [Ref Payment] = [_THISROW].[Row ID])), [Amount Received] = SUM(SELECT(Repayments[Principal\
+        \ Paid], [Ref Payment] = [_THISROW].[Row ID])) + SUM(SELECT(Repayments[Interest Paid], [Ref Payment] = [_THISROW].[Row\
+        \ ID])), COUNT(SELECT(Payment Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment\
+        \ Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row ID], OR([Allocation Order] <= 0, [Allocated Amount] <>\
+        \ [Allocated Interest] + [Allocated Principal], [Allocated Interest] < 0, [Allocated Principal] < 0)))) = 0, COUNT(SELECT(Repayments[Row\
+        \ ID], [Ref Payment] = [_THISROW].[Row ID])) = COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row\
+        \ ID], [Allocated Amount] > 0))), COUNT(SELECT(Repayments[Ref Payment Allocation], [Ref Payment] = [_THISROW].[Row\
+        \ ID], TRUE)) = COUNT(SELECT(Repayments[Row ID], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Repayments[Row\
+        \ ID], AND([Ref Payment] = [_THISROW].[Row ID], OR(ISBLANK([Ref Payment Allocation]), [Ref Payment Allocation].[Ref\
+        \ Payment] <> [_THISROW].[Row ID], [Ref Charges] <> [Ref Payment Allocation].[Ref Charge], [Principal Paid] <> [Ref\
+        \ Payment Allocation].[Allocated Principal], [Interest Paid] <> [Ref Payment Allocation].[Allocated Interest], [Ref\
+        \ Payment Allocation].[Allocated Amount] <= 0)))) = 0), COUNT([Eligible Charges] - SELECT(Payment Allocations[Ref\
+        \ Charge], [Ref Payment] = [_THISROW].[Row ID])) = 0), \"Posted\", \"Error\"))"
+      "Development": "IF([Allocation Method] = \"Lump Sum\", \"Posted\", IF(AND(AND([Amount Received] > 0, [Amount Received]\
+        \ = SUM(SELECT(Payment Allocations[Allocated Amount], [Ref Payment] = [_THISROW].[Row ID])), [Amount Received] = SUM(SELECT(Repayments[Principal\
+        \ Paid], [Ref Payment] = [_THISROW].[Row ID])) + SUM(SELECT(Repayments[Interest Paid], [Ref Payment] = [_THISROW].[Row\
+        \ ID])), COUNT(SELECT(Payment Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment\
+        \ Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row ID], OR([Allocation Order] <= 0, [Allocated Amount] <>\
+        \ [Allocated Interest] + [Allocated Principal], [Allocated Interest] < 0, [Allocated Principal] < 0)))) = 0, COUNT(SELECT(Repayments[Row\
+        \ ID], [Ref Payment] = [_THISROW].[Row ID])) = COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row\
+        \ ID], [Allocated Amount] > 0))), COUNT(SELECT(Repayments[Ref Payment Allocation], [Ref Payment] = [_THISROW].[Row\
+        \ ID], TRUE)) = COUNT(SELECT(Repayments[Row ID], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Repayments[Row\
+        \ ID], AND([Ref Payment] = [_THISROW].[Row ID], OR(ISBLANK([Ref Payment Allocation]), [Ref Payment Allocation].[Ref\
+        \ Payment] <> [_THISROW].[Row ID], [Ref Charges] <> [Ref Payment Allocation].[Ref Charge], [Principal Paid] <> [Ref\
+        \ Payment Allocation].[Allocated Principal], [Interest Paid] <> [Ref Payment Allocation].[Allocated Interest], [Ref\
+        \ Payment Allocation].[Allocated Amount] <= 0)))) = 0), COUNT([Eligible Charges] - SELECT(Payment Allocations[Ref\
+        \ Charge], [Ref Payment] = [_THISROW].[Row ID])) = 0), \"Posted\", \"Error\"))"
+    "row-00134":
+      "App": "OLTP"
+      "Object": "Action: Payment - Reconcile"
+      "Property": "Processed At"
+      "Production": "IF([Allocation Method] = \"Lump Sum\", NOW(), IF(AND(AND([Amount Received] > 0, [Amount Received] = SUM(SELECT(Payment\
+        \ Allocations[Allocated Amount], [Ref Payment] = [_THISROW].[Row ID])), [Amount Received] = SUM(SELECT(Repayments[Principal\
+        \ Paid], [Ref Payment] = [_THISROW].[Row ID])) + SUM(SELECT(Repayments[Interest Paid], [Ref Payment] = [_THISROW].[Row\
+        \ ID])), COUNT(SELECT(Payment Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment\
+        \ Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row ID], OR([Allocation Order] <= 0, [Allocated Amount] <>\
+        \ [Allocated Interest] + [Allocated Principal], [Allocated Interest] < 0, [Allocated Principal] < 0)))) = 0, COUNT(SELECT(Repayments[Row\
+        \ ID], [Ref Payment] = [_THISROW].[Row ID])) = COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row\
+        \ ID], [Allocated Amount] > 0))), COUNT(SELECT(Repayments[Ref Payment Allocation], [Ref Payment] = [_THISROW].[Row\
+        \ ID], TRUE)) = COUNT(SELECT(Repayments[Row ID], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Repayments[Row\
+        \ ID], AND([Ref Payment] = [_THISROW].[Row ID], OR(ISBLANK([Ref Payment Allocation]), [Ref Payment Allocation].[Ref\
+        \ Payment] <> [_THISROW].[Row ID], [Ref Charges] <> [Ref Payment Allocation].[Ref Charge], [Principal Paid] <> [Ref\
+        \ Payment Allocation].[Allocated Principal], [Interest Paid] <> [Ref Payment Allocation].[Allocated Interest], [Ref\
+        \ Payment Allocation].[Allocated Amount] <= 0)))) = 0), COUNT([Eligible Charges] - SELECT(Payment Allocations[Ref\
+        \ Charge], [Ref Payment] = [_THISROW].[Row ID])) = 0), NOW(), \"\"))"
+      "Development": "IF([Allocation Method] = \"Lump Sum\", NOW(), IF(AND(AND([Amount Received] > 0, [Amount Received] =\
+        \ SUM(SELECT(Payment Allocations[Allocated Amount], [Ref Payment] = [_THISROW].[Row ID])), [Amount Received] = SUM(SELECT(Repayments[Principal\
+        \ Paid], [Ref Payment] = [_THISROW].[Row ID])) + SUM(SELECT(Repayments[Interest Paid], [Ref Payment] = [_THISROW].[Row\
+        \ ID])), COUNT(SELECT(Payment Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment\
+        \ Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row ID], OR([Allocation Order] <= 0, [Allocated Amount] <>\
+        \ [Allocated Interest] + [Allocated Principal], [Allocated Interest] < 0, [Allocated Principal] < 0)))) = 0, COUNT(SELECT(Repayments[Row\
+        \ ID], [Ref Payment] = [_THISROW].[Row ID])) = COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row\
+        \ ID], [Allocated Amount] > 0))), COUNT(SELECT(Repayments[Ref Payment Allocation], [Ref Payment] = [_THISROW].[Row\
+        \ ID], TRUE)) = COUNT(SELECT(Repayments[Row ID], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Repayments[Row\
+        \ ID], AND([Ref Payment] = [_THISROW].[Row ID], OR(ISBLANK([Ref Payment Allocation]), [Ref Payment Allocation].[Ref\
+        \ Payment] <> [_THISROW].[Row ID], [Ref Charges] <> [Ref Payment Allocation].[Ref Charge], [Principal Paid] <> [Ref\
+        \ Payment Allocation].[Allocated Principal], [Interest Paid] <> [Ref Payment Allocation].[Allocated Interest], [Ref\
+        \ Payment Allocation].[Allocated Amount] <= 0)))) = 0), COUNT([Eligible Charges] - SELECT(Payment Allocations[Ref\
+        \ Charge], [Ref Payment] = [_THISROW].[Row ID])) = 0), NOW(), \"\"))"
+    "row-00135":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Column name"
+      "Production": "Interest Schedule Anchor Date"
+      "Development": "Interest Schedule Anchor Date"
+    "row-00136":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Visible?"
+      "Production": "ALWAYS"
+      "Development": "ALWAYS"
+    "row-00137":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Description"
+      "Production": "=\"เว้นว่างเพื่อใช้วันที่กู้ รอบถัดไป = วันที่เริ่มรอบ + ช่วงชำระ เช่น 14 ก.ย. + 3 วัน = 17 ก.ย. ไม่เปลี่ยนดอกเบี้ยสะสม\
+        \ / Blank uses Loan Date. Next scheduled charge = anchor + interval. Interest accrual is unchanged.\""
+      "Development": "=\"เว้นว่างเพื่อใช้วันที่กู้ รอบถัดไป = วันที่เริ่มรอบ + ช่วงชำระ เช่น 14 ก.ย. + 3 วัน = 17 ก.ย. ไม่เปลี่ยนดอกเบี้ยสะสม\
+        \ / Blank uses Loan Date. Next scheduled charge = anchor + interval. Interest accrual is unchanged.\""
+    "row-00138":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Display name"
+      "Production": "=\"วันที่เริ่มรอบดอกเบี้ย / Interest Schedule Anchor Date\""
+      "Development": "=\"วันที่เริ่มรอบดอกเบี้ย / Interest Schedule Anchor Date\""
+    "row-00139":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Type"
+      "Production": "Date"
+      "Development": "Date"
+    "row-00140":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Type Qualifier"
+      "Production": "{\"UseLongDateFormat\":false,\"Valid_If\":\"=OR(ISBLANK([_THIS]), AND(ISNOTBLANK([Loan Date]), [_THIS]\
+        \ >= [Loan Date]))\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\"\",\"Required_If\"\
+        :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+      "Development": "{\"UseLongDateFormat\":false,\"Valid_If\":\"=OR(ISBLANK([_THIS]), AND(ISNOTBLANK([Loan Date]), [_THIS]\
+        \ >= [Loan Date]))\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\"\",\"Required_If\"\
+        :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+    "row-00141":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No"
+    "row-00142":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00143":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Label"
+      "Production": "No"
+      "Development": "No"
+    "row-00144":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Formula version"
+      "Production": "0"
+      "Development": "0"
+    "row-00145":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Reset on edit?"
+      "Production": "No"
+      "Development": "No"
+    "row-00146":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "System Defined?"
+      "Production": "No"
+      "Development": "No"
+    "row-00147":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00148":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Part of Key?"
+      "Production": "No"
+      "Development": "No"
+    "row-00149":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Fixed definition?"
+      "Production": "No"
+      "Development": "No"
+    "row-00150":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Editable Initial Value?"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00151":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Virtual?"
+      "Production": "No"
+      "Development": "No"
+    "row-00152":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "LocaleName"
+      "Production": "en-US"
+      "Development": "en-US"
+    "row-00153":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Searchable"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00154":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Scannable"
+      "Production": "No"
+      "Development": "No"
+    "row-00155":
+      "App": "OLTP"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Sensitive data"
+      "Production": "No"
+      "Development": "No"
+    "row-00156":
+      "App": "OLTP"
+      "Object": "view:Loans_Detail"
+      "Property": "View configuration"
+      "Production": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"\
+        QuickEditColumns\":[],\"ColumnOrder\":[\"Loan Date\",\"Close Date\",\"Loan Duration\",\"Principal Amount\",\"Defaulted\"\
+        ,\"Default Loss Amount\",\"Loan Type TE\",\"Due Date\",\"Daily Payment Amount\",\"Fixed Interest\",\"Current Daily\
+        \ Interest\",\"Interest Payment Interval\",\"Interest Schedule Anchor Date\",\"Borrower Name TE\",\"Loan Arrangement\"\
+        ,\"Loan Status TE\",\"Statistics Header\",\"Outstanding Principal\",\"Transfer Fee\",\"Total Principal Received\"\
+        ,\"Total Amount Received\",\"Total Interest Received\",\"Principal Recovered by Interest %\",\"Related Charges\",\"\
+        Auto Charge Enabled\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\"\
+        ,\"MaxNestedRows\":20,\"SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"\
+        SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\"\
+        :null,\"MenuOrder\":1}"
+      "Development": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"\
+        QuickEditColumns\":[],\"ColumnOrder\":[\"Loan Date\",\"Close Date\",\"Loan Duration\",\"Principal Amount\",\"Defaulted\"\
+        ,\"Default Loss Amount\",\"Loan Type TE\",\"Due Date\",\"Daily Payment Amount\",\"Fixed Interest\",\"Current Daily\
+        \ Interest\",\"Interest Payment Interval\",\"Interest Schedule Anchor Date\",\"Borrower Name TE\",\"Loan Arrangement\"\
+        ,\"Loan Status TE\",\"Statistics Header\",\"Outstanding Principal\",\"Transfer Fee\",\"Total Principal Received\"\
+        ,\"Total Amount Received\",\"Total Interest Received\",\"Principal Recovered by Interest %\",\"Related Charges\",\"\
+        Auto Charge Enabled\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\"\
+        ,\"MaxNestedRows\":20,\"SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"\
+        SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\"\
+        :null,\"MenuOrder\":1}"
+    "row-00157":
+      "App": "OLTP"
+      "Object": "view:Loans_Form"
+      "Property": "View configuration"
+      "Production": "{\"ColumnOrder\":[\"Loan Date\",\"Principal Amount\",\"Transfer Fee\",\"Loan Type\",\"Due Date\",\"Daily\
+        \ Payment Amount\",\"Fixed Interest\",\"Current Daily Interest\",\"Interest Payment Interval\",\"Interest Schedule\
+        \ Anchor Date\",\"Loan Arrangement\",\"Auto Charge Enabled\"],\"AutoSave\":false,\"AutoReopen\":false,\"FinishView\"\
+        :\"**Automatic**\",\"RowKey\":\"\",\"FormStyle\":\"Automatic\",\"PageStyle\":\"Automatic\",\"FormFooterStyle\":\"\
+        Bottom\",\"MaxNestedRows\":5,\"AudioInput\":false,\"Events\":[{\"EventType\":\"Form Saved\",\"EventAction\":\"**auto**\"\
+        }],\"Icon\":\"fa-edit\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+      "Development": "{\"ColumnOrder\":[\"Loan Date\",\"Principal Amount\",\"Transfer Fee\",\"Loan Type\",\"Due Date\",\"\
+        Daily Payment Amount\",\"Fixed Interest\",\"Current Daily Interest\",\"Interest Payment Interval\",\"Interest Schedule\
+        \ Anchor Date\",\"Loan Arrangement\",\"Auto Charge Enabled\"],\"AutoSave\":false,\"AutoReopen\":false,\"FinishView\"\
+        :\"**Automatic**\",\"RowKey\":\"\",\"FormStyle\":\"Automatic\",\"PageStyle\":\"Automatic\",\"FormFooterStyle\":\"\
+        Bottom\",\"MaxNestedRows\":5,\"AudioInput\":false,\"Events\":[{\"EventType\":\"Form Saved\",\"EventAction\":\"**auto**\"\
+        }],\"Icon\":\"fa-edit\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+    "row-00158":
+      "App": "OLTP"
+      "Object": "action:Loans:Generate Today's Charge"
+      "Property": "Only if this condition is true"
+      "Production": "=AND([Auto Charge Enabled], AND([Loan Status] = \"ยังไม่ปิดยอด\", COUNT(SELECT(Charges[Row ID], AND([Ref\
+        \ Loans] = [_THISROW].[Row ID], [Charge Date] = TODAY()))) = 0, IFS([Loan Type] = \"ดอกเบี้ยรายวัน\", AND([Current\
+        \ Daily Interest] > 0, [Accrued Interest] > 0, TODAY() > IF(ISBLANK([Interest Schedule Anchor Date]), [Loan Date],\
+        \ [Interest Schedule Anchor Date]), [Interest Payment Interval] >= 1, MOD(FLOOR(TOTALHOURS(TODAY() - IF(ISBLANK([Interest\
+        \ Schedule Anchor Date]), [Loan Date], [Interest Schedule Anchor Date])) / 24), [Interest Payment Interval]) = 0),\
+        \ [Loan Type] = \"กำหนดวันชำระ\", [Due Date] = TODAY(), [Loan Type] = \"ผ่อนชำระรายวัน\", AND(TODAY() > [Loan Date],\
+        \ TODAY() <= [Due Date], [Interest Payment Interval] >= 1, ISNOTBLANK(MAX([Related Charges][Charge Date])), OR(MOD(FLOOR(TOTALHOURS(TODAY()\
+        \ - [Loan Date]) / 24), [Interest Payment Interval]) = 0, TODAY() = [Due Date])), TRUE, FALSE)))"
+      "Development": "=AND([Auto Charge Enabled], AND([Loan Status] = \"ยังไม่ปิดยอด\", COUNT(SELECT(Charges[Row ID], AND([Ref\
+        \ Loans] = [_THISROW].[Row ID], [Charge Date] = TODAY()))) = 0, IFS([Loan Type] = \"ดอกเบี้ยรายวัน\", AND([Current\
+        \ Daily Interest] > 0, [Accrued Interest] > 0, TODAY() > IF(ISBLANK([Interest Schedule Anchor Date]), [Loan Date],\
+        \ [Interest Schedule Anchor Date]), [Interest Payment Interval] >= 1, MOD(FLOOR(TOTALHOURS(TODAY() - IF(ISBLANK([Interest\
+        \ Schedule Anchor Date]), [Loan Date], [Interest Schedule Anchor Date])) / 24), [Interest Payment Interval]) = 0),\
+        \ [Loan Type] = \"กำหนดวันชำระ\", [Due Date] = TODAY(), [Loan Type] = \"ผ่อนชำระรายวัน\", AND(TODAY() > [Loan Date],\
+        \ TODAY() <= [Due Date], [Interest Payment Interval] >= 1, ISNOTBLANK(MAX([Related Charges][Charge Date])), OR(MOD(FLOOR(TOTALHOURS(TODAY()\
+        \ - [Loan Date]) / 24), [Interest Payment Interval]) = 0, TODAY() = [Due Date])), TRUE, FALSE)))"
+    "row-00159":
+      "App": "OLTP"
+      "Object": "action:Statistics:Generate All Today's Charges"
+      "Property": "With these properties"
+      "Production": "{\"ReferencedTable\":\"Loans\",\"ReferencedRows\":\"=SELECT( Loans[Row ID], AND([Auto Charge Enabled],\
+        \ [Loan Status] = \\\"ยังไม่ปิดยอด\\\", OR( AND( [Loan Type] = \\\"ดอกเบี้ยรายวัน\\\", [Current Daily Interest] >\
+        \ 0, [Accrued Interest] > 0, TODAY() > IF(ISBLANK([Interest Schedule Anchor Date]), [Loan Date], [Interest Schedule\
+        \ Anchor Date]), [Interest Payment Interval] >= 1, MOD( FLOOR(TOTALHOURS(TODAY() - IF(ISBLANK([Interest Schedule Anchor\
+        \ Date]), [Loan Date], [Interest Schedule Anchor Date])) / 24), [Interest Payment Interval] ) = 0 ), AND( [Loan Type]\
+        \ = \\\"กำหนดวันชำระ\\\", [Due Date] = TODAY() ), AND( [Loan Type] = \\\"ผ่อนชำระรายวัน\\\", TODAY() > [Loan Date],\
+        \ TODAY() <= [Due Date], [Interest Payment Interval] >= 1, ISNOTBLANK(MAX([Related Charges][Charge Date])), OR( MOD(\
+        \ FLOOR(TOTALHOURS(TODAY() - [Loan Date]) / 24), [Interest Payment Interval] ) = 0, TODAY() = [Due Date] ) ) ), NOT(IN(TODAY(),\
+        \ [Related Charges][Charge Date])) ))\",\"ReferencedAction\":\"Generate Today's Charge\",\"InputAssignments\":[],\"\
+        InputParametersUsed\":null,\"Prominence\":\"Display_Prominently\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"BulkApplicable\":true}"
+      "Development": "{\"ReferencedTable\":\"Loans\",\"ReferencedRows\":\"=SELECT( Loans[Row ID], AND([Auto Charge Enabled],\
+        \ [Loan Status] = \\\"ยังไม่ปิดยอด\\\", OR( AND( [Loan Type] = \\\"ดอกเบี้ยรายวัน\\\", [Current Daily Interest] >\
+        \ 0, [Accrued Interest] > 0, TODAY() > IF(ISBLANK([Interest Schedule Anchor Date]), [Loan Date], [Interest Schedule\
+        \ Anchor Date]), [Interest Payment Interval] >= 1, MOD( FLOOR(TOTALHOURS(TODAY() - IF(ISBLANK([Interest Schedule Anchor\
+        \ Date]), [Loan Date], [Interest Schedule Anchor Date])) / 24), [Interest Payment Interval] ) = 0 ), AND( [Loan Type]\
+        \ = \\\"กำหนดวันชำระ\\\", [Due Date] = TODAY() ), AND( [Loan Type] = \\\"ผ่อนชำระรายวัน\\\", TODAY() > [Loan Date],\
+        \ TODAY() <= [Due Date], [Interest Payment Interval] >= 1, ISNOTBLANK(MAX([Related Charges][Charge Date])), OR( MOD(\
+        \ FLOOR(TOTALHOURS(TODAY() - [Loan Date]) / 24), [Interest Payment Interval] ) = 0, TODAY() = [Due Date] ) ) ), NOT(IN(TODAY(),\
+        \ [Related Charges][Charge Date])) ))\",\"ReferencedAction\":\"Generate Today's Charge\",\"InputAssignments\":[],\"\
+        InputParametersUsed\":null,\"Prominence\":\"Display_Prominently\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"BulkApplicable\":true}"
+    "row-00160":
+      "App": "OLTP"
+      "Object": "action:Statistics:Generate All Today's Charges"
+      "Property": "Only if this condition is true"
+      "Production": "=COUNT(SELECT( Loans[Row ID], AND([Auto Charge Enabled], [Loan Status] = \"ยังไม่ปิดยอด\", OR( AND( [Loan\
+        \ Type] = \"ดอกเบี้ยรายวัน\", [Current Daily Interest] > 0, [Accrued Interest] > 0, TODAY() > IF(ISBLANK([Interest\
+        \ Schedule Anchor Date]), [Loan Date], [Interest Schedule Anchor Date]), [Interest Payment Interval] >= 1, MOD( FLOOR(TOTALHOURS(TODAY()\
+        \ - IF(ISBLANK([Interest Schedule Anchor Date]), [Loan Date], [Interest Schedule Anchor Date])) / 24), [Interest Payment\
+        \ Interval] ) = 0 ), AND( [Loan Type] = \"กำหนดวันชำระ\", [Due Date] = TODAY() ), AND( [Loan Type] = \"ผ่อนชำระรายวัน\"\
+        , TODAY() > [Loan Date], TODAY() <= [Due Date], [Interest Payment Interval] >= 1, ISNOTBLANK(MAX([Related Charges][Charge\
+        \ Date])), OR( MOD( FLOOR(TOTALHOURS(TODAY() - [Loan Date]) / 24), [Interest Payment Interval] ) = 0, TODAY() = [Due\
+        \ Date] ) ) ), NOT(IN(TODAY(), [Related Charges][Charge Date])) ))) > 0"
+      "Development": "=COUNT(SELECT( Loans[Row ID], AND([Auto Charge Enabled], [Loan Status] = \"ยังไม่ปิดยอด\", OR( AND(\
+        \ [Loan Type] = \"ดอกเบี้ยรายวัน\", [Current Daily Interest] > 0, [Accrued Interest] > 0, TODAY() > IF(ISBLANK([Interest\
+        \ Schedule Anchor Date]), [Loan Date], [Interest Schedule Anchor Date]), [Interest Payment Interval] >= 1, MOD( FLOOR(TOTALHOURS(TODAY()\
+        \ - IF(ISBLANK([Interest Schedule Anchor Date]), [Loan Date], [Interest Schedule Anchor Date])) / 24), [Interest Payment\
+        \ Interval] ) = 0 ), AND( [Loan Type] = \"กำหนดวันชำระ\", [Due Date] = TODAY() ), AND( [Loan Type] = \"ผ่อนชำระรายวัน\"\
+        , TODAY() > [Loan Date], TODAY() <= [Due Date], [Interest Payment Interval] >= 1, ISNOTBLANK(MAX([Related Charges][Charge\
+        \ Date])), OR( MOD( FLOOR(TOTALHOURS(TODAY() - [Loan Date]) / 24), [Interest Payment Interval] ) = 0, TODAY() = [Due\
+        \ Date] ) ) ), NOT(IN(TODAY(), [Related Charges][Charge Date])) ))) > 0"
+    "row-00183":
+      "App": "OLTP"
+      "Object": "Generate Daily Charges / Daily 00:05"
+      "Property": "Filter Condition"
+      "Production": "Enabled; 00:05 Bangkok; existing SQL request action and eligibility filter; monitored success/error tests\
+        \ passed"
+      "Development": "Enabled; 00:05 Bangkok; existing SQL request action and eligibility filter; monitored success/error\
+        \ tests passed"
+    "row-00184":
+      "App": "OLTP"
+      "Object": "Generate Daily Charges"
+      "Property": "Enabled"
+      "Production": "Enabled; 00:05 Bangkok; existing SQL request action and eligibility filter; monitored success/error tests\
+        \ passed"
+      "Development": "Enabled; 00:05 Bangkok; existing SQL request action and eligibility filter; monitored success/error\
+        \ tests passed"
+    "row-00186":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Type"
+      "Production": "Ref"
+      "Development": "Ref"
+    "row-00187":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "ReferencedTableName"
+      "Production": "Payments"
+      "Development": "Payments"
+    "row-00188":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "ReferencedKeyColumn"
+      "Production": "Row ID"
+      "Development": "Row ID"
+    "row-00189":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "IsAPartOf"
+      "Production": false
+      "Development": "false"
+    "row-00190":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00191":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00192":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Label"
+      "Production": "No"
+      "Development": "No"
+    "row-00193":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00194":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00195":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Visible?"
+      "Production": "ALWAYS"
+      "Development": "ALWAYS"
+    "row-00196":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Display name"
+      "Production": "=\"รายการรับชำระที่ปิดยอด / Closing Payment\""
+      "Development": "=\"รายการรับชำระที่ปิดยอด / Closing Payment\""
+    "row-00197":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00198":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "App formula"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00199":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Required_If"
+      "Production": "Blank (nullable)"
+      "Development": "Blank (nullable)"
+    "row-00200":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Editable_If"
+      "Production": "Blank; column Read-Only Yes"
+      "Development": "Blank; column Read-Only Yes"
+    "row-00201":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "System Defined?"
+      "Production": "No"
+      "Development": "No"
+    "row-00202":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Reset on edit?"
+      "Production": "No"
+      "Development": "No"
+    "row-00203":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Searchable"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00204":
+      "App": "OLTP"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "LocaleName"
+      "Production": "en-US"
+      "Development": "en-US"
+    "row-00205":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "Type"
+      "Production": "List"
+      "Development": "List of Ref to Loans.Row ID"
+    "row-00206":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "Virtual"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00207":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "App formula"
+      "Production": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")"
+      "Development": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")"
+    "row-00208":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00209":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00210":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "Label"
+      "Production": "No"
+      "Development": "No"
+    "row-00211":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "IsAPartOf"
+      "Production": "false"
+      "Development": "false"
+    "row-00212":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "System Defined?"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00213":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00214":
+      "App": "OLTP"
+      "Object": "Payments.Related Loans"
+      "Property": "Display name"
+      "Production": "Blank (default Related Loans)"
+      "Development": "Blank (default Related Loans)"
+    "row-00215":
+      "App": "OLTP"
+      "Object": "View Ref (Ref Closing Payment)"
+      "Property": "Navigation"
+      "Production": "Promoted 15 Sep 2026. Generated inline Ref navigation to Payments; existing manually ordered loan details/forms\
+        \ unchanged"
+      "Development": "Generated inline Ref navigation to Payments; existing manually ordered loan details/forms unchanged"
+    "row-00248":
+      "App": "OLTP"
+      "Object": "Create First-Day Charge"
+      "Property": "V6 workflow"
+      "Production": "Promoted 15 Sep 2026. Disabled; SQL first_day_charge trigger; all notification tasks production partner"
+      "Development": "Disabled; SQL first_day_charge trigger; all notification tasks owner-only"
+    "row-00249":
+      "App": "OLTP"
+      "Object": "Payments - Process Receipt"
+      "Property": "V6 workflow"
+      "Production": "Promoted 15 Sep 2026. Disabled; SQL process_lump_sum routes all six methods; all notification tasks production\
+        \ partner"
+      "Development": "Disabled; SQL process_lump_sum routes all six methods; all notification tasks owner-only"
+    "row-00250":
+      "App": "OLTP"
+      "Object": "Generate Daily Charges"
+      "Property": "V6 workflow"
+      "Production": "Enabled; 00:05 Bangkok; existing SQL request action and eligibility filter; monitored success/error tests\
+        \ passed"
+      "Development": "Enabled; 00:05 Bangkok; existing SQL request action and eligibility filter; monitored success/error\
+        \ tests passed"
+    "row-00251":
+      "App": "OLTP"
+      "Object": "Notification - New Loan Created"
+      "Property": "V6 workflow"
+      "Production": "Promoted SQL-aware notification route; production Partners[Email] excluding acting user. See core-promotion-20260915/appsheet-configuration.md\
+        \ for exact events and templates."
+      "Development": "Enabled; loan notification plus first-day receipt lookup; all notification tasks owner-only"
+    "row-00252":
+      "App": "OLTP"
+      "Object": "Notification - Loan Closed"
+      "Property": "V6 workflow"
+      "Production": "Promoted SQL-aware notification route; production Partners[Email] excluding acting user. See core-promotion-20260915/appsheet-configuration.md\
+        \ for exact events and templates."
+      "Development": "Enabled; immediate first-day closure or non-payment update closure; all notification tasks owner-only"
+    "row-00253":
+      "App": "OLTP"
+      "Object": "Notification - Charge Received"
+      "Property": "V6 workflow"
+      "Production": "Promoted SQL-aware notification route; production Partners[Email] excluding acting user. See core-promotion-20260915/appsheet-configuration.md\
+        \ for exact events and templates."
+      "Development": "Enabled; receipt and one matching-loan closure summary; all notification tasks owner-only"
+    "row-00254":
+      "App": "OLTP"
+      "Object": "Auto Receive First-Day Charge"
+      "Property": "V6 workflow"
+      "Production": "Promoted 15 Sep 2026. Renamed Notification - First-Day Charge; enabled, notification only; all notification\
+        \ tasks production partner"
+      "Development": "Renamed Notification - First-Day Charge; enabled, notification only; all notification tasks owner-only"
+    "row-00255":
+      "App": "OLTP"
+      "Object": "Payment - Process Receipt"
+      "Property": "Only if / prominence"
+      "Production": "Promoted 15 Sep 2026. FALSE; hidden"
+      "Development": "FALSE; hidden"
+    "row-00256":
+      "App": "OLTP"
+      "Object": "Payment - Close Paid Loans"
+      "Property": "Only if / prominence"
+      "Production": "Promoted 15 Sep 2026. FALSE; hidden"
+      "Development": "FALSE; hidden"
+    "row-00257":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Type"
+      "Production": "Ref"
+      "Development": "Ref"
+    "row-00258":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "ReferencedTableName"
+      "Production": "Loans"
+      "Development": "Loans"
+    "row-00259":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "ReferencedKeyColumn"
+      "Production": "Row ID"
+      "Development": "Row ID"
+    "row-00260":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "IsAPartOf"
+      "Production": false
+      "Development": "false"
+    "row-00261":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00262":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00263":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Label"
+      "Production": "No"
+      "Development": "No"
+    "row-00264":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No; user editing blocked by Editable_If"
+    "row-00265":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Editable_If"
+      "Production": "=FALSE"
+      "Development": "=FALSE"
+    "row-00266":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00267":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Visible?"
+      "Production": "ALWAYS"
+      "Development": "ALWAYS"
+    "row-00268":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Display name"
+      "Production": "=\"เงินกู้ที่ปิดยอด / Closing Loan\""
+      "Development": "=\"เงินกู้ที่ปิดยอด / Closing Loan\""
+    "row-00269":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00270":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "App formula"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00271":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Required_If"
+      "Production": "Blank (nullable)"
+      "Development": "Blank (nullable)"
+    "row-00272":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "System Defined?"
+      "Production": "No"
+      "Development": "No"
+    "row-00273":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Reset on edit?"
+      "Production": "No"
+      "Development": "No"
+    "row-00274":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Searchable"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00275":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "LocaleName"
+      "Production": "en-US"
+      "Development": "en-US"
+    "row-00276":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Fixed definition?"
+      "Production": "No"
+      "Development": "No"
+    "row-00277":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Editable Initial Value?"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00278":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "Type"
+      "Production": "List"
+      "Development": "List of Ref to Payments.Row ID"
+    "row-00279":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "Virtual"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00280":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "App formula"
+      "Production": "REF_ROWS(\"Payments\", \"Ref Target Loan\")"
+      "Development": "REF_ROWS(\"Payments\", \"Ref Target Loan\")"
+    "row-00281":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00282":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00283":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "Label"
+      "Production": "No"
+      "Development": "No"
+    "row-00284":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "IsAPartOf"
+      "Production": "false"
+      "Development": "false"
+    "row-00285":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "System Defined?"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00286":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00287":
+      "App": "OLTP"
+      "Object": "Loans.Related Payments"
+      "Property": "Display name"
+      "Production": "Blank (default Related Payments)"
+      "Development": "Blank (default Related Payments)"
+    "row-00288":
+      "App": "OLTP"
+      "Object": "View Ref (Ref Target Loan)"
+      "Property": "Navigation"
+      "Production": "Promoted 15 Sep 2026. Generated inline Ref navigation to Loans; manually ordered forms/details unchanged"
+      "Development": "Generated inline Ref navigation to Loans; manually ordered forms/details unchanged"
+    "row-00289":
+      "App": "OLTP"
+      "Object": "Payments.Row ID"
+      "Property": "Regeneration metadata"
+      "Production": "Fixed definition No; Editable Initial Value Yes. Key Yes, Read-Only Yes and UNIQUEID() initial value\
+        \ retained."
+      "Development": "Fixed definition No; Editable Initial Value Yes. Key Yes, Read-Only Yes and UNIQUEID() initial value\
+        \ retained."
+    "row-00325":
+      "App": "OLTP"
+      "Object": "Payments.Ref Target Charge"
+      "Property": "Required_If"
+      "Production": "=OR(IN([Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), AND([Allocation\
+        \ Method] = \"Loan Close\", ISBLANK([Ref Target Loan])))"
+      "Development": "OR(IN([Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), AND([Allocation\
+        \ Method] = \"Loan Close\", ISBLANK([Ref Target Loan])))"
+    "row-00326":
+      "App": "OLTP"
+      "Object": "Payments.Amount Received"
+      "Property": "Valid_If"
+      "Production": "=OR(IN([Row ID], Payments[Row ID]), AND([Allocation Method] = \"Loan Close\", ISNOTBLANK([Ref Target\
+        \ Loan]), [Ref Target Loan].[Ref Borrowers] = [Ref Borrower], [_THIS] > 0, [_THIS] = ROUND([_THIS])), AND([_THIS]\
+        \ > 0, [_THIS] = ROUND([_THIS]), [_THIS] <= [Eligible Outstanding], IF(IN([Allocation Method], LIST(\"Single Full\"\
+        , \"Receive All\", \"First-day Auto\", \"Loan Close\")), [_THIS] = [Eligible Outstanding], TRUE)))"
+      "Development": "OR(IN([Row ID], Payments[Row ID]), AND([Allocation Method] = \"Loan Close\", ISNOTBLANK([Ref Target\
+        \ Loan]), [Ref Target Loan].[Ref Borrowers] = [Ref Borrower], [_THIS] > 0, [_THIS] = ROUND([_THIS])), AND([_THIS]\
+        \ > 0, [_THIS] = ROUND([_THIS]), [_THIS] <= [Eligible Outstanding], IF(IN([Allocation Method], LIST(\"Single Full\"\
+        , \"Receive All\", \"First-day Auto\", \"Loan Close\")), [_THIS] = [Eligible Outstanding], TRUE)))"
+    "row-00327":
+      "App": "OLTP"
+      "Object": "Wrapped Action - Close Loan"
+      "Property": "Ordered actions"
+      "Production": "Promoted 15 Sep 2026. Receive All Remaining Charges only; confirmation and visibility retained"
+      "Development": "Receive All Remaining Charges only; confirmation and visibility retained"
+    "row-00328":
+      "App": "OLTP"
+      "Object": "Receive All Remaining Charges"
+      "Property": "Ref Target Loan assignment"
+      "Production": "Promoted 15 Sep 2026. [Row ID]; replaces Ref Target Charge assignment"
+      "Development": "[Row ID]; replaces Ref Target Charge assignment"
+    "row-00329":
+      "App": "OLTP"
+      "Object": "Receive All Remaining Charges"
+      "Property": "Amount Received assignment"
+      "Production": "Promoted 15 Sep 2026. [Outstanding Principal] + SUM(SELECT(Charges[Interest Remaining], [Ref Loans] =\
+        \ [_THISROW].[Row ID])) + [Accrued Interest]"
+      "Development": "[Outstanding Principal] + SUM(SELECT(Charges[Interest Remaining], [Ref Loans] = [_THISROW].[Row ID]))\
+        \ + [Accrued Interest]"
+    "row-00330":
+      "App": "OLTP"
+      "Object": "Receive All Remaining Charges"
+      "Property": "Only if"
+      "Production": "Promoted 15 Sep 2026. AND([Auto Charge Enabled], [Loan Type] = \"ดอกเบี้ยรายวัน\", [Loan Status] = \"\
+        ยังไม่ปิดยอด\", [Outstanding Principal] > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Ref Borrowers],\
+        \ IN([Status], LIST(\"Processing\", \"Error\"))))) = 0)"
+      "Development": "AND([Auto Charge Enabled], [Loan Type] = \"ดอกเบี้ยรายวัน\", [Loan Status] = \"ยังไม่ปิดยอด\", [Outstanding\
+        \ Principal] > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Ref Borrowers], IN([Status], LIST(\"\
+        Processing\", \"Error\"))))) = 0)"
+    "row-00331":
+      "App": "OLTP"
+      "Object": "Create Final Charge"
+      "Property": "Only if / prominence"
+      "Production": "Promoted 15 Sep 2026. FALSE; hidden; assignments retained for coordinated rollback"
+      "Development": "FALSE; hidden; assignments retained for coordinated rollback"
+    "row-00332":
+      "App": "OLTP"
+      "Object": "Add Principal to Today's Charge"
+      "Property": "Only if / prominence"
+      "Production": "Promoted 15 Sep 2026. FALSE; hidden; assignments retained for coordinated rollback"
+      "Development": "FALSE; hidden; assignments retained for coordinated rollback"
+    "row-00333":
+      "App": "OLTP"
+      "Object": "Add Outstanding Principal to Charge"
+      "Property": "Only if / prominence"
+      "Production": "Promoted 15 Sep 2026. FALSE; hidden; assignments retained for coordinated rollback"
+      "Development": "FALSE; hidden; assignments retained for coordinated rollback"
+    "row-00334":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Type"
+      "Production": "Text"
+      "Development": "Text"
+    "row-00335":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00336":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00337":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Label"
+      "Production": "No"
+      "Development": "No"
+    "row-00338":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No; action-writable, user editing blocked by Editable_If"
+    "row-00339":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Editable_If"
+      "Production": "=FALSE"
+      "Development": "=FALSE"
+    "row-00340":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00341":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Searchable"
+      "Production": "No"
+      "Development": "No"
+    "row-00342":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Visible?"
+      "Production": "ALWAYS"
+      "Development": "ALWAYS"
+    "row-00343":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00344":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "App formula"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00345":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Required_If"
+      "Production": "Blank (nullable)"
+      "Development": "Blank (nullable)"
+    "row-00346":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Reset on edit?"
+      "Production": "No"
+      "Development": "No"
+    "row-00347":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "System Defined?"
+      "Production": "No"
+      "Development": "No"
+    "row-00348":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Fixed definition?"
+      "Production": "No"
+      "Development": "No"
+    "row-00349":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Editable Initial Value?"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00350":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "LocaleName"
+      "Production": "en-US"
+      "Development": "en-US"
+    "row-00351":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Display name"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00352":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Description"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00353":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Scannable"
+      "Production": "No"
+      "Development": "No"
+    "row-00354":
+      "App": "OLTP"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Sensitive data"
+      "Production": "No"
+      "Development": "No"
+    "row-00379":
+      "App": "OLTP"
+      "Object": "Generate Today's Charge"
+      "Property": "Do this"
+      "Production": "Promoted 15 Sep 2026. SET_COLUMN_VALUE Loans; only Charge Generation Request assigned. Existing due filter\
+        \ and hidden prominence retained."
+      "Development": "SET_COLUMN_VALUE Loans; only Charge Generation Request assigned. Existing due filter and hidden prominence\
+        \ retained."
+    "row-00380":
+      "App": "OLTP"
+      "Object": "Generate Today's Charge"
+      "Property": "Request expression"
+      "Production": "Promoted 15 Sep 2026. =CONCATENATE(TEXT(TODAY(), \"YYYY-MM-DD\"), \"|\", UNIQUEID())"
+      "Development": "=CONCATENATE(TEXT(TODAY(), \"YYYY-MM-DD\"), \"|\", UNIQUEID())"
+    "row-00381":
+      "App": "OLTP"
+      "Object": "Generate All Today's Charges"
+      "Property": "Routing"
+      "Production": "Promoted 15 Sep 2026. Unchanged per-loan route; SQL now owns calculation through the referenced action."
+      "Development": "Unchanged per-loan route; SQL now owns calculation through the referenced action."
+    "row-00382":
+      "App": "OLTP"
+      "Object": "Generate Daily Charges"
+      "Property": "Bot enabled"
+      "Production": "Enabled; 00:05 Bangkok; existing SQL request action and eligibility filter; monitored success/error tests\
+        \ passed"
+      "Development": "Enabled; 00:05 Bangkok; existing SQL request action and eligibility filter; monitored success/error\
+        \ tests passed"
+    "row-00384":
+      "App": "OLTP"
+      "Object": "Wrapped Action - Default Loan"
+      "Property": "Do this"
+      "Production": "Promoted 15 Sep 2026. SET_COLUMN_VALUE Loans. Confirmation, eligibility and prominence retained. SQL\
+        \ posts all default financial operations atomically."
+      "Development": "SET_COLUMN_VALUE Loans. Confirmation, eligibility and prominence retained. SQL posts all default financial\
+        \ operations atomically."
+    "row-00385":
+      "App": "OLTP"
+      "Object": "Wrapped Action - Default Loan"
+      "Property": "Defaulted"
+      "Production": "Promoted 15 Sep 2026. =TRUE"
+      "Development": "=TRUE"
+    "row-00386":
+      "App": "OLTP"
+      "Object": "Wrapped Action - Default Loan"
+      "Property": "Close Date"
+      "Production": "Promoted 15 Sep 2026. =TODAY()"
+      "Development": "=TODAY()"
+    "row-00387":
+      "App": "OLTP"
+      "Object": "Wrapped Action - Default Loan"
+      "Property": "Closed By"
+      "Production": "Promoted 15 Sep 2026. =USEREMAIL()"
+      "Development": "=USEREMAIL()"
+    "row-00388":
+      "App": "OLTP"
+      "Object": "Wrapped Action - Default Loan"
+      "Property": "Loan Status"
+      "Production": "Promoted 15 Sep 2026. =\"ปิดยอดแล้ว\""
+      "Development": "=\"ปิดยอดแล้ว\""
+    "row-00389":
+      "App": "OLTP"
+      "Object": "Default - sub-actions"
+      "Property": "Only if"
+      "Production": "Promoted 15 Sep 2026. FALSE on all seven legacy Default actions; retained hidden for reference."
+      "Development": "FALSE on all seven legacy Default actions; retained hidden for reference."
+    "row-00390":
+      "App": "OLTP"
+      "Object": "Notification - Loan Closed"
+      "Property": "Default branch"
+      "Production": "Promoted SQL-aware notification route; production Partners[Email] excluding acting user. See core-promotion-20260915/appsheet-configuration.md\
+        \ for exact events and templates."
+      "Development": "LOOKUP current Loans.Defaulted and Default Loss Amount; default title and principal loss / no cash received\
+        \ body. Owner-only development destination retained."
+    "row-00395":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Type"
+      "Production": "Text"
+      "Development": "Text"
+    "row-00396":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00397":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00398":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Label"
+      "Production": "No"
+      "Development": "No"
+    "row-00399":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00400":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00401":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Editable_If"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00402":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Searchable"
+      "Production": "No"
+      "Development": "No"
+    "row-00403":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00404":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "App formula"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00405":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Reset on edit?"
+      "Production": "No"
+      "Development": "No"
+    "row-00406":
+      "App": "OLTP"
+      "Object": "Statistics.Analytics Refresh Request"
+      "Property": "Required"
+      "Production": "No"
+      "Development": "No"
+    "row-00436":
+      "App": "OLTP"
+      "Object": "Statistics.Row ID"
+      "Property": "Regeneration metadata"
+      "Production": "Fixed definition Yes; Editable Initial Value No"
+      "Development": "Fixed definition No; Editable Initial Value Yes. Key, hidden, read-only and UNIQUEID(PackedUUID) unchanged."
+    "row-00438":
+      "App": "OLTP"
+      "Object": "Charges.Principal Paid"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00439":
+      "App": "OLTP"
+      "Object": "Charges.Principal Paid"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00440":
+      "App": "OLTP"
+      "Object": "Charges.Principal Paid"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00441":
+      "App": "OLTP"
+      "Object": "Charges.Principal Paid"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00442":
+      "App": "OLTP"
+      "Object": "Charges.Principal Paid"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00443":
+      "App": "OLTP"
+      "Object": "Charges.Interest Paid"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00444":
+      "App": "OLTP"
+      "Object": "Charges.Interest Paid"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00445":
+      "App": "OLTP"
+      "Object": "Charges.Interest Paid"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00446":
+      "App": "OLTP"
+      "Object": "Charges.Interest Paid"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00447":
+      "App": "OLTP"
+      "Object": "Charges.Interest Paid"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00448":
+      "App": "OLTP"
+      "Object": "Charges.Total Paid"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00449":
+      "App": "OLTP"
+      "Object": "Charges.Total Paid"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00450":
+      "App": "OLTP"
+      "Object": "Charges.Total Paid"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00451":
+      "App": "OLTP"
+      "Object": "Charges.Total Paid"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00452":
+      "App": "OLTP"
+      "Object": "Charges.Total Paid"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00453":
+      "App": "OLTP"
+      "Object": "Charges.Principal Remaining"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00454":
+      "App": "OLTP"
+      "Object": "Charges.Principal Remaining"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00455":
+      "App": "OLTP"
+      "Object": "Charges.Principal Remaining"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00456":
+      "App": "OLTP"
+      "Object": "Charges.Principal Remaining"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00457":
+      "App": "OLTP"
+      "Object": "Charges.Principal Remaining"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00458":
+      "App": "OLTP"
+      "Object": "Charges.Interest Remaining"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00459":
+      "App": "OLTP"
+      "Object": "Charges.Interest Remaining"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00460":
+      "App": "OLTP"
+      "Object": "Charges.Interest Remaining"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00461":
+      "App": "OLTP"
+      "Object": "Charges.Interest Remaining"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00462":
+      "App": "OLTP"
+      "Object": "Charges.Interest Remaining"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00463":
+      "App": "OLTP"
+      "Object": "Charges.Amount Remaining"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00464":
+      "App": "OLTP"
+      "Object": "Charges.Amount Remaining"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00465":
+      "App": "OLTP"
+      "Object": "Charges.Amount Remaining"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00466":
+      "App": "OLTP"
+      "Object": "Charges.Amount Remaining"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00467":
+      "App": "OLTP"
+      "Object": "Charges.Amount Remaining"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00468":
+      "App": "OLTP"
+      "Object": "Charges.Payment Count"
+      "Property": "Type"
+      "Production": "Number"
+      "Development": "Number"
+    "row-00469":
+      "App": "OLTP"
+      "Object": "Charges.Payment Count"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00470":
+      "App": "OLTP"
+      "Object": "Charges.Payment Count"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00471":
+      "App": "OLTP"
+      "Object": "Charges.Payment Count"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00472":
+      "App": "OLTP"
+      "Object": "Charges.Payment Count"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00473":
+      "App": "OLTP"
+      "Object": "Charges.Payment Status"
+      "Property": "Type"
+      "Production": "Text"
+      "Development": "Text"
+    "row-00474":
+      "App": "OLTP"
+      "Object": "Charges.Payment Status"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00475":
+      "App": "OLTP"
+      "Object": "Charges.Payment Status"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00476":
+      "App": "OLTP"
+      "Object": "Charges.Payment Status"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00477":
+      "App": "OLTP"
+      "Object": "Charges.Payment Status"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00478":
+      "App": "OLTP"
+      "Object": "Charges.Payment Date"
+      "Property": "Type"
+      "Production": "Date"
+      "Development": "Date"
+    "row-00479":
+      "App": "OLTP"
+      "Object": "Charges.Payment Date"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00480":
+      "App": "OLTP"
+      "Object": "Charges.Payment Date"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00481":
+      "App": "OLTP"
+      "Object": "Charges.Payment Date"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00482":
+      "App": "OLTP"
+      "Object": "Charges.Payment Date"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00483":
+      "App": "OLTP"
+      "Object": "Loans.Total Interest Received"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00484":
+      "App": "OLTP"
+      "Object": "Loans.Total Interest Received"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00485":
+      "App": "OLTP"
+      "Object": "Loans.Total Interest Received"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00486":
+      "App": "OLTP"
+      "Object": "Loans.Total Interest Received"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00487":
+      "App": "OLTP"
+      "Object": "Loans.Total Interest Received"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00488":
+      "App": "OLTP"
+      "Object": "Loans.Total Principal Received"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00489":
+      "App": "OLTP"
+      "Object": "Loans.Total Principal Received"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00490":
+      "App": "OLTP"
+      "Object": "Loans.Total Principal Received"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00491":
+      "App": "OLTP"
+      "Object": "Loans.Total Principal Received"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00492":
+      "App": "OLTP"
+      "Object": "Loans.Total Principal Received"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00493":
+      "App": "OLTP"
+      "Object": "Loans.Outstanding Principal"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00494":
+      "App": "OLTP"
+      "Object": "Loans.Outstanding Principal"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00495":
+      "App": "OLTP"
+      "Object": "Loans.Outstanding Principal"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00496":
+      "App": "OLTP"
+      "Object": "Loans.Outstanding Principal"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00497":
+      "App": "OLTP"
+      "Object": "Loans.Outstanding Principal"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00498":
+      "App": "OLTP"
+      "Object": "Loans.Total Amount Received"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00499":
+      "App": "OLTP"
+      "Object": "Loans.Total Amount Received"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00500":
+      "App": "OLTP"
+      "Object": "Loans.Total Amount Received"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00501":
+      "App": "OLTP"
+      "Object": "Loans.Total Amount Received"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00502":
+      "App": "OLTP"
+      "Object": "Loans.Total Amount Received"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00503":
+      "App": "OLTP"
+      "Object": "Loans.Expected Daily Interest Amount"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00504":
+      "App": "OLTP"
+      "Object": "Loans.Expected Daily Interest Amount"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00505":
+      "App": "OLTP"
+      "Object": "Loans.Expected Daily Interest Amount"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00506":
+      "App": "OLTP"
+      "Object": "Loans.Expected Daily Interest Amount"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00507":
+      "App": "OLTP"
+      "Object": "Loans.Expected Daily Interest Amount"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00508":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Interest Earned"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00509":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Interest Earned"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00510":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Interest Earned"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00511":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Interest Earned"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00512":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Interest Earned"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00513":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Amount Loaned"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00514":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Amount Loaned"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00515":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Amount Loaned"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00516":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Amount Loaned"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00517":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Amount Loaned"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00518":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Number of Loans"
+      "Property": "Type"
+      "Production": "Number"
+      "Development": "Number"
+    "row-00519":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Number of Loans"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00520":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Number of Loans"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00521":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Number of Loans"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00522":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Number of Loans"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00523":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Outstanding Principal"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00524":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Outstanding Principal"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00525":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Outstanding Principal"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00526":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Outstanding Principal"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00527":
+      "App": "OLTP"
+      "Object": "Borrowers.Total Outstanding Principal"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00528":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Loan Interest Earned"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00529":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Loan Interest Earned"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00530":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Loan Interest Earned"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00531":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Loan Interest Earned"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00532":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Loan Interest Earned"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00533":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Daily Interest"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00534":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Daily Interest"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00535":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Daily Interest"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00536":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Daily Interest"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00537":
+      "App": "OLTP"
+      "Object": "Borrowers.Active Daily Interest"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00538":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Closed Loan"
+      "Property": "Type"
+      "Production": "Yes/No"
+      "Development": "Yes/No"
+    "row-00539":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Closed Loan"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00540":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Closed Loan"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00541":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Closed Loan"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00542":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Closed Loan"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00543":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Active Loan"
+      "Property": "Type"
+      "Production": "Yes/No"
+      "Development": "Yes/No"
+    "row-00544":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Active Loan"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00545":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Active Loan"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00546":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Active Loan"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00547":
+      "App": "OLTP"
+      "Object": "Borrowers.Has Active Loan"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00548":
+      "App": "OLTP"
+      "Object": "Payments.Planned Allocation Amount"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00549":
+      "App": "OLTP"
+      "Object": "Payments.Planned Allocation Amount"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00550":
+      "App": "OLTP"
+      "Object": "Payments.Planned Allocation Amount"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00551":
+      "App": "OLTP"
+      "Object": "Payments.Planned Allocation Amount"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00552":
+      "App": "OLTP"
+      "Object": "Payments.Planned Allocation Amount"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00553":
+      "App": "OLTP"
+      "Object": "Payments.Posted Amount"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00554":
+      "App": "OLTP"
+      "Object": "Payments.Posted Amount"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00555":
+      "App": "OLTP"
+      "Object": "Payments.Posted Amount"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00556":
+      "App": "OLTP"
+      "Object": "Payments.Posted Amount"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00557":
+      "App": "OLTP"
+      "Object": "Payments.Posted Amount"
+      "Property": "App formula"
+      "Production": "Blank; PostgreSQL owns value"
+      "Development": "Blank; PostgreSQL owns value"
+    "row-00678":
+      "App": "OLTP"
+      "Object": "Payment Allocations.Calculated Order"
+      "Property": "Availability"
+      "Production": "Removed; physical allocation results retained"
+      "Development": "Removed; physical allocation results retained"
+    "row-00679":
+      "App": "OLTP"
+      "Object": "Payment Allocations.Calculated Amount"
+      "Property": "Availability"
+      "Production": "Removed; physical allocation results retained"
+      "Development": "Removed; physical allocation results retained"
+    "row-00680":
+      "App": "OLTP"
+      "Object": "Payment Allocations.Calculated Interest"
+      "Property": "Availability"
+      "Production": "Removed; physical allocation results retained"
+      "Development": "Removed; physical allocation results retained"
+    "row-00681":
+      "App": "OLTP"
+      "Object": "Payment Allocations.Calculated Principal"
+      "Property": "Availability"
+      "Production": "Removed; physical allocation results retained"
+      "Development": "Removed; physical allocation results retained"
+    "row-00682":
+      "App": "OLTP"
+      "Object": "Payment - Freeze Allocation"
+      "Property": "Only if this condition is true"
+      "Production": "FALSE; self-assignment of physical fields; SQL owns allocation"
+      "Development": "FALSE; self-assignment of physical fields; SQL owns allocation"
+    "row-00684":
+      "App": "OLTP"
+      "Object": "Business Expenses"
+      "Property": "Table / ownership"
+      "Production": "database-2; ADDS_AND_UPDATES; operational entry; SQL blocks deletes and automated edits"
+      "Development": "database-3; ADDS_AND_UPDATES; operational entry; SQL blocks deletes and automated edits"
+    "row-00685":
+      "App": "OLTP"
+      "Object": "Business Expenses.Row ID"
+      "Property": "Type"
+      "Production": "Text"
+      "Development": "Text"
+    "row-00686":
+      "App": "OLTP"
+      "Object": "Business Expenses.Row ID"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00687":
+      "App": "OLTP"
+      "Object": "Business Expenses.Row ID"
+      "Property": "Key"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00688":
+      "App": "OLTP"
+      "Object": "Business Expenses.Row ID"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00689":
+      "App": "OLTP"
+      "Object": "Business Expenses.Row ID"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00690":
+      "App": "OLTP"
+      "Object": "Business Expenses.Row ID"
+      "Property": "Initial value"
+      "Production": "UNIQUEID()"
+      "Development": "UNIQUEID()"
+    "row-00691":
+      "App": "OLTP"
+      "Object": "Business Expenses.Row ID"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00692":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Date"
+      "Property": "Type"
+      "Production": "Date"
+      "Development": "Date"
+    "row-00693":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Date"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00694":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Date"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00695":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Date"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00696":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Date"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No"
+    "row-00697":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Date"
+      "Property": "Initial value"
+      "Production": "TODAY()"
+      "Development": "TODAY()"
+    "row-00698":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Date"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00699":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Category"
+      "Property": "Type"
+      "Production": "Enum"
+      "Development": "Enum"
+    "row-00700":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Category"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00701":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Category"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00702":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Category"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00703":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Category"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No"
+    "row-00704":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Category"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00705":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Category"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00706":
+      "App": "OLTP"
+      "Object": "Business Expenses.Amount"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00707":
+      "App": "OLTP"
+      "Object": "Business Expenses.Amount"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00708":
+      "App": "OLTP"
+      "Object": "Business Expenses.Amount"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00709":
+      "App": "OLTP"
+      "Object": "Business Expenses.Amount"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00710":
+      "App": "OLTP"
+      "Object": "Business Expenses.Amount"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No"
+    "row-00711":
+      "App": "OLTP"
+      "Object": "Business Expenses.Amount"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00712":
+      "App": "OLTP"
+      "Object": "Business Expenses.Amount"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00713":
+      "App": "OLTP"
+      "Object": "Business Expenses.Amount"
+      "Property": "Format"
+      "Production": "฿; 0 decimals"
+      "Development": "฿; 0 decimals"
+    "row-00714":
+      "App": "OLTP"
+      "Object": "Business Expenses.Payee Name"
+      "Property": "Type"
+      "Production": "Name"
+      "Development": "Name"
+    "row-00715":
+      "App": "OLTP"
+      "Object": "Business Expenses.Payee Name"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00716":
+      "App": "OLTP"
+      "Object": "Business Expenses.Payee Name"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00717":
+      "App": "OLTP"
+      "Object": "Business Expenses.Payee Name"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00718":
+      "App": "OLTP"
+      "Object": "Business Expenses.Payee Name"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No"
+    "row-00719":
+      "App": "OLTP"
+      "Object": "Business Expenses.Payee Name"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00720":
+      "App": "OLTP"
+      "Object": "Business Expenses.Payee Name"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00721":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Payee Borrower"
+      "Property": "Type"
+      "Production": "Ref"
+      "Development": "Ref"
+    "row-00722":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Payee Borrower"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00723":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Payee Borrower"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00724":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Payee Borrower"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00725":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Payee Borrower"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00726":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Payee Borrower"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00727":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Payee Borrower"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00728":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Payee Borrower"
+      "Property": "Relationship"
+      "Production": "Ref Borrowers.Row ID; IsPartOf false"
+      "Development": "Ref Borrowers.Row ID; IsPartOf false"
+    "row-00729":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Borrower"
+      "Property": "Type"
+      "Production": "Ref"
+      "Development": "Ref"
+    "row-00730":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Borrower"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00731":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Borrower"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00732":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Borrower"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00733":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Borrower"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No"
+    "row-00734":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Borrower"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00735":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Borrower"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00736":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Borrower"
+      "Property": "Relationship"
+      "Production": "Ref Borrowers.Row ID; IsPartOf false"
+      "Development": "Ref Borrowers.Row ID; IsPartOf false"
+    "row-00737":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Loan"
+      "Property": "Type"
+      "Production": "Ref"
+      "Development": "Ref"
+    "row-00738":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Loan"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00739":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Loan"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00740":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Loan"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00741":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Loan"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No"
+    "row-00742":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Loan"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00743":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Loan"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00744":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Loan"
+      "Property": "Relationship"
+      "Production": "Ref Loans.Row ID; IsPartOf false"
+      "Development": "Ref Loans.Row ID; IsPartOf false"
+    "row-00745":
+      "App": "OLTP"
+      "Object": "Business Expenses.Notes"
+      "Property": "Type"
+      "Production": "LongText"
+      "Development": "LongText"
+    "row-00746":
+      "App": "OLTP"
+      "Object": "Business Expenses.Notes"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00747":
+      "App": "OLTP"
+      "Object": "Business Expenses.Notes"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00748":
+      "App": "OLTP"
+      "Object": "Business Expenses.Notes"
+      "Property": "Hidden"
+      "Production": "No"
+      "Development": "No"
+    "row-00749":
+      "App": "OLTP"
+      "Object": "Business Expenses.Notes"
+      "Property": "Read-Only"
+      "Production": "No"
+      "Development": "No"
+    "row-00750":
+      "App": "OLTP"
+      "Object": "Business Expenses.Notes"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00751":
+      "App": "OLTP"
+      "Object": "Business Expenses.Notes"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00752":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Type"
+      "Property": "Type"
+      "Production": "Text"
+      "Development": "Text"
+    "row-00753":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Type"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00754":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Type"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00755":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Type"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00756":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Type"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00757":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Type"
+      "Property": "Initial value"
+      "Production": "\"Manual\""
+      "Development": "\"Manual\""
+    "row-00758":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Type"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00759":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Key"
+      "Property": "Type"
+      "Production": "LongText"
+      "Development": "LongText"
+    "row-00760":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Key"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00761":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Key"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00762":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Key"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00763":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Key"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00764":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Key"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00765":
+      "App": "OLTP"
+      "Object": "Business Expenses.Source Key"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00766":
+      "App": "OLTP"
+      "Object": "Business Expenses.Gross Profit Basis"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00767":
+      "App": "OLTP"
+      "Object": "Business Expenses.Gross Profit Basis"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00768":
+      "App": "OLTP"
+      "Object": "Business Expenses.Gross Profit Basis"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00769":
+      "App": "OLTP"
+      "Object": "Business Expenses.Gross Profit Basis"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00770":
+      "App": "OLTP"
+      "Object": "Business Expenses.Gross Profit Basis"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00771":
+      "App": "OLTP"
+      "Object": "Business Expenses.Gross Profit Basis"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00772":
+      "App": "OLTP"
+      "Object": "Business Expenses.Gross Profit Basis"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00773":
+      "App": "OLTP"
+      "Object": "Business Expenses.Gross Profit Basis"
+      "Property": "Format"
+      "Production": "฿; 0 decimals"
+      "Development": "฿; 0 decimals"
+    "row-00774":
+      "App": "OLTP"
+      "Object": "Business Expenses.Allocation Basis"
+      "Property": "Type"
+      "Production": "LongText"
+      "Development": "LongText"
+    "row-00775":
+      "App": "OLTP"
+      "Object": "Business Expenses.Allocation Basis"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00776":
+      "App": "OLTP"
+      "Object": "Business Expenses.Allocation Basis"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00777":
+      "App": "OLTP"
+      "Object": "Business Expenses.Allocation Basis"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00778":
+      "App": "OLTP"
+      "Object": "Business Expenses.Allocation Basis"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00779":
+      "App": "OLTP"
+      "Object": "Business Expenses.Allocation Basis"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00780":
+      "App": "OLTP"
+      "Object": "Business Expenses.Allocation Basis"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00781":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Share"
+      "Property": "Type"
+      "Production": "Percent"
+      "Development": "Percent"
+    "row-00782":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Share"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00783":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Share"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00784":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Share"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00785":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Share"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00786":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Share"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00787":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Share"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00788":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Share"
+      "Property": "Format"
+      "Production": "Percent with 2 displayed decimal places; SQL numeric precision retained"
+      "Development": "Percent with 2 displayed decimal places; SQL numeric precision retained"
+    "row-00789":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Share"
+      "Property": "Type"
+      "Production": "Percent"
+      "Development": "Percent"
+    "row-00790":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Share"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00791":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Share"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00792":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Share"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00793":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Share"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00794":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Share"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00795":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Share"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00796":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Share"
+      "Property": "Format"
+      "Production": "Percent with 2 displayed decimal places; SQL numeric precision retained"
+      "Development": "Percent with 2 displayed decimal places; SQL numeric precision retained"
+    "row-00797":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Expense"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00798":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Expense"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00799":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Expense"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00800":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Expense"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00801":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Expense"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00802":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Expense"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00803":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Expense"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00804":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner A Expense"
+      "Property": "Format"
+      "Production": "฿; 0 decimals"
+      "Development": "฿; 0 decimals"
+    "row-00805":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Expense"
+      "Property": "Type"
+      "Production": "Price"
+      "Development": "Price"
+    "row-00806":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Expense"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00807":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Expense"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00808":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Expense"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00809":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Expense"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00810":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Expense"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00811":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Expense"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00812":
+      "App": "OLTP"
+      "Object": "Business Expenses.Partner B Expense"
+      "Property": "Format"
+      "Production": "฿; 0 decimals"
+      "Development": "฿; 0 decimals"
+    "row-00813":
+      "App": "OLTP"
+      "Object": "Business Expenses.Rule Version"
+      "Property": "Type"
+      "Production": "LongText"
+      "Development": "LongText"
+    "row-00814":
+      "App": "OLTP"
+      "Object": "Business Expenses.Rule Version"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00815":
+      "App": "OLTP"
+      "Object": "Business Expenses.Rule Version"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00816":
+      "App": "OLTP"
+      "Object": "Business Expenses.Rule Version"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00817":
+      "App": "OLTP"
+      "Object": "Business Expenses.Rule Version"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00818":
+      "App": "OLTP"
+      "Object": "Business Expenses.Rule Version"
+      "Property": "Initial value"
+      "Production": "Blank"
+      "Development": "Blank"
+    "row-00819":
+      "App": "OLTP"
+      "Object": "Business Expenses.Rule Version"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00820":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created At"
+      "Property": "Type"
+      "Production": "DateTime"
+      "Development": "DateTime"
+    "row-00821":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created At"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00822":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created At"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00823":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created At"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00824":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created At"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00825":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created At"
+      "Property": "Initial value"
+      "Production": "NOW()"
+      "Development": "NOW()"
+    "row-00826":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created At"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00827":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created By"
+      "Property": "Type"
+      "Production": "LongText"
+      "Development": "LongText"
+    "row-00828":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created By"
+      "Property": "Virtual"
+      "Production": "No"
+      "Development": "No"
+    "row-00829":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created By"
+      "Property": "Key"
+      "Production": "No"
+      "Development": "No"
+    "row-00830":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created By"
+      "Property": "Hidden"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00831":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created By"
+      "Property": "Read-Only"
+      "Production": "Yes"
+      "Development": "Yes"
+    "row-00832":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created By"
+      "Property": "Initial value"
+      "Production": "USEREMAIL()"
+      "Development": "USEREMAIL()"
+    "row-00833":
+      "App": "OLTP"
+      "Object": "Business Expenses.Created By"
+      "Property": "App formula"
+      "Production": "Blank; SQL derives allocation/audit/automated rebate fields"
+      "Development": "Blank; SQL derives allocation/audit/automated rebate fields"
+    "row-00834":
+      "App": "OLTP"
+      "Object": "Borrowers.Ref Referrer"
+      "Property": "Definition"
+      "Production": "Physical Ref Borrowers.Row ID; nullable; IsPartOf false; no initial/App formula; shown; editable"
+      "Development": "Physical Ref Borrowers.Row ID; nullable; IsPartOf false; no initial/App formula; shown; editable"
+    "row-00835":
+      "App": "OLTP"
+      "Object": "Borrowers.Ref Referrer"
+      "Property": "Display name"
+      "Production": "\"ผู้แนะนำ / Referrer\""
+      "Development": "\"ผู้แนะนำ / Referrer\""
+    "row-00836":
+      "App": "OLTP"
+      "Object": "Borrowers.Related Business Expenses By Ref Payee Borrower"
+      "Property": "Definition"
+      "Production": "Virtual List Ref Business Expenses; read-only; shown; REF_ROWS(\"Business Expenses\", \"Ref Payee Borrower\"\
+        )"
+      "Development": "Virtual List Ref Business Expenses; read-only; shown; REF_ROWS(\"Business Expenses\", \"Ref Payee Borrower\"\
+        )"
+    "row-00837":
+      "App": "OLTP"
+      "Object": "Borrowers.Related Business Expenses By Ref Related Borrower"
+      "Property": "Definition"
+      "Production": "Virtual List Ref Business Expenses; read-only; shown; REF_ROWS(\"Business Expenses\", \"Ref Related Borrower\"\
+        )"
+      "Development": "Virtual List Ref Business Expenses; read-only; shown; REF_ROWS(\"Business Expenses\", \"Ref Related\
+        \ Borrower\")"
+    "row-00838":
+      "App": "OLTP"
+      "Object": "Loans.Related Business Expenses"
+      "Property": "Definition"
+      "Production": "Virtual List Ref Business Expenses; read-only; shown; REF_ROWS(\"Business Expenses\", \"Ref Related Loan\"\
+        )"
+      "Development": "Virtual List Ref Business Expenses; read-only; shown; REF_ROWS(\"Business Expenses\", \"Ref Related\
+        \ Loan\")"
+    "row-00839":
+      "App": "OLTP"
+      "Object": "Business Expenses"
+      "Property": "Views"
+      "Production": "Owner deck preserved: auto primary; Amount secondary; Expense Date summary; square image; action bar\
+        \ on; category ascending / SUM Amount; Expense Date descending. Seven-field manual form unchanged."
+      "Development": "Owner deck preserved: auto primary; Amount secondary; Expense Date summary; square image; action bar\
+        \ on; category ascending / SUM Amount; Expense Date descending. Seven-field manual form unchanged."
+    "row-00996":
+      "App": "OLTP"
+      "Object": "Borrowers.Ref Referrer"
+      "Property": "Valid_If"
+      "Production": "SELECT(Borrowers[Row ID], [Row ID] <> [_THISROW].[Row ID])"
+      "Development": "SELECT(Borrowers[Row ID], [Row ID] <> [_THISROW].[Row ID])"
+    "row-00997":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Category"
+      "Property": "Valid_If"
+      "Production": "IF([Source Type] = \"Referral Rebate\", LIST(\"Referral Rebate\"), LIST(\"Collection Cost / ค่าใช้จ่ายติดตามหนี้\"\
+        , \"Transportation / ค่าเดินทาง\", \"Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน\", \"Software / Subscription\
+        \ / ค่าซอฟต์แวร์และสมาชิก\", \"Other / อื่น ๆ\"))"
+      "Development": "IF([Source Type] = \"Referral Rebate\", LIST(\"Referral Rebate\"), LIST(\"Collection Cost / ค่าใช้จ่ายติดตามหนี้\"\
+        , \"Transportation / ค่าเดินทาง\", \"Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน\", \"Software / Subscription\
+        \ / ค่าซอฟต์แวร์และสมาชิก\", \"Other / อื่น ๆ\"))"
+    "row-00998":
+      "App": "OLTP"
+      "Object": "Business Expenses.Amount"
+      "Property": "Valid_If"
+      "Production": "AND([_THIS] <> 0, [_THIS] = ROUND([_THIS]), OR([_THIS] > 0, ISNOTBLANK([Notes])))"
+      "Development": "AND([_THIS] <> 0, [_THIS] = ROUND([_THIS]), OR([_THIS] > 0, ISNOTBLANK([Notes])))"
+    "row-00999":
+      "App": "OLTP"
+      "Object": "Business Expenses.Edit"
+      "Property": "Only if"
+      "Production": "[Source Type] = \"Manual\"; automatic expenses show no edit/delete action"
+      "Development": "[Source Type] = \"Manual\"; automatic expenses show no edit/delete action"
+    "row-01000":
+      "App": "OLTP"
+      "Object": "Borrowers_Form"
+      "Property": "Column order"
+      "Production": "Existing manual order"
+      "Development": "Existing columns preserved; Ref Referrer appended"
+    "row-01001":
+      "App": "OLTP"
+      "Object": "Visible Borrowers_Form"
+      "Property": "Column order"
+      "Production": "Existing manual order"
+      "Development": "Existing columns preserved; Ref Referrer appended"
+    "row-01002":
+      "App": "OLTP"
+      "Object": "Borrowers_Detail"
+      "Property": "Column order"
+      "Production": "Existing manual order"
+      "Development": "Existing columns preserved; Ref Referrer appended"
+    "row-01003":
+      "App": "OLTP"
+      "Object": "Visible Borrowers_Detail"
+      "Property": "Column order"
+      "Production": "Existing manual order"
+      "Development": "Existing columns preserved; Ref Referrer appended"
+    "row-01033":
+      "App": "OLTP"
+      "Object": "Visible Borrowers"
+      "Property": "Slice Columns"
+      "Production": "Existing membership"
+      "Development": "Ref Referrer; Related Business Expenses By Ref Payee Borrower; Related Business Expenses By Ref Related\
+        \ Borrower appended; existing filter/permissions unchanged"
+    "row-01034":
+      "App": "OLTP"
+      "Object": "Todays Collection Board"
+      "Property": "Slice Columns"
+      "Production": "Existing membership"
+      "Development": "Ref Referrer; Related Business Expenses By Ref Payee Borrower; Related Business Expenses By Ref Related\
+        \ Borrower appended; existing filter/permissions unchanged"
+    "row-01044":
+      "App": "OLTP"
+      "Object": "Notification - First-Day Charge"
+      "Property": "Development enabled state"
+      "Production": "Production unchanged"
+      "Development": "Disabled for current DEV test isolation; destinations/templates unchanged"
+    "row-01045":
+      "App": "OLTP"
+      "Object": "Notification - New Loan Created"
+      "Property": "Development enabled state"
+      "Production": "Production unchanged"
+      "Development": "Disabled for current DEV test isolation; destinations/templates unchanged"
+    "row-01046":
+      "App": "OLTP"
+      "Object": "Notification - Loan Closed"
+      "Property": "Development enabled state"
+      "Production": "Production unchanged"
+      "Development": "Disabled for current DEV test isolation; destinations/templates unchanged"
+    "row-01047":
+      "App": "OLTP"
+      "Object": "Notification - Charge Received"
+      "Property": "Development enabled state"
+      "Production": "Production unchanged"
+      "Development": "Disabled for current DEV test isolation; destinations/templates unchanged"
+    "row-01048":
+      "App": "OLTP"
+      "Object": "Statistics.Expenses MTD"
+      "Property": "Definition"
+      "Production": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+      "Development": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+    "row-01049":
+      "App": "OLTP"
+      "Object": "Statistics.Expenses MTD"
+      "Property": "App formula"
+      "Production": "SUM(SELECT(Business Expenses[Amount], AND([Expense Date] >= EOMONTH(TODAY(), -1) + 1, [Expense Date]\
+        \ <= TODAY())))"
+      "Development": "SUM(SELECT(Business Expenses[Amount], AND([Expense Date] >= EOMONTH(TODAY(), -1) + 1, [Expense Date]\
+        \ <= TODAY())))"
+    "row-01050":
+      "App": "OLTP"
+      "Object": "Statistics.Expenses MTD"
+      "Property": "Display name"
+      "Production": "\"ค่าใช้จ่ายเดือนนี้ / Expenses MTD\""
+      "Development": "\"ค่าใช้จ่ายเดือนนี้ / Expenses MTD\""
+    "row-01051":
+      "App": "OLTP"
+      "Object": "Statistics.Net Profit MTD"
+      "Property": "Definition"
+      "Production": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+      "Development": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+    "row-01052":
+      "App": "OLTP"
+      "Object": "Statistics.Net Profit MTD"
+      "Property": "App formula"
+      "Production": "[Realized Profit MTD] - [Expenses MTD]"
+      "Development": "[Realized Profit MTD] - [Expenses MTD]"
+    "row-01053":
+      "App": "OLTP"
+      "Object": "Statistics.Net Profit MTD"
+      "Property": "Display name"
+      "Production": "\"รายได้สุทธิ / Net Income\""
+      "Development": "\"รายได้สุทธิ / Net Income\""
+    "row-01054":
+      "App": "OLTP"
+      "Object": "Statistics.Income Statement Expenses MTD"
+      "Property": "Definition"
+      "Production": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+      "Development": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+    "row-01055":
+      "App": "OLTP"
+      "Object": "Statistics.Income Statement Expenses MTD"
+      "Property": "App formula"
+      "Production": "0 - [Expenses MTD]"
+      "Development": "0 - [Expenses MTD]"
+    "row-01056":
+      "App": "OLTP"
+      "Object": "Statistics.Income Statement Expenses MTD"
+      "Property": "Display name"
+      "Production": "\"ค่าใช้จ่าย / Expenses\""
+      "Development": "\"ค่าใช้จ่าย / Expenses\""
+    "row-01057":
+      "App": "OLTP"
+      "Object": "Statistics.Operating Income MTD"
+      "Property": "Definition"
+      "Production": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+      "Development": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+    "row-01058":
+      "App": "OLTP"
+      "Object": "Statistics.Operating Income MTD"
+      "Property": "App formula"
+      "Production": "[Realized Profit MTD]"
+      "Development": "[Realized Profit MTD]"
+    "row-01059":
+      "App": "OLTP"
+      "Object": "Statistics.Operating Income MTD"
+      "Property": "Display name"
+      "Production": "\"รายได้จากการดำเนินงาน / Operating Income\""
+      "Development": "\"รายได้จากการดำเนินงาน / Operating Income\""
+    "row-01060":
+      "App": "OLTP"
+      "Object": "Statistics.Header - Income Statement MTD"
+      "Property": "Definition"
+      "Production": "Virtual Text; read-only; shown; no key, label, initial value or Ref"
+      "Development": "Virtual Text; read-only; shown; no key, label, initial value or Ref"
+    "row-01061":
+      "App": "OLTP"
+      "Object": "Statistics.Header - Income Statement MTD"
+      "Property": "App formula"
+      "Production": "\"──── งบกำไรขาดทุนเดือนนี้ / Income Statement MTD ────\""
+      "Development": "\"──── งบกำไรขาดทุนเดือนนี้ / Income Statement MTD ────\""
+    "row-01062":
+      "App": "OLTP"
+      "Object": "Statistics.Header - Income Statement MTD"
+      "Property": "Display name"
+      "Production": "\" \""
+      "Development": "\" \""
+    "row-01063":
+      "App": "OLTP"
+      "Object": "Statistics.Net Profit"
+      "Property": "Definition"
+      "Production": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+      "Development": "Virtual Price, ฿, 0 decimals; read-only; shown; no key, label, initial value or Ref"
+    "row-01064":
+      "App": "OLTP"
+      "Object": "Statistics.Net Profit"
+      "Property": "App formula"
+      "Production": "[Total Profit] - SUM(Business Expenses[Amount])"
+      "Development": "[Total Profit] - SUM(Business Expenses[Amount])"
+    "row-01065":
+      "App": "OLTP"
+      "Object": "Statistics.Net Profit"
+      "Property": "Display name"
+      "Production": "\"กำไรสุทธิรวม / Total Net Profit\""
+      "Development": "\"กำไรสุทธิรวม / Total Net Profit\""
+    "row-01066":
+      "App": "OLTP"
+      "Object": "Business Expenses - Expense Red"
+      "Property": "Format rule"
+      "Production": "Business Expenses; target Amount; [Amount] > 0; text #C62828; enabled; no icon or background"
+      "Development": "Business Expenses; target Amount; [Amount] > 0; text #C62828; enabled; no icon or background"
+    "row-01067":
+      "App": "OLTP"
+      "Object": "Business Expenses - Offset Green"
+      "Property": "Format rule"
+      "Production": "Business Expenses; target Amount; [Amount] < 0; text #2E7D32; enabled; no icon or background"
+      "Development": "Business Expenses; target Amount; [Amount] < 0; text #2E7D32; enabled; no icon or background"
+    "row-01082":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Borrower"
+      "Property": "Display name"
+      "Production": "\"ผู้กู้ที่เกี่ยวข้อง (ไม่บังคับ) / Related Borrower (optional)\""
+      "Development": "\"ผู้กู้ที่เกี่ยวข้อง (ไม่บังคับ) / Related Borrower (optional)\""
+    "row-01083":
+      "App": "OLTP"
+      "Object": "Business Expenses.Ref Related Loan"
+      "Property": "Display name"
+      "Production": "\"สินเชื่อที่เกี่ยวข้อง (ไม่บังคับ) / Related Loan (optional)\""
+      "Development": "\"สินเชื่อที่เกี่ยวข้อง (ไม่บังคับ) / Related Loan (optional)\""
+    "row-01084":
+      "App": "OLTP"
+      "Object": "Business Expenses.Expense Category"
+      "Property": "Existing rows"
+      "Production": "No category backfill. Existing English values remain. Editing a legacy manual expense requires choosing\
+        \ a bilingual category. Automatic Referral Rebate remains SQL-owned English and read-only."
+      "Development": "No category backfill. Existing English values remain. Editing a legacy manual expense requires choosing\
+        \ a bilingual category. Automatic Referral Rebate remains SQL-owned English and read-only."
+    "row-01085":
+      "App": "OLTP"
+      "Object": "KPIs"
+      "Property": "Column order"
+      "Production": "Existing gross KPI layout"
+      "Development": "Pending Payment Amount; Today's Profit; Yesterday's Profit; Net Profit; Header - Collection Status;\
+        \ Borrowers Not Paid Today; Borrowers Partially Paid Today; Borrowers with Overdue Payment; Borrowers Fully Paid Today;\
+        \ Header - Monthly Forecast; Expected Daily Interest; Realized Profit MTD; Forecast Remaining Interest; Projected\
+        \ Monthly Profit; Header - Outstanding Loans; Outstanding Principal; Total Profit of Outstanding Loans; Profit Coverage\
+        \ of Outstanding Principal; Header - Income Statement MTD; Operating Income MTD; Income Statement Expenses MTD; Net\
+        \ Profit MTD"
+    "row-01087":
+      "App": "OLTP"
+      "Object": "R002 / saved version"
+      "Property": "Reconciliation"
+      "Production": "R001 unchanged"
+      "Development": "Dev 1.000108; rollback 1.000088"
+    "row-01088":
+      "App": "OLTP"
+      "Object": "Loans.View Ref (Ref Borrowers)"
+      "Property": "Navigation"
+      "Production": "Hidden; attached to Ref Borrowers"
+      "Development": "Inline; attached to Borrower Name TE. Existing Ref target and nonblank condition preserved."
+    "row-01089":
+      "App": "OLTP"
+      "Object": "Charges.Open Borrower from Charge"
+      "Property": "Navigation"
+      "Production": "Absent"
+      "Development": "Inline on Borrower Name TE; LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\"); ISNOTBLANK([Ref\
+        \ Loans].[Ref Borrowers]); display: เปิดข้อมูลผู้กู้ / Open Borrower"
+    "row-01090":
+      "App": "OLTP"
+      "Object": "Repayments.Open Borrower from Repayment"
+      "Property": "Navigation"
+      "Production": "Absent"
+      "Development": "Inline on Borrower Name TE; LINKTOROW([Ref Loans].[Ref Borrowers], \"Borrowers_Detail\"); ISNOTBLANK([Ref\
+        \ Loans].[Ref Borrowers]); display: เปิดข้อมูลผู้กู้ / Open Borrower"
+    "row-01091":
+      "App": "OLTP"
+      "Object": "Borrowers.Row ID / Borrower Name TE"
+      "Property": "Key / label"
+      "Production": "Stable Row ID key; TE label"
+      "Development": "Preserved. Existing borrower column/Ref definitions unchanged. Loans, Charges and Repayments navigation\
+        \ verified in current GUI."
+    "row-01100":
+      "App": "OLTP"
+      "Object": "Repayments_Detail"
+      "Property": "Column order"
+      "Production": "Existing manual order"
+      "Development": "Existing columns preserved; Borrower Name TE appended so inline action is visible."
+    "row-01103":
+      "App": "OLTP"
+      "Object": "Loans.Principal Amount"
+      "Property": "Valid_If"
+      "Production": "Positive amount and daily installment whole-baht rule"
+      "Development": "AND([_THIS] > 0, OR([Loan Type] <> \"ผ่อนชำระรายวัน\", MOD([_THIS], 1) = 0), OR(IN([Row ID], Loans[Row\
+        \ ID]), AND(COUNT(Loan Form Context[Row ID]) = 1, [_THIS] <= ANY(Loan Form Context[Available Cashpool]))))"
+    "row-01104":
+      "App": "OLTP"
+      "Object": "Loans.Principal Amount"
+      "Property": "Invalid value error"
+      "Production": "Positive amount message"
+      "Development": "IFS([_THIS] <= 0, \"เงินต้นต้องมากกว่า 0 / Principal must be greater than zero\", AND([Loan Type] =\
+        \ \"ผ่อนชำระรายวัน\", MOD([_THIS], 1) <> 0), \"เงินต้นผ่อนรายวันต้องเป็นจำนวนเต็มบาท / Daily installment principal\
+        \ must be whole baht\", COUNT(Loan Form Context[Row ID]) <> 1, \"กรุณาซิงค์เพื่อโหลดวงเงิน / Sync to load available\
+        \ cashpool\", TRUE, CONCATENATE(\"เงินต้นเกินเงินทุนคงเหลือ / Principal exceeds available cashpool: ฿\", ANY(Loan\
+        \ Form Context[Available Cashpool]), \". ลดเงินต้นหรือซิงค์หลังเพิ่มทุน / Reduce principal or sync after adding capital.\"\
+        ))"
+    "row-01105":
+      "App": "OLTP"
+      "Object": "Loans.Principal Amount"
+      "Property": "Description"
+      "Production": "Blank"
+      "Development": "\"\""
+    "row-01106":
+      "App": "OLTP"
+      "Object": "Loan Form Context"
+      "Property": "Table / source"
+      "Production": "Absent"
+      "Development": "V18 SQL view; database-3; READ_ONLY; one row cashpool. No filter, menu or editing workflow. Base contribution\
+        \ ledger is not imported."
+    "row-01107":
+      "App": "OLTP"
+      "Object": "Loan Form Context.Row ID"
+      "Property": "Definition"
+      "Production": "Absent"
+      "Development": "Text / key; read-only; SQL-owned. Constant cashpool; immutable; no initial/App formula"
+    "row-01108":
+      "App": "OLTP"
+      "Object": "Loan Form Context.Contributed Capital"
+      "Property": "Definition"
+      "Production": "Absent"
+      "Development": "Price / THB / 2 decimals; read-only; SQL-owned. Signed contributions, all dates; Contribution adds,\
+        \ other types subtract"
+    "row-01109":
+      "App": "OLTP"
+      "Object": "Loan Form Context.Outstanding Principal"
+      "Property": "Definition"
+      "Production": "Absent"
+      "Development": "Price / THB / 2 decimals; read-only; SQL-owned. All Loans principal minus principal paid in linked Repayments;\
+        \ canonical ledger"
+    "row-01110":
+      "App": "OLTP"
+      "Object": "Loan Form Context.Available Cashpool"
+      "Property": "Definition"
+      "Production": "Absent"
+      "Development": "Price / THB / 2 decimals; read-only; SQL-owned. Contributed Capital - Outstanding Principal; retained\
+        \ profit excluded; deficits retained"
+    "row-01111":
+      "App": "OLTP"
+      "Object": "Loan Form Context.Partner A Profit Share"
+      "Property": "Definition"
+      "Production": "Absent"
+      "Development": "Percent / 2 decimals; read-only; SQL-owned. Current all-date role A signed capital / total; 0 if total\
+        \ <= 0"
+    "row-01112":
+      "App": "OLTP"
+      "Object": "Loan Form Context.Partner B Profit Share"
+      "Property": "Definition"
+      "Production": "Absent"
+      "Development": "Percent / 2 decimals; read-only; SQL-owned. Current all-date role B signed capital / total; 0 if total\
+        \ <= 0"
+    "row-01114":
+      "App": "OLTP"
+      "Object": "Loans.Principal Amount"
+      "Property": "Display name"
+      "Production": "เงินต้น / Principal Amount"
+      "Development": "CONCATENATE(\"เงินต้น / Principal Amount\", IF(AND(CONTEXT(\"ViewType\") = \"Form\", NOT(IN([Row ID],\
+        \ Loans[Row ID])), COUNT(Loan Form Context[Row ID]) = 1), CONCATENATE(\" (฿\", ANY(Loan Form Context[Available Cashpool]),\
+        \ \")\"), \"\"))"
+    "row-01115":
+      "App": "OLTP"
+      "Object": "Borrowers.Borrower Name - Collection"
+      "Property": "Virtual column"
+      "Production": "Text VC replica of Borrower Name TE"
+      "Development": "Removed in Dev OLTP 1.000103 after Collection replacement verification. Row ID key and Borrower Name\
+        \ TE label/formula preserved."
+    "row-01116":
+      "App": "OLTP"
+      "Object": "Todays Collection Board"
+      "Property": "Slice columns"
+      "Production": "Original Collection columns"
+      "Development": "Duplicate Text VC removed; Borrower Name TE used by deck header; approved Borrower Reference TE added\
+        \ for detail. Original filter, READ_ONLY and actions preserved."
+    "row-01117":
+      "App": "OLTP"
+      "Object": "Visible Borrowers"
+      "Property": "Slice columns"
+      "Production": "Original borrower-list columns"
+      "Development": "Duplicate Text VC removed. AppSheet appended Borrower Reference TE; Show_If hides it outside Collection\
+        \ detail. Existing Text label, filter, permissions and actions preserved."
+    "row-01118":
+      "App": "OLTP"
+      "Object": "Collection"
+      "Property": "Collection display"
+      "Production": "Borrower Name - Collection"
+      "Development": "Borrower Name TE Text deck header with original status colors. Original Collection detail navigation\
+        \ and Receive All Charges-only action bar restored."
+    "row-01119":
+      "App": "OLTP"
+      "Object": "Todays Collection Board_Detail"
+      "Property": "Collection display"
+      "Production": "Borrower Name - Collection"
+      "Development": "Second field Borrower Reference TE, displayed Borrower Name TE, native Ref link. Status, due/collected/remaining\
+        \ amounts and Todays Collection Charges retain original order/layout."
+    "row-01120":
+      "App": "OLTP"
+      "Object": "Borrower Name Collection - Fully Paid"
+      "Property": "Format rule"
+      "Production": "Todays Amount Remaining and Borrower Name - Collection"
+      "Development": "Todays Amount Remaining only; [Daily Collection Status] = \"Fully Paid\"; green; all original style\
+        \ attributes retained."
+    "row-01121":
+      "App": "OLTP"
+      "Object": "Collection Borrower TE - Fully Paid"
+      "Property": "Format rule"
+      "Production": "Absent"
+      "Development": "Borrower Name TE and Borrower Reference TE; AND(IN(CONTEXT(\"View\"), LIST(\"Collection\", \"Todays\
+        \ Collection Board_Detail\")), [Daily Collection Status] = \"Fully Paid\"); green; original style attributes retained."
+    "row-01122":
+      "App": "OLTP"
+      "Object": "Borrower Name Collection - Not Paid"
+      "Property": "Format rule"
+      "Production": "Todays Amount Remaining and Borrower Name - Collection"
+      "Development": "Todays Amount Remaining only; [Daily Collection Status] = \"Not Paid\"; red; all original style attributes\
+        \ retained."
+    "row-01123":
+      "App": "OLTP"
+      "Object": "Collection Borrower TE - Not Paid"
+      "Property": "Format rule"
+      "Production": "Absent"
+      "Development": "Borrower Name TE and Borrower Reference TE; AND(IN(CONTEXT(\"View\"), LIST(\"Collection\", \"Todays\
+        \ Collection Board_Detail\")), [Daily Collection Status] = \"Not Paid\"); red; original style attributes retained."
+    "row-01124":
+      "App": "OLTP"
+      "Object": "Borrower Name Collection - Overdue"
+      "Property": "Format rule"
+      "Production": "Todays Amount Remaining and Borrower Name - Collection"
+      "Development": "Todays Amount Remaining only; [Daily Collection Status] = \"Overdue\"; purple; all original style attributes\
+        \ retained."
+    "row-01125":
+      "App": "OLTP"
+      "Object": "Collection Borrower TE - Overdue"
+      "Property": "Format rule"
+      "Production": "Absent"
+      "Development": "Borrower Name TE and Borrower Reference TE; AND(IN(CONTEXT(\"View\"), LIST(\"Collection\", \"Todays\
+        \ Collection Board_Detail\")), [Daily Collection Status] = \"Overdue\"); purple; original style attributes retained."
+    "row-01126":
+      "App": "OLTP"
+      "Object": "Borrower Name Collection - Partially Paid"
+      "Property": "Format rule"
+      "Production": "Todays Amount Remaining and Borrower Name - Collection"
+      "Development": "Todays Amount Remaining only; [Daily Collection Status] = \"Partially Paid\"; orange; all original style\
+        \ attributes retained."
+    "row-01127":
+      "App": "OLTP"
+      "Object": "Collection Borrower TE - Partially Paid"
+      "Property": "Format rule"
+      "Production": "Absent"
+      "Development": "Borrower Name TE and Borrower Reference TE; AND(IN(CONTEXT(\"View\"), LIST(\"Collection\", \"Todays\
+        \ Collection Board_Detail\")), [Daily Collection Status] = \"Partially Paid\"); orange; original style attributes\
+        \ retained."
+    "row-01128":
+      "App": "OLTP"
+      "Object": "Borrower with outstanding loans"
+      "Property": "Format rule"
+      "Production": "[Total Outstanding Principal] > 0"
+      "Development": "AND([Total Outstanding Principal] > 0, NOT(IN(CONTEXT(\"View\"), LIST(\"Collection\", \"Todays Collection\
+        \ Board_Detail\")))); targets Borrower Name and Borrower Name TE; pink style preserved."
+    "row-01129":
+      "App": "OLTP"
+      "Object": "R002 / Collection refinement"
+      "Property": "Reconciliation"
+      "Production": "Rollback OLTP 1.000098; OLAP 1.000096"
+      "Development": "OLTP 1.000108. Original Collection row-to-detail behavior restored. Native Ref inside detail opens matching\
+        \ Borrowers_Detail. Red/purple Ref colors and preserved charges panel verified. Green/orange saved rules verified\
+        \ without fixtures. Owner acceptance pending."
+    "row-01130":
+      "App": "OLTP"
+      "Object": "Borrowers.Open Borrower from Collection"
+      "Property": "Navigation"
+      "Production": "Absent"
+      "Development": "Removed after owner rejected the custom action/button and Collection navigation override."
+    "row-01131":
+      "App": "OLTP"
+      "Object": "Collection"
+      "Property": "Navigation"
+      "Production": "Row Selected auto; action bar Receive All Charges"
+      "Development": "Restored original Row Selected **auto** and action bar Receive All Charges only. Row opens Todays Collection\
+        \ Board_Detail, not Borrowers_Detail."
+    "row-01132":
+      "App": "OLTP"
+      "Object": "Borrowers.Borrower Reference TE"
+      "Property": "Definition"
+      "Production": "Absent"
+      "Development": "Approved read-only VC: Ref to Borrowers, key Row ID, App formula [Row ID], display name \"Borrower Name\
+        \ TE\", Show_If CONTEXT(\"View\") = \"Todays Collection Board_Detail\". Not key/label/IsPartOf. Existing Borrower\
+        \ Name TE Text label unchanged."
+    "row-01133":
+      "App": "OLTP"
+      "Object": "Borrowers.View Ref (Borrower Reference TE)"
+      "Property": "Navigation"
+      "Production": "Absent"
+      "Development": "AppSheet-generated native Ref navigation attached to Borrower Reference TE. Resolves current Row ID\
+        \ to Borrowers_Detail. No custom Open Borrower button or row override."
+    "row-01134":
+      "App": "OLTP"
+      "Object": "R003 production reconciliation"
+      "Property": "Status"
+      "Production": "Production gaps recorded by R001 audit"
+      "Development": "Released at OLTP 3.000121. Referrer metadata/views, Business Expenses validation/types/formatting/deck\
+        \ and retained color rules match the R001 definition."

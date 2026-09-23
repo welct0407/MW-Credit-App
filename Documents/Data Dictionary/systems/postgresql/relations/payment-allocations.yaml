@@ -1,0 +1,128 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Payment Allocations"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Payment Allocations"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Charge Date Snapshot":
+      "Table / view": "Payment Allocations"
+      "Column": "Charge Date Snapshot"
+      "Position": 2
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Payment":
+      "Table / view": "Payment Allocations"
+      "Column": "Ref Payment"
+      "Position": 3
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Charge":
+      "Table / view": "Payment Allocations"
+      "Column": "Ref Charge"
+      "Position": 4
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Charge Row Number Snapshot":
+      "Table / view": "Payment Allocations"
+      "Column": "Charge Row Number Snapshot"
+      "Position": 5
+      "PostgreSQL type": "integer"
+      "Nullable": "YES"
+      "Default": null
+    "Interest Remaining Snapshot":
+      "Table / view": "Payment Allocations"
+      "Column": "Interest Remaining Snapshot"
+      "Position": 6
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Principal Remaining Snapshot":
+      "Table / view": "Payment Allocations"
+      "Column": "Principal Remaining Snapshot"
+      "Position": 7
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Amount Remaining Snapshot":
+      "Table / view": "Payment Allocations"
+      "Column": "Amount Remaining Snapshot"
+      "Position": 8
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Allocation Order":
+      "Table / view": "Payment Allocations"
+      "Column": "Allocation Order"
+      "Position": 9
+      "PostgreSQL type": "integer"
+      "Nullable": "YES"
+      "Default": null
+    "Allocated Interest":
+      "Table / view": "Payment Allocations"
+      "Column": "Allocated Interest"
+      "Position": 10
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Allocated Principal":
+      "Table / view": "Payment Allocations"
+      "Column": "Allocated Principal"
+      "Position": 11
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Allocated Amount":
+      "Table / view": "Payment Allocations"
+      "Column": "Allocated Amount"
+      "Position": 12
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Created At":
+      "Table / view": "Payment Allocations"
+      "Column": "Created At"
+      "Position": 13
+      "PostgreSQL type": "timestamp without time zone"
+      "Nullable": "YES"
+      "Default": null
+  "constraints":
+    "Payment Allocations_Row ID_not_null":
+      "Table": "Payment Allocations"
+      "Constraint": "Payment Allocations_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Payment Allocations_pkey":
+      "Table": "Payment Allocations"
+      "Constraint": "Payment Allocations_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"
+    "appsheet_ref_10":
+      "Table": "Payment Allocations"
+      "Constraint": "appsheet_ref_10"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\")"
+    "appsheet_ref_11":
+      "Table": "Payment Allocations"
+      "Constraint": "appsheet_ref_11"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Charge\") REFERENCES \"Charges\"(\"Row ID\")"

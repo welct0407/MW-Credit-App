@@ -1,0 +1,319 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "slice"
+  "name": "Reporting Borrowers"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "definition":
+    "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Permission": "READ_ONLY"
+    "Filter": null
+    "Actions": "**auto**"
+  "members":
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 1
+    "Column": "_RowNumber"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 2
+    "Column": "Row ID"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 3
+    "Column": "Borrower Name"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 4
+    "Column": "Borrower Name TE"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 5
+    "Column": "Description"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 6
+    "Column": "Total Interest Earned"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 7
+    "Column": "Total Amount Loaned"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 8
+    "Column": "Total Number of Loans"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 9
+    "Column": "Total Outstanding Principal"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 10
+    "Column": "Daily Collection Status"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 11
+    "Column": "Todays Amount Due"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 12
+    "Column": "Todays Amount Collected"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 13
+    "Column": "Todays Amount Remaining"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 14
+    "Column": "30D Return on Average Principal"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 15
+    "Column": "Return on Active Principal"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 16
+    "Column": "30D Average Outstanding Principal"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 17
+    "Column": "Profit Last 30 Days"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 18
+    "Column": "Has Active Loan"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 19
+    "Column": "Has Closed Loan"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 20
+    "Column": "Overdue Amount"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 21
+    "Column": "Overdue Charge Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 22
+    "Column": "Oldest Active Loan Age"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 23
+    "Column": "Active Loan Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 24
+    "Column": "Portfolio Exposure %"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 25
+    "Column": "Historical Charge Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 26
+    "Column": "On Time Charge Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 27
+    "Column": "Lifetime On Time Rate"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 28
+    "Column": "Recent 30D Charge Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 29
+    "Column": "Recent 30D On Time Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 30
+    "Column": "Recent 30D On Time Rate"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 31
+    "Column": "Lifetime Late Payment Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 32
+    "Column": "Recent 30D Late Payment Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 33
+    "Column": "Maximum Days Late"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 34
+    "Column": "Last Late Payment Date"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 35
+    "Column": "Largest Successful Loan"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 36
+    "Column": "Average Successful Loan Size"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 37
+    "Column": "Default Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 38
+    "Column": "Lifetime Default Loss"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 39
+    "Column": "Portfolio Outstanding Principal"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 40
+    "Column": "Portfolio Share Join Key"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 41
+    "Column": "Hidden Flag"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 42
+    "Column": "Matrix Active Borrower Count"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 43
+    "Column": "Matrix Equal Share Benchmark"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 44
+    "Column": "Matrix Economic Contribution"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 45
+    "Column": "Matrix Historical Reliability Score"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 46
+    "Column": "Matrix Delay Severity Score"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 47
+    "Column": "Matrix Current Condition Score"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 48
+    "Column": "Matrix Quadrant"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 49
+    "Column": "Matrix Bubble Label"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 50
+    "Column": "Matrix Recent Reliability Score"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 51
+    "Column": "Matrix History Sufficient"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 52
+    "Column": "Matrix Stability Score"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 53
+    "Column": "Matrix Scaled Economic Contribution"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 54
+    "Column": "Related Payments"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 55
+    "Column": "City"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 56
+    "Column": "Working Location"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 57
+    "Column": "Address"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 58
+    "Column": "Ref Referrer"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 59
+    "Column": "Related Business Expenses By Ref Payee Borrower"
+  - "App": "OLAP"
+    "Slice": "Reporting Borrowers"
+    "Source table": "Borrowers"
+    "Ordinal": 60
+    "Column": "Related Business Expenses By Ref Related Borrower"

@@ -1,0 +1,407 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Cash Holder Balances"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLTP"
+  "source_table": "Cash Holder Balances"
+  "binding":
+    "App": "OLTP"
+    "Version": "v3.000172"
+    "Table": "Cash Holder Balances"
+    "Source": "database-2"
+    "Source path": "Cash Holder Balances"
+    "Schema": "Cash Holder Balances_Schema"
+    "Update permission": "READ_ONLY"
+    "Scope": "R005 saved PROD; "
+  "columns":
+    "_RowNumber":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Cash Holder Balances"
+        "Column": "_RowNumber"
+        "Type": "Number"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Number of this row"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "Yes"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.MaxValue": null
+        "Type Qualifier.MinValue": null
+        "Type Qualifier.StepValue": null
+        "Type Qualifier.NumericDigits": null
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Ref Cash Holder":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Cash Holder Balances"
+        "Column": "Ref Cash Holder"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "Yes"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "Yes"
+        "Part of Key?": "Yes"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.ReferencedTableName": "Cash Holders"
+        "Type Qualifier.ReferencedRootTableName": "Cash Holders"
+        "Type Qualifier.ReferencedType": "Text"
+        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
+          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ReferencedKeyColumn": "Row ID"
+        "Type Qualifier.IsAPartOf": "false"
+        "Type Qualifier.RelationshipName": null
+        "Type Qualifier.InputMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+      "relationship":
+        "App": "OLTP"
+        "Child table": "Cash Holder Balances"
+        "Ref column": "Ref Cash Holder"
+        "Parent table": "Cash Holders"
+        "Parent key": "Row ID"
+        "Part of parent": false
+    "Holder Name":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Cash Holder Balances"
+        "Column": "Holder Name"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "Yes"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "Yes"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.MaxLength": null
+        "Type Qualifier.MinLength": null
+        "Type Qualifier.LongTextFormatting": "Plain Text"
+        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Cash In":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Cash Holder Balances"
+        "Column": "Cash In"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.CurrencySymbol": "฿"
+        "Type Qualifier.MaxValue": null
+        "Type Qualifier.MinValue": null
+        "Type Qualifier.StepValue": null
+        "Type Qualifier.DecimalDigits": "0"
+        "Type Qualifier.NumericDigits": null
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Cash Out":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Cash Holder Balances"
+        "Column": "Cash Out"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.CurrencySymbol": "฿"
+        "Type Qualifier.MaxValue": null
+        "Type Qualifier.MinValue": null
+        "Type Qualifier.StepValue": null
+        "Type Qualifier.DecimalDigits": "0"
+        "Type Qualifier.NumericDigits": null
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Current Balance":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Cash Holder Balances"
+        "Column": "Current Balance"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.CurrencySymbol": "฿"
+        "Type Qualifier.MaxValue": null
+        "Type Qualifier.MinValue": null
+        "Type Qualifier.StepValue": null
+        "Type Qualifier.DecimalDigits": "0"
+        "Type Qualifier.NumericDigits": null
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Business Cash Held":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Cash Holder Balances"
+        "Column": "Business Cash Held"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.CurrencySymbol": "฿"
+        "Type Qualifier.MaxValue": null
+        "Type Qualifier.MinValue": null
+        "Type Qualifier.StepValue": null
+        "Type Qualifier.DecimalDigits": "0"
+        "Type Qualifier.NumericDigits": null
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Reimbursement / Advance Due":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Cash Holder Balances"
+        "Column": "Reimbursement / Advance Due"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.CurrencySymbol": "฿"
+        "Type Qualifier.MaxValue": null
+        "Type Qualifier.MinValue": null
+        "Type Qualifier.StepValue": null
+        "Type Qualifier.DecimalDigits": "0"
+        "Type Qualifier.NumericDigits": null
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null

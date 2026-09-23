@@ -1,7 +1,7 @@
 // Narrow, guarded updates to existing dictionary rows. Never overwrites the input.
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { FileBlob, SpreadsheetFile } from '@oai/artifact-tool';
 import { validate, readJson, equal, sha256, candidateHash } from './delta.mjs';
 
@@ -47,6 +47,8 @@ export function planUpdates(wb, delta) {
 }
 
 export async function updateDictionary(deltaPath, inputPath, outputDir, mode = 'plan') {
+  const frozen = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../Documents/AppSheet_Data_Dictionary.xlsx');
+  assert(path.resolve(inputPath).toLowerCase() !== frozen.toLowerCase(), 'The Excel dictionary is frozen migration evidence. Use scripts/dictionary/dictionary.py for the maintained text dictionary.');
   assert(['plan', 'apply'].includes(mode), 'mode must be plan or apply');
   const delta = await readJson(deltaPath);
   const originalHash = sha256(await fs.readFile(inputPath));

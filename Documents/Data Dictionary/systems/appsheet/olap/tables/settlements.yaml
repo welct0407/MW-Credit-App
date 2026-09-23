@@ -1,0 +1,332 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "Settlements"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLAP"
+  "source_table": "Settlements"
+  "binding":
+    "App": "OLAP"
+    "Version": "v1.100122"
+    "Table": "Settlements"
+    "Source": "database-2"
+    "Source path": "Settlements"
+    "Schema": "Settlements_Schema"
+    "Update permission": "ADDS_AND_UPDATES"
+    "Scope": "R005 saved PROD; =[Status] <> \"Cancelled\""
+  "columns":
+    "_RowNumber":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Settlements"
+        "Column": "_RowNumber"
+        "Type": "Number"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Number of this row"
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Part of Key?": "No"
+        "Fixed definition?": "Yes"
+        "Editable Initial Value?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Row ID":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Settlements"
+        "Column": "Row ID"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "Yes"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "ID of this row"
+        "Type Qualifier.LongTextFormatting": "Plain Text"
+        "Type Qualifier.IsMulticolumnKey": "false"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "UNIQUEID(\"PackedUUID\")"
+        "System Defined?": "No"
+        "Part of Key?": "Yes"
+        "Fixed definition?": "Yes"
+        "Editable Initial Value?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Settlement Date":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Settlements"
+        "Column": "Settlement Date"
+        "Type": "Date"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "Yes"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Display name": "=\"วันที่สร้างรายการ / Settlement Date\""
+        "Type Qualifier.UseLongDateFormat": "false"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "TODAY()"
+        "System Defined?": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Ref Partner":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Settlements"
+        "Column": "Ref Partner"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type Qualifier.ReferencedTableName": "Partners"
+        "Type Qualifier.ReferencedRootTableName": "Partners"
+        "Type Qualifier.ReferencedType": "Text"
+        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
+          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ReferencedKeyColumn": "Row ID"
+        "Type Qualifier.IsAPartOf": "false"
+        "Type Qualifier.InputMode": "Auto"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "App": "OLAP"
+        "Child table": "Settlements"
+        "Ref column": "Ref Partner"
+        "Parent table": "Partners"
+        "Parent key": "Row ID"
+        "Part of parent": false
+    "Amount":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Settlements"
+        "Column": "Amount"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Display name": "=\"จำนวนเงินที่ต้องโอน / Amount\""
+        "Type Qualifier.CurrencySymbol": "฿"
+        "Type Qualifier.DecimalDigits": "0"
+        "Type Qualifier.ShowThousandsSeparator": "true"
+        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Valid_If": "AND([_THIS] > 0, OR(AND([_THIS] = LOOKUP([Row ID], \"Settlements\", \"Row ID\", \"Amount\"), [Ref Partner]\
+          \ = LOOKUP([Row ID], \"Settlements\", \"Row ID\", \"Ref Partner\")), [_THIS] <= [Ref Partner].[Net Profit Earned]\
+          \ - SUM(SELECT(Settlements[Amount], AND([Ref Partner] = [_THISROW].[Ref Partner], [Row ID] <> [_THISROW].[Row ID])))))"
+    "Status":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Settlements"
+        "Column": "Status"
+        "Type": "Enum"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type Qualifier.EnumValues": "[\"Pending\",\"Completed\",\"Cancelled\"]"
+        "Type Qualifier.AllowOtherValues": "false"
+        "Type Qualifier.AutoCompleteOtherValues": "true"
+        "Type Qualifier.BaseType": "Text"
+        "Type Qualifier.BaseTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
+          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.EnumInputMode": "Auto"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=\"Pending\""
+        "System Defined?": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type": "Enum"
+        "Type Qualifier": "{\"EnumValues\":[\"Pending\",\"Completed\",\"Cancelled\"],\"AllowOtherValues\":false,\"AutoCompleteOtherValues\"\
+          :true,\"BaseType\":\"Text\",\"BaseTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
+          \":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"EnumInputMode\":\"Auto\",\"Valid_If\":\"=IF([Status] = \\\"Cancelled\\\", LIST(\\\"Cancelled\\\"),\
+          \ LIST(\\\"Pending\\\", \\\"Completed\\\"))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Key": "No"
+        "Virtual?": "No"
+        "Type Qualifier.Valid_If": "=IF([Status] = \"Cancelled\", LIST(\"Cancelled\"), LIST(\"Pending\", \"Completed\"))"
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+    "Transfer Date":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Settlements"
+        "Column": "Transfer Date"
+        "Type": "Date"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Display name": "=\"วันที่โอน / Transfer Date\""
+        "Type Qualifier.UseLongDateFormat": "false"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Notes":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Settlements"
+        "Column": "Notes"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Type Qualifier.LongTextFormatting": "Plain Text"
+        "Type Qualifier.IsMulticolumnKey": "false"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Related Cash Ledgers":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Settlements"
+        "Column": "Related Cash Ledgers"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Cash Ledger entries that reference this entry in the Ref Settlement column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Ledger\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Cash Ledger\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Cash Ledger\", \"Ref Settlement\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.ElementType": "Ref"
+        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Cash Ledger\",\"ReferencedRootTableName\":\"Cash\
+          \ Ledger\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\
+          \"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ItemSeparator": " , "
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null

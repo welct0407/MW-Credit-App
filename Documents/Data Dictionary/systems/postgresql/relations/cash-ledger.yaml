@@ -1,0 +1,273 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Cash Ledger"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Cash Ledger"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Movement Date":
+      "Table / view": "Cash Ledger"
+      "Column": "Movement Date"
+      "Position": 2
+      "PostgreSQL type": "date"
+      "Nullable": "NO"
+      "Default": null
+    "Movement Type":
+      "Table / view": "Cash Ledger"
+      "Column": "Movement Type"
+      "Position": 3
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Amount":
+      "Table / view": "Cash Ledger"
+      "Column": "Amount"
+      "Position": 4
+      "PostgreSQL type": "numeric"
+      "Nullable": "NO"
+      "Default": null
+    "Ref From Cash Holder":
+      "Table / view": "Cash Ledger"
+      "Column": "Ref From Cash Holder"
+      "Position": 5
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref To Cash Holder":
+      "Table / view": "Cash Ledger"
+      "Column": "Ref To Cash Holder"
+      "Position": 6
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Payment":
+      "Table / view": "Cash Ledger"
+      "Column": "Ref Payment"
+      "Position": 7
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Loan":
+      "Table / view": "Cash Ledger"
+      "Column": "Ref Loan"
+      "Position": 8
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Business Expense":
+      "Table / view": "Cash Ledger"
+      "Column": "Ref Business Expense"
+      "Position": 9
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Settlement":
+      "Table / view": "Cash Ledger"
+      "Column": "Ref Settlement"
+      "Position": 10
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Entry Origin":
+      "Table / view": "Cash Ledger"
+      "Column": "Entry Origin"
+      "Position": 11
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": "'Manual'::text"
+    "Source Type":
+      "Table / view": "Cash Ledger"
+      "Column": "Source Type"
+      "Position": 12
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": "'Manual'::text"
+    "Source Key":
+      "Table / view": "Cash Ledger"
+      "Column": "Source Key"
+      "Position": 13
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Notes":
+      "Table / view": "Cash Ledger"
+      "Column": "Notes"
+      "Position": 14
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Created At":
+      "Table / view": "Cash Ledger"
+      "Column": "Created At"
+      "Position": 15
+      "PostgreSQL type": "timestamp without time zone"
+      "Nullable": "NO"
+      "Default": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+    "Created By":
+      "Table / view": "Cash Ledger"
+      "Column": "Created By"
+      "Position": 16
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": "'SQL'::text"
+    "Updated At":
+      "Table / view": "Cash Ledger"
+      "Column": "Updated At"
+      "Position": 17
+      "PostgreSQL type": "timestamp without time zone"
+      "Nullable": "NO"
+      "Default": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+  "constraints":
+    "Cash Ledger_Amount_check":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Amount_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK (((\"Amount\" > (0)::numeric) AND (\"Amount\" < 'Infinity'::numeric) AND (\"Amount\" = trunc(\"\
+        Amount\"))))"
+    "Cash Ledger_Amount_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Amount_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Amount\""
+    "Cash Ledger_Created At_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Created At_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Created At\""
+    "Cash Ledger_Created By_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Created By_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Created By\""
+    "Cash Ledger_Entry Origin_check":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Entry Origin_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((\"Entry Origin\" = ANY (ARRAY['System'::text, 'Manual'::text])))"
+    "Cash Ledger_Entry Origin_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Entry Origin_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Entry Origin\""
+    "Cash Ledger_Movement Date_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Movement Date_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Movement Date\""
+    "Cash Ledger_Movement Type_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Movement Type_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Movement Type\""
+    "Cash Ledger_Ref Business Expense_fkey":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Ref Business Expense_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Business Expense\") REFERENCES \"Business Expenses\"(\"Row ID\") ON DELETE RESTRICT"
+    "Cash Ledger_Ref From Cash Holder_fkey":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Ref From Cash Holder_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref From Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+    "Cash Ledger_Ref Loan_fkey":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Ref Loan_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Loan\") REFERENCES \"Loans\"(\"Row ID\") ON DELETE RESTRICT"
+    "Cash Ledger_Ref Payment_fkey":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Ref Payment_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\") ON DELETE RESTRICT"
+    "Cash Ledger_Ref Settlement_fkey":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Ref Settlement_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Settlement\") REFERENCES \"Settlements\"(\"Row ID\") ON DELETE RESTRICT"
+    "Cash Ledger_Ref To Cash Holder_fkey":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Ref To Cash Holder_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref To Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+    "Cash Ledger_Row ID_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Cash Ledger_Source Key_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Source Key_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Source Key\""
+    "Cash Ledger_Source Type_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Source Type_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Source Type\""
+    "Cash Ledger_Updated At_not_null":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_Updated At_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Updated At\""
+    "Cash Ledger_pkey":
+      "Table": "Cash Ledger"
+      "Constraint": "Cash Ledger_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"
+    "cash_ledger_direction":
+      "Table": "Cash Ledger"
+      "Constraint": "cash_ledger_direction"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK (((COALESCE(\"Ref From Cash Holder\", \"Ref To Cash Holder\") IS NOT NULL) AND (\"Ref From Cash\
+        \ Holder\" IS DISTINCT FROM \"Ref To Cash Holder\")))"
+    "cash_ledger_source":
+      "Table": "Cash Ledger"
+      "Constraint": "cash_ledger_source"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((((\"Entry Origin\" = 'Manual'::text) AND (\"Source Type\" = 'Manual'::text) AND (\"Source Key\"\
+        \ = ('MANUAL:'::text || \"Row ID\")) AND (\"Ref Payment\" IS NULL) AND (\"Ref Loan\" IS NULL) AND (\"Ref Settlement\"\
+        \ IS NULL) AND (\"Movement Type\" = ANY (ARRAY['Cash Handover'::text, 'Expense Reimbursement'::text, 'Opening Balance'::text,\
+        \ 'Manual Correction'::text]))) OR ((\"Entry Origin\" = 'System'::text) AND (((\"Source Type\" = 'Payment'::text)\
+        \ AND (\"Movement Type\" = 'Payment Receipt'::text) AND (\"Source Key\" = ('PAYMENT:'::text || \"Ref Payment\")) AND\
+        \ (\"Ref Payment\" IS NOT NULL) AND (num_nonnulls(\"Ref Payment\", \"Ref Loan\", \"Ref Business Expense\", \"Ref Settlement\"\
+        ) = 1)) OR ((\"Source Type\" = 'Loan'::text) AND (\"Movement Type\" = 'Loan Disbursement'::text) AND (\"Source Key\"\
+        \ = ('LOAN:'::text || \"Ref Loan\")) AND (\"Ref Loan\" IS NOT NULL) AND (num_nonnulls(\"Ref Payment\", \"Ref Loan\"\
+        , \"Ref Business Expense\", \"Ref Settlement\") = 1)) OR ((\"Source Type\" = 'Business Expense'::text) AND (\"Movement\
+        \ Type\" = 'Business Expense'::text) AND (\"Source Key\" = ('EXPENSE:'::text || \"Ref Business Expense\")) AND (\"\
+        Ref Business Expense\" IS NOT NULL) AND (num_nonnulls(\"Ref Payment\", \"Ref Loan\", \"Ref Business Expense\", \"\
+        Ref Settlement\") = 1)) OR ((\"Source Type\" = 'Settlement'::text) AND (\"Movement Type\" = 'Partner Settlement'::text)\
+        \ AND (\"Source Key\" = ('SETTLEMENT:'::text || \"Ref Settlement\")) AND (\"Ref Settlement\" IS NOT NULL) AND (num_nonnulls(\"\
+        Ref Payment\", \"Ref Loan\", \"Ref Business Expense\", \"Ref Settlement\") = 1))))))"

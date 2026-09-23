@@ -1,0 +1,1465 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/r008-production"
+  "kind": "sheet-records"
+  "name": "OLAP"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "R008 Production"
+  "records":
+    "row-00078":
+      "Target ID": "OLAP-001"
+      "App": "OLAP"
+      "Object": "Column Borrowers.Ref Preferred Receiving Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref Preferred Receiving Cash Account\",\"Visible?\":\"ALWAYS\"\
+        ,\"Type\":\"Ref\",\"Type Qualifier\":{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash\
+        \ Accounts\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\"\
+        :null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+        :null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\"\
+        ,\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"\
+        Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00079":
+      "Target ID": "OLAP-002"
+      "App": "OLAP"
+      "Object": "Column Borrowers.Payment Request Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Payment Request Cash Account\",\"Editable Initial Value?\"\
+        :\"Yes\",\"Fixed definition?\":\"No\",\"Formula version\":\"0\",\"Hidden\":\"No\",\"Key\":\"No\",\"Label\":\"No\"\
+        ,\"LocaleName\":\"en-US\",\"Part of Key?\":\"No\",\"Read-Only\":\"Yes\",\"Reset on edit?\":\"No\",\"Scannable\":\"\
+        No\",\"Searchable\":\"Yes\",\"Sensitive data\":\"No\",\"System Defined?\":\"No\",\"Type\":\"Ref\",\"Type Qualifier\"\
+        :{\"Editable_If\":null,\"Error_Message_If_Invalid\":null,\"InputMode\":\"Auto\",\"IsAPartOf\":false,\"ReferencedKeyColumn\"\
+        :\"Row ID\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedType\"\
+        :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+        :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"\
+        Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\"\
+        :null}\",\"RelationshipName\":null,\"Required_If\":null,\"Reset_If\":null,\"Show_If\":\"=FALSE\",\"Suggested_Values\"\
+        :null,\"Valid_If\":null},\"Virtual?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; The OLAP request Ref is hidden and table-read-only,\
+        \ which satisfies the design requirement that OLAP remain read-only."
+    "row-00080":
+      "Target ID": "OLAP-003"
+      "App": "OLAP"
+      "Object": "Column Borrowers.Payment Request Token"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Payment Request Token\",\"Visible?\":\"ALWAYS\",\"Type\"\
+        :\"Text\",\"Type Qualifier\":{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+        :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":\"=FALSE\",\"Required_If\":null,\"Editable_If\"\
+        :\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"\
+        Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\"\
+        ,\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"\
+        Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"Yes\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00081":
+      "Target ID": "OLAP-004"
+      "App": "OLAP"
+      "Object": "Column Loans.Ref Disbursed From Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref Disbursed From Cash Account\",\"Visible?\":\"ALWAYS\"\
+        ,\"Type\":\"Ref\",\"Type Qualifier\":{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash\
+        \ Accounts\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\"\
+        :null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+        :null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\"\
+        ,\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"\
+        Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00082":
+      "Target ID": "OLAP-005"
+      "App": "OLAP"
+      "Object": "Column Loans.Payment Request Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Payment Request Cash Account\",\"Editable Initial Value?\"\
+        :\"Yes\",\"Fixed definition?\":\"No\",\"Formula version\":\"0\",\"Hidden\":\"No\",\"Key\":\"No\",\"Label\":\"No\"\
+        ,\"LocaleName\":\"en-US\",\"Part of Key?\":\"No\",\"Read-Only\":\"Yes\",\"Reset on edit?\":\"No\",\"Scannable\":\"\
+        No\",\"Searchable\":\"Yes\",\"Sensitive data\":\"No\",\"System Defined?\":\"No\",\"Type\":\"Ref\",\"Type Qualifier\"\
+        :{\"Editable_If\":null,\"Error_Message_If_Invalid\":null,\"InputMode\":\"Auto\",\"IsAPartOf\":false,\"ReferencedKeyColumn\"\
+        :\"Row ID\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedType\"\
+        :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+        :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"\
+        Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\"\
+        :null}\",\"RelationshipName\":null,\"Required_If\":null,\"Reset_If\":null,\"Show_If\":\"=FALSE\",\"Suggested_Values\"\
+        :null,\"Valid_If\":null},\"Virtual?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; The OLAP request Ref is hidden and table-read-only,\
+        \ which satisfies the design requirement that OLAP remain read-only."
+    "row-00083":
+      "Target ID": "OLAP-006"
+      "App": "OLAP"
+      "Object": "Column Loans.Payment Request Token"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Payment Request Token\",\"Editable Initial Value?\":\"Yes\"\
+        ,\"Fixed definition?\":\"No\",\"Formula version\":\"0\",\"Hidden\":\"No\",\"Key\":\"No\",\"Label\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Part of Key?\":\"No\",\"Read-Only\":\"No\",\"Reset on edit?\":\"No\",\"Scannable\":\"No\",\"Searchable\"\
+        :\"Yes\",\"Sensitive data\":\"Yes\",\"System Defined?\":\"No\",\"Type\":\"Text\",\"Type Qualifier\":{\"Editable_If\"\
+        :\"=FALSE\",\"Error_Message_If_Invalid\":null,\"IsMulticolumnKey\":false,\"LongTextFormatting\":\"Plain Text\",\"\
+        MaxLength\":null,\"MinLength\":null,\"Required_If\":null,\"Reset_If\":null,\"Show_If\":\"=FALSE\",\"Suggested_Values\"\
+        :null,\"Valid_If\":null},\"Virtual?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; The token remains hidden and non-editable;\
+        \ PROD additionally marks it as sensitive data."
+    "row-00084":
+      "Target ID": "OLAP-007"
+      "App": "OLAP"
+      "Object": "Column Charges.Payment Request Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Payment Request Cash Account\",\"Editable Initial Value?\"\
+        :\"Yes\",\"Fixed definition?\":\"No\",\"Formula version\":\"0\",\"Hidden\":\"No\",\"Key\":\"No\",\"Label\":\"No\"\
+        ,\"LocaleName\":\"en-US\",\"Part of Key?\":\"No\",\"Read-Only\":\"Yes\",\"Reset on edit?\":\"No\",\"Scannable\":\"\
+        No\",\"Searchable\":\"Yes\",\"Sensitive data\":\"No\",\"System Defined?\":\"No\",\"Type\":\"Ref\",\"Type Qualifier\"\
+        :{\"Editable_If\":null,\"Error_Message_If_Invalid\":null,\"InputMode\":\"Auto\",\"IsAPartOf\":false,\"ReferencedKeyColumn\"\
+        :\"Row ID\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedType\"\
+        :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+        :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"\
+        Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\"\
+        :null}\",\"RelationshipName\":null,\"Required_If\":null,\"Reset_If\":null,\"Show_If\":\"=FALSE\",\"Suggested_Values\"\
+        :null,\"Valid_If\":null},\"Virtual?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; The OLAP request Ref is hidden and table-read-only,\
+        \ which satisfies the design requirement that OLAP remain read-only."
+    "row-00085":
+      "Target ID": "OLAP-008"
+      "App": "OLAP"
+      "Object": "Column Charges.Payment Request Token"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Payment Request Token\",\"Editable Initial Value?\":\"Yes\"\
+        ,\"Fixed definition?\":\"No\",\"Formula version\":\"0\",\"Hidden\":\"No\",\"Key\":\"No\",\"Label\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Part of Key?\":\"No\",\"Read-Only\":\"No\",\"Reset on edit?\":\"No\",\"Scannable\":\"No\",\"Searchable\"\
+        :\"Yes\",\"Sensitive data\":\"Yes\",\"System Defined?\":\"No\",\"Type\":\"Text\",\"Type Qualifier\":{\"Editable_If\"\
+        :\"=FALSE\",\"Error_Message_If_Invalid\":null,\"IsMulticolumnKey\":false,\"LongTextFormatting\":\"Plain Text\",\"\
+        MaxLength\":null,\"MinLength\":null,\"Required_If\":null,\"Reset_If\":null,\"Show_If\":\"=FALSE\",\"Suggested_Values\"\
+        :null,\"Valid_If\":null},\"Virtual?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; The token remains hidden and non-editable;\
+        \ PROD additionally marks it as sensitive data."
+    "row-00086":
+      "Target ID": "OLAP-009"
+      "App": "OLAP"
+      "Object": "Column Settlements.Ref Paid From Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref Paid From Cash Account\",\"Visible?\":\"ALWAYS\",\"\
+        Display name\":\"=\\\"บัญชีจ่ายเงิน / Paid From Account\\\"\",\"Type\":\"Ref\",\"Type Qualifier\":{\"ReferencedTableName\"\
+        :\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\"\
+        :\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":\"=SELECT(Cash Accounts[Row\
+        \ ID], OR(AND([Active], [Ref Cash Holder] = \\\"ch:lisa\\\"), [Row ID] = [_THISROW].[Ref Paid From Cash Account]))\"\
+        ,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":\"=AND([Status] = \\\"Completed\\\", OR(NOT(IN([Row\
+        \ ID], Settlements[Row ID])), LOOKUP([Row ID], \\\"Settlements\\\", \\\"Row ID\\\", \\\"Status\\\") <> \\\"Completed\\\
+        \"))\",\"Editable_If\":\"=OR(NOT(IN([Row ID], Settlements[Row ID])), LOOKUP([Row ID], \\\"Settlements\\\", \\\"Row\
+        \ ID\\\", \\\"Status\\\") = \\\"Pending\\\")\",\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"\
+        Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"=ANY(SELECT(Cash\
+        \ Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = \\\"ch:lisa\\\")))\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00087":
+      "Target ID": "OLAP-010"
+      "App": "OLAP"
+      "Object": "Column Payments.Ref Received By Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref Received By Cash Account\",\"Visible?\":\"ALWAYS\",\"\
+        Type\":\"Ref\",\"Type Qualifier\":{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\"\
+        ,\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\"\
+        :\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+        :\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"\
+        Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\"\
+        ,\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"\
+        Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00088":
+      "Target ID": "OLAP-011"
+      "App": "OLAP"
+      "Object": "Column Business Expenses.Ref Paid By Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref Paid By Cash Account\",\"Visible?\":\"ALWAYS\",\"Type\"\
+        :\"Ref\",\"Type Qualifier\":{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\"\
+        ,\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\"\
+        :\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+        :\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"\
+        Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\"\
+        ,\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"\
+        Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00089":
+      "Target ID": "OLAP-012"
+      "App": "OLAP"
+      "Object": "Column Cash Holders.Related Cash Accounts"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Cash Accounts\",\"Visible?\":\"ALWAYS\",\"Description\"\
+        :\"Cash Accounts entries that reference this entry in the Ref Cash Holder column\",\"Type\":\"List\",\"Type Qualifier\"\
+        :{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\"\
+        :\"Cash Accounts\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\"\
+        :null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+        :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\":\" , \",\"Valid_If\":null,\"\
+        Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
+        :null},\"App formula\":\"REF_ROWS(\\\"Cash Accounts\\\", \\\"Ref Cash Holder\\\")\",\"Read-Only\":\"Yes\",\"Hidden\"\
+        :\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"\
+        No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\"\
+        ,\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\"\
+        :\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00090":
+      "Target ID": "OLAP-013"
+      "App": "OLAP"
+      "Object": "Column Cash Holders.Related Cash Account Balances"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Cash Account Balances\",\"Visible?\":\"ALWAYS\"\
+        ,\"Description\":\"Cash Account Balances entries that reference this entry in the Ref Cash Holder column\",\"Type\"\
+        :\"List\",\"Type Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"Cash Account\
+        \ Balances\",\"ReferencedRootTableName\":\"Cash Account Balances\",\"ReferencedType\":\"Ref\",\"ReferencedKeyColumn\"\
+        :\"Ref Cash Account\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\"\
+        :\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+        :null,\"Reset_If\":null,\"Suggested_Values\":null},\"App formula\":\"REF_ROWS(\\\"Cash Account Balances\\\", \\\"\
+        Ref Cash Holder\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset\
+        \ on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\"\
+        ,\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\"\
+        :\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00091":
+      "Target ID": "OLAP-014"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Movement Date"
+      "Property": "Type Qualifier.Editable_If"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00092":
+      "Target ID": "OLAP-015"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Movement Type"
+      "Property": "Type Qualifier.Editable_If"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00093":
+      "Target ID": "OLAP-016"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Amount"
+      "Property": "Type Qualifier.Editable_If"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00094":
+      "Target ID": "OLAP-017"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Ref From Cash Holder"
+      "Property": "Type Qualifier.Editable_If"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00095":
+      "Target ID": "OLAP-018"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Ref From Cash Holder"
+      "Property": "Type Qualifier.Valid_If"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"=IF(OR([Entry Origin] = \\\"System\\\", IN([Row ID], Cash Ledger[Row ID])),\
+        \ LIST([_THIS]), IF([Movement Type] = \\\"Expense Reimbursement\\\", LIST(\\\"ch:lisa\\\"), LIST(\\\"ch:dad\\\", \\\
+        \"ch:lisa\\\", \\\"ch:tommy\\\")))\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00096":
+      "Target ID": "OLAP-019"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Ref To Cash Holder"
+      "Property": "Type Qualifier.Editable_If"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00097":
+      "Target ID": "OLAP-020"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Ref To Cash Holder"
+      "Property": "Type Qualifier.Valid_If"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"=IF(OR([Entry Origin] = \\\"System\\\", IN([Row ID], Cash Ledger[Row ID])),\
+        \ LIST([_THIS]), IF([Movement Type] = \\\"Expense Reimbursement\\\", LIST(\\\"ch:tommy\\\"), IF([Ref From Cash Holder]\
+        \ = \\\"ch:tommy\\\", LIST(\\\"ch:tommy\\\"), LIST(\\\"ch:dad\\\", \\\"ch:lisa\\\"))))\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00098":
+      "Target ID": "OLAP-021"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Ref Business Expense"
+      "Property": "Type Qualifier.Editable_If"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00099":
+      "Target ID": "OLAP-022"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Ref From Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref From Cash Account\",\"Visible?\":\"ALWAYS\",\"Display\
+        \ name\":\"=\\\"จากบัญชี / From Account\\\"\",\"Type\":\"Ref\",\"Type Qualifier\":{\"ReferencedTableName\":\"Cash\
+        \ Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"\
+        Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":\"=SELECT(Cash Accounts[Row\
+        \ ID], OR(AND([Active], [Ref Cash Holder] = [_THISROW].[Ref From Cash Holder]), AND(IN([_THISROW].[Row ID], Cash Ledger[Row\
+        \ ID]), [Row ID] = [_THISROW].[Ref From Cash Account])))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+        :\"=AND(NOT(IN([Row ID], Cash Ledger[Row ID])), ISNOTBLANK([Ref From Cash Holder]))\",\"Editable_If\":\"=AND([Entry\
+        \ Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\":null},\"\
+        Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"Initial\
+        \ value\":\"=ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = [_THISROW].[Ref\
+        \ From Cash Holder])))\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"\
+        No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\"\
+        :\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00100":
+      "Target ID": "OLAP-023"
+      "App": "OLAP"
+      "Object": "Column Cash Ledger.Ref To Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref To Cash Account\",\"Visible?\":\"ALWAYS\",\"Display\
+        \ name\":\"=\\\"เข้าบัญชี / To Account\\\"\",\"Type\":\"Ref\",\"Type Qualifier\":{\"ReferencedTableName\":\"Cash Accounts\"\
+        ,\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\"\
+        :false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], OR(AND([Active],\
+        \ [Ref Cash Holder] = [_THISROW].[Ref To Cash Holder], [Row ID] <> [_THISROW].[Ref From Cash Account]), AND(IN([_THISROW].[Row\
+        \ ID], Cash Ledger[Row ID]), [Row ID] = [_THISROW].[Ref To Cash Account])))\",\"Error_Message_If_Invalid\":null,\"\
+        Show_If\":null,\"Required_If\":\"=AND(NOT(IN([Row ID], Cash Ledger[Row ID])), ISNOTBLANK([Ref To Cash Holder]))\"\
+        ,\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"\
+        Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset\
+        \ on edit?\":\"No\",\"Initial value\":\"=ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default Account], [Ref Cash\
+        \ Holder] = [_THISROW].[Ref To Cash Holder], [Row ID] <> [_THISROW].[Ref From Cash Account])))\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00101":
+      "Target ID": "OLAP-024"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts._RowNumber"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"_RowNumber\",\"Visible?\":\"ALWAYS\",\"Description\":\"\
+        Number of this row\",\"Type\":\"Number\",\"Type Qualifier\":{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"\
+        NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\"\
+        :\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"Yes\",\"Editable Initial Value?\":\"Yes\"\
+        ,\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"\
+        }"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00102":
+      "Target ID": "OLAP-025"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Row ID"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Row ID\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type\
+        \ Qualifier\":{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\":false,\"\
+        Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\"\
+        :null,\"Suggested_Values\":null},\"Read-Only\":\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"Formula version\":\"\
+        0\",\"Reset on edit?\":\"No\",\"Initial value\":\"=UNIQUEID()\",\"System Defined?\":\"No\",\"Key\":\"Yes\",\"Part\
+        \ of Key?\":\"Yes\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00103":
+      "Target ID": "OLAP-026"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Ref Cash Holder"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref Cash Holder\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\"\
+        ,\"Type Qualifier\":{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
+        :\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+        ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=NOT(IN([Row\
+        \ ID], Cash Accounts[Row ID]))\",\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\"\
+        ,\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"\
+        Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00104":
+      "Target ID": "OLAP-027"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Account Label"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Account Label\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\"\
+        ,\"Type Qualifier\":{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+        :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+        Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"Yes\",\"Formula version\"\
+        :\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00105":
+      "Target ID": "OLAP-028"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Bank Name"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Bank Name\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"\
+        Type Qualifier\":{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+        :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+        Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\"\
+        :\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00106":
+      "Target ID": "OLAP-029"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Account Number"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Account Number\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\"\
+        ,\"Type Qualifier\":{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+        :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+        Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\"\
+        :\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"Sensitive data\":\"Yes\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00107":
+      "Target ID": "OLAP-030"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Default Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Default Account\",\"Visible?\":\"ALWAYS\",\"Type\":\"Yes/No\"\
+        ,\"Type Qualifier\":{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+        :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\"\
+        ,\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"=FALSE\"\
+        ,\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial\
+        \ Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00108":
+      "Target ID": "OLAP-031"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Active"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Active\",\"Visible?\":\"ALWAYS\",\"Type\":\"Yes/No\",\"\
+        Type Qualifier\":{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+        :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\"\
+        ,\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"=TRUE\"\
+        ,\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial\
+        \ Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00109":
+      "Target ID": "OLAP-032"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Sort Order"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Sort Order\",\"Visible?\":\"ALWAYS\",\"Type\":\"Number\"\
+        ,\"Type Qualifier\":{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+        :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+        :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"No\",\"Hidden\":\"No\",\"\
+        Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"=1\",\"System Defined?\":\"\
+        No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00110":
+      "Target ID": "OLAP-033"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Created At"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Created At\",\"Visible?\":\"ALWAYS\",\"Type\":\"DateTime\"\
+        ,\"Type Qualifier\":{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
+        :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"\
+        Suggested_Values\":null},\"Read-Only\":\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset\
+        \ on edit?\":\"No\",\"Initial value\":\"NOW()\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\"\
+        ,\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"\
+        Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00111":
+      "Target ID": "OLAP-034"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Business Expenses"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Business Expenses\",\"Visible?\":\"ALWAYS\",\"Description\"\
+        :\"Business Expenses entries that reference this entry in the Ref Paid By Cash Account column\",\"Type\":\"List\"\
+        ,\"Type Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"Business Expenses\"\
+        ,\"ReferencedRootTableName\":\"Business Expenses\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\"\
+        ,\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\"\
+        :\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+        :null,\"Reset_If\":null,\"Suggested_Values\":null},\"App formula\":\"REF_ROWS(\\\"Business Expenses\\\", \\\"Ref Paid\
+        \ By Cash Account\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset\
+        \ on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\"\
+        ,\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\"\
+        :\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00112":
+      "Target ID": "OLAP-035"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Payments"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Payments\",\"Visible?\":\"ALWAYS\",\"Description\"\
+        :\"Payments entries that reference this entry in the Ref Received By Cash Account column\",\"Type\":\"List\",\"Type\
+        \ Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"Payments\",\"ReferencedRootTableName\"\
+        :\"Payments\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\"\
+        :null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+        :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\":\" , \",\"Valid_If\":null,\"\
+        Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
+        :null},\"App formula\":\"REF_ROWS(\\\"Payments\\\", \\\"Ref Received By Cash Account\\\")\",\"Read-Only\":\"Yes\"\
+        ,\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\"\
+        ,\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00113":
+      "Target ID": "OLAP-036"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Settlements"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Settlements\",\"Visible?\":\"ALWAYS\",\"Description\"\
+        :\"Settlements entries that reference this entry in the Ref Paid From Cash Account column\",\"Type\":\"List\",\"Type\
+        \ Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"Settlements\",\"ReferencedRootTableName\"\
+        :\"Settlements\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\"\
+        :null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+        :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\":\" , \",\"Valid_If\":null,\"\
+        Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
+        :null},\"App formula\":\"REF_ROWS(\\\"Settlements\\\", \\\"Ref Paid From Cash Account\\\")\",\"Read-Only\":\"Yes\"\
+        ,\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\"\
+        ,\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00114":
+      "Target ID": "OLAP-037"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Cash Ledgers By Ref From Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Cash Ledgers By Ref From Cash Account\",\"Visible?\"\
+        :\"ALWAYS\",\"Description\":\"Cash Ledger entries that reference this entry in the Ref From Cash Account column\"\
+        ,\"Type\":\"List\",\"Type Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"\
+        Cash Ledger\",\"ReferencedRootTableName\":\"Cash Ledger\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row\
+        \ ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\"\
+        :\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+        :null,\"Reset_If\":null,\"Suggested_Values\":null},\"App formula\":\"REF_ROWS(\\\"Cash Ledger\\\", \\\"Ref From Cash\
+        \ Account\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\"\
+        :\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable\
+        \ Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\"\
+        ,\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00115":
+      "Target ID": "OLAP-038"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Cash Ledgers By Ref To Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Cash Ledgers By Ref To Cash Account\",\"Visible?\"\
+        :\"ALWAYS\",\"Description\":\"Cash Ledger entries that reference this entry in the Ref To Cash Account column\",\"\
+        Type\":\"List\",\"Type Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"Cash\
+        \ Ledger\",\"ReferencedRootTableName\":\"Cash Ledger\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\"\
+        ,\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\"\
+        :\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+        :null,\"Reset_If\":null,\"Suggested_Values\":null},\"App formula\":\"REF_ROWS(\\\"Cash Ledger\\\", \\\"Ref To Cash\
+        \ Account\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\"\
+        :\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable\
+        \ Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\"\
+        ,\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00116":
+      "Target ID": "OLAP-039"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Borrowers By Ref Preferred Receiving Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Borrowers By Ref Preferred Receiving Cash Account\"\
+        ,\"Visible?\":\"ALWAYS\",\"Description\":\"Borrowers entries that reference this entry in the Ref Preferred Receiving\
+        \ Cash Account column\",\"Type\":\"List\",\"Type Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"\
+        ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\"\
+        :\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\"\
+        :\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+        :null,\"Reset_If\":null,\"Suggested_Values\":null},\"App formula\":\"REF_ROWS(\\\"Borrowers\\\", \\\"Ref Preferred\
+        \ Receiving Cash Account\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\"\
+        ,\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; AppSheet generated the reverse Ref as\
+        \ Cash Accounts.Related Borrowers; its REF_ROWS expression points to Borrowers.Ref Preferred Receiving Cash Account."
+    "row-00117":
+      "Target ID": "OLAP-040"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Borrowers By Payment Request Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Borrowers By Payment Request Cash Account\",\"Visible?\"\
+        :\"ALWAYS\",\"Description\":\"Borrowers entries that reference this entry in the Payment Request Cash Account column\"\
+        ,\"Type\":\"List\",\"Type Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"\
+        Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\"\
+        ,\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\"\
+        :\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+        :null,\"Reset_If\":null,\"Suggested_Values\":null},\"App formula\":\"REF_ROWS(\\\"Borrowers\\\", \\\"Payment Request\
+        \ Cash Account\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on\
+        \ edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"\
+        Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\"\
+        :\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00118":
+      "Target ID": "OLAP-041"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Loans By Ref Disbursed From Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Loans By Ref Disbursed From Cash Account\",\"Visible?\"\
+        :\"ALWAYS\",\"Description\":\"Loans entries that reference this entry in the Ref Disbursed From Cash Account column\"\
+        ,\"Type\":\"List\",\"Type Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"\
+        Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\"\
+        :false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+        :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\":\"\
+        \ , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+        Reset_If\":null,\"Suggested_Values\":null},\"App formula\":\"REF_ROWS(\\\"Loans\\\", \\\"Ref Disbursed From Cash Account\\\
+        \")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\"\
+        ,\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial\
+        \ Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC\
+        \ Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; AppSheet generated the reverse Ref with\
+        \ the shorter displayed object name; its REF_ROWS expression points to Loans.Ref Disbursed From Cash Account."
+    "row-00119":
+      "Target ID": "OLAP-042"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Loans By Payment Request Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Loans By Payment Request Cash Account\",\"Visible?\"\
+        :\"ALWAYS\",\"Description\":\"Loans entries that reference this entry in the Payment Request Cash Account column\"\
+        ,\"Type\":\"List\",\"Type Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"\
+        Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\"\
+        :false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+        :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\":\"\
+        \ , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+        Reset_If\":null,\"Suggested_Values\":null},\"App formula\":\"REF_ROWS(\\\"Loans\\\", \\\"Payment Request Cash Account\\\
+        \")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\"\
+        ,\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial\
+        \ Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC\
+        \ Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00120":
+      "Target ID": "OLAP-043"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Charges"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Charges\",\"Visible?\":\"ALWAYS\",\"Description\"\
+        :\"Charges entries that reference this entry in the Payment Request Cash Account column\",\"Type\":\"List\",\"Type\
+        \ Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"Charges\",\"ReferencedRootTableName\"\
+        :\"Charges\",\"ReferencedType\":\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\"\
+        :null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+        :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\":\" , \",\"Valid_If\":null,\"\
+        Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
+        :null},\"App formula\":\"REF_ROWS(\\\"Charges\\\", \\\"Payment Request Cash Account\\\")\",\"Read-Only\":\"Yes\",\"\
+        Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\",\"\
+        Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00121":
+      "Target ID": "OLAP-044"
+      "App": "OLAP"
+      "Object": "Column Cash Accounts.Related Cash Account Balances"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Related Cash Account Balances\",\"Visible?\":\"ALWAYS\"\
+        ,\"Description\":\"Cash Account Balances entries that reference this entry in the Ref Cash Account column\",\"Type\"\
+        :\"List\",\"Type Qualifier\":{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":{\"ReferencedTableName\":\"Cash Account\
+        \ Balances\",\"ReferencedRootTableName\":\"Cash Account Balances\",\"ReferencedType\":\"Ref\",\"ReferencedKeyColumn\"\
+        :\"Ref Cash Account\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"ItemSeparator\"\
+        :\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+        :null,\"Reset_If\":null,\"Suggested_Values\":null},\"App formula\":\"REF_ROWS(\\\"Cash Account Balances\\\", \\\"\
+        Ref Cash Account\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset\
+        \ on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\"\
+        ,\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\"\
+        :\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00122":
+      "Target ID": "OLAP-045"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances._RowNumber"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"_RowNumber\",\"Visible?\":\"ALWAYS\",\"Description\":\"\
+        Number of this row\",\"Type\":\"Number\",\"Type Qualifier\":{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"\
+        NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\"\
+        :\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"Yes\",\"Editable Initial Value?\":\"Yes\"\
+        ,\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"\
+        }"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00123":
+      "Target ID": "OLAP-046"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Ref Cash Account"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref Cash Account\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\"\
+        ,\"Type Qualifier\":{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
+        :\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+        ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+        Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\"\
+        :\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"Yes\",\"Part of Key?\":\"Yes\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00124":
+      "Target ID": "OLAP-047"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Ref Cash Holder"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Ref Cash Holder\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\"\
+        ,\"Type Qualifier\":{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
+        :\"Text\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+        ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+        Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\"\
+        :\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00125":
+      "Target ID": "OLAP-048"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Holder Name"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Holder Name\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\"\
+        ,\"Type Qualifier\":{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+        :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+        Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\"\
+        :\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00126":
+      "Target ID": "OLAP-049"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Account Label"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Account Label\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\"\
+        ,\"Type Qualifier\":{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+        :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+        Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"Yes\",\"Formula version\"\
+        :\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00127":
+      "Target ID": "OLAP-050"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Opening Balance"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Opening Balance\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\"\
+        ,\"Type Qualifier\":{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+        :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\"\
+        :\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00128":
+      "Target ID": "OLAP-051"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Cash In"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Cash In\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\",\"\
+        Type Qualifier\":{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+        :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\"\
+        :\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00129":
+      "Target ID": "OLAP-052"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Cash Out"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Cash Out\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\",\"\
+        Type Qualifier\":{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+        :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\"\
+        :\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00130":
+      "Target ID": "OLAP-053"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Current Balance"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Current Balance\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\"\
+        ,\"Type Qualifier\":{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+        :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\"\
+        :\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00131":
+      "Target ID": "OLAP-054"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Initialized"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Initialized\",\"Visible?\":\"ALWAYS\",\"Type\":\"Yes/No\"\
+        ,\"Type Qualifier\":{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+        :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\":\"Yes\"\
+        ,\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\"\
+        ,\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00132":
+      "Target ID": "OLAP-055"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Business Cash Held"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Business Cash Held\",\"Visible?\":\"ALWAYS\",\"Type\":\"\
+        Price\",\"Type Qualifier\":{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+        :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null},\"Read-Only\"\
+        :\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00133":
+      "Target ID": "OLAP-056"
+      "App": "OLAP"
+      "Object": "Column Cash Account Balances.Reimbursement / Advance Due"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Column name\":\"Reimbursement / Advance Due\",\"Visible?\":\"ALWAYS\",\"\
+        Type\":\"Price\",\"Type Qualifier\":{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"\
+        DecimalDigits\":2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\"\
+        :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"\
+        Suggested_Values\":null},\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset\
+        \ on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\"\
+        ,\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\"\
+        :\"No\",\"Sensitive data\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00134":
+      "Target ID": "OLAP-057"
+      "App": "OLAP"
+      "Object": "View Cash Accounts"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"View name\":\"Cash Accounts\",\"Created by\":\"App owner\",\"View type\"\
+        :\"table\",\"Position\":\"menu\",\"View configuration\":{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"\
+        ColumnOrder\":[\"Account Label\",\"Bank Name\",\"Default Account\",\"Active\",\"Sort Order\"],\"GroupBy\":[{\"Column\"\
+        :\"Ref Cash Holder\",\"Order\":\"Ascending\"}],\"GroupAggregate\":\"NONE\",\"SortBy\":[{\"Column\":\"Sort Order\"\
+        ,\"Order\":\"Ascending\"}],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\"\
+        :\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1},\"\
+        Visible?\":\"ALWAYS\",\"Icon\":\"\",\"Menu order\":\"1\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00135":
+      "Target ID": "OLAP-058"
+      "App": "OLAP"
+      "Object": "View Cash Position"
+      "Property": "View configuration.ViewEntries"
+      "Operation": "change"
+      "Current PROD value / accepted target": "[{\"ViewName\":\"Cash Holder Summary\",\"ViewSize\":\"Wide\"},{\"ViewName\"\
+        :\"Cash Ledger Recent\",\"ViewSize\":\"Large\"},{\"ViewName\":\"Cash Account Summary\",\"ViewSize\":\"Large\"}]"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00136":
+      "Target ID": "OLAP-059"
+      "App": "OLAP"
+      "Object": "View Cash Account Balances_Detail"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"View name\":\"Cash Account Balances_Detail\",\"Created by\":\"System\",\"\
+        View type\":\"detail\",\"ActionType\":\"Automatic\",\"Position\":\"ref\",\"View configuration\":{\"MainSlideshowImageColumn\"\
+        :\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[],\"\
+        ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"\
+        SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\"\
+        :null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\"\
+        :1},\"Visible?\":\"ALWAYS\",\"Icon\":\"\",\"Menu order\":\"1\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00137":
+      "Target ID": "OLAP-060"
+      "App": "OLAP"
+      "Object": "View Cash Account Balances_Inline"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"View name\":\"Cash Account Balances_Inline\",\"Created by\":\"System\",\"\
+        View type\":\"table\",\"Position\":\"ref\",\"View configuration\":{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\"\
+        :false,\"ColumnOrder\":[],\"GroupBy\":[],\"GroupAggregate\":\"NONE\",\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\"\
+        :false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-table\",\"IconRunnerUps\"\
+        :null,\"MenuOrder\":1},\"Visible?\":\"ALWAYS\",\"Icon\":\"\",\"Menu order\":\"1\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00138":
+      "Target ID": "OLAP-061"
+      "App": "OLAP"
+      "Object": "View Cash Account Summary"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"View name\":\"Cash Account Summary\",\"Created by\":\"App owner\",\"View\
+        \ type\":\"table\",\"Position\":\"ref\",\"View configuration\":{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"\
+        ColumnOrder\":[\"Account Label\",\"Opening Balance\",\"Cash In\",\"Cash Out\",\"Current Balance\",\"Initialized\"\
+        ],\"GroupBy\":[{\"Column\":\"Ref Cash Holder\",\"Order\":\"Ascending\"}],\"GroupAggregate\":\"NONE\",\"SortBy\":[],\"\
+        PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\"\
+        :\"**auto**\"}],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1},\"Visible?\":\"ALWAYS\",\"Icon\":\"\
+        \",\"Menu order\":\"1\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00139":
+      "Target ID": "OLAP-062"
+      "App": "OLAP"
+      "Object": "View Cash Accounts_Detail"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"View name\":\"Cash Accounts_Detail\",\"Created by\":\"System\",\"View type\"\
+        :\"detail\",\"ActionType\":\"Automatic\",\"Position\":\"ref\",\"View configuration\":{\"MainSlideshowImageColumn\"\
+        :\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\":[],\"QuickEditColumns\":[],\"ColumnOrder\":[],\"\
+        ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"\
+        SlideshowMode\":true,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\"\
+        :null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\"\
+        :1},\"Visible?\":\"ALWAYS\",\"Icon\":\"\",\"Menu order\":\"1\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00140":
+      "Target ID": "OLAP-063"
+      "App": "OLAP"
+      "Object": "View Cash Accounts_Form"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"View name\":\"Cash Accounts_Form\",\"Created by\":\"System\",\"View type\"\
+        :\"form\",\"Position\":\"ref\",\"View configuration\":{\"ColumnOrder\":null,\"AutoSave\":false,\"AutoReopen\":false,\"\
+        FinishView\":\"**Automatic**\",\"RowKey\":\"\",\"FormStyle\":\"Automatic\",\"PageStyle\":\"Automatic\",\"FormFooterStyle\"\
+        :\"Bottom\",\"MaxNestedRows\":5,\"AudioInput\":false,\"Events\":[{\"EventType\":\"Form Saved\",\"EventAction\":\"\
+        **auto**\"}],\"Icon\":\"fa-edit\",\"IconRunnerUps\":null,\"MenuOrder\":1},\"Visible?\":\"ALWAYS\",\"Icon\":\"\",\"\
+        Menu order\":\"1\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00141":
+      "Target ID": "OLAP-064"
+      "App": "OLAP"
+      "Object": "View Cash Accounts_Inline"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"View name\":\"Cash Accounts_Inline\",\"Created by\":\"System\",\"View type\"\
+        :\"table\",\"Position\":\"ref\",\"View configuration\":{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\"\
+        :[],\"GroupBy\":[],\"GroupAggregate\":\"NONE\",\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\"\
+        :false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-table\",\"IconRunnerUps\"\
+        :null,\"MenuOrder\":1},\"Visible?\":\"ALWAYS\",\"Icon\":\"\",\"Menu order\":\"1\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00142":
+      "Target ID": "OLAP-065"
+      "App": "OLAP"
+      "Object": "View Cash Ledger_Form"
+      "Property": "View configuration.ColumnOrder"
+      "Operation": "change"
+      "Current PROD value / accepted target": "[\"Movement Date\",\"Movement Type\",\"Ref From Cash Holder\",\"Ref From Cash\
+        \ Account\",\"Ref To Cash Holder\",\"Ref To Cash Account\",\"Amount\",\"Ref Business Expense\",\"Notes\"]"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00143":
+      "Target ID": "OLAP-066"
+      "App": "OLAP"
+      "Object": "Action Settlements.Complete Transfer"
+      "Property": "With these properties.Assignments"
+      "Operation": "change"
+      "Current PROD value / accepted target": "[{\"ColumnToEdit\":\"Status\",\"NewColumnValue\":\"=\\\"Completed\\\"\"},{\"\
+        ColumnToEdit\":\"Transfer Date\",\"NewColumnValue\":\"=TODAY()\"},{\"ColumnToEdit\":\"Ref Paid From Cash Account\"\
+        ,\"NewColumnValue\":\"=IF(AND(ISNOTBLANK([Ref Paid From Cash Account]), [Ref Paid From Cash Account].[Active], [Ref\
+        \ Paid From Cash Account].[Ref Cash Holder] = \\\"ch:lisa\\\"), [Ref Paid From Cash Account], ANY(SELECT(Cash Accounts[Row\
+        \ ID], AND([Active], [Default Account], [Ref Cash Holder] = \\\"ch:lisa\\\"))))\"}]"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00144":
+      "Target ID": "OLAP-067"
+      "App": "OLAP"
+      "Object": "Action Business Expenses.View Ref (Ref Paid By Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Ref Paid By Cash Account)\",\"Bulk action?\":\"\
+        No\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\":\"\
+        1\",\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\", ENCODEURL([Ref\
+        \ Paid By Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach to column\":\"Ref Paid\
+        \ By Cash Account\",\"Set this column\":\"Ref Paid By Cash Account\",\"Only if this condition is true\":\"NOT(ISBLANK([Ref\
+        \ Paid By Cash Account]))\",\"Disable automatic updates?\":\"No\",\"Action icon\":\"\",\"For a record of this table\"\
+        :\"Business Expenses\",\"Does this action apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00145":
+      "Target ID": "OLAP-068"
+      "App": "OLAP"
+      "Object": "Action Payments.View Ref (Ref Received By Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Ref Received By Cash Account)\",\"Bulk action?\"\
+        :\"No\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\"\
+        :\"1\",\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\"\
+        , ENCODEURL([Ref Received By Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach to column\":\"Ref Received\
+        \ By Cash Account\",\"Set this column\":\"Ref Received By Cash Account\",\"Only if this condition is true\":\"NOT(ISBLANK([Ref\
+        \ Received By Cash Account]))\",\"Disable automatic updates?\":\"No\",\"Action icon\":\"\",\"For a record of this\
+        \ table\":\"Payments\",\"Does this action apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00146":
+      "Target ID": "OLAP-069"
+      "App": "OLAP"
+      "Object": "Action Settlements.View Ref (Ref Paid From Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Ref Paid From Cash Account)\",\"Bulk action?\"\
+        :\"No\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\"\
+        :\"1\",\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\"\
+        , ENCODEURL([Ref Paid From Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach to column\":\"Ref Paid\
+        \ From Cash Account\",\"Set this column\":\"Ref Paid From Cash Account\",\"Only if this condition is true\":\"NOT(ISBLANK([Ref\
+        \ Paid From Cash Account]))\",\"Disable automatic updates?\":\"No\",\"Action icon\":\"\",\"For a record of this table\"\
+        :\"Settlements\",\"Does this action apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00147":
+      "Target ID": "OLAP-070"
+      "App": "OLAP"
+      "Object": "Action Cash Ledger.View Ref (Ref From Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Ref From Cash Account)\",\"Bulk action?\":\"No\"\
+        ,\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\":\"1\"\
+        ,\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\", ENCODEURL([Ref\
+        \ From Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\
+        \",\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach to column\":\"Ref From Cash\
+        \ Account\",\"Set this column\":\"Ref From Cash Account\",\"Only if this condition is true\":\"NOT(ISBLANK([Ref From\
+        \ Cash Account]))\",\"Disable automatic updates?\":\"No\",\"Action icon\":\"\",\"For a record of this table\":\"Cash\
+        \ Ledger\",\"Does this action apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00148":
+      "Target ID": "OLAP-071"
+      "App": "OLAP"
+      "Object": "Action Cash Ledger.View Ref (Ref To Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Ref To Cash Account)\",\"Bulk action?\":\"No\"\
+        ,\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\":\"1\"\
+        ,\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\", ENCODEURL([Ref\
+        \ To Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\"\
+        ,\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach to column\":\"Ref To Cash\
+        \ Account\",\"Set this column\":\"Ref To Cash Account\",\"Only if this condition is true\":\"NOT(ISBLANK([Ref To Cash\
+        \ Account]))\",\"Disable automatic updates?\":\"No\",\"Action icon\":\"\",\"For a record of this table\":\"Cash Ledger\"\
+        ,\"Does this action apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00149":
+      "Target ID": "OLAP-072"
+      "App": "OLAP"
+      "Object": "Action Borrowers.View Ref (Ref Preferred Receiving Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Ref Preferred Receiving Cash Account)\",\"Bulk\
+        \ action?\":\"No\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action\
+        \ order\":\"1\",\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\
+        \", ENCODEURL([Ref Preferred Receiving Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\"\
+        :false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\"\
+        ,\"Attach to column\":\"Ref Preferred Receiving Cash Account\",\"Set this column\":\"Ref Preferred Receiving Cash\
+        \ Account\",\"Only if this condition is true\":\"NOT(ISBLANK([Ref Preferred Receiving Cash Account]))\",\"Disable\
+        \ automatic updates?\":\"No\",\"Action icon\":\"\",\"For a record of this table\":\"Borrowers\",\"Does this action\
+        \ apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00150":
+      "Target ID": "OLAP-073"
+      "App": "OLAP"
+      "Object": "Action Borrowers.View Ref (Payment Request Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Payment Request Cash Account)\",\"Bulk action?\"\
+        :\"No\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\"\
+        :\"1\",\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\"\
+        , ENCODEURL([Payment Request Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach to column\":\"Payment\
+        \ Request Cash Account\",\"Set this column\":\"Payment Request Cash Account\",\"Only if this condition is true\":\"\
+        NOT(ISBLANK([Payment Request Cash Account]))\",\"Disable automatic updates?\":\"No\",\"Action icon\":\"\",\"For a\
+        \ record of this table\":\"Borrowers\",\"Does this action apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"\
+        }"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00151":
+      "Target ID": "OLAP-074"
+      "App": "OLAP"
+      "Object": "Action Loans.View Ref (Ref Disbursed From Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Ref Disbursed From Cash Account)\",\"Bulk action?\"\
+        :\"No\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\"\
+        :\"1\",\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\"\
+        , ENCODEURL([Ref Disbursed From Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"\
+        ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach\
+        \ to column\":\"Ref Disbursed From Cash Account\",\"Set this column\":\"Ref Disbursed From Cash Account\",\"Only if\
+        \ this condition is true\":\"NOT(ISBLANK([Ref Disbursed From Cash Account]))\",\"Disable automatic updates?\":\"No\"\
+        ,\"Action icon\":\"\",\"For a record of this table\":\"Loans\",\"Does this action apply to the whole table?\":\"No\"\
+        ,\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00152":
+      "Target ID": "OLAP-075"
+      "App": "OLAP"
+      "Object": "Action Loans.View Ref (Payment Request Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Payment Request Cash Account)\",\"Bulk action?\"\
+        :\"No\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\"\
+        :\"1\",\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\"\
+        , ENCODEURL([Payment Request Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach to column\":\"Payment\
+        \ Request Cash Account\",\"Set this column\":\"Payment Request Cash Account\",\"Only if this condition is true\":\"\
+        NOT(ISBLANK([Payment Request Cash Account]))\",\"Disable automatic updates?\":\"No\",\"Action icon\":\"\",\"For a\
+        \ record of this table\":\"Loans\",\"Does this action apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00153":
+      "Target ID": "OLAP-076"
+      "App": "OLAP"
+      "Object": "Action Charges.View Ref (Payment Request Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Payment Request Cash Account)\",\"Bulk action?\"\
+        :\"No\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\"\
+        :\"1\",\"With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\"\
+        , ENCODEURL([Payment Request Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach to column\":\"Payment\
+        \ Request Cash Account\",\"Set this column\":\"Payment Request Cash Account\",\"Only if this condition is true\":\"\
+        NOT(ISBLANK([Payment Request Cash Account]))\",\"Disable automatic updates?\":\"No\",\"Action icon\":\"\",\"For a\
+        \ record of this table\":\"Charges\",\"Does this action apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"\
+        }"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00154":
+      "Target ID": "OLAP-077"
+      "App": "OLAP"
+      "Object": "Action Cash Account Balances.View Ref (Ref Cash Account)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action name\":\"View Ref (Ref Cash Account)\",\"Bulk action?\":\"No\",\"\
+        Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Prominence\":\"Display_Inline\",\"Action order\":\"1\",\"\
+        With these properties\":{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\", ENCODEURL([Ref\
+        \ Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"\
+        ModifiesData\":false,\"BulkApplicable\":false},\"Do this\":\"NAVIGATE_APP\",\"Attach to column\":\"Ref Cash Account\"\
+        ,\"Set this column\":\"Ref Cash Account\",\"Only if this condition is true\":\"NOT(ISBLANK([Ref Cash Account]))\"\
+        ,\"Disable automatic updates?\":\"No\",\"Action icon\":\"\",\"For a record of this table\":\"Cash Account Balances\"\
+        ,\"Does this action apply to the whole table?\":\"No\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00155":
+      "Target ID": "OLAP-078"
+      "App": "OLAP"
+      "Object": "Table Cash Accounts"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Table name\":\"Cash Accounts\",\"Visible?\":\"ALWAYS\",\"Shared?\":\"Yes\"\
+        ,\"Data locale\":\"en-US\",\"Schema\":\"Cash Accounts_Schema\",\"Are updates allowed?\":\"ADDS_AND_UPDATES\",\"Source\
+        \ Path\":\"Cash Accounts\",\"Data Source\":\"database-2\",\"Store for image and file capture\":\"_Default\",\"Column\
+        \ Order List\":\"_RowNumber\",\"Partitioned across many files/sources?\":\"No\",\"Partitioned across many worksheets?\"\
+        :\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00156":
+      "Target ID": "OLAP-079"
+      "App": "OLAP"
+      "Object": "Table Cash Account Balances"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Table name\":\"Cash Account Balances\",\"Visible?\":\"ALWAYS\",\"Shared?\"\
+        :\"Yes\",\"Data locale\":\"en-US\",\"Schema\":\"Cash Account Balances_Schema\",\"Are updates allowed?\":\"READ_ONLY\"\
+        ,\"Source Path\":\"Cash Account Balances\",\"Data Source\":\"database-2\",\"Store for image and file capture\":\"\
+        _Default\",\"Column Order List\":\"_RowNumber\",\"Partitioned across many files/sources?\":\"No\",\"Partitioned across\
+        \ many worksheets?\":\"No\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00157":
+      "Target ID": "OLAP-080"
+      "App": "OLAP"
+      "Object": "Slice Borrowers with Outstanding Loans"
+      "Property": "Slice Columns"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"_RowNumber\\nRow ID\\nBorrower Name\\nDescription\\nCreation Date\\nRelated\
+        \ Loans\\nTotal Interest Earned\\nTotal Amount Loaned\\nTotal Number of Loans\\nTotal Outstanding Principal\\nHeader\
+        \ - Active Loans\\nBorrower Name TE\\nReturn on Active Principal\\nProfit Last 30 Days\\nProjected Interest Coverage\
+        \ Date\\nActive Loan Interest Earned\\nActive Daily Interest\\nRelated Loan Assessments\\nClosed Loan Interest Earned\\\
+        nClosed Loan Principle\\nHas Closed Loan\\nReturn on Closed Loans\\nHeader - Closed Loans\\nHas Active Loan\\n30D\
+        \ Gross Principal Days\\n30D Principal Reduction Days\\n30D Average Outstanding Principal\\n30D Return on Average\
+        \ Principal\\nDaily Collection Status\\nTodays Collection Charges\\nTodays Amount Due\\nTodays Amount Collected\\\
+        nTodays Amount Remaining\\nPortfolio Exposure %\\nActive Loan Count\\nOldest Active Loan Age\\nOverdue Amount\\nOverdue\
+        \ Charge Count\\nHistorical Charge Count\\nOn Time Charge Count\\nLifetime On Time Rate\\nRecent 30D Charge Count\\\
+        nRecent 30D On Time Count\\nRecent 30D On Time Rate\\nLifetime Late Payment Count\\nRecent 30D Late Payment Count\\\
+        nMaximum Days Late\\nLast Late Payment Date\\nLargest Successful Loan\\nAverage Successful Loan Size\\nDefault Count\\\
+        nLifetime Default Loss\\nPortfolio Outstanding Principal\\nPortfolio Share Join Key\\nHidden Flag\\nProjected Monthly\
+        \ Profit Contribution\\nMatrix Active Borrower Count\\nMatrix Equal Share Benchmark\\nMatrix Economic Contribution\\\
+        nMatrix Recent Reliability Score\\nMatrix Historical Reliability Score\\nMatrix Delay Severity Score\\nMatrix Current\
+        \ Condition Score\\nMatrix History Sufficient\\nMatrix Stability Score\\nMatrix Quadrant\\nMatrix Bubble Label\\nProfit\
+        \ Last 10 Days\\nMatrix Scaled Economic Contribution\\nRelated Payments\\nCity\\nWorking Location\\nAddress\\nRef\
+        \ Referrer\\nRelated Business Expenses By Ref Payee Borrower\\nRelated Business Expenses By Ref Related Borrower\\\
+        nRelated Charges\\nRelated Repayments\\nRelated Charges By Borrower Reference TE\\nPayment Request Cash Account\\\
+        nPayment Request Token\\nRef Preferred Receiving Cash Account\""
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; All required R008 fields are present;\
+        \ existing generated reverse-Ref columns and their order were preserved."
+    "row-00158":
+      "Target ID": "OLAP-081"
+      "App": "OLAP"
+      "Object": "Slice Profit Contribution 30D"
+      "Property": "Slice Columns"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"_RowNumber\\nRow ID\\nBorrower Name\\nDescription\\nCreation Date\\nRelated\
+        \ Loans\\nTotal Interest Earned\\nTotal Amount Loaned\\nTotal Number of Loans\\nTotal Outstanding Principal\\nHeader\
+        \ - Active Loans\\nBorrower Name TE\\nReturn on Active Principal\\nProfit Last 30 Days\\nProjected Interest Coverage\
+        \ Date\\nActive Loan Interest Earned\\nActive Daily Interest\\nRelated Loan Assessments\\nClosed Loan Interest Earned\\\
+        nClosed Loan Principle\\nHas Closed Loan\\nReturn on Closed Loans\\nHeader - Closed Loans\\nHas Active Loan\\n30D\
+        \ Gross Principal Days\\n30D Principal Reduction Days\\n30D Average Outstanding Principal\\n30D Return on Average\
+        \ Principal\\nDaily Collection Status\\nTodays Collection Charges\\nTodays Amount Due\\nTodays Amount Collected\\\
+        nTodays Amount Remaining\\nPortfolio Exposure %\\nActive Loan Count\\nOldest Active Loan Age\\nOverdue Amount\\nOverdue\
+        \ Charge Count\\nHistorical Charge Count\\nOn Time Charge Count\\nLifetime On Time Rate\\nRecent 30D Charge Count\\\
+        nRecent 30D On Time Count\\nRecent 30D On Time Rate\\nLifetime Late Payment Count\\nRecent 30D Late Payment Count\\\
+        nMaximum Days Late\\nLast Late Payment Date\\nLargest Successful Loan\\nAverage Successful Loan Size\\nDefault Count\\\
+        nLifetime Default Loss\\nPortfolio Outstanding Principal\\nPortfolio Share Join Key\\nHidden Flag\\nProjected Monthly\
+        \ Profit Contribution\\nMatrix Active Borrower Count\\nMatrix Equal Share Benchmark\\nMatrix Economic Contribution\\\
+        nMatrix Recent Reliability Score\\nMatrix Historical Reliability Score\\nMatrix Delay Severity Score\\nMatrix Current\
+        \ Condition Score\\nMatrix History Sufficient\\nMatrix Stability Score\\nMatrix Quadrant\\nMatrix Bubble Label\\nProfit\
+        \ Last 10 Days\\nMatrix Scaled Economic Contribution\\nRelated Payments\\nCity\\nWorking Location\\nAddress\\nRef\
+        \ Referrer\\nRelated Business Expenses By Ref Payee Borrower\\nRelated Business Expenses By Ref Related Borrower\\\
+        nRelated Charges\\nRelated Repayments\\nRelated Charges By Borrower Reference TE\\nRef Preferred Receiving Cash Account\\\
+        nPayment Request Cash Account\\nPayment Request Token\""
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; All required R008 fields are present;\
+        \ existing generated reverse-Ref columns and their order were preserved."
+    "row-00159":
+      "Target ID": "OLAP-082"
+      "App": "OLAP"
+      "Object": "Slice Reporting Loans"
+      "Property": "Slice Columns"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"_RowNumber\\nRow ID\\nLoan Date\\nClose Date\\nPrincipal Amount\\nDue Date\\\
+        nRef Borrowers\\nTotal Interest Received\\nTotal Principal Received\\nOutstanding Principal\\nTotal Amount Received\\\
+        nLoan Status TE\\nLoan Age Bucket\\nLoan Type TE\\nLoan Status\\nLoan Type\\nCurrent Daily Interest\\nFixed Interest\\\
+        nTransfer Fee\\nInterest Payment Interval\\nPrincipal Recovered by Interest %\\nExpected Interest This Month\\nEffective\
+        \ Daily Interest Rate\\nDefault Loss Amount\\nDefaulted Flag\\nBorrower Name\\nBorrower Name TE\\nLoan Duration\\\
+        nDefaulted\\nMaximum Days Late\\nDaily Payment Amount\\nExpected Daily Interest Amount\\nAuto Charge Enabled\\nInterest\
+        \ Schedule Anchor Date\\nRef Closing Payment\\nRelated Payments\\nCharge Generation Request\\nRelated Business Expenses\\\
+        nRelated Cash Ledgers\\nRef Disbursed From Cash Account\\nPayment Request Cash Account\\nPayment Request Token\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00160":
+      "Target ID": "OLAP-083"
+      "App": "OLAP"
+      "Object": "Slice Reporting Borrowers"
+      "Property": "Slice Columns"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"_RowNumber\\nRow ID\\nBorrower Name\\nBorrower Name TE\\nDescription\\nTotal\
+        \ Interest Earned\\nTotal Amount Loaned\\nTotal Number of Loans\\nTotal Outstanding Principal\\nDaily Collection Status\\\
+        nTodays Amount Due\\nTodays Amount Collected\\nTodays Amount Remaining\\n30D Return on Average Principal\\nReturn\
+        \ on Active Principal\\n30D Average Outstanding Principal\\nProfit Last 30 Days\\nHas Active Loan\\nHas Closed Loan\\\
+        nOverdue Amount\\nOverdue Charge Count\\nOldest Active Loan Age\\nActive Loan Count\\nPortfolio Exposure %\\nHistorical\
+        \ Charge Count\\nOn Time Charge Count\\nLifetime On Time Rate\\nRecent 30D Charge Count\\nRecent 30D On Time Count\\\
+        nRecent 30D On Time Rate\\nLifetime Late Payment Count\\nRecent 30D Late Payment Count\\nMaximum Days Late\\nLast\
+        \ Late Payment Date\\nLargest Successful Loan\\nAverage Successful Loan Size\\nDefault Count\\nLifetime Default Loss\\\
+        nPortfolio Outstanding Principal\\nPortfolio Share Join Key\\nHidden Flag\\nMatrix Active Borrower Count\\nMatrix\
+        \ Equal Share Benchmark\\nMatrix Economic Contribution\\nMatrix Historical Reliability Score\\nMatrix Delay Severity\
+        \ Score\\nMatrix Current Condition Score\\nMatrix Quadrant\\nMatrix Bubble Label\\nMatrix Recent Reliability Score\\\
+        nMatrix History Sufficient\\nMatrix Stability Score\\nMatrix Scaled Economic Contribution\\nRelated Payments\\nCity\\\
+        nWorking Location\\nAddress\\nRef Referrer\\nRelated Business Expenses By Ref Payee Borrower\\nRelated Business Expenses\
+        \ By Ref Related Borrower\\nRelated Charges\\nRelated Repayments\\nRelated Charges By Borrower Reference TE\\nRef\
+        \ Preferred Receiving Cash Account\\nPayment Request Cash Account\\nPayment Request Token\""
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; All required R008 fields are present;\
+        \ existing generated reverse-Ref columns and their order were preserved."
+    "row-00161":
+      "Target ID": "OLAP-084"
+      "App": "OLAP"
+      "Object": "Slice Reporting Charges"
+      "Property": "Slice Columns"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"_RowNumber\\nRow ID\\nRef Loans\\nCharge Date\\nInterest Due\\nPrincipal\
+        \ Due\\nAmount Due\\nPayment Date\\nPayment Status TE\\nPrincipal Paid\\nInterest Paid\\nTotal Paid\\nPrincipal Remaining\\\
+        nInterest Remaining\\nAmount Remaining\\nPayment Status\\nDays Late\\nHistorical On Time\\nHistorical Late\\nBorrower\
+        \ Name\\nRelated Payment Allocations\\nRelated Payments\\nRef Collection Borrower\\nPayment Request Cash Account\\\
+        nPayment Request Token\""
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; All required R008 fields are present;\
+        \ the pre-existing Ref Collection Borrower reporting field was preserved."
+    "row-00162":
+      "Target ID": "OLAP-085"
+      "App": "OLAP"
+      "Object": "Slice Todays Collection Board"
+      "Property": "Slice Columns"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"_RowNumber\\nRow ID\\nBorrower Name\\nDescription\\nHidden Flag\\nDaily Collection\
+        \ Status\\nTodays Collection Charges\\nTodays Amount Due\\nTodays Amount Collected\\nTodays Amount Remaining\\nOverdue\
+        \ Amount\\nRelated Payments\\nCity\\nWorking Location\\nAddress\\nRef Referrer\\nRelated Business Expenses By Ref\
+        \ Payee Borrower\\nRelated Business Expenses By Ref Related Borrower\\nRelated Charges\\nRelated Repayments\\nRelated\
+        \ Charges By Borrower Reference TE\\nRef Preferred Receiving Cash Account\\nPayment Request Cash Account\\nPayment\
+        \ Request Token\""
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; All required R008 fields are present;\
+        \ existing generated reverse-Ref columns and their order were preserved."
+    "row-00189":
+      "Target ID": "OLAP-R4-017"
+      "App": "OLAP"
+      "Object": "Column Borrowers.Related Repayments"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"App formula\":\"REF_ROWS(\\\"Repayments\\\", \\\"Borrower Reference TE\\\
+        \")\",\"Column name\":\"Related Repayments\",\"Description\":\"Repayments entries that reference this entry in the\
+        \ Borrower Reference TE column\",\"Editable Initial Value?\":\"Yes\",\"Fixed definition?\":\"No\",\"Formula version\"\
+        :0,\"Hidden\":\"No\",\"Key\":\"No\",\"Label\":\"No\",\"LocaleName\":\"en-US\",\"NFC Scannable\":\"No\",\"Part of Key?\"\
+        :\"No\",\"Read-Only\":\"Yes\",\"Reset on edit?\":\"No\",\"Scannable\":\"No\",\"Searchable\":\"Yes\",\"Sensitive data\"\
+        :\"No\",\"System Defined?\":\"Yes\",\"Type\":\"List\",\"Type Qualifier\":{\"Editable_If\":null,\"ElementType\":\"\
+        Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Repayments\\\",\\\"ReferencedRootTableName\\\":\\\
+        \"Repayments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\"\
+        :null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\
+        \\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\
+        \\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\
+        \\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\
+        \"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"\
+        Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Error_Message_If_Invalid\"\
+        :null,\"ItemSeparator\":\" , \",\"Required_If\":null,\"Reset_If\":null,\"Show_If\":null,\"Suggested_Values\":null,\"\
+        Valid_If\":null},\"Virtual?\":\"Yes\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00190":
+      "Target ID": "OLAP-R4-018"
+      "App": "OLAP"
+      "Object": "Column Borrowers.Related Charges By Borrower Reference TE"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"App formula\":\"REF_ROWS(\\\"Charges\\\", \\\"Borrower Reference TE\\\"\
+        )\",\"Column name\":\"Related Charges By Borrower Reference TE\",\"Description\":\"Charges entries that reference\
+        \ this entry in the Borrower Reference TE column\",\"Editable Initial Value?\":\"Yes\",\"Fixed definition?\":\"No\"\
+        ,\"Formula version\":0,\"Hidden\":\"No\",\"Key\":\"No\",\"Label\":\"No\",\"LocaleName\":\"en-US\",\"NFC Scannable\"\
+        :\"No\",\"Part of Key?\":\"No\",\"Read-Only\":\"Yes\",\"Reset on edit?\":\"No\",\"Scannable\":\"No\",\"Searchable\"\
+        :\"Yes\",\"Sensitive data\":\"No\",\"System Defined?\":\"Yes\",\"Type\":\"List\",\"Type Qualifier\":{\"Editable_If\"\
+        :null,\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Charges\\\",\\\"ReferencedRootTableName\\\
+        \":\\\"Charges\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\
+        \":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\
+        \\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\
+        \\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\
+        \\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\
+        \"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"\
+        Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Error_Message_If_Invalid\"\
+        :null,\"ItemSeparator\":\" , \",\"Required_If\":null,\"Reset_If\":null,\"Show_If\":null,\"Suggested_Values\":null,\"\
+        Valid_If\":null},\"Virtual?\":\"Yes\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00191":
+      "Target ID": "OLAP-R4-019"
+      "App": "OLAP"
+      "Object": "Column Repayments.Borrower Reference TE"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"App formula\":\"=[Ref Loans].[Ref Borrowers]\",\"Column name\":\"Borrower\
+        \ Reference TE\",\"Display name\":\"=\\\"Borrower Name TE\\\"\",\"Editable Initial Value?\":\"Yes\",\"Fixed definition?\"\
+        :\"No\",\"Formula version\":0,\"Hidden\":\"No\",\"Key\":\"No\",\"Label\":\"No\",\"LocaleName\":\"en-US\",\"Part of\
+        \ Key?\":\"No\",\"Read-Only\":\"Yes\",\"Reset on edit?\":\"No\",\"Scannable\":\"No\",\"Searchable\":\"Yes\",\"Sensitive\
+        \ data\":\"No\",\"System Defined?\":\"No\",\"Type\":\"Ref\",\"Type Qualifier\":{\"Editable_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"InputMode\":\"Auto\",\"IsAPartOf\":false,\"ReferencedKeyColumn\":\"Row ID\",\"ReferencedRootTableName\":\"\
+        Borrowers\",\"ReferencedTableName\":\"Borrowers\",\"ReferencedType\":\"Text\",\"RelationshipName\":null,\"Required_If\"\
+        :null,\"Reset_If\":null,\"Show_If\":\"=CONTEXT(\\\"ViewType\\\") = \\\"Detail\\\"\",\"Suggested_Values\":null,\"Valid_If\"\
+        :null},\"Virtual?\":\"Yes\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00192":
+      "Target ID": "OLAP-R4-020"
+      "App": "OLAP"
+      "Object": "Column Charges.Borrower Reference TE"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"App formula\":\"=[Ref Loans].[Ref Borrowers]\",\"Column name\":\"Borrower\
+        \ Reference TE\",\"Display name\":\"=\\\"Borrower Name TE\\\"\",\"Editable Initial Value?\":\"Yes\",\"Fixed definition?\"\
+        :\"No\",\"Formula version\":0,\"Hidden\":\"No\",\"Key\":\"No\",\"Label\":\"No\",\"LocaleName\":\"en-US\",\"Part of\
+        \ Key?\":\"No\",\"Read-Only\":\"Yes\",\"Reset on edit?\":\"No\",\"Scannable\":\"No\",\"Searchable\":\"Yes\",\"Sensitive\
+        \ data\":\"No\",\"System Defined?\":\"No\",\"Type\":\"Ref\",\"Type Qualifier\":{\"Editable_If\":null,\"Error_Message_If_Invalid\"\
+        :null,\"InputMode\":\"Auto\",\"IsAPartOf\":false,\"ReferencedKeyColumn\":\"Row ID\",\"ReferencedRootTableName\":\"\
+        Borrowers\",\"ReferencedTableName\":\"Borrowers\",\"ReferencedType\":\"Text\",\"RelationshipName\":null,\"Required_If\"\
+        :null,\"Reset_If\":null,\"Show_If\":\"=CONTEXT(\\\"ViewType\\\") = \\\"Detail\\\"\",\"Suggested_Values\":null,\"Valid_If\"\
+        :null},\"Virtual?\":\"Yes\",\"Visible?\":\"ALWAYS\"}"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00193":
+      "Target ID": "OLAP-R4-025"
+      "App": "OLAP"
+      "Object": "View Charges_Detail"
+      "Property": "View configuration.ColumnOrder"
+      "Operation": "reorder"
+      "Current PROD value / accepted target": "[\"Charge Date\",\"Ref Loans\",\"Payment Status\",\"Amount Due\",\"Principal\
+        \ Due\",\"Interest Due\",\"Related Repayments\",\"Borrower Reference TE\"]"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00194":
+      "Target ID": "OLAP-R4-026"
+      "App": "OLAP"
+      "Object": "View Loans_Detail"
+      "Property": "View configuration.ColumnOrder"
+      "Operation": "reorder"
+      "Current PROD value / accepted target": "[\"Loan Date\",\"Loan End Date\",\"Loan Duration\",\"Principal Amount\",\"\
+        Loan Type TE\",\"Due Date\",\"Fixed Interest\",\"Current Daily Interest\",\"Interest Payment Interval\",\"Interest\
+        \ Schedule Anchor Date\",\"Ref Borrowers\",\"Loan Arrangement\",\"Loan Status TE\",\"Statistics Header\",\"Outstanding\
+        \ Principal\",\"Transfer Fee\",\"Total Principal Received\",\"Total Amount Received\",\"Total Interest Received\"\
+        ,\"Principal Recovered by Interest %\",\"Related Charges\",\"Default Loss Amount\",\"Defaulted Flag\"]"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00195":
+      "Target ID": "OLAP-R4-027"
+      "App": "OLAP"
+      "Object": "View Repayments_Detail"
+      "Property": "View configuration.ColumnOrder"
+      "Operation": "reorder"
+      "Current PROD value / accepted target": "[\"Payment Date\",\"Ref Loans\",\"Amount Received\",\"Principal Paid\",\"Interest\
+        \ Paid\",\"Header - Profit\",\"Partner A Profit\",\"Partner B Profit\",\"Notes\",\"Borrower Reference TE\"]"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00196":
+      "Target ID": "OLAP-R4-028"
+      "App": "OLAP"
+      "Object": "Action Loans.View Ref (Ref Borrowers)"
+      "Property": "Attach to column"
+      "Operation": "change"
+      "Current PROD value / accepted target": "\"Ref Borrowers\""
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00197":
+      "Target ID": "OLAP-R4-029"
+      "App": "OLAP"
+      "Object": "Action Charges.Open Borrower from Charge"
+      "Property": "definition"
+      "Operation": "remove"
+      "Current PROD value / accepted target": "Absent"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00198":
+      "Target ID": "OLAP-R4-030"
+      "App": "OLAP"
+      "Object": "Action Repayments.Open Borrower from Repayment"
+      "Property": "definition"
+      "Operation": "remove"
+      "Current PROD value / accepted target": "Absent"
+      "Verification / adjudication": "VERIFIED_MATCH; fresh PROD AppDoc OLAP 1.100178; 2026-09-19"
+    "row-00199":
+      "Target ID": "OLAP-R4-031"
+      "App": "OLAP"
+      "Object": "Action Charges.View Ref (Borrower Reference TE)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action icon\":\"\",\"Action name\":\"View Ref (Borrower Reference TE)\"\
+        ,\"Action order\":\"1\",\"Attach to column\":\"Borrower Reference TE\",\"Bulk action?\":\"No\",\"Disable automatic\
+        \ updates?\":\"No\",\"Do this\":\"NAVIGATE_APP\",\"Does this action apply to the whole table?\":\"No\",\"For a record\
+        \ of this table\":\"Charges\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Only if this condition is\
+        \ true\":\"NOT(ISBLANK([Borrower Reference TE]))\",\"Prominence\":\"Display_Inline\",\"Set this column\":\"Borrower\
+        \ Reference TE\",\"Visible?\":\"ALWAYS\",\"With these properties\":{\"BulkApplicable\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Borrowers&row=\\\", ENCODEURL([Borrower\
+        \ Reference TE]) )\",\"NeedsConfirmation\":false,\"Prominence\":\"Display_Inline\"}}"
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; This is AppSheet's generated native Ref\
+        \ action; navigation target, attach column, condition and inline prominence match. AppDoc serializes its generated\
+        \ visibility as ALWAYS."
+    "row-00200":
+      "Target ID": "OLAP-R4-032"
+      "App": "OLAP"
+      "Object": "Action Repayments.View Ref (Borrower Reference TE)"
+      "Property": "definition"
+      "Operation": "add"
+      "Current PROD value / accepted target": "{\"Action icon\":\"\",\"Action name\":\"View Ref (Borrower Reference TE)\"\
+        ,\"Action order\":\"1\",\"Attach to column\":\"Borrower Reference TE\",\"Bulk action?\":\"No\",\"Disable automatic\
+        \ updates?\":\"No\",\"Do this\":\"NAVIGATE_APP\",\"Does this action apply to the whole table?\":\"No\",\"For a record\
+        \ of this table\":\"Repayments\",\"Modifies data?\":\"No\",\"Needs confirmation?\":\"No\",\"Only if this condition\
+        \ is true\":\"NOT(ISBLANK([Borrower Reference TE]))\",\"Prominence\":\"Display_Inline\",\"Set this column\":\"Borrower\
+        \ Reference TE\",\"Visible?\":\"ALWAYS\",\"With these properties\":{\"BulkApplicable\":false,\"ConfirmationMessage\"\
+        :\"\",\"ModifiesData\":false,\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Borrowers&row=\\\", ENCODEURL([Borrower\
+        \ Reference TE]) )\",\"NeedsConfirmation\":false,\"Prominence\":\"Display_Inline\"}}"
+      "Verification / adjudication": "VERIFIED_EQUIVALENT; fresh PROD OLAP 1.100178; This is AppSheet's generated native Ref\
+        \ action; navigation target, attach column, condition and inline prominence match. AppDoc serializes its generated\
+        \ visibility as ALWAYS."

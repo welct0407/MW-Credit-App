@@ -1,0 +1,147 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Cashflow Transactions"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Model grain"
+      "Type / source": "public.reporting_cashflow_transactions"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction\
+        \ classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal\
+        \ transfers have zero consolidated inflow/outflow, with their face amount shown separately."
+    "Entry ID":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Entry ID"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Entry ID"
+    "Scope ID":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Scope ID"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Select exactly one scope; __ALL__ consolidates internal transfers."
+    "Account":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Account"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Account"
+    "Ledger ID":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Ledger ID"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Ledger ID"
+    "Date":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Date"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Date"
+    "Posted At":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Posted At"
+      "Type / source": "type/DateTime"
+      "Semantic / relationship": null
+      "Definition": "Posted At"
+    "Transaction Type":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Transaction Type"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Transaction Type"
+    "Counterparty":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Counterparty"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Counterparty"
+    "From Account":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "From Account"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "From Account"
+    "To Account":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "To Account"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "To Account"
+    "Internal Transfer":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Internal Transfer"
+      "Type / source": "type/Boolean"
+      "Semantic / relationship": null
+      "Definition": "Internal Transfer"
+    "Transaction Amount":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Transaction Amount"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Transaction Amount"
+    "Money In":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Money In"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Money In"
+    "Money Out":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Money Out"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Money Out"
+    "Net Movement":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Net Movement"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Net Movement"
+    "Balance After":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Balance After"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Signed net cash; unavailable before the known opening. Later corrections restate history."
+    "Available From":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Available From"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Available From"
+    "Notes":
+      "Model": "Cashflow Transactions"
+      "ID": 190
+      "Field / grain": "Notes"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Notes"

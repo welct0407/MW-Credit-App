@@ -9,7 +9,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Current identities/settings | [Environment Inventory](Environment_Inventory.md) |
 | Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |
 | Model explanations | [Model Overview](AppSheet_Data_Model_Overview.md) |
-| Exact model/configuration values | [Data Dictionary](AppSheet_Data_Dictionary.xlsx) |
+| Exact model/configuration values across ecosystem systems | [Data Dictionary](Data%20Dictionary/README.md) |
 | Triggered promotion implementation detail | [Release Workflow](Release_Workflow.md) |
 | Failure/hotfix handling | [Release Recovery](Release_Recovery_Runbook.md) |
 | DEV setup or changed routing | [DEV Preparation](Development_Environment_Preparation.md) |

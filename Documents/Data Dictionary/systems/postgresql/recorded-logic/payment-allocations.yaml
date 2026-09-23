@@ -1,0 +1,39 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "Payment Allocations"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00043":
+      "Kind": "Trigger"
+      "Schema / table": "Payment Allocations"
+      "Name": "appsheet_blank_refs"
+      "Status / hash": "O"
+      "Definition / arguments": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Payment Allocations\"\
+        \ FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Payment', 'Ref Charge')"
+    "row-00044":
+      "Kind": "Trigger"
+      "Schema / table": "Payment Allocations"
+      "Name": "lump_sum_child_guard"
+      "Status / hash": "O"
+      "Definition / arguments": "CREATE TRIGGER lump_sum_child_guard BEFORE INSERT OR DELETE OR UPDATE ON public.\"Payment\
+        \ Allocations\" FOR EACH ROW EXECUTE FUNCTION lump_sum_child_guard()"
+    "row-00095":
+      "Kind": "Trigger"
+      "Schema / table": "Payment Allocations"
+      "Name": "vc_payment_changed"
+      "Status / hash": "V14; production and development"
+      "Definition / arguments": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."
+    "row-00097":
+      "Kind": "Trigger"
+      "Schema / table": "Payment Allocations"
+      "Name": "aa_vc_payment_lock"
+      "Status / hash": "V14; production and development"
+      "Definition / arguments": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."

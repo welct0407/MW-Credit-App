@@ -5,3 +5,7 @@ database/migrations/*.sql -text
 outputs/r010-20260919/cash-statement/flyway-release.json -text
 # R014 DEV Flyway manifest retains its exact tested bytes.
 outputs/r014-20260921/flyway-release.json -text
+# Keep the dictionary's text and migration hashes stable across Windows checkouts.
+"/Documents/Data Dictionary/**" text eol=lf
+/scripts/dictionary/** text eol=lf
+/outputs/dictionary-migration-20260923/** text eol=lf

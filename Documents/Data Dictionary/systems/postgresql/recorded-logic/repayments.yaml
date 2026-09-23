@@ -1,0 +1,66 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "Repayments"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00050":
+      "Kind": "Trigger"
+      "Schema / table": "Repayments"
+      "Name": "appsheet_blank_refs"
+      "Status / hash": "O"
+      "Definition / arguments": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Repayments\" FOR EACH\
+        \ ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Loans', 'Ref Charges', 'Ref Payment', 'Ref Payment Allocation')"
+    "row-00051":
+      "Kind": "Trigger"
+      "Schema / table": "Repayments"
+      "Name": "default_posting_guard"
+      "Status / hash": "O"
+      "Definition / arguments": "CREATE TRIGGER default_posting_guard BEFORE DELETE OR UPDATE ON public.\"Repayments\" FOR\
+        \ EACH ROW EXECUTE FUNCTION default_posting_guard()"
+    "row-00052":
+      "Kind": "Trigger"
+      "Schema / table": "Repayments"
+      "Name": "lump_sum_child_guard"
+      "Status / hash": "O"
+      "Definition / arguments": "CREATE TRIGGER lump_sum_child_guard BEFORE INSERT OR DELETE OR UPDATE ON public.\"Repayments\"\
+        \ FOR EACH ROW EXECUTE FUNCTION lump_sum_child_guard()"
+    "row-00073":
+      "Kind": "Trigger"
+      "Schema / table": "Repayments"
+      "Name": "aa_vc_lock"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; source or derived-value\
+        \ event."
+    "row-00076":
+      "Kind": "Trigger"
+      "Schema / table": "Repayments"
+      "Name": "vc_repayment_changed"
+      "Status / hash": "V12; production and development"
+      "Definition / arguments": "See immutable migration V12__charge_loan_materialized_balances.sql; source or derived-value\
+        \ event."
+    "row-00088":
+      "Kind": "Trigger"
+      "Schema / table": "Repayments"
+      "Name": "vc_borrower_changed"
+      "Status / hash": "V13; production and development"
+      "Definition / arguments": "See immutable migration V13__borrower_materialized_rollups.sql; source or derived-value event."
+    "row-00096":
+      "Kind": "Trigger"
+      "Schema / table": "Repayments"
+      "Name": "vc_payment_changed"
+      "Status / hash": "V14; production and development"
+      "Definition / arguments": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."
+    "row-00098":
+      "Kind": "Trigger"
+      "Schema / table": "Repayments"
+      "Name": "aa_vc_payment_lock"
+      "Status / hash": "V14; production and development"
+      "Definition / arguments": "See immutable migration V14__payment_materialized_totals.sql; source or derived-value event."

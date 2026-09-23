@@ -1,0 +1,83 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Collection Worklist"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Model grain"
+      "Type / source": "scripts/metabase/models/collections.sql"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One row per borrower with a collection status. Posted receipts today are aggregated before joining; governed\
+        \ due, collected, remaining and overdue measures remain separate."
+    "Borrower ID":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Borrower ID"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Borrower ID"
+    "Borrower":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Borrower"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Borrower"
+    "Hidden":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Hidden"
+      "Type / source": "type/Boolean"
+      "Semantic / relationship": null
+      "Definition": "Hidden"
+    "Daily Collection Status":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Daily Collection Status"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Daily Collection Status"
+    "Amount Due":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Amount Due"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Amount Due"
+    "Amount Collected":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Amount Collected"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Amount Collected"
+    "Amount Remaining":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Amount Remaining"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Amount Remaining"
+    "Overdue Amount":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Overdue Amount"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Overdue Amount"
+    "Receipts Today":
+      "Model": "Collection Worklist"
+      "ID": 77
+      "Field / grain": "Receipts Today"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Receipts Today"

@@ -1,0 +1,25 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/dev-differences"
+  "kind": "sheet-records"
+  "name": |-
+    R007 production closure
+    2026-09-18
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "Dev Differences"
+  "records":
+    "row-02497":
+      "App": |-
+        R007 production closure
+        2026-09-18
+      "Object": "Release closure"
+      "Property": "PROD target / evidence"
+      "Production": "PROD OLAP 1.100131 and SQL V22 match the promoted R007 delta; PROD OLTP 3.000173 unchanged. Saved editor\
+        \ readback, diagnostics, runtime smoke and production SQL evidence are in outputs/r007-20260918."
+      "Development": "Released after owner approval; DEV difference closed. Prototype schedule warnings remain explicitly\
+        \ excluded for DEV only."

@@ -1,0 +1,23 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Notify payment-closed loans Output"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLTP"
+  "source_table": "Notify payment-closed loans Output"
+  "binding":
+    "App": "OLTP"
+    "Version": "v3.000121"
+    "Table": "Notify payment-closed loans Output"
+    "Source": "native"
+    "Source path": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/d93019b5-64f3-4a8f-840f-44cc8566a206/StepOutput_Notify\
+      \ payment-closed loans"
+    "Schema": "Notify payment-closed loans Output_Schema"
+    "Update permission": "READ_ONLY"
+    "Scope": "AppSheet internal process metadata"

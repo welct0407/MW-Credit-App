@@ -1,0 +1,186 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Loan Assessment SQL Lab"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Assessment ID":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "Assessment ID"
+      "Position": 2
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Borrower":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "Ref Borrower"
+      "Position": 3
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Proposed Loan Amount":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "Proposed Loan Amount"
+      "Position": 4
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Minimum Daily Profit Rate":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "Minimum Daily Profit Rate"
+      "Position": 5
+      "PostgreSQL type": "real"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Current Principal":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Current Principal"
+      "Position": 6
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Interest Received":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Interest Received"
+      "Position": 7
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Eligible Date":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Eligible Date"
+      "Position": 8
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Eligible Interest":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Eligible Interest"
+      "Position": 9
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Eligible Principal":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Eligible Principal"
+      "Position": 10
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Eligible Profit":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Eligible Profit"
+      "Position": 11
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Eligible Coverage":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Eligible Coverage"
+      "Position": 12
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Eligible Margin":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Eligible Margin"
+      "Position": 13
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Current Margin":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Current Margin"
+      "Position": 14
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Calculated At":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Calculated At"
+      "Position": 15
+      "PostgreSQL type": "timestamp without time zone"
+      "Nullable": "YES"
+      "Default": null
+    "SQL As Of":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL As Of"
+      "Position": 16
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Forecast Start":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Forecast Start"
+      "Position": 17
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": "'2026-08-01'::date"
+    "SQL Forecast End":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Forecast End"
+      "Position": 18
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": "'2026-12-31'::date"
+    "SQL Refresh Token":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Refresh Token"
+      "Position": 19
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Source Fingerprint":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Source Fingerprint"
+      "Position": 20
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Input Borrower":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Input Borrower"
+      "Position": 21
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Input Amount":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Input Amount"
+      "Position": 22
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "SQL Input Rate":
+      "Table / view": "Loan Assessment SQL Lab"
+      "Column": "SQL Input Rate"
+      "Position": 23
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+  "constraints":
+    "Loan Assessment SQL Lab_Row ID_not_null":
+      "Table": "Loan Assessment SQL Lab"
+      "Constraint": "Loan Assessment SQL Lab_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Loan Assessment SQL Lab_pkey":
+      "Table": "Loan Assessment SQL Lab"
+      "Constraint": "Loan Assessment SQL Lab_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"

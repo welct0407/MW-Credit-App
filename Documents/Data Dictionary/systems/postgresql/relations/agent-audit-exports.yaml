@@ -1,0 +1,70 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "agent_audit.exports"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "operation_id":
+      "Table / view": "agent_audit.exports"
+      "Column": "operation_id"
+      "Position": 1
+      "PostgreSQL type": "uuid"
+      "Nullable": "NO"
+      "Default": null
+    "central_completion_event_id":
+      "Table / view": "agent_audit.exports"
+      "Column": "central_completion_event_id"
+      "Position": 2
+      "PostgreSQL type": "uuid"
+      "Nullable": "NO"
+      "Default": null
+    "exported_at":
+      "Table / view": "agent_audit.exports"
+      "Column": "exported_at"
+      "Position": 3
+      "PostgreSQL type": "timestamp with time zone"
+      "Nullable": "NO"
+      "Default": "clock_timestamp()"
+  "constraints":
+    "exports_central_completion_event_id_key":
+      "Table": "agent_audit.exports"
+      "Constraint": "exports_central_completion_event_id_key"
+      "Type": "u"
+      "Validated": true
+      "Definition": "UNIQUE (central_completion_event_id)"
+    "exports_central_completion_event_id_not_null":
+      "Table": "agent_audit.exports"
+      "Constraint": "exports_central_completion_event_id_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL central_completion_event_id"
+    "exports_exported_at_not_null":
+      "Table": "agent_audit.exports"
+      "Constraint": "exports_exported_at_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL exported_at"
+    "exports_operation_id_fkey":
+      "Table": "agent_audit.exports"
+      "Constraint": "exports_operation_id_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (operation_id) REFERENCES agent_audit.commits(operation_id)"
+    "exports_operation_id_not_null":
+      "Table": "agent_audit.exports"
+      "Constraint": "exports_operation_id_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL operation_id"
+    "exports_pkey":
+      "Table": "agent_audit.exports"
+      "Constraint": "exports_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (operation_id)"

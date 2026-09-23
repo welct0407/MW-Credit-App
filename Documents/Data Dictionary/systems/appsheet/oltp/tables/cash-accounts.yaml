@@ -1,0 +1,25 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Cash Accounts"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLTP"
+  "source_table": "Cash Accounts"
+  "columns":
+    "Alternative Account Number":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Cash Accounts"
+        "Column": "Alternative Account Number"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"

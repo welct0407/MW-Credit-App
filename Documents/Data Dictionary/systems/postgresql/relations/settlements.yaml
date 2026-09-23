@@ -1,0 +1,80 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Settlements"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Settlements"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Settlement Date":
+      "Table / view": "Settlements"
+      "Column": "Settlement Date"
+      "Position": 2
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Partner":
+      "Table / view": "Settlements"
+      "Column": "Ref Partner"
+      "Position": 3
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Amount":
+      "Table / view": "Settlements"
+      "Column": "Amount"
+      "Position": 4
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Status":
+      "Table / view": "Settlements"
+      "Column": "Status"
+      "Position": 5
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Transfer Date":
+      "Table / view": "Settlements"
+      "Column": "Transfer Date"
+      "Position": 6
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Notes":
+      "Table / view": "Settlements"
+      "Column": "Notes"
+      "Position": 7
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+  "constraints":
+    "Settlements_Row ID_not_null":
+      "Table": "Settlements"
+      "Constraint": "Settlements_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Settlements_pkey":
+      "Table": "Settlements"
+      "Constraint": "Settlements_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"
+    "appsheet_ref_09":
+      "Table": "Settlements"
+      "Constraint": "appsheet_ref_09"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Partner\") REFERENCES \"Partners\"(\"Row ID\")"

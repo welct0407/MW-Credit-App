@@ -1,0 +1,99 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "slice"
+  "name": "Reporting Daily Analytics"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "definition":
+    "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Permission": "READ_ONLY"
+    "Filter": null
+    "Actions": "**auto**"
+  "members":
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 1
+    "Column": "_RowNumber"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 2
+    "Column": "Row ID"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 3
+    "Column": "Snapshot Date"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 4
+    "Column": "Principal Issued"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 5
+    "Column": "Principal Returned"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 6
+    "Column": "Interest Received"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 7
+    "Column": "Outstanding Principal EOD"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 8
+    "Column": "Active Loans EOD"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 9
+    "Column": "Active Borrowers EOD"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 10
+    "Column": "Pending Charges EOD"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 11
+    "Column": "Daily Capital Yield"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 12
+    "Column": "Portfolio Share Join Key"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 13
+    "Column": "Portfolio Slice"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 14
+    "Column": "Business Expenses"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 15
+    "Column": "Net Profit"
+  - "App": "OLAP"
+    "Slice": "Reporting Daily Analytics"
+    "Source table": "Daily Analytics"
+    "Ordinal": 16
+    "Column": "Net Unsettled Profit EOD"

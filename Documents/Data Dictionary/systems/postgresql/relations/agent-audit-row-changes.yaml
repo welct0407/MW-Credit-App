@@ -1,0 +1,163 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "agent_audit.row_changes"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "change_id":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "change_id"
+      "Position": 1
+      "PostgreSQL type": "bigint"
+      "Nullable": "NO"
+      "Default": null
+    "operation_id":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "operation_id"
+      "Position": 2
+      "PostgreSQL type": "uuid"
+      "Nullable": "NO"
+      "Default": null
+    "database_txid":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "database_txid"
+      "Position": 3
+      "PostgreSQL type": "xid8"
+      "Nullable": "NO"
+      "Default": "pg_current_xact_id()"
+    "schema_name":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "schema_name"
+      "Position": 4
+      "PostgreSQL type": "name"
+      "Nullable": "NO"
+      "Default": null
+    "table_name":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "table_name"
+      "Position": 5
+      "PostgreSQL type": "name"
+      "Nullable": "NO"
+      "Default": null
+    "action":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "action"
+      "Position": 6
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "row_key":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "row_key"
+      "Position": 7
+      "PostgreSQL type": "jsonb"
+      "Nullable": "NO"
+      "Default": null
+    "before_row":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "before_row"
+      "Position": 8
+      "PostgreSQL type": "jsonb"
+      "Nullable": "YES"
+      "Default": null
+    "after_row":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "after_row"
+      "Position": 9
+      "PostgreSQL type": "jsonb"
+      "Nullable": "YES"
+      "Default": null
+    "observed_at":
+      "Table / view": "agent_audit.row_changes"
+      "Column": "observed_at"
+      "Position": 10
+      "PostgreSQL type": "timestamp with time zone"
+      "Nullable": "NO"
+      "Default": "clock_timestamp()"
+  "constraints":
+    "row_changes_action_check":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_action_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((action = ANY (ARRAY['INSERT'::text, 'UPDATE'::text, 'DELETE'::text])))"
+    "row_changes_action_not_null":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_action_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL action"
+    "row_changes_change_id_not_null":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_change_id_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL change_id"
+    "row_changes_check":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((((action = 'INSERT'::text) AND (before_row IS NULL) AND (after_row IS NOT NULL)) OR ((action\
+        \ = 'UPDATE'::text) AND (before_row IS NOT NULL) AND (after_row IS NOT NULL)) OR ((action = 'DELETE'::text) AND (before_row\
+        \ IS NOT NULL) AND (after_row IS NULL))))"
+    "row_changes_database_txid_not_null":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_database_txid_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL database_txid"
+    "row_changes_observed_at_not_null":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_observed_at_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL observed_at"
+    "row_changes_operation_id_database_txid_fkey":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_operation_id_database_txid_fkey"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (operation_id, database_txid) REFERENCES agent_audit.commits(operation_id, database_txid)"
+    "row_changes_operation_id_not_null":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_operation_id_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL operation_id"
+    "row_changes_pkey":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (change_id)"
+    "row_changes_row_key_check":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_row_key_check"
+      "Type": "c"
+      "Validated": true
+      "Definition": "CHECK ((jsonb_typeof(row_key) = 'object'::text))"
+    "row_changes_row_key_not_null":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_row_key_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL row_key"
+    "row_changes_schema_name_not_null":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_schema_name_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL schema_name"
+    "row_changes_table_name_not_null":
+      "Table": "agent_audit.row_changes"
+      "Constraint": "row_changes_table_name_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL table_name"

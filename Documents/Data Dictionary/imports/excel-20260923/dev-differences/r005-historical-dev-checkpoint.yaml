@@ -1,0 +1,1845 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/dev-differences"
+  "kind": "sheet-records"
+  "name": "R005 historical DEV checkpoint"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "Dev Differences"
+  "records":
+    "row-01159":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holders"
+      "Property": "Row ID"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text PRIMARY KEY Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01160":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holders"
+      "Property": "Holder Name"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text NOT NULL UNIQUE Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01161":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holders"
+      "Property": "Active"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "boolean NOT NULL DEFAULT true Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120.\
+        \ GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the\
+        \ approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01162":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holders"
+      "Property": "Sort Order"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "integer NOT NULL Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01163":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holders"
+      "Property": "Created At"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok') Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01164":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Row ID"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text PRIMARY KEY Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01165":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Movement Date"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "date NOT NULL Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01166":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Movement Type"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text NOT NULL Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01167":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Amount"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "numeric NOT NULL CHECK(\"Amount\">0 AND \"Amount\"<'Infinity'::numeric AND \"Amount\"=trunc(\"Amount\"\
+        )) Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified;\
+        \ deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance\
+        \ pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01168":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Ref From Cash Holder"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text REFERENCES public.\"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01169":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Ref To Cash Holder"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text REFERENCES public.\"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01170":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Ref Payment"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text REFERENCES public.\"Payments\"(\"Row ID\") ON DELETE RESTRICT Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01171":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Ref Loan"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text REFERENCES public.\"Loans\"(\"Row ID\") ON DELETE RESTRICT Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01172":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Ref Business Expense"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text REFERENCES public.\"Business Expenses\"(\"Row ID\") ON DELETE RESTRICT Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01173":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Ref Settlement"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text REFERENCES public.\"Settlements\"(\"Row ID\") ON DELETE RESTRICT Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01174":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Entry Origin"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text NOT NULL DEFAULT 'Manual' CHECK(\"Entry Origin\" IN ('System','Manual')) Applied to DEV; saved\
+        \ AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun\
+        \ unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01175":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Source Type"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text NOT NULL DEFAULT 'Manual' Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120.\
+        \ GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the\
+        \ approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01176":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Source Key"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text NOT NULL Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01177":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Notes"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL\
+        \ readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception.\
+        \ Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01178":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Created At"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok') Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01179":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Created By"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text NOT NULL DEFAULT 'SQL' Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120.\
+        \ GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the\
+        \ approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01180":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "Updated At"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok') Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01181":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Payments"
+      "Property": "Ref Received By Cash Holder"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text nullable FK to Cash Holders.Row ID, ON DELETE RESTRICT. New-row SQL default ch:dad; First-day Auto\
+        \ fixed ch:lisa. Historical NULLs preserved. Planned OLTP editable Dad/Lisa, OLAP read-only. Applied to DEV; saved\
+        \ AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun\
+        \ unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01182":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Business Expenses"
+      "Property": "Ref Paid By Cash Holder"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text nullable FK to Cash Holders.Row ID, ON DELETE RESTRICT. No manual default. Required new positive\
+        \ manual expense; new Referral Rebate fixed ch:lisa. Planned OLTP source entry, OLAP read-only. Applied to DEV; saved\
+        \ AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun\
+        \ unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01183":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "r005_cash_cutover_sources"
+      "Property": "source_type"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text NOT NULL CHECK IN ('Payment','Loan','Business Expense','Settlement'); composite PK with source_row_id.\
+        \ Immutable SQL-only metadata, absent from both apps. Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP\
+        \ 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain\
+        \ under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and\
+        \ configuration-checklist.json."
+    "row-01184":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "r005_cash_cutover_sources"
+      "Property": "source_row_id"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "text NOT NULL; composite PK with source_type. Pre-cutover source identity only. Old completed settlements\
+        \ excluded; old pending settlements remain eligible. Absent from both apps. Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01185":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holder Balances"
+      "Property": "Ref Cash Holder"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Cash Holders.Row ID; one row per holder; planned read-only Ref key. SQL view; planned OLAP read-only,\
+        \ no OLTP aggregation. Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and\
+        \ SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01186":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holder Balances"
+      "Property": "Holder Name"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Cash Holders.Holder Name; planned label. SQL view; planned OLAP read-only, no OLTP aggregation. Applied\
+        \ to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check\
+        \ rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See\
+        \ outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01187":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holder Balances"
+      "Property": "Cash In"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "SUM(Cash Ledger.Amount WHERE Ref To Cash Holder = holder), or 0. SQL view; planned OLAP read-only, no\
+        \ OLTP aggregation. Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL\
+        \ readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception.\
+        \ Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01188":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holder Balances"
+      "Property": "Cash Out"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "SUM(Cash Ledger.Amount WHERE Ref From Cash Holder = holder), or 0. SQL view; planned OLAP read-only,\
+        \ no OLTP aggregation. Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and\
+        \ SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01189":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holder Balances"
+      "Property": "Current Balance"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Cash In - Cash Out. SQL view; planned OLAP read-only, no OLTP aggregation. Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01190":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holder Balances"
+      "Property": "Business Cash Held"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "GREATEST(Current Balance, 0). SQL view; planned OLAP read-only, no OLTP aggregation. Applied to DEV;\
+        \ saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check\
+        \ rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See\
+        \ outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01191":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Holder Balances"
+      "Property": "Reimbursement / Advance Due"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "GREATEST(-Current Balance, 0). SQL view; planned OLAP read-only, no OLTP aggregation. Applied to DEV;\
+        \ saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check\
+        \ rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See\
+        \ outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01192":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Cash Ledger"
+      "Property": "App ownership"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Owner refinement: OLAP owns manual transfers, Cash Position and ledger presentation. SQL owns automatic\
+        \ source synchronization. System rows read-only; normal manual types Cash Handover and Expense Reimbursement. Opening/Manual\
+        \ Correction require controlled SQL administration. No opening amounts authorized. Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01193":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Table name/Cash Holders"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Table name\":\"Cash Holders\",\"Visible?\":\"ALWAYS\",\"Shared?\":\"Yes\",\"Data locale\":\"en-US\"\
+        ,\"Schema\":\"Cash Holders_Schema\",\"Are updates allowed?\":\"READ_ONLY\",\"Source Path\":\"Cash Holders\",\"Data\
+        \ Source\":\"database-3\",\"Store for image and file capture\":\"_Default\",\"Column Order List\":\"_RowNumber\",\"\
+        Partitioned across many files/sources?\":\"No\",\"Partitioned across many worksheets?\":\"No\"} Applied to DEV; saved\
+        \ AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun\
+        \ unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01194":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Payments_Schema/Ref Received By Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Received By Cash Holder\",\"Visible?\":\"ALWAYS\",\"Display name\":\"=\\\"ผู้รับเงิน\
+        \ / Received By\\\"\",\"Type\":\"Ref\",\"Type Qualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Holders\\\",\\\"\
+        ReferencedRootTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+        \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+        Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+        \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"\
+        Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\
+        \":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":\\\"=LIST(\\\\\\\"ch:dad\\\\\
+        \\\", \\\\\\\"ch:lisa\\\\\\\")\\\",\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\"\
+        :\\\"=OR(NOT(IN([Row ID], Payments[Row ID])), ISNOTBLANK(LOOKUP([Row ID], \\\\\\\"Payments\\\\\\\", \\\\\\\"Row ID\\\
+        \\\\\", \\\\\\\"Ref Received By Cash Holder\\\\\\\")))\\\",\\\"Editable_If\\\":\\\"=AND([Allocation Method] <> \\\\\
+        \\\"First-day Auto\\\\\\\", OR(NOT(IN([Row ID], Payments[Row ID])), [Status] <> \\\\\\\"Processing\\\\\\\"))\\\",\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"=IF([Allocation Method] = \\\"First-day Auto\\\",\
+        \ \\\"ch:lisa\\\", \\\"ch:dad\\\")\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120.\
+        \ GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the\
+        \ approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01195":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Business Expenses_Schema/Ref Paid By Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Paid By Cash Holder\",\"Visible?\":\"ALWAYS\",\"Display name\":\"=\\\"ผู้จ่ายเงิน\
+        \ / Paid By\\\"\",\"Type\":\"Ref\",\"Type Qualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedRootTableName\\\
+        \":\\\"Cash Holders\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\
+        \\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"\
+        IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"\
+        Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\
+        \\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\
+        \":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":\\\"=LIST(\\\\\\\"ch:dad\\\\\\\", \\\\\\\"ch:lisa\\\\\\\"\
+        , \\\\\\\"ch:tommy\\\\\\\")\\\",\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":\\\"\
+        =AND([Amount] > 0, OR(NOT(IN([Row ID], Business Expenses[Row ID])), ISNOTBLANK(LOOKUP([Row ID], \\\\\\\"Business Expenses\\\
+        \\\\\", \\\\\\\"Row ID\\\\\\\", \\\\\\\"Ref Paid By Cash Holder\\\\\\\"))))\\\",\\\"Editable_If\\\":\\\"=OR(ISBLANK([Source\
+        \ Type]), [Source Type] = \\\\\\\"Manual\\\\\\\")\\\",\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\"\
+        :\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}\
+        \ Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified;\
+        \ deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance\
+        \ pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01196":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Cash Holders_Schema/_RowNumber"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"_RowNumber\",\"Visible?\":\"ALWAYS\",\"Description\":\"Number of this row\",\"Type\"\
+        :\"Number\",\"Type Qualifier\":\"{\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"NumericDigits\\\
+        \":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\"\
+        :\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"Yes\",\"Editable\
+        \ Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\"\
+        ,\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01197":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Cash Holders_Schema/Row ID"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Row ID\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type Qualifier\":\"{\\\"MaxLength\\\
+        \":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"\
+        Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"Yes\",\"Part of Key?\":\"Yes\"\
+        ,\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"\
+        Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP\
+        \ 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01198":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Cash Holders_Schema/Holder Name"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Holder Name\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type Qualifier\":\"{\\\"\
+        MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\
+        \"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\
+        \":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"\
+        Yes\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\"\
+        :\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\"\
+        ,\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01199":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Cash Holders_Schema/Active"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Active\",\"Visible?\":\"ALWAYS\",\"Type\":\"Yes/No\",\"Type Qualifier\":\"{\\\"YesLabel\\\
+        \":\\\"\\\",\\\"NoLabel\\\":\\\"\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\
+        \"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\"\
+        :\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied\
+        \ to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check\
+        \ rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See\
+        \ outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01200":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Cash Holders_Schema/Sort Order"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Sort Order\",\"Visible?\":\"ALWAYS\",\"Type\":\"Number\",\"Type Qualifier\":\"{\\\
+        \"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"NumericDigits\\\":null,\\\"ShowThousandsSeparator\\\
+        \":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\
+        \":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"\
+        Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System\
+        \ Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\"\
+        :\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\"\
+        :\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01201":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Cash Holders_Schema/Created At"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Created At\",\"Visible?\":\"ALWAYS\",\"Type\":\"DateTime\",\"Type Qualifier\":\"\
+        {\\\"MinValue\\\":null,\\\"MaxValue\\\":null,\\\"UseLongDateFormat\\\":false,\\\"IgnoreSeconds\\\":false,\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"NOW()\",\"System Defined?\":\"No\",\"Key\":\"No\"\
+        ,\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01202":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Cash Holders_Schema/Related Payments"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Payments\",\"Visible?\":\"ALWAYS\",\"Description\":\"Payments entries that\
+        \ reference this entry in the Ref Received By Cash Holder column\",\"Type\":\"List\",\"Type Qualifier\":\"{\\\"ElementType\\\
+        \":\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Payments\\\\\\\",\\\\\
+        \\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Payments\\\\\\\",\\\\\\\"ReferencedType\\\\\\\":\\\\\\\"Text\\\\\\\",\\\
+        \\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"MinLength\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Plain Text\\\\\\\\\\\\\\\"\
+        ,\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\
+        \\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Required_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\":null,\\\
+        \\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"ReferencedKeyColumn\\\\\\\":\\\\\\\"Row ID\\\\\
+        \\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\":null,\\\\\\\"InputMode\\\\\\\":\\\\\\\"Auto\\\
+        \\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\
+        \\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\
+        \\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"\
+        Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\"\
+        :null}\",\"App formula\":\"REF_ROWS(\\\"Payments\\\", \\\"Ref Received By Cash Holder\\\")\",\"Read-Only\":\"Yes\"\
+        ,\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\"\
+        ,\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01203":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Cash Holders_Schema/Related Business Expenses"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Business Expenses\",\"Visible?\":\"ALWAYS\",\"Description\":\"Business Expenses\
+        \ entries that reference this entry in the Ref Paid By Cash Holder column\",\"Type\":\"List\",\"Type Qualifier\":\"\
+        {\\\"ElementType\\\":\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Business\
+        \ Expenses\\\\\\\",\\\\\\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Business Expenses\\\\\\\",\\\\\\\"ReferencedType\\\
+        \\\\\":\\\\\\\"Text\\\\\\\",\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\
+        \\\":null,\\\\\\\\\\\\\\\"MinLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\
+        \\\\\\\\\"Plain Text\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\
+        \\\\\":null,\\\\\\\\\\\\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\
+        \\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"\
+        ReferencedKeyColumn\\\\\\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\"\
+        :null,\\\\\\\"InputMode\\\\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+        \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"\
+        Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\"\
+        :null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"App formula\":\"REF_ROWS(\\\"Business Expenses\\\", \\\"Ref\
+        \ Paid By Cash Holder\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"\
+        Reset on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"\
+        No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\"\
+        :\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120\
+        \ / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01204":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP Process for Notification - Charge Received Process Table_Schema/Ref Received By Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Received By Cash Holder\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\",\"Type Qualifier\"\
+        :\"{\\\"ReferencedTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedType\\\
+        \":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\
+        \\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
+        \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\"\
+        :null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\
+        \"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\
+        \"Auto\\\",\\\"Valid_If\\\":\\\"=LIST(\\\\\\\"ch:dad\\\\\\\", \\\\\\\"ch:lisa\\\\\\\")\\\",\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":\\\"=OR(NOT(IN([Row ID], Payments[Row ID])), ISNOTBLANK(LOOKUP([Row\
+        \ ID], \\\\\\\"Payments\\\\\\\", \\\\\\\"Row ID\\\\\\\", \\\\\\\"Ref Received By Cash Holder\\\\\\\")))\\\",\\\"Editable_If\\\
+        \":\\\"=AND([Allocation Method] <> \\\\\\\"First-day Auto\\\\\\\", OR(NOT(IN([Row ID], Payments[Row ID])), [Status]\
+        \ <> \\\\\\\"Processing\\\\\\\"))\\\",\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"No\"\
+        ,\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\"\
+        ,\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"Yes\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"No\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01205":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP View name/Cash Holders_Detail"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Holders_Detail\",\"Created by\":\"System\",\"View type\":\"detail\",\"ActionType\"\
+        :\"Automatic\",\"Position\":\"ref\",\"View configuration\":\"{\\\"MainSlideshowImageColumn\\\":\\\"**auto**\\\",\\\
+        \"DetailContentColumn\\\":\\\"**none**\\\",\\\"HeaderColumns\\\":[],\\\"QuickEditColumns\\\":[],\\\"ColumnOrder\\\"\
+        :[],\\\"ImageStyle\\\":\\\"Fill\\\",\\\"Layout\\\":null,\\\"UseCardLayout\\\":false,\\\"DisplayMode\\\":\\\"Automatic\\\
+        \",\\\"MaxNestedRows\\\":5,\\\"SlideshowMode\\\":true,\\\"DesktopSplitMode\\\":\\\"Split view\\\",\\\"UseDesktopMultiColumn\\\
+        \":true,\\\"SortBy\\\":[],\\\"PrimarySortColumn\\\":null,\\\"IsPrimarySortDescending\\\":false,\\\"Events\\\":[],\\\
+        \"Icon\\\":\\\"fa-indent\\\",\\\"IconRunnerUps\\\":null,\\\"MenuOrder\\\":1}\",\"Visible?\":\"ALWAYS\",\"Icon\":\"\
+        \",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and\
+        \ SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01206":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Table name/Cash Holders"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Table name\":\"Cash Holders\",\"Visible?\":\"ALWAYS\",\"Shared?\":\"Yes\",\"Data locale\":\"en-US\"\
+        ,\"Schema\":\"Cash Holders_Schema\",\"Are updates allowed?\":\"READ_ONLY\",\"Source Path\":\"Cash Holders\",\"Data\
+        \ Source\":\"database-3\",\"Store for image and file capture\":\"_Default\",\"Column Order List\":\"_RowNumber\",\"\
+        Partitioned across many files/sources?\":\"No\",\"Partitioned across many worksheets?\":\"No\"} Applied to DEV; saved\
+        \ AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun\
+        \ unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01207":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Table name/Cash Ledger"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Table name\":\"Cash Ledger\",\"Visible?\":\"ALWAYS\",\"Shared?\":\"Yes\",\"Data locale\":\"en-US\"\
+        ,\"Schema\":\"Cash Ledger_Schema\",\"Are updates allowed?\":\"ALL_CHANGES\",\"Expression for update mode\":\"=\\\"\
+        ADDS_AND_UPDATES\\\"\",\"Source Path\":\"Cash Ledger\",\"Data Source\":\"database-3\",\"Store for image and file capture\"\
+        :\"_Default\",\"Column Order List\":\"_RowNumber\",\"Partitioned across many files/sources?\":\"No\",\"Partitioned\
+        \ across many worksheets?\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI\
+        \ scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved\
+        \ limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01208":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Table name/Cash Holder Balances"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Table name\":\"Cash Holder Balances\",\"Visible?\":\"ALWAYS\",\"Shared?\":\"Yes\",\"Data locale\"\
+        :\"en-US\",\"Schema\":\"Cash Holder Balances_Schema\",\"Are updates allowed?\":\"READ_ONLY\",\"Source Path\":\"Cash\
+        \ Holder Balances\",\"Data Source\":\"database-3\",\"Store for image and file capture\":\"_Default\",\"Column Order\
+        \ List\":\"_RowNumber\",\"Partitioned across many files/sources?\":\"No\",\"Partitioned across many worksheets?\"\
+        :\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01209":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Loans_Schema/Related Cash Ledgers"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Cash Ledgers\",\"Visible?\":\"ALWAYS\",\"Description\":\"Cash Ledger entries\
+        \ that reference this entry in the Ref Loan column\",\"Type\":\"List\",\"Type Qualifier\":\"{\\\"ElementType\\\":\\\
+        \"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\\\\\
+        \"ReferencedRootTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\\\\\"ReferencedType\\\\\\\":\\\\\\\"Text\\\\\\\"\
+        ,\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"\
+        MinLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Plain Text\\\\\\\
+        \\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\\\\\\\\\\\\\":null,\\\
+        \\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\
+        \\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Reset_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"ReferencedKeyColumn\\\\\
+        \\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\":null,\\\\\\\"InputMode\\\
+        \\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\
+        \\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\
+        \"Suggested_Values\\\\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"App formula\":\"REF_ROWS(\\\"Cash Ledger\\\", \\\"Ref Loan\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"\
+        No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\"\
+        ,\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"\
+        LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"\
+        No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified;\
+        \ deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance\
+        \ pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01210":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Settlements_Schema/Related Cash Ledgers"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Cash Ledgers\",\"Visible?\":\"ALWAYS\",\"Description\":\"Cash Ledger entries\
+        \ that reference this entry in the Ref Settlement column\",\"Type\":\"List\",\"Type Qualifier\":\"{\\\"ElementType\\\
+        \":\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\
+        \\\\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\\\\\"ReferencedType\\\\\\\":\\\\\\\"Text\\\\\\\
+        \",\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"\
+        MinLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Plain Text\\\\\\\
+        \\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\\\\\\\\\\\\\":null,\\\
+        \\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\
+        \\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Reset_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"ReferencedKeyColumn\\\\\
+        \\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\":null,\\\\\\\"InputMode\\\
+        \\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\
+        \\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\
+        \"Suggested_Values\\\\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"App formula\":\"REF_ROWS(\\\"Cash Ledger\\\", \\\"Ref Settlement\\\")\",\"Read-Only\":\"Yes\",\"Hidden\"\
+        :\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"\
+        No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\"\
+        ,\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\"\
+        :\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01211":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Payments_Schema/Ref Received By Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Received By Cash Holder\",\"Visible?\":\"ALWAYS\",\"Display name\":\"=\\\"ผู้รับเงิน\
+        \ / Received By\\\"\",\"Type\":\"Ref\",\"Type Qualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Holders\\\",\\\"\
+        ReferencedRootTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+        \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+        Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+        \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"\
+        Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\
+        \":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"\
+        No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial\
+        \ Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01212":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Payments_Schema/Related Cash Ledgers"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Cash Ledgers\",\"Visible?\":\"ALWAYS\",\"Description\":\"Cash Ledger entries\
+        \ that reference this entry in the Ref Payment column\",\"Type\":\"List\",\"Type Qualifier\":\"{\\\"ElementType\\\"\
+        :\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\\\
+        \\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\\\\\"ReferencedType\\\\\\\":\\\\\\\"Text\\\\\\\"\
+        ,\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"\
+        MinLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Plain Text\\\\\\\
+        \\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\\\\\\\\\\\\\":null,\\\
+        \\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\
+        \\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Reset_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"ReferencedKeyColumn\\\\\
+        \\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\":null,\\\\\\\"InputMode\\\
+        \\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\
+        \\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\
+        \"Suggested_Values\\\\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"App formula\":\"REF_ROWS(\\\"Cash Ledger\\\", \\\"Ref Payment\\\")\",\"Read-Only\":\"Yes\",\"Hidden\"\
+        :\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"\
+        No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\"\
+        ,\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\"\
+        :\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01213":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Business Expenses_Schema/Ref Paid By Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Paid By Cash Holder\",\"Visible?\":\"ALWAYS\",\"Display name\":\"=\\\"ผู้จ่ายเงิน\
+        \ / Paid By\\\"\",\"Type\":\"Ref\",\"Type Qualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedRootTableName\\\
+        \":\\\"Cash Holders\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\
+        \\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"\
+        IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"\
+        Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\
+        \\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\
+        \":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\"\
+        :null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"\
+        Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System\
+        \ Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\"\
+        :\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\"\
+        :\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01214":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Business Expenses_Schema/Related Cash Ledgers"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Cash Ledgers\",\"Visible?\":\"ALWAYS\",\"Description\":\"Cash Ledger entries\
+        \ that reference this entry in the Ref Business Expense column\",\"Type\":\"List\",\"Type Qualifier\":\"{\\\"ElementType\\\
+        \":\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\
+        \\\\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\\\\\"ReferencedType\\\\\\\":\\\\\\\"Text\\\\\\\
+        \",\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"\
+        MinLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Plain Text\\\\\\\
+        \\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\\\\\\\\\\\\\":null,\\\
+        \\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\
+        \\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Reset_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"ReferencedKeyColumn\\\\\
+        \\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\":null,\\\\\\\"InputMode\\\
+        \\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\
+        \\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\
+        \"Suggested_Values\\\\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"App formula\":\"REF_ROWS(\\\"Cash Ledger\\\", \\\"Ref Business Expense\\\")\",\"Read-Only\":\"Yes\",\"\
+        Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\",\"\
+        Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01215":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/_RowNumber"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"_RowNumber\",\"Visible?\":\"ALWAYS\",\"Description\":\"Number of this row\",\"Type\"\
+        :\"Number\",\"Type Qualifier\":\"{\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"NumericDigits\\\
+        \":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\"\
+        :\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"Yes\",\"Editable\
+        \ Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\"\
+        ,\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01216":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Row ID"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Row ID\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type Qualifier\":\"{\\\"MaxLength\\\
+        \":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"Yes\",\"Part of Key?\":\"Yes\",\"\
+        Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\"\
+        :\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120\
+        \ / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01217":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Holder Name"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Holder Name\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type Qualifier\":\"{\\\"\
+        MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\
+        \"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\
+        \":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"\
+        Yes\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\"\
+        :\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\"\
+        ,\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01218":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Active"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Active\",\"Visible?\":\"ALWAYS\",\"Type\":\"Yes/No\",\"Type Qualifier\":\"{\\\"YesLabel\\\
+        \":\\\"\\\",\\\"NoLabel\\\":\\\"\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\
+        \"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\"\
+        :\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied\
+        \ to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check\
+        \ rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See\
+        \ outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01219":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Sort Order"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Sort Order\",\"Visible?\":\"ALWAYS\",\"Type\":\"Number\",\"Type Qualifier\":\"{\\\
+        \"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"NumericDigits\\\":null,\\\"ShowThousandsSeparator\\\
+        \":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\
+        \":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"\
+        Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System\
+        \ Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\"\
+        :\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\"\
+        :\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01220":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Created At"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Created At\",\"Visible?\":\"ALWAYS\",\"Type\":\"DateTime\",\"Type Qualifier\":\"\
+        {\\\"MinValue\\\":null,\\\"MaxValue\\\":null,\\\"UseLongDateFormat\\\":false,\\\"IgnoreSeconds\\\":false,\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"NOW()\",\"System Defined?\":\"No\",\"Key\":\"No\"\
+        ,\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01221":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Related Cash Ledgers By Ref From Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Cash Ledgers By Ref From Cash Holder\",\"Visible?\":\"ALWAYS\",\"Description\"\
+        :\"Cash Ledger entries that reference this entry in the Ref From Cash Holder column\",\"Type\":\"List\",\"Type Qualifier\"\
+        :\"{\\\"ElementType\\\":\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"\
+        Cash Ledger\\\\\\\",\\\\\\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\\\\\"ReferencedType\\\\\
+        \\\":\\\\\\\"Text\\\\\\\",\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\
+        \":null,\\\\\\\\\\\\\\\"MinLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\
+        \\\\\\\"Plain Text\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\
+        \\\\\":null,\\\\\\\\\\\\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\
+        \\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"\
+        ReferencedKeyColumn\\\\\\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\"\
+        :null,\\\\\\\"InputMode\\\\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+        \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"\
+        Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\"\
+        :null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"App formula\":\"REF_ROWS(\\\"Cash Ledger\\\", \\\"Ref From\
+        \ Cash Holder\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on\
+        \ edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"\
+        Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\"\
+        :\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120\
+        \ / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01222":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Related Cash Ledgers By Ref To Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Cash Ledgers By Ref To Cash Holder\",\"Visible?\":\"ALWAYS\",\"Description\"\
+        :\"Cash Ledger entries that reference this entry in the Ref To Cash Holder column\",\"Type\":\"List\",\"Type Qualifier\"\
+        :\"{\\\"ElementType\\\":\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"\
+        Cash Ledger\\\\\\\",\\\\\\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Cash Ledger\\\\\\\",\\\\\\\"ReferencedType\\\\\
+        \\\":\\\\\\\"Text\\\\\\\",\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\
+        \":null,\\\\\\\\\\\\\\\"MinLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\
+        \\\\\\\"Plain Text\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\
+        \\\\\":null,\\\\\\\\\\\\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\
+        \\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"\
+        ReferencedKeyColumn\\\\\\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\"\
+        :null,\\\\\\\"InputMode\\\\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+        \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"\
+        Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\"\
+        :null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"App formula\":\"REF_ROWS(\\\"Cash Ledger\\\", \\\"Ref To Cash\
+        \ Holder\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\"\
+        :\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable\
+        \ Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\"\
+        ,\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP\
+        \ 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain\
+        \ under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and\
+        \ configuration-checklist.json."
+    "row-01223":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Related Business Expenses"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Business Expenses\",\"Visible?\":\"ALWAYS\",\"Description\":\"Business Expenses\
+        \ entries that reference this entry in the Ref Paid By Cash Holder column\",\"Type\":\"List\",\"Type Qualifier\":\"\
+        {\\\"ElementType\\\":\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Business\
+        \ Expenses\\\\\\\",\\\\\\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Business Expenses\\\\\\\",\\\\\\\"ReferencedType\\\
+        \\\\\":\\\\\\\"Text\\\\\\\",\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\
+        \\\":null,\\\\\\\\\\\\\\\"MinLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\
+        \\\\\\\\\"Plain Text\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\
+        \\\\\":null,\\\\\\\\\\\\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\
+        \\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"\
+        ReferencedKeyColumn\\\\\\\":\\\\\\\"Row ID\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\"\
+        :null,\\\\\\\"InputMode\\\\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+        \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"\
+        Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\"\
+        :null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"App formula\":\"REF_ROWS(\\\"Business Expenses\\\", \\\"Ref\
+        \ Paid By Cash Holder\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"\
+        Reset on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"\
+        No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\"\
+        :\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120\
+        \ / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01224":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Related Payments"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Payments\",\"Visible?\":\"ALWAYS\",\"Description\":\"Payments entries that\
+        \ reference this entry in the Ref Received By Cash Holder column\",\"Type\":\"List\",\"Type Qualifier\":\"{\\\"ElementType\\\
+        \":\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"Payments\\\\\\\",\\\\\
+        \\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Payments\\\\\\\",\\\\\\\"ReferencedType\\\\\\\":\\\\\\\"Text\\\\\\\",\\\
+        \\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"MaxLength\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"MinLength\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Plain Text\\\\\\\\\\\\\\\"\
+        ,\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"Valid_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\
+        \\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Required_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\":null,\\\
+        \\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"ReferencedKeyColumn\\\\\\\":\\\\\\\"Row ID\\\\\
+        \\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\\\\\":null,\\\\\\\"InputMode\\\\\\\":\\\\\\\"Auto\\\
+        \\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\
+        \\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\
+        \\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"\
+        Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\"\
+        :null}\",\"App formula\":\"REF_ROWS(\\\"Payments\\\", \\\"Ref Received By Cash Holder\\\")\",\"Read-Only\":\"Yes\"\
+        ,\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"Yes\"\
+        ,\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"NFC Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01225":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holders_Schema/Related Cash Holder Balances"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Related Cash Holder Balances\",\"Visible?\":\"ALWAYS\",\"Description\":\"Cash Holder\
+        \ Balances entries that reference this entry in the Ref Cash Holder column\",\"Type\":\"List\",\"Type Qualifier\"\
+        :\"{\\\"ElementType\\\":\\\"Ref\\\",\\\"ElementTypeQualifier\\\":\\\"{\\\\\\\"ReferencedTableName\\\\\\\":\\\\\\\"\
+        Cash Holder Balances\\\\\\\",\\\\\\\"ReferencedRootTableName\\\\\\\":\\\\\\\"Cash Holder Balances\\\\\\\",\\\\\\\"\
+        ReferencedType\\\\\\\":\\\\\\\"Ref\\\\\\\",\\\\\\\"ReferencedTypeQualifier\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"ReferencedTableName\\\
+        \\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Cash Holders\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"ReferencedRootTableName\\\\\\\\\\\\\\\"\
+        :\\\\\\\\\\\\\\\"Cash Holders\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"ReferencedType\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Text\\\
+        \\\\\\\\\\\\\",\\\\\\\\\\\\\\\"ReferencedTypeQualifier\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"{\\\\\\\\\\\\\\\\\\\\\\\\\\\
+        \\\\\"MaxLength\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"MinLength\\\\\\\\\\\\\\\\\\\\\
+        \\\\\\\\\\\":null,\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"LongTextFormatting\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\
+        \\\\\\\\\\\\\\\\\"Plain Text\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"IsMulticolumnKey\\\\\\\
+        \\\\\\\\\\\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"Valid_If\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\":null,\\\\\
+        \\\\\\\\\\\\\\\\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\\\\\\\\\\\
+        \\\\\\\"Show_If\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"Required_If\\\\\\\\\\\\\\\\\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\
+        \\\\\\\\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"Suggested_Values\\\
+        \\\\\\\\\\\\\\\\\\\\\\\\\\\\\":null}\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"ReferencedKeyColumn\\\\\\\\\\\\\\\":\\\\\\\\\\\
+        \\\\\"Row ID\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"IsAPartOf\\\\\\\\\\\\\\\":false,\\\\\\\\\\\\\\\"RelationshipName\\\\\\\
+        \\\\\\\\\":null,\\\\\\\\\\\\\\\"InputMode\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"Auto\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"Valid_If\\\
+        \\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Error_Message_If_Invalid\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Show_If\\\\\\\\\\\
+        \\\\\":null,\\\\\\\\\\\\\\\"Required_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Editable_If\\\\\\\\\\\\\\\":null,\\\\\
+        \\\\\\\\\\\"Reset_If\\\\\\\\\\\\\\\":null,\\\\\\\\\\\\\\\"Suggested_Values\\\\\\\\\\\\\\\":null}\\\\\\\",\\\\\\\"\
+        ReferencedKeyColumn\\\\\\\":\\\\\\\"Ref Cash Holder\\\\\\\",\\\\\\\"IsAPartOf\\\\\\\":false,\\\\\\\"RelationshipName\\\
+        \\\\\":null,\\\\\\\"InputMode\\\\\\\":\\\\\\\"Auto\\\\\\\",\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+        \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"\
+        Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ItemSeparator\\\":\\\" , \\\",\\\"Valid_If\\\"\
+        :null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"App formula\":\"REF_ROWS(\\\"Cash Holder Balances\\\", \\\"\
+        Ref Cash Holder\\\")\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset\
+        \ on edit?\":\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\"\
+        ,\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"Yes\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\"\
+        :\"No\",\"NFC Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120\
+        \ / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01226":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/_RowNumber"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"_RowNumber\",\"Visible?\":\"ALWAYS\",\"Description\":\"Number of this row\",\"Type\"\
+        :\"Number\",\"Type Qualifier\":\"{\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"NumericDigits\\\
+        \":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\"\
+        :\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"Yes\",\"Editable\
+        \ Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\"\
+        ,\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01227":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Row ID"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Row ID\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type Qualifier\":\"{\\\"MaxLength\\\
+        \":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"\
+        Formula version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"=UNIQUEID(\\\"PackedUUID\\\")\",\"System Defined?\"\
+        :\"No\",\"Key\":\"Yes\",\"Part of Key?\":\"Yes\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\"\
+        ,\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"\
+        } Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified;\
+        \ deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance\
+        \ pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01228":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Movement Date"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Movement Date\",\"Visible?\":\"ALWAYS\",\"Type\":\"Date\",\"Type Qualifier\":\"{\\\
+        \"UseLongDateFormat\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"\
+        Required_If\\\":null,\\\"Editable_If\\\":\\\"=[Entry Origin] = \\\\\\\"Manual\\\\\\\"\\\",\\\"Reset_If\\\":null,\\\
+        \"Suggested_Values\\\":null}\",\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"Yes\",\"Formula version\":\"0\"\
+        ,\"Reset on edit?\":\"No\",\"Initial value\":\"=TODAY()\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\"\
+        :\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\"\
+        ,\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01229":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Movement Type"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Movement Type\",\"Visible?\":\"ALWAYS\",\"Type\":\"Enum\",\"Type Qualifier\":\"{\\\
+        \"EnumValues\\\":[],\\\"AllowOtherValues\\\":true,\\\"AutoCompleteOtherValues\\\":true,\\\"BaseType\\\":\\\"Text\\\
+        \",\\\"BaseTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\
+        \\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+        \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"\
+        Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"EnumInputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\
+        \":\\\"=IF([Entry Origin] = \\\\\\\"System\\\\\\\", LIST([_THIS]), LIST(\\\\\\\"Cash Handover\\\\\\\", \\\\\\\"Expense\
+        \ Reimbursement\\\\\\\"))\\\",\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\
+        \"Editable_If\\\":\\\"=[Entry Origin] = \\\\\\\"Manual\\\\\\\"\\\",\\\"Reset_If\\\":null,\\\"Suggested_Values\\\"\
+        :null}\",\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\"\
+        ,\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial\
+        \ Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01230":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Amount"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Amount\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\",\"Type Qualifier\":\"{\\\"CurrencySymbol\\\
+        \":\\\"฿\\\",\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"DecimalDigits\\\":0,\\\"NumericDigits\\\
+        \":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":\\\"=AND([_THIS]\
+        \ > 0, [_THIS] = FLOOR([_THIS]))\\\",\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\"\
+        :null,\\\"Editable_If\\\":\\\"=[Entry Origin] = \\\\\\\"Manual\\\\\\\"\\\",\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"\
+        No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial\
+        \ Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01231":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Ref From Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref From Cash Holder\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\",\"Type Qualifier\"\
+        :\"{\\\"ReferencedTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedType\\\
+        \":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\
+        \\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
+        \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\"\
+        :null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\
+        \"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\
+        \"Auto\\\",\\\"Valid_If\\\":\\\"=IF([Entry Origin] = \\\\\\\"System\\\\\\\", LIST([_THIS]), IF([Movement Type] = \\\
+        \\\\\"Expense Reimbursement\\\\\\\", LIST(\\\\\\\"ch:lisa\\\\\\\"), LIST(\\\\\\\"ch:dad\\\\\\\", \\\\\\\"ch:lisa\\\
+        \\\\\")))\\\",\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":\\\"=[Entry Origin] =\
+        \ \\\\\\\"Manual\\\\\\\"\\\",\\\"Editable_If\\\":\\\"=[Entry Origin] = \\\\\\\"Manual\\\\\\\"\\\",\\\"Reset_If\\\"\
+        :null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\"\
+        :\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\"\
+        :\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"\
+        Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120.\
+        \ GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the\
+        \ approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01232":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Ref To Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref To Cash Holder\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\",\"Type Qualifier\"\
+        :\"{\\\"ReferencedTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedType\\\
+        \":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\
+        \\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
+        \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\"\
+        :null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\
+        \"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\
+        \"Auto\\\",\\\"Valid_If\\\":\\\"=IF([Entry Origin] = \\\\\\\"System\\\\\\\", LIST([_THIS]), IF([Movement Type] = \\\
+        \\\\\"Expense Reimbursement\\\\\\\", LIST(\\\\\\\"ch:tommy\\\\\\\"), LIST(\\\\\\\"ch:dad\\\\\\\", \\\\\\\"ch:lisa\\\
+        \\\\\") - LIST([Ref From Cash Holder])))\\\",\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\
+        \":\\\"=[Entry Origin] = \\\\\\\"Manual\\\\\\\"\\\",\\\"Editable_If\\\":\\\"=[Entry Origin] = \\\\\\\"Manual\\\\\\\
+        \"\\\",\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"No\",\"Hidden\":\"No\",\"Label\":\"\
+        No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\"\
+        :\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\"\
+        ,\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01233":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Ref Payment"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Payment\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\",\"Type Qualifier\":\"{\\\"\
+        ReferencedTableName\\\":\\\"Payments\\\",\\\"ReferencedRootTableName\\\":\\\"Payments\\\",\\\"ReferencedType\\\":\\\
+        \"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\
+        \\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
+        \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\"\
+        :null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\
+        \"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\
+        \"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\
+        \"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"\
+        No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\"\
+        ,\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01234":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Ref Loan"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Loan\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\",\"Type Qualifier\":\"{\\\"ReferencedTableName\\\
+        \":\\\"Loans\\\",\\\"ReferencedRootTableName\\\":\\\"Loans\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+        \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+        Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+        \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"\
+        Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\
+        \":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"\
+        No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial\
+        \ Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01235":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Ref Business Expense"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Business Expense\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\",\"Type Qualifier\"\
+        :\"{\\\"ReferencedTableName\\\":\\\"Business Expenses\\\",\\\"ReferencedRootTableName\\\":\\\"Business Expenses\\\"\
+        ,\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"\
+        MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\
+        \":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\
+        \\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\
+        \\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\
+        \"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":\\\"=IF([Entry Origin] = \\\\\\\"System\\\\\\\", LIST([_THIS]), SELECT(Business\
+        \ Expenses[Row ID], AND([Amount] > 0, [Ref Paid By Cash Holder] = \\\\\\\"ch:tommy\\\\\\\")))\\\",\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":\\\"=OR([Entry Origin] = \\\\\\\"System\\\\\\\", [Movement Type] = \\\\\\\"Expense Reimbursement\\\
+        \\\\\")\\\",\\\"Required_If\\\":null,\\\"Editable_If\\\":\\\"=AND([Entry Origin] = \\\\\\\"Manual\\\\\\\", [Movement\
+        \ Type] = \\\\\\\"Expense Reimbursement\\\\\\\")\\\",\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\"\
+        :\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}\
+        \ Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified;\
+        \ deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance\
+        \ pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01236":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Ref Settlement"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Settlement\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\",\"Type Qualifier\":\"{\\\
+        \"ReferencedTableName\\\":\\\"Settlements\\\",\\\"ReferencedRootTableName\\\":\\\"Settlements\\\",\\\"ReferencedType\\\
+        \":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\
+        \\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
+        \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\"\
+        :null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\
+        \"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\
+        \"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\
+        \"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"\
+        No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\"\
+        ,\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01237":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Entry Origin"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Entry Origin\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type Qualifier\":\"{\\\
+        \"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\"\
+        :false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\
+        \"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"\
+        No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"=\\\"Manual\\\"\",\"\
+        System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\"\
+        :\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\"\
+        :\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01238":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Source Type"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Source Type\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type Qualifier\":\"{\\\"\
+        MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\
+        \"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\
+        \":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"\
+        No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\"\
+        :\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\"\
+        ,\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01239":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Source Key"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Source Key\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type Qualifier\":\"{\\\"\
+        MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\
+        \"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\
+        \":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"\
+        No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\"\
+        :\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\"\
+        ,\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01240":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Notes"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Notes\",\"Visible?\":\"ALWAYS\",\"Type\":\"LongText\",\"Type Qualifier\":\"{\\\"\
+        MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\
+        \"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\
+        \":\\\"=[Entry Origin] = \\\\\\\"Manual\\\\\\\"\\\",\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\"\
+        :\"No\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\"\
+        :\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"\
+        Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"}\
+        \ Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified;\
+        \ deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance\
+        \ pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01241":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Created At"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Created At\",\"Visible?\":\"ALWAYS\",\"Type\":\"DateTime\",\"Type Qualifier\":\"\
+        {\\\"MinValue\\\":null,\\\"MaxValue\\\":null,\\\"UseLongDateFormat\\\":false,\\\"IgnoreSeconds\\\":false,\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"NOW()\",\"System Defined?\":\"No\",\"Key\":\"No\"\
+        ,\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01242":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Created By"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Created By\",\"Visible?\":\"ALWAYS\",\"Type\":\"Email\",\"Type Qualifier\":\"{\\\"\
+        Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\
+        \":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"\
+        No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"=USEREMAIL()\",\"System Defined?\":\"\
+        No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\"\
+        :\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to\
+        \ DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check\
+        \ rerun unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See\
+        \ outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01243":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Ledger_Schema/Updated At"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Updated At\",\"Visible?\":\"ALWAYS\",\"Type\":\"DateTime\",\"Type Qualifier\":\"\
+        {\\\"MinValue\\\":null,\\\"MaxValue\\\":null,\\\"UseLongDateFormat\\\":false,\\\"IgnoreSeconds\\\":false,\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"Initial value\":\"NOW()\",\"System Defined?\":\"No\",\"Key\":\"No\"\
+        ,\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\"\
+        :\"en-US\",\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01244":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holder Balances_Schema/_RowNumber"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"_RowNumber\",\"Visible?\":\"ALWAYS\",\"Description\":\"Number of this row\",\"Type\"\
+        :\"Number\",\"Type Qualifier\":\"{\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"NumericDigits\\\
+        \":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"Yes\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\"\
+        :\"No\",\"System Defined?\":\"Yes\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"Yes\",\"Editable\
+        \ Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\"\
+        ,\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01245":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holder Balances_Schema/Ref Cash Holder"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Ref Cash Holder\",\"Visible?\":\"ALWAYS\",\"Type\":\"Ref\",\"Type Qualifier\":\"\
+        {\\\"ReferencedTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Holders\\\",\\\"ReferencedType\\\
+        \":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\
+        \\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
+        \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\"\
+        :null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\
+        \"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\
+        \"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\
+        \"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"\
+        Yes\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"Yes\"\
+        ,\"Part of Key?\":\"Yes\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"\
+        LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved\
+        \ AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun\
+        \ unavailable and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01246":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holder Balances_Schema/Holder Name"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Holder Name\",\"Visible?\":\"ALWAYS\",\"Type\":\"Text\",\"Type Qualifier\":\"{\\\"\
+        MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\
+        \"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\
+        \":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"\
+        Yes\",\"Formula version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\"\
+        :\"No\",\"Fixed definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\"\
+        ,\"Searchable\":\"Yes\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01247":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holder Balances_Schema/Cash In"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Cash In\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\",\"Type Qualifier\":\"{\\\"CurrencySymbol\\\
+        \":\\\"฿\\\",\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"DecimalDigits\\\":0,\\\"NumericDigits\\\
+        \":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+        \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+        \":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula version\":\"0\",\"Reset on edit?\":\"\
+        No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed definition?\":\"No\",\"Editable Initial\
+        \ Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\":\"No\",\"Scannable\":\"No\",\"Sensitive\
+        \ data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback\
+        \ verified; deployment-check rerun unavailable and export omissions remain under the approved limited exception. Owner\
+        \ acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01248":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holder Balances_Schema/Cash Out"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Cash Out\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\",\"Type Qualifier\":\"{\\\"\
+        CurrencySymbol\\\":\\\"฿\\\",\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"DecimalDigits\\\
+        \":0,\\\"NumericDigits\\\":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed\
+        \ definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\"\
+        :\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 /\
+        \ OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01249":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holder Balances_Schema/Current Balance"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Current Balance\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\",\"Type Qualifier\":\"\
+        {\\\"CurrencySymbol\\\":\\\"฿\\\",\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"DecimalDigits\\\
+        \":0,\\\"NumericDigits\\\":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed\
+        \ definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\"\
+        :\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 /\
+        \ OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01250":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holder Balances_Schema/Business Cash Held"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Business Cash Held\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\",\"Type Qualifier\"\
+        :\"{\\\"CurrencySymbol\\\":\\\"฿\\\",\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"DecimalDigits\\\
+        \":0,\\\"NumericDigits\\\":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed\
+        \ definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\"\
+        :\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 /\
+        \ OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01251":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Cash Holder Balances_Schema/Reimbursement / Advance Due"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Column name\":\"Reimbursement / Advance Due\",\"Visible?\":\"ALWAYS\",\"Type\":\"Price\",\"Type Qualifier\"\
+        :\"{\\\"CurrencySymbol\\\":\\\"฿\\\",\\\"MaxValue\\\":null,\\\"MinValue\\\":null,\\\"StepValue\\\":null,\\\"DecimalDigits\\\
+        \":0,\\\"NumericDigits\\\":null,\\\"ShowThousandsSeparator\\\":true,\\\"NumberDisplayMode\\\":\\\"Auto\\\",\\\"Valid_If\\\
+        \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\
+        \"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"Read-Only\":\"Yes\",\"Hidden\":\"No\",\"Label\":\"No\",\"Formula\
+        \ version\":\"0\",\"Reset on edit?\":\"No\",\"System Defined?\":\"No\",\"Key\":\"No\",\"Part of Key?\":\"No\",\"Fixed\
+        \ definition?\":\"No\",\"Editable Initial Value?\":\"Yes\",\"Virtual?\":\"No\",\"LocaleName\":\"en-US\",\"Searchable\"\
+        :\"No\",\"Scannable\":\"No\",\"Sensitive data\":\"No\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 /\
+        \ OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01252":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Slice Name/Reporting Loans"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"Slice Name\":\"Reporting Loans\",\"Slice Columns\":\"_RowNumber\\nRow ID\\nLoan Date\\nClose Date\\\
+        nPrincipal Amount\\nDue Date\\nRef Borrowers\\nTotal Interest Received\\nTotal Principal Received\\nOutstanding Principal\\\
+        nTotal Amount Received\\nLoan Status TE\\nLoan Age Bucket\\nLoan Type TE\\nLoan Status\\nLoan Type\\nCurrent Daily\
+        \ Interest\\nFixed Interest\\nTransfer Fee\\nInterest Payment Interval\\nPrincipal Recovered by Interest %\\nExpected\
+        \ Interest This Month\\nEffective Daily Interest Rate\\nDefault Loss Amount\\nDefaulted Flag\\nBorrower Name\\nBorrower\
+        \ Name TE\\nLoan Duration\\nDefaulted\\nMaximum Days Late\\nDaily Payment Amount\\nExpected Daily Interest Amount\\\
+        nAuto Charge Enabled\\nInterest Schedule Anchor Date\\nRef Closing Payment\\nRelated Payments\\nCharge Generation\
+        \ Request\\nRelated Business Expenses\\nRelated Cash Ledgers\",\"Update mode\":\"READ_ONLY\",\"Source Table\":\"Loans\"\
+        ,\"Visible?\":\"ALWAYS\",\"Slice Actions\":\"**auto**\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120\
+        \ / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions\
+        \ remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01253":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP View name/Cash Position"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Position\",\"Created by\":\"App owner\",\"View type\":\"dashboard\",\"Position\"\
+        :\"menu\",\"View configuration\":\"{\\\"ViewEntries\\\":[{\\\"ViewName\\\":\\\"Cash Holder Summary\\\",\\\"ViewSize\\\
+        \":\\\"Wide\\\"},{\\\"ViewName\\\":\\\"Cash Ledger Recent\\\",\\\"ViewSize\\\":\\\"Large\\\"}],\\\"InteractiveMode\\\
+        \":false,\\\"ShowTabs\\\":false,\\\"Events\\\":[],\\\"Icon\\\":\\\"fa-list-ul\\\",\\\"IconRunnerUps\\\":null,\\\"\
+        MenuOrder\\\":1}\",\"Visible?\":\"ALWAYS\",\"Icon\":\"\",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01254":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP View name/Cash Holder Balances_Detail"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Holder Balances_Detail\",\"Created by\":\"System\",\"View type\":\"detail\",\"\
+        ActionType\":\"Automatic\",\"Position\":\"ref\",\"View configuration\":\"{\\\"MainSlideshowImageColumn\\\":\\\"**auto**\\\
+        \",\\\"DetailContentColumn\\\":\\\"**none**\\\",\\\"HeaderColumns\\\":[],\\\"QuickEditColumns\\\":[],\\\"ColumnOrder\\\
+        \":[],\\\"ImageStyle\\\":\\\"Fill\\\",\\\"Layout\\\":null,\\\"UseCardLayout\\\":false,\\\"DisplayMode\\\":\\\"Automatic\\\
+        \",\\\"MaxNestedRows\\\":5,\\\"SlideshowMode\\\":true,\\\"DesktopSplitMode\\\":\\\"Split view\\\",\\\"UseDesktopMultiColumn\\\
+        \":true,\\\"SortBy\\\":[],\\\"PrimarySortColumn\\\":null,\\\"IsPrimarySortDescending\\\":false,\\\"Events\\\":[],\\\
+        \"Icon\\\":\\\"fa-indent\\\",\\\"IconRunnerUps\\\":null,\\\"MenuOrder\\\":1}\",\"Visible?\":\"ALWAYS\",\"Icon\":\"\
+        \",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and\
+        \ SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01255":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP View name/Cash Holder Balances_Inline"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Holder Balances_Inline\",\"Created by\":\"System\",\"View type\":\"table\",\"\
+        Position\":\"ref\",\"View configuration\":\"{\\\"ColumnWidth\\\":\\\"Default\\\",\\\"EnableQuickEdit\\\":false,\\\"\
+        ColumnOrder\\\":[],\\\"GroupBy\\\":[],\\\"GroupAggregate\\\":\\\"NONE\\\",\\\"SortBy\\\":[],\\\"PrimarySortColumn\\\
+        \":null,\\\"IsPrimarySortDescending\\\":false,\\\"Events\\\":[{\\\"EventType\\\":\\\"Row Selected\\\",\\\"EventAction\\\
+        \":\\\"**auto**\\\"}],\\\"Icon\\\":\\\"fa-table\\\",\\\"IconRunnerUps\\\":null,\\\"MenuOrder\\\":1}\",\"Visible?\"\
+        :\"ALWAYS\",\"Icon\":\"\",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120.\
+        \ GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the\
+        \ approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01256":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP View name/Cash Holder Summary"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Holder Summary\",\"Created by\":\"App owner\",\"View type\":\"table\",\"Position\"\
+        :\"ref\",\"View configuration\":\"{\\\"ColumnWidth\\\":\\\"Default\\\",\\\"EnableQuickEdit\\\":false,\\\"ColumnOrder\\\
+        \":[\\\"Holder Name\\\",\\\"Business Cash Held\\\",\\\"Current Balance\\\",\\\"Reimbursement / Advance Due\\\"],\\\
+        \"GroupBy\\\":[],\\\"GroupAggregate\\\":\\\"NONE\\\",\\\"SortBy\\\":[{\\\"Column\\\":\\\"Holder Name\\\",\\\"Order\\\
+        \":\\\"Ascending\\\"}],\\\"PrimarySortColumn\\\":null,\\\"IsPrimarySortDescending\\\":false,\\\"Events\\\":[{\\\"\
+        EventType\\\":\\\"Row Selected\\\",\\\"EventAction\\\":\\\"**auto**\\\"}],\\\"Icon\\\":\\\"fa-list-ul\\\",\\\"IconRunnerUps\\\
+        \":null,\\\"MenuOrder\\\":1}\",\"Visible?\":\"ALWAYS\",\"Icon\":\"\",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet\
+        \ definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable\
+        \ and export omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01257":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP View name/Cash Holders_Detail"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Holders_Detail\",\"Created by\":\"System\",\"View type\":\"detail\",\"ActionType\"\
+        :\"Automatic\",\"Position\":\"ref\",\"View configuration\":\"{\\\"MainSlideshowImageColumn\\\":\\\"**auto**\\\",\\\
+        \"DetailContentColumn\\\":\\\"**none**\\\",\\\"HeaderColumns\\\":[],\\\"QuickEditColumns\\\":[],\\\"ColumnOrder\\\"\
+        :[],\\\"ImageStyle\\\":\\\"Fill\\\",\\\"Layout\\\":null,\\\"UseCardLayout\\\":false,\\\"DisplayMode\\\":\\\"Automatic\\\
+        \",\\\"MaxNestedRows\\\":5,\\\"SlideshowMode\\\":true,\\\"DesktopSplitMode\\\":\\\"Split view\\\",\\\"UseDesktopMultiColumn\\\
+        \":true,\\\"SortBy\\\":[],\\\"PrimarySortColumn\\\":null,\\\"IsPrimarySortDescending\\\":false,\\\"Events\\\":[],\\\
+        \"Icon\\\":\\\"fa-indent\\\",\\\"IconRunnerUps\\\":null,\\\"MenuOrder\\\":1}\",\"Visible?\":\"ALWAYS\",\"Icon\":\"\
+        \",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and\
+        \ SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01258":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP View name/Cash Ledger Recent"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Ledger Recent\",\"Created by\":\"App owner\",\"View type\":\"table\",\"Position\"\
+        :\"ref\",\"View configuration\":\"{\\\"ColumnWidth\\\":\\\"Default\\\",\\\"EnableQuickEdit\\\":false,\\\"ColumnOrder\\\
+        \":[\\\"Movement Date\\\",\\\"Movement Type\\\",\\\"Amount\\\",\\\"Ref From Cash Holder\\\",\\\"Ref To Cash Holder\\\
+        \",\\\"Entry Origin\\\"],\\\"GroupBy\\\":[],\\\"GroupAggregate\\\":\\\"NONE\\\",\\\"SortBy\\\":[{\\\"Column\\\":\\\
+        \"Movement Date\\\",\\\"Order\\\":\\\"Descending\\\"},{\\\"Column\\\":\\\"Created At\\\",\\\"Order\\\":\\\"Descending\\\
+        \"}],\\\"PrimarySortColumn\\\":null,\\\"IsPrimarySortDescending\\\":false,\\\"Events\\\":[{\\\"EventType\\\":\\\"\
+        Row Selected\\\",\\\"EventAction\\\":\\\"**auto**\\\"}],\\\"Icon\\\":\\\"fa-list-ul\\\",\\\"IconRunnerUps\\\":null,\\\
+        \"MenuOrder\\\":1}\",\"Visible?\":\"ALWAYS\",\"Icon\":\"\",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet definitions\
+        \ OLTP 1.000120 / OLAP 1.000120. GUI scenarios and SQL readback verified; deployment-check rerun unavailable and export\
+        \ omissions remain under the approved limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md\
+        \ and configuration-checklist.json."
+    "row-01259":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP View name/Cash Ledger_Detail"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Ledger_Detail\",\"Created by\":\"System\",\"View type\":\"detail\",\"ActionType\"\
+        :\"Automatic\",\"Position\":\"ref\",\"View configuration\":\"{\\\"MainSlideshowImageColumn\\\":\\\"**auto**\\\",\\\
+        \"DetailContentColumn\\\":\\\"**none**\\\",\\\"HeaderColumns\\\":[],\\\"QuickEditColumns\\\":[],\\\"ColumnOrder\\\"\
+        :[],\\\"ImageStyle\\\":\\\"Fill\\\",\\\"Layout\\\":null,\\\"UseCardLayout\\\":false,\\\"DisplayMode\\\":\\\"Automatic\\\
+        \",\\\"MaxNestedRows\\\":5,\\\"SlideshowMode\\\":true,\\\"DesktopSplitMode\\\":\\\"Split view\\\",\\\"UseDesktopMultiColumn\\\
+        \":true,\\\"SortBy\\\":[],\\\"PrimarySortColumn\\\":null,\\\"IsPrimarySortDescending\\\":false,\\\"Events\\\":[],\\\
+        \"Icon\\\":\\\"fa-indent\\\",\\\"IconRunnerUps\\\":null,\\\"MenuOrder\\\":1}\",\"Visible?\":\"ALWAYS\",\"Icon\":\"\
+        \",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios and\
+        \ SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01260":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP View name/Cash Ledger_Form"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Ledger_Form\",\"Created by\":\"System\",\"View type\":\"form\",\"Position\":\"\
+        ref\",\"View configuration\":\"{\\\"ColumnOrder\\\":[\\\"Movement Date\\\",\\\"Movement Type\\\",\\\"Ref From Cash\
+        \ Holder\\\",\\\"Ref To Cash Holder\\\",\\\"Amount\\\",\\\"Ref Business Expense\\\",\\\"Notes\\\"],\\\"AutoSave\\\"\
+        :false,\\\"AutoReopen\\\":false,\\\"FinishView\\\":\\\"Cash Position\\\",\\\"RowKey\\\":\\\"\\\",\\\"FormStyle\\\"\
+        :\\\"Automatic\\\",\\\"PageStyle\\\":\\\"Automatic\\\",\\\"FormFooterStyle\\\":\\\"Bottom\\\",\\\"MaxNestedRows\\\"\
+        :5,\\\"AudioInput\\\":false,\\\"Events\\\":[{\\\"EventType\\\":\\\"Form Saved\\\",\\\"EventAction\\\":\\\"**auto**\\\
+        \"}],\\\"Icon\\\":\\\"fa-edit\\\",\\\"IconRunnerUps\\\":null,\\\"MenuOrder\\\":1}\",\"Visible?\":\"ALWAYS\",\"Icon\"\
+        :\"\",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI scenarios\
+        \ and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved limited\
+        \ exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01261":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP View name/Cash Ledger_Inline"
+      "Property": "Saved AppSheet configuration (exact exported values)"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "{\"View name\":\"Cash Ledger_Inline\",\"Created by\":\"System\",\"View type\":\"table\",\"Position\"\
+        :\"ref\",\"View configuration\":\"{\\\"ColumnWidth\\\":\\\"Default\\\",\\\"EnableQuickEdit\\\":false,\\\"ColumnOrder\\\
+        \":[],\\\"GroupBy\\\":[],\\\"GroupAggregate\\\":\\\"NONE\\\",\\\"SortBy\\\":[],\\\"PrimarySortColumn\\\":null,\\\"\
+        IsPrimarySortDescending\\\":false,\\\"Events\\\":[{\\\"EventType\\\":\\\"Row Selected\\\",\\\"EventAction\\\":\\\"\
+        **auto**\\\"}],\\\"Icon\\\":\\\"fa-table\\\",\\\"IconRunnerUps\\\":null,\\\"MenuOrder\\\":1}\",\"Visible?\":\"ALWAYS\"\
+        ,\"Icon\":\"\",\"Menu order\":\"1\"} Applied to DEV; saved AppSheet definitions OLTP 1.000120 / OLAP 1.000120. GUI\
+        \ scenarios and SQL readback verified; deployment-check rerun unavailable and export omissions remain under the approved\
+        \ limited exception. Owner acceptance pending. See outputs/r005-20260917/GUI_TEST_REPORT.md and configuration-checklist.json."
+    "row-01262":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Table name/Settlements"
+      "Property": "R005 Delete refinement: exact saved configuration"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Permission: ADDS_AND_UPDATES; security filter: =[Status] <> \"Cancelled\" Saved DEV OLAP 1.000123; OLTP\
+        \ 1.000120 unchanged. Exact complete object values: outputs/r005-20260917/reversal-model-inventory.json. Tests and\
+        \ limits: REVERSAL_REPORT.md. Supersedes prior R005 values for this object."
+    "row-01263":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Column/Partners_Schema/Total Settlement Created"
+      "Property": "R005 Delete refinement: exact saved configuration"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "App formula: =SUM(SELECT(Settlements[Amount], AND([Ref Partner] = [_THISROW].[Row ID], [Status] <> \"\
+        Cancelled\"))) Saved DEV OLAP 1.000123; OLTP 1.000120 unchanged. Exact complete object values: outputs/r005-20260917/reversal-model-inventory.json.\
+        \ Tests and limits: REVERSAL_REPORT.md. Supersedes prior R005 values for this object."
+    "row-01264":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Column/Settlements_Schema/Status"
+      "Property": "R005 Delete refinement: exact saved configuration"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Enum: Pending, Completed, Cancelled. Valid If: IF([Status] = \"Cancelled\", LIST(\"Cancelled\"), LIST(\"\
+        Pending\", \"Completed\")) Saved DEV OLAP 1.000123; OLTP 1.000120 unchanged. Exact complete object values: outputs/r005-20260917/reversal-model-inventory.json.\
+        \ Tests and limits: REVERSAL_REPORT.md. Supersedes prior R005 values for this object."
+    "row-01265":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Action/Settlements/Delete Settlement"
+      "Property": "R005 Delete refinement: exact saved configuration"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Visible Delete; trash icon; Prominent; confirmation required; condition [Status] <> \"Cancelled\". Assignments:\
+        \ Status = \"Cancelled\"; Notes = CONCATENATE([Notes], \" | Deleted settlement by \", USEREMAIL(), \" at \", TEXT(NOW())).\
+        \ Saved DEV OLAP 1.000123; OLTP 1.000120 unchanged. Exact complete object values: outputs/r005-20260917/reversal-model-inventory.json.\
+        \ Tests and limits: REVERSAL_REPORT.md. Supersedes prior R005 values for this object."
+    "row-01266":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "SQL Settlements"
+      "Property": "R005 Delete reversal"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "V21__settlement_delete_reversal.sql: guard_settlement_reversal / settlement_reversal_guard; validate_net_settlement\
+        \ excludes Cancelled; refresh_reversed_settlement_analytics / zz_settlement_reversal_analytics refresh existing snapshots.\
+        \ Original facts retained, V20 removes derived cash. No new columns/tables. Saved DEV OLAP 1.000123; OLTP 1.000120\
+        \ unchanged. Exact complete object values: outputs/r005-20260917/reversal-model-inventory.json. Tests and limits:\
+        \ REVERSAL_REPORT.md. Supersedes prior R005 values for this object."
+    "row-01267":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLAP Action/Settlements/Delete"
+      "Property": "R005 Delete refinement: system action removal"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Absent from final saved export because Settlements permits ADDS_AND_UPDATES. Physical DELETE is blocked\
+        \ by SQL; visible replacement Delete writes Status and Notes. No Cancel Settlement action exists. Saved DEV OLAP 1.000123;\
+        \ OLTP 1.000120 unchanged. Exact complete object values: outputs/r005-20260917/reversal-model-inventory.json. Tests\
+        \ and limits: REVERSAL_REPORT.md. Supersedes prior R005 values for this object."
+    "row-01268":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Cash Holder Balances"
+      "Property": "Availability and ownership"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Existing V20 SQL view added READ_ONLY on database-3. One row per holder. OLAP Cash Holder Summary still\
+        \ consumes the same view. Cash Ledger entry remains OLAP only. Saved readback and current-GUI checks: dashboard-delta.json\
+        \ / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object."
+    "row-01269":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Cash Holder Balances / Ref Cash Holder"
+      "Property": "Column definition"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Type Ref; Key Yes; Label No; Hidden Yes; Read-Only Yes. Ref Cash Holders.Row ID; IsPartOf false. Exact\
+        \ remaining properties in dashboard-saved-definitions.json. Saved readback and current-GUI checks: dashboard-delta.json\
+        \ / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object."
+    "row-01270":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Cash Holder Balances / Holder Name"
+      "Property": "Column definition"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Type Text; Key No; Label Yes; Hidden No; Read-Only Yes.  Exact remaining properties in dashboard-saved-definitions.json.\
+        \ Saved readback and current-GUI checks: dashboard-delta.json / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged.\
+        \ Supersedes earlier R005 availability/formula for this object."
+    "row-01271":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Cash Holder Balances / Cash In"
+      "Property": "Column definition"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator\
+        \ true. Exact remaining properties in dashboard-saved-definitions.json. Saved readback and current-GUI checks: dashboard-delta.json\
+        \ / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object."
+    "row-01272":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Cash Holder Balances / Cash Out"
+      "Property": "Column definition"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator\
+        \ true. Exact remaining properties in dashboard-saved-definitions.json. Saved readback and current-GUI checks: dashboard-delta.json\
+        \ / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object."
+    "row-01273":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Cash Holder Balances / Current Balance"
+      "Property": "Column definition"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator\
+        \ true. Exact remaining properties in dashboard-saved-definitions.json. Saved readback and current-GUI checks: dashboard-delta.json\
+        \ / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object."
+    "row-01274":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Cash Holder Balances / Business Cash Held"
+      "Property": "Column definition"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator\
+        \ true. Exact remaining properties in dashboard-saved-definitions.json. Saved readback and current-GUI checks: dashboard-delta.json\
+        \ / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object."
+    "row-01275":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Cash Holder Balances / Reimbursement / Advance Due"
+      "Property": "Column definition"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Type Price; Key No; Label No; Hidden No; Read-Only Yes. Currency ฿; DecimalDigits 0; thousands separator\
+        \ true. Exact remaining properties in dashboard-saved-definitions.json. Saved readback and current-GUI checks: dashboard-delta.json\
+        \ / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object."
+    "row-01276":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Cash Holders / Related Cash Holder Balances"
+      "Property": "Generated virtual column"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "List Ref Cash Holder Balances.Ref Cash Holder; REF_ROWS(\"Cash Holder Balances\", \"Ref Cash Holder\"\
+        ); read-only, visible, not key/label. Generated inline/detail views are read-only. Saved readback and current-GUI\
+        \ checks: dashboard-delta.json / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula\
+        \ for this object."
+    "row-01277":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Borrowers / Todays Amount Due"
+      "Property": "App formula"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "App formula: =[Todays Amount Collected] + [Todays Amount Remaining] Saved readback and current-GUI checks:\
+        \ dashboard-delta.json / DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula\
+        \ for this object."
+    "row-01278":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Statistics / Total Cash Pool"
+      "Property": "Virtual column"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Price, ฿, zero decimals, read-only, visible. ANY(Loan Form Context[Contributed Capital]). One-row SQL\
+        \ limit lookup; no ledger aggregation. Saved readback and current-GUI checks: dashboard-delta.json / DASHBOARD_REPORT.md.\
+        \ OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object."
+    "row-01279":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "OLTP / Business Cash Held"
+      "Property": "Slice"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "Source Cash Holder Balances; [Business Cash Held] <> 0; READ_ONLY; all eight imported columns; **auto**\
+        \ actions. Exact membership in dashboard-delta.json. Saved readback and current-GUI checks: dashboard-delta.json /\
+        \ DASHBOARD_REPORT.md. OLAP 1.000123, SQL V21 unchanged. Supersedes earlier R005 availability/formula for this object."
+    "row-01280":
+      "App": "R005 historical DEV checkpoint"
+      "Object": "Current scope"
+      "Property": "Reconciliation"
+      "Production": "Promoted 18 September 2026: PROD OLTP 3.000172 / OLAP 1.100122 / SQL V21. Exact current values are in\
+        \ production inventory and production-package.json. DEV-only opening/test data excluded."
+      "Development": "No remaining R005 business configuration differences. DEV uses database-3, its own app links/theme,\
+        \ owner-only delivery, Prototype mode and synthetic fixtures. See PRODUCTION_REPORT.md."

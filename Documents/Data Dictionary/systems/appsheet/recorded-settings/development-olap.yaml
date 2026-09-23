@@ -1,0 +1,85 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "recorded-labels"
+  "kind": "settings"
+  "name": "development-olap"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "App Settings"
+  "records":
+    "row-00037":
+      "Environment / app": "development-olap"
+      "Group": "Sync"
+      "Setting / bot": "Server caching"
+      "Value": "Off"
+      "Evidence": "PostgreSQL sync-options evidence, 15 Sep 2026; OLAP production recaptured during assessment promotion"
+    "row-00038":
+      "Environment / app": "development-olap"
+      "Group": "Sync"
+      "Setting / bot": "Delta sync"
+      "Value": "Off"
+      "Evidence": "PostgreSQL sync-options evidence, 15 Sep 2026; OLAP production recaptured during assessment promotion"
+    "row-00039":
+      "Environment / app": "development-olap"
+      "Group": "Sync"
+      "Setting / bot": "Quick sync"
+      "Value": "Off"
+      "Evidence": "PostgreSQL sync-options evidence, 15 Sep 2026; OLAP production recaptured during assessment promotion"
+    "row-00040":
+      "Environment / app": "development-olap"
+      "Group": "Sync"
+      "Setting / bot": "Sync on start"
+      "Value": "On"
+      "Evidence": "PostgreSQL sync-options evidence, 15 Sep 2026; OLAP production recaptured during assessment promotion"
+    "row-00041":
+      "Environment / app": "development-olap"
+      "Group": "Sync"
+      "Setting / bot": "Delayed sync"
+      "Value": "Off"
+      "Evidence": "PostgreSQL sync-options evidence, 15 Sep 2026; OLAP production recaptured during assessment promotion"
+    "row-00042":
+      "Environment / app": "development-olap"
+      "Group": "Sync"
+      "Setting / bot": "Automatic updates"
+      "Value": "On"
+      "Evidence": "PostgreSQL sync-options evidence, 15 Sep 2026; OLAP production recaptured during assessment promotion"
+    "row-00043":
+      "Environment / app": "development-olap"
+      "Group": "Bot"
+      "Setting / bot": "Refresh Daily Analytics Daily"
+      "Value": "Enabled; Hourly :00 Bangkok; Statistics request"
+      "Evidence": "Single inline Set row values step; no outward task; GUI run Complete"
+    "row-00044":
+      "Environment / app": "development-olap"
+      "Group": "Bot"
+      "Setting / bot": "Refresh Daily Analytics Daily 2"
+      "Value": "Removed"
+      "Evidence": "Duplicate disabled Calendar bot removed"
+    "row-00045":
+      "Environment / app": "development-olap"
+      "Group": "Bot"
+      "Setting / bot": "Daily Loan Analysis Export"
+      "Value": "Disabled"
+      "Evidence": "Current editor, 15 September 2026"
+    "row-00047":
+      "Environment / app": "development-olap"
+      "Group": "Version"
+      "Setting / bot": "Saved app version"
+      "Value": "1.000090"
+      "Evidence": "Chrome saved definition; expense/dashboard refinements; owner acceptance pending"
+    "row-00050":
+      "Environment / app": "development-olap"
+      "Group": "Deployment"
+      "Setting / bot": "App state"
+      "Value": "Deployed"
+      "Evidence": "Needed for scheduled events; required deployment checks passed; development UUID only"
+    "row-00051":
+      "Environment / app": "development-olap"
+      "Group": "Monitoring"
+      "Setting / bot": "Audit History alerts"
+      "Value": "Enabled"
+      "Evidence": "Read in current editor; owner did not receive test charge error email. Delivery unverified."

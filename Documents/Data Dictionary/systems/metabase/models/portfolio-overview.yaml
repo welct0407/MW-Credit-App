@@ -1,0 +1,230 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Portfolio Overview"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Model grain"
+      "Type / source": "scripts/metabase/models/portfolio.sql"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One current portfolio row. Gross interest, forecast, collection totals and portfolio concentration; all\
+        \ balances are current, not historical as-of balances."
+    "Portfolio ID":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Portfolio ID"
+      "Type / source": "type/Text / field 99"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Portfolio ID"
+    "As Of Date":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "As Of Date"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "As Of Date"
+    "Peak Cash Pool Date 30D":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Peak Cash Pool Date 30D"
+      "Type / source": "type/Date / field 104"
+      "Semantic / relationship": null
+      "Definition": "Peak Cash Pool Date 30D"
+    "Total Cash Pool":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Total Cash Pool"
+      "Type / source": "type/Decimal / field 106"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Total Cash Pool"
+    "Outstanding Principal":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Outstanding Principal"
+      "Type / source": "type/Decimal / field 100"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Outstanding Principal"
+    "Available Cash":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Available Cash"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Available Cash"
+    "Cash Pool Utilization":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Cash Pool Utilization"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Percentage"
+      "Definition": "Cash Pool Utilization"
+    "Expected Daily Interest":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Expected Daily Interest"
+      "Type / source": "type/Decimal / field 105"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Expected Daily Interest"
+    "Realized Profit MTD":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Realized Profit MTD"
+      "Type / source": "type/Decimal / field 102"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Realized Profit MTD"
+    "Projected Monthly Profit":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Projected Monthly Profit"
+      "Type / source": "type/Decimal / field 103"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Projected Monthly Profit"
+    "Active Loans":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Active Loans"
+      "Type / source": "type/BigInteger / field 101"
+      "Semantic / relationship": null
+      "Definition": "Active Loans"
+    "Loan Account Balance":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Loan Account Balance"
+      "Type / source": "type/Decimal / field 108"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Loan Account Balance"
+    "Unsettled Profit":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Unsettled Profit"
+      "Type / source": "type/Decimal / field 107"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Unsettled Profit"
+    "Account":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Account"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Account"
+    "Interest Paid":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Interest Paid"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Interest Paid"
+    "Profit in Past 30 Days":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Profit in Past 30 Days"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Profit in Past 30 Days"
+    "7-Day Profit Growth %":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "7-Day Profit Growth %"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Percentage"
+      "Definition": "7-Day Profit Growth %"
+    "Top Borrower":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Top Borrower"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Top Borrower"
+    "Top 3 Borrower Concentration":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Top 3 Borrower Concentration"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Percentage"
+      "Definition": "Top 3 Borrower Concentration"
+    "Borrowers Fully Paid Today":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Borrowers Fully Paid Today"
+      "Type / source": "type/BigInteger"
+      "Semantic / relationship": null
+      "Definition": "Borrowers Fully Paid Today"
+    "Borrowers Partially Paid Today":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Borrowers Partially Paid Today"
+      "Type / source": "type/BigInteger"
+      "Semantic / relationship": null
+      "Definition": "Borrowers Partially Paid Today"
+    "Borrowers with Overdue Payment":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Borrowers with Overdue Payment"
+      "Type / source": "type/BigInteger"
+      "Semantic / relationship": null
+      "Definition": "Borrowers with Overdue Payment"
+    "Borrowers Not Paid Today":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Borrowers Not Paid Today"
+      "Type / source": "type/BigInteger"
+      "Semantic / relationship": null
+      "Definition": "Borrowers Not Paid Today"
+    "Amount Due Today":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Amount Due Today"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Amount Due Today"
+    "Amount Collected Today":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Amount Collected Today"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Amount Collected Today"
+    "Amount Outstanding Today":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Amount Outstanding Today"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Amount Outstanding Today"
+    "Amount Collection Rate Today":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Amount Collection Rate Today"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Percentage"
+      "Definition": "Amount Collection Rate Today"
+    "Remaining Forecast Profit":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Remaining Forecast Profit"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Remaining Forecast Profit"
+    "Forecast Realization":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Forecast Realization"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Percentage"
+      "Definition": "Forecast Realization"
+    "Borrowers Due Today":
+      "Model": "Portfolio Overview"
+      "ID": 73
+      "Field / grain": "Borrowers Due Today"
+      "Type / source": "type/BigInteger"
+      "Semantic / relationship": null
+      "Definition": "Borrowers Due Today"

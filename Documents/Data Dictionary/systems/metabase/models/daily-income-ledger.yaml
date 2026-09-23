@@ -1,0 +1,112 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Daily Income Ledger"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Model grain"
+      "Type / source": "public.reporting_income_daily"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One calendar date from first business activity month through Bangkok today. Income, partner expenses\
+        \ and completed settlements aggregate independently before joining. Running prior net profit and settled totals are\
+        \ calculated before visual date filtering."
+    "Date":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Date"
+      "Type / source": "type/Date"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Date"
+    "Month":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Month"
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Month"
+    "Operating Income":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Operating Income"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Income"
+      "Definition": "Operating Income"
+    "Expenses":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Expenses"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Expenses"
+    "Signed Expenses":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Signed Expenses"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Signed Expenses"
+    "Net Profit":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Net Profit"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Net Profit"
+    "Partner A Net Profit":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Partner A Net Profit"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Partner A Net Profit"
+    "Partner B Net Profit":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Partner B Net Profit"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Partner B Net Profit"
+    "Prior Partner A Net":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Prior Partner A Net"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Prior Partner A Net"
+    "Prior Partner B Net":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Prior Partner B Net"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Prior Partner B Net"
+    "Partner A Settled Through Date":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Partner A Settled Through Date"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Partner A Settled Through Date"
+    "Partner B Settled Through Date":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Partner B Settled Through Date"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Partner B Settled Through Date"
+    "Net Profit Through Date":
+      "Model": "Daily Income Ledger"
+      "ID": 186
+      "Field / grain": "Net Profit Through Date"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Net Profit Through Date"

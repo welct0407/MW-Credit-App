@@ -1,0 +1,90 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "recorded-instance"
+  "kind": "model"
+  "name": "Borrower Performance"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "fields":
+    "Model grain":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Model grain"
+      "Type / source": "scripts/metabase/models/borrower-performance.sql"
+      "Semantic / relationship": "PROD reporting / collection 8"
+      "Definition": "One row per visible borrower display name, matching the source reporting grain. Loan and repayment totals\
+        \ are aggregated independently before joining. Shared rank groups preserve top four plus Others."
+    "Borrower":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Borrower"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Borrower"
+    "Outstanding Principal":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Outstanding Principal"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Outstanding Principal"
+    "Profit 30D":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Profit 30D"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": "type/Currency"
+      "Definition": "Profit 30D"
+    "Payments 30D":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Payments 30D"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Payments 30D"
+    "Principal Rank":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Principal Rank"
+      "Type / source": "type/BigInteger"
+      "Semantic / relationship": null
+      "Definition": "Principal Rank"
+    "Profit Rank":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Profit Rank"
+      "Type / source": "type/BigInteger"
+      "Semantic / relationship": null
+      "Definition": "Profit Rank"
+    "Principal Group":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Principal Group"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Principal Group"
+    "Profit Group":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Profit Group"
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/Category"
+      "Definition": "Profit Group"
+    "Principal Group Order":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Principal Group Order"
+      "Type / source": "type/BigInteger"
+      "Semantic / relationship": null
+      "Definition": "Principal Group Order"
+    "Profit Group Order":
+      "Model": "Borrower Performance"
+      "ID": 72
+      "Field / grain": "Profit Group Order"
+      "Type / source": "type/BigInteger"
+      "Semantic / relationship": null
+      "Definition": "Profit Group Order"

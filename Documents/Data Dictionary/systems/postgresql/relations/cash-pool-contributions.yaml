@@ -1,0 +1,73 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Cash Pool Contributions"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Cash Pool Contributions"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Ref Partner":
+      "Table / view": "Cash Pool Contributions"
+      "Column": "Ref Partner"
+      "Position": 2
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Contribution Date":
+      "Table / view": "Cash Pool Contributions"
+      "Column": "Contribution Date"
+      "Position": 3
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Transaction Type":
+      "Table / view": "Cash Pool Contributions"
+      "Column": "Transaction Type"
+      "Position": 4
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Amount":
+      "Table / view": "Cash Pool Contributions"
+      "Column": "Amount"
+      "Position": 5
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Notes":
+      "Table / view": "Cash Pool Contributions"
+      "Column": "Notes"
+      "Position": 6
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+  "constraints":
+    "Cash Pool Contributions_Row ID_not_null":
+      "Table": "Cash Pool Contributions"
+      "Constraint": "Cash Pool Contributions_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Cash Pool Contributions_pkey":
+      "Table": "Cash Pool Contributions"
+      "Constraint": "Cash Pool Contributions_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"
+    "appsheet_ref_08":
+      "Table": "Cash Pool Contributions"
+      "Constraint": "appsheet_ref_08"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Partner\") REFERENCES \"Partners\"(\"Row ID\")"

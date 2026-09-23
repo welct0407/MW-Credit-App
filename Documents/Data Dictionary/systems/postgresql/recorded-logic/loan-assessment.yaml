@@ -1,0 +1,20 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "Loan Assessment"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00035":
+      "Kind": "Trigger"
+      "Schema / table": "Loan Assessment"
+      "Name": "appsheet_blank_refs"
+      "Status / hash": "O"
+      "Definition / arguments": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Loan Assessment\"\
+        \ FOR EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Borrower')"

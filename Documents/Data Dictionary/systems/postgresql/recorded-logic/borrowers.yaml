@@ -1,0 +1,33 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "Borrowers"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00086":
+      "Kind": "Trigger"
+      "Schema / table": "Borrowers"
+      "Name": "zz_vc_borrower_row"
+      "Status / hash": "V13; production and development"
+      "Definition / arguments": "See immutable migration V13__borrower_materialized_rollups.sql; source or derived-value event."
+    "row-00106":
+      "Kind": "Development index"
+      "Schema / table": "Borrowers"
+      "Name": "borrowers_referrer_idx"
+      "Status / hash": "V15"
+      "Definition / arguments": "CREATE INDEX borrowers_referrer_idx ON public.\"Borrowers\" USING btree (\"Ref Referrer\"\
+        )"
+    "row-00118":
+      "Kind": "Development trigger"
+      "Schema / table": "Borrowers"
+      "Name": "appsheet_referrer_blank"
+      "Status / hash": "V15"
+      "Definition / arguments": "See immutable migration for event, timing and function; deferred financial recalculation\
+        \ where specified."

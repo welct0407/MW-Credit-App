@@ -1,0 +1,233 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Loans"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Row ID":
+      "Table / view": "Loans"
+      "Column": "Row ID"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "NO"
+      "Default": null
+    "Loan Date":
+      "Table / view": "Loans"
+      "Column": "Loan Date"
+      "Position": 2
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Close Date":
+      "Table / view": "Loans"
+      "Column": "Close Date"
+      "Position": 3
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Principal Amount":
+      "Table / view": "Loans"
+      "Column": "Principal Amount"
+      "Position": 4
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Due Date":
+      "Table / view": "Loans"
+      "Column": "Due Date"
+      "Position": 5
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Borrowers":
+      "Table / view": "Loans"
+      "Column": "Ref Borrowers"
+      "Position": 6
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Loan Arrangement":
+      "Table / view": "Loans"
+      "Column": "Loan Arrangement"
+      "Position": 7
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Loan Status":
+      "Table / view": "Loans"
+      "Column": "Loan Status"
+      "Position": 8
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Loan Type":
+      "Table / view": "Loans"
+      "Column": "Loan Type"
+      "Position": 10
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Current Daily Interest":
+      "Table / view": "Loans"
+      "Column": "Current Daily Interest"
+      "Position": 11
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Fixed Interest":
+      "Table / view": "Loans"
+      "Column": "Fixed Interest"
+      "Position": 12
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Transfer Fee":
+      "Table / view": "Loans"
+      "Column": "Transfer Fee"
+      "Position": 13
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Interest Payment Interval":
+      "Table / view": "Loans"
+      "Column": "Interest Payment Interval"
+      "Position": 14
+      "PostgreSQL type": "integer"
+      "Nullable": "YES"
+      "Default": null
+    "Created By":
+      "Table / view": "Loans"
+      "Column": "Created By"
+      "Position": 15
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Closed By":
+      "Table / view": "Loans"
+      "Column": "Closed By"
+      "Position": 16
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Defaulted":
+      "Table / view": "Loans"
+      "Column": "Defaulted"
+      "Position": 17
+      "PostgreSQL type": "boolean"
+      "Nullable": "YES"
+      "Default": null
+    "Default Loss Amount":
+      "Table / view": "Loans"
+      "Column": "Default Loss Amount"
+      "Position": 18
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Daily Payment Amount":
+      "Table / view": "Loans"
+      "Column": "Daily Payment Amount"
+      "Position": 19
+      "PostgreSQL type": "money"
+      "Nullable": "YES"
+      "Default": null
+    "Auto Charge Enabled":
+      "Table / view": "Loans"
+      "Column": "Auto Charge Enabled"
+      "Position": 20
+      "PostgreSQL type": "boolean"
+      "Nullable": "YES"
+      "Default": null
+    "Interest Schedule Anchor Date":
+      "Table / view": "Loans"
+      "Column": "Interest Schedule Anchor Date"
+      "Position": 21
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null
+    "Ref Closing Payment":
+      "Table / view": "Loans"
+      "Column": "Ref Closing Payment"
+      "Position": 22
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Charge Generation Request":
+      "Table / view": "Loans"
+      "Column": "Charge Generation Request"
+      "Position": 23
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Total Interest Received":
+      "Table / view": "Loans"
+      "Column": "Total Interest Received"
+      "Position": 24
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Total Principal Received":
+      "Table / view": "Loans"
+      "Column": "Total Principal Received"
+      "Position": 25
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Outstanding Principal":
+      "Table / view": "Loans"
+      "Column": "Outstanding Principal"
+      "Position": 26
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Total Amount Received":
+      "Table / view": "Loans"
+      "Column": "Total Amount Received"
+      "Position": 27
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Expected Daily Interest Amount":
+      "Table / view": "Loans"
+      "Column": "Expected Daily Interest Amount"
+      "Position": 28
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+  "constraints":
+    "Loans_Row ID_not_null":
+      "Table": "Loans"
+      "Constraint": "Loans_Row ID_not_null"
+      "Type": "n"
+      "Validated": true
+      "Definition": "NOT NULL \"Row ID\""
+    "Loans_pkey":
+      "Table": "Loans"
+      "Constraint": "Loans_pkey"
+      "Type": "p"
+      "Validated": true
+      "Definition": "PRIMARY KEY (\"Row ID\")"
+    "appsheet_ref_01":
+      "Table": "Loans"
+      "Constraint": "appsheet_ref_01"
+      "Type": "f"
+      "Validated": true
+      "Definition": "FOREIGN KEY (\"Ref Borrowers\") REFERENCES \"Borrowers\"(\"Row ID\")"
+    "loans_interest_schedule_anchor_date_check":
+      "Table": "Loans"
+      "Constraint": "loans_interest_schedule_anchor_date_check"
+      "Type": "c"
+      "Validated": "true"
+      "Definition": "CHECK (((\"Interest Schedule Anchor Date\" IS NULL) OR ((\"Loan Date\" IS NOT NULL) AND (\"Interest Schedule\
+        \ Anchor Date\" >= \"Loan Date\"))))"
+    "Loans_Ref Closing Payment_fkey":
+      "Table": "Loans"
+      "Constraint": "Loans_Ref Closing Payment_fkey"
+      "Type": "f"
+      "Validated": "true"
+      "Definition": "FOREIGN KEY (\"Ref Closing Payment\") REFERENCES \"Payments\"(\"Row ID\")"

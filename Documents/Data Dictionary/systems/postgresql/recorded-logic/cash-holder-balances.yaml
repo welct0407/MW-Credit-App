@@ -1,0 +1,58 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "Cash Holder Balances"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00155":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holder Balances"
+      "Name": "Ref Cash Holder"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "Cash Holders.Row ID; one row per holder; planned read-only Ref key. SQL view; planned OLAP\
+        \ read-only, no OLTP aggregation."
+    "row-00156":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holder Balances"
+      "Name": "Holder Name"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "Cash Holders.Holder Name; planned label. SQL view; planned OLAP read-only, no OLTP aggregation."
+    "row-00157":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holder Balances"
+      "Name": "Cash In"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "SUM(Cash Ledger.Amount WHERE Ref To Cash Holder = holder), or 0. SQL view; planned OLAP read-only,\
+        \ no OLTP aggregation."
+    "row-00158":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holder Balances"
+      "Name": "Cash Out"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "SUM(Cash Ledger.Amount WHERE Ref From Cash Holder = holder), or 0. SQL view; planned OLAP\
+        \ read-only, no OLTP aggregation."
+    "row-00159":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holder Balances"
+      "Name": "Current Balance"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "Cash In - Cash Out. SQL view; planned OLAP read-only, no OLTP aggregation."
+    "row-00160":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holder Balances"
+      "Name": "Business Cash Held"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "GREATEST(Current Balance, 0). SQL view; planned OLAP read-only, no OLTP aggregation."
+    "row-00161":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holder Balances"
+      "Name": "Reimbursement / Advance Due"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "GREATEST(-Current Balance, 0). SQL view; planned OLAP read-only, no OLTP aggregation."

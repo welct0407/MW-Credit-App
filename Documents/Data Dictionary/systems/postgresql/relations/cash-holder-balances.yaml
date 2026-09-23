@@ -1,0 +1,61 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "Cash Holder Balances"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Ref Cash Holder":
+      "Table / view": "Cash Holder Balances"
+      "Column": "Ref Cash Holder"
+      "Position": 1
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Holder Name":
+      "Table / view": "Cash Holder Balances"
+      "Column": "Holder Name"
+      "Position": 2
+      "PostgreSQL type": "text"
+      "Nullable": "YES"
+      "Default": null
+    "Cash In":
+      "Table / view": "Cash Holder Balances"
+      "Column": "Cash In"
+      "Position": 3
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Cash Out":
+      "Table / view": "Cash Holder Balances"
+      "Column": "Cash Out"
+      "Position": 4
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Current Balance":
+      "Table / view": "Cash Holder Balances"
+      "Column": "Current Balance"
+      "Position": 5
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Business Cash Held":
+      "Table / view": "Cash Holder Balances"
+      "Column": "Business Cash Held"
+      "Position": 6
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null
+    "Reimbursement / Advance Due":
+      "Table / view": "Cash Holder Balances"
+      "Column": "Reimbursement / Advance Due"
+      "Position": 7
+      "PostgreSQL type": "numeric"
+      "Nullable": "YES"
+      "Default": null

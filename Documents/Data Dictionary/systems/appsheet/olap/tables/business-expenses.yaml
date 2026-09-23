@@ -1,0 +1,394 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "Business Expenses"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLAP"
+  "source_table": "Business Expenses"
+  "binding":
+    "App": "OLAP"
+    "Version": "v1.100101"
+    "Table": "Business Expenses"
+    "Source": "database-2"
+    "Source path": "Business Expenses"
+    "Schema": "Business Expenses_Schema"
+    "Update permission": "READ_ONLY"
+    "Scope": "Business source"
+  "columns":
+    "_RowNumber":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "_RowNumber"
+        "Type": "Number"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+    "Row ID":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Row ID"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "Yes"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "Yes"
+    "Expense Date":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Expense Date"
+        "Type": "Date"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Expense Category":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Expense Category"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Amount":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Amount"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Payee Name":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Payee Name"
+        "Type": "Name"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Ref Payee Borrower":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Ref Payee Borrower"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "relationship":
+        "App": "OLAP"
+        "Child table": "Business Expenses"
+        "Ref column": "Ref Payee Borrower"
+        "Parent table": "Borrowers"
+        "Parent key": "Row ID"
+        "Part of parent": "No"
+    "Ref Related Borrower":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Ref Related Borrower"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "relationship":
+        "App": "OLAP"
+        "Child table": "Business Expenses"
+        "Ref column": "Ref Related Borrower"
+        "Parent table": "Borrowers"
+        "Parent key": "Row ID"
+        "Part of parent": "No"
+    "Ref Related Loan":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Ref Related Loan"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "relationship":
+        "App": "OLAP"
+        "Child table": "Business Expenses"
+        "Ref column": "Ref Related Loan"
+        "Parent table": "Loans"
+        "Parent key": "Row ID"
+        "Part of parent": "No"
+    "Notes":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Notes"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Source Type":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Source Type"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Source Key":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Source Key"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Gross Profit Basis":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Gross Profit Basis"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Allocation Basis":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Allocation Basis"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Partner A Share":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Partner A Share"
+        "Type": "Percent"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Partner B Share":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Partner B Share"
+        "Type": "Percent"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Partner A Expense":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Partner A Expense"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Partner B Expense":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Partner B Expense"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Rule Version":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Rule Version"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Created At":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Created At"
+        "Type": "DateTime"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Created By":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Created By"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+    "Ref Paid By Cash Holder":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Ref Paid By Cash Holder"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Display name": "=\"ผู้จ่ายเงิน / Paid By\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.ReferencedTableName": "Cash Holders"
+        "Type Qualifier.ReferencedRootTableName": "Cash Holders"
+        "Type Qualifier.ReferencedType": "Text"
+        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
+          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ReferencedKeyColumn": "Row ID"
+        "Type Qualifier.IsAPartOf": "false"
+        "Type Qualifier.RelationshipName": null
+        "Type Qualifier.InputMode": "Auto"
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null
+      "relationship":
+        "App": "OLAP"
+        "Child table": "Business Expenses"
+        "Ref column": "Ref Paid By Cash Holder"
+        "Parent table": "Cash Holders"
+        "Parent key": "Row ID"
+        "Part of parent": false
+    "Related Cash Ledgers":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Business Expenses"
+        "Column": "Related Cash Ledgers"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Visible?": "ALWAYS"
+        "Description": "Cash Ledger entries that reference this entry in the Ref Business Expense column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Ledger\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Cash Ledger\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Cash Ledger\", \"Ref Business Expense\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+        "Type Qualifier.ElementType": "Ref"
+        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Cash Ledger\",\"ReferencedRootTableName\":\"Cash\
+          \ Ledger\",\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\
+          \"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Type Qualifier.ItemSeparator": " , "
+        "Type Qualifier.Valid_If": null
+        "Type Qualifier.Error_Message_If_Invalid": null
+        "Type Qualifier.Show_If": null
+        "Type Qualifier.Required_If": null
+        "Type Qualifier.Editable_If": null
+        "Type Qualifier.Reset_If": null
+        "Type Qualifier.Suggested_Values": null

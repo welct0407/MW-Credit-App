@@ -1,0 +1,35 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/dev-differences"
+  "kind": "sheet-records"
+  "name": "R013 promoted / closed"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "Dev Differences"
+  "records":
+    "row-02877":
+      "App": "R013 promoted / closed"
+      "Object": "Cash Ledger[Created At]"
+      "Property": "Payment insert timestamp"
+      "Production": "Promoted 21 Sep 2026: PROD V30 / OLTP 3.000240 / OLAP 1.100189. New System/Payment entries inherit Payments[Created\
+        \ At]; missing source time falls back to current Bangkok server time. Other sources and existing rows unchanged."
+      "Development": "DEV V30 matches production. No new columns or backfill."
+    "row-02878":
+      "App": "R013 promoted / closed"
+      "Object": "Payments[Payment Date], Payments[Created At]"
+      "Property": "Existing receipt fields"
+      "Production": "Production V30 supports the existing receipt date/time fields. Automatic receipt payment creation remains\
+        \ disabled; R013 performed no payment write."
+      "Development": "Receipt summary prepares Payment Date and Created At from the printed Bangkok transfer date/time. No\
+        \ new columns."
+    "row-02879":
+      "App": "R013 promoted / closed"
+      "Object": "Cash Account Statement Recent[Statement Time]"
+      "Property": "Time: Ignore seconds"
+      "Production": "PROD OLTP 3.000240: TRUE, unchanged by the R013 SQL-only promotion. Hours/minutes only."
+      "Development": "DEV OLTP 1.000064: TRUE, matching production. Stored receipt transfer time flows through the existing\
+        \ ledger timestamp; no app promotion in R013."

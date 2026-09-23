@@ -1,0 +1,34 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "Settlements"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00053":
+      "Kind": "Trigger"
+      "Schema / table": "Settlements"
+      "Name": "appsheet_blank_refs"
+      "Status / hash": "O"
+      "Definition / arguments": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON public.\"Settlements\" FOR\
+        \ EACH ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Partner')"
+    "row-00123":
+      "Kind": "Development trigger"
+      "Schema / table": "Settlements"
+      "Name": "expense_allocation_lock"
+      "Status / hash": "V15"
+      "Definition / arguments": "See immutable migration for event, timing and function; deferred financial recalculation\
+        \ where specified."
+    "row-00128":
+      "Kind": "Development trigger"
+      "Schema / table": "Settlements"
+      "Name": "validate_net_settlement"
+      "Status / hash": "V15"
+      "Definition / arguments": "See immutable migration for event, timing and function; deferred financial recalculation\
+        \ where specified."

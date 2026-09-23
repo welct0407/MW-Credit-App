@@ -1,0 +1,22 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "_Per User Settings"
+  "scope": "recorded-production"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "source_app": "OLTP"
+  "source_table": "_Per User Settings"
+  "binding":
+    "App": "OLTP"
+    "Version": "v3.000121"
+    "Table": "_Per User Settings"
+    "Source": "native"
+    "Source path": "_Per User Settings"
+    "Schema": "_Per User Settings_Schema"
+    "Update permission": "UPDATES_ONLY"
+    "Scope": "AppSheet internal"

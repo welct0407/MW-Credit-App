@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "method": "Independent workbook XML extraction versus YAML row reconstruction",
+  "source_sha256": "1b33aebd71f79ef16023d510ceb8276942444b4665045611f12acce5f247b377",
+  "sheets": 14,
+  "records": 16496,
+  "typed_cell_values": 86590,
+  "documents": 185,
+  "per_sheet": {
+    "Guide": 9,
+    "Prod Tables": 43,
+    "Prod Columns": 711,
+    "Column Rules": 10961,
+    "Prod Relationships": 47,
+    "Prod Slices": 15,
+    "Slice Columns": 482,
+    "DB Columns": 354,
+    "DB Constraints": 156,
+    "DB Logic": 186,
+    "Dev Differences": 2858,
+    "App Settings": 134,
+    "R008 Production": 199,
+    "Metabase Models": 341
+  },
+  "duplicate_source_or_target_rows": 0,
+  "unaccounted_source_rows": 0,
+  "formula_and_cached_values_preserved": true,
+  "workbook_unchanged": true,
+  "live_access": false,
+  "semantic_reconciliation": false
+}

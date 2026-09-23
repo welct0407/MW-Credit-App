@@ -1,0 +1,19 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "relation"
+  "name": "OLAP Calendar SQL Lab"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "columns":
+    "Date":
+      "Table / view": "OLAP Calendar SQL Lab"
+      "Column": "Date"
+      "Position": 1
+      "PostgreSQL type": "date"
+      "Nullable": "YES"
+      "Default": null

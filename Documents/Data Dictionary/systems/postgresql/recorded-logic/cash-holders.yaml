@@ -1,0 +1,43 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "unassigned-database"
+  "kind": "recorded-logic"
+  "name": "Cash Holders"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "DB Logic"
+  "records":
+    "row-00129":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holders"
+      "Name": "Row ID"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "text PRIMARY KEY"
+    "row-00130":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holders"
+      "Name": "Holder Name"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "text NOT NULL UNIQUE"
+    "row-00131":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holders"
+      "Name": "Active"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "boolean NOT NULL DEFAULT true"
+    "row-00132":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holders"
+      "Name": "Sort Order"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "integer NOT NULL"
+    "row-00133":
+      "Kind": "R005 PROD V21"
+      "Schema / table": "Cash Holders"
+      "Name": "Created At"
+      "Status / hash": "Applied 18 September 2026"
+      "Definition / arguments": "timestamp NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok')"

@@ -1,0 +1,125 @@
+"format": 1
+"identity":
+  "system": "workbook-evidence"
+  "component": "excel-20260923/dev-differences"
+  "kind": "sheet-records"
+  "name": "Database"
+  "scope": "as-recorded"
+"verification":
+  "status": "imported-unreconciled"
+  "source": "excel-20260923"
+"content":
+  "sheet": "Dev Differences"
+  "records":
+    "row-00122":
+      "App": "Database"
+      "Object": "Flyway"
+      "Property": "Schema version"
+      "Production": "V14"
+      "Development": "V16"
+    "row-00123":
+      "App": "Database"
+      "Object": "payments_borrower_status_idx"
+      "Property": "Shared index"
+      "Production": "CREATE INDEX payments_borrower_status_idx ON public.\"Payments\" (\"Ref Borrower\", \"Status\");"
+      "Development": "CREATE INDEX payments_borrower_status_idx ON public.\"Payments\" (\"Ref Borrower\", \"Status\");"
+    "row-00124":
+      "App": "Database"
+      "Object": "loans_borrower_idx"
+      "Property": "Shared index"
+      "Production": "CREATE INDEX loans_borrower_idx ON public.\"Loans\" (\"Ref Borrowers\");"
+      "Development": "CREATE INDEX loans_borrower_idx ON public.\"Loans\" (\"Ref Borrowers\");"
+    "row-00125":
+      "App": "Database"
+      "Object": "charges_loan_date_idx"
+      "Property": "Shared index"
+      "Production": "CREATE INDEX charges_loan_date_idx ON public.\"Charges\" (\"Ref Loans\", \"Charge Date\" DESC);"
+      "Development": "CREATE INDEX charges_loan_date_idx ON public.\"Charges\" (\"Ref Loans\", \"Charge Date\" DESC);"
+    "row-00126":
+      "App": "Database"
+      "Object": "repayments_charge_idx"
+      "Property": "Shared index"
+      "Production": "CREATE INDEX repayments_charge_idx ON public.\"Repayments\" (\"Ref Charges\");"
+      "Development": "CREATE INDEX repayments_charge_idx ON public.\"Repayments\" (\"Ref Charges\");"
+    "row-00127":
+      "App": "Database"
+      "Object": "repayments_loan_idx"
+      "Property": "Shared index"
+      "Production": "CREATE INDEX repayments_loan_idx ON public.\"Repayments\" (\"Ref Loans\");"
+      "Development": "CREATE INDEX repayments_loan_idx ON public.\"Repayments\" (\"Ref Loans\");"
+    "row-00128":
+      "App": "Database"
+      "Object": "repayments_payment_idx"
+      "Property": "Shared index"
+      "Production": "CREATE INDEX repayments_payment_idx ON public.\"Repayments\" (\"Ref Payment\");"
+      "Development": "CREATE INDEX repayments_payment_idx ON public.\"Repayments\" (\"Ref Payment\");"
+    "row-00129":
+      "App": "Database"
+      "Object": "allocations_payment_idx"
+      "Property": "Shared index"
+      "Production": "CREATE INDEX allocations_payment_idx ON public.\"Payment Allocations\" (\"Ref Payment\");"
+      "Development": "CREATE INDEX allocations_payment_idx ON public.\"Payment Allocations\" (\"Ref Payment\");"
+    "row-00185":
+      "App": "Database"
+      "Object": "Loans.Interest Schedule Anchor Date"
+      "Property": "Schema"
+      "Production": "Nullable date; no default/backfill. Flyway V5. CHECK blank or >= Loan Date. No new Ref, key or index."
+      "Development": "Nullable date; no default/backfill. Flyway V5. CHECK blank or >= Loan Date. No new Ref, key or index."
+    "row-00247":
+      "App": "Database"
+      "Object": "Loans.Ref Closing Payment"
+      "Property": "Schema"
+      "Production": "Nullable text; no default/backfill; FK Payments(Row ID), NO ACTION; partial index loans_closing_payment_idx\
+        \ WHERE nonnull. SQL closing_payment_guard owns writes."
+      "Development": "Nullable text; no default/backfill; FK Payments(Row ID), NO ACTION; partial index loans_closing_payment_idx\
+        \ WHERE nonnull. SQL closing_payment_guard owns writes."
+    "row-00324":
+      "App": "Database"
+      "Object": "Payments.Ref Target Loan"
+      "Property": "Schema"
+      "Production": "Nullable text; no default/backfill; FK Loans(Row ID), NO ACTION; partial index payments_target_loan_idx\
+        \ WHERE nonnull."
+      "Development": "Nullable text; no default/backfill; FK Loans(Row ID), NO ACTION; partial index payments_target_loan_idx\
+        \ WHERE nonnull."
+    "row-00378":
+      "App": "Database"
+      "Object": "Loans.Charge Generation Request"
+      "Property": "Schema"
+      "Production": "Nullable text; no default, backfill, key, index or Ref. Dated nonce command owned by OLTP."
+      "Development": "Nullable text; no default, backfill, key, index or Ref. Dated nonce command owned by OLTP."
+    "row-00383":
+      "App": "Database"
+      "Object": "loan-daily-charges"
+      "Property": "Schedule"
+      "Production": "Paused production pg_cron; AppSheet Generate Daily Charges enabled at 00:05 Bangkok"
+      "Development": "Paused development pg_cron; AppSheet Generate Daily Charges enabled at 00:05 Bangkok"
+    "row-00392":
+      "App": "Database"
+      "Object": "Loans.Defaulted"
+      "Property": "Transition"
+      "Production": "Promoted 15 Sep 2026. V10 BEFORE trigger requires dated actor confirmation; SQL computes loss, writes\
+        \ charge/repayment, closes loan. Repeat is a no-op; recorded default financial state immutable."
+      "Development": "V10 BEFORE trigger requires dated actor confirmation; SQL computes loss, writes charge/repayment, closes\
+        \ loan. Repeat is a no-op; recorded default financial state immutable."
+    "row-00393":
+      "App": "Database"
+      "Object": "Charges"
+      "Property": "Default write-off"
+      "Production": "Promoted 15 Sep 2026. Preserve every charge key. Reduce outstanding components to paid values; append\
+        \ JSON audit to existing Notes (original amounts, write-off, date, actor, posting). Paid rows unchanged."
+      "Development": "Preserve every charge key. Reduce outstanding components to paid values; append JSON audit to existing\
+        \ Notes (original amounts, write-off, date, actor, posting). Paid rows unchanged."
+    "row-00394":
+      "App": "Database"
+      "Object": "Repayments"
+      "Property": "Default posting"
+      "Production": "Promoted 15 Sep 2026. One immutable df10: entry: outstanding principal and equal negative interest, zero\
+        \ new cash. No Payment or Allocation generated; prior cash/allocations unchanged."
+      "Development": "One immutable df10: entry: outstanding principal and equal negative interest, zero new cash. No Payment\
+        \ or Allocation generated; prior cash/allocations unchanged."
+    "row-00683":
+      "App": "Database"
+      "Object": "Flyway"
+      "Property": "Version"
+      "Production": "V14"
+      "Development": "V16"

@@ -1,0 +1,39 @@
+"format": 1
+"migration":
+  "id": "excel-20260923"
+  "workbook": "../AppSheet_Data_Dictionary.xlsx"
+  "sha256": "1b33aebd71f79ef16023d510ceb8276942444b4665045611f12acce5f247b377"
+"systems":
+  "appsheet":
+    "status": "imported-unreconciled"
+    "kinds":
+    - "table"
+    - "slice"
+    - "settings"
+    - "action"
+    - "view"
+    - "automation"
+  "postgresql":
+    "status": "imported-unreconciled"
+    "kinds":
+    - "relation"
+    - "recorded-logic"
+    - "routine"
+  "metabase":
+    "status": "imported-unreconciled"
+    "kinds":
+    - "model"
+    - "question"
+    - "dashboard"
+    - "snippet"
+  "grafana":
+    "status": "planned"
+    "kinds":
+    - "dashboard"
+    - "datasource"
+    - "alert-rule"
+    - "recording-rule"
+  "workbook-evidence":
+    "status": "imported-unreconciled"
+    "kinds":
+    - "sheet-records"
