@@ -5,5 +5,6 @@ SELECT "Row ID" AS "Snapshot ID", "Snapshot Date" AS "Date", "Generated At", "Mo
  "Cash Opening Balance" AS "Opening Cash", "Cash Balance EOD" AS "Net Cash Balance",
  "Cash Money In" AS "Money In", "Cash Money Out" AS "Money Out",
  "Cash Available From" AS "Available From", "Cash Balance Status" AS "Balance Status",
- "Provisional", "Freshness Basis"
+ "Provisional", "Freshness Basis", "Interest Received"::numeric AS "Income",
+ "Business Expenses"::numeric AS "Expenses", "Net Profit"::numeric AS "Net Profit"
 FROM public.reporting_daily_snapshot
