@@ -1,5 +1,7 @@
 # Open development differences
 
+R016 part 1: DEV V37 unified daily portfolio/account snapshots implemented and backfilled; PROD rollout pending. The existing hourly bot handles yesterday/today; one engine also rebuilds history. All 2R/Metabase changes held by owner. [Contract and evidence](../outputs/r016-20260922/daily-snapshots/README.md).
+
 Current production baseline is R015. This register contains open product differences and intentional environment differences, not completed-release narratives.
 
 ## R016 — Metabase reporting migration

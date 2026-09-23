@@ -1,0 +1,94 @@
+{
+  "verified_at": "2026-09-23T13:00:37.0302674+00:00",
+  "financial_values_published": false,
+  "database": "loan_manager_dev",
+  "checks": [
+    {
+      "name": "Complete portfolio calendar through Bangkok today",
+      "passed": true
+    },
+    {
+      "name": "One account row per portfolio date",
+      "passed": true
+    },
+    {
+      "name": "All snapshots use model 3",
+      "passed": true
+    },
+    {
+      "name": "Account snapshots match independent cashflow history",
+      "passed": true
+    },
+    {
+      "name": "Portfolio cash matches independent consolidated history",
+      "passed": true
+    },
+    {
+      "name": "Current account balances match live custody",
+      "passed": true
+    },
+    {
+      "name": "Cash opening plus movement equals closing",
+      "passed": true
+    },
+    {
+      "name": "Consecutive known account balances roll forward",
+      "passed": true
+    },
+    {
+      "name": "Unknown and pre-opening balances remain NULL",
+      "passed": true
+    },
+    {
+      "name": "Partner daily inputs match existing governed allocation",
+      "passed": true
+    },
+    {
+      "name": "Daily net profit equals interest less dated expenses",
+      "passed": true
+    },
+    {
+      "name": "Capital movements match dated source",
+      "passed": true
+    },
+    {
+      "name": "Only completed settlements enter daily payments",
+      "passed": true
+    },
+    {
+      "name": "Stored per-role payments match completed source",
+      "passed": true
+    },
+    {
+      "name": "Portfolio and account generations are atomic",
+      "passed": true
+    },
+    {
+      "name": "Snapshot views label today provisional",
+      "passed": true
+    },
+    {
+      "name": "No undated historical source facts",
+      "passed": true
+    }
+  ],
+  "portfolio": {
+    "verification": "Model 3 independent portfolio reconciliation",
+    "dates": 54,
+    "matched": 54,
+    "mismatches": 0,
+    "first_date": "2026-08-01",
+    "last_date": "2026-09-23",
+    "oldest_generation": "2026-09-23T20:00:34.018366",
+    "newest_generation": "2026-09-23T20:00:34.018366"
+  },
+  "environment": "development",
+  "coverage": {
+    "first_date": "2026-08-01",
+    "last_date": "2026-09-23",
+    "portfolio_rows": 54,
+    "account_rows": 216,
+    "cash_available_from": "2026-09-18",
+    "latest_generation": "2026-09-23T20:00:34.018366"
+  }
+}

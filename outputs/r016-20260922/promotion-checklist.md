@@ -2,6 +2,10 @@
 
 Template revision: 2026-09-21. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Release_Workflow.md); exceptions: [Recovery](../../Documents/Release_Recovery_Runbook.md).
 
+## Daily snapshot part 1 checkpoint — 23 September 2026
+
+Owner authorized the discussed database logic and history reconstruction and held report changes. AppSheet definitions unchanged; no RC. P01/P13: same R016 scope, database/backfill authority recorded in release log. P04: V37 DEV and disposable tests passed. P22: DEV/PROD backups restored and migration/full rebuild rehearsed; PROD migration pending. P10/P39/P41: current-GUI bot inspection and final compatibility checks in progress. P45/P46: database dictionary/contract updates in progress. P48: checked implementation checkpoint before pinned PROD migration; final R016 tag remains deferred. [Part 1 contract/evidence](daily-snapshots/README.md) supersedes obsolete V33/no-SQL entries below for this batch.
+
 ## Continue here
 
 - Scope / dependencies / app Upgrade or Unchanged decisions: nine report pages; R015 V33 and accepted POC; both apps unchanged.

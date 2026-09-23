@@ -1,5 +1,10 @@
 # PostgreSQL development with Flyway
 
+## R016 unified daily snapshots — 23 September 2026
+
+V37 is applied/validated in DEV; PROD rollout pending. The existing hourly Recent request refreshes yesterday/today in both portfolio and account snapshot tables. `Invoke-AnalyticsRebuild.ps1 -Environment development -From YYYY-MM-DD` calls the same date-range routine through today; `-Full` starts at the earliest supported source date. [Contract, evidence, recovery and report handoff](../outputs/r016-20260922/daily-snapshots/README.md). V37 is immutable after DEV application. The backup/documentation utilities use psycopg[binary] 3.2.9 under `%LOCALAPPDATA%/AppSheetLoanTools/python-deps`, outside the repository and bundled runtime; install there with the bundled Python's `-m pip install --target` only if missing.
+
+
 ## R016 Cashflow deployed — 23 September 2026
 
 DEV and PROD V36 migrated/validated after scoped owner approval, from exact commit `d9da07a89a39a732bb1d5fcf7994f04dafe56379`. Two additive full-history views reuse OLTP account effects and immutable openings. CI, thirteen DEV/PROD reconciliations and 72 live dashboard checks pass. SELECT-only grants are verified. Existing app/source definitions and financial rows are unchanged. V36 is immutable; next migration is V37 or higher. Earlier checkpoints below are historical. [Deployment record](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md).

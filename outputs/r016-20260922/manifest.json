@@ -29,7 +29,8 @@
     "Owner review of remaining migrated pages, Income Statement and Cashflow Statement",
     "Borrower daily balance history unavailable in existing source; no new schema authorized",
     "Lisa personal Google sign-in remains unconfirmed",
-    "Migration-key revocation and final R016 acceptance/closure"
+    "Migration-key revocation and final R016 acceptance/closure",
+    "Owner-held 2R integration with live-today and historical snapshot sources"
   ],
   "appsheet": {
     "olap": "unchanged",
@@ -142,5 +143,18 @@
     "plan": "cash-review-plan.json",
     "baseline_commit": "909fe5374b5383fa8171c5ff90d6ca7007abe2f5",
     "gauge_verification": "cash-review-gauge-verification.json"
+  },
+  "daily_snapshots": {
+    "scope": "Part 1 database engine and backfill; part 2 report edits held by owner",
+    "status": "development-verified",
+    "migration": "V37__unified_daily_cash_snapshots.sql",
+    "migration_sha256": "5f7bd0edb7340c8a476c728b4403bd9d9f6d004079dfcda845d02cf98ccf2930",
+    "before": 36,
+    "development": 37,
+    "production": 36,
+    "contract": "daily-snapshots/README.md",
+    "verification": "daily-snapshots/development-checkpoint.json",
+    "new_snapshot_table": "Cash Account Daily Analytics",
+    "report_definitions_changed": false
   }
 }

@@ -52,6 +52,10 @@ R016 implements the eight source pages plus Income and Cashflow Statements for o
 
 The [page metric contract](../outputs/r016-20260922/README.md) records source/date behavior, including legacy gross-interest profit, the corrected contiguous seven-day comparison excluding today and fixed chart references. Preserve those during the copy and identify them for owner review instead of silently substituting newer net-profit metrics. Saved questions and layout definitions live beside the database project; the encrypted Metabase application database remains the authority for users, permissions and live dashboard state. Its private backups are separate from Git publication.
 
+### R016 daily snapshots — part 1
+
+Owner-approved historical materialization uses Daily Analytics at portfolio/date grain and Cash Account Daily Analytics at account/date grain. Existing hourly Recent refresh and arbitrary-history rebuild share one atomic SQL engine. Snapshots serve historical trends and past-date positions; current cards use live providers. Today is provisional. Unknown/pre-opening cash stays unavailable, transfers cancel at consolidated grain, and negative account balances remain signed. No additional retained-profit/advance storage is required. The existing 2R page and other report definitions remain unchanged pending the owner-held part 2. [Exact fields, date rules, reconstruction limits and next-task contract](../outputs/r016-20260922/daily-snapshots/README.md).
+
 ## Business and ecosystem diagrams
 
 - [OLTP lifecycle diagram](OLTP_Business_Processes.drawio): three editable pages cover loan lifecycle, payment processing and controls/ownership. Update only depicted behavior, not version numbers, formula refinements or presentation-only changes. Its synthesis baseline is 12 September; current business explanations/verified release evidence take precedence. It does not claim fresh lifecycle or delivery acceptance.

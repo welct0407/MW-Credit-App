@@ -1,5 +1,14 @@
 # R016 — Loan Reports migration to Metabase
 
+## Unified daily snapshots — part 1, 23 September 2026
+
+Owner approved database changes, logic and historical reconstruction now, explicitly holding 2R report updates for another task/model. Reuse R016. Clean starting commit `ea9563f06d620498e4294cec5cc908f476e29f99`. V37 extends Daily Analytics with 13 cash/capital/partner daily fields, creates account/date snapshots and two thin SELECT-only reporting views, and extends the existing `refresh_daily_analytics(date,date)` engine. Existing bot/schedule/guard/Statistics command remain; Recent is exactly yesterday/today, Full/manual reconstruction uses the same engine. No new scheduler, retained-profit or advance storage. Corrected Pending Charges EOD to retain partial-payment residuals; legacy keys and remaining fields preserved. Existing live/report sources and all 2R definitions are unchanged.
+
+DEV V37 validated; 54 portfolio dates and 216 account/date rows reconstructed from 1 August through 23 September, cash balances available from 18 September. Seventeen cash checks and 54 independent daily reconciliations pass. Disposable CI and targeted transaction/atomicity tests pass. DEV/PROD private backups restored with exact row fingerprints; affected function drift absent and candidate/full rebuild rehearsed on both copies. Local PostgreSQL share files were missing and recovered from the retained official archive. Backup/documentation utilities use pinned psycopg 3.2.9 installed outside the repository and bundled runtime under LOCALAPPDATA/AppSheetLoanTools/python-deps.
+
+[Implementation, limits, rebuild command and part-2 handoff](../outputs/r016-20260922/daily-snapshots/README.md). Dictionary DB Columns/Constraints/Logic updated narrowly; untouched workbook parts are preserved. PROD rollout and final GUI validation remain pending at this development checkpoint. Rollback: retain additive objects, restore prior calculation behavior through a reviewed forward migration, rebuild derived history; private verified backups provide recovery before-images. No source financial data was edited. Final R016 tag/acceptance remains deferred while report work is held.
+
+
 ## 2R utilization gauge and metric explanation — 23 September 2026
 
 Owner requested a gauge in 2R and questioned the advance/custody/status/reconciliation terminology. Replaced only tab 14's utilization placement from scalar question 54 to existing gauge 68; shared question definitions/settings and every other page are unchanged. Stacked the two capital scalars beside the gauge and shifted later 2R content down two grid rows. No new question/model/snippet, formula, AppSheet or database change. Existing gauge scale/thresholds are reused without implying newly approved limits. `Use-CashReviewGauge.mjs` performs the scoped update; the maintained layout builder and reuse plan reflect it.

@@ -28,9 +28,9 @@ SELECT pg_temp.check_ok("Row ID"='preserve-this-key' AND "Pending Charges EOD"=1
  'Preserve key and pre-payment pending balance') FROM "Daily Analytics" WHERE "Snapshot Date"=current_date-1;
 SELECT pg_temp.check_ok("Principal Returned"=10::money AND "Interest Received"=20::money
  AND "Repayments Count"=1 AND "Outstanding Principal EOD"=90::money
- AND "Pending Charges EOD"=0::money AND "Total Cash Pool EOD"=900::money
+ AND "Pending Charges EOD"=90::money AND "Total Cash Pool EOD"=900::money
  AND "Available Cash EOD"=810::money AND "Unsettled Profit EOD"=12.78::money,
- 'Payment day, first-payment pending rule, withdrawal, A/B split and settlement')
+ 'Payment day, remaining partial balance, withdrawal, A/B split and settlement')
  FROM "Daily Analytics" WHERE "Snapshot Date"=current_date;
 INSERT INTO "Statistics"("Row ID","Analytics Refresh Request")
  VALUES ('DA11-ST',current_date::text||'|Recent|one');

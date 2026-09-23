@@ -1,0 +1,14 @@
+{
+  "edited_sheets": [
+    "DB Columns",
+    "DB Constraints",
+    "DB Logic"
+  ],
+  "patch_rows": {
+    "DB Columns": 82,
+    "DB Constraints": 15,
+    "DB Logic": 12
+  },
+  "all_other_parts_byte_preserved": true,
+  "sha256": "2bd03087d50762f53baa8e6d74ac0c533719f1aa6758ea53d945d8a6d96896b3"
+}

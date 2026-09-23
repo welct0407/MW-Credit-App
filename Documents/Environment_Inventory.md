@@ -1,5 +1,7 @@
 # Environment inventory
 
+R016 part 1 development checkpoint: DEV V37 validated with unified portfolio/account daily snapshots; PROD remains V36 pending scoped rollout. App definitions and all report sources/layouts unchanged. [Evidence](../outputs/r016-20260922/daily-snapshots/development-checkpoint.json).
+
 ## Metabase reporting — 23 September 2026
 
 Loan Reports dashboard 3 now uses 121 distinct saved questions across 160 visual placements. The ten original pages remain intact, with three appended review tabs: **2R · Cash Position** (14), **10R · Cashflow Statement** (15), **9R · Income Statement** (16). Their 30 placements reuse existing questions 25 times; new projections 200–204 use existing models/snippets. No existing question, model, snippet or permission changed. [Review verification](../outputs/r016-20260922/cash-review-verification.json). The earlier ten duplicate questions remain recoverably archived; Overview and Performance still share question 56. [Reuse mapping](../outputs/r016-20260922/question-reuse-verification.json).
