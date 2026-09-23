@@ -58,4 +58,11 @@ def plan(receipt,borrower,current,today=None):
     else:action='Overpayment review';loan_id=None
     relevant={c['loan'] for c in dated}
     loan_keys=[l['loan_key'] for l in current['loans'] if l.get('loan_key') and (l['id']==loan_id if loan_id else l['id'] in relevant)]
-    return {'receipt':receipt,'borrower':borrower,'action':action,'loan_id':loan_id,'loan_keys':loan_keys,'facts':current,'planned_on':today}
+    proposal={'receipt':receipt,'borrower':borrower,'action':action,'loan_id':loan_id,'loan_keys':loan_keys,'facts':current,'planned_on':today}
+    if action=='Overpayment review':proposal['approved_allocation_method']='Lump Sum'
+    return proposal
+
+
+def review_posts_overpayment(proposal):
+    # Earlier requests explicitly promised manual handling; do not reinterpret their replies.
+    return proposal.get('action')=='Overpayment review' and proposal.get('approved_allocation_method')=='Lump Sum'

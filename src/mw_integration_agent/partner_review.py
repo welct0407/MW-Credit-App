@@ -71,19 +71,23 @@ class ReviewStore:
 
 
 def request_text(proposal,language):
+    from .review_proposal import review_posts_overpayment
     thai=language=='ไทย'
     if language not in ('English','ไทย'):raise ConfigurationError('REVIEW_LANGUAGE_UNSUPPORTED')
     receipt=proposal['receipt'];borrower=proposal['borrower']
     name=borrower.get('name_th' if thai else 'name_en') or borrower['id']
     close=proposal.get('action')=='Loan Close'
-    manual=proposal.get('action')!='Lump Sum'
+    overpayment=review_posts_overpayment(proposal)
+    manual=proposal.get('action')!='Lump Sum' and not overpayment
     if thai:
         subject='ขออนุมัติรายการชำระเงิน'
         action='ตรวจสอบการปิดสัญญาและบันทึกเอง' if close else ('ตรวจสอบยอดเกินและบันทึกเอง' if manual else 'บันทึกการชำระเงิน')
+        if overpayment:action='ยอดเกิน — อนุมัติแล้วระบบจะบันทึกยอดเต็มเป็น Lump Sum'
         body=f"{subject}\nผู้กู้: {name}\nยอด: {receipt['amount']} บาท\nเวลาโอน: {receipt['date']} {receipt['time'][:5]}\nบัญชีรับ: {receipt['account_label']}\nรายการที่เสนอ: {action}\nกรุณาใช้ Reply ตอบข้อความนี้ว่า อนุมัติ เพื่อดำเนินการ คำตอบอื่นถือว่าปฏิเสธ ยังไม่ได้บันทึกรายการ"
     else:
         subject='Payment approval requested'
         action='Review loan closure; partner records manually' if close else ('Review overpayment; partner records manually' if manual else 'Record payment')
+        if overpayment:action='Approve overpayment; agent records the full amount as Lump Sum'
         body=f"{subject}\nBorrower: {name}\nAmount: {receipt['amount']} baht\nTransferred: {receipt['date']} {receipt['time'][:5]} (Bangkok)\nAccount: {receipt['account_label']}\nProposed: {action}\nUse Reply on THIS message: Yes / Approve / Approved (any case). Other direct replies reject. Nothing has been posted."
     if proposal.get('loan_keys'):body+=('\nสัญญา: ' if thai else '\nLoan: ')+'; '.join(proposal['loan_keys'])
     if manual:

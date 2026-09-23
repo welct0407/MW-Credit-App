@@ -5,12 +5,15 @@ from decimal import Decimal
 from .audit import audited
 from .config import ConfigurationError,load_secret
 from .cash_statement import read_query
+from .review_proposal import review_posts_overpayment
 
 
 @audited('receipt_payment',route='appsheet',action='INSERT',effect=True)
 def add_payment(config,key,proposal,actor):
     if config.get('partner_review_execution_enabled') is not True:raise ConfigurationError('REVIEW_EXECUTION_DISABLED')
-    if proposal['action']!='Lump Sum':raise ConfigurationError('PARTNER_MANUAL_HANDLING_REQUIRED')
+    approved_overpayment=(review_posts_overpayment(proposal) and config.get('_receipt_reviewer_approved') is True
+                          and not config.get('_receipt_automatic'))
+    if proposal['action']!='Lump Sum' and not approved_overpayment:raise ConfigurationError('PARTNER_MANUAL_HANDLING_REQUIRED')
     if config.get('_receipt_automatic') and config.get('receipt_auto_payment_enabled') is not True:
         raise ConfigurationError('AUTOMATIC_PAYMENT_DISABLED')
     if config['appsheet_app_id']!='93844270-6aa5-420b-a960-bcdf08abd357':raise ConfigurationError('WRONG_PAYMENT_APP')

@@ -48,6 +48,43 @@ class CycleTests(unittest.TestCase):
         self.j.db.execute('UPDATE partner_reviews SET proposal=?',(json.dumps(self.proposal),));self.j.db.commit()
         self.run_cycle();self.add_payment.assert_not_called()
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'MANUAL_REQUIRED')
+
+    def overpayment(self,new_policy=True):
+        self.proposal['action']='Overpayment review'
+        if new_policy:self.proposal['approved_allocation_method']='Lump Sum'
+        self.j.db.execute('UPDATE partner_reviews SET proposal=?',(json.dumps(self.proposal),));self.j.db.commit()
+
+    def test_approved_overpayment_posts_full_amount_once(self):
+        self.overpayment();self.run_cycle();self.run_cycle()
+        self.assertEqual(self.add_payment.call_count,1)
+        self.assertTrue(self.add_payment.call_args.args[0]['_receipt_reviewer_approved'])
+        self.assertEqual(self.add_payment.call_args.args[2]['receipt']['amount'],'100.00')
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'POSTED')
+
+    def test_old_manual_only_overpayment_approval_stays_manual(self):
+        self.overpayment(False);self.run_cycle();self.add_payment.assert_not_called()
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'MANUAL_REQUIRED')
+
+    def test_overpayment_pending_rejected_or_automatic_never_posts(self):
+        self.overpayment()
+        for state in ('PENDING','REJECTED'):
+            self.j.db.execute('UPDATE partner_reviews SET state=?',(state,));self.j.db.commit()
+            self.run_cycle();self.add_payment.assert_not_called()
+        from mw_integration_agent.review_cycle import AUTO_POLICY
+        self.j.db.execute("UPDATE partner_reviews SET state='APPROVED',detail=?",(AUTO_POLICY,));self.j.db.commit()
+        self.run_cycle();self.add_payment.assert_not_called()
+
+    def test_overpayment_unknown_never_repeats_add(self):
+        self.overpayment();self.readback.return_value=False
+        self.add_payment.side_effect=TimeoutError()
+        self.run_cycle();self.run_cycle();self.assertEqual(self.add_payment.call_count,1)
+
+    def test_overpayment_changed_facts_or_reviewer_removed_blocks_add(self):
+        self.overpayment();self.plan.return_value={'changed':True}
+        self.run_cycle();self.add_payment.assert_not_called()
+        self.j.db.execute("UPDATE partner_reviews SET state='APPROVED'");self.j.db.commit()
+        self.masters.return_value['reviewer_ids']=[]
+        self.run_cycle();self.add_payment.assert_not_called()
     def test_disabled_execution_no_write(self):
         self.config['partner_review_execution_enabled']=False;self.run_cycle();self.add_payment.assert_not_called()
     def test_reviewer_removed_after_approval_no_write(self):

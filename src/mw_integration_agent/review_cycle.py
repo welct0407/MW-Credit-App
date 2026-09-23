@@ -10,7 +10,7 @@ from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
 from .partner_review import ReviewStore,request_text
-from .review_proposal import facts,plan
+from .review_proposal import facts,plan,review_posts_overpayment
 from .review_execution import add_payment,readback
 from .cash_statement import read_query
 from .receipt_identity import receipt_borrower
@@ -91,7 +91,7 @@ def cycle(config,journal,identity_reader):
             if not automatic and review['deciding_partner'] not in live.get('reviewer_ids',[]):
                 with db:db.execute("UPDATE partner_reviews SET state='STALE',detail='APPROVING_REVIEWER_REMOVED' WHERE id=?",(review['id'],))
                 continue
-            if proposal['action']!='Lump Sum':
+            if proposal['action']!='Lump Sum' and not (not automatic and review_posts_overpayment(proposal)):
                 with db:db.execute("UPDATE partner_reviews SET state='MANUAL_REQUIRED' WHERE id=?",(review['id'],))
                 continue
             if config.get('partner_review_execution_enabled') is not True:continue
@@ -129,7 +129,7 @@ def cycle(config,journal,identity_reader):
             with db:
                 claimed=db.execute("UPDATE partner_reviews SET state='POSTING',payment_id=? WHERE id=? AND state='APPROVED'",(key,review['id'])).rowcount
             if not claimed:continue
-            posting_config=dict(config,_receipt_automatic=True) if automatic else config
+            posting_config=dict(config,_receipt_automatic=True) if automatic else dict(config,_receipt_reviewer_approved=True)
             try:add_payment(posting_config,key,proposal,actors[0])
             except Exception:pass
             verified=readback(config,key,proposal)

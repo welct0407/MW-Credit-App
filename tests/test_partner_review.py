@@ -58,6 +58,19 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(self.db.execute('SELECT state FROM partner_reviews WHERE id=?',(replacement,)).fetchone()[0],'PENDING')
 
 class PlanTests(unittest.TestCase):
+    def test_overpayment_proposal_promises_full_lump_sum_only_after_approval(self):
+        r={'amount':'450.00','date':'2026-09-23','time':'12:10','account_label':'Test'}
+        f={'loans':[{'id':'l','loan_key':'Readable loan','status':'ยังไม่ปิดยอด','type':'other','auto':False,'principal':'5000'}],
+           'charges':[{'loan':'l','date':'2026-09-22','principal':'0','interest':'300'},
+                      {'loan':'l','date':'2026-09-23','principal':'0','interest':'300'}]}
+        p=plan(r,{'id':'b'},f,'2026-09-23')
+        self.assertEqual(p['action'],'Overpayment review');self.assertEqual(p['approved_allocation_method'],'Lump Sum')
+        for language in ('English','ไทย'):
+            body=request_text(p,language)[1]
+            self.assertIn('Lump Sum',body);self.assertIn('450.00',body)
+            self.assertNotIn('record this in the app yourself',body);self.assertNotIn('ด้วยตนเอง',body)
+        p.pop('approved_allocation_method')
+        self.assertIn('record this in the app yourself',request_text(p,'English')[1])
     def test_same_day_charges_are_combined(self):
         r={'amount':'300.00','date':'2026-09-21','time':'12:10','account_label':'Test'}
         f={'loans':[{'id':'l','loan_key':'Readable loan','status':'ยังไม่ปิดยอด','type':'other','auto':False,'principal':'5000'}],
