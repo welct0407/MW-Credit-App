@@ -1,6 +1,6 @@
 # Resource monitoring dashboard — visual guide
 
-Last updated: **23 September 2026**. Covers the maintained Performance and Cost definitions, including the compact, vertically centered group strips. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
+Last updated: **23 September 2026**. Covers the maintained Performance and Cost definitions, including the compact, vertically centered group strips and centered status values. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
 
 - [Open Performance](https://monitor.mw-credit.com/d/mw-resource-performance)
 - [Open Cost](https://monitor.mw-credit.com/d/mw-resource-cost)
@@ -27,7 +27,7 @@ Panel IDs below are maintenance references, unique **within each page**. Names r
 | 72 | AGENT WORKFLOWS | Groups scheduled business-worker health on Debian. |
 | 73 | DATA & RUNTIME | Groups SQL connections, database access, audit relay and local Codex readiness. |
 
-These five labels are vertically centered in slim strips. Component icons are Unicode pictograms, not official vendor logos. The four expandable detail headers identify Azure VM-01 (ID 10), the GCP Debian VM (20), shared Cloud SQL (30), and Railway production (40); they organize charts and do not report health themselves.
+These five labels are vertically centered in slim strips. The values in the 16 small status/data tiles are horizontally centered beneath their labels. Component icons are Unicode pictograms, not official vendor logos. The four expandable detail headers identify Azure VM-01 (ID 10), the GCP Debian VM (20), shared Cloud SQL (30), and Railway production (40); they organize charts and do not report health themselves.
 
 ## Performance — CPU and RAM overview
 

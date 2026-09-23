@@ -555,7 +555,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -958,7 +959,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -1447,7 +1449,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -1810,7 +1813,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -2419,7 +2423,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -2568,7 +2573,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -2955,7 +2961,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -3104,7 +3111,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -3381,7 +3389,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -3812,7 +3821,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -3961,7 +3971,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -4378,7 +4389,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -4527,7 +4539,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -5759,7 +5772,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -5908,7 +5922,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",
@@ -6203,7 +6218,8 @@
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "justifyMode": "center"
               }
             },
             "kind": "VizConfig",

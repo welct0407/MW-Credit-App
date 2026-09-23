@@ -202,7 +202,7 @@ foreach($group in $groups){
         $p=$perf.panels|Where-Object id -eq $group.cards[$i]
         $p.title='';$p.fieldConfig.defaults.displayName=$group.labels[$i]
         $p.gridPos=@{x=($group.x+3*$i);y=($group.y+1);w=3;h=3}
-        $p.options.text=@{titleSize=12;valueSize=36};$p.options.orientation='vertical'
+        $p.options.text=@{titleSize=12;valueSize=36};$p.options.orientation='vertical';$p.options.justifyMode='center'
         if($p.id -ne 50){
             $p.fieldConfig.defaults.noValue='⚪'
             $p.fieldConfig.defaults.mappings=@(@{type='value';options=@{
