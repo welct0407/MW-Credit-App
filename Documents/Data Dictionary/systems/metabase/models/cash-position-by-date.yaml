@@ -76,3 +76,13 @@
       "Type / source": "type/Text"
       "Semantic / relationship": "type/Category"
       "Definition": "Cash Status"
+  "lifecycle":
+    "state": "archived"
+    "id": 188
+    "reason": "No remaining dashboard, question, snippet, filter, alert or subscription consumer. Recoverable archive; imported\
+      \ fields retained as dated evidence."
+"evidence":
+  "/content/lifecycle":
+    "reference": "outputs/r016-20260922/statement-cleanup/README.md"
+    "reason": "Dependency-verified report cleanup"
+    "state": "value"

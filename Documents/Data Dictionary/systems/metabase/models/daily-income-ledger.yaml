@@ -110,3 +110,13 @@
       "Type / source": "type/Decimal"
       "Semantic / relationship": null
       "Definition": "Net Profit Through Date"
+  "lifecycle":
+    "state": "superseded"
+    "id": 186
+    "replacement": "systems/metabase/models/income-events.yaml"
+    "reason": "ID 186 now exposes live Income Events; original imported field definitions retained as historical evidence."
+"evidence":
+  "/content/lifecycle":
+    "reference": "outputs/r016-20260922/statement-cleanup/README.md"
+    "reason": "Retire FIFO/history model definition"
+    "state": "value"

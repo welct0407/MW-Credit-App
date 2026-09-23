@@ -2,6 +2,8 @@
 
 23 September 2026. Owner resumed the held 2R report work using the part-1 handoff. Dashboard 3, tab 14 is updated in the existing partner-only report. Starting Git: `04624908fa23fc61215ec15000fbe1d3305e613c`, clean. Database remains DEV/PROD V37; no new migration, financial write, grant, AppSheet change or deployment candidate.
 
+Current continuation: the page is now **2 · Cash Position**; original cash tabs are retired. Its routing and nine placements remain unchanged. The [canonical statement contract](statement-cleanup/README.md) supersedes old report counts and installer guidance below.
+
 ## Saved behavior
 
 | Visual | Source and date rule |

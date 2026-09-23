@@ -103,3 +103,13 @@
       "Semantic / relationship": null
       "Definition": "Account cash held as of Date, only when all accounts for that holder have known balances at that date;\
         \ sum by immutable Cash Holder ID."
+  "lifecycle":
+    "state": "archived"
+    "id": 187
+    "reason": "No remaining dashboard, question, snippet, filter, alert or subscription consumer. Recoverable archive; imported\
+      \ fields retained as dated evidence."
+"evidence":
+  "/content/lifecycle":
+    "reference": "outputs/r016-20260922/statement-cleanup/README.md"
+    "reason": "Dependency-verified report cleanup"
+    "state": "value"

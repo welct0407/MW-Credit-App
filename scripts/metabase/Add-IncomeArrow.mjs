@@ -1,3 +1,4 @@
+import './LegacyStatementGuard.mjs';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,privateDir,read,write} from './ReportingApi.mjs';

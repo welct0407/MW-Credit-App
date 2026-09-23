@@ -138,3 +138,40 @@
       "Semantic / relationship": null
       "Definition": "Freshness Basis. One stored row per Bangkok date. Past-date closing positions and completed-day trends\
         \ only; never sum balances across dates."
+    "Income":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Income"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Income. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical\
+        \ trends and past positions only."
+    "Expenses":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Expenses"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Expenses. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical\
+        \ trends and past positions only."
+    "Net Profit":
+      "Model": "Daily Cash Snapshots"
+      "ID": 205
+      "Field / grain": "Net Profit"
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Net Profit. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical\
+        \ trends and past positions only."
+"evidence":
+  "/content/fields/Income":
+    "reference": "outputs/r016-20260922/statement-cleanup/README.md"
+    "reason": "Expose already stored daily profit flows for historical trends"
+    "state": "value"
+  "/content/fields/Expenses":
+    "reference": "outputs/r016-20260922/statement-cleanup/README.md"
+    "reason": "Expose already stored daily profit flows for historical trends"
+    "state": "value"
+  "/content/fields/Net Profit":
+    "reference": "outputs/r016-20260922/statement-cleanup/README.md"
+    "reason": "Expose already stored daily profit flows for historical trends"
+    "state": "value"

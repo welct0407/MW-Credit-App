@@ -1,0 +1,42 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "model"
+  "name": "Income Events"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r016-20260922/statement-cleanup/README.md"
+"content":
+  "fields":
+    "Model grain":
+      "ID": 186
+      "Definition": "One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense flows,\
+        \ no allocation or running history."
+      "Type / source": "public.reporting_income_events"
+    "Event ID":
+      "ID": 186
+      "Type / source": "type/Text"
+      "Semantic / relationship": "type/PK"
+      "Definition": "Event ID. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense\
+        \ flows, no allocation or running history."
+    "Date":
+      "ID": 186
+      "Type / source": "type/Date"
+      "Semantic / relationship": null
+      "Definition": "Date. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense\
+        \ flows, no allocation or running history."
+    "Income":
+      "ID": 186
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Income. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense\
+        \ flows, no allocation or running history."
+    "Expenses":
+      "ID": 186
+      "Type / source": "type/Decimal"
+      "Semantic / relationship": null
+      "Definition": "Expenses. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense\
+        \ flows, no allocation or running history."
+  "query_source": "scripts/metabase/models/income-events.sql"

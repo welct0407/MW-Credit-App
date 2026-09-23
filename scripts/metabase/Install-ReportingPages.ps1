@@ -1,5 +1,6 @@
 param([switch]$UpdateExisting)
 $ErrorActionPreference='Stop'
+if(Test-Path "$PSScriptRoot/../../outputs/r016-20260922/statement-cleanup-state.json"){throw 'Historical cash-page builder retired; use StatementCleanup.mjs.'}
 # Compatibility entry point. All current visuals use reusable Reporting Models.
 # Model installation is a separate coherent change batch; see README.md.
 & node (Join-Path $PSScriptRoot 'Build-ModelPages.mjs')

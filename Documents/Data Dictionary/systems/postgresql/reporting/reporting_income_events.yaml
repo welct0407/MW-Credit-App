@@ -1,0 +1,52 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "appsheet-pg-prod-20260914"
+  "kind": "relation"
+  "name": "public.reporting_income_events"
+  "scope": "development-and-production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r016-20260922/statement-cleanup/README.md"
+"content":
+  "columns":
+    "Event ID":
+      "data_type": "text"
+      "udt_name": "text"
+      "nullable": true
+      "ordinal": 1
+    "Date":
+      "data_type": "date"
+      "udt_name": "date"
+      "nullable": true
+      "ordinal": 2
+    "Income":
+      "data_type": "numeric"
+      "udt_name": "numeric"
+      "nullable": true
+      "ordinal": 3
+    "Expenses":
+      "data_type": "numeric"
+      "udt_name": "numeric"
+      "nullable": true
+      "ordinal": 4
+  "constraints": {}
+  "definition": |-
+    CREATE VIEW public.reporting_income_events AS
+    SELECT 'repayment:'||"Row ID" AS "Event ID", "Payment Date" AS "Date",
+     "Interest Paid"::numeric AS "Income",0::numeric AS "Expenses"
+    FROM public.olap_repayments_analytics WHERE "Payment Date"<=public.olap_reporting_date()
+    UNION ALL
+    SELECT 'expense:'||"Row ID","Expense Date",0::numeric,"Amount"::numeric
+    FROM public."Business Expenses" WHERE "Expense Date"<=public.olap_reporting_date();
+  "environments":
+  - "loan_manager_dev"
+  - "loan_manager_prod"
+  "migration": 38
+  "consumer": "Metabase restricted reporting; no AppSheet source changes"
+  "permissions": "SELECT only for metabase_borrower_reader"
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r016-20260922/statement-cleanup/provider-columns.json"
+    "reason": "Verified restricted PROD catalog types and nullability"
+    "state": "value"

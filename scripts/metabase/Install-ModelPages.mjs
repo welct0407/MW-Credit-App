@@ -1,3 +1,4 @@
+import './LegacyStatementGuard.mjs';
 import {api,assertSource,read,write} from './ReportingApi.mjs';
 await assertSource();
 const questions=read('model-questions.json'), cards={};

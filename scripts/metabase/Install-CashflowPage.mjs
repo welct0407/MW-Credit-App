@@ -1,3 +1,4 @@
+import './LegacyStatementGuard.mjs';
 import fs from 'node:fs';import assert from 'node:assert/strict';
 import {api,assertSource,read,write,privateDir,root} from './ReportingApi.mjs';
 import {definitions,specs,transactionFormatting} from './CashflowPage.mjs';

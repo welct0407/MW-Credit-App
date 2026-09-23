@@ -1,3 +1,5 @@
+Current cash pages: [canonical statement contract](statement-cleanup/README.md). The 23 September cleanup replaces the original cash tabs and prior review-page design; old inventories below are dated checkpoints.
+
 # R016 — Loan Reports review
 
 ## Current 2R snapshot integration — 23 September 2026

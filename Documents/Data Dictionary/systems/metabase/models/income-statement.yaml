@@ -151,3 +151,13 @@
       "Semantic / relationship": "type/Category"
       "Definition": "Reconciled only when the diagnostic difference is below half a satang; missing account openings stay\
         \ unavailable."
+  "lifecycle":
+    "state": "archived"
+    "id": 166
+    "reason": "No remaining dashboard, question, snippet, filter, alert or subscription consumer. Recoverable archive; imported\
+      \ fields retained as dated evidence."
+"evidence":
+  "/content/lifecycle":
+    "reference": "outputs/r016-20260922/statement-cleanup/README.md"
+    "reason": "Dependency-verified report cleanup"
+    "state": "value"

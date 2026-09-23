@@ -1261,629 +1261,11 @@
     "rows": 4,
     "database_view": "public.reporting_cash_accounts"
   },
-  "income-monthly": {
-    "id": 165,
-    "name": "Monthly Income",
-    "collection_id": 8,
-    "grain": "One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots.",
-    "grain_field": "Month",
-    "columns": [
-      {
-        "name": "Month",
-        "base_type": "type/Date",
-        "semantic_type": "type/PK",
-        "description": "Month. One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
-      },
-      {
-        "name": "Operating Income",
-        "base_type": "type/Decimal",
-        "semantic_type": "type/Income",
-        "description": "Operating Income. One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
-      },
-      {
-        "name": "Expenses",
-        "base_type": "type/Decimal",
-        "description": "Expenses. One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
-      },
-      {
-        "name": "Signed Expenses",
-        "base_type": "type/Decimal",
-        "description": "Signed Expenses. One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
-      },
-      {
-        "name": "Net Profit",
-        "base_type": "type/Decimal",
-        "description": "Net Profit. One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
-      },
-      {
-        "name": "Net Margin",
-        "base_type": "type/Decimal",
-        "semantic_type": "type/Percentage",
-        "description": "Net operating profit divided by operating income; null when income is zero."
-      },
-      {
-        "name": "Is Current Month",
-        "base_type": "type/Boolean",
-        "description": "Is Current Month. One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
-      },
-      {
-        "name": "Period Coverage",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Period Coverage. One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
-      },
-      {
-        "name": "In Last 12 Months",
-        "base_type": "type/Boolean",
-        "description": "In Last 12 Months. One row per calendar month from first posted income/expense through the current month. Each source is aggregated before joining; current month is MTD. Live source postings, not hourly snapshots."
-      }
-    ],
-    "rows": 2,
-    "database_view": "public.reporting_income_monthly"
-  },
-  "income-statement": {
-    "id": 166,
-    "name": "Income Statement",
-    "collection_id": 8,
-    "grain": "One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks.",
-    "grain_field": "Statement ID",
-    "columns": [
-      {
-        "name": "Statement ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/PK",
-        "description": "Statement ID. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "As Of Date",
-        "base_type": "type/Date",
-        "description": "As Of Date. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "Month Start",
-        "base_type": "type/Date",
-        "semantic_type": "type/CreationDate",
-        "description": "Month Start. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "Statement Month",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Statement Month. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "Operating Income MTD",
-        "base_type": "type/Decimal",
-        "semantic_type": "type/Income",
-        "description": "Operating Income MTD. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "Expenses MTD",
-        "base_type": "type/Decimal",
-        "description": "Expenses MTD. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "Net Profit MTD",
-        "base_type": "type/Decimal",
-        "description": "Net Profit MTD. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "Tommy Withdrawn MTD",
-        "base_type": "type/Decimal",
-        "description": "Negative completed settlement amount allocated to current-month profit after consuming prior-month net profit (existing FIFO rule)."
-      },
-      {
-        "name": "Lisa Withdrawn MTD",
-        "base_type": "type/Decimal",
-        "description": "Negative completed settlement amount allocated to current-month profit after consuming prior-month net profit (existing FIFO rule)."
-      },
-      {
-        "name": "Unsettled Profit MTD",
-        "base_type": "type/Decimal",
-        "description": "Current-month net profit less completed FIFO-allocated partner withdrawals; does not assert all-period cash held."
-      },
-      {
-        "name": "Cash Pool Remaining",
-        "base_type": "type/Decimal",
-        "description": "Cash Pool Remaining. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "Business Cash Held",
-        "base_type": "type/Decimal",
-        "description": "Business Cash Held. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "Net Margin",
-        "base_type": "type/Decimal",
-        "semantic_type": "type/Percentage",
-        "description": "Net operating profit divided by operating income; null when income is zero."
-      },
-      {
-        "name": "Partner Draws MTD",
-        "base_type": "type/Decimal",
-        "description": "Positive magnitude of current-month FIFO-allocated Tommy and Lisa withdrawals; not an operating cost."
-      },
-      {
-        "name": "Cash Reconciliation Difference",
-        "base_type": "type/Decimal",
-        "description": "Business cash held minus remaining cash pool minus current-month unsettled profit. A diagnostic difference, not additional income or a claimed allocation to prior profits."
-      },
-      {
-        "name": "Net Profit Since Inception",
-        "base_type": "type/Decimal",
-        "description": "Sum of live monthly operating income minus business expenses, before partner withdrawals. Current month is partial."
-      },
-      {
-        "name": "Uninitialized Accounts",
-        "base_type": "type/BigInteger",
-        "description": "Uninitialized Accounts. One current Bangkok MTD statement from the same Cash Dashboard provider as OLTP. Draws are completed settlements allocated to current-month profit by existing FIFO rules, not operating expenses. Cash balances are current stocks."
-      },
-      {
-        "name": "Cash Reconciliation Status",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Reconciled only when the diagnostic difference is below half a satang; missing account openings stay unavailable."
-      }
-    ],
-    "rows": 1,
-    "database_view": "public.reporting_income_statement"
-  },
-  "settlements": {
-    "id": 185,
-    "name": "Settlement Ledger",
-    "collection_id": 8,
-    "grain": "One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available.",
-    "grain_field": "Settlement ID",
-    "columns": [
-      {
-        "name": "Settlement ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/PK",
-        "description": "Settlement ID. One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available."
-      },
-      {
-        "name": "Partner ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Partner ID. One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available."
-      },
-      {
-        "name": "Partner",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Partner. One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available."
-      },
-      {
-        "name": "Partner Role",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Partner Role. One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available."
-      },
-      {
-        "name": "Transfer Date",
-        "base_type": "type/Date",
-        "description": "Transfer Date. One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available."
-      },
-      {
-        "name": "Amount",
-        "base_type": "type/Decimal",
-        "description": "Amount. One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available."
-      },
-      {
-        "name": "Status",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Status. One row per immutable settlement through Bangkok today, joined by immutable Partner ID. Only completed settlements feed FIFO allocation; source status remains available."
-      }
-    ],
-    "rows": 2,
-    "database_view": "public.reporting_settlements"
-  },
-  "income-daily": {
-    "id": 186,
-    "name": "Daily Income Ledger",
-    "collection_id": 8,
-    "grain": "One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering.",
-    "grain_field": "Date",
-    "columns": [
-      {
-        "name": "Date",
-        "base_type": "type/Date",
-        "semantic_type": "type/PK",
-        "description": "Date. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Month",
-        "base_type": "type/Date",
-        "description": "Month. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Operating Income",
-        "base_type": "type/Decimal",
-        "semantic_type": "type/Income",
-        "description": "Operating Income. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Expenses",
-        "base_type": "type/Decimal",
-        "description": "Expenses. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Signed Expenses",
-        "base_type": "type/Decimal",
-        "description": "Signed Expenses. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Net Profit",
-        "base_type": "type/Decimal",
-        "description": "Net Profit. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Partner A Net Profit",
-        "base_type": "type/Decimal",
-        "description": "Partner A Net Profit. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Partner B Net Profit",
-        "base_type": "type/Decimal",
-        "description": "Partner B Net Profit. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Prior Partner A Net",
-        "base_type": "type/Decimal",
-        "description": "Prior Partner A Net. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Prior Partner B Net",
-        "base_type": "type/Decimal",
-        "description": "Prior Partner B Net. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Partner A Settled Through Date",
-        "base_type": "type/Decimal",
-        "description": "Partner A Settled Through Date. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Partner B Settled Through Date",
-        "base_type": "type/Decimal",
-        "description": "Partner B Settled Through Date. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      },
-      {
-        "name": "Net Profit Through Date",
-        "base_type": "type/Decimal",
-        "description": "Net Profit Through Date. One calendar date from first business activity month through Bangkok today. Income, partner expenses and completed settlements aggregate independently before joining. Running prior net profit and settled totals are calculated before visual date filtering."
-      }
-    ],
-    "rows": 53,
-    "database_view": "public.reporting_income_daily"
-  },
-  "cash-account-daily": {
-    "id": 187,
-    "name": "Cash Accounts by Date",
-    "collection_id": 8,
-    "grain": "One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history.",
-    "grain_field": "Position ID",
-    "database_view": "public.reporting_cash_account_daily",
-    "columns": [
-      {
-        "name": "Position ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/PK",
-        "description": "Position ID. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Date",
-        "base_type": "type/Date",
-        "description": "Date. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Cash Account ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Cash Account ID. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Cash Holder ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Cash Holder ID. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Cash Holder",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Cash Holder. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Account",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Account. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Current Balance",
-        "base_type": "type/Decimal",
-        "description": "Current Balance. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Business Cash Held",
-        "base_type": "type/Decimal",
-        "description": "Business Cash Held. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Advance Due",
-        "base_type": "type/Decimal",
-        "description": "Advance Due. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Available From",
-        "base_type": "type/Date",
-        "description": "Available From. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Balance Status",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Balance Status. One immutable account and Bangkok date. Dated ledger effects plus immutable opening/baseline offsets; unavailable before each account opening. Later corrections restate history."
-      },
-      {
-        "name": "Holder Cash Component",
-        "base_type": "type/Decimal",
-        "description": "Account cash held as of Date, only when all accounts for that holder have known balances at that date; sum by immutable Cash Holder ID."
-      }
-    ],
-    "rows": 216
-  },
-  "cash-daily": {
-    "id": 188,
-    "name": "Cash Position by Date",
-    "collection_id": 8,
-    "grain": "One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct.",
-    "grain_field": "Date",
-    "database_view": "public.reporting_cash_daily",
-    "columns": [
-      {
-        "name": "Date",
-        "base_type": "type/Date",
-        "semantic_type": "type/PK",
-        "description": "Date. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
-      },
-      {
-        "name": "Cash Pool Remaining",
-        "base_type": "type/Decimal",
-        "description": "Cash Pool Remaining. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
-      },
-      {
-        "name": "Business Cash Held",
-        "base_type": "type/Decimal",
-        "description": "Business Cash Held. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
-      },
-      {
-        "name": "Advance Due",
-        "base_type": "type/Decimal",
-        "description": "Advance Due. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
-      },
-      {
-        "name": "Retained Profit Through Date",
-        "base_type": "type/Decimal",
-        "description": "Cumulative net profit less completed partner settlements through Date. Includes earlier periods; distinct from the selected-period unsettled profit."
-      },
-      {
-        "name": "Cash Reconciliation Difference",
-        "base_type": "type/Decimal",
-        "description": "Business cash held minus advances, available cash pool and cumulative retained profit, all as of Date. A diagnostic difference, not additional income."
-      },
-      {
-        "name": "Cash Available From",
-        "base_type": "type/Date",
-        "description": "Latest known account opening date. Total custody remains unavailable if any account opening is missing."
-      },
-      {
-        "name": "Cash Status",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Cash Status. One Bangkok date. Dated capital less dated outstanding principal; account custody is available only when every opening is known. Retained profit through date, advances and reconciliation difference are distinct."
-      }
-    ],
-    "rows": 54
-  },
-  "cashflow-transactions": {
-    "id": 190,
-    "name": "Cashflow Transactions",
-    "collection_id": 8,
-    "grain": "One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately.",
-    "grain_field": "Entry ID",
-    "database_view": "public.reporting_cashflow_transactions",
-    "columns": [
-      {
-        "name": "Entry ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/PK",
-        "description": "Entry ID. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Scope ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Select exactly one scope; __ALL__ consolidates internal transfers."
-      },
-      {
-        "name": "Account",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Account. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Ledger ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Ledger ID. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Date",
-        "base_type": "type/Date",
-        "description": "Date. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Posted At",
-        "base_type": "type/DateTime",
-        "description": "Posted At. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Transaction Type",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Transaction Type. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Counterparty",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Counterparty. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "From Account",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "From Account. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "To Account",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "To Account. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Internal Transfer",
-        "base_type": "type/Boolean",
-        "description": "Internal Transfer. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Transaction Amount",
-        "base_type": "type/Decimal",
-        "description": "Transaction Amount. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Money In",
-        "base_type": "type/Decimal",
-        "description": "Money In. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Money Out",
-        "base_type": "type/Decimal",
-        "description": "Money Out. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Net Movement",
-        "base_type": "type/Decimal",
-        "description": "Net Movement. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Balance After",
-        "base_type": "type/Decimal",
-        "description": "Signed net cash; unavailable before the known opening. Later corrections restate history."
-      },
-      {
-        "name": "Available From",
-        "base_type": "type/Date",
-        "description": "Available From. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      },
-      {
-        "name": "Notes",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Notes. One ledger-side entry for an account, or one consolidated entry per ledger in All accounts. OLTP transaction classifications and immutable relationships; chronological balances calculated in PostgreSQL before filtering. Internal transfers have zero consolidated inflow/outflow, with their face amount shown separately."
-      }
-    ],
-    "rows": 163
-  },
-  "cashflow-daily": {
-    "id": 191,
-    "name": "Cashflow Daily Balances",
-    "collection_id": 8,
-    "grain": "One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts.",
-    "grain_field": "Position ID",
-    "database_view": "public.reporting_cashflow_daily",
-    "columns": [
-      {
-        "name": "Position ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/PK",
-        "description": "Position ID. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
-      },
-      {
-        "name": "Scope ID",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Select exactly one scope; __ALL__ consolidates internal transfers."
-      },
-      {
-        "name": "Account",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Account. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
-      },
-      {
-        "name": "Date",
-        "base_type": "type/Date",
-        "description": "Date. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
-      },
-      {
-        "name": "Opening Balance",
-        "base_type": "type/Decimal",
-        "description": "Signed net cash; unavailable before the known opening. Later corrections restate history."
-      },
-      {
-        "name": "Money In",
-        "base_type": "type/Decimal",
-        "description": "Money In. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
-      },
-      {
-        "name": "Money Out",
-        "base_type": "type/Decimal",
-        "description": "Money Out. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
-      },
-      {
-        "name": "Net Movement",
-        "base_type": "type/Decimal",
-        "description": "Net Movement. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
-      },
-      {
-        "name": "Closing Balance",
-        "base_type": "type/Decimal",
-        "description": "Signed net cash; unavailable before the known opening. Later corrections restate history."
-      },
-      {
-        "name": "Transaction Count",
-        "base_type": "type/BigInteger",
-        "semantic_type": "type/Quantity",
-        "description": "Transaction Count. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
-      },
-      {
-        "name": "Internal Transfer Count",
-        "base_type": "type/BigInteger",
-        "semantic_type": "type/Quantity",
-        "description": "Internal Transfer Count. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
-      },
-      {
-        "name": "Available From",
-        "base_type": "type/Date",
-        "description": "Available From. One account scope and Bangkok calendar date, including zero-movement days. Opening and closing are signed net cash; missing/pre-opening balances remain unavailable. All accounts is a separate consolidated scope, never summed with individual accounts."
-      },
-      {
-        "name": "Balance Status",
-        "base_type": "type/Text",
-        "semantic_type": "type/Category",
-        "description": "Signed net cash; unavailable before the known opening. Later corrections restate history."
-      }
-    ],
-    "rows": 115
-  },
   "daily-cash-snapshot": {
     "id": 205,
     "name": "Daily Cash Snapshots",
     "collection_id": 8,
-    "grain": "One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates.",
+    "grain": "One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only.",
     "grain_field": "Snapshot ID",
     "database_view": "public.reporting_daily_snapshot",
     "columns": [
@@ -1891,77 +1273,92 @@
         "name": "Snapshot ID",
         "base_type": "type/Text",
         "semantic_type": "type/PK",
-        "description": "Snapshot ID. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Snapshot ID. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Date",
         "base_type": "type/Date",
-        "description": "Date. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Date. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Generated At",
         "base_type": "type/DateTime",
-        "description": "Generated At. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Generated At. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Model Version",
         "base_type": "type/Integer",
-        "description": "Model Version. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Model Version. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Total Cash Pool",
         "base_type": "type/Decimal",
-        "description": "Total Cash Pool. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Total Cash Pool. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Outstanding Principal",
         "base_type": "type/Decimal",
-        "description": "Outstanding Principal. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Outstanding Principal. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Remaining Lending Capital",
         "base_type": "type/Decimal",
-        "description": "Remaining Lending Capital. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Remaining Lending Capital. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Opening Cash",
         "base_type": "type/Decimal",
-        "description": "Opening Cash. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Opening Cash. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Net Cash Balance",
         "base_type": "type/Decimal",
-        "description": "Net Cash Balance. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Net Cash Balance. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Money In",
         "base_type": "type/Decimal",
-        "description": "Money In. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Money In. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Money Out",
         "base_type": "type/Decimal",
-        "description": "Money Out. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Money Out. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Available From",
         "base_type": "type/Date",
-        "description": "Available From. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Available From. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Balance Status",
         "base_type": "type/Text",
-        "description": "Balance Status. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Balance Status. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Provisional",
         "base_type": "type/Boolean",
-        "description": "Provisional. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Provisional. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       },
       {
         "name": "Freshness Basis",
         "base_type": "type/Text",
-        "description": "Freshness Basis. One stored row per Bangkok date. Past-date closing positions and completed-day trends only; never sum balances across dates."
+        "description": "Freshness Basis. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
+      },
+      {
+        "name": "Income",
+        "base_type": "type/Decimal",
+        "description": "Income. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
+      },
+      {
+        "name": "Expenses",
+        "base_type": "type/Decimal",
+        "description": "Expenses. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
+      },
+      {
+        "name": "Net Profit",
+        "base_type": "type/Decimal",
+        "description": "Net Profit. One stored portfolio/date snapshot. Sum flows, select balances at a date. Completed historical trends and past positions only."
       }
     ]
   },
@@ -2058,6 +1455,37 @@
         "name": "Freshness Basis",
         "base_type": "type/Text",
         "description": "Freshness Basis. One stored row per Bangkok date and cash account. Signed balances; missing openings stay NULL. Current labels, immutable holder ownership."
+      }
+    ]
+  },
+  "income-events": {
+    "id": 186,
+    "name": "Income Events",
+    "collection_id": 8,
+    "grain": "One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense flows, no allocation or running history.",
+    "grain_field": "Event ID",
+    "database_view": "public.reporting_income_events",
+    "columns": [
+      {
+        "name": "Event ID",
+        "base_type": "type/Text",
+        "semantic_type": "type/PK",
+        "description": "Event ID. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense flows, no allocation or running history."
+      },
+      {
+        "name": "Date",
+        "base_type": "type/Date",
+        "description": "Date. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense flows, no allocation or running history."
+      },
+      {
+        "name": "Income",
+        "base_type": "type/Decimal",
+        "description": "Income. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense flows, no allocation or running history."
+      },
+      {
+        "name": "Expenses",
+        "base_type": "type/Decimal",
+        "description": "Expenses. One posted repayment or business expense; immutable prefixed Event ID. Live dated income/expense flows, no allocation or running history."
       }
     ]
   }

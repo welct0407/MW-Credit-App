@@ -44,6 +44,7 @@ if(process.argv.includes('--layout-only')){
  fs.writeFileSync(backup+'/completed-dashboard.json',JSON.stringify(after,null,2));console.log('Layout-only refinement verified; all queries and other tabs preserved.');
 }
 if(process.argv.includes('--install')){
+ if(fs.existsSync(new URL('../../outputs/r016-20260922/statement-cleanup-state.json',import.meta.url)))throw Error('Canonical cash pages now exist. Use StatementCleanup.mjs and preserve the current Cash Position page; this old installation baseline is retired.');
  await assertSource();const baseline=prior('dashboard');let d=await api('GET','dashboard/3');
  assert.equal(d.tabs.find(t=>t.id===14)?.name,'2R · Cash Position');
  const models=read('models.json');let state;try{state=read('cash-snapshot-report-state.json');}catch{state={cards:{},baseline_commit:'04624908fa23fc61215ec15000fbe1d3305e613c'};}

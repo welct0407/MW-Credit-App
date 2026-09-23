@@ -1,0 +1,36 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "appsheet-pg-prod-20260914"
+  "kind": "relation"
+  "name": "public.reporting_statement_calendar"
+  "scope": "development-and-production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r016-20260922/statement-cleanup/README.md"
+"content":
+  "columns":
+    "Date":
+      "data_type": "date"
+      "udt_name": "date"
+      "nullable": true
+      "ordinal": 1
+  "constraints": {}
+  "definition": |-
+    CREATE VIEW public.reporting_statement_calendar AS
+    SELECT generate_series(date_trunc('month',least(
+     (SELECT min("Date") FROM public.reporting_income_events),
+     (SELECT min("Movement Date") FROM public."Cash Ledger"),
+     (SELECT min(available) FROM public.reporting_cash_scopes),public.olap_reporting_date()))::date,
+     public.olap_reporting_date(),interval '1 day')::date AS "Date";
+  "environments":
+  - "loan_manager_dev"
+  - "loan_manager_prod"
+  "migration": 38
+  "consumer": "Metabase restricted reporting; no AppSheet source changes"
+  "permissions": "SELECT only for metabase_borrower_reader"
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r016-20260922/statement-cleanup/provider-columns.json"
+    "reason": "Verified restricted PROD catalog types and nullability"
+    "state": "value"

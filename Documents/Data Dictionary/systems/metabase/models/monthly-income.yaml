@@ -81,3 +81,13 @@
       "Type / source": "type/Boolean"
       "Semantic / relationship": null
       "Definition": "In Last 12 Months"
+  "lifecycle":
+    "state": "archived"
+    "id": 165
+    "reason": "No remaining dashboard, question, snippet, filter, alert or subscription consumer. Recoverable archive; imported\
+      \ fields retained as dated evidence."
+"evidence":
+  "/content/lifecycle":
+    "reference": "outputs/r016-20260922/statement-cleanup/README.md"
+    "reason": "Dependency-verified report cleanup"
+    "state": "value"

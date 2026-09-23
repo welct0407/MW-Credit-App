@@ -30,40 +30,55 @@ export const specs=[
  {id:196,key:'transactions',name:'Transactions · chronological order',display:'table',dataset_query:flow(`SELECT to_char(t."Date",'DD/MM')||' '||to_char(t."Posted At",'HH24:MI') AS "Date / Time",t."Transaction Type",t."Counterparty",t."Money In",t."Money Out",t."Balance After",t."From Account",t."To Account",t."Notes" FROM statement s CROSS JOIN LATERAL public.reporting_cash_period_entries(s."Period Start",s."Period End",{{cash_account}}) t WHERE s."Continuous Period" ORDER BY t."Date",t."Posted At",t."Ledger ID" COLLATE "C",t."Entry ID" COLLATE "C"`),visualization_settings:prior('card-196').visualization_settings},
  {id:199,key:'accounts',name:'Cash account selector',display:'table',dataset_query:native('SELECT id AS "Scope ID",label AS "Account" FROM public.reporting_cash_scopes ORDER BY id'),visualization_settings:{}}
 ];
+for(const id of [195,197]){
+ const spec=specs.find(s=>s.id===id),field=id===195?'Opening Balance':'Closing Balance';
+ spec.dataset_query=flow(`SELECT "${field}",coalesce(to_char("${field}",'FM999,999,999,999,990'),'Unavailable') AS "Display Balance" FROM statement`);
+ spec.visualization_settings['scalar.field']='Display Balance';
+}
+specs.find(s=>s.key==='expense-detail').visualization_settings['table.columns']=['Expense Date','Expense Category','Expenses','Expense ID'].map(name=>({name,enabled:name!=='Expense ID'}));
 const trendQuery=(income)=>native(`WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE d."Date"<public.olap_reporting_date() [[AND {{${income?'statement_period':'cashflow_period'}}}]])
  SELECT d."Date",${income?'s."Income",s."Expenses",s."Net Profit"':'CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Money In" ELSE a."Money In" END AS "Money In",CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Money Out" ELSE a."Money Out" END AS "Money Out"'},
  ${income?'s."Generated At"':'CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Generated At" ELSE a."Generated At" END'} AS "Generated At"
  FROM selected d LEFT JOIN {{#205}} s ON s."Date"=d."Date"${income?'':' LEFT JOIN {{#206}} a ON a."Date"=d."Date" AND a."Cash Account ID"={{cash_account}}'} ORDER BY d."Date"`,{[income?'statement_period':'cashflow_period']:dateTag(income?'statement_period':'cashflow_period'),'#205':cardTag(205),...(income?{}:{cash_account:account,'#206':cardTag(206)})});
 for(const income of [true,false]){
  const base=trendQuery(income),metrics=income?['Income','Expenses','Net Profit']:['Money In','Money Out'];
- specs.push({key:income?'income-trend':'flow-trend',name:income?'Daily profitability · hourly snapshots':'Daily cash movement · hourly snapshots',display:income?'combo':'bar',dataset_query:base,visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':metrics,'graph.colors':income?['#13855B','#D1495B','#267DCC']:['#13855B','#D1495B'],'graph.show_legend':true,'graph.missing':'none','series_settings':income?{'["name","Income"]':{display:'bar'},'["name","Expenses"]':{display:'bar'},'["name","Net Profit"]':{display:'line'}}:{},...fmt(metrics)}});
- specs.push({key:income?'income-snapshot-status':'flow-snapshot-status',name:income?'Profit trend snapshot freshness':'Cash trend snapshot freshness',display:'table',dataset_query:{...base,native:{...base.native,query:`WITH trend AS (${base.native.query}) SELECT count(*) AS "Completed dates",count(*) FILTER(WHERE "Generated At" IS NULL) AS "Missing snapshots",min("Generated At") AS "Oldest refresh",max("Generated At") AS "Latest refresh" FROM trend`}},visualization_settings:{'table.pivot':false}});
+ specs.push({key:income?'income-trend':'flow-trend',name:income?'Daily profitability · hourly snapshots':'Daily cash movement · hourly snapshots',display:income?'combo':'bar',dataset_query:base,visualization_settings:{'graph.dimensions':['Date'],'graph.metrics':metrics,'graph.colors':income?['#13855B','#D1495B','#267DCC']:['#13855B','#D1495B'],'graph.show_legend':true,'graph.missing':'none','series_settings':income?{Income:{display:'bar',color:'#13855B'},Expenses:{display:'bar',color:'#D1495B'},'Net Profit':{display:'line',color:'#267DCC'}}:{},...fmt(metrics)}});
+ specs.push({key:income?'income-snapshot-status':'flow-snapshot-status',name:income?'Profit trend snapshot freshness':'Cash trend snapshot freshness',display:'table',dataset_query:{...base,native:{...base.native,query:`WITH trend AS (${base.native.query}), totals AS (SELECT count(*) n,count(*) FILTER(WHERE "Generated At" IS NULL) missing,min("Generated At") oldest,max("Generated At") latest FROM trend) SELECT v.detail AS "Detail",v.value AS "Value" FROM totals CROSS JOIN LATERAL (VALUES (1,'Completed dates',n::text),(2,'Missing snapshots',missing::text),(3,'Oldest refresh',coalesce(to_char(oldest,'YYYY-MM-DD HH24:MI'),'Unavailable')),(4,'Latest refresh',coalesce(to_char(latest,'YYYY-MM-DD HH24:MI'),'Unavailable'))) v(step,detail,value) ORDER BY step`}},visualization_settings:{'table.pivot':false}});
 }
 
 export function layout(d,state){
  const out=[];let next=-1;
  const note=(tab,row,text,h=2)=>out.push({id:next--,card_id:null,dashboard_tab_id:tab,col:0,row,size_x:24,size_y:h,series:[],parameter_mappings:[],visualization_settings:{'card.background':false,virtual_card:{display:h===1?'heading':'text',visualization_settings:{text}}}});
  const place=(tab,id,col,row,w,h,title)=>out.push({id:d.dashcards.find(c=>c.dashboard_tab_id===tab&&c.card_id===id)?.id??next--,card_id:id,dashboard_tab_id:tab,col,row,size_x:w,size_y:h,series:[],parameter_mappings:[{parameter_id:tab===16?'review-income':'review-flow',card_id:id,target:['dimension',['template-tag',tab===16?'statement_period':'cashflow_period']]},...(tab===15?[{parameter_id:'review-account',card_id:id,target:['variable',['template-tag','cash_account']]}]:[])],visualization_settings:{'card.title':title}});
- note(16,0,'Income statement · live on refresh',1);note(16,1,'Income is recorded interest less business expenses. Principal and partner payments are excluded. Amounts in baht.');
+ note(16,0,'Income statement · live on refresh',1);note(16,1,'Net profit = interest − expenses. Amounts in baht.');
  [[168,'Income'],[169,'Expenses'],[170,'Net profit']].forEach(([id,t],j)=>place(16,id,j*8,3,8,3,t));
  place(16,184,0,6,16,6,'Period & freshness');place(16,171,16,6,8,3,'Average daily net profit');
- note(16,12,'Calendar-day average includes zero-activity days. Later corrections update live figures on refresh.');
+ note(16,12,'Average uses calendar days. Live figures include later corrections.');
  place(16,204,0,14,24,6,'Income − expenses = net profit');place(16,178,0,20,24,6,'Expenses by category');
  place(16,state.cards['expense-detail'],0,26,24,7,'Expense detail · live');
- note(16,33,'Historical daily trend · hourly snapshots',1);note(16,34,'Completed days only. Missing snapshots stay blank; corrections appear after the history refresh.');
- place(16,state.cards['income-trend'],0,36,24,7,'Daily income, expenses & net profit');place(16,state.cards['income-snapshot-status'],0,43,24,4,'Snapshot coverage & actual refresh times');
- note(15,0,'Cashflow statement · live on refresh',1);note(15,1,'Period and account apply throughout. Internal transfers net to zero in All accounts. Amounts in baht.');
+ note(16,33,'Historical daily trend · hourly snapshots',1);note(16,34,'Completed days only. Gaps stay blank; corrections need a refresh.');
+ place(16,state.cards['income-trend'],0,36,24,7,'Daily income, expenses & net profit');place(16,state.cards['income-snapshot-status'],0,43,24,6,'Snapshot coverage & actual refresh times');
+ note(15,0,'Cashflow statement · live on refresh',1);note(15,1,'All accounts nets transfers to zero. Amounts in baht.');
  [[195,'Opening cash'],[192,'Money in'],[193,'Money out'],[197,'Closing cash']].forEach(([id,t],j)=>place(15,id,j*6,3,6,3,t));
  place(15,198,0,6,16,8,'Period, account & freshness');place(15,194,16,6,8,3,'Net cash movement');
- note(15,14,'Opening + money in − money out = closing. Unknown openings stay blank; transactions remain visible.');
+ note(15,14,'Opening + in − out = closing. Unknown openings are unavailable.');
  place(15,203,0,16,24,8,'Cash movement by type · includes total');
- note(15,24,'Historical daily movement · hourly snapshots',1);note(15,25,'Completed days only. All accounts uses consolidated snapshots; transfers are not counted twice.');
- place(15,state.cards['flow-trend'],0,27,24,7,'Daily money in & money out');place(15,state.cards['flow-snapshot-status'],0,34,24,4,'Snapshot coverage & actual refresh times');
- place(15,196,0,38,24,12,'Transactions · live chronological balances');
- note(15,50,'Date / Time uses the statement date and recorded posting time. Combined repayments retain their recorded type.');
+ note(15,24,'Historical daily movement · hourly snapshots',1);note(15,25,'Completed days only. Transfers cancel in All accounts.');
+ place(15,state.cards['flow-trend'],0,27,24,7,'Daily money in & money out');place(15,state.cards['flow-snapshot-status'],0,34,24,6,'Snapshot coverage & actual refresh times');
+ place(15,196,0,40,24,12,'Transactions · live chronological balances');
+ note(15,52,'Statement date + posting time. Repayments keep their recorded type.');
  return out;
 }
 
+if(process.argv.includes('--refine')){
+ const state=read('statement-cleanup-state.json');
+ for(const spec of specs.filter(s=>['q195','q197','income-trend','income-snapshot-status','flow-snapshot-status','expense-detail'].includes(s.key))){
+  if(spec.key==='expense-detail')spec.visualization_settings['table.columns']=['Expense Date','Expense Category','Expenses','Expense ID'].map(name=>({name,enabled:name!=='Expense ID'}));
+  await api('PUT','card/'+state.cards[spec.key],{dataset_query:spec.dataset_query,visualization_settings:spec.visualization_settings});
+ }
+ const d=await api('GET','dashboard/3');await api('PUT','dashboard/3/cards',{tabs:d.tabs,cards:[...d.dashcards.filter(c=>![15,16].includes(c.dashboard_tab_id)),...layout(d,state)]});
+ const plan=read('statement-cleanup-plan.json');plan.questions=specs.map(s=>({...s,id:state.cards[s.key]}));plan.layout=layout(await api('GET','dashboard/3'),state);write('statement-cleanup-plan.json',plan);
+}
 if(process.argv.includes('--install')){
  await assertSource();let state;try{state=read('statement-cleanup-state.json');}catch{state={cards:{},baseline_commit:'cf243e138cd85701cd8e156626e88a65174d604e'};}
  const models=read('models.json');

@@ -16645,6 +16645,16 @@
       ]
     },
     {
+      "file": "systems/metabase/dashboards/loan-reports.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "dashboard",
+      "name": "Loan Reports / 3",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/models/account-cash-snapshots.yaml",
       "system": "metabase",
       "component": "recorded-instance",
@@ -17580,6 +17590,18 @@
         {
           "subject": "Freshness Basis",
           "pointer": "/content/fields/Freshness Basis"
+        },
+        {
+          "subject": "Income",
+          "pointer": "/content/fields/Income"
+        },
+        {
+          "subject": "Expenses",
+          "pointer": "/content/fields/Expenses"
+        },
+        {
+          "subject": "Net Profit",
+          "pointer": "/content/fields/Net Profit"
         }
       ]
     },
@@ -17734,6 +17756,37 @@
         {
           "subject": "In Last 30 Days",
           "pointer": "/content/fields/In Last 30 Days"
+        }
+      ]
+    },
+    {
+      "file": "systems/metabase/models/income-events.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Income Events",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Model grain",
+          "pointer": "/content/fields/Model grain"
+        },
+        {
+          "subject": "Event ID",
+          "pointer": "/content/fields/Event ID"
+        },
+        {
+          "subject": "Date",
+          "pointer": "/content/fields/Date"
+        },
+        {
+          "subject": "Income",
+          "pointer": "/content/fields/Income"
+        },
+        {
+          "subject": "Expenses",
+          "pointer": "/content/fields/Expenses"
         }
       ]
     },
@@ -18249,6 +18302,26 @@
           "pointer": "/content/fields/Status"
         }
       ]
+    },
+    {
+      "file": "systems/metabase/snippets/live-cashflow-period.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "snippet",
+      "name": "Cashflow statement period",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/snippets/live-income-period.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "snippet",
+      "name": "Income statement period",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
     },
     {
       "file": "systems/postgresql/recorded-logic/agent-audit-commits.yaml",
@@ -21768,6 +21841,178 @@
         {
           "subject": "Statistics_pkey",
           "pointer": "/content/constraints/Statistics_pkey"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/reporting/reporting_cash_entries.yaml",
+      "system": "postgresql",
+      "component": "appsheet-pg-prod-20260914",
+      "kind": "relation",
+      "name": "public.reporting_cash_entries",
+      "scope": "development-and-production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Entry ID",
+          "pointer": "/content/columns/Entry ID"
+        },
+        {
+          "subject": "Scope ID",
+          "pointer": "/content/columns/Scope ID"
+        },
+        {
+          "subject": "Account",
+          "pointer": "/content/columns/Account"
+        },
+        {
+          "subject": "Ledger ID",
+          "pointer": "/content/columns/Ledger ID"
+        },
+        {
+          "subject": "Date",
+          "pointer": "/content/columns/Date"
+        },
+        {
+          "subject": "Posted At",
+          "pointer": "/content/columns/Posted At"
+        },
+        {
+          "subject": "Transaction Type",
+          "pointer": "/content/columns/Transaction Type"
+        },
+        {
+          "subject": "Counterparty",
+          "pointer": "/content/columns/Counterparty"
+        },
+        {
+          "subject": "From Account",
+          "pointer": "/content/columns/From Account"
+        },
+        {
+          "subject": "To Account",
+          "pointer": "/content/columns/To Account"
+        },
+        {
+          "subject": "Internal Transfer",
+          "pointer": "/content/columns/Internal Transfer"
+        },
+        {
+          "subject": "Transaction Amount",
+          "pointer": "/content/columns/Transaction Amount"
+        },
+        {
+          "subject": "Money In",
+          "pointer": "/content/columns/Money In"
+        },
+        {
+          "subject": "Money Out",
+          "pointer": "/content/columns/Money Out"
+        },
+        {
+          "subject": "Net Movement",
+          "pointer": "/content/columns/Net Movement"
+        },
+        {
+          "subject": "Balance After",
+          "pointer": "/content/columns/Balance After"
+        },
+        {
+          "subject": "Available From",
+          "pointer": "/content/columns/Available From"
+        },
+        {
+          "subject": "Notes",
+          "pointer": "/content/columns/Notes"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/reporting/reporting_cash_period.yaml",
+      "system": "postgresql",
+      "component": "appsheet-pg-prod-20260914",
+      "kind": "routine",
+      "name": "public.reporting_cash_period(date,date,text)",
+      "scope": "development-and-production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/reporting/reporting_cash_period_entries.yaml",
+      "system": "postgresql",
+      "component": "appsheet-pg-prod-20260914",
+      "kind": "routine",
+      "name": "public.reporting_cash_period_entries(date,date,text)",
+      "scope": "development-and-production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/reporting/reporting_cash_scopes.yaml",
+      "system": "postgresql",
+      "component": "appsheet-pg-prod-20260914",
+      "kind": "relation",
+      "name": "public.reporting_cash_scopes",
+      "scope": "development-and-production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "id",
+          "pointer": "/content/columns/id"
+        },
+        {
+          "subject": "label",
+          "pointer": "/content/columns/label"
+        },
+        {
+          "subject": "available",
+          "pointer": "/content/columns/available"
+        },
+        {
+          "subject": "baseline",
+          "pointer": "/content/columns/baseline"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/reporting/reporting_income_events.yaml",
+      "system": "postgresql",
+      "component": "appsheet-pg-prod-20260914",
+      "kind": "relation",
+      "name": "public.reporting_income_events",
+      "scope": "development-and-production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Event ID",
+          "pointer": "/content/columns/Event ID"
+        },
+        {
+          "subject": "Date",
+          "pointer": "/content/columns/Date"
+        },
+        {
+          "subject": "Income",
+          "pointer": "/content/columns/Income"
+        },
+        {
+          "subject": "Expenses",
+          "pointer": "/content/columns/Expenses"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/reporting/reporting_statement_calendar.yaml",
+      "system": "postgresql",
+      "component": "appsheet-pg-prod-20260914",
+      "kind": "relation",
+      "name": "public.reporting_statement_calendar",
+      "scope": "development-and-production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Date",
+          "pointer": "/content/columns/Date"
         }
       ]
     }

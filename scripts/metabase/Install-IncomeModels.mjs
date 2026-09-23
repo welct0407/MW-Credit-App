@@ -1,3 +1,4 @@
+import './LegacyStatementGuard.mjs';
 import fs from 'node:fs';
 import {api,assertSource,read,write,root,privateDir} from './ReportingApi.mjs';
 import {definitions,descriptions,modelDescriptions} from './IncomePage.mjs';

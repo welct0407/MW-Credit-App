@@ -1,3 +1,4 @@
+import './LegacyStatementGuard.mjs';
 import fs from 'node:fs';
 import {api,assertSource,read,write,privateDir,root} from './ReportingApi.mjs';
 await assertSource();
