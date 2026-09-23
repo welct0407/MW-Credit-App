@@ -25,6 +25,11 @@ for(const q of old){
    model='daily';dims=['Date'];metrics=['Amount (THB)'];
    const field={'daily-principal':'Outstanding Principal','daily-profit':'Profit','daily-overdue':'Overdue Charges'}[q.key];
    query={breakout:[F('Date','type/Date')],aggregation:[S(field,metrics[0])],'order-by':[['asc',F('Date','type/Date')]]};
+   if(q.key==='daily-principal'){
+     display='combo';metrics.push('Current Total Cash Pool (THB)');
+     query.aggregation.push(['aggregation-options',['max',F('Current Total Cash Pool')],{name:metrics[1],'display-name':metrics[1]}]);
+     delete settings['graph.goal_value'];delete settings['graph.goal_label'];settings['graph.show_goal']=false;
+   }
    if(q.key==='daily-overdue')query.filter=['=',F('Include Overdue Trend','type/Boolean'),true];
    color=q.key==='daily-overdue'?coral:q.key==='daily-profit'?indigo:teal;
  } else if(q.key==='composition'){
@@ -41,9 +46,15 @@ for(const q of old){
    Object.assign(settings,{'graph.dimensions':dims,'graph.metrics':metrics,'graph.colors':colors,'series_settings':Object.fromEntries(metrics.map((m,i)=>[m,{color:colors[i]}])),'graph.show_values':display==='row','graph.show_dots':false,'graph.label_value_formatting':'compact','graph.x_axis.title_enabled':false,'graph.y_axis.title_text':q.key==='composition'?'Share of balance':'THB','graph.show_legend':metrics.length>1});
    for(const m of metrics)settings.column_settings[JSON.stringify(['name',m])]={number_style:'decimal',decimals:0,number_separators:'.,'};
  }
+ if(q.key==='daily-principal'){
+   settings.series_settings={'Amount (THB)':{color:teal,display:'area',title:'Outstanding principal'},'Current Total Cash Pool (THB)':{color:indigo,display:'line',title:'Current Total Cash Pool'}};
+   settings['graph.y_axis.auto_split']=false;
+ }
  const dateName={104:'Peak Cash Pool Date 30D',95:'Loan Date',82:'Date'}[q.date_field];
  const description=q.key==='growth'
   ?'Last seven completed Bangkok dates (yesterday through seven days ago) versus the seven dates immediately before (eight through fourteen days ago). Today is excluded. No value when the previous period is zero. Built from Portfolio Overview; shared logic is maintained in the Reporting Models collection.'
+  :q.key==='daily-principal'
+  ?'Stored daily outstanding-principal snapshots with a line for the current Total Cash Pool from olap_portfolio_summary. The cash-pool line changes with the current source value and is repeated across chart dates; it is not a historical cash-pool series. Built from Daily Performance.'
   :q.description+' Built from '+models[model].name+'; shared logic is maintained in the Reporting Models collection.';
  specs.push({key:q.key,id:read('dashboard-verification.json').cards[q.key].id,name:q.name,model,display,description,settings,date_field:q.date_field,date_target:dateName?['dimension',F(dateName,'type/Date')]:null,dataset_query:{database:2,type:'query',query:{'source-table':'card__'+models[model].id,...query}}});
 }

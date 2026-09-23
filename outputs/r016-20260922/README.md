@@ -2,7 +2,11 @@
 
 ## Current question reuse — 23 September 2026
 
-The ten-page dashboard has 130 visual placements using 116 distinct questions, twenty models and 287 model fields. Ten redundant questions were replaced with existing canonical questions and recoverably archived. Page titles, number formats, layout and filter mappings stay on each placement; the query is owned by the shared question. Overview and Performance now both use question 56 for seven-day growth. [Mapping, comparisons and recovery](question-reuse-verification.json). The original POC and intentionally different chart types, populations and date contracts remain separate. Earlier counts below are dated checkpoints.
+The ten-page dashboard has 130 visual placements using 116 distinct questions, twenty models and 288 model fields. Ten redundant questions were replaced with existing canonical questions and recoverably archived. Page titles, number formats, layout and filter mappings stay on each placement; the query is owned by the shared question. Overview and Performance now both use question 56 for seven-day growth. [Mapping, comparisons and recovery](question-reuse-verification.json). The original POC and intentionally different chart types, populations and date contracts remain separate. Earlier counts below are dated checkpoints.
+
+## Principal trend cash-pool line — 23 September 2026
+
+The principal trend now plots outstanding principal as an area and **Current Total Cash Pool** as a line on one THB axis. The line reads the current `olap_portfolio_summary."Total Cash Pool"` value on every refresh; it is repeated across displayed dates for comparison and is not historical cash-pool data. The same saved question appears on Overview and Cash Analysis, each retaining its own date filter. The old fixed 120,000 goal is removed. [Model, chart and preservation checks](principal-cash-pool-verification.json); [dictionary check](principal-cash-pool-dictionary-verification.json).
 
 ## Overview trend window and labels — 23 September 2026
 
@@ -47,7 +51,7 @@ Recovery: private `income-db-views-before` contains the six exact former model d
 | Repayment Ledger / 71 | One Repayment ID; loan/borrower relationships and Bangkok 30-day / seven-day windows. |
 | Borrower Performance / 72 | One visible borrower display name, preserving source grouping; separately aggregate loan and repayment totals before joining, then rank top four plus Others. Do not use display names as transactional keys. |
 | Portfolio Overview / 73 | One current portfolio row; available cash, utilization, gross-interest KPIs and top borrower. |
-| Daily Performance / 74 | One stored snapshot per Date; signed flow amounts and overdue date exclusion. |
+| Daily Performance / 74 | One stored snapshot per Date; signed flow amounts, overdue date exclusion and a repeated current Total Cash Pool comparison field. |
 | Charge History / 75 | One Charge ID; loan/borrower joins, historical payment timing and past-due remaining amounts. |
 | Partner Outlook / 76 | One role A/B Partner ID; current shares from the existing Loan Form Context view. |
 | Collection Worklist / 77 | One borrower with a current collection status; posted receipts aggregated before joining. |
@@ -72,7 +76,7 @@ Source: Workspace Data Studio report `52954065-a261-4b97-8d19-df84126bbdc6`, pag
 | Overview: profit in past 30 days; interest paid | Repayment interest during Bangkok dates today−29 through today, and all-time, respectively. |
 | Overview: top borrower | Borrower Description with largest current outstanding principal, excluding hidden borrowers. |
 | Overview: two borrower horizontal bars | Borrowers → Loans using Row ID / Ref Borrowers; repayment interest aggregated per loan before Loans → Borrowers join. Four named borrowers plus Others. No charge fan-out. |
-| Overview: daily principal, profit and overdue area charts | Stored Daily Analytics snapshots by Snapshot Date. The three placements default to the last 30 completed Bangkok dates and can be adjusted with Portfolio trend period. Overdue uses Pending Charges EOD and excludes today. Original fixed references of THB 120,000 principal and THB 10,000 daily profit are preserved. Axis ranges adapt so points remain visible. |
+| Overview: daily principal, profit and overdue charts | Stored Daily Analytics snapshots by Snapshot Date. The three placements default to the last 30 completed Bangkok dates and can be adjusted with Portfolio trend period. Principal is an area with the current Total Cash Pool line; overdue uses Pending Charges EOD and excludes today. The THB 10,000 daily profit goal remains fixed. Axis ranges adapt so points remain visible. |
 | Cash: pool, principal, available cash, loan account balance; utilization gauge | Existing portfolio summary. Gauge scale 0–100%, boundaries 60%, 85%, 95%. |
 | Cash: balance composition | Horizontal 100% stacked bar: available cash plus unsettled gross profit. |
 | Cash: principal by loan type | Current loan outstanding principal, grouped by short English labels for phone readability; the Thai source type remains available in Loan Book. |
@@ -88,7 +92,7 @@ Overview shows all-time/current metrics with each question's intrinsic date rule
 - [Backup proof](backup-verification.json): PROD recovery established before column-grant changes. [Infrastructure evidence](infrastructure-verification.json) records application restore, region and resource caps.
 - Partner desktop and 390 px responsive browser checks are recorded in the change log. The owner previously accepted the POC on a physical PC and phone; that is distinct from accepting these new pages. Lisa's personal Google sign-in remains unconfirmed.
 
-Review the copied gross-profit definitions, skipped comparison day, fixed principal reference and Cash date semantics before changing them. These are preserved source behaviors, not newly approved business rules.
+Review the copied gross-profit definitions, skipped comparison day and Cash date semantics before changing them. The principal comparison now uses the current Total Cash Pool rather than the original fixed 120,000 reference.
 
 ## Runtime and recovery
 

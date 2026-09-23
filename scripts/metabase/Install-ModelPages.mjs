@@ -27,7 +27,7 @@ add('borrower-principal',overview,0,9,12,6,'Principal outstanding');add('borrowe
 heading(overview,15,'Portfolio trends · daily closing snapshots');
 add('daily-principal',overview,0,16,24,6,'Principal outstanding');
 add('daily-profit',overview,0,22,12,6,'Daily gross interest');add('daily-overdue',overview,12,22,12,6,'Overdue · through yesterday');
-note(overview,28,'Profit means gross interest before expenses. Principal reference: 120,000. Daily interest goal: 10,000. Dates use Bangkok time.');
+note(overview,28,'Profit means gross interest before expenses. Principal line: current Total Cash Pool. Daily interest goal: 10,000. Dates use Bangkok time.');
 heading(cash,0,'Liquidity at a glance');
 for(const [i,key] of ['cash-pool','principal','available','account-balance'].entries())add(key,cash,i*6,1,6,2,{'cash-pool':'Total cash pool',principal:'Principal outstanding',available:'Cash available','account-balance':'Loan account balance'}[key]);
 heading(cash,3,'Where the money sits');

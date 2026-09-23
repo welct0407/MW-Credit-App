@@ -108,5 +108,7 @@
   "cashflow_table_refinement": "cashflow-table-refinement.json",
   "scalar_hover_cleanup": "scalar-hover-cleanup.json",
   "question_reuse_evidence": "question-reuse-verification.json",
-  "overview_trend_refinement": "overview-trend-refinement.json"
+  "overview_trend_refinement": "overview-trend-refinement.json",
+  "principal_cash_pool_evidence": "principal-cash-pool-verification.json",
+  "model_field_count": 288
 }
