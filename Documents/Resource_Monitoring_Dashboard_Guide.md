@@ -13,7 +13,23 @@ Performance's large CPU/RAM numbers show the **last available sample in the sele
 
 Availability lights describe current health at refresh time. They are not uptime percentages or incident history. Most depend on Debian telemetry; the external webhook and OpenAI provider checks do not. Historical date ranges can exclude recent Debian samples and produce Unknown; use a range ending at now for operational checks. OpenAI always retrieves the current published status, regardless of the selected historical range.
 
-Percent/count/throughput labels generally use whole numbers. Fractional CPU cores, GB and money retain useful precision. A red reference line marks a documented capacity/configuration limit, not a universal warning threshold. Green CPU/RAM chart styling does not by itself certify healthy operation. No notification or alert-delivery policy is configured by these visuals.
+Percent/count/throughput labels generally use whole numbers. Fractional CPU cores, GB and money retain useful precision. A red reference line marks a documented capacity/configuration limit, not a universal warning threshold. Green CPU/RAM chart styling does not by itself certify healthy operation. Seven separately evaluated Performance alert rules now send mobile push through IRM; they do not alter the chart values or add threshold lines.
+
+## Performance — alerts linked to visuals
+
+The following rules evaluate every two minutes with a rolling ten-minute query window ending at now. They are independent of the dashboard time picker and refresh. **Pending** means the condition must persist before a phone notification. The phone route was tested on 23 September 2026. [Operating alert reference](Resource_Monitoring.md#performance-alerts-and-phone-delivery-23-september-2026) covers ownership, no-data behavior and rollback.
+
+| Visual IDs | Mobile alert condition | Pending | Interpretation |
+|---|---|---|---|
+| 51, 70 | External webhook DOWN (all three fresh regions failed) | 4 min | Mixed failures are Degraded but do not page; stale check data is Unknown. |
+| 52, 56, 57, 65 | Any fresh tunnel, OLTP API, OLAP API or database-access report DOWN | 4 min | One grouped page; inspect the four tiles to identify the component. Degraded, Paused and Unknown do not page. |
+| 50, 34 | Cloud SQL backend count above **160** | 10 min | Early warning at 80% of configured 200. The red chart line still marks 200; reserved PostgreSQL slots lower ordinary-client capacity. |
+| 4, 31 | Cloud SQL CPU above **85%** | 10 min | Five-minute mean; 85% is an operational warning, while the chart's 100% line is capacity. |
+| 8, 32 | Cloud SQL `database/memory/components` **Usage** above **85%** | 10 min | Uses the Used component, not `database/memory/utilization` or Cache. |
+| 7, 22 | Debian VM Ops Agent `memory/percent_used`, state `used`, above **85%** | 10 min | Used RAM only; other memory states are excluded. |
+| 9, 42 | Railway Metabase used memory above **90% of its corresponding live limit** | 10 min | Uses `100 × MEMORY_USAGE_GB / MEMORY_LIMIT_GB`; allocation changes are reflected in the limit metric. |
+
+These values are alert thresholds, not newly configured subscription/resource limits. Azure VM-01 has no uptime push rule because it is intentionally not 24x7. The OpenAI published-status tiles and the remaining worker tiles have no direct rule in this initial set. An Unknown light or query error needs investigation but does not itself page.
 
 Panel IDs below are maintenance references, unique **within each page**. Names repeat in some detailed sections, so use the page, section and ID together.
 
