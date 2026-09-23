@@ -1,0 +1,36 @@
+{
+  "starting_commit": "311fa9986287a9f4ab234aafcd24c1df0219330f",
+  "source_scope": "Current working dictionary and three context documents; pre-existing R016 work is read-only input",
+  "exporter_tests_passed": 9,
+  "combined_dictionary_tests_passed": 22,
+  "launcher": {
+    "passed": true,
+    "invocation": "scripts/Export Data Dictionary.cmd --no-pause",
+    "working_directory": "outside repository",
+    "missing_runtime_returns_failure": true
+  },
+  "sample_export": {
+    "objects": 192,
+    "source_files": 203,
+    "bytes": 2877311,
+    "sha256": "24ac731102b9e921ee7a69778f7f8b41c706d3b4e58d12a1ee51e89268912ba0",
+    "all_source_bytes_reextracted_and_verified": true,
+    "systems": [
+      "appsheet",
+      "metabase",
+      "postgresql",
+      "workbook-evidence"
+    ],
+    "planned_systems": [
+      "grafana"
+    ],
+    "git_ignored": true
+  },
+  "network_or_ai_calls": false,
+  "dictionary_sources_written": false,
+  "output_note": "Dated sample verification; later manual exports replace the local artifact and update its timestamp/Git metadata.",
+  "local_links": {
+    "checked": 61,
+    "errors": []
+  }
+}

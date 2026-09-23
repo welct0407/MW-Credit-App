@@ -9,3 +9,4 @@ outputs/r014-20260921/flyway-release.json -text
 "/Documents/Data Dictionary/**" text eol=lf
 /scripts/dictionary/** text eol=lf
 /outputs/dictionary-migration-20260923/** text eol=lf
+"/scripts/Export Data Dictionary.cmd" text eol=crlf

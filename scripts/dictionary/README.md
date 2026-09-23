@@ -2,6 +2,14 @@
 
 The authoritative text dictionary starts at [Documents/Data Dictionary](../../Documents/Data%20Dictionary/README.md). The Excel workbook is frozen migration evidence. Dictionary operations are local file operations; they never connect to an app or database.
 
+## Single-file ChatGPT export
+
+Double-click [Export Data Dictionary.cmd](../Export%20Data%20Dictionary.cmd). It runs `Export-DataDictionary.ps1` and `export_markdown.py`, producing `Documents/Data_Dictionary_ChatGPT.md`. See the [user instructions](../../Documents/Data_Dictionary_Export.md). The generated output is local and Git-ignored; sources and tooling remain authoritative.
+
+The renderer discovers all YAML/YML and Markdown files under the dictionary and includes the three named architecture/development context documents. It does not depend on the generated index or an AppSheet-specific property list. Registered systems/kinds using format 1 and arbitrary nested JSON-compatible content are supported, including new systems. Strict common-envelope validation remains in force; a new envelope version requires an explicit compatibility update. Every embedded file is re-extracted and byte-checked before writing. Source membership/content and Git state are rechecked before atomic replacement, and failures preserve the previous output. No linked external/repository files are fetched automatically.
+
+For direct invocation: `python scripts/dictionary/export_markdown.py` with the bundled Python executable below. An optional `--output` accepts another `.md` path inside the repository, outside dictionary/context source files. An existing output must carry this exporter's generated-file marker before it can be overwritten. Use `--no-pause` on the CMD launcher for automated checks. The wrapper also accepts the `MW_DICTIONARY_PYTHON` executable override.
+
 ## Runtime
 
 Use the bundled Python executable from the [scripts guide](../README.md). The parser is pinned in [requirements.txt](requirements.txt); install it outside both the repository and the shared Codex bundle. No Node dependencies or additional node_modules directories are needed.

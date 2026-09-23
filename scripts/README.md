@@ -2,6 +2,8 @@
 
 Maintained automation belongs in scripts/. Generated files belong in outputs/.
 
+The owner's single-file dictionary upload is a deliberate output-location exception: double-click [Export Data Dictionary.cmd](Export%20Data%20Dictionary.cmd) to generate the local, Git-ignored `Documents/Data_Dictionary_ChatGPT.md`. See the [export instructions](../Documents/Data_Dictionary_Export.md). It performs no AI/network calls or Git mutations.
+
 For release delta validation, generated checklists/continuation notes and saved-value comparison, see [releases/README.md](releases/README.md). For the ecosystem YAML dictionary, selective reads, guarded updates and validation, see [dictionary/README.md](dictionary/README.md). These local helpers complement the existing Flyway runners and current-GUI tests; they never deploy or approve releases.
 Output documents, scripts and evidence are tracked by Git for recovery. Installed node_modules, Python caches and .tmp directories are ignored. The owner excluded C:\GitHub from Google Drive on 2026-09-10; uncommitted project files must not be assumed to have a Drive backup.
 

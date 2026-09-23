@@ -21,6 +21,7 @@ This folder is the maintained home for exact model and configuration documentati
 | Deferred reconciliation, resolved cleanup and future coverage | [Status register](unresolved.yaml) |
 | File contract and adding another system | [Format](FORMAT.md) / [System registry](catalog.yaml) |
 | Targeted reads, guarded updates and validation | [Tool guide](../../scripts/dictionary/README.md) |
+| One Markdown file for a ChatGPT design discussion | [Double-click exporter](../Data_Dictionary_Export.md) |
 
 ## Efficient reading
 
