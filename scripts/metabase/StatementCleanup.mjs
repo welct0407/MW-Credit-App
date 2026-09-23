@@ -70,6 +70,30 @@ export function layout(d,state){
  return out;
 }
 
+if(process.argv.includes('--reorder-statement-tabs')){
+ await assertSource();
+ const backupDir=privateDir+'/statement-tab-reorder-before-20260924';
+ const before=JSON.parse(fs.readFileSync(`${backupDir}/dashboard-3.json`));
+ const current=await api('GET','dashboard/3');
+ const identity=items=>items.map(c=>({id:c.id,card_id:c.card_id,dashboard_tab_id:c.dashboard_tab_id,col:c.col,row:c.row,size_x:c.size_x,size_y:c.size_y,parameter_mappings:c.parameter_mappings,visualization_settings:c.visualization_settings})).sort((a,b)=>a.id-b.id);
+ assert.ok(JSON.stringify(current.tabs)===JSON.stringify(before.tabs),'Tab definitions changed since backup');
+ assert.ok(JSON.stringify(identity(current.dashcards))===JSON.stringify(identity(before.dashcards)),'Placements changed since backup');
+ assert.ok(JSON.stringify(current.parameters)===JSON.stringify(before.parameters),'Parameters changed since backup');
+ const desired=[4,14,16,15,6,7,8,9,10,11,17];
+ const names={4:'1 · Overview',14:'2 · Cash Position',16:'3 · Income Statement',15:'4 · Cashflow Statement',6:'5 · Borrowers',7:'6 · Performance',8:'7 · Risks',9:'8 · Daily Collection',10:'9 · Borrower Insight',11:'10 · Forecast & Partners',17:'Tab 11'};
+ assert.deepEqual(current.tabs.map(t=>t.id),[4,14,6,7,8,9,10,11,16,15,17]);
+ const tabs=desired.map((id,position)=>({...current.tabs.find(t=>t.id===id),name:names[id],position}));
+ await api('PUT','dashboard/3/cards',{tabs,cards:current.dashcards});
+ const saved=await api('GET','dashboard/3');
+ assert.deepEqual(saved.tabs.map(t=>({id:t.id,name:t.name,position:t.position})),tabs.map(t=>({id:t.id,name:t.name,position:t.position})));
+ assert.ok(JSON.stringify(identity(saved.dashcards))===JSON.stringify(identity(before.dashcards)),'Placements changed after reorder');
+ assert.ok(JSON.stringify(saved.parameters)===JSON.stringify(before.parameters),'Parameters changed after reorder');
+ const plan=read('statement-cleanup-plan.json');
+ plan.tabs=saved.tabs;write('statement-cleanup-plan.json',plan);
+ write('statement-cleanup/tab-reorder.json',{date:'2026-09-24',dashboard_id:3,before:before.tabs.map(t=>({id:t.id,name:t.name,position:t.position})),after:saved.tabs.map(t=>({id:t.id,name:t.name,position:t.position})),placements:saved.dashcards.length,parameters:saved.parameters.length,placements_unchanged:true,parameters_unchanged:true,extra_tab_preserved:17,rollback:'Private statement-tab-reorder-before-20260924 dashboard metadata'});
+ console.log('Statement tabs moved to positions 3 and 4; all placements and parameters preserved.');
+}
+
 if(process.argv.includes('--expense-detail-enrich')){
  await assertSource();
  const state=read('statement-cleanup-state.json'),id=state.cards['expense-detail'];
@@ -174,14 +198,14 @@ if(process.argv.includes('--install')){
  }
  let d=await api('GET','dashboard/3');
  const removed=new Set([5,12,13]);
- const order=[4,14,6,7,8,9,10,11,16,15],names={14:'2 · Cash Position',16:'9 · Income Statement',15:'10 · Cashflow Statement'};
+ const order=[4,14,16,15,6,7,8,9,10,11,...d.tabs.map(t=>t.id).filter(id=>![4,14,16,15,6,7,8,9,10,11].includes(id)&&![5,12,13].includes(id))],names={14:'2 · Cash Position',16:'3 · Income Statement',15:'4 · Cashflow Statement',6:'5 · Borrowers',7:'6 · Performance',8:'7 · Risks',9:'8 · Daily Collection',10:'9 · Borrower Insight',11:'10 · Forecast & Partners'};
  const tabs=order.map((id,position)=>({...d.tabs.find(t=>t.id===id),name:names[id]??d.tabs.find(t=>t.id===id).name,position}));
  const cards=[...d.dashcards.filter(c=>!removed.has(c.dashboard_tab_id)&&![15,16].includes(c.dashboard_tab_id)),...layout(d,state)];
  await api('PUT','dashboard/3/cards',{tabs,cards});
  const usedParams=new Set(cards.flatMap(c=>c.parameter_mappings??[]).map(m=>m.parameter_id));
  const pnames={'review-flow':'Cashflow period','review-account':'Account','review-income':'Statement period'};
  await api('PUT','dashboard/3',{parameters:d.parameters.filter(p=>usedParams.has(p.id)).map(p=>({...p,name:pnames[p.id]??p.name}))});
- d=await api('GET','dashboard/3');assert.equal(d.tabs.length,10);assert.ok(d.tabs.every(t=>!removed.has(t.id)));
+ d=await api('GET','dashboard/3');assert.ok(d.tabs.length>=10);assert.ok(d.tabs.every(t=>!removed.has(t.id)));
  fs.writeFileSync(backup+'/after-dashboard.json',JSON.stringify(d,null,2));
  write('statement-cleanup-plan.json',{tabs:d.tabs,parameters:d.parameters,cards:state.cards,questions:specs.map(s=>({...s,id:state.cards[s.key]})),layout:layout(d,state),source_policy:'Live statements for every period; separate completed-day snapshot trends',database_version:39});
  console.log('Canonical ten-page dashboard installed; dependency cleanup follows verification.');

@@ -2,7 +2,7 @@
 
 Owner authorized the proposed 9R/10R enhancements and replacement of original pages 2, 9 and 10 on 23 September 2026. Starting Git `cf243e138cd85701cd8e156626e88a65174d604e`, clean. This remains R016; whole-release acceptance/key retirement/tag are separate.
 
-Source policy: page 2 keeps today/live and past/snapshot routing. Pages 9/10 use live statement totals and supporting detail for any selected period; separately labeled completed-day trends read stored Daily Analytics. No new financial storage, backfill or scheduler change.
+Source policy: page 2 keeps today/live and past/snapshot routing. Income Statement and Cashflow Statement use live statement totals and supporting detail for any selected period; separately labeled completed-day trends read stored Daily Analytics. No new financial storage, backfill or scheduler change.
 
 V38 adds four read-only views and two period functions. Live income has no FIFO/cash history joins. Cash statements aggregate one fresh opening seed from source facts and window only selected transactions. V39 corrects a UTF-8 transfer label exposed by DEV full-row parity; V38 remains immutable. Existing providers remain for rollback/shared consumers; destructive SQL removal is deferred under expand/contract.
 
@@ -15,10 +15,12 @@ Implemented and verified in the existing [Loan Reports dashboard](https://report
 | Page | Behavior |
 | --- | --- |
 | 2 · Cash Position / tab 14 | Existing nine placements preserved. Today reads live OLAP; past selected position and completed-day trend read snapshots. Signed balances and source/freshness remain explicit. |
-| 9 · Income Statement / tab 16 | Live income, signed expenses, net profit, calendar-day average, period/query time, profit waterfall, horizontal category expense bars and expense detail with payee, paying person and notes. No retained earnings, partner advances or allocated draws. Separate daily income/expense bars read stored completed days on one y-axis. |
-| 10 · Cashflow Statement / tab 15 | Live opening/in/out/closing/net movement, selected period/account/query time, actual equation status, type totals and chronological detail. Separate stored daily flows use portfolio snapshots for All accounts and account snapshots for one account. |
+| 3 · Income Statement / tab 16 | Live income, signed expenses, net profit, calendar-day average, period/query time, profit waterfall, horizontal category expense bars and expense detail with payee, paying person and notes. No retained earnings, partner advances or allocated draws. Separate daily income/expense bars read stored completed days on one y-axis. |
+| 4 · Cashflow Statement / tab 15 | Live opening/in/out/closing/net movement, selected period/account/query time, actual equation status, type totals and chronological detail. Separate stored daily flows use portfolio snapshots for All accounts and account snapshots for one account. |
 
-Pages 9/10 default to this month, bounded through Bangkok today. A valid continuous range includes zero-activity dates in averages. Empty/future selections are unavailable; disjoint selections produce guidance. Unknown opening/closing stays NULL in numeric results and displays **Unavailable** on the two balance cards. Movements/detail remain visible before the known opening. Negative balances are preserved. The current month can have a known closing and unavailable opening when the month's first date predates verified account initialization.
+On 24 September, the two statement tabs moved to positions 3 and 4. Existing Borrowers through Forecast & Partners pages shifted to positions 5–10. The separately added “Tab 11” remains at position 11; this reorder did not change its content.
+
+Pages 3/4 default to this month, bounded through Bangkok today. A valid continuous range includes zero-activity dates in averages. Empty/future selections are unavailable; disjoint selections produce guidance. Unknown opening/closing stays NULL in numeric results and displays **Unavailable** on the two balance cards. Movements/detail remain visible before the known opening. Negative balances are preserved. The current month can have a known closing and unavailable opening when the month's first date predates verified account initialization.
 
 Live statements include later dated corrections on report refresh. Snapshots can temporarily differ until the existing rebuild covers the affected date. Both trends exclude today and expose completed-date counts, missing-snapshot counts and actual oldest/latest generation times. A missing snapshot stays a gap; missing data is never silently replaced with a zero or older snapshot. These are restated history snapshots, not an as-recorded immutable audit archive. No additional refresh bot or new backfill was needed.
 

@@ -27,62 +27,69 @@
     "entity_id": "pPLWf7izBFfdYrpfhzUt4"
     "created_at": "2026-09-23T08:00:42.687717Z"
     "updated_at": "2026-09-23T16:04:31.253029Z"
-  - "id": 6
-    "dashboard_id": 3
-    "name": "3 · Borrowers"
-    "position": 2
-    "entity_id": "8lcXD4OYDrJgkEqOmjKW0"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-23T16:04:31.253029Z"
-  - "id": 7
-    "dashboard_id": 3
-    "name": "4 · Performance"
-    "position": 3
-    "entity_id": "G3EtEPY8mporQmPNYt9Ej"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-23T16:04:31.253029Z"
-  - "id": 8
-    "dashboard_id": 3
-    "name": "5 · Risks"
-    "position": 4
-    "entity_id": "7cljPwmKjTMUi9DQ431Ah"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-23T16:04:31.253029Z"
-  - "id": 9
-    "dashboard_id": 3
-    "name": "6 · Daily Collection"
-    "position": 5
-    "entity_id": "WsLzHCqqajzfGVpou2Nyq"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-23T16:04:31.253029Z"
-  - "id": 10
-    "dashboard_id": 3
-    "name": "7 · Borrower Insight"
-    "position": 6
-    "entity_id": "jVJL2DkBQTXKfzw0h0kP6"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-23T16:04:31.253029Z"
-  - "id": 11
-    "dashboard_id": 3
-    "name": "8 · Forecast & Partners"
-    "position": 7
-    "entity_id": "HpX0Vj4mHUGAPeopmzU_l"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-23T16:04:31.253029Z"
   - "id": 16
     "dashboard_id": 3
-    "name": "9 · Income Statement"
-    "position": 8
+    "name": "3 · Income Statement"
+    "position": 2
     "entity_id": "8zodFNPMLCr1b4qqtGV5_"
     "created_at": "2026-09-23T08:00:42.687717Z"
-    "updated_at": "2026-09-23T16:04:31.253029Z"
+    "updated_at": "2026-09-23T18:17:39.510824Z"
   - "id": 15
     "dashboard_id": 3
-    "name": "10 · Cashflow Statement"
-    "position": 9
+    "name": "4 · Cashflow Statement"
+    "position": 3
     "entity_id": "qs0JYiZxE-Poqyh_4pyKv"
     "created_at": "2026-09-23T08:00:42.687717Z"
-    "updated_at": "2026-09-23T16:04:31.253029Z"
+    "updated_at": "2026-09-23T18:17:39.510824Z"
+  - "id": 6
+    "dashboard_id": 3
+    "name": "5 · Borrowers"
+    "position": 4
+    "entity_id": "8lcXD4OYDrJgkEqOmjKW0"
+    "created_at": "2026-09-22T12:32:45.925957Z"
+    "updated_at": "2026-09-23T18:17:39.510824Z"
+  - "id": 7
+    "dashboard_id": 3
+    "name": "6 · Performance"
+    "position": 5
+    "entity_id": "G3EtEPY8mporQmPNYt9Ej"
+    "created_at": "2026-09-22T12:32:45.925957Z"
+    "updated_at": "2026-09-23T18:17:39.510824Z"
+  - "id": 8
+    "dashboard_id": 3
+    "name": "7 · Risks"
+    "position": 6
+    "entity_id": "7cljPwmKjTMUi9DQ431Ah"
+    "created_at": "2026-09-22T12:32:45.925957Z"
+    "updated_at": "2026-09-23T18:17:39.510824Z"
+  - "id": 9
+    "dashboard_id": 3
+    "name": "8 · Daily Collection"
+    "position": 7
+    "entity_id": "WsLzHCqqajzfGVpou2Nyq"
+    "created_at": "2026-09-22T12:32:45.925957Z"
+    "updated_at": "2026-09-23T18:17:39.510824Z"
+  - "id": 10
+    "dashboard_id": 3
+    "name": "9 · Borrower Insight"
+    "position": 8
+    "entity_id": "jVJL2DkBQTXKfzw0h0kP6"
+    "created_at": "2026-09-22T12:32:45.925957Z"
+    "updated_at": "2026-09-23T18:17:39.510824Z"
+  - "id": 11
+    "dashboard_id": 3
+    "name": "10 · Forecast & Partners"
+    "position": 9
+    "entity_id": "HpX0Vj4mHUGAPeopmzU_l"
+    "created_at": "2026-09-22T12:32:45.925957Z"
+    "updated_at": "2026-09-23T18:17:39.510824Z"
+  - "id": 17
+    "dashboard_id": 3
+    "name": "Tab 11"
+    "position": 10
+    "entity_id": "ekTtfQu8cvMG2Ys54NoPc"
+    "created_at": "2026-09-23T17:25:33.780214Z"
+    "updated_at": "2026-09-23T17:25:33.780214Z"
   "parameters":
   - "id": "performance-date"
     "name": "Performance date"
@@ -1812,4 +1819,8 @@
   "/content/cash_pages/layout":
     "reference": "outputs/r016-20260922/statement-cleanup/income-chart-refinement.json"
     "reason": "Tab 9 category labels and daily income/expense comparison"
+    "state": "value"
+  "/content/tabs":
+    "reference": "outputs/r016-20260922/statement-cleanup/tab-reorder.json"
+    "reason": "Move Income Statement and Cashflow Statement to dashboard positions 3 and 4 while retaining other tabs"
     "state": "value"

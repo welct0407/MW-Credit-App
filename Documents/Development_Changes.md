@@ -1,6 +1,6 @@
 # Open development differences
 
-Dashboard 3 now has ten canonical pages, 129 visual placements, 117 distinct questions, 15 active models / 228 fields and four snippets. Original tabs 2/9/10 are replaced by Cash Position (14), Income Statement (16) and Cashflow Statement (15), ordered as pages 2/9/10. Fourteen unused questions and seven models are recoverably archived after dependency checks. DEV/PROD are V39; AppSheet and financial rows are unchanged. [canonical cash statements](../outputs/r016-20260922/statement-cleanup/README.md).
+R016 established ten canonical pages, 129 visual placements, 117 distinct questions, 15 active models / 228 fields and four snippets. Original tabs 2/9/10 are replaced by Cash Position (14), Income Statement (16) and Cashflow Statement (15), now ordered as pages 2/3/4, with later tabs shifted back. Fourteen unused questions and seven models are recoverably archived after dependency checks. DEV/PROD are V39; AppSheet and financial rows are unchanged. [canonical cash statements](../outputs/r016-20260922/statement-cleanup/README.md).
 
 Current production baseline is R015; final R016 owner acceptance and migration-key retirement remain pending.
 
