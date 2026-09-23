@@ -2,24 +2,27 @@
   "reservation_commit": "af677e4",
   "sql": "scripts/metabase/reporting-pages-1-2-grants.sql",
   "dashboard": {
-    "visuals": 130,
+    "visuals": 160,
     "collection": 5,
     "id": 3,
     "tabs": [
       4,
       5,
+      13,
+      12,
       6,
       7,
       8,
       9,
       10,
       11,
-      12,
-      13
+      14,
+      15,
+      16
     ],
-    "questions": 116,
+    "questions": 121,
     "source": 2,
-    "heading_and_note_cards": 50
+    "heading_and_note_cards": 71
   },
   "checklist": "promotion-checklist.md",
   "remaining": [
@@ -50,7 +53,7 @@
     "v35_deployment_commit": "e7fd3af40b572ab644856e7cc95d6a243f49a870",
     "v36_migration_sha256": "2bdf3f3ab797aeda2d62139829dbff96d414c5a2824442d029f82fa87714bdd8"
   },
-  "status": "ten-pages-deployed-for-owner-review",
+  "status": "ten-original-pages-plus-three-additive-review-pages",
   "release": "R016",
   "tests": "query-reconciliation.json",
   "final_tag": null,
@@ -109,5 +112,34 @@
   "scalar_hover_cleanup": "scalar-hover-cleanup.json",
   "question_reuse_evidence": "question-reuse-verification.json",
   "overview_trend_refinement": "overview-trend-refinement.json",
-  "principal_reference_restore": "principal-reference-restore-verification.json"
+  "principal_reference_restore": "principal-reference-restore-verification.json",
+  "cash_review": {
+    "tabs": [
+      {
+        "name": "2R · Cash Position",
+        "id": 14
+      },
+      {
+        "name": "10R · Cashflow Statement",
+        "id": 15
+      },
+      {
+        "name": "9R · Income Statement",
+        "id": 16
+      }
+    ],
+    "questions": [
+      200,
+      201,
+      202,
+      203,
+      204
+    ],
+    "reused_visual_placements": 25,
+    "new_models": 0,
+    "new_snippets": 0,
+    "verification": "cash-review-verification.json",
+    "plan": "cash-review-plan.json",
+    "baseline_commit": "909fe5374b5383fa8171c5ff90d6ca7007abe2f5"
+  }
 }

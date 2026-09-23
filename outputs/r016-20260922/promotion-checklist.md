@@ -15,6 +15,10 @@ Template revision: 2026-09-21. **Single master:** `scripts/releases/templates/pr
 
 ## Execution rules
 
+### Additive cash review checkpoint — 23 September 2026
+
+This checkpoint supersedes earlier page/question counts below while retaining the same R016 checklist. Owner authorized three additional review tabs in dashboard 3; original ten pages are unchanged. P01/P13: scoped authority and private baseline recorded in the release log. P04/P22/P25–P37/P49: no new SQL, AppSheet, RC, grant or infrastructure activity. P39/P41: 67 focused checks plus 30 final default queries and saved layout pass; browser review is recorded in `cash-review-verification.json`. P45/P46: tracker, inventory, development differences, solution design/model explanation, report README, runbook, manifest and log updated; dictionary unchanged because all model fields/definitions are unchanged. P48: publish this checked review checkpoint; final R016 tag remains deferred pending full migration acceptance. P50: new designs ready for owner review, not a claim of final release acceptance. [Scope and recovery](../../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md#additive-cash-position--cashflow--income-review--23-september-2026).
+
 Execute applicable rows in order; one result/evidence link per coherent check. Status: Pending, In progress, Done, Reused, N/A or Blocked. Reused requires still-valid evidence; N/A requires a brief reason. Skip untriggered setup/SQL/external/recovery work. Reuse existing decisions/authority, identities and passing tests; recheck pre-upgrade baseline/version and changed dependencies. No repeated DEV suite, whole-app diff, repeat deployment check for deployed apps, untouched-route audit or duplicate report. Consult only the runbook section needed to perform a triggered row. Stop affected dependent work on failure; no invented gates or silent scope expansion.
 
 ## Activities

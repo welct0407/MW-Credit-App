@@ -1,0 +1,24 @@
+{
+  "cards": {
+    "advance": 200,
+    "reconciliation": 201,
+    "trend": 202,
+    "movement": 203,
+    "profit-bridge": 204
+  },
+  "baseline_commit": "909fe5374b5383fa8171c5ff90d6ca7007abe2f5",
+  "tabs": [
+    {
+      "name": "2R · Cash Position",
+      "id": 14
+    },
+    {
+      "name": "10R · Cashflow Statement",
+      "id": 15
+    },
+    {
+      "name": "9R · Income Statement",
+      "id": 16
+    }
+  ]
+}

@@ -1,4 +1,20 @@
-# R016 — Ten-page Loan Reports review
+# R016 — Loan Reports review
+
+## Additive cash-reporting review — 23 September 2026
+
+The ten original pages remain unchanged. Three appended tabs offer an alternative design for owner review:
+
+| Tab | Purpose and filters | Reuse |
+| --- | --- | --- |
+| [2R · Cash Position](https://reports.mw-credit.com/dashboard/3?tab=14) | Today's capital summary; cash/remaining capital/custody at the selected date or period end; all-period retained-profit reconciliation; separately filtered cash-position trend. Default position Today, trend previous 30 completed days. | Nine existing placements plus advance scalar, reconciliation table and trend. |
+| [10R · Cashflow Statement](https://reports.mw-credit.com/dashboard/3?tab=15) | Opening/in/out/closing, net change, transaction-type summary and chronological ledger. Defaults This month / All accounts. | Seven existing questions plus one transaction-type aggregation. |
+| [9R · Income Statement](https://reports.mw-credit.com/dashboard/3?tab=16) | Income, expenses, net profit, calendar-day average, expense detail; FIFO profit distribution separate below. Default This month. | Nine existing questions plus a two-movement waterfall whose Total is Net profit. |
+
+Thirty new placements reuse questions 25 times; five missing projections are 200–204. No duplicate models or snippets and no edits to existing saved questions, models, snippets, permissions or original page/filter definitions. Total: 13 tabs, 160 placements, 121 questions, unchanged 20 models/287 fields/three snippets. Exact definitions and reuse rationale: [plan](cash-review-plan.json); IDs: [state](cash-review-state.json); [verification](cash-review-verification.json).
+
+Cash position is reconstructed, with unavailable custody before known openings and intraday values for today. Its capital summary is explicitly current: the existing historical model does not expose a complete dated capital-utilization summary. Net cash = positive cash held − advances; remaining lending capital + cumulative retained net profit + reconciliation difference = net cash. The difference is diagnostic, not income. Combined repayments are not split into principal and interest in the transaction-type summary. Draw cards retain the existing FIFO allocation through period end, not transfer-date cash movements. Original pages and their older semantics remain available for comparison.
+
+Rollback: exact pre-change dashboard, 124 existing question/model definitions, snippets and permissions are privately preserved under `r016-20260922/cash-review-before`; final metadata under `cash-review-complete`. Remove only review tabs/parameters/placements and recoverably archive 200–204 after dependency checks. Preserve any subsequent owner edits; do not blindly restore the full dashboard. No SQL/AppSheet rollback is needed. This is a published review checkpoint; design acceptance and final R016 closure remain pending.
 
 ## Current question reuse — 23 September 2026
 

@@ -1,0 +1,440 @@
+{
+  "created_at": "2026-09-23T08:09:31.372Z",
+  "tabs": [
+    {
+      "name": "2R · Cash Position",
+      "id": 14
+    },
+    {
+      "name": "10R · Cashflow Statement",
+      "id": 15
+    },
+    {
+      "name": "9R · Income Statement",
+      "id": 16
+    }
+  ],
+  "new_questions": [
+    {
+      "id": 200,
+      "name": "Partner advances · position date",
+      "reason": "Dated advances are not an existing active scalar question.",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "card",
+                "id": "r016-model-186",
+                "name": "#186",
+                "display-name": "Daily Income Ledger",
+                "card-id": 186
+              },
+              {
+                "type": "card",
+                "id": "r016-model-188",
+                "name": "#188",
+                "display-name": "Cash Position by Date",
+                "card-id": 188
+              },
+              {
+                "snippet-name": "Income statement period",
+                "id": "r016-income-snippet",
+                "name": "snippet: Income statement period",
+                "display-name": "Income statement period",
+                "type": "snippet",
+                "snippet-id": 2
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "r016-statement-period",
+                "name": "statement_period",
+                "display-name": "Statement period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "977504ba-5fef-4918-8f30-0062e3a73094",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.\"Date\""
+              },
+              {
+                "type": "card",
+                "id": "r016-model-187",
+                "name": "#187",
+                "display-name": "Cash Accounts by Date",
+                "card-id": 187
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT \"Advance Due\" FROM statement"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "scalar.field": "Advance Due",
+        "column_settings": {
+          "[\"name\",\"Advance Due\"]": {
+            "number_style": "currency",
+            "currency": "THB",
+            "currency_style": "symbol",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 201,
+      "name": "Cash position reconciliation · position date",
+      "reason": "Existing income cash cards do not provide this all-period net-profit reconciliation.",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "card",
+                "id": "r016-model-186",
+                "name": "#186",
+                "display-name": "Daily Income Ledger",
+                "card-id": 186
+              },
+              {
+                "type": "card",
+                "id": "r016-model-188",
+                "name": "#188",
+                "display-name": "Cash Position by Date",
+                "card-id": 188
+              },
+              {
+                "snippet-name": "Income statement period",
+                "id": "r016-income-snippet",
+                "name": "snippet: Income statement period",
+                "display-name": "Income statement period",
+                "type": "snippet",
+                "snippet-id": 2
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "r016-statement-period",
+                "name": "statement_period",
+                "display-name": "Statement period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "977504ba-5fef-4918-8f30-0062e3a73094",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.\"Date\""
+              },
+              {
+                "type": "card",
+                "id": "r016-model-187",
+                "name": "#187",
+                "display-name": "Cash Accounts by Date",
+                "card-id": 187
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT v.component AS \"Component\",v.amount AS \"Amount\" FROM statement s JOIN {{#188}} c ON c.\"Date\"=s.\"Period End\" CROSS JOIN LATERAL (VALUES (1,'Remaining lending capital',c.\"Cash Pool Remaining\"),(2,'+ Retained net profit · all periods',c.\"Retained Profit Through Date\"),(3,'+ Reconciliation difference',c.\"Cash Reconciliation Difference\"),(4,'= Net cash balance',c.\"Business Cash Held\"-c.\"Advance Due\"),(5,'+ Partner advances',c.\"Advance Due\"),(6,'= Business cash held',c.\"Business Cash Held\")) v(step,component,amount) ORDER BY v.step"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"Amount\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 202,
+      "name": "Cash position trend · remaining capital and net cash",
+      "reason": "Existing principal snapshot trend measures a different position; this reads the existing dated cash model.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "SELECT d.\"Date\",d.\"Cash Pool Remaining\" AS \"Remaining lending capital\",d.\"Business Cash Held\"-d.\"Advance Due\" AS \"Net cash balance\" FROM {{#188}} d WHERE true [[AND {{position_trend}}]] ORDER BY d.\"Date\"",
+          "template-tags": {
+            "#188": {
+              "id": "r016-model-188",
+              "name": "#188",
+              "display-name": "Cash Position by Date",
+              "type": "card",
+              "card-id": 188
+            },
+            "position_trend": {
+              "id": "cash-review-trend",
+              "name": "position_trend",
+              "display-name": "Position trend period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Date"
+        ],
+        "graph.metrics": [
+          "Remaining lending capital",
+          "Net cash balance"
+        ],
+        "graph.colors": [
+          "#267DCC",
+          "#13855B"
+        ],
+        "graph.show_legend": true,
+        "graph.show_values": false,
+        "graph.show_dots": false,
+        "graph.label_value_formatting": "full",
+        "graph.x_axis.title_enabled": false,
+        "graph.y_axis.title_enabled": false,
+        "column_settings": {
+          "[\"name\",\"Remaining lending capital\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Net cash balance\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 203,
+      "name": "Cash movement by transaction type",
+      "reason": "New simple aggregation of existing transaction classifications; no invented principal/interest split.",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "card",
+                "id": "r016-model-191",
+                "name": "#191",
+                "display-name": "Cashflow Daily Balances",
+                "card-id": 191
+              },
+              {
+                "snippet-name": "Cashflow statement period",
+                "id": "r016-cashflow-snippet",
+                "name": "snippet: Cashflow statement period",
+                "display-name": "Cashflow statement period",
+                "type": "snippet",
+                "snippet-id": 3
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "r016-cashflow-period",
+                "name": "cashflow_period",
+                "display-name": "Statement period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "33ddda60-779b-4ad2-b768-5036e9c661c6",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.\"Date\""
+              },
+              {
+                "required": true,
+                "id": "r016-cash-account",
+                "name": "cash_account",
+                "display-name": "Account",
+                "type": "text",
+                "default": "__ALL__"
+              },
+              {
+                "type": "card",
+                "id": "r016-model-190",
+                "name": "#190",
+                "display-name": "Cashflow Transactions",
+                "card-id": 190
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH statement AS ({{snippet: Cashflow statement period}}) SELECT t.\"Transaction Type\",sum(t.\"Money In\") AS \"Money In\",sum(t.\"Money Out\") AS \"Money Out\",sum(t.\"Net Movement\") AS \"Net Movement\" FROM statement s JOIN {{#190}} t ON t.\"Date\" BETWEEN s.\"Period Start\" AND s.\"Period End\" WHERE t.\"Scope ID\"={{cash_account}} AND s.\"Continuous Period\" GROUP BY 1 ORDER BY 1"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"Money In\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Money Out\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Net Movement\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    },
+    {
+      "id": 204,
+      "name": "Income less expenses · Total = Net profit",
+      "reason": "Existing waterfall includes partner draws and totals unsettled profit; this totals operating net profit.",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "card",
+                "id": "r016-model-186",
+                "name": "#186",
+                "display-name": "Daily Income Ledger",
+                "card-id": 186
+              },
+              {
+                "type": "card",
+                "id": "r016-model-188",
+                "name": "#188",
+                "display-name": "Cash Position by Date",
+                "card-id": 188
+              },
+              {
+                "snippet-name": "Income statement period",
+                "id": "r016-income-snippet",
+                "name": "snippet: Income statement period",
+                "display-name": "Income statement period",
+                "type": "snippet",
+                "snippet-id": 2
+              },
+              {
+                "widget-type": "date/all-options",
+                "id": "r016-statement-period",
+                "name": "statement_period",
+                "display-name": "Statement period",
+                "type": "dimension",
+                "dimension": [
+                  "field",
+                  {
+                    "base-type": "type/Date",
+                    "lib/uuid": "977504ba-5fef-4918-8f30-0062e3a73094",
+                    "effective-type": "type/Date"
+                  },
+                  82
+                ],
+                "alias": "d.\"Date\""
+              },
+              {
+                "type": "card",
+                "id": "r016-model-187",
+                "name": "#187",
+                "display-name": "Cash Accounts by Date",
+                "card-id": 187
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH statement AS ({{snippet: Income statement period}}) SELECT v.movement AS \"Movement\",v.amount AS \"Amount\" FROM statement s CROSS JOIN LATERAL (VALUES (1,'Income',s.\"Operating Income\"),(2,'Expenses',s.\"Operating Expenses\")) v(step,movement,amount) ORDER BY v.step"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Movement"
+        ],
+        "graph.metrics": [
+          "Amount"
+        ],
+        "graph.show_values": true,
+        "graph.label_value_formatting": "full",
+        "graph.x_axis.title_enabled": false,
+        "graph.y_axis.title_enabled": false,
+        "waterfall.increase_color": "#13855B",
+        "waterfall.decrease_color": "#D1495B",
+        "waterfall.total_color": "#267DCC",
+        "waterfall.show_total": true,
+        "column_settings": {
+          "[\"name\",\"Amount\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      }
+    }
+  ],
+  "reused_question_ids": [
+    178,
+    198,
+    184,
+    171,
+    170,
+    169,
+    168,
+    173,
+    174,
+    175,
+    47,
+    48,
+    54,
+    179,
+    197,
+    180,
+    182,
+    183,
+    195,
+    193,
+    192,
+    196,
+    194
+  ],
+  "new_visual_placements": 30,
+  "reused_placements": 25,
+  "new_models": 0,
+  "new_snippets": 0,
+  "old_pages_preserved": true
+}
