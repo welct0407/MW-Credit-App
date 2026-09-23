@@ -639,7 +639,7 @@
         "database": 2,
         "type": "native",
         "native": {
-          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT e.\"Expense Date\",e.\"Expense Category\",e.\"Expense Amount\" AS \"Expenses\",e.\"Expense ID\" FROM statement s JOIN {{#163}} e ON e.\"Expense Date\" BETWEEN s.\"Period Start\" AND s.\"Period End\" WHERE s.\"Continuous Period\" ORDER BY e.\"Expense Date\",e.\"Expense ID\"",
+          "query": "WITH statement AS ({{snippet: Income statement period}}) SELECT e.\"Expense Date\",e.\"Expense Category\",b.\"Payee Name\" AS \"Payee\",h.\"Cash Holder\" AS \"Paid By\",e.\"Expense Amount\" AS \"Expenses\",b.\"Notes\",e.\"Expense ID\" FROM statement s JOIN {{#163}} e ON e.\"Expense Date\" BETWEEN s.\"Period Start\" AND s.\"Period End\" LEFT JOIN public.\"Business Expenses\" b ON b.\"Row ID\"=e.\"Expense ID\" LEFT JOIN (SELECT DISTINCT \"Cash Holder ID\",\"Cash Holder\" FROM public.reporting_cash_accounts) h ON h.\"Cash Holder ID\"=b.\"Ref Paid By Cash Holder\" WHERE s.\"Continuous Period\" ORDER BY e.\"Expense Date\",e.\"Expense ID\"",
           "template-tags": {
             "statement_period": {
               "id": "r016-statement_period",
@@ -699,7 +699,19 @@
             "enabled": true
           },
           {
+            "name": "Payee",
+            "enabled": true
+          },
+          {
+            "name": "Paid By",
+            "enabled": true
+          },
+          {
             "name": "Expenses",
+            "enabled": true
+          },
+          {
+            "name": "Notes",
             "enabled": true
           },
           {

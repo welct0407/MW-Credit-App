@@ -23,7 +23,7 @@ export const specs=[
  {id:184,key:'income-status',name:'Income period & freshness',display:'table',dataset_query:inc(status('Selection Status')),visualization_settings:{'table.pivot':false}},
  {id:204,key:'profit-bridge',name:'Income less expenses · Total = Net profit',display:'waterfall',dataset_query:inc(`SELECT v.movement AS "Movement",v.amount AS "Amount" FROM statement s CROSS JOIN LATERAL (VALUES (1,'Income',s."Operating Income"),(2,'Expenses',s."Operating Expenses")) v(step,movement,amount) ORDER BY v.step`),visualization_settings:prior('card-204').visualization_settings},
  {id:178,key:'expense-category',name:'Expenses by category · live period',display:'row',dataset_query:{...inc('SELECT e."Expense Category",sum(e."Expense Amount") AS "Expenses" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" GROUP BY 1 ORDER BY 2 DESC,1'),native:{...inc('').native,query:'WITH statement AS ({{snippet: Income statement period}}) SELECT e."Expense Category",sum(e."Expense Amount") AS "Expenses" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" GROUP BY 1 ORDER BY 2 DESC,1','template-tags':{...itags,'#163':cardTag(163)}}},visualization_settings:{'graph.dimensions':['Expense Category'],'graph.metrics':['Expenses'],'graph.colors':['#D1495B'],'graph.show_values':true,...fmt(['Expenses'])}},
- {key:'expense-detail',name:'Expense detail · live period',display:'table',dataset_query:native('WITH statement AS ({{snippet: Income statement period}}) SELECT e."Expense Date",e."Expense Category",e."Expense Amount" AS "Expenses",e."Expense ID" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" WHERE s."Continuous Period" ORDER BY e."Expense Date",e."Expense ID"',{...itags,'#163':cardTag(163)}),visualization_settings:{'table.pivot':false,...fmt(['Expenses'])}},
+ {key:'expense-detail',name:'Expense detail · live period',display:'table',dataset_query:native('WITH statement AS ({{snippet: Income statement period}}) SELECT e."Expense Date",e."Expense Category",b."Payee Name" AS "Payee",h."Cash Holder" AS "Paid By",e."Expense Amount" AS "Expenses",b."Notes",e."Expense ID" FROM statement s JOIN {{#163}} e ON e."Expense Date" BETWEEN s."Period Start" AND s."Period End" LEFT JOIN public."Business Expenses" b ON b."Row ID"=e."Expense ID" LEFT JOIN (SELECT DISTINCT "Cash Holder ID","Cash Holder" FROM public.reporting_cash_accounts) h ON h."Cash Holder ID"=b."Ref Paid By Cash Holder" WHERE s."Continuous Period" ORDER BY e."Expense Date",e."Expense ID"',{...itags,'#163':cardTag(163)}),visualization_settings:{'table.pivot':false,...fmt(['Expenses'])}},
  ...[[195,'Opening cash','Opening Balance'],[192,'Money in','Money In'],[193,'Money out','Money Out'],[197,'Closing cash','Closing Balance'],[194,'Net cash movement','Net Movement']].map(([id,name,field])=>({id,key:'q'+id,name,display:'scalar',dataset_query:flow(`SELECT "${field}" FROM statement`),visualization_settings:{'scalar.field':field,...fmt([field])}})),
  {id:198,key:'flow-status',name:'Cashflow period & freshness',display:'table',dataset_query:flow(status('Statement Status',`,(5,'Account',coalesce(s."Account",'Unavailable')),(6,'Known opening from',coalesce(to_char(s."Available From",'YYYY-MM-DD'),'Unknown'))`)),visualization_settings:{'table.pivot':false}},
  {id:203,key:'movement',name:'Cash movement by transaction type',display:'table',dataset_query:flow(`SELECT CASE WHEN grouping(t."Transaction Type")=1 THEN 'TOTAL' ELSE t."Transaction Type" END AS "Transaction Type",coalesce(sum(t."Money In"),0) AS "Money In",coalesce(sum(t."Money Out"),0) AS "Money Out",coalesce(sum(t."Net Movement"),0) AS "Net Movement" FROM statement s LEFT JOIN LATERAL public.reporting_cash_period_entries(s."Period Start",s."Period End",{{cash_account}}) t ON true WHERE s."Continuous Period" GROUP BY GROUPING SETS ((t."Transaction Type"),()) HAVING bool_or(s."Continuous Period") AND (grouping(t."Transaction Type")=1 OR count(t."Entry ID")>0) ORDER BY grouping(t."Transaction Type"),1`),visualization_settings:{'table.pivot':false,...fmt(['Money In','Money Out','Net Movement'])}},
@@ -35,7 +35,7 @@ for(const id of [195,197]){
  spec.dataset_query=flow(`SELECT "${field}",coalesce(to_char("${field}",'FM999,999,999,999,990'),'Unavailable') AS "Display Balance" FROM statement`);
  spec.visualization_settings['scalar.field']='Display Balance';
 }
-specs.find(s=>s.key==='expense-detail').visualization_settings['table.columns']=['Expense Date','Expense Category','Expenses','Expense ID'].map(name=>({name,enabled:name!=='Expense ID'}));
+specs.find(s=>s.key==='expense-detail').visualization_settings['table.columns']=['Expense Date','Expense Category','Payee','Paid By','Expenses','Notes','Expense ID'].map(name=>({name,enabled:name!=='Expense ID'}));
 const trendQuery=(income)=>native(`WITH selected AS (SELECT d."Date" FROM public.reporting_statement_calendar d WHERE d."Date"<public.olap_reporting_date() [[AND {{${income?'statement_period':'cashflow_period'}}}]])
  SELECT d."Date",${income?'s."Income",s."Expenses"':'CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Money In" ELSE a."Money In" END AS "Money In",CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Money Out" ELSE a."Money Out" END AS "Money Out"'},
  ${income?'s."Generated At"':'CASE WHEN {{cash_account}}=\'__ALL__\' THEN s."Generated At" ELSE a."Generated At" END'} AS "Generated At"
@@ -68,6 +68,36 @@ export function layout(d,state){
  place(15,196,0,40,24,12,'Transactions · live chronological balances');
  note(15,52,'Statement date + posting time. Repayments keep their recorded type.');
  return out;
+}
+
+if(process.argv.includes('--expense-detail-enrich')){
+ await assertSource();
+ const state=read('statement-cleanup-state.json'),id=state.cards['expense-detail'];
+ assert.equal(id,212);
+ const baselineDir=privateDir+'/expense-detail-enrichment-before-20260924';
+ const before=JSON.parse(fs.readFileSync(`${baselineDir}/card-212.json`));
+ const dashboardBefore=JSON.parse(fs.readFileSync(`${baselineDir}/dashboard-3.json`));
+ const current=await api('GET',`card/${id}`);
+ const sql=q=>q.native?.query??q.stages?.[0]?.native;
+ for(const field of ['name','display','visualization_settings'])assert.deepEqual(current[field],before[field],`Expense detail changed: ${field}`);
+ assert.equal(sql(current.dataset_query),sql(before.dataset_query));
+ const spec=specs.find(s=>s.key==='expense-detail');
+ const oldRows=await api('POST','dataset',before.dataset_query);
+ const newRows=await api('POST','dataset',spec.dataset_query);
+ for(const result of [oldRows,newRows]){assert.equal(result.status,'completed');assert.ok(!result.data.rows_truncated);}
+ assert.deepEqual(newRows.data.cols.map(c=>c.name),['Expense Date','Expense Category','Payee','Paid By','Expenses','Notes','Expense ID']);
+ assert.deepEqual(newRows.data.rows.map(r=>[r[0],r[1],r[4],r[6]]),oldRows.data.rows);
+ await api('PUT',`card/${id}`,{dataset_query:spec.dataset_query,visualization_settings:spec.visualization_settings});
+ const saved=await api('GET',`card/${id}`);
+ assert.equal(sql(saved.dataset_query),sql(spec.dataset_query));
+ assert.deepEqual(saved.visualization_settings,spec.visualization_settings);
+ const dashboardAfter=await api('GET','dashboard/3');
+ const placement=items=>items.map(c=>[c.id,c.card_id,c.dashboard_tab_id,c.col,c.row,c.size_x,c.size_y,c.parameter_mappings,c.visualization_settings]);
+ assert.deepEqual(placement(dashboardAfter.dashcards),placement(dashboardBefore.dashcards));
+ const plan=read('statement-cleanup-plan.json'),i=plan.questions.findIndex(q=>q.id===id);
+ assert.ok(i>=0);plan.questions[i]={...spec,id};write('statement-cleanup-plan.json',plan);
+ write('statement-cleanup/expense-detail-enrichment.json',{date:'2026-09-24',dashboard_id:3,tab_id:16,question_id:id,columns:newRows.data.cols.map(c=>c.name),hidden_columns:['Expense ID'],matched_rows:newRows.data.rows.length,old_rows:oldRows.data.rows.length,all_existing_financial_values_preserved:true,source:'Existing Business Expenses and reporting_cash_accounts',dashboard_unchanged:true,rollback:'Private expense-detail-enrichment-before-20260924 card/dashboard definitions'});
+ console.log('Expense detail enriched and read back; existing rows and financial values preserved.');
 }
 
 if(process.argv.includes('--income-chart-refine')){
@@ -119,7 +149,7 @@ if(process.argv.includes('--income-chart-refine')){
 if(process.argv.includes('--refine')){
  const state=read('statement-cleanup-state.json');
  for(const spec of specs.filter(s=>['q195','q197','income-trend','income-snapshot-status','flow-snapshot-status','expense-detail'].includes(s.key))){
-  if(spec.key==='expense-detail')spec.visualization_settings['table.columns']=['Expense Date','Expense Category','Expenses','Expense ID'].map(name=>({name,enabled:name!=='Expense ID'}));
+  if(spec.key==='expense-detail')spec.visualization_settings['table.columns']=['Expense Date','Expense Category','Payee','Paid By','Expenses','Notes','Expense ID'].map(name=>({name,enabled:name!=='Expense ID'}));
   await api('PUT','card/'+state.cards[spec.key],{dataset_query:spec.dataset_query,visualization_settings:spec.visualization_settings});
  }
  const d=await api('GET','dashboard/3');await api('PUT','dashboard/3/cards',{tabs:d.tabs,cards:[...d.dashcards.filter(c=>![15,16].includes(c.dashboard_tab_id)),...layout(d,state)]});
