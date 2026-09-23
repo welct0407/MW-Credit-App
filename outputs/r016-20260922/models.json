@@ -819,14 +819,6 @@
         "description": "Outstanding Principal. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       },
       {
-        "name": "Current Total Cash Pool",
-        "base_type": "type/Decimal",
-        "semantic_type": "type/Currency",
-        "id": null,
-        "fk_target_field_id": null,
-        "description": "Current Total Cash Pool from olap_portfolio_summary, repeated on each daily snapshot for a horizontal comparison. It is not the balance on that snapshot date."
-      },
-      {
         "name": "Profit",
         "base_type": "type/Decimal",
         "semantic_type": "type/Currency",
@@ -904,10 +896,10 @@
         "description": "In Last 30 Days. One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows."
       }
     ],
-    "grain": "One stored daily snapshot. Includes the current Total Cash Pool as a repeated comparison value; it is not a historical cash-pool balance. Gross interest, cumulative interest, capital yield and Bangkok date windows retain their existing definitions.",
+    "grain": "One stored daily snapshot. Gross interest, cumulative interest from the first stored date, capital yield on closing principal plus principal returned, and Bangkok date windows.",
     "id": 74,
     "name": "Daily Performance",
-    "rows": 50
+    "rows": 49
   },
   "charges": {
     "id": 75,

@@ -820,35 +820,28 @@
     "id": 62,
     "name": "Daily Outstanding Principal",
     "model": "daily",
-    "display": "combo",
-    "description": "Stored daily outstanding-principal snapshots with a line for the current Total Cash Pool from olap_portfolio_summary. The cash-pool line changes with the current source value and is repeated across chart dates; it is not a historical cash-pool series. Built from Daily Performance.",
+    "display": "area",
+    "description": "Stored daily snapshots, aggregated by Snapshot Date. The original fixed cash-pool reference is ฿120,000; it is not the live cash-pool balance. Built from Daily Performance; shared logic is maintained in the Reporting Models collection.",
     "settings": {
+      "graph.goal_label": "Total Cash Pool (source reference)",
       "graph.dimensions": [
         "Date"
       ],
       "graph.show_values": false,
       "graph.colors": [
-        "#178F8A",
-        "#7472BE"
+        "#178F8A"
       ],
       "series_settings": {
         "Amount (THB)": {
-          "color": "#178F8A",
-          "display": "area",
-          "title": "Outstanding principal"
-        },
-        "Current Total Cash Pool (THB)": {
-          "color": "#7472BE",
-          "display": "line",
-          "title": "Current Total Cash Pool"
+          "color": "#178F8A"
         }
       },
+      "graph.goal_value": 120000,
       "graph.y_axis.title_text": "THB",
-      "graph.show_goal": false,
+      "graph.show_goal": true,
       "graph.show_dots": false,
       "graph.metrics": [
-        "Amount (THB)",
-        "Current Total Cash Pool (THB)"
+        "Amount (THB)"
       ],
       "graph.missing": "zero",
       "graph.y_axis.auto_range": true,
@@ -857,17 +850,11 @@
           "number_style": "decimal",
           "decimals": 0,
           "number_separators": ".,"
-        },
-        "[\"name\",\"Current Total Cash Pool (THB)\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,"
         }
       },
       "graph.label_value_formatting": "compact",
       "graph.x_axis.title_enabled": false,
-      "graph.show_legend": true,
-      "graph.y_axis.auto_split": false
+      "graph.show_legend": false
     },
     "date_field": 82,
     "date_target": [
@@ -910,23 +897,6 @@
             {
               "name": "Amount (THB)",
               "display-name": "Amount (THB)"
-            }
-          ],
-          [
-            "aggregation-options",
-            [
-              "max",
-              [
-                "field",
-                "Current Total Cash Pool",
-                {
-                  "base-type": "type/Decimal"
-                }
-              ]
-            ],
-            {
-              "name": "Current Total Cash Pool (THB)",
-              "display-name": "Current Total Cash Pool (THB)"
             }
           ]
         ],
