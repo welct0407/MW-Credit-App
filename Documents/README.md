@@ -10,6 +10,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |
 | Model explanations | [Model Overview](AppSheet_Data_Model_Overview.md) |
 | Exact model/configuration values across ecosystem systems | [Data Dictionary](Data%20Dictionary/README.md) |
+| Instructions for a thorough OLTP/OLAP/PostgreSQL dictionary reconciliation | [Execution prompt](Data_Dictionary_Reconciliation_Prompt.md) |
 | One-file dictionary upload for ChatGPT feature design | [Double-click export instructions](Data_Dictionary_Export.md) |
 | Triggered promotion implementation detail | [Release Workflow](Release_Workflow.md) |
 | Failure/hotfix handling | [Release Recovery](Release_Recovery_Runbook.md) |
