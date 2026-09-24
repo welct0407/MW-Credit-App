@@ -4,19 +4,20 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R025 — Open** |
-| Next number, not yet open or usable | **R026 — opens only when R025 is frozen at promotion start** |
-| Current release evidence | R025 includes the additive 8R Collection Monitor review. [Implementation](../outputs/r025-20260924/README.md) |
+| **Use this release for new development** | **R026 — Open** |
+| Next number, not yet open or usable | **R027 — opens only when R026 is frozen at promotion start** |
+| Current release evidence | R026 is open for new development. R025 is frozen for the authorized Collection replacement. [Implementation](../outputs/r025-20260924/README.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
-Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-average promotion; it is now Frozen for promotion and R025 is now the sole Open release after the subsequent authorized report promotions. Its earlier staged PROD/report deliveries retain their actual history; this policy update does not retroactively declare a scope freeze or authorize promotion. Recorded completed PROD baseline remains **R015**; R016's partial deliveries are documented in its evidence. See [numbering policy](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026) and [freeze handoff](Release_Workflow.md#release-scope-freeze-and-number-handoff).
+Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-average promotion; it is now Frozen for promotion and R026 is now the sole Open release after the subsequent authorized report promotions. Its earlier staged PROD/report deliveries retain their actual history; this policy update does not retroactively declare a scope freeze or authorize promotion. Recorded completed PROD baseline remains **R015**; R016's partial deliveries are documented in its evidence. See [numbering policy](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026) and [freeze handoff](Release_Workflow.md#release-scope-freeze-and-number-handoff).
 
 ## Release history and status
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R025 | Additive 8R Collection Monitor; existing collection tab retained | Open — implemented for owner review; cutover deferred | 2026-09-24: tab19; initial 38 checks plus 6 top-row refinement checks; today-charge paid % promoted to top row | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
+| R026 | New development | Open | 2026-09-24: opened at R025 promotion start | — |
+| R025 | Canonical Collection Monitor replacement | Frozen — promotion started | 2026-09-24: tab19; initial 38 checks plus 6 top-row refinement checks; today-charge paid % promoted to top row | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
 | R024 | Performance and Borrowers tab order | Released — report-only | 2026-09-24: tab18 fifth, tab6 sixth; saved-state and Chrome checks passed | [Evidence](../outputs/r024-20260924/README.md) · tag R024 |
 | R023 | Canonical Performance replacement | Released — report-only | 2026-09-24: tab18 promoted, tab7 removed; 4 checks and Chrome verified | [Evidence](../outputs/r023-20260924/README.md) · tag R023 |
 | R022 | Selective Performance trend labels | Released — report-only formatting | 2026-09-24: eight charts set to Some; 9 saved-state checks and Chrome visual verification | [Evidence](../outputs/r022-20260924/README.md) · tag R022 |
