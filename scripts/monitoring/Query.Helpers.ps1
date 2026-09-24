@@ -39,10 +39,10 @@ function New-WebhookHealthQuery {
     New-InfinityQuery 'mw-gcp-monitoring' $url $selector @((Column 'Time' 'timestamp' 'time'),(Column 'Status' 'number' 'value'))
 }
 function New-OpenAiHealthQuery([string]$Product) {
-    $ids=if($Product -eq 'codex'){@('01JVCV8YSWZFRSM1G5CVP253SK','01KMP3KP5MGE23B80K1EK4S8PV','01KMKFAMWKNQ84Z1766MV08ZDE','01KMP3KP5M8X0EBTVW6KN327EE')}else{@('01JMXBNJXG1S2D9V65P1ZZTD94','01JMXBNJXGKKP51D4DEJ2HZJ8Q','01JMXBNJXG1YMQPPCPCQX3MPA2','01JMXBNJXGGT5SR5DB9J7GYY48','01JSYVYQSWMJ9QG35XHP08BHA7','01JSG1XMJ9RVJJQ0E85NVSJ2AZ','01KMKFAMWKQ81YWSE1Z18R6VHR')}
-    $selector=($ids|ConvertTo-Json -Compress)+' as $ids | [.components[] | select(.id as $id | $ids|index($id))] as $c | {time:(now|todateiso8601),value:(if ($c|length) != ($ids|length) then 4 elif any($c[];.status=="major_outage") then 0 elif any($c[];.status!="operational") then 2 else 1 end)}'
+    if($Product -notin @('chatgpt','codex')) { throw 'Unknown OpenAI product' }
+    $selector=(Get-Content "$PSScriptRoot/openai-status.jq" -Raw)+' | select(.component == "'+$Product+'")'
     $source=Get-Content 'outputs/resource-monitoring-20260922/public-status-source.json' -Raw|ConvertFrom-Json
-    New-InfinityQuery $source.uid 'https://status.openai.com/api/v2/summary.json' $selector @((Column 'Time' 'timestamp' 'time'),(Column 'Status' 'number' 'value'))
+    New-InfinityQuery $source.uid 'https://status.openai.com/proxy/status.openai.com' $selector @((Column 'Details' 'string' 'details'),(Column 'Status' 'number' 'status'),(Column 'URL' 'string' 'url')) 'table'
 }
 function New-RailwayMetricQuery {
     param([string]$Service,[string]$Metric,[string]$Label='Value')

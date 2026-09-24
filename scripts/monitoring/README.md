@@ -30,6 +30,14 @@ For authenticated browser updates without a new API token, use Grafana's **Edit 
 
 ## Initial provisioning (already completed)
 
+### OpenAI incident details (24 September 2026)
+
+`openai-status.jq` is the canonical product-state/incident selector. The credential-free source uses `https://status.openai.com/proxy/status.openai.com`, the public interface used by the current official website. This is not a separately documented stable API: validate website identity, product groups and response arrays; incompatible responses become Unknown. Do not fall back to the obsolete `/api/v2/summary.json`, which returned incomplete older components during this change.
+
+`Update-OpenAiPanels.ps1` patches only panels 54/55 in the maintained classic/V2 resources and writes `openai-alert-query.json`. For live dashboard edits, start with a fresh UI Code export and copy only those panel changes to preserve owner preferences. `Build-Dashboards.ps1` also reproduces the panel options. Rows to fields exposes incident text as the dynamic field name. The data link uses that name as its native hover title; a fixed display name retains the centered product label above the light, and the URL field supplies the click-through link. No HTML/script/plugin is needed.
+
+The alert appends `| {component,value}` to the canonical selector and retains only a stable product label and binary impairment value. Do not add incident text or Checked time as alert labels. Keep the existing 10-minute pending period, 2-minute evaluation, IRM contact and Keep Last State behavior. Validate with `node scripts/monitoring/test_openai_status.cjs <path-to-jq>`; use the bundled Node runtime and an official jq executable. Fixtures stay local and must not be saved into live alert queries.
+
 `Initialize-Azure.ps1` checks the signed-in tenant/subscription/account, creates a dedicated one-year service-principal secret and group-scoped read permissions. It refuses existing principals/credentials.
 
 `Initialize-AzureVmControl.ps1` separately provisions the owner-approved single-VM control identity with only read, instanceView, start and deallocate permissions. It never runs a power operation and must not be replayed against the existing identity. `VmControl.Helpers.ps1` is retained as inactive preparation only: the owner removed panel 15 and the dashboard builder no longer calls it. Do not re-enable it without a new request and supported Grafana authenticated actions. Power-cycle testing is disruptive because VM-01 hosts the desktop/Codex session; do not use deallocation as an automated smoke test.

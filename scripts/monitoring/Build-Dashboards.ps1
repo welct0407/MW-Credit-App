@@ -226,6 +226,14 @@ foreach($p in @($perf.panels|Where-Object id -in @(1,70,71,72,73))){
     $p.fieldConfig=@{defaults=@{color=@{mode='fixed';fixedColor='text'};noValue=$label};overrides=@()}
     $p.options=@{reduceOptions=@{calcs=@('lastNotNull');fields='';values=$true};colorMode='none';graphMode='none';textMode='value';justifyMode='left';orientation='horizontal';wideLayout=$true;text=@{valueSize=14}}
 }
+# Native data-link titles expose incident details while keeping centered labels.
+foreach($p in @($perf.panels|Where-Object id -in @(54,55))){
+    $p.title=''
+    $p.fieldConfig.defaults.links=@(@{title='${__field.name}';url='${__field.labels.URL}';targetBlank=$true})
+    $p.options.textMode='value_and_name'
+    $p.description='Current official OpenAI product status. Hover the light for active incident details and Singapore update/check time; click for the official incident/status page. Provider-wide status, not an account or quota test. Unknown means the current response is unavailable or unrecognized.'
+    $p.transformations=@(@{id='rowsToFields';options=@{mappings=@(@{fieldName='Details';handlerKey='field.name'},@{fieldName='Status';handlerKey='field.value'})}})
+}
 $perf.panels=@($perf.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 
 $cost=New-Dashboard 'mw-resource-cost' 'MW Resources · Cost' 'now/M' '1h'

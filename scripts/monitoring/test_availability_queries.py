@@ -12,7 +12,7 @@ stale=(now-dt.timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
 def point(t,value):return {'interval':{'endTime':t},'value':value}
 def check(panel,data,expected):
     result=subprocess.run(['jq','-c',panels[panel]['targets'][0]['root_selector']],input=json.dumps(data),text=True,capture_output=True,check=True)
-    actual=json.loads(result.stdout)['value']
+    actual=json.loads(result.stdout)['status' if panel in (54,55) else 'value']
     assert actual==expected,(panel,expected,actual)
 checks=0
 for value in range(5):

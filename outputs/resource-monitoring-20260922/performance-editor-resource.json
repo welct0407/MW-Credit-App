@@ -424,27 +424,32 @@
                   "spec": {
                     "query": {
                       "spec": {
-                        "url_options": {
-                          "method": "GET"
-                        },
-                        "format": "timeseries",
-                        "url": "https://status.openai.com/api/v2/summary.json",
+                        "root_selector": "# The current OpenAI website's public summary includes groups and active incidents.\n# Emit one stable alert label per product; incident text is dashboard-only metadata.\ndef sgt: try (sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601 | . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\")) catch \"Time unavailable\";\ndef text: if type == \"string\" then . else \"\" end;\n.summary as $s |\n[\"ChatGPT\", \"Codex\"][] as $product |\n([$s.structure.items[]?.group? | select(.name == $product)] | first) as $group |\n[$group.components[]? | select(.hidden != true) | .component_id] as $ids |\n[$s.affected_components[]? | select(.component_id as $id | $ids | index($id))] as $affected |\n[$s.ongoing_incidents[]? | select(.status != \"resolved\" and .status != \"closed\") |\n select(any(.affected_components[]?; .component_id as $id | $ids | index($id)))] as $incidents |\n(($s.id == \"01JMDK9XYNY6RXSED6SDWW50WY\") and ($s.name == \"OpenAI\") and\n (($s.affected_components | type) == \"array\") and (($s.ongoing_incidents | type) == \"array\") and\n ($ids | length) > 0 and\n (all($s.ongoing_incidents[]?; (.affected_components | type) == \"array\" and (.affected_components | length) > 0)) and\n (all($affected[]; .status == \"operational\" or .status == \"degraded_performance\" or .status == \"partial_outage\" or .status == \"full_outage\" or .status == \"major_outage\" or .status == \"under_maintenance\"))) as $valid |\n(if $valid != true then 4\n elif any($affected[]; .status == \"full_outage\" or .status == \"major_outage\") then 0\n elif any($affected[]; .status != \"operational\") or ($incidents | length) > 0 then 2\n else 1 end) as $status |\n(if $status == 4 then \"Unknown\" elif $status == 0 then \"Down\" elif $status == 2 then \"Degraded\" else \"Healthy\" end) as $state |\n($incidents | sort_by(.published_at) | reverse) as $ordered |\n{component:($product | ascii_downcase), status:$status, value:(if $status == 0 or $status == 2 then 1 else 0 end),\n details:($product + \" — \" + $state + \"\\n\" +\n   (if $status == 4 then \"Current provider status unavailable or response format changed.\"\n    elif ($ordered | length) > 0 then\n      ([$ordered[] | (.updates | sort_by(.published_at) | last) as $update |\n        .name + \"\\nStatus: \" + (.status | text) +\n        \"\\nUpdated: \" + (($update.published_at // .published_at) | sgt) +\n        \"\\n\" + (($update.message_string // $update.message.markdown // \"No explanation published yet.\") | text) +\n        \"\\nhttps://status.openai.com/incidents/\" + .id] | join(\"\\n\\n\"))\n    elif $status != 1 then \"Affected components: \" + ([$affected[] | .component_id as $id | $group.components[] | select(.component_id == $id) | .name] | join(\", \")) + \". No incident explanation published yet.\"\n    else \"No active incident reported.\" end) +\n   \"\\nChecked: \" + (now + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\"))),\n url:(if ($ordered | length) > 0 then \"https://status.openai.com/incidents/\" + $ordered[0].id else \"https://status.openai.com/\" end)}\n | select(.component == \"chatgpt\")",
+                        "url": "https://status.openai.com/proxy/status.openai.com",
+                        "type": "json",
+                        "format": "table",
+                        "source": "url",
                         "parser": "jq-backend",
-                        "root_selector": "[\"01JMXBNJXG1S2D9V65P1ZZTD94\",\"01JMXBNJXGKKP51D4DEJ2HZJ8Q\",\"01JMXBNJXG1YMQPPCPCQX3MPA2\",\"01JMXBNJXGGT5SR5DB9J7GYY48\",\"01JSYVYQSWMJ9QG35XHP08BHA7\",\"01JSG1XMJ9RVJJQ0E85NVSJ2AZ\",\"01KMKFAMWKQ81YWSE1Z18R6VHR\"] as $ids | [.components[] | select(.id as $id | $ids|index($id))] as $c | {time:(now|todateiso8601),value:(if ($c|length) != ($ids|length) then 4 elif any($c[];.status==\"major_outage\") then 0 elif any($c[];.status!=\"operational\") then 2 else 1 end)}",
                         "columns": [
                           {
-                            "text": "Time",
-                            "selector": "time",
-                            "type": "timestamp"
+                            "text": "Details",
+                            "type": "string",
+                            "selector": "details"
                           },
                           {
                             "text": "Status",
-                            "selector": "value",
-                            "type": "number"
+                            "type": "number",
+                            "selector": "status"
+                          },
+                          {
+                            "text": "URL",
+                            "type": "string",
+                            "selector": "url"
                           }
                         ],
-                        "source": "url",
-                        "type": "json"
+                        "url_options": {
+                          "method": "GET"
+                        }
                       },
                       "group": "yesoreyeram-infinity-datasource",
                       "datasource": {
@@ -460,12 +465,31 @@
                 }
               ],
               "queryOptions": {},
-              "transformations": []
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "rowsToFields",
+                  "spec": {
+                    "options": {
+                      "mappings": [
+                        {
+                          "handlerKey": "field.name",
+                          "fieldName": "Details"
+                        },
+                        {
+                          "handlerKey": "field.value",
+                          "fieldName": "Status"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
             },
             "kind": "QueryGroup"
           },
           "id": 54,
-          "description": "OpenAI published status for available ChatGPT components: login, search, file uploads, voice, deep research, agent and desktop Codex. Provider status only; your account/session is not tested. Unrecognized/missing components show UNKNOWN.",
+          "description": "Current official OpenAI product status. Hover the light for active incident details and Singapore update/check time; click for the official incident/status page. Provider-wide status, not an account or quota test. Unknown means the current response is unavailable or unrecognized.",
           "links": [],
           "title": "",
           "vizConfig": {
@@ -524,7 +548,14 @@
                     "mode": "thresholds"
                   },
                   "displayName": "💬 ChatGPT",
-                  "noValue": "⚪"
+                  "noValue": "⚪",
+                  "links": [
+                    {
+                      "title": "${__field.name}",
+                      "targetBlank": true,
+                      "url": "${__field.labels.URL}"
+                    }
+                  ]
                 },
                 "overrides": []
               },
@@ -828,27 +859,32 @@
                   "spec": {
                     "query": {
                       "spec": {
-                        "url_options": {
-                          "method": "GET"
-                        },
-                        "format": "timeseries",
-                        "url": "https://status.openai.com/api/v2/summary.json",
+                        "root_selector": "# The current OpenAI website's public summary includes groups and active incidents.\n# Emit one stable alert label per product; incident text is dashboard-only metadata.\ndef sgt: try (sub(\"[.][0-9]+Z$\"; \"Z\") | fromdateiso8601 | . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\")) catch \"Time unavailable\";\ndef text: if type == \"string\" then . else \"\" end;\n.summary as $s |\n[\"ChatGPT\", \"Codex\"][] as $product |\n([$s.structure.items[]?.group? | select(.name == $product)] | first) as $group |\n[$group.components[]? | select(.hidden != true) | .component_id] as $ids |\n[$s.affected_components[]? | select(.component_id as $id | $ids | index($id))] as $affected |\n[$s.ongoing_incidents[]? | select(.status != \"resolved\" and .status != \"closed\") |\n select(any(.affected_components[]?; .component_id as $id | $ids | index($id)))] as $incidents |\n(($s.id == \"01JMDK9XYNY6RXSED6SDWW50WY\") and ($s.name == \"OpenAI\") and\n (($s.affected_components | type) == \"array\") and (($s.ongoing_incidents | type) == \"array\") and\n ($ids | length) > 0 and\n (all($s.ongoing_incidents[]?; (.affected_components | type) == \"array\" and (.affected_components | length) > 0)) and\n (all($affected[]; .status == \"operational\" or .status == \"degraded_performance\" or .status == \"partial_outage\" or .status == \"full_outage\" or .status == \"major_outage\" or .status == \"under_maintenance\"))) as $valid |\n(if $valid != true then 4\n elif any($affected[]; .status == \"full_outage\" or .status == \"major_outage\") then 0\n elif any($affected[]; .status != \"operational\") or ($incidents | length) > 0 then 2\n else 1 end) as $status |\n(if $status == 4 then \"Unknown\" elif $status == 0 then \"Down\" elif $status == 2 then \"Degraded\" else \"Healthy\" end) as $state |\n($incidents | sort_by(.published_at) | reverse) as $ordered |\n{component:($product | ascii_downcase), status:$status, value:(if $status == 0 or $status == 2 then 1 else 0 end),\n details:($product + \" — \" + $state + \"\\n\" +\n   (if $status == 4 then \"Current provider status unavailable or response format changed.\"\n    elif ($ordered | length) > 0 then\n      ([$ordered[] | (.updates | sort_by(.published_at) | last) as $update |\n        .name + \"\\nStatus: \" + (.status | text) +\n        \"\\nUpdated: \" + (($update.published_at // .published_at) | sgt) +\n        \"\\n\" + (($update.message_string // $update.message.markdown // \"No explanation published yet.\") | text) +\n        \"\\nhttps://status.openai.com/incidents/\" + .id] | join(\"\\n\\n\"))\n    elif $status != 1 then \"Affected components: \" + ([$affected[] | .component_id as $id | $group.components[] | select(.component_id == $id) | .name] | join(\", \")) + \". No incident explanation published yet.\"\n    else \"No active incident reported.\" end) +\n   \"\\nChecked: \" + (now + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\"))),\n url:(if ($ordered | length) > 0 then \"https://status.openai.com/incidents/\" + $ordered[0].id else \"https://status.openai.com/\" end)}\n | select(.component == \"codex\")",
+                        "url": "https://status.openai.com/proxy/status.openai.com",
+                        "type": "json",
+                        "format": "table",
+                        "source": "url",
                         "parser": "jq-backend",
-                        "root_selector": "[\"01JVCV8YSWZFRSM1G5CVP253SK\",\"01KMP3KP5MGE23B80K1EK4S8PV\",\"01KMKFAMWKNQ84Z1766MV08ZDE\",\"01KMP3KP5M8X0EBTVW6KN327EE\"] as $ids | [.components[] | select(.id as $id | $ids|index($id))] as $c | {time:(now|todateiso8601),value:(if ($c|length) != ($ids|length) then 4 elif any($c[];.status==\"major_outage\") then 0 elif any($c[];.status!=\"operational\") then 2 else 1 end)}",
                         "columns": [
                           {
-                            "text": "Time",
-                            "selector": "time",
-                            "type": "timestamp"
+                            "text": "Details",
+                            "type": "string",
+                            "selector": "details"
                           },
                           {
                             "text": "Status",
-                            "selector": "value",
-                            "type": "number"
+                            "type": "number",
+                            "selector": "status"
+                          },
+                          {
+                            "text": "URL",
+                            "type": "string",
+                            "selector": "url"
                           }
                         ],
-                        "source": "url",
-                        "type": "json"
+                        "url_options": {
+                          "method": "GET"
+                        }
                       },
                       "group": "yesoreyeram-infinity-datasource",
                       "datasource": {
@@ -864,12 +900,31 @@
                 }
               ],
               "queryOptions": {},
-              "transformations": []
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "rowsToFields",
+                  "spec": {
+                    "options": {
+                      "mappings": [
+                        {
+                          "handlerKey": "field.name",
+                          "fieldName": "Details"
+                        },
+                        {
+                          "handlerKey": "field.value",
+                          "fieldName": "Status"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
             },
             "kind": "QueryGroup"
           },
           "id": 55,
-          "description": "OpenAI published Codex Web, API, CLI and VS Code service status. Independent of Debian; does not run a model prompt or verify your account quota.",
+          "description": "Current official OpenAI product status. Hover the light for active incident details and Singapore update/check time; click for the official incident/status page. Provider-wide status, not an account or quota test. Unknown means the current response is unavailable or unrecognized.",
           "links": [],
           "title": "",
           "vizConfig": {
@@ -928,7 +983,14 @@
                     "mode": "thresholds"
                   },
                   "displayName": "⌘ Codex",
-                  "noValue": "⚪"
+                  "noValue": "⚪",
+                  "links": [
+                    {
+                      "title": "${__field.name}",
+                      "targetBlank": true,
+                      "url": "${__field.labels.URL}"
+                    }
+                  ]
                 },
                 "overrides": []
               },

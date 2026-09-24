@@ -1,13 +1,13 @@
 # Resource monitoring dashboard — visual guide
 
-Last updated: **23 September 2026**. Covers the maintained Performance and Cost definitions, including the compact, vertically centered group strips and centered status values. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
+Last updated: **24 September 2026**. Covers the maintained Performance and Cost definitions, including compact status tiles and OpenAI incident hover details. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
 
 - [Open Performance](https://monitor.mw-credit.com/d/mw-resource-performance)
 - [Open Cost](https://monitor.mw-credit.com/d/mw-resource-cost)
 
 ## Reading either page
 
-Both pages display **Singapore time (UTC+8)**. The Performance/Cost links switch pages. The time picker chooses the displayed period; refresh requests new data. Performance defaults to the last six hours and refreshes every two minutes. Cost defaults to the current month and refreshes hourly. A refresh does not make provider data arrive sooner.
+Both pages display **Singapore time (UTC+8)**. The Performance/Cost links switch pages. The time picker chooses the displayed period; refresh requests new data. The saved Performance page currently uses the last three hours and one-minute refresh; its builder baseline and context-strip caption retain the original six-hour/two-minute defaults. Use the time picker and refresh selector as the active settings. Cost defaults to the current month and refreshes hourly. A refresh does not make provider data arrive sooner.
 
 Performance's large CPU/RAM numbers show the **last available sample in the selected range**, not a period average or a guaranteed instantaneous reading. The small line behind each number is its history. Old samples can remain visible when a machine stops: VM-01 is not running 24x7, so its last number alone is not proof that it is currently online. Detailed charts show gaps rather than inventing zeroes. Hover over a chart for sample timestamps and series values; its legend may show the last non-null value and maximum over the selected period.
 
@@ -23,7 +23,7 @@ The following rules evaluate every two minutes with a rolling ten-minute query w
 |---|---|---|---|
 | 51 | External webhook DEGRADED or DOWN (at least one fresh region failed) | 10 min | Requires all three regional reports within 12 minutes; stale or missing checks stay Unknown and do not page. |
 | 52, 53, 56, 57, 60–67 | See the Debian component mapping below | 4 min | Each component has its own labeled alert instance; fresh Down or Degraded pages. Paused and Unknown do not. |
-| 54, 55 | Published ChatGPT or Codex status DEGRADED or DOWN | 10 min | Separate alert instance per product; any expected published component non-operational pages. Missing expected components stay Unknown. |
+| 54, 55 | Published ChatGPT or Codex status DEGRADED or DOWN | 10 min | Separate alert instance per product; a non-operational component or active incident in its current product group pages. Unrecognized/missing source data stays Unknown. |
 | 50, 34 | Cloud SQL backend count above **160** | 10 min | Early warning at 80% of configured 200. The red chart line still marks 200; reserved PostgreSQL slots lower ordinary-client capacity. |
 | 4, 31 | Cloud SQL CPU above **85%** | 10 min | Five-minute mean; 85% is an operational warning, while the chart's 100% line is capacity. |
 | 8, 32 | Cloud SQL `database/memory/components` **Usage** above **85%** | 10 min | Uses the Used component, not `database/memory/utilization` or Cache. |
@@ -90,10 +90,12 @@ Debian collects every two minutes. Reports older than **six minutes** become Unk
 |---|---|---|
 | 56 | 📱 OLTP API | Debian runs the existing authenticated, bounded, read-only production AppSheet API probe for OLTP. Passing proves that probe can authenticate/read; it does not prove browser login, all screens, sync or every workflow works. AppSheet integration disabled → Paused. |
 | 57 | 📊 OLAP API | The equivalent separate probe for the production OLAP app using its own binding/key. Same limitations as OLTP; one app passing does not substitute for the other. |
-| 54 | 💬 ChatGPT | Reads OpenAI's public component-status feed for the configured ChatGPT login, search, uploads, voice, deep research, agent and desktop Codex components. It does not test this user's login, subscription or an actual conversation, and not every ChatGPT function is separately exposed by the feed. |
-| 55 | ⌘ Codex | Reads published Codex Web, API, CLI and VS Code status. It is independent of Debian and does not test this user's quota or model execution. Compare with **Codex ready**, which checks the local runtime instead. |
+| 54 | 💬 ChatGPT | Reads the current ChatGPT product group and matching active incidents from OpenAI's status website. Hover the centered light for the incident explanation; click/tap it to open the official incident or status page. It does not test this user's login, subscription or an actual conversation. |
+| 55 | ⌘ Codex | Reads the current Codex product group and matching active incidents, with the same hover/click behavior. Independent of Debian; does not test this user's quota or model execution. Compare with **Codex ready**, which checks the local runtime instead. |
 
-For both OpenAI tiles, all expected components operational → Healthy; a major outage → Down; another non-operational state → Degraded; missing expected components → Unknown. The initial Unknown display during setup was an open-dashboard data-source cache issue resolved by reloading. A later Unknown can have a different cause: inspect the panel error and source response rather than treating it as a confirmed provider outage.
+For both OpenAI tiles, no affected component or active incident → Healthy; a full/major outage → Down; another non-operational component or active incident → Degraded. Resolved/closed incidents are excluded. Missing groups, unrecognized component states, wrong website identity or an incomplete response → Unknown. Request errors show the error indicator; inspect it rather than assuming a provider outage.
+
+Hover directly over the light to see a native browser tooltip: product/state, each active incident's title and stage, latest published explanation, update time in **SGT**, incident URL, and the last successful query's **Checked** time. Multiple incidents are separated by blank lines. Healthy reads **No active incident reported**; an affected component without a published incident says no explanation is available yet. Checked time is retrieval time, not the incident's update time. Refresh updates the content. This is current status, not the historical daily hover shown on OpenAI's website. Native tooltip styling/size depends on the browser; touch devices can tap the light for the official detail page instead of relying on hover. When several incidents exist, the click opens the newest incident and the hover lists them all.
 
 ### Agent workflows
 
