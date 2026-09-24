@@ -1,0 +1,648 @@
+{
+  "layout": [
+    {
+      "id": -2,
+      "card_id": -102,
+      "dashboard_tab_id": 18,
+      "col": 19,
+      "row": 3,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": -102,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": -1,
+      "card_id": -101,
+      "dashboard_tab_id": 18,
+      "col": 14,
+      "row": 3,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": -101,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 603,
+      "card_id": null,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Selected-period results · live on report refresh"
+          }
+        }
+      }
+    },
+    {
+      "id": 604,
+      "card_id": null,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 1,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "All portfolio · baht · Bangkok dates."
+          }
+        }
+      }
+    },
+    {
+      "id": 605,
+      "card_id": 217,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 3,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 217,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 606,
+      "card_id": 218,
+      "dashboard_tab_id": 18,
+      "col": 5,
+      "row": 3,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 218,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 607,
+      "card_id": 219,
+      "dashboard_tab_id": 18,
+      "col": 10,
+      "row": 3,
+      "size_x": 4,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 219,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 608,
+      "card_id": 220,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 6,
+      "size_x": 16,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 220,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 609,
+      "card_id": 221,
+      "dashboard_tab_id": 18,
+      "col": 16,
+      "row": 6,
+      "size_x": 8,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 221,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 610,
+      "card_id": null,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 13,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Performance trends · snapshots except loan-cohort return (live)"
+          }
+        }
+      }
+    },
+    {
+      "id": 611,
+      "card_id": null,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 14,
+      "size_x": 24,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Yesterday refreshes hourly; rebuild older corrections. MA7 needs 7 complete days, including before the filter. Cumulative starts at history origin. Use one continuous range."
+          }
+        }
+      }
+    },
+    {
+      "id": 612,
+      "card_id": 228,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 18,
+      "size_x": 24,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 228,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 613,
+      "card_id": 222,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 29,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 222,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 614,
+      "card_id": 223,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 37,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 223,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 615,
+      "card_id": 224,
+      "dashboard_tab_id": 18,
+      "col": 12,
+      "row": 37,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 224,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 616,
+      "card_id": 225,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 44,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 225,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 617,
+      "card_id": null,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 51,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Avg loan size = principal ÷ loans. Selected days only."
+          }
+        }
+      }
+    },
+    {
+      "id": 618,
+      "card_id": 226,
+      "dashboard_tab_id": 18,
+      "col": 12,
+      "row": 53,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 226,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "visualization": {
+          "display": "line",
+          "columnValuesMapping": {
+            "COLUMN_1": [
+              {
+                "sourceId": "card:226",
+                "originalName": "Date",
+                "name": "COLUMN_1"
+              }
+            ],
+            "COLUMN_2": [
+              {
+                "sourceId": "card:226",
+                "originalName": "Active loans EOD",
+                "name": "COLUMN_2"
+              }
+            ],
+            "COLUMN_3": [
+              {
+                "sourceId": "card:226",
+                "originalName": "Active borrowers EOD",
+                "name": "COLUMN_3"
+              }
+            ]
+          },
+          "settings": {
+            "graph.show_values": true,
+            "graph.show_legend": true,
+            "graph.missing": "none",
+            "graph.y_axis.auto_split": false,
+            "graph.metrics": [
+              "COLUMN_2",
+              "COLUMN_3"
+            ],
+            "graph.colors": [
+              "#509EE3",
+              "#F2A86F"
+            ],
+            "column_settings": {
+              "[\"name\",\"COLUMN_2\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,",
+                "compact": false
+              },
+              "[\"name\",\"COLUMN_3\"]": {
+                "number_style": "decimal",
+                "decimals": 0,
+                "number_separators": ".,",
+                "compact": false
+              }
+            },
+            "graph.dimensions": [
+              "COLUMN_1"
+            ],
+            "stackable.stack_type": null
+          }
+        }
+      }
+    },
+    {
+      "id": 619,
+      "card_id": null,
+      "dashboard_tab_id": 18,
+      "col": 12,
+      "row": 60,
+      "size_x": 12,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "End-of-day counts use loan/close dates; do not sum across dates."
+          }
+        }
+      }
+    },
+    {
+      "id": 620,
+      "card_id": 227,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 63,
+      "size_x": 24,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 227,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 621,
+      "card_id": 230,
+      "dashboard_tab_id": 18,
+      "col": 12,
+      "row": 29,
+      "size_x": 12,
+      "size_y": 8,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 230,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 622,
+      "card_id": 231,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 25,
+      "size_x": 24,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 231,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 623,
+      "card_id": 232,
+      "dashboard_tab_id": 18,
+      "col": 12,
+      "row": 44,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 232,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Date",
+              {
+                "base-type": "type/Date"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 624,
+      "card_id": 233,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 53,
+      "size_x": 12,
+      "size_y": 7,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 233,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 625,
+      "card_id": null,
+      "dashboard_tab_id": 18,
+      "col": 0,
+      "row": 60,
+      "size_x": 12,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Loan dates and interest-payment dates both use this filter. Principal is counted once per loan. Live on refresh."
+          }
+        }
+      }
+    }
+  ],
+  "scope": "Add two summary cards in a five-card row; all existing queries and filters preserved"
+}
