@@ -4,19 +4,20 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R019 — Open** |
-| Next number, not yet open or usable | **R020 — opens only when R019 is frozen at promotion start** |
-| Current release evidence | [R019 loan-cohort correction](../outputs/r019-20260924/README.md) · [Checklist](../outputs/r019-20260924/promotion-checklist.md) |
+| **Use this release for new development** | **R020 — Open** |
+| Next number, not yet open or usable | **R021 — opens only when R020 is frozen at promotion start** |
+| Current release evidence | R020 has no feature scope allocated. [R019 freeze handoff](../outputs/r019-20260924/manifest.json) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
-Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-average promotion; it is now Frozen for promotion and R019 is now the sole Open release after the subsequent authorized report promotions. Its earlier staged PROD/report deliveries retain their actual history; this policy update does not retroactively declare a scope freeze or authorize promotion. Recorded completed PROD baseline remains **R015**; R016's partial deliveries are documented in its evidence. See [numbering policy](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026) and [freeze handoff](Release_Workflow.md#release-scope-freeze-and-number-handoff).
+Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-average promotion; it is now Frozen for promotion and R020 is now the sole Open release after the subsequent authorized report promotions. Its earlier staged PROD/report deliveries retain their actual history; this policy update does not retroactively declare a scope freeze or authorize promotion. Recorded completed PROD baseline remains **R015**; R016's partial deliveries are documented in its evidence. See [numbering policy](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026) and [freeze handoff](Release_Workflow.md#release-scope-freeze-and-number-handoff).
 
 ## Release history and status
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R019 | Correct weekly Loan Return to issuance cohorts; live selected-period interest | Open — 12 preflight checks passed | 2026-09-24: each loan principal counted once; same-loan profit attribution | [Evidence](../outputs/r019-20260924/README.md) · [Checklist](../outputs/r019-20260924/promotion-checklist.md) |
+| R020 | Future development; deployed reporting dependencies | Open — no feature scope allocated | 2026-09-24T06:05:08.622Z: opened at R019 promotion start | [Handoff](../outputs/r019-20260924/manifest.json) |
+| R019 | Correct weekly Loan Return to issuance cohorts; live selected-period interest | Frozen for promotion — 2026-09-24T06:05:08.622Z | 2026-09-24: each loan principal counted once; same-loan profit attribution | [Evidence](../outputs/r019-20260924/README.md) · [Checklist](../outputs/r019-20260924/promotion-checklist.md) |
 | R018 | Additional weekly Loan Return on 6R; deployed R016/R017 reporting | Released — report-only | 2026-09-24: question 233; 100% reference; 29 checks and desktop/mobile passed; capital yield retained | [Evidence](../outputs/r018-20260924/README.md) · [Checklist](../outputs/r018-20260924/promotion-checklist.md) · tag R018 |
 | R017 | Capital-yield chart on 6R; deployed R016 reporting dependencies | Released — report-only | 2026-09-24: question 232; 23 checks and desktop/mobile passed; source/apps unchanged | [Evidence](../outputs/r017-20260924/README.md) · [Checklist](../outputs/r017-20260924/promotion-checklist.md) · tag R017 |
 | R016 | Canonical cash statements, snapshots/history and Metabase migration; depends on R015 | Frozen for promotion; owner replacement decision and final R016 closure pending | 2026-09-24T04:55:21.126Z: [6R rolling averages implemented: 41 checks and desktop/mobile verified](../outputs/r016-20260922/performance-redesign/ROLLING_IMPLEMENTATION.md); [scope frozen](../outputs/r016-20260922/performance-redesign/SCOPE_FREEZE.md); DEV/PROD remain V39 | [Migration log](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md) · [Performance review](../outputs/r016-20260922/performance-redesign/IMPLEMENTATION.md) · [Cash statement contract](../outputs/r016-20260922/statement-cleanup/README.md) |
