@@ -1,0 +1,363 @@
+{
+  "A_corrected_original": {
+    "weights": [
+      0.45,
+      0.2,
+      0.2,
+      0.15
+    ],
+    "counts": {
+      "Star": 4,
+      "Cash Cow": 9,
+      "Question Mark": 4,
+      "Dog": 5,
+      "Unclassified": 0
+    },
+    "established": {
+      "Star": 2,
+      "Cash Cow": 3,
+      "Question Mark": 2,
+      "Dog": 3,
+      "Unclassified": 0
+    },
+    "provisional": {
+      "Star": 2,
+      "Cash Cow": 6,
+      "Question Mark": 2,
+      "Dog": 2,
+      "Unclassified": 0
+    },
+    "high_reliability_with_1plus_days_overdue": 0,
+    "high_reliability_with_2plus_days_overdue": 0,
+    "near80": 3,
+    "history_checks": [
+      {
+        "asof": "2026-09-03",
+        "high": {
+          "n": 12,
+          "rate": 0.8985615079365079
+        },
+        "low": {
+          "n": 2,
+          "rate": 0.42857142857142855
+        }
+      },
+      {
+        "asof": "2026-09-10",
+        "high": {
+          "n": 17,
+          "rate": 0.8339480588615537
+        },
+        "low": {
+          "n": 3,
+          "rate": 0.2857142857142857
+        }
+      },
+      {
+        "asof": "2026-09-17",
+        "high": {
+          "n": 16,
+          "rate": 0.6700206043956044
+        },
+        "low": {
+          "n": 4,
+          "rate": 0.39285714285714285
+        }
+      }
+    ]
+  },
+  "B_mean_delay_same_weights": {
+    "weights": [
+      0.45,
+      0.2,
+      0.2,
+      0.15
+    ],
+    "counts": {
+      "Star": 5,
+      "Cash Cow": 11,
+      "Question Mark": 3,
+      "Dog": 3,
+      "Unclassified": 0
+    },
+    "established": {
+      "Star": 2,
+      "Cash Cow": 4,
+      "Question Mark": 2,
+      "Dog": 2,
+      "Unclassified": 0
+    },
+    "provisional": {
+      "Star": 3,
+      "Cash Cow": 7,
+      "Question Mark": 1,
+      "Dog": 1,
+      "Unclassified": 0
+    },
+    "high_reliability_with_1plus_days_overdue": 1,
+    "high_reliability_with_2plus_days_overdue": 1,
+    "near80": 4,
+    "history_checks": [
+      {
+        "asof": "2026-09-03",
+        "high": {
+          "n": 13,
+          "rate": 0.8294413919413919
+        },
+        "low": {
+          "n": 1,
+          "rate": 0.8571428571428571
+        }
+      },
+      {
+        "asof": "2026-09-10",
+        "high": {
+          "n": 17,
+          "rate": 0.8339480588615537
+        },
+        "low": {
+          "n": 3,
+          "rate": 0.2857142857142857
+        }
+      },
+      {
+        "asof": "2026-09-17",
+        "high": {
+          "n": 16,
+          "rate": 0.6700206043956044
+        },
+        "low": {
+          "n": 4,
+          "rate": 0.39285714285714285
+        }
+      }
+    ]
+  },
+  "C_recent50_history20_delay15_current15": {
+    "weights": [
+      0.5,
+      0.2,
+      0.15,
+      0.15
+    ],
+    "counts": {
+      "Star": 5,
+      "Cash Cow": 10,
+      "Question Mark": 3,
+      "Dog": 4,
+      "Unclassified": 0
+    },
+    "established": {
+      "Star": 2,
+      "Cash Cow": 4,
+      "Question Mark": 2,
+      "Dog": 2,
+      "Unclassified": 0
+    },
+    "provisional": {
+      "Star": 3,
+      "Cash Cow": 6,
+      "Question Mark": 1,
+      "Dog": 2,
+      "Unclassified": 0
+    },
+    "high_reliability_with_1plus_days_overdue": 1,
+    "high_reliability_with_2plus_days_overdue": 1,
+    "near80": 4,
+    "history_checks": [
+      {
+        "asof": "2026-09-03",
+        "high": {
+          "n": 13,
+          "rate": 0.8294413919413919
+        },
+        "low": {
+          "n": 1,
+          "rate": 0.8571428571428571
+        }
+      },
+      {
+        "asof": "2026-09-10",
+        "high": {
+          "n": 17,
+          "rate": 0.8339480588615537
+        },
+        "low": {
+          "n": 3,
+          "rate": 0.2857142857142857
+        }
+      },
+      {
+        "asof": "2026-09-17",
+        "high": {
+          "n": 16,
+          "rate": 0.6700206043956044
+        },
+        "low": {
+          "n": 4,
+          "rate": 0.39285714285714285
+        }
+      }
+    ]
+  },
+  "D_recent45_history15_delay15_current25": {
+    "weights": [
+      0.45,
+      0.15,
+      0.15,
+      0.25
+    ],
+    "counts": {
+      "Star": 5,
+      "Cash Cow": 10,
+      "Question Mark": 3,
+      "Dog": 4,
+      "Unclassified": 0
+    },
+    "established": {
+      "Star": 2,
+      "Cash Cow": 3,
+      "Question Mark": 2,
+      "Dog": 3,
+      "Unclassified": 0
+    },
+    "provisional": {
+      "Star": 3,
+      "Cash Cow": 7,
+      "Question Mark": 1,
+      "Dog": 1,
+      "Unclassified": 0
+    },
+    "high_reliability_with_1plus_days_overdue": 0,
+    "high_reliability_with_2plus_days_overdue": 0,
+    "near80": 3,
+    "history_checks": [
+      {
+        "asof": "2026-09-03",
+        "high": {
+          "n": 12,
+          "rate": 0.8985615079365079
+        },
+        "low": {
+          "n": 2,
+          "rate": 0.42857142857142855
+        }
+      },
+      {
+        "asof": "2026-09-10",
+        "high": {
+          "n": 17,
+          "rate": 0.8339480588615537
+        },
+        "low": {
+          "n": 3,
+          "rate": 0.2857142857142857
+        }
+      },
+      {
+        "asof": "2026-09-17",
+        "high": {
+          "n": 15,
+          "rate": 0.7146886446886447
+        },
+        "low": {
+          "n": 5,
+          "rate": 0.3142857142857143
+        }
+      }
+    ]
+  },
+  "E_D_equal_due_day": {
+    "weights": [
+      0.45,
+      0.15,
+      0.15,
+      0.25
+    ],
+    "counts": {
+      "Star": 5,
+      "Cash Cow": 11,
+      "Question Mark": 3,
+      "Dog": 3,
+      "Unclassified": 0
+    },
+    "established": {
+      "Star": 2,
+      "Cash Cow": 4,
+      "Question Mark": 2,
+      "Dog": 2,
+      "Unclassified": 0
+    },
+    "provisional": {
+      "Star": 3,
+      "Cash Cow": 7,
+      "Question Mark": 1,
+      "Dog": 1,
+      "Unclassified": 0
+    },
+    "high_reliability_with_1plus_days_overdue": 1,
+    "high_reliability_with_2plus_days_overdue": 1,
+    "near80": 4,
+    "history_checks": [
+      {
+        "asof": "2026-09-03",
+        "high": {
+          "n": 13,
+          "rate": 0.8294413919413919
+        },
+        "low": {
+          "n": 1,
+          "rate": 0.8571428571428571
+        }
+      },
+      {
+        "asof": "2026-09-10",
+        "high": {
+          "n": 17,
+          "rate": 0.8339480588615537
+        },
+        "low": {
+          "n": 3,
+          "rate": 0.2857142857142857
+        }
+      },
+      {
+        "asof": "2026-09-17",
+        "high": {
+          "n": 15,
+          "rate": 0.7146886446886447
+        },
+        "low": {
+          "n": 5,
+          "rate": 0.3142857142857143
+        }
+      }
+    ]
+  },
+  "recommended_candidate": "D_recent45_history15_delay15_current25",
+  "recommended_sensitivity": {
+    "75": {
+      "Star": 5,
+      "Cash Cow": 11,
+      "Question Mark": 3,
+      "Dog": 3,
+      "Unclassified": 0
+    },
+    "80": {
+      "Star": 5,
+      "Cash Cow": 10,
+      "Question Mark": 3,
+      "Dog": 4,
+      "Unclassified": 0
+    },
+    "85": {
+      "Star": 4,
+      "Cash Cow": 9,
+      "Question Mark": 4,
+      "Dog": 5,
+      "Unclassified": 0
+    }
+  },
+  "recommended_changes_from_A": 2,
+  "recommended_current_moved_rows_count": 18
+}
