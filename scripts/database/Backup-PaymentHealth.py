@@ -8,11 +8,16 @@ from psycopg import sql
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--environment',choices=['development','production'],required=True)
+parser.add_argument('--release',default='r027-payment-health')
+parser.add_argument('--baseline',type=int,choices=[39,40,41],default=None)
+parser.add_argument('--candidate',choices=['reporting_borrower_payment_health_v1','reporting_borrower_matrix_v3'],default='reporting_borrower_payment_health_v1')
+parser.add_argument('--rehearse-schedule',action='store_true')
 args=parser.parse_args()
 repo=Path(__file__).resolve().parents[2]
-private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r027-payment-health')
+assert args.release in ('r027-payment-health','r028-schedule-health')
+private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project')/args.release
 private.mkdir(parents=True,exist_ok=True)
-out=repo/'outputs/r027-payment-health';out.mkdir(parents=True,exist_ok=True)
+out=repo/'outputs'/args.release;out.mkdir(parents=True,exist_ok=True)
 target=json.loads((repo/'database/environments.json').read_text())[args.environment]
 expected='loan_manager_dev' if args.environment=='development' else 'loan_manager_prod'
 assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215',expected)
@@ -32,8 +37,8 @@ with psycopg.connect(host=target['host'],port=target['port'],dbname=expected,use
     c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');c.execute("SET LOCAL timezone='UTC'")
     assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==(expected,target['host'])
     version=c.execute('SELECT max(version::integer) FROM flyway_schema_history WHERE success').fetchone()[0]
-    assert version in (39,40),'Expected reviewed V39/V40 baseline'
-    assert c.execute("SELECT to_regclass('public.reporting_borrower_payment_health_v1')").fetchone()[0] is None, 'Candidate already present'
+    assert version in ([args.baseline] if args.baseline else [39,40]),'Unexpected baseline'
+    assert c.execute('SELECT to_regclass(%s)',('public.'+args.candidate,)).fetchone()[0] is None, 'Candidate already present'
     baseline=fingerprint(c)
     snapshot=c.execute('SELECT pg_export_snapshot()').fetchone()[0]
     with (folder/'dump.stderr').open('wb') as err:
@@ -58,10 +63,23 @@ try:
         c.execute("SET LOCAL timezone='UTC'")
         assert fingerprint(c)==baseline,'Restore row fingerprints differ'
         c.rollback() # verified restore preserved; no candidate execution in backup tool
+        if args.rehearse_schedule:
+            assert args.release=='r028-schedule-health' and version==41
+            c.execute("SET LOCAL timezone='UTC'") # rollback above reset the restore session's timezone
+            migration=repo/'database/migrations/V42__automatic_schedule_categories.sql'
+            c.execute(migration.read_text(encoding='utf-8'))
+            sys.path.insert(0,str(repo/'scripts/analysis'))
+            from verify_schedule_health import verify
+            rehearsal=verify(c,out/'metabase-plan.json')
+            assert fingerprint(c)==baseline,'Rehearsal changed source rows'
+            rehearsal['financial_fingerprints_unchanged']=True
+            rehearsal['migration_sha256']=hashlib.sha256(migration.read_bytes()).hexdigest()
+            (out/'production-rehearsal.json').write_text(json.dumps(rehearsal,indent=2)+'\n')
+            c.rollback() # private restore only, candidate DDL rolled back
     evidence={'environment':args.environment,'database':expected,'instance':target['instance'],'at':stamp,
       'backup_file':str(dump),'backup_sha256':hashlib.sha256(dump.read_bytes()).hexdigest(),
       'baseline_version':version,'table_count':len(baseline),'restore_fingerprints_match':True,
-      'candidate_already_present':False,'candidate_rehearsed':False,
+      'candidate_already_present':False,'candidate_rehearsed':args.rehearse_schedule,
       'scope':'public, assessment_lab, agent_audit; instance roles/settings/cron remain external',
       'financial_values_published':False}
     (out/(args.environment+'-backup.json')).write_text(json.dumps(evidence,indent=2)+'\n')

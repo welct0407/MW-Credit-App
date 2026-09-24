@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R028 | New development after R027 capture | Open | Sole development release. | Current development release above |
+| R028 | Automatic schedule-aware SQL categories and Borrower Health Review | Open | DEV V42 and PROD restore rehearsal passed; live promotion pending. | [Evidence](../outputs/r028-schedule-health/README.md) |
 | R027 | Payment-health SQL and parallel Borrower Health Review; delivered GCP currency formatting | Released — SQL/report; review tab retained | DEV/PROD V41; tab 31 and questions 253–269; original report preserved. No App Upgrade. | [Evidence](../outputs/r027-payment-health/README.md) · tag R027 |
 | R026 | Table locale alignment, export retirement and unused pg_cron retirement | Closed at owner direction — partial deployment | V40 and template retirement verified; OLAP 1.100198 applied, OLTP unchanged. Further app work stopped; final checks incomplete. R027 remains Open. | [Closure](../outputs/r026-dictionary-fixes/closure.md) · [Log](../Change%20Logs/CHANGE_NOTES_R026_2026-09-24.md) |
 | R025 | Canonical Collection Monitor replacement | Released — report-only | 2026-09-24: canonical tab19; old tab9 removed; 6 cutover checks and Chrome passed; tag R025 | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
