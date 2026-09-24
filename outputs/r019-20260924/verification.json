@@ -1,0 +1,20 @@
+{
+  "at": "2026-09-24T06:03:30.384Z",
+  "installed": false,
+  "checks": [
+    "Unique loan/payment grains and payment-to-loan linkage",
+    "Preflight cohort attribution/filter 2026-09-01~2026-09-30",
+    "Preflight cohort attribution/filter 2026-08-31~2026-09-06",
+    "Preflight cohort attribution/filter 2026-09-02~2026-09-04",
+    "Preflight cohort attribution/filter 2026-09-01",
+    "Preflight cohort attribution/filter 2026-09-24",
+    "Preflight cohort attribution/filter 2099-01-01",
+    "Preflight cohort attribution/filter 2000-01-01",
+    "Preflight cohort attribution/filter cleared",
+    "Preflight cohort attribution/filter past30days",
+    "Synthetic exact loan attribution, unpaid denominator retained, multiple payments count principal once, outside-period/older-loan exclusion and signed correction",
+    "Zero cohort principal remains unavailable"
+  ],
+  "count": 12,
+  "source_writes": false
+}
