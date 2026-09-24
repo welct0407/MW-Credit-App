@@ -1,12 +1,14 @@
 """Read-only verification of R027 DEV health providers; sanitized evidence only."""
-import json,os,sys,time
+import argparse,json,os,sys,time
 from pathlib import Path
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
 import psycopg
 from psycopg.rows import dict_row
 repo=Path(__file__).resolve().parents[2]
-target=json.loads((repo/'database/environments.json').read_text())['development']
-assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
+parser=argparse.ArgumentParser();parser.add_argument('--environment',choices=['development','production'],default='development');args=parser.parse_args()
+environment=args.environment
+target=json.loads((repo/'database/environments.json').read_text())[environment]
+assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev' if environment=='development' else 'loan_manager_prod')
 views=['reporting_charge_payment_health_v1','reporting_borrower_payment_health_v1','reporting_borrower_matrix_v2','oltp_borrower_payment_health_v1','oltp_charge_payment_health_v1']
 with psycopg.connect(host=target['host'],dbname=target['database'],user=target['user'],password=Path(target['passwordFile']).read_text().strip(),sslmode='require',row_factory=dict_row,options='-c default_transaction_read_only=on -c statement_timeout=30000') as c:
  c.execute('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY')
@@ -36,7 +38,7 @@ with psycopg.connect(host=target['host'],dbname=target['database'],user=target['
    'columns':c.execute("select column_name,data_type,udt_name,is_nullable,ordinal_position from information_schema.columns where table_schema='public' and table_name=%s order by ordinal_position",(v,)).fetchall()})
  assert all(checks.values()),checks
  out=repo/'outputs/r027-payment-health'
- result={'identity':identity,'checks':checks,'dev_categories':categories,'rating_statuses':statuses,'dev_summary_query_ms':times,'scope':'DEV data differs from the fixed PROD simulation; no expected live category quota','financial_writes':False}
- (out/'dev-verification.json').write_text(json.dumps(result,default=str,indent=2)+'\n')
- (out/'sql-definitions.json').write_text(json.dumps(definitions,default=str,indent=2)+'\n')
+ result={'identity':identity,'checks':checks,'categories':categories,'rating_statuses':statuses,'summary_query_ms':times,'scope':environment+' current data; no expected live category quota','financial_writes':False}
+ (out/('dev-verification.json' if environment=='development' else 'production-verification.json')).write_text(json.dumps(result,default=str,indent=2)+'\n')
+ (out/('sql-definitions.json' if environment=='development' else 'production-sql-definitions.json')).write_text(json.dumps(definitions,default=str,indent=2)+'\n')
  print(json.dumps(result,default=str))

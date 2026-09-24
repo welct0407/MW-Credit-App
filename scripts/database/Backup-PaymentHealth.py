@@ -1,4 +1,4 @@
-"""Private DEV backup and restore proof for additive R027 payment health."""
+"""Private DEV/PROD backup and restore proof for additive R027 payment health."""
 import argparse, hashlib, json, os, socket, subprocess, sys
 from pathlib import Path
 from datetime import datetime, timezone
@@ -7,7 +7,7 @@ import psycopg
 from psycopg import sql
 
 parser=argparse.ArgumentParser()
-parser.add_argument('--environment',choices=['development'],required=True)
+parser.add_argument('--environment',choices=['development','production'],required=True)
 args=parser.parse_args()
 repo=Path(__file__).resolve().parents[2]
 private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r027-payment-health')

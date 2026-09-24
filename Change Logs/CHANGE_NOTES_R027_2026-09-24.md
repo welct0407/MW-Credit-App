@@ -19,3 +19,11 @@ DEV OLTP source inspection confirms database-3 and blank Borrowers security filt
 ## Resumption and durable checkpoint
 
 Owner explicitly requested completion. Browser access timed out on both existing-tab acquisition and surface inventory; no GUI mutations were possible during this resumption. Reconciled SQL model documentation, tracker, environment checkpoint, verification-tool guidance and exact five-view DEV dictionary overlays. App UI remains unfinished; no readiness, promotion or final app-version claim. Current repository baseline at this checkpoint is bd6be1375020e19bbcbb4fabd11b2b63c6cb7ebb; unrelated work is preserved. [Outstanding work and recovery](../outputs/r027-payment-health/README.md).
+
+## Owner scope correction — database and Metabase only
+
+Owner clarified that OLTP was future scope and explicitly directed removal of this task's DEV AppSheet additions, followed by DB/Metabase implementation with the existing report retained. Removed the two read-only app bindings, saved detail view and generated reverse references; the unsaved component view was absent after reopening. DEV OLTP 1.000085 has No issues found and its existing dashboard loads. No full version rollback or PROD AppSheet change occurred. SQL adapters remain dormant for possible future use.
+
+The final delivery is V41 shared SQL plus a new parallel Borrower Health Review Metabase tab, not an AppSheet feature or canonical-tab cutover. Owner's instruction to implement the database/report and continue supplies scope for this additive delivery. Fresh PROD V40 backup was privately restored with all 26 fingerprints matching. Affected source-table schemas, reporting-date function and borrower-name provider match tested DEV; all 17 proposed report queries pass DEV preflight. Existing reports continue using their existing providers.
+
+R027 also includes the already-delivered independent GCP cost currency-format correction recorded in CHANGE_NOTES_GCP_COST_FORMAT_2026-09-24.md; its saved rendering evidence is reused without reapplying it.

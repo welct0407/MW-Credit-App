@@ -1,0 +1,94 @@
+{
+  "dependency_schema_matches": true,
+  "dependency_sha256": "59f768ebd9cec65f2387a14f16a727a1230b123fe57aaee61575ef4f93f40c47",
+  "dev_report_checks": [
+    {
+      "key": "active",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "key": "overdue",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "key": "provisional",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "key": "unclassified",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "key": "freshness",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "key": "cow-count",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "key": "cow",
+      "rows": 2,
+      "passed": true
+    },
+    {
+      "key": "star-count",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "key": "star",
+      "rows": 2,
+      "passed": true
+    },
+    {
+      "key": "dog-count",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "key": "dog",
+      "rows": 12,
+      "passed": true
+    },
+    {
+      "key": "question-count",
+      "rows": 1,
+      "passed": true
+    },
+    {
+      "key": "question",
+      "rows": 6,
+      "passed": true
+    },
+    {
+      "key": "scatter",
+      "rows": 22,
+      "passed": true
+    },
+    {
+      "key": "health",
+      "rows": 31,
+      "passed": true
+    },
+    {
+      "key": "components",
+      "rows": 22,
+      "passed": true
+    },
+    {
+      "key": "review",
+      "rows": 3,
+      "passed": true
+    }
+  ],
+  "dev_version": 41,
+  "prod_before_version": 40,
+  "writes": false
+}
