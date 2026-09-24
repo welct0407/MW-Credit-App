@@ -234,7 +234,12 @@ foreach($p in @($perf.panels|Where-Object id -in @(54,55))){
     $p.description='Current official OpenAI product status. Hover the light for active incident details and Singapore update/check time; click for the official incident/status page. Provider-wide status, not an account or quota test. Unknown means the current response is unavailable or unrecognized.'
     $p.transformations=@(@{id='rowsToFields';options=@{mappings=@(@{fieldName='Details';handlerKey='field.name'},@{fieldName='Status';handlerKey='field.value'})}})
 }
-$perf.panels=@($perf.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
+ $polling=$perf.panels|Where-Object id -eq 63
+ $polling.targets=@((New-PollingTimingQuery))
+ $polling.transformations=@(@{id='rowsToFields';options=@{mappings=@(@{fieldName='Details';handlerKey='field.name'},@{fieldName='Status';handlerKey='field.value'})}})
+ $polling.fieldConfig.defaults.links=@(@{title='${__field.name}';url='/d/mw-resource-performance';targetBlank=$false})
+ $polling.description='Instagram group-chat scan. Hover for last scan completion and observed worker state in Singapore time. Runs five minutes after completion; downstream Receipts is a separate worker. Timing updates about every two minutes; Unknown after six minutes without telemetry.'
+ $perf.panels=@($perf.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 
 $cost=New-Dashboard 'mw-resource-cost' 'MW Resources · Cost' 'now/M' '1h'
 Add-Text $cost 1 'Cloud spending' '**Azure USD · GCP SGD · Railway USD** | Azure/GCP: selected dates. Railway: current billing cycle. Costs are delayed and provisional. Refresh hourly; frequent manual refreshes can reach provider limits.' 0 3

@@ -2617,11 +2617,21 @@
       "type": "stat",
       "targets": [
         {
-          "parser": "jq-backend",
-          "refId": "A",
+          "format": "table",
+          "columns": [
+            {
+              "text": "Details",
+              "selector": "details",
+              "type": "string"
+            },
+            {
+              "text": "Status",
+              "selector": "status",
+              "type": "number"
+            }
+          ],
           "type": "json",
-          "source": "url",
-          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fhealth%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22polling%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "refId": "A",
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
             "uid": "mw-gcp-monitoring"
@@ -2629,21 +2639,11 @@
           "url_options": {
             "method": "GET"
           },
-          "root_selector": "[.timeSeries[]?.points[]?] | sort_by(.interval.endTime) | last as $p | {time:($p.interval.endTime // (now|todateiso8601)),value:(if $p == null or (now-($p.interval.endTime|sub(\"\\\\.[0-9]+Z$\";\"Z\")|fromdateiso8601)) > 360 then 4 else ($p.value.int64Value|tonumber) end)}",
-          "format": "timeseries",
-          "columns": [
-            {
-              "text": "Time",
-              "selector": "time",
-              "type": "timestamp"
-            },
-            {
-              "text": "Status",
-              "selector": "value",
-              "type": "number"
-            }
-          ],
-          "hide": false
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22polling%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "parser": "jq-backend",
+          "hide": false,
+          "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .nextPageToken then error(\"Worker timing response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field, point:(.points | sort_by(.interval.endTime) | last)}] as $rows |\n ($rows | map(select(.field == \"status\")) | first | .point) as $p |\n ($p != null and (now - ($p.interval.endTime | stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value | tonumber) else 4 end) as $status |\n ([$rows[] | select(.point.interval.endTime == $p.interval.endTime) | {key:.field,value:(.point.value.int64Value | tonumber)}] | from_entries) as $v |\n {status:$status,\n  details:(\"IG polling — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nLast scan completion: \" + (if $fresh and ($v.last_completion // 0) > 0 then ($v.last_completion | sgt) else \"Unavailable\" end) +\n    \"\\nWorker: \" + (if $fresh and $v.running == 1 then \"Running\" elif $fresh and $v.running == 0 then \"Idle\" else \"Not observed\" end) +\n    \"\\nSchedule: 5 minutes after the previous run finishes (plus timer scheduling delay).\" +\n    \"\\nCompletion includes scans with no new images; it does not mean a payment was posted.\" +\n    \"\\nObserved: \" + (if $p != null then ($p.interval.endTime | stamp | sgt) else \"Unavailable\" end) +\n    (if $fresh then \"\\nTiming telemetry updates about every 2 minutes.\" else \"\\nTelemetry missing or older than 6 minutes; refresh for current status.\" end))}\nend\n",
+          "source": "url"
         }
       ],
       "options": {
@@ -2681,7 +2681,7 @@
         "uid": "mw-gcp-monitoring"
       },
       "id": 63,
-      "description": "Instagram API reader timer, last completion/result and maximum run time. Checked on Debian every two minutes; UNKNOWN after six minutes without fresh telemetry.",
+      "description": "Instagram group-chat scan. Hover for last scan completion and observed worker state in Singapore time. Runs five minutes after completion; downstream Receipts is a separate worker. Timing updates about every two minutes; Unknown after six minutes without telemetry.",
       "fieldConfig": {
         "defaults": {
           "unit": "none",
@@ -2735,10 +2735,34 @@
             "mode": "thresholds"
           },
           "displayName": "📷 IG polling",
-          "noValue": "⚪"
+          "noValue": "⚪",
+          "links": [
+            {
+              "title": "${__field.name}",
+              "url": "/d/mw-resource-performance",
+              "targetBlank": false
+            }
+          ]
         },
         "overrides": []
-      }
+      },
+      "transformations": [
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "Details",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "Status",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "title": "",

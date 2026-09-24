@@ -8,6 +8,11 @@ health=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(health)
 
 class TimerHealthTests(unittest.TestCase):
+    def test_completion_timestamp_uses_monotonic_age(self):
+        self.assertEqual(health.completion_epoch({'ExecMainExitTimestampMonotonic':'950000000'},1000,1800000000),1799999950)
+    def test_missing_or_future_completion_is_unavailable(self):
+        self.assertEqual(health.completion_epoch({},1000,1800000000),0)
+        self.assertEqual(health.completion_epoch({'ExecMainExitTimestampMonotonic':'2000000000'},1000,1800000000),0)
     def test_group_cannot_hide_failed_member(self):
         self.assertEqual(health.combine([0,1]),0)
         self.assertEqual(health.combine([1,4]),4)

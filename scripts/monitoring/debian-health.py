@@ -1,4 +1,4 @@
-"""Read-only Debian checks; export only numeric health to existing GCP Monitoring.
+"""Read-only Debian checks; export numeric health and worker timing to GCP Monitoring.
 
 0 DOWN, 1 UP, 2 DEGRADED, 3 PAUSED, 4 UNKNOWN. No business jobs are invoked.
 Installed separately from the integration-agent package; uses its existing config.
@@ -14,6 +14,15 @@ import urllib.request
 CONFIG = '/etc/mw-integration-agent/config.json'
 PROJECT = 'clever-oasis-508610-n7'
 METRIC = 'custom.googleapis.com/mw_resource_monitoring/health'
+WORKER_METRIC = 'custom.googleapis.com/mw_resource_monitoring/worker_timing'
+
+
+def completion_epoch(service, monotonic_now, epoch_now):
+    """Last process exit in this boot, not a receipt's business completion time."""
+    ended = int(service.get('ExecMainExitTimestampMonotonic', '0')) / 1e6
+    if not ended or ended > monotonic_now:
+        return 0
+    return int(epoch_now - (monotonic_now - ended))
 
 
 def run(args, timeout=15, env=None):
@@ -77,7 +86,14 @@ def main():
     check('conversations', lambda: job('mw-partner-conversation', 180, 1260)
           if config.get('partner_conversations_enabled') else 3)
     check('receipts', lambda: job('mw-receipt-summary', 180, 1260) if config.get('receipt_summary_enabled') else 3)
-    check('polling', lambda: job('mw-conversation-poll', 600, 600) if config.get('conversation_poll_enabled') else 3)
+    polling_timing = {'last_completion': 0, 'running': -1}
+    def polling():
+        service = properties('mw-conversation-poll.service')
+        timer = properties('mw-conversation-poll.timer')
+        polling_timing['last_completion'] = completion_epoch(service, time.monotonic(), time.time())
+        polling_timing['running'] = int(service.get('ActiveState') in ('active', 'activating'))
+        return timer_status(service, timer, uptime, now, 600, 600)
+    check('polling', lambda: polling() if config.get('conversation_poll_enabled') else 3)
     check('audit_relay', lambda: job('mw-audit-relay', 180, 180))
     check('daily_jobs', lambda: combine([job('mw-cash-statement', 90000, 3600),
                                      job('mw-cash-statement-email-retry', 600, 600)])
@@ -139,6 +155,11 @@ def main():
                'labels': {'project_id': PROJECT, 'instance_id': instance, 'zone': 'asia-southeast1-a'}},
                'metricKind': 'GAUGE', 'valueType': 'INT64',
                'points': [{'interval': {'endTime': timestamp}, 'value': {'int64Value': str(v)}}]} for k,v in result.items()]
+    # Separate numeric metric avoids timestamp-valued labels and preserves alert identities.
+    for field, value in dict(polling_timing, status=result['polling']).items():
+        series.append({'metric': {'type': WORKER_METRIC, 'labels': {'component': 'polling', 'field': field}},
+                       'resource': series[0]['resource'], 'metricKind': 'GAUGE', 'valueType': 'INT64',
+                       'points': [{'interval': {'endTime': timestamp}, 'value': {'int64Value': str(value)}}]})
     req = urllib.request.Request(f'https://monitoring.googleapis.com/v3/projects/{PROJECT}/timeSeries',
           data=json.dumps({'timeSeries': series}).encode(), method='POST',
           headers={'Authorization': 'Bearer '+token, 'Content-Type': 'application/json'})

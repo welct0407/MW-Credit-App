@@ -38,6 +38,11 @@ function New-WebhookHealthQuery {
     $selector='[.timeSeries[]? | .points | sort_by(.interval.endTime) | last | select(. != null) | select((now-(.interval.endTime|sub("\\.[0-9]+Z$";"Z")|fromdateiso8601)) < 720)] as $p | {time:(now|todateiso8601),value:(if ($p|length) < 3 then 4 elif all($p[];.value.boolValue == true) then 1 elif all($p[];.value.boolValue == false) then 0 else 2 end)}'
     New-InfinityQuery 'mw-gcp-monitoring' $url $selector @((Column 'Time' 'timestamp' 'time'),(Column 'Status' 'number' 'value'))
 }
+function New-PollingTimingQuery {
+    $filter=[uri]::EscapeDataString('metric.type = "custom.googleapis.com/mw_resource_monitoring/worker_timing" AND resource.labels.instance_id = "8223265527494214160" AND metric.labels.component = "polling"')
+    $url='https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter='+$filter+'&interval.startTime='+$TimeFrom+'&interval.endTime='+$TimeTo+'&pageSize=100000'
+    New-InfinityQuery 'mw-gcp-monitoring' $url (Get-Content "$PSScriptRoot/worker-timing.jq" -Raw) @((Column 'Details' 'string' 'details'),(Column 'Status' 'number' 'status')) 'table'
+}
 function New-OpenAiHealthQuery([string]$Product) {
     if($Product -notin @('chatgpt','codex')) { throw 'Unknown OpenAI product' }
     $selector=(Get-Content "$PSScriptRoot/openai-status.jq" -Raw)+' | select(.component == "'+$Product+'")'
