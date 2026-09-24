@@ -1639,6 +1639,74 @@
       },
       "description": "R025 / 8R Collection Monitor. Any positive count requires investigation; full detail retains unexpected statuses. Do not treat unknown statuses as paid.",
       "id": 251
+    },
+    {
+      "key": "today-charge-paid",
+      "name": "Today's charges · paid %",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__73",
+          "expressions": {
+            "Paid percentage": [
+              "case",
+              [
+                [
+                  [
+                    ">",
+                    [
+                      "field",
+                      "Amount Due Today",
+                      {
+                        "base-type": "type/Decimal"
+                      }
+                    ],
+                    0
+                  ],
+                  [
+                    "/",
+                    [
+                      "field",
+                      "Amount Collected Today",
+                      {
+                        "base-type": "type/Decimal"
+                      }
+                    ],
+                    [
+                      "field",
+                      "Amount Due Today",
+                      {
+                        "base-type": "type/Decimal"
+                      }
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          },
+          "fields": [
+            [
+              "expression",
+              "Paid percentage"
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Paid percentage",
+        "column_settings": {
+          "[\"name\",\"Paid percentage\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Total Paid against charges dated Bangkok today / amount due on those charges. Zero due => unavailable percentage.",
+      "id": 252
     }
   ],
   "parameters": [
@@ -1743,9 +1811,9 @@
     },
     {
       "id": 631,
-      "card_id": 236,
+      "card_id": 252,
       "dashboard_tab_id": 19,
-      "col": 0,
+      "col": 18,
       "row": 4,
       "size_x": 6,
       "size_y": 2,
@@ -1757,7 +1825,7 @@
       "id": 632,
       "card_id": 237,
       "dashboard_tab_id": 19,
-      "col": 6,
+      "col": 0,
       "row": 4,
       "size_x": 6,
       "size_y": 2,
@@ -1769,7 +1837,7 @@
       "id": 633,
       "card_id": 238,
       "dashboard_tab_id": 19,
-      "col": 12,
+      "col": 6,
       "row": 4,
       "size_x": 6,
       "size_y": 2,
@@ -1781,7 +1849,7 @@
       "id": 634,
       "card_id": 239,
       "dashboard_tab_id": 19,
-      "col": 18,
+      "col": 12,
       "row": 4,
       "size_x": 6,
       "size_y": 2,

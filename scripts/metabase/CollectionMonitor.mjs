@@ -49,6 +49,7 @@ add('detail','Collection detail · filters above affect only this table','table'
 add('today-charges','Charges dated today · separate from board balances','table',query(73,{expressions:{'Paid percentage':['case',[[['>',F('Amount Due Today'),0],['/',F('Amount Collected Today'),F('Amount Due Today')]]]]},fields:[F('Amount Due Today'),F('Amount Collected Today'),F('Amount Outstanding Today'),E('Paid percentage')]}),{
  'table.pivot':false,...fmt(['Amount Due Today','Amount Collected Today','Amount Outstanding Today'],{'["name","Paid percentage"]':{...number,number_style:'percent',decimals:1},'["name","Amount Due Today"]':{...number,column_title:'Due'},'["name","Amount Collected Today"]':{...number,column_title:'Paid against these charges'},'["name","Amount Outstanding Today"]':{...number,column_title:'Remaining'}})
 },'Charges dated Bangkok today only; paid is Total Paid against those charges. Not receipts posted today across all charge dates. Zero due => unavailable percentage.');
+add('today-charge-paid',"Today's charges · paid %",'scalar',query(73,{expressions:specs.find(s=>s.key==='today-charges').dataset_query.query.expressions,fields:[E('Paid percentage')]}),{'scalar.field':'Paid percentage',column_settings:{'["name","Paid percentage"]':{...number,number_style:'percent',decimals:1}}},'Total Paid against charges dated Bangkok today / amount due on those charges. Zero due => unavailable percentage.');
 add('freshness','Bangkok date & query time','table',query(73,{expressions:{'Queried at':['now']},fields:[F('As Of Date','type/Date'),E('Queried at')]}),{'table.pivot':false,'table.cell_column_widths':[130,230],column_settings:{'["name","As Of Date"]':{column_title:'Bangkok date',date_style:'D/M/YYYY'},'["name","Queried at"]':{date_style:'D/M/YYYY',time_enabled:'minutes',time_style:'HH:mm'}}},'Time this helper query ran; not proof every card succeeded. Unsynced AppSheet payments are not visible. Native errors remain visible.');
 add('unclassified','Unclassified people · expected 0','scalar',query(77,{filter:['not',['=',T('Daily Collection Status'),...lanes.map(l=>l.status)]],aggregation:[named(['distinct',T('Borrower ID')],'Unclassified')]}),{'scalar.field':'Unclassified',...fmt(['Unclassified'])},'Any positive count requires investigation; full detail retains unexpected statuses. Do not treat unknown statuses as paid.');
 export const shape=cards=>cards.map(c=>Object.fromEntries(['id','card_id','dashboard_tab_id','col','row','size_x','size_y','series','parameter_mappings','visualization_settings'].map(k=>[k,c[k]]))).sort((a,b)=>a.id-b.id);
@@ -65,7 +66,7 @@ export function layout(state){
  note('Collection Monitor · Bangkok today',0);
  note('Received = receipts today · Left includes older dues. Refresh every minute using the clock. Detail filters do not hide people above.',1,3,0,12);
  place('freshness',12,1,12,3);
- ['people','receipts','remaining','completion'].forEach((k,i)=>place(k,i*6,4,6,2));
+ ['receipts','remaining','completion','today-charge-paid'].forEach((k,i)=>place(k,i*6,4,6,2));
  lanes.forEach((l,i)=>{place(`${l.key}-count`,i*6,6,6,2);place(`${l.key}-list`,i*6,8,6,9);});
  note('Zero people = empty group. A payment today can still leave a borrower Overdue. People can move groups after refresh.',17,2);
  note('Collection detail · filters apply here only',19);

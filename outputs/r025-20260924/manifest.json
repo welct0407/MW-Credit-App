@@ -1,6 +1,6 @@
 {
   "release": "R025",
-  "status": "Open — additive review implemented; owner acceptance/cutover pending",
+  "status": "Open \u00e2\u20ac\u201d additive review implemented; owner acceptance/cutover pending",
   "scope": "8R Collection Monitor only",
   "authorization": "Owner: ok, go ahead with implementation of 8R",
   "baselineCommit": "f4b8ffd86a73667b0d30c429a7b6d85da6151a5b",
@@ -24,7 +24,8 @@
       "detail": 248,
       "today-charges": 249,
       "freshness": 250,
-      "unclassified": 251
+      "unclassified": 251,
+      "today-charge-paid": 252
     },
     "originalPlacements": 189,
     "finalPlacements": 210
@@ -42,5 +43,6 @@
   "finalCutover": false,
   "scopeFrozen": false,
   "nextNumberAllocated": false,
-  "finalReleaseTag": null
+  "finalReleaseTag": null,
+  "topRowRefinement": "outputs/r025-20260924/top-card-refinement.json"
 }

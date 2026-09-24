@@ -2,7 +2,7 @@
 
 ## R025 — Collection Monitor review
 
-Dashboard 3 now includes **8R · Collection Monitor** (tab 19), directly after original **8 · Daily Collection** (9). **12 tabs / 210 placements**; all 189 original placements preserved. Sixteen isolated query-builder questions provide four colored status lanes, summary/freshness cards and separately filtered detail. Shared models, source/permissions, database/AppSheet and jobs unchanged. R025 remains Open for owner review; original tab retained and final cutover deferred. [Implementation and limitations](../outputs/r025-20260924/README.md).
+Dashboard 3 now includes **8R · Collection Monitor** (tab 19), directly after original **8 · Daily Collection** (9). **12 tabs / 210 placements**; all 189 original placements preserved. Seventeen isolated questions are retained (sixteen displayed); the top row now ends with today’s charges paid %. They provide four colored status lanes, summary/freshness cards and separately filtered detail. Shared models, source/permissions, database/AppSheet and jobs unchanged. R025 remains Open for owner review; original tab retained and final cutover deferred. [Implementation and limitations](../outputs/r025-20260924/README.md).
 
 R024 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings are unchanged. [Evidence](../outputs/r024-20260924/README.md).
 

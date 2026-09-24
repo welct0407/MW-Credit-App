@@ -4006,6 +4006,7 @@
       "today-charges": 249
       "freshness": 250
       "unclassified": 251
+      "today-charge-paid": 252
     "parameters":
     - "collection-detail-borrower"
     - "collection-detail-status"
@@ -4013,6 +4014,12 @@
     "evidence": "outputs/r025-20260924/README.md"
     "refresh": "Native viewer option: 60 seconds; active-tab clock observed"
     "database_changes": false
+    "top_row":
+    - 237
+    - 238
+    - 239
+    - 252
+    "people_question_placement": "Removed; question 236 retained for recovery"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4043,6 +4050,6 @@
     "reason": "Canonical Performance replacement accepted by owner"
     "state": "value"
   "/content/collection_monitor":
-    "reference": "outputs/r025-20260924/README.md"
-    "reason": "R025 additive collection monitor, original collection preserved"
+    "reference": "outputs/r025-20260924/top-card-refinement.json"
+    "reason": "Owner-requested top-row charge paid percentage"
     "state": "value"

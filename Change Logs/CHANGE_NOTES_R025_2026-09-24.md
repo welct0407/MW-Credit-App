@@ -30,3 +30,7 @@ Starting commit `f4b8ffd86a73667b0d30c429a7b6d85da6151a5b`; existing unrelated d
 Rollback removes only the added review tab/placements/filters and archives exclusive questions after dependency checks. Original tab remains available. Owning dashboard dictionary, tracker, inventory, development differences, tooling guide and review design link updated with the final batch.
 
 No final cutover, successor-number allocation, release freeze or release tag. Keep R025 Open while the owner evaluates 8R. Repository publication covers the sanitized implementation artifacts, not private backups.
+
+## Owner top-row refinement — 24 September 2026
+
+Replaced the People on board placement with question 252 (Today’s charges · paid %), ordered 237 / 238 / 239 / 252. Preserved question 236 for recovery and retained the lower today-charge breakdown. Updated the maintained layout/specification, plan, dictionary and implementation notes. Six targeted API checks passed; formula matches question 249. Private dashboard snapshot captured before writes at baseline 487cada. No DB/source/filter changes. R025 remains Open; no cutover. Visual acceptance remains with owner. Evidence: `outputs/r025-20260924/top-card-refinement.json`.

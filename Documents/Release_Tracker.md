@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R025 | Additive 8R Collection Monitor; existing collection tab retained | Open — implemented for owner review; cutover deferred | 2026-09-24: tab19, 16 questions, 38 source/preservation checks; Chrome monitoring verified | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
+| R025 | Additive 8R Collection Monitor; existing collection tab retained | Open — implemented for owner review; cutover deferred | 2026-09-24: tab19; initial 38 checks plus 6 top-row refinement checks; today-charge paid % promoted to top row | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
 | R024 | Performance and Borrowers tab order | Released — report-only | 2026-09-24: tab18 fifth, tab6 sixth; saved-state and Chrome checks passed | [Evidence](../outputs/r024-20260924/README.md) · tag R024 |
 | R023 | Canonical Performance replacement | Released — report-only | 2026-09-24: tab18 promoted, tab7 removed; 4 checks and Chrome verified | [Evidence](../outputs/r023-20260924/README.md) · tag R023 |
 | R022 | Selective Performance trend labels | Released — report-only formatting | 2026-09-24: eight charts set to Some; 9 saved-state checks and Chrome visual verification | [Evidence](../outputs/r022-20260924/README.md) · tag R022 |

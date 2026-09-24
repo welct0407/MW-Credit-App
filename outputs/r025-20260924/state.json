@@ -15,7 +15,8 @@
     "detail": 248,
     "today-charges": 249,
     "freshness": 250,
-    "unclassified": 251
+    "unclassified": 251,
+    "today-charge-paid": 252
   },
   "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r025-collection-monitor",
   "baselineCommit": "f4b8ffd86a73667b0d30c429a7b6d85da6151a5b",
