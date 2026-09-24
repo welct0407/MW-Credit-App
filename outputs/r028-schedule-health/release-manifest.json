@@ -1,0 +1,30 @@
+{
+  "release": "R028",
+  "status": "Frozen \u2014 SQL/report promotion",
+  "scope": "Automatic schedule categorization; no manual interventions; Metabase tab31",
+  "frozen_at": "2026-09-24T18:28:31.026036+00:00",
+  "implementation_commit": "ab6c82a1fc4e24ca3c9c9c072a9c3954ab8a529d",
+  "pin_path": "C:/GitHub/r028-pin",
+  "sql": {
+    "before": 41,
+    "target": 42,
+    "manifest": "flyway-manifest.json"
+  },
+  "apps": {
+    "OLTP": "Unchanged",
+    "OLAP": "Unchanged"
+  },
+  "metabase": {
+    "dashboard": 3,
+    "tab": 31,
+    "backup": 5
+  },
+  "authority": "Owner 25 September: implement this change; include Gift; no manual intervention, set rule and categorize",
+  "backup": "production-backup.json",
+  "tests": [
+    "database-ci.txt",
+    "development-verification.json",
+    "production-rehearsal.json",
+    "dependency-preflight.json"
+  ]
+}

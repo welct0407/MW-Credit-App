@@ -16,3 +16,5 @@ Owner approved implementation on 25 September, explicitly included Gift, then re
 Implementation/testing in progress. R028 remains Open until authorized promotion capture. The owner's instruction covers the presented DB/report change; no payment/charge writes or notifications are included. The superseded manual-confirmation draft was removed before any live application.
 
 DEV V42 applied/validated. Full SQL CI passed. Independent parity verified 48 supported DEV loans (two explicitly unassessed products) and all 52 PROD-restored loans. All 20 report queries pass; production rehearsal yields 4/8/5/6 with four automatically restricted borrowers. Backup restore verified all 26 source-table fingerprints. Metabase backup dashboard 5 and private question/layout before-state captured. Production publication pending.
+
+Promotion started 2026-09-24T18:28:31.026036+00:00. Frozen clean implementation pin ab6c82a; validated Flyway manifest captured. R029 opened as sole development release. Initial managed worktree path exceeded Windows filename length; no worktree remained registered, so capture used the verified short path C:/GitHub/r028-pin.
