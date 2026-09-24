@@ -1494,7 +1494,7 @@
         "overrides": [],
         "defaults": {
           "noValue": "No data",
-          "unit": "currencySGD",
+          "unit": "prefix:S$",
           "color": {
             "mode": "palette-classic"
           },
@@ -1601,7 +1601,7 @@
         "overrides": [],
         "defaults": {
           "noValue": "No data",
-          "unit": "currencySGD",
+          "unit": "prefix:S$",
           "color": {
             "mode": "palette-classic"
           },
@@ -1708,7 +1708,7 @@
         "overrides": [],
         "defaults": {
           "noValue": "No data",
-          "unit": "currencySGD",
+          "unit": "prefix:S$",
           "color": {
             "mode": "palette-classic"
           },
@@ -1825,7 +1825,7 @@
         ],
         "defaults": {
           "noValue": "No data",
-          "unit": "currencySGD",
+          "unit": "prefix:S$",
           "color": {
             "mode": "palette-classic"
           },

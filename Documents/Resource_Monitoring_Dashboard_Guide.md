@@ -203,6 +203,8 @@ Scope is provider ActualCost for **rg-mwcredit and rg-backup** in the configured
 
 The query reads the dedicated detailed billing export, restricted to project `clever-oasis-508610-n7`, and groups usage by Singapore date. **Net = Gross + Credits**, with credits normally negative.
 
+The three GCP totals and detail-table monetary values display **S$** with two decimal places, matching the top SGD summary cards. Negative credits retain their minus sign (for example, `S$-6.61`). The display format does not change the exported amounts or convert GCP's already-SGD values again.
+
 | ID | Visual | Meaning and use |
 |---|---|---|
 | 202 | GCP · before credits (SGD) | Gross usage cost before the credits included in the export. |

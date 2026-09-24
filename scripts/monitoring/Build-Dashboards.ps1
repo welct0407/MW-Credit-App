@@ -259,13 +259,13 @@ ELSE
 END IF;
 '@
 $gcpQ=New-InfinityQuery 'mw-gcp-monitoring' 'https://bigquery.googleapis.com/bigquery/v2/projects/clever-oasis-508610-n7/queries' 'if (.jobComplete != true) then error("Billing query is still running; refresh later") elif .pageToken then error("Billing result truncated; shorten time range") else .rows[]? | {Date:(if .f[0].v == null then null else ((.f[0].v|tonumber)*1000) end),Gross:(.f[1].v|if .==null then null else tonumber end),Credits:(.f[2].v|if .==null then null else tonumber end),Net:(.f[3].v|if .==null then null else tonumber end),Service:.f[4].v,Resource:.f[5].v,Currency:.f[6].v} end' @((Column 'Date' 'timestamp_epoch'),(Column 'Gross'),(Column 'Credits'),(Column 'Net'),(Column 'Service' 'string'),(Column 'Resource' 'string'),(Column 'Currency' 'string')) 'table' @{query=$gcpSql;useLegacySql=$false;location='US';timeoutMs=20000;maxResults=10000;maximumBytesBilled='100000000';useQueryCache=$true}
-$gcpRaw=Add-Chart $cost 201 'GCP · daily resource detail' $gcpQ 'currencySGD' 0 32 24 9 'table' 'Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Singapore. Restricted to the AppSheet project; query capped at 100 MB billed.'
+$gcpRaw=Add-Chart $cost 201 'GCP · daily resource detail' $gcpQ 'prefix:S$' 0 32 24 9 'table' 'Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Singapore. Restricted to the AppSheet project; query capped at 100 MB billed.'
 $gcpRaw.transformations=@(@{id='organize';options=@{indexByName=@{Service=0;Date=1;Gross=2;Credits=3;Net=4;Currency=5;Resource=6}}})
-$gcpGross=Add-Chart $cost 202 'GCP · before credits (SGD)' (Shared-Query 201) 'currencySGD' 0 25 8 4 'stat'
+$gcpGross=Add-Chart $cost 202 'GCP · before credits (SGD)' (Shared-Query 201) 'prefix:S$' 0 25 8 4 'stat'
 $gcpGross.transformations=@((NonNull-Transform 'Gross'),(Group-Transform @('Currency') @('Gross')))
-$gcpCredits=Add-Chart $cost 203 'GCP · credits (SGD)' (Shared-Query 201) 'currencySGD' 8 25 8 4 'stat'
+$gcpCredits=Add-Chart $cost 203 'GCP · credits (SGD)' (Shared-Query 201) 'prefix:S$' 8 25 8 4 'stat'
 $gcpCredits.transformations=@((NonNull-Transform 'Credits'),(Group-Transform @('Currency') @('Credits')))
-$gcpNet=Add-Chart $cost 204 'GCP · net cost (SGD)' (Shared-Query 201) 'currencySGD' 16 25 8 4 'stat'
+$gcpNet=Add-Chart $cost 204 'GCP · net cost (SGD)' (Shared-Query 201) 'prefix:S$' 16 25 8 4 'stat'
 $gcpNet.transformations=@((NonNull-Transform 'Net'),(Group-Transform @('Currency') @('Net')))
 Add-Text $cost 205 'GCP export status' 'Export enabled **22 September 2026**. Before the first delivery, totals show **No data**, not zero. Once Google delivers records, this page loads them automatically. **Net = gross + credits.**' 29 3
 Add-Row $cost 30 'Railway · workspace usage · current billing cycle' 41
@@ -295,7 +295,7 @@ $fxSource=Get-Content "$out/public-fx-source.json" -Raw|ConvertFrom-Json
 $q=New-InfinityQuery $fxSource.uid 'https://api.frankfurter.dev/v2/providers/ecb/rate/USD/SGD' 'if .base!="USD" or .quote!="SGD" or (.rate|type)!="number" or .rate<=0 then error("Invalid USD/SGD reference rate") elif (now-(.date+"T00:00:00Z"|fromdateiso8601))>604800 then error("FX reference older than seven days") else {Category:"Reported costs",FX:.rate,FXDate:.date} end' @((Column 'Category' 'string'),(Column 'SGD per USD' 'number' 'FX'),(Column 'FX reference date' 'string' 'FXDate')) 'table'
 $sgdQueries+=@($q)
 foreach($p in $cost.panels){$p.gridPos.y+=11}
-$stack=Add-Chart $cost 2 'Total reported cost · SGD' $sgdQueries 'currencySGD' 0 0 24 7 'barchart' 'One stacked bar: Azure and Railway USD multiplied by the latest ECB USD/SGD reference via Frankfurter; GCP uses net SGD after credits. Azure/GCP follow the date picker; Railway covers its current billing cycle. Missing GCP is not zero: the displayed bar is incomplete until all sources are available. Reference conversion is indicative, not an invoice settlement rate.'
+$stack=Add-Chart $cost 2 'Total reported cost · SGD' $sgdQueries 'prefix:S$' 0 0 24 7 'barchart' 'One stacked bar: Azure and Railway USD multiplied by the latest ECB USD/SGD reference via Frankfurter; GCP uses net SGD after credits. Azure/GCP follow the date picker; Railway covers its current billing cycle. Missing GCP is not zero: the displayed bar is incomplete until all sources are available. Reference conversion is indicative, not an invoice settlement rate.'
 $stack.datasource=@{type='mixed';uid='-- Mixed --'}
 $stack.options=@{orientation='horizontal';xField='Category';stacking='normal';showValue='always';groupWidth=0.65;barWidth=0.7;barRadius=0.08;fullHighlight=$true;tooltip=@{mode='multi';sort='desc'};legend=@{displayMode='list';placement='bottom';calcs=@('lastNotNull')}}
 $stack.fieldConfig.defaults.decimals=2
