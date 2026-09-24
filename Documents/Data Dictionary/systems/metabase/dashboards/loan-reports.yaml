@@ -3279,7 +3279,7 @@
       "card_id": 228
       "dashboard_tab_id": 18
       "col": 0
-      "row": 29
+      "row": 18
       "size_x": 24
       "size_y": 7
       "series": []
@@ -3310,7 +3310,7 @@
       "card_id": null
       "dashboard_tab_id": 18
       "col": 0
-      "row": 25
+      "row": 14
       "size_x": 24
       "size_y": 4
       "series": []
@@ -3326,7 +3326,7 @@
       "card_id": null
       "dashboard_tab_id": 18
       "col": 0
-      "row": 24
+      "row": 13
       "size_x": 24
       "size_y": 1
       "series": []
@@ -3336,12 +3336,12 @@
         "virtual_card":
           "display": "heading"
           "visualization_settings":
-            "text": "Completed-day history · stored daily snapshots"
+            "text": "Performance trends · snapshots except loan-cohort return (live)"
     - "id": 615
       "card_id": 224
       "dashboard_tab_id": 18
       "col": 12
-      "row": 48
+      "row": 37
       "size_x": 12
       "size_y": 7
       "series": []
@@ -3357,7 +3357,7 @@
       "card_id": 223
       "dashboard_tab_id": 18
       "col": 0
-      "row": 48
+      "row": 37
       "size_x": 12
       "size_y": 7
       "series": []
@@ -3388,7 +3388,7 @@
       "card_id": 227
       "dashboard_tab_id": 18
       "col": 0
-      "row": 73
+      "row": 63
       "size_x": 24
       "size_y": 9
       "series": []
@@ -3404,7 +3404,7 @@
       "card_id": null
       "dashboard_tab_id": 18
       "col": 0
-      "row": 62
+      "row": 51
       "size_x": 24
       "size_y": 2
       "series": []
@@ -3419,7 +3419,7 @@
       "card_id": 225
       "dashboard_tab_id": 18
       "col": 0
-      "row": 55
+      "row": 44
       "size_x": 12
       "size_y": 7
       "series": []
@@ -3435,7 +3435,7 @@
       "card_id": 222
       "dashboard_tab_id": 18
       "col": 0
-      "row": 40
+      "row": 29
       "size_x": 12
       "size_y": 8
       "series": []
@@ -3451,9 +3451,9 @@
     - "id": 618
       "card_id": 226
       "dashboard_tab_id": 18
-      "col": 0
-      "row": 64
-      "size_x": 24
+      "col": 12
+      "row": 53
+      "size_x": 12
       "size_y": 7
       "series": []
       "parameter_mappings":
@@ -3507,10 +3507,10 @@
     - "id": 619
       "card_id": null
       "dashboard_tab_id": 18
-      "col": 0
-      "row": 71
-      "size_x": 24
-      "size_y": 2
+      "col": 12
+      "row": 60
+      "size_x": 12
+      "size_y": 3
       "series": []
       "parameter_mappings": []
       "visualization_settings":
@@ -3603,7 +3603,7 @@
       "card_id": 231
       "dashboard_tab_id": 18
       "col": 0
-      "row": 36
+      "row": 25
       "size_x": 24
       "size_y": 4
       "series": []
@@ -3620,7 +3620,7 @@
       "card_id": 230
       "dashboard_tab_id": 18
       "col": 12
-      "row": 40
+      "row": 29
       "size_x": 12
       "size_y": 8
       "series": []
@@ -3637,7 +3637,7 @@
       "card_id": 232
       "dashboard_tab_id": 18
       "col": 12
-      "row": 55
+      "row": 44
       "size_x": 12
       "size_y": 7
       "series": []
@@ -3654,9 +3654,9 @@
       "card_id": 233
       "dashboard_tab_id": 18
       "col": 0
-      "row": 13
-      "size_x": 24
-      "size_y": 8
+      "row": 53
+      "size_x": 12
+      "size_y": 7
       "series": []
       "parameter_mappings":
       - "parameter_id": "review-performance"
@@ -3670,8 +3670,8 @@
       "card_id": null
       "dashboard_tab_id": 18
       "col": 0
-      "row": 21
-      "size_x": 24
+      "row": 60
+      "size_x": 12
       "size_y": 3
       "series": []
       "parameter_mappings": []
@@ -3750,8 +3750,8 @@
     "reason": "Document installed Metabase 6R rolling averages and preserve owner tab order/name"
     "state": "value"
   "/content/performance_review":
-    "reference": "outputs/r019-20260924/README.md"
-    "reason": "Correct weekly return to same-loan issuance cohorts and selected-period interest; move into live section"
+    "reference": "outputs/r020-20260924/README.md"
+    "reason": "Compact live cohort chart beside EOD activity; calculations unchanged"
     "state": "value"
   "/content/parameters":
     "reference": "outputs/r016-20260922/performance-redesign/IMPLEMENTATION.md"

@@ -44,3 +44,7 @@ R015 is promoted and closed: both databases have V33 internal transaction audit.
 ## Closed differences
 
 R001–R015 product differences are closed according to the [Release Tracker](Release_Tracker.md) and their dated release evidence. R012 was merged into R011 and retired. Older checkpoints and superseded rules remain in the [archive](archive/2026-09-20/Development_Changes.md), not the active backlog.
+
+## R020 — Compact 6R chart layout (released)
+
+Weekly loan-cohort return now sits beside EOD activity at half width. Notes retain source/filter distinctions; the trends heading identifies the live exception. No query, filter, DB or app changes. [Evidence](../outputs/r020-20260924/README.md).

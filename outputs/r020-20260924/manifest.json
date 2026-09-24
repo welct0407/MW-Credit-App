@@ -1,6 +1,6 @@
 {
   "release": "R020",
-  "status": "Frozen for promotion",
+  "status": "Released — report-only layout",
   "scope": "Compact 6R layout only",
   "frozen_at": "2026-09-24T07:36:18.894Z",
   "tested_commit": "321405205e765e7ddbc5e99f9eaee6518071e65c",
@@ -9,5 +9,6 @@
   "rollback": "Private r020-layout/dashboard.json",
   "apps": "Unchanged",
   "database": "Unchanged",
-  "tag": "R020"
+  "tag": "R020",
+  "verification": "verification.json; Chrome desktop visual check"
 }
