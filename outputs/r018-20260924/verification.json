@@ -1,0 +1,25 @@
+{
+  "at": "2026-09-24T05:42:27.850Z",
+  "installed": false,
+  "checks": [
+    "Bangkok timezone and Monday week setting verified",
+    "Daily input grain unique",
+    "Weekly ratio/selected-days filter 2026-09-01",
+    "Weekly ratio/selected-days filter 2026-09-01~2026-09-30",
+    "Weekly ratio/selected-days filter 2026-08-31~2026-09-06",
+    "Weekly ratio/selected-days filter 2026-09-02~2026-09-04",
+    "Weekly ratio/selected-days filter 2026-09-24",
+    "Weekly ratio/selected-days filter 2099-01-01",
+    "Weekly ratio/selected-days filter 2000-01-01",
+    "Weekly ratio/selected-days filter cleared",
+    "Synthetic weighted",
+    "Synthetic zero denominator",
+    "Synthetic missing input",
+    "Synthetic signed correction",
+    "Synthetic zero income",
+    "Synthetic above 100 percent",
+    "Screenshot examples agree with gross-interest / issued definition"
+  ],
+  "count": 17,
+  "source_writes": false
+}

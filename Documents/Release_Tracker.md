@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R018 — Open** |
 | Next number, not yet open or usable | **R019 — opens only when R018 is frozen at promotion start** |
-| Current release evidence | R018 has no feature scope allocated. [R017 freeze handoff](../outputs/r017-20260924/manifest.json) |
+| Current release evidence | [R018 weekly Loan Return](../outputs/r018-20260924/README.md) · [Checklist](../outputs/r018-20260924/promotion-checklist.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R018 | Future development; depends on prior deployed reporting | Open — no feature scope allocated | 2026-09-24T05:20:16.188Z: opened at R017 promotion start | [Handoff](../outputs/r017-20260924/manifest.json) |
+| R018 | Additional weekly Loan Return on 6R; deployed R016/R017 reporting | Open — 17 preflight checks passed | 2026-09-24: ratio of weekly sums; 100% reference; capital yield preserved | [Evidence](../outputs/r018-20260924/README.md) · [Checklist](../outputs/r018-20260924/promotion-checklist.md) |
 | R017 | Capital-yield chart on 6R; deployed R016 reporting dependencies | Released — report-only | 2026-09-24: question 232; 23 checks and desktop/mobile passed; source/apps unchanged | [Evidence](../outputs/r017-20260924/README.md) · [Checklist](../outputs/r017-20260924/promotion-checklist.md) · tag R017 |
 | R016 | Canonical cash statements, snapshots/history and Metabase migration; depends on R015 | Frozen for promotion; owner replacement decision and final R016 closure pending | 2026-09-24T04:55:21.126Z: [6R rolling averages implemented: 41 checks and desktop/mobile verified](../outputs/r016-20260922/performance-redesign/ROLLING_IMPLEMENTATION.md); [scope frozen](../outputs/r016-20260922/performance-redesign/SCOPE_FREEZE.md); DEV/PROD remain V39 | [Migration log](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md) · [Performance review](../outputs/r016-20260922/performance-redesign/IMPLEMENTATION.md) · [Cash statement contract](../outputs/r016-20260922/statement-cleanup/README.md) |
 | R015 | Internal agent transaction audit and reviewer DELETE grants; coordinated PostgreSQL agent-state migration; depends on R014 | Released — SQL and agent; apps unchanged | 2026-09-22: V33 and separate mw_agent active; reviewer DELETE and audit relay verified | [Release log](../Change%20Logs/CHANGE_NOTES_R015_2026-09-22.md) · [Report](../outputs/r015-20260922/production-report.md) · [Checklist](../outputs/r015-20260922/promotion-checklist.md) |
