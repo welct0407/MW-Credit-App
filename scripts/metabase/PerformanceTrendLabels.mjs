@@ -1,0 +1,8 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {api,assertSource} from './ReportingApi.mjs';
+const dir='outputs/r022-20260924',priv='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r022-labels';
+const ids=[222,230,223,224,225,232,233,226],patch={'graph.show_values':true,'graph.label_value_frequency':'fit'};
+const read=id=>JSON.parse(fs.readFileSync(priv+'/card-'+id+'.json'));
+const plan=ids.map(id=>({id,visualization_settings:{...read(id).visualization_settings,...patch}}));
+fs.writeFileSync(dir+'/plan.json',JSON.stringify(plan,null,2)+'\n');
+if(process.argv.includes('--labels-publish')){await assertSource();for(const p of plan){const c=await api('GET','card/'+p.id),b=read(p.id);assert.deepEqual(c.dataset_query,b.dataset_query);assert.deepEqual(c.visualization_settings,b.visualization_settings);await api('PUT','card/'+p.id,{visualization_settings:p.visualization_settings});}}
+if(process.argv.includes('--labels-verify')){const checks=[];for(const p of plan){const c=await api('GET','card/'+p.id);assert.deepEqual(c.dataset_query,read(p.id).dataset_query);assert.deepEqual(c.visualization_settings,p.visualization_settings);checks.push('Some labels saved; query and all other settings preserved: '+p.id);}const b=JSON.parse(fs.readFileSync(priv+'/dashboard.json')),d=await api('GET','dashboard/3');const shape=x=>x.dashcards.map(({card,...c})=>c).sort((a,b)=>a.id-b.id);assert.deepEqual(shape(d),shape(b));assert.deepEqual(d.parameters,b.parameters);assert.deepEqual(d.tabs,b.tabs);checks.push('Dashboard layout and filters unchanged');fs.writeFileSync(dir+'/verification.json',JSON.stringify({at:new Date().toISOString(),checks,count:checks.length},null,2)+'\n');console.log(checks.length+' checks passed');}
