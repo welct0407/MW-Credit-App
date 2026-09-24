@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R017 — Open** |
 | Next number, not yet open or usable | **R018 — opens only when R017 is frozen at promotion start** |
-| Current release evidence | R017 has no allocated feature scope yet. [R016 freeze handoff](../outputs/r016-20260922/performance-redesign/SCOPE_FREEZE.md) |
+| Current release evidence | [R017 capital yield](../outputs/r017-20260924/README.md) · [Checklist](../outputs/r017-20260924/promotion-checklist.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R017 | Future development; depends on R016 | Open — no feature scope allocated | 2026-09-24T04:55:21.126Z: opened with the R016 promotion freeze | [Handoff](../outputs/r016-20260922/performance-redesign/SCOPE_FREEZE.md) |
+| R017 | Capital-yield chart on 6R; deployed R016 reporting dependencies | Open — 12 preflight checks passed | 2026-09-24: original metric preserved; no DB/app changes | [Evidence](../outputs/r017-20260924/README.md) · [Checklist](../outputs/r017-20260924/promotion-checklist.md) |
 | R016 | Canonical cash statements, snapshots/history and Metabase migration; depends on R015 | Frozen for promotion; owner replacement decision and final R016 closure pending | 2026-09-24T04:55:21.126Z: [6R rolling averages implemented: 41 checks and desktop/mobile verified](../outputs/r016-20260922/performance-redesign/ROLLING_IMPLEMENTATION.md); [scope frozen](../outputs/r016-20260922/performance-redesign/SCOPE_FREEZE.md); DEV/PROD remain V39 | [Migration log](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md) · [Performance review](../outputs/r016-20260922/performance-redesign/IMPLEMENTATION.md) · [Cash statement contract](../outputs/r016-20260922/statement-cleanup/README.md) |
 | R015 | Internal agent transaction audit and reviewer DELETE grants; coordinated PostgreSQL agent-state migration; depends on R014 | Released — SQL and agent; apps unchanged | 2026-09-22: V33 and separate mw_agent active; reviewer DELETE and audit relay verified | [Release log](../Change%20Logs/CHANGE_NOTES_R015_2026-09-22.md) · [Report](../outputs/r015-20260922/production-report.md) · [Checklist](../outputs/r015-20260922/promotion-checklist.md) |
 | R014 | Cash Ledger account selection, account-level custody balances, Income MTD dashboard, partial settlements, borrower grouping/principal, disabled record swipes and Partner AI Reviewer routing; depends on R013 | Released | 2026-09-21: PROD V32 / OLTP 3.000245 / OLAP 1.100194; reviewer runtime installed, both editors clear | [Release log](../Change%20Logs/CHANGE_NOTES_R014_2026-09-21.md) · [Production report](../outputs/r014-20260921/production-report.md) · [checklist](../outputs/r014-20260921/promotion-checklist.md) · [manifest](../outputs/r014-20260921/release-manifest.json) |
