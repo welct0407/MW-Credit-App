@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R023 | Future development; deployed reporting dependencies | Open — no feature scope allocated | 2026-09-24T10:02:39.821Z: opened at R022 promotion start | [Handoff](../outputs/r022-20260924/manifest.json) |
-| R022 | Selective Performance trend labels | Frozen for promotion | 2026-09-24T10:02:39.821Z: pinned ad96ed7c7817b003245c4cadfc502b943c99ee33 | [Evidence](../outputs/r022-20260924/README.md) |
+| R022 | Selective Performance trend labels | Released — report-only formatting | 2026-09-24: eight charts set to Some; 9 saved-state checks and Chrome visual verification | [Evidence](../outputs/r022-20260924/README.md) · tag R022 |
 | R021 | Net Principal Deployed and Loan-Cohort Return summary cards | Released — report-only | 2026-09-24: questions 234/235; 8 installed checks and Chrome visual verification passed | [Evidence](../outputs/r021-20260924/README.md) · tag R021 |
 | R020 | Compact 6R loan-return chart layout | Released — report-only layout | 2026-09-24: half-width chart grouped beside EOD; saved-state and Chrome visual checks passed | [Evidence](../outputs/r020-20260924/README.md) · tag R020 |
 | R019 | Correct weekly Loan Return to issuance cohorts; live selected-period interest | Released — report-only correction | 2026-09-24: question 233 corrected; 15 checks and desktop/mobile passed | [Evidence](../outputs/r019-20260924/README.md) · [Checklist](../outputs/r019-20260924/promotion-checklist.md) · tag R019 |

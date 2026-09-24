@@ -7,3 +7,7 @@ Verified the setting using the installed chart editor without saving its preview
 Rollback: restore only visualization_settings from private before-images C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r022-labels/card-<id>.json; dashboard.json records baseline. Preserve subsequent edits. No DB/AppSheet/source/permission change.
 
 Exact settings: plan.json. Maintained publisher scripts/metabase/PerformanceTrendLabels.mjs. Publication verification pending.
+
+## Completion
+
+Published on all eight charts; nine saved-state preservation checks passed. Chrome desktop confirms selective labels on interest/MA7, principal, loan-count, return and EOD charts. Dictionary validated without errors; current model/design and three core release records updated. No resource-monitoring dashboard change, so its guide is unaffected. Final tag R022; R023 Open. No query or source changes, so existing financial calculation tests remain valid.

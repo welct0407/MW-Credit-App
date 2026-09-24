@@ -52,3 +52,5 @@ Weekly loan-cohort return now sits beside EOD activity at half width. Notes reta
 ## R021 — Live Performance summary metrics (released)
 
 Added questions 234 Net Principal Deployed and 235 Loan-Cohort Return to 6R, retaining the original three cards in one five-card row. Same live period filter; saved questions describe the two different attribution rules. Short dashboard labels fit the row. No other queries, database or AppSheet changes. Eight installed checks and Chrome desktop visual verification passed. [Evidence](../outputs/r021-20260924/README.md).
+
+R022: all eight 6R Performance trend charts use selective value labels (Show values on data points = on; Values to show = Some/fit). Metabase fits labels to available space; calculations, filters and layout unchanged. [Evidence](../outputs/r022-20260924/README.md).

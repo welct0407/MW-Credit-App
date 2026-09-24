@@ -1,6 +1,6 @@
 {
   "release": "R022",
-  "status": "Frozen for promotion",
+  "status": "Released — report-only formatting",
   "scope": "Selective value labels on eight Performance trend charts",
   "frozen_at": "2026-09-24T10:02:39.821Z",
   "tested_commit": "ad96ed7c7817b003245c4cadfc502b943c99ee33",
@@ -9,5 +9,6 @@
   "rollback": "Private r022-labels before-images",
   "apps": "Unchanged",
   "database": "Unchanged",
-  "tag": "R022"
+  "tag": "R022",
+  "verification": "verification.json and browser-verification.json"
 }

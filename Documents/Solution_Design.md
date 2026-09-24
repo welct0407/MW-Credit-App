@@ -76,3 +76,5 @@ Generation/asset instructions are in [scripts guide](../scripts/README.md#diagra
 V38/V39 provide bounded live statements for page 10; the current Metabase section above owns its design. The V36 providers remain compatible rollback references. No AppSheet or financial-data behavior changed.
 
 R021 summary row: five cards across on 6R. Net deployed = selected-period principal issued minus principal returned across all loans. Cohort return = selected-period interest from loans issued in that same period divided by original cohort principal, counted once; ratio of totals. Both use live models 70/71 and the shared date filter, including today when selected. Dashboard labels are shortened to fit; full saved-question names/descriptions retain definitions. [R021 evidence](../outputs/r021-20260924/README.md).
+
+R022: all eight 6R Performance trend charts use selective value labels (Show values on data points = on; Values to show = Some/fit). Metabase fits labels to available space; calculations, filters and layout unchanged. [Evidence](../outputs/r022-20260924/README.md).
