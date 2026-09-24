@@ -4,19 +4,20 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R024 — Open** |
-| Next number, not yet open or usable | **R025 — opens only when R024 is frozen at promotion start** |
-| Current release evidence | R024 has no feature scope allocated. [R023 freeze handoff](../outputs/r023-20260924/manifest.json) |
+| **Use this release for new development** | **R025 — Open** |
+| Next number, not yet open or usable | **R026 — opens only when R025 is frozen at promotion start** |
+| Current release evidence | R025 has no feature scope allocated. [R024 freeze handoff](../outputs/r024-20260924/manifest.json) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
-Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-average promotion; it is now Frozen for promotion and R024 is now the sole Open release after the subsequent authorized report promotions. Its earlier staged PROD/report deliveries retain their actual history; this policy update does not retroactively declare a scope freeze or authorize promotion. Recorded completed PROD baseline remains **R015**; R016's partial deliveries are documented in its evidence. See [numbering policy](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026) and [freeze handoff](Release_Workflow.md#release-scope-freeze-and-number-handoff).
+Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-average promotion; it is now Frozen for promotion and R025 is now the sole Open release after the subsequent authorized report promotions. Its earlier staged PROD/report deliveries retain their actual history; this policy update does not retroactively declare a scope freeze or authorize promotion. Recorded completed PROD baseline remains **R015**; R016's partial deliveries are documented in its evidence. See [numbering policy](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026) and [freeze handoff](Release_Workflow.md#release-scope-freeze-and-number-handoff).
 
 ## Release history and status
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R024 | Future development; deployed reporting dependencies | Open — no feature scope allocated | 2026-09-24T10:13:47.382Z: opened at R023 promotion start | [Handoff](../outputs/r023-20260924/manifest.json) |
+| R025 | Future development; deployed reporting dependencies | Open — no feature scope allocated | 2026-09-24T10:41:36.862Z: opened at R024 promotion start | [Handoff](../outputs/r024-20260924/manifest.json) |
+| R024 | Performance and Borrowers tab order | Frozen for promotion | 2026-09-24T10:41:36.862Z: pinned d2e9dbb1109fec40079ea8f28a4746ceef71e3a5 | [Evidence](../outputs/r024-20260924/README.md) |
 | R023 | Canonical Performance replacement | Released — report-only | 2026-09-24: tab18 promoted, tab7 removed; 4 checks and Chrome verified | [Evidence](../outputs/r023-20260924/README.md) · tag R023 |
 | R022 | Selective Performance trend labels | Released — report-only formatting | 2026-09-24: eight charts set to Some; 9 saved-state checks and Chrome visual verification | [Evidence](../outputs/r022-20260924/README.md) · tag R022 |
 | R021 | Net Principal Deployed and Loan-Cohort Return summary cards | Released — report-only | 2026-09-24: questions 234/235; 8 installed checks and Chrome visual verification passed | [Evidence](../outputs/r021-20260924/README.md) · tag R021 |
