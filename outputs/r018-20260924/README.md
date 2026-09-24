@@ -1,5 +1,7 @@
 # R018 — Weekly Loan Return on 6R
 
+**Superseded by [R019 loan-cohort correction](../r019-20260924/README.md).** The owner clarified that profit must belong to the same issued loans. This file retains the earlier period-ratio implementation as historical evidence.
+
 24 September 2026. Owner requested the screenshot's Loan Return as a weekly chart with 100% reference, and explicitly chose a separate chart preserving Daily capital yield. Implemented and verified.
 
 ## Metric and date contract

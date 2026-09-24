@@ -1,6 +1,6 @@
 {
   "release": "R019",
-  "status": "Frozen for promotion",
+  "status": "Released — report-only correction",
   "freeze_at": "2026-09-24T06:05:08.622Z",
   "tested_commit": "56a3adb5a16e77d63e4992cccdd540b41f0a2e2c",
   "scope": "Correct chart 233 to issuance-cohort return and live labeling/layout",
@@ -11,5 +11,10 @@
   "database": "unchanged; recorded V39, no migration or DB object",
   "checks": "verification.json",
   "rollback": "README.md",
-  "final_tag": null
+  "final_tag": "R019",
+  "card": 233,
+  "dashboard_placements": 205,
+  "browser": "browser-verification.json",
+  "plan": "plan.json",
+  "prior_release_note": "Supersedes R018 metric; R016 wider acceptance remains separate"
 }

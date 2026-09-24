@@ -67,7 +67,8 @@ if(process.argv.includes('--preflight')||process.argv.includes('--verify')){
  }
  save('verification',{at:new Date().toISOString(),installed:!!d,checks,count:checks.length,source_writes:false});console.log(`${checks.length} cohort-return checks passed.`);
 }
-if(process.argv.includes('--install')){
+// Unique flag avoids invoking the legacy page builder imported for its date-selection contract.
+if(process.argv.includes('--publish-cohort')){
  await assertSource();assert.ok(fs.readFileSync('Documents/Release_Tracker.md','utf8').includes('**R020 — Open**'),'Publish R019 freeze first');const d=await api('GET','dashboard/3');assert.deepEqual(d.dashcards.map(shape),before().dashcards.map(shape));assert.deepEqual(d.tabs,before().tabs);
  await api('PUT','card/233',spec);await api('PUT','dashboard/3/cards',{tabs:d.tabs,cards:layout(d)});save('state',{card:233,dashboard:3,tab:18,backup});console.log('Replaced period ratio with loan-cohort return and moved it into the live section.');
 }

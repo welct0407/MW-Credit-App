@@ -4,7 +4,11 @@ R016 established ten canonical pages, 129 visual placements, 117 distinct questi
 
 Current production baseline is R015; final R016 owner acceptance and migration-key retirement remain pending.
 
-## R018 — Weekly Loan Return on 6R
+## R019 — Loan-cohort return correction
+
+24 September current reporting checkpoint: **Weekly loan-cohort return · live** (233) replaces the R018 period ratio. It groups loans issued within the selected period by Monday issuance week, using only those loans' interest received within the same period and counting principal once per loan. Existing live models 70/71 retain Loan ID attribution; the chart includes today when selected and is placed above the snapshot section. Unpaid loans stay in the denominator; zero principal/unknown inputs remain unavailable. The 100% reference and capital-yield chart 232 are retained. Dashboard 3 has 205 placements. Other questions, source models, database/AppSheet, permissions and jobs are unchanged. [R019 corrected contract and verification](../outputs/r019-20260924/README.md).
+
+## R018 — Weekly Loan Return on 6R (superseded by R019)
 
 24 September current reporting checkpoint: 6R retains **Daily capital yield · snapshots** (232) and adds **Weekly loan return · snapshots** (233). Loan Return is selected-week gross interest ÷ principal issued, with a 100% reference, Monday weeks and completed Bangkok dates. Partial weeks use selected days; missing inputs/zero denominator stay blank. It is a period ratio, not a loan-cohort return. Dashboard 3 has 204 placements. Existing question/source definitions, database/AppSheet, permissions and refresh jobs are unchanged. [R018 verification](../outputs/r018-20260924/README.md) · [Capital-yield contract](../outputs/r017-20260924/README.md).
 

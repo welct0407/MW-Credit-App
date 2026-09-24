@@ -1,6 +1,6 @@
 # R019 — Correct Loan Return to issuance cohorts
 
-24 September 2026. Owner corrected the R018 metric: weekly return must use the loans issued in that week, and profit must be received within the selected date-filter duration. Prepared and preflight verified; publication pending.
+24 September 2026. Owner corrected the R018 metric: weekly return must use the loans issued in that week, and profit must be received within the selected date-filter duration. Implemented and verified.
 
 ## Corrected contract
 
@@ -16,8 +16,16 @@ Portfolio daily snapshots cannot recover Loan ID attribution. Use existing live 
 
 ## Verification / recovery
 
-Twelve preflight checks passed: unique loan/payment grains and reference integrity, independent per-loan attribution across month/week/partial-week/single-day/today/future/prehistory/cleared/default filters, and synthetic multi-payment, unpaid-loan, older-loan exclusion, outside-period exclusion, later-week interest attribution, signed corrections and zero principal. Actual dashboard mapping and desktop/mobile checks pending.
+Twelve preflight checks passed: unique loan/payment grains and reference integrity, independent per-loan attribution across month/week/partial-week/single-day/today/future/prehistory/cleared/default filters, and synthetic multi-payment, unpaid-loan, older-loan exclusion, outside-period exclusion, later-week interest attribution, signed corrections and zero principal. All 15 installed checks and desktop/390px Chrome verification pass.
 
 Starting commit ce407b16b747a05d99d30477e182465c52f48c73. Exact dashboard, chart 233, source model 70/71 and permissions before-images are private under C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r019-cohort-return. Rollback restores question 233 and tab-18 layout, removing the added live explanation; preserve intervening owner changes. That restores the previous period ratio, which the owner rejected, so a forward correction is preferred. No DB rollback.
 
 Dependencies: deployed R016 reporting sources and R018 chart. R016 wider acceptance remains separate.
+
+## Final installed state
+
+Question 233 keeps its identity but now selects cohort loans from model 70 and their in-period interest from model 71. The actual installed dashboard mappings reconcile to an independent per-loan oracle for all nine date selections, including today and partial weeks. All other existing questions/settings, source models and permissions are unchanged; 6R's exact layout is in plan.json. The 100% line remains visible, capital yield remains, EOD activity is full width and the snapshot section follows the explicitly live chart/note. Total placements: 205.
+
+Maintained command: node scripts/metabase/CohortLoanReturn.mjs --publish-cohort. The unique flag avoids the imported legacy page builder's --install guard; the first publication attempt stopped before any live edit. The corrected publisher and its saved result passed the full installed verification. Source data is never written.
+
+Released report-only correction, tag R019; R020 is the sole Open development release. R018 is retained as dated evidence of the rejected metric, not current truth. Wider R016 acceptance remains separate.
