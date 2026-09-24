@@ -4,126 +4,102 @@
   "component": "olap"
   "kind": "slice"
   "name": "Reporting Charges"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/olap/slices/reporting-charges.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "olap"
+      "kind": "slice"
+      "name": "Reporting Charges"
+      "scope": "recorded-production"
 "content":
   "definition":
-    "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Permission": "READ_ONLY"
-    "Filter": null
-    "Actions": "**auto**"
+    "Slice Name": "Reporting Charges"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Row ID"
+    - "Ref Loans"
+    - "Charge Date"
+    - "Interest Due"
+    - "Principal Due"
+    - "Amount Due"
+    - "Payment Date"
+    - "Payment Status TE"
+    - "Principal Paid"
+    - "Interest Paid"
+    - "Total Paid"
+    - "Principal Remaining"
+    - "Interest Remaining"
+    - "Amount Remaining"
+    - "Payment Status"
+    - "Days Late"
+    - "Historical On Time"
+    - "Historical Late"
+    - "Borrower Name"
+    - "Related Payment Allocations"
+    - "Related Payments"
+    - "Ref Collection Borrower"
+    - "Payment Request Cash Account"
+    - "Payment Request Token"
+    "Update mode": "READ_ONLY"
+    "Source Table": "Charges"
+    "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
   "members":
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 1
+  - "Ordinal": 1
     "Column": "_RowNumber"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 2
+  - "Ordinal": 2
     "Column": "Row ID"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 3
+  - "Ordinal": 3
     "Column": "Ref Loans"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 4
+  - "Ordinal": 4
     "Column": "Charge Date"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 5
+  - "Ordinal": 5
     "Column": "Interest Due"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 6
+  - "Ordinal": 6
     "Column": "Principal Due"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 7
+  - "Ordinal": 7
     "Column": "Amount Due"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 8
+  - "Ordinal": 8
     "Column": "Payment Date"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 9
+  - "Ordinal": 9
     "Column": "Payment Status TE"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 10
+  - "Ordinal": 10
     "Column": "Principal Paid"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 11
+  - "Ordinal": 11
     "Column": "Interest Paid"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 12
+  - "Ordinal": 12
     "Column": "Total Paid"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 13
+  - "Ordinal": 13
     "Column": "Principal Remaining"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 14
+  - "Ordinal": 14
     "Column": "Interest Remaining"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 15
+  - "Ordinal": 15
     "Column": "Amount Remaining"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 16
+  - "Ordinal": 16
     "Column": "Payment Status"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 17
+  - "Ordinal": 17
     "Column": "Days Late"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 18
+  - "Ordinal": 18
     "Column": "Historical On Time"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 19
+  - "Ordinal": 19
     "Column": "Historical Late"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 20
+  - "Ordinal": 20
     "Column": "Borrower Name"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 21
+  - "Ordinal": 21
     "Column": "Related Payment Allocations"
-  - "App": "OLAP"
-    "Slice": "Reporting Charges"
-    "Source table": "Charges"
-    "Ordinal": 22
+  - "Ordinal": 22
     "Column": "Related Payments"
+  - "Ordinal": 23
+    "Column": "Ref Collection Borrower"
+  - "Ordinal": 24
+    "Column": "Payment Request Cash Account"
+  - "Ordinal": 25
+    "Column": "Payment Request Token"

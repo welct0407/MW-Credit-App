@@ -1,0 +1,170 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "agent_audit.commits"
+  "scope": "development:observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/development-postgresql-observations.json"
+"content":
+  "production_identity":
+    "system": "postgresql"
+    "component": "loan_manager_prod"
+    "kind": "relation"
+    "name": "agent_audit.commits"
+    "scope": "production"
+  "target":
+    "instance": "appsheet-pg-prod-20260914"
+    "host": "34.21.174.215"
+    "port": 5432
+    "database": "loan_manager_dev"
+  "classification": "Observed ACL, column-order and environment-specific internal trigger/constraint identifiers; PROD-only\
+    \ cron metadata retained as explicit absence in DEV."
+  "changes":
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19066"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "agent_audit"
+        "relation": "commits"
+        "name": "RI_ConstraintTrigger_a_19066"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19066\" AFTER DELETE ON agent_audit.commits FROM\
+          \ agent_audit.row_changes NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19067"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "agent_audit"
+        "relation": "commits"
+        "name": "RI_ConstraintTrigger_a_19067"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19067\" AFTER UPDATE ON agent_audit.commits FROM\
+          \ agent_audit.row_changes NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19083"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "agent_audit"
+        "relation": "commits"
+        "name": "RI_ConstraintTrigger_a_19083"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19083\" AFTER DELETE ON agent_audit.commits FROM\
+          \ agent_audit.exports NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19084"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "agent_audit"
+        "relation": "commits"
+        "name": "RI_ConstraintTrigger_a_19084"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19084\" AFTER UPDATE ON agent_audit.commits FROM\
+          \ agent_audit.exports NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19176"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "agent_audit"
+        "relation": "commits"
+        "name": "RI_ConstraintTrigger_a_19176"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19176\" AFTER DELETE ON agent_audit.commits FROM\
+          \ agent_audit.row_changes NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19177"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "agent_audit"
+        "relation": "commits"
+        "name": "RI_ConstraintTrigger_a_19177"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19177\" AFTER UPDATE ON agent_audit.commits FROM\
+          \ agent_audit.row_changes NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19193"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "agent_audit"
+        "relation": "commits"
+        "name": "RI_ConstraintTrigger_a_19193"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19193\" AFTER DELETE ON agent_audit.commits FROM\
+          \ agent_audit.exports NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19194"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "agent_audit"
+        "relation": "commits"
+        "name": "RI_ConstraintTrigger_a_19194"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19194\" AFTER UPDATE ON agent_audit.commits FROM\
+          \ agent_audit.exports NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  "comparison_representation": "captured source object (before presentation into canonical YAML)"

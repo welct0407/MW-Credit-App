@@ -1,0 +1,2168 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.olap_borrowers_analytics"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "olap_borrowers_analytics"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT old_view."Row ID",
+          old_view."Borrower Name",
+          old_view."Description",
+          old_view."Creation Date",
+          old_view."Hidden Flag",
+          old_view."Communication Name",
+          old_view."Instagram Username",
+          old_view."AI Collection Enabled",
+          old_view."City",
+          old_view."Working Location",
+          old_view."Address",
+          old_view."Total Interest Earned",
+          old_view."Total Amount Loaned",
+          old_view."Total Number of Loans",
+          old_view."Total Outstanding Principal",
+          old_view."Active Loan Interest Earned",
+          old_view."Active Daily Interest",
+          old_view."Has Closed Loan",
+          old_view."Has Active Loan",
+          old_view."Ref Referrer",
+          old_view."Return on Active Principal",
+          old_view."Profit Last 30 Days",
+          old_view."Projected Interest Coverage Date",
+          old_view."Closed Loan Interest Earned",
+          old_view."Closed Loan Principle",
+          old_view."Return on Closed Loans",
+          old_view."30D Gross Principal Days",
+          old_view."30D Principal Reduction Days",
+          old_view."30D Average Outstanding Principal",
+          old_view."30D Return on Average Principal",
+          old_view."Daily Collection Status",
+          old_view."Todays Amount Due",
+          old_view."Todays Amount Collected",
+          old_view."Todays Amount Remaining",
+          old_view."Portfolio Exposure %",
+          old_view."Active Loan Count",
+          old_view."Oldest Active Loan Age",
+          old_view."Overdue Amount",
+          old_view."Overdue Charge Count",
+          old_view."Historical Charge Count",
+          old_view."On Time Charge Count",
+          old_view."Lifetime On Time Rate",
+          old_view."Recent 30D Charge Count",
+          old_view."Recent 30D On Time Count",
+          old_view."Recent 30D On Time Rate",
+          old_view."Lifetime Late Payment Count",
+          old_view."Recent 30D Late Payment Count",
+          old_view."Maximum Days Late",
+          old_view."Last Late Payment Date",
+          old_view."Largest Successful Loan",
+          old_view."Average Successful Loan Size",
+          old_view."Default Count",
+          old_view."Lifetime Default Loss",
+          old_view."Portfolio Outstanding Principal",
+          old_view."Projected Monthly Profit Contribution",
+          old_view."Matrix Active Borrower Count",
+          old_view."Matrix Equal Share Benchmark",
+          old_view."Matrix Economic Contribution",
+          old_view."Matrix Recent Reliability Score",
+          old_view."Matrix Historical Reliability Score",
+          old_view."Matrix Delay Severity Score",
+          old_view."Matrix Current Condition Score",
+          old_view."Matrix History Sufficient",
+          old_view."Matrix Stability Score",
+          old_view."Matrix Quadrant",
+          old_view."Profit Last 10 Days",
+          old_view."Matrix Scaled Economic Contribution",
+          old_view."Total Referral Rebate Earned",
+          b."Ref Preferred Receiving Cash Account",
+          b."Payment Request Cash Account",
+          b."Payment Request Token"
+         FROM ( WITH ctx AS (
+                       SELECT q.d,
+                          date_trunc('month'::text, q.d::timestamp with time zone)::date AS ms,
+                          (date_trunc('month'::text, q.d::timestamp with time zone) + '1 mon -1 days'::interval)::date AS me
+                         FROM ( SELECT olap_reporting_date() AS d) q
+                      ), lr AS (
+                       SELECT l."Ref Borrowers" AS id,
+                          count(*) FILTER (WHERE l."Loan Status" = 'ยังไม่ปิดยอด'::text) AS active,
+                          max(l."Loan Age Days") FILTER (WHERE l."Loan Status" = 'ยังไม่ปิดยอด'::text) AS oldest,
+                          GREATEST(0::numeric, max(l."Principal Amount"::numeric) FILTER (WHERE l."Loan Status" = 'ปิดยอดแล้ว'::text AND l."Defaulted" = false)) AS largest,
+                          COALESCE(avg(l."Principal Amount"::numeric) FILTER (WHERE l."Loan Status" = 'ปิดยอดแล้ว'::text AND l."Defaulted" = false), 0::numeric) AS average_success,
+                          count(*) FILTER (WHERE l."Defaulted" = true) AS defaults,
+                          COALESCE(sum(l."Default Loss Amount"::numeric) FILTER (WHERE l."Defaulted" = true), 0::numeric) AS loss,
+                          COALESCE(sum(l."30D Principal Days"), 0::numeric) AS gross_days,
+                          COALESCE(sum(l."Expected Interest This Month"), 0::numeric) AS forecast,
+                          bool_or(l."Defaulted" = true AND l."Outstanding Principal" > 0::numeric) AS current_default
+                         FROM olap_loans_analytics l
+                        GROUP BY l."Ref Borrowers"
+                      ), rr AS (
+                       SELECT l."Ref Borrowers" AS id,
+                          COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= (ctx.d - 29) AND r."Payment Date" <= ctx.d AND r."Interest Paid"::numeric > 0::numeric), 0::numeric) AS profit30,
+                          COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= (ctx.d - 10) AND r."Payment Date" < ctx.d AND r."Interest Paid"::numeric > 0::numeric), 0::numeric) AS profit10,
+                          COALESCE(sum(r."Interest Paid"::numeric) FILTER (WHERE r."Payment Date" >= ctx.ms AND r."Payment Date" <= ctx.me), 0::numeric) AS mtd,
+                          COALESCE(sum(r."30D Principal Reduction Days"), 0::numeric) AS reduction
+                         FROM olap_repayments_analytics r
+                           JOIN "Loans" l ON l."Row ID" = r."Ref Loans"
+                           CROSS JOIN ctx
+                        GROUP BY l."Ref Borrowers"
+                      ), cash AS (
+                       SELECT c."Ref Collection Borrower" AS id,
+                          COALESCE(sum(r."Amount Received"), 0::numeric) AS collected
+                         FROM olap_repayments_analytics r
+                           JOIN olap_charges_analytics c ON c."Row ID" = r."Ref Charges"
+                           CROSS JOIN ctx
+                        WHERE r."Payment Date" = ctx.d AND c."Ref Collection Borrower" IS NOT NULL
+                        GROUP BY c."Ref Collection Borrower"
+                      ), cr AS (
+                       SELECT l."Ref Borrowers" AS id,
+                          COALESCE(sum(c."Amount Remaining") FILTER (WHERE c."Charge Date" < ctx.d AND c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text), 0::numeric) AS overdue,
+                          count(*) FILTER (WHERE c."Charge Date" < ctx.d AND c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text) AS overdue_count,
+                          count(*) FILTER (WHERE c."Charge Date" < ctx.d) AS history,
+                          count(*) FILTER (WHERE c."Historical On Time") AS ontime,
+                          count(*) FILTER (WHERE c."Charge Date" >= (ctx.d - 30) AND c."Charge Date" < ctx.d) AS recent_count,
+                          count(*) FILTER (WHERE c."Charge Date" >= (ctx.d - 30) AND c."Charge Date" < ctx.d AND c."Historical On Time") AS recent_ontime,
+                          count(*) FILTER (WHERE c."Historical Late") AS late_count,
+                          count(*) FILTER (WHERE c."Charge Date" >= (ctx.d - 30) AND c."Charge Date" < ctx.d AND c."Historical Late") AS recent_late,
+                          GREATEST(0, max(c."Days Late")) AS max_late,
+                          max(c."Charge Date") FILTER (WHERE c."Days Late" > 0) AS last_late,
+                          count(*) FILTER (WHERE c."Charge Date" >= (ctx.d - 180) AND c."Charge Date" < ctx.d) AS history180,
+                          count(*) FILTER (WHERE c."Charge Date" >= (ctx.d - 180) AND c."Charge Date" < ctx.d AND c."Historical On Time") AS ontime180,
+                          count(*) FILTER (WHERE c."Charge Date" >= (ctx.d - 90) AND c."Charge Date" < ctx.d) AS history90,
+                          bool_or(l."Defaulted") FILTER (WHERE c."Charge Date" >= (ctx.d - 90) AND c."Charge Date" < ctx.d) AS default90,
+                          GREATEST(0, max(c."Days Late") FILTER (WHERE c."Charge Date" >= (ctx.d - 90) AND c."Charge Date" < ctx.d)) AS late90,
+                          GREATEST(0, max(c."Days Late") FILTER (WHERE c."Charge Date" < ctx.d AND c."Amount Remaining" > 0::numeric)) AS unpaid_late,
+                          bool_or(c."Total Paid" > 0::numeric) FILTER (WHERE c."Charge Date" = ctx.d AND c."Amount Remaining" > 0::numeric) AS partial_today,
+                          count(*) FILTER (WHERE c."Charge Date" = ctx.d AND c."Amount Remaining" > 0::numeric) AS unpaid_today,
+                          min(c."Charge Date") FILTER (WHERE c."Charge Date" < ctx.d) AS first_history,
+                          count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL) AS collection_count,
+                          count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" < ctx.d AND c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text) AS collection_overdue,
+                          count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'รอชำระ'::text) AS collection_pending,
+                          count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'ชำระบางส่วน'::text) AS collection_partial,
+                          count(*) FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Payment Status" = 'ชำระแล้ว'::text) AS collection_paid,
+                          COALESCE(sum(c."Amount Due") FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" <= ctx.d), 0::numeric) AS collection_due,
+                          COALESCE(sum(c."Amount Remaining") FILTER (WHERE c."Ref Collection Borrower" IS NOT NULL AND c."Charge Date" <= ctx.d), 0::numeric) AS collection_remaining,
+                          COALESCE(sum(c."Interest Remaining") FILTER (WHERE c."Charge Date" <= ctx.d), 0::numeric) AS interest_remaining
+                         FROM olap_charges_analytics c
+                           JOIN "Loans" l ON l."Row ID" = c."Ref Loans"
+                           CROSS JOIN ctx
+                        GROUP BY l."Ref Borrowers"
+                      ), er AS (
+                       SELECT "Business Expenses"."Ref Payee Borrower" AS id,
+                          sum("Business Expenses"."Amount"::numeric) AS rebate
+                         FROM "Business Expenses"
+                        WHERE "Business Expenses"."Source Type" = 'Referral Rebate'::text
+                        GROUP BY "Business Expenses"."Ref Payee Borrower"
+                      ), pt AS (
+                       SELECT COALESCE(sum("Loans"."Outstanding Principal"), 0::numeric) AS portfolio
+                         FROM "Loans"
+                      ), bt AS (
+                       SELECT COALESCE(sum("Borrowers"."Total Outstanding Principal"), 0::numeric) AS borrower_portfolio,
+                          count(*) FILTER (WHERE "Borrowers"."Has Active Loan" = true) AS active_borrowers
+                         FROM "Borrowers"
+                      ), a AS (
+                       SELECT b_1."Row ID",
+                          b_1."Borrower Name",
+                          b_1."Description",
+                          b_1."Creation Date",
+                          b_1."Hidden Flag",
+                          b_1."Communication Name",
+                          b_1."Instagram Username",
+                          b_1."AI Collection Enabled",
+                          b_1."City",
+                          b_1."Working Location",
+                          b_1."Address",
+                          b_1."Total Interest Earned",
+                          b_1."Total Amount Loaned",
+                          b_1."Total Number of Loans",
+                          b_1."Total Outstanding Principal",
+                          b_1."Active Loan Interest Earned",
+                          b_1."Active Daily Interest",
+                          b_1."Has Closed Loan",
+                          b_1."Has Active Loan",
+                          b_1."Ref Referrer",
+                              CASE
+                                  WHEN b_1."Total Outstanding Principal" > 0::numeric THEN b_1."Active Loan Interest Earned" / b_1."Total Outstanding Principal"
+                                  ELSE 0::numeric
+                              END AS "Return on Active Principal",
+                          COALESCE(rr.profit30, 0::numeric) AS "Profit Last 30 Days",
+                          COALESCE(rr.profit10, 0::numeric) AS "Profit Last 10 Days",
+                              CASE
+                                  WHEN b_1."Total Outstanding Principal" <= 0::numeric THEN NULL::date
+                                  WHEN b_1."Active Loan Interest Earned" >= b_1."Total Outstanding Principal" THEN ctx.d
+                                  WHEN b_1."Active Daily Interest" > 0::numeric THEN ctx.d + ceil((b_1."Total Outstanding Principal" - b_1."Active Loan Interest Earned") / b_1."Active Daily Interest")::integer
+                                  ELSE NULL::date
+                              END AS "Projected Interest Coverage Date",
+                          COALESCE(b_1."Total Interest Earned", 0::numeric) - COALESCE(b_1."Active Loan Interest Earned", 0::numeric) AS "Closed Loan Interest Earned",
+                          COALESCE(b_1."Total Amount Loaned", 0::numeric) - COALESCE(b_1."Total Outstanding Principal", 0::numeric) AS "Closed Loan Principle",
+                          COALESCE(lr.gross_days, 0::numeric) AS "30D Gross Principal Days",
+                          COALESCE(rr.reduction, 0::numeric) AS "30D Principal Reduction Days",
+                          round((COALESCE(lr.gross_days, 0::numeric) - COALESCE(rr.reduction, 0::numeric)) / 30::numeric) AS "30D Average Outstanding Principal",
+                              CASE
+                                  WHEN COALESCE(cr.collection_count, 0::bigint) = 0 THEN NULL::text
+                                  WHEN cr.collection_overdue > 0 THEN 'Overdue'::text
+                                  WHEN cr.collection_pending = 0 AND cr.collection_partial = 0 THEN 'Fully Paid'::text
+                                  WHEN cr.collection_partial > 0 OR cr.collection_paid > 0 AND cr.collection_pending > 0 THEN 'Partially Paid'::text
+                                  ELSE 'Not Paid'::text
+                              END AS "Daily Collection Status",
+                          COALESCE(cr.collection_due, 0::numeric) AS "Todays Amount Due",
+                          COALESCE(cash.collected, 0::numeric) AS "Todays Amount Collected",
+                          COALESCE(cr.collection_remaining, 0::numeric) AS "Todays Amount Remaining",
+                              CASE
+                                  WHEN bt.borrower_portfolio = 0::numeric THEN 0::numeric
+                                  ELSE COALESCE(b_1."Total Outstanding Principal", 0::numeric) / bt.borrower_portfolio
+                              END AS "Portfolio Exposure %",
+                          COALESCE(lr.active, 0::bigint) AS "Active Loan Count",
+                          COALESCE(lr.oldest, 0) AS "Oldest Active Loan Age",
+                          COALESCE(cr.overdue, 0::numeric) AS "Overdue Amount",
+                          COALESCE(cr.overdue_count, 0::bigint) AS "Overdue Charge Count",
+                          COALESCE(cr.history, 0::bigint) AS "Historical Charge Count",
+                          COALESCE(cr.ontime, 0::bigint) AS "On Time Charge Count",
+                          COALESCE(cr.recent_count, 0::bigint) AS "Recent 30D Charge Count",
+                          COALESCE(cr.recent_ontime, 0::bigint) AS "Recent 30D On Time Count",
+                          COALESCE(cr.late_count, 0::bigint) AS "Lifetime Late Payment Count",
+                          COALESCE(cr.recent_late, 0::bigint) AS "Recent 30D Late Payment Count",
+                          COALESCE(cr.max_late, 0) AS "Maximum Days Late",
+                          cr.last_late AS "Last Late Payment Date",
+                          COALESCE(lr.largest, 0::numeric) AS "Largest Successful Loan",
+                          round(COALESCE(lr.average_success, 0::numeric)) AS "Average Successful Loan Size",
+                          COALESCE(lr.defaults, 0::bigint) AS "Default Count",
+                          COALESCE(lr.loss, 0::numeric) AS "Lifetime Default Loss",
+                          pt.portfolio AS "Portfolio Outstanding Principal",
+                          COALESCE(rr.mtd, 0::numeric) + COALESCE(cr.interest_remaining, 0::numeric) + COALESCE(lr.forecast, 0::numeric) AS "Projected Monthly Profit Contribution",
+                          bt.active_borrowers AS "Matrix Active Borrower Count",
+                          1 / NULLIF(bt.active_borrowers, 0) AS "Matrix Equal Share Benchmark",
+                          cr.recent_ontime * 100 / NULLIF(cr.recent_count, 0) AS "Matrix Recent Reliability Score",
+                          cr.ontime180 * 100 / NULLIF(cr.history180, 0) AS "Matrix Historical Reliability Score",
+                              CASE
+                                  WHEN COALESCE(cr.history90, 0::bigint) = 0 THEN NULL::integer
+                                  WHEN cr.default90 THEN 0
+                                  WHEN cr.late90 = 0 THEN 100
+                                  WHEN cr.late90 <= 1 THEN 90
+                                  WHEN cr.late90 <= 3 THEN 70
+                                  WHEN cr.late90 <= 7 THEN 40
+                                  ELSE 10
+                              END AS "Matrix Delay Severity Score",
+                              CASE
+                                  WHEN lr.current_default THEN 0
+                                  WHEN cr.unpaid_late > 3 THEN 20
+                                  WHEN cr.unpaid_late >= 2 THEN 40
+                                  WHEN cr.unpaid_late >= 1 THEN 60
+                                  WHEN cr.partial_today THEN 75
+                                  WHEN cr.unpaid_today > 0 THEN 90
+                                  ELSE 100
+                              END AS "Matrix Current Condition Score",
+                          COALESCE((ctx.d - cr.first_history) >= 3, true) AS "Matrix History Sufficient",
+                          COALESCE(er.rebate, 0::numeric) AS "Total Referral Rebate Earned"
+                         FROM "Borrowers" b_1
+                           CROSS JOIN ctx
+                           CROSS JOIN pt
+                           CROSS JOIN bt
+                           LEFT JOIN lr ON lr.id = b_1."Row ID"
+                           LEFT JOIN rr ON rr.id = b_1."Row ID"
+                           LEFT JOIN cr ON cr.id = b_1."Row ID"
+                           LEFT JOIN cash ON cash.id = b_1."Row ID"
+                           LEFT JOIN er ON er.id = b_1."Row ID"
+                      ), b AS (
+                       SELECT a."Row ID",
+                          a."Borrower Name",
+                          a."Description",
+                          a."Creation Date",
+                          a."Hidden Flag",
+                          a."Communication Name",
+                          a."Instagram Username",
+                          a."AI Collection Enabled",
+                          a."City",
+                          a."Working Location",
+                          a."Address",
+                          a."Total Interest Earned",
+                          a."Total Amount Loaned",
+                          a."Total Number of Loans",
+                          a."Total Outstanding Principal",
+                          a."Active Loan Interest Earned",
+                          a."Active Daily Interest",
+                          a."Has Closed Loan",
+                          a."Has Active Loan",
+                          a."Ref Referrer",
+                          a."Return on Active Principal",
+                          a."Profit Last 30 Days",
+                          a."Profit Last 10 Days",
+                          a."Projected Interest Coverage Date",
+                          a."Closed Loan Interest Earned",
+                          a."Closed Loan Principle",
+                          a."30D Gross Principal Days",
+                          a."30D Principal Reduction Days",
+                          a."30D Average Outstanding Principal",
+                          a."Daily Collection Status",
+                          a."Todays Amount Due",
+                          a."Todays Amount Collected",
+                          a."Todays Amount Remaining",
+                          a."Portfolio Exposure %",
+                          a."Active Loan Count",
+                          a."Oldest Active Loan Age",
+                          a."Overdue Amount",
+                          a."Overdue Charge Count",
+                          a."Historical Charge Count",
+                          a."On Time Charge Count",
+                          a."Recent 30D Charge Count",
+                          a."Recent 30D On Time Count",
+                          a."Lifetime Late Payment Count",
+                          a."Recent 30D Late Payment Count",
+                          a."Maximum Days Late",
+                          a."Last Late Payment Date",
+                          a."Largest Successful Loan",
+                          a."Average Successful Loan Size",
+                          a."Default Count",
+                          a."Lifetime Default Loss",
+                          a."Portfolio Outstanding Principal",
+                          a."Projected Monthly Profit Contribution",
+                          a."Matrix Active Borrower Count",
+                          a."Matrix Equal Share Benchmark",
+                          a."Matrix Recent Reliability Score",
+                          a."Matrix Historical Reliability Score",
+                          a."Matrix Delay Severity Score",
+                          a."Matrix Current Condition Score",
+                          a."Matrix History Sufficient",
+                          a."Total Referral Rebate Earned",
+                              CASE
+                                  WHEN a."Has Closed Loan" AND a."Closed Loan Principle" > 0::numeric THEN a."Closed Loan Interest Earned" / a."Closed Loan Principle"
+                                  ELSE 0::numeric
+                              END AS "Return on Closed Loans",
+                              CASE
+                                  WHEN a."30D Average Outstanding Principal" > 0::numeric THEN a."Profit Last 30 Days" / a."30D Average Outstanding Principal"
+                                  ELSE 0::numeric
+                              END AS "30D Return on Average Principal",
+                              CASE
+                                  WHEN a."Historical Charge Count" = 0 THEN 0::bigint
+                                  ELSE a."On Time Charge Count" / a."Historical Charge Count"
+                              END AS "Lifetime On Time Rate",
+                              CASE
+                                  WHEN a."Recent 30D Charge Count" = 0 THEN 0::bigint
+                                  ELSE a."Recent 30D On Time Count" / a."Recent 30D Charge Count"
+                              END AS "Recent 30D On Time Rate",
+                              CASE
+                                  WHEN sum(a."Profit Last 10 Days") FILTER (WHERE a."Has Active Loan") OVER () > 0::numeric THEN round(a."Profit Last 10 Days" / sum(a."Profit Last 10 Days") FILTER (WHERE a."Has Active Loan") OVER (), 2)
+                                  ELSE NULL::numeric
+                              END AS "Matrix Economic Contribution",
+                          trunc(round(10::numeric * (COALESCE(a."Matrix Recent Reliability Score"::numeric * 0.45, 0::numeric) + COALESCE(a."Matrix Historical Reliability Score"::numeric * 0.20, 0::numeric) + COALESCE(a."Matrix Delay Severity Score"::numeric * 0.20, 0::numeric) + a."Matrix Current Condition Score"::numeric * 0.15) / (
+                              CASE
+                                  WHEN a."Matrix Recent Reliability Score" IS NOT NULL THEN 0.45
+                                  ELSE 0::numeric
+                              END +
+                              CASE
+                                  WHEN a."Matrix Historical Reliability Score" IS NOT NULL THEN 0.20
+                                  ELSE 0::numeric
+                              END +
+                              CASE
+                                  WHEN a."Matrix Delay Severity Score" IS NOT NULL THEN 0.20
+                                  ELSE 0::numeric
+                              END + 0.15)) / 10::numeric) AS "Matrix Stability Score"
+                         FROM a
+                      ), c AS (
+                       SELECT b_1."Row ID",
+                          b_1."Borrower Name",
+                          b_1."Description",
+                          b_1."Creation Date",
+                          b_1."Hidden Flag",
+                          b_1."Communication Name",
+                          b_1."Instagram Username",
+                          b_1."AI Collection Enabled",
+                          b_1."City",
+                          b_1."Working Location",
+                          b_1."Address",
+                          b_1."Total Interest Earned",
+                          b_1."Total Amount Loaned",
+                          b_1."Total Number of Loans",
+                          b_1."Total Outstanding Principal",
+                          b_1."Active Loan Interest Earned",
+                          b_1."Active Daily Interest",
+                          b_1."Has Closed Loan",
+                          b_1."Has Active Loan",
+                          b_1."Ref Referrer",
+                          b_1."Return on Active Principal",
+                          b_1."Profit Last 30 Days",
+                          b_1."Profit Last 10 Days",
+                          b_1."Projected Interest Coverage Date",
+                          b_1."Closed Loan Interest Earned",
+                          b_1."Closed Loan Principle",
+                          b_1."30D Gross Principal Days",
+                          b_1."30D Principal Reduction Days",
+                          b_1."30D Average Outstanding Principal",
+                          b_1."Daily Collection Status",
+                          b_1."Todays Amount Due",
+                          b_1."Todays Amount Collected",
+                          b_1."Todays Amount Remaining",
+                          b_1."Portfolio Exposure %",
+                          b_1."Active Loan Count",
+                          b_1."Oldest Active Loan Age",
+                          b_1."Overdue Amount",
+                          b_1."Overdue Charge Count",
+                          b_1."Historical Charge Count",
+                          b_1."On Time Charge Count",
+                          b_1."Recent 30D Charge Count",
+                          b_1."Recent 30D On Time Count",
+                          b_1."Lifetime Late Payment Count",
+                          b_1."Recent 30D Late Payment Count",
+                          b_1."Maximum Days Late",
+                          b_1."Last Late Payment Date",
+                          b_1."Largest Successful Loan",
+                          b_1."Average Successful Loan Size",
+                          b_1."Default Count",
+                          b_1."Lifetime Default Loss",
+                          b_1."Portfolio Outstanding Principal",
+                          b_1."Projected Monthly Profit Contribution",
+                          b_1."Matrix Active Borrower Count",
+                          b_1."Matrix Equal Share Benchmark",
+                          b_1."Matrix Recent Reliability Score",
+                          b_1."Matrix Historical Reliability Score",
+                          b_1."Matrix Delay Severity Score",
+                          b_1."Matrix Current Condition Score",
+                          b_1."Matrix History Sufficient",
+                          b_1."Total Referral Rebate Earned",
+                          b_1."Return on Closed Loans",
+                          b_1."30D Return on Average Principal",
+                          b_1."Lifetime On Time Rate",
+                          b_1."Recent 30D On Time Rate",
+                          b_1."Matrix Economic Contribution",
+                          b_1."Matrix Stability Score",
+                          LEAST(1::numeric, COALESCE(b_1."Matrix Economic Contribution", 0::numeric) * b_1."Matrix Active Borrower Count"::numeric / 2::numeric) AS "Matrix Scaled Economic Contribution"
+                         FROM b b_1
+                      ), final AS (
+                       SELECT c."Row ID",
+                          c."Borrower Name",
+                          c."Description",
+                          c."Creation Date",
+                          c."Hidden Flag",
+                          c."Communication Name",
+                          c."Instagram Username",
+                          c."AI Collection Enabled",
+                          c."City",
+                          c."Working Location",
+                          c."Address",
+                          c."Total Interest Earned",
+                          c."Total Amount Loaned",
+                          c."Total Number of Loans",
+                          c."Total Outstanding Principal",
+                          c."Active Loan Interest Earned",
+                          c."Active Daily Interest",
+                          c."Has Closed Loan",
+                          c."Has Active Loan",
+                          c."Ref Referrer",
+                          c."Return on Active Principal",
+                          c."Profit Last 30 Days",
+                          c."Profit Last 10 Days",
+                          c."Projected Interest Coverage Date",
+                          c."Closed Loan Interest Earned",
+                          c."Closed Loan Principle",
+                          c."30D Gross Principal Days",
+                          c."30D Principal Reduction Days",
+                          c."30D Average Outstanding Principal",
+                          c."Daily Collection Status",
+                          c."Todays Amount Due",
+                          c."Todays Amount Collected",
+                          c."Todays Amount Remaining",
+                          c."Portfolio Exposure %",
+                          c."Active Loan Count",
+                          c."Oldest Active Loan Age",
+                          c."Overdue Amount",
+                          c."Overdue Charge Count",
+                          c."Historical Charge Count",
+                          c."On Time Charge Count",
+                          c."Recent 30D Charge Count",
+                          c."Recent 30D On Time Count",
+                          c."Lifetime Late Payment Count",
+                          c."Recent 30D Late Payment Count",
+                          c."Maximum Days Late",
+                          c."Last Late Payment Date",
+                          c."Largest Successful Loan",
+                          c."Average Successful Loan Size",
+                          c."Default Count",
+                          c."Lifetime Default Loss",
+                          c."Portfolio Outstanding Principal",
+                          c."Projected Monthly Profit Contribution",
+                          c."Matrix Active Borrower Count",
+                          c."Matrix Equal Share Benchmark",
+                          c."Matrix Recent Reliability Score",
+                          c."Matrix Historical Reliability Score",
+                          c."Matrix Delay Severity Score",
+                          c."Matrix Current Condition Score",
+                          c."Matrix History Sufficient",
+                          c."Total Referral Rebate Earned",
+                          c."Return on Closed Loans",
+                          c."30D Return on Average Principal",
+                          c."Lifetime On Time Rate",
+                          c."Recent 30D On Time Rate",
+                          c."Matrix Economic Contribution",
+                          c."Matrix Stability Score",
+                          c."Matrix Scaled Economic Contribution",
+                              CASE
+                                  WHEN c."Has Active Loan" = false THEN NULL::text
+                                  WHEN c."Matrix Economic Contribution" IS NULL OR c."Matrix Scaled Economic Contribution" IS NULL THEN 'Unclassified'::text
+                                  WHEN c."Matrix History Sufficient" = false THEN 'Provisional - insufficient history'::text
+                                  WHEN c."Matrix Economic Contribution" >= c."Matrix Equal Share Benchmark"::numeric AND c."Matrix Scaled Economic Contribution" >= 0.5 THEN 'Star'::text
+                                  WHEN c."Matrix Economic Contribution" < c."Matrix Equal Share Benchmark"::numeric AND c."Matrix Scaled Economic Contribution" >= 0.5 THEN 'Cash Cow'::text
+                                  WHEN c."Matrix Economic Contribution" >= c."Matrix Equal Share Benchmark"::numeric AND c."Matrix Scaled Economic Contribution" < 0.5 THEN 'Question Mark'::text
+                                  ELSE 'Dog'::text
+                              END AS "Matrix Quadrant"
+                         FROM c
+                      )
+               SELECT x."Row ID",
+                  x."Borrower Name",
+                  x."Description",
+                  x."Creation Date",
+                  x."Hidden Flag",
+                  x."Communication Name",
+                  x."Instagram Username",
+                  x."AI Collection Enabled",
+                  x."City",
+                  x."Working Location",
+                  x."Address",
+                  x."Total Interest Earned",
+                  x."Total Amount Loaned",
+                  x."Total Number of Loans",
+                  x."Total Outstanding Principal",
+                  x."Active Loan Interest Earned",
+                  x."Active Daily Interest",
+                  x."Has Closed Loan",
+                  x."Has Active Loan",
+                  x."Ref Referrer",
+                  round(x."Return on Active Principal", 2) AS "Return on Active Principal",
+                  round(x."Profit Last 30 Days", 0) AS "Profit Last 30 Days",
+                  x."Projected Interest Coverage Date",
+                  round(x."Closed Loan Interest Earned", 0) AS "Closed Loan Interest Earned",
+                  round(x."Closed Loan Principle", 0) AS "Closed Loan Principle",
+                  round(x."Return on Closed Loans", 2) AS "Return on Closed Loans",
+                  round(x."30D Gross Principal Days", 0) AS "30D Gross Principal Days",
+                  round(x."30D Principal Reduction Days", 0) AS "30D Principal Reduction Days",
+                  round(x."30D Average Outstanding Principal", 0) AS "30D Average Outstanding Principal",
+                  round(x."30D Return on Average Principal", 2) AS "30D Return on Average Principal",
+                  x."Daily Collection Status",
+                  round(x."Todays Amount Due", 0) AS "Todays Amount Due",
+                  round(x."Todays Amount Collected", 0) AS "Todays Amount Collected",
+                  round(x."Todays Amount Remaining", 0) AS "Todays Amount Remaining",
+                  round(x."Portfolio Exposure %", 4) AS "Portfolio Exposure %",
+                  x."Active Loan Count",
+                  x."Oldest Active Loan Age",
+                  round(x."Overdue Amount", 0) AS "Overdue Amount",
+                  x."Overdue Charge Count",
+                  x."Historical Charge Count",
+                  x."On Time Charge Count",
+                  round(x."Lifetime On Time Rate"::numeric, 4) AS "Lifetime On Time Rate",
+                  x."Recent 30D Charge Count",
+                  x."Recent 30D On Time Count",
+                  round(x."Recent 30D On Time Rate"::numeric, 4) AS "Recent 30D On Time Rate",
+                  x."Lifetime Late Payment Count",
+                  x."Recent 30D Late Payment Count",
+                  x."Maximum Days Late",
+                  x."Last Late Payment Date",
+                  round(x."Largest Successful Loan", 2) AS "Largest Successful Loan",
+                  round(x."Average Successful Loan Size", 2) AS "Average Successful Loan Size",
+                  x."Default Count",
+                  round(x."Lifetime Default Loss", 2) AS "Lifetime Default Loss",
+                  round(x."Portfolio Outstanding Principal", 0) AS "Portfolio Outstanding Principal",
+                  round(x."Projected Monthly Profit Contribution", 0) AS "Projected Monthly Profit Contribution",
+                  x."Matrix Active Borrower Count",
+                  round(x."Matrix Equal Share Benchmark"::numeric, 4) AS "Matrix Equal Share Benchmark",
+                  round(x."Matrix Economic Contribution", 2) AS "Matrix Economic Contribution",
+                  x."Matrix Recent Reliability Score",
+                  x."Matrix Historical Reliability Score",
+                  x."Matrix Delay Severity Score",
+                  x."Matrix Current Condition Score",
+                  x."Matrix History Sufficient",
+                  x."Matrix Stability Score",
+                  x."Matrix Quadrant",
+                  round(x."Profit Last 10 Days", 0) AS "Profit Last 10 Days",
+                  round(x."Matrix Scaled Economic Contribution", 4) AS "Matrix Scaled Economic Contribution",
+                  round(x."Total Referral Rebate Earned", 0) AS "Total Referral Rebate Earned"
+                 FROM final x) old_view
+           JOIN "Borrowers" b ON b."Row ID" = old_view."Row ID";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Borrower Name":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Borrower Name"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Description":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Description"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Creation Date":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Creation Date"
+      "ordinal": 4
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Hidden Flag":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Hidden Flag"
+      "ordinal": 5
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Communication Name":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Communication Name"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Instagram Username":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Instagram Username"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "AI Collection Enabled":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "AI Collection Enabled"
+      "ordinal": 8
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "City":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "City"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Working Location":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Working Location"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Address":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Address"
+      "ordinal": 11
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Total Interest Earned":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Total Interest Earned"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Total Amount Loaned":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Total Amount Loaned"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Total Number of Loans":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Total Number of Loans"
+      "ordinal": 14
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Total Outstanding Principal":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Total Outstanding Principal"
+      "ordinal": 15
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Active Loan Interest Earned":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Active Loan Interest Earned"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Active Daily Interest":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Active Daily Interest"
+      "ordinal": 17
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Has Closed Loan":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Has Closed Loan"
+      "ordinal": 18
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Has Active Loan":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Has Active Loan"
+      "ordinal": 19
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Ref Referrer":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Ref Referrer"
+      "ordinal": 20
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Return on Active Principal":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Return on Active Principal"
+      "ordinal": 21
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Profit Last 30 Days":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Profit Last 30 Days"
+      "ordinal": 22
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Projected Interest Coverage Date":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Projected Interest Coverage Date"
+      "ordinal": 23
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Closed Loan Interest Earned":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Closed Loan Interest Earned"
+      "ordinal": 24
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Closed Loan Principle":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Closed Loan Principle"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Return on Closed Loans":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Return on Closed Loans"
+      "ordinal": 26
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "30D Gross Principal Days":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "30D Gross Principal Days"
+      "ordinal": 27
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "30D Principal Reduction Days":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "30D Principal Reduction Days"
+      "ordinal": 28
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "30D Average Outstanding Principal":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "30D Average Outstanding Principal"
+      "ordinal": 29
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "30D Return on Average Principal":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "30D Return on Average Principal"
+      "ordinal": 30
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Daily Collection Status":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Daily Collection Status"
+      "ordinal": 31
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Todays Amount Due":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Todays Amount Due"
+      "ordinal": 32
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Todays Amount Collected":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Todays Amount Collected"
+      "ordinal": 33
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Todays Amount Remaining":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Todays Amount Remaining"
+      "ordinal": 34
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Portfolio Exposure %":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Portfolio Exposure %"
+      "ordinal": 35
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Active Loan Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Active Loan Count"
+      "ordinal": 36
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Oldest Active Loan Age":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Oldest Active Loan Age"
+      "ordinal": 37
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Overdue Amount":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Overdue Amount"
+      "ordinal": 38
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Overdue Charge Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Overdue Charge Count"
+      "ordinal": 39
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Historical Charge Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Historical Charge Count"
+      "ordinal": 40
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "On Time Charge Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "On Time Charge Count"
+      "ordinal": 41
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Lifetime On Time Rate":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Lifetime On Time Rate"
+      "ordinal": 42
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Recent 30D Charge Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Recent 30D Charge Count"
+      "ordinal": 43
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recent 30D On Time Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Recent 30D On Time Count"
+      "ordinal": 44
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recent 30D On Time Rate":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Recent 30D On Time Rate"
+      "ordinal": 45
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Lifetime Late Payment Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Lifetime Late Payment Count"
+      "ordinal": 46
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Recent 30D Late Payment Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Recent 30D Late Payment Count"
+      "ordinal": 47
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Maximum Days Late":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Maximum Days Late"
+      "ordinal": 48
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Last Late Payment Date":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Last Late Payment Date"
+      "ordinal": 49
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Largest Successful Loan":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Largest Successful Loan"
+      "ordinal": 50
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Average Successful Loan Size":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Average Successful Loan Size"
+      "ordinal": 51
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Default Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Default Count"
+      "ordinal": 52
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Lifetime Default Loss":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Lifetime Default Loss"
+      "ordinal": 53
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Portfolio Outstanding Principal":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Portfolio Outstanding Principal"
+      "ordinal": 54
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Projected Monthly Profit Contribution":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Projected Monthly Profit Contribution"
+      "ordinal": 55
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Matrix Active Borrower Count":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Active Borrower Count"
+      "ordinal": 56
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Matrix Equal Share Benchmark":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Equal Share Benchmark"
+      "ordinal": 57
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Matrix Economic Contribution":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Economic Contribution"
+      "ordinal": 58
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Matrix Recent Reliability Score":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Recent Reliability Score"
+      "ordinal": 59
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Matrix Historical Reliability Score":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Historical Reliability Score"
+      "ordinal": 60
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Matrix Delay Severity Score":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Delay Severity Score"
+      "ordinal": 61
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Matrix Current Condition Score":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Current Condition Score"
+      "ordinal": 62
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Matrix History Sufficient":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix History Sufficient"
+      "ordinal": 63
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Matrix Stability Score":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Stability Score"
+      "ordinal": 64
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Matrix Quadrant":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Quadrant"
+      "ordinal": 65
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Profit Last 10 Days":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Profit Last 10 Days"
+      "ordinal": 66
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Matrix Scaled Economic Contribution":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Matrix Scaled Economic Contribution"
+      "ordinal": 67
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Total Referral Rebate Earned":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Total Referral Rebate Earned"
+      "ordinal": 68
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Ref Preferred Receiving Cash Account":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Ref Preferred Receiving Cash Account"
+      "ordinal": 69
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Payment Request Cash Account":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Payment Request Cash Account"
+      "ordinal": 70
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Payment Request Token":
+      "schema": "public"
+      "relation": "olap_borrowers_analytics"
+      "name": "Payment Request Token"
+      "ordinal": 71
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "AI Collection Enabled"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Active Daily Interest"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Active Loan Interest Earned"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Address"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Borrower Name"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "City"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Communication Name"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Creation Date"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Description"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Has Active Loan"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Has Closed Loan"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Hidden Flag"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Instagram Username"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Payment Request Cash Account"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Payment Request Token"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Ref Preferred Receiving Cash Account"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Ref Referrer"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Total Amount Loaned"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Total Interest Earned"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Total Number of Loans"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Total Outstanding Principal"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Working Location"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Ref Payee Borrower"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Source Type"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Defaulted"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Outstanding Principal"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Amount Due"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Amount Remaining"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Charge Date"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Days Late"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Historical Late"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Historical On Time"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Interest Remaining"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Payment Status"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Ref Collection Borrower"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Total Paid"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "30D Principal Days"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Default Loss Amount"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Defaulted"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Expected Interest This Month"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Age Days"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Status"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Outstanding Principal"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Principal Amount"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "30D Principal Reduction Days"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Amount Received"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Charges"
+  - "schema": "public"
+    "relation": "olap_borrowers_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Loans"

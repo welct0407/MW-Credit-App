@@ -1,0 +1,36 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "assessment_lab.stamp_inputs()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "assessment_lab"
+    "name": "stamp_inputs"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": "CREATE OR REPLACE FUNCTION assessment_lab.stamp_inputs()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\
+      \nBEGIN\r\n NEW.\"SQL Source Fingerprint\":=assessment_lab.fingerprint(assessment_lab.inputs(NEW.\"Ref Borrower\"));\r\
+      \n NEW.\"SQL Input Borrower\":=NEW.\"Ref Borrower\";\r\n NEW.\"SQL Input Amount\":=NEW.\"Proposed Loan Amount\"::numeric;\r\
+      \n NEW.\"SQL Input Rate\":=NEW.\"Minimum Daily Profit Rate\"::text::numeric;\r\n RETURN NEW;\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings": null
+    "acl": null
+    "comment": null
+    "extension": null

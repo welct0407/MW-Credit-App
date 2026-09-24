@@ -1,0 +1,55 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.first_day_receipt(p_charge text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "first_day_receipt"
+    "arguments": "p_charge text"
+    "kind": "f"
+    "arguments_with_defaults": "p_charge text"
+    "result": "void"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.first_day_receipt(p_charge text)
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE c public."Charges"%ROWTYPE; l public."Loans"%ROWTYPE; remaining numeric;
+      BEGIN
+        SELECT * INTO STRICT c FROM public."Charges" WHERE "Row ID"=p_charge;
+        SELECT * INTO STRICT l FROM public."Loans" WHERE "Row ID"=c."Ref Loans";
+        IF NOT coalesce(l."Auto Charge Enabled",false) OR l."Loan Type" IS NULL OR l."Loan Type" NOT IN ('ดอกเบี้ยรายวัน','ผ่อนชำระรายวัน')
+          OR c."Charge Date" IS DISTINCT FROM l."Loan Date" THEN RETURN; END IF;
+        PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=l."Ref Borrowers" FOR UPDATE;
+        IF EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Charges"=p_charge)
+          OR EXISTS(SELECT 1 FROM public."Payments" WHERE "Ref Target Charge"=p_charge AND "Allocation Method"='First-day Auto') THEN RETURN; END IF;
+        remaining:=c."Principal Due"::numeric+c."Interest Due"::numeric;
+        IF remaining IS NULL OR remaining<=0 THEN RETURN; END IF;
+        INSERT INTO public."Payments"("Row ID","Status","Ref Borrower","Ref Target Charge","Amount Received",
+          "Payment Date","Payment Method","Allocation Method","Notes","Created By","Created At")
+        VALUES('fd6:'||p_charge,'Processing',l."Ref Borrowers",p_charge,remaining::money,l."Loan Date",
+          'Net-off at Disbursement','First-day Auto',c."Notes",l."Created By",statement_timestamp() AT TIME ZONE 'Asia/Bangkok');
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

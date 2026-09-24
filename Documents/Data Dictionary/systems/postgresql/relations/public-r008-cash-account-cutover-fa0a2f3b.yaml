@@ -1,0 +1,452 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.r008_cash_account_cutover"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "r008_cash_account_cutover"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Ref Cash Account":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "Ref Cash Account"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Cutover At":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "Cutover At"
+      "ordinal": 2
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Opening Balance":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "Opening Balance"
+      "ordinal": 3
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Baseline Cash In":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "Baseline Cash In"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Baseline Cash Out":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "Baseline Cash Out"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Created At":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "Created At"
+      "ordinal": 6
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "clock_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": null
+    "Created By":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "Created By"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Notes":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "Notes"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints":
+    "r008_cash_account_cutover_Baseline Cash In_not_null":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Baseline Cash In_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Baseline Cash In\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_Baseline Cash Out_not_null":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Baseline Cash Out_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Baseline Cash Out\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_Created At_not_null":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Created At_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Created At\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_Created By_not_null":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Created By_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Created By\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_Cutover At_not_null":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Cutover At_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Cutover At\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_Notes_check":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Notes_check"
+      "kind": "c"
+      "definition": "CHECK (btrim(\"Notes\") <> ''::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_Notes_not_null":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Notes_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Notes\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_Opening Balance_check":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Opening Balance_check"
+      "kind": "c"
+      "definition": "CHECK (\"Opening Balance\" > '-Infinity'::numeric AND \"Opening Balance\" < 'Infinity'::numeric AND \"\
+        Opening Balance\" = trunc(\"Opening Balance\"))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_Opening Balance_not_null":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Opening Balance_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Opening Balance\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_Ref Cash Account_fkey":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Ref Cash Account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
+    "r008_cash_account_cutover_Ref Cash Account_not_null":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_Ref Cash Account_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Ref Cash Account\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "r008_cash_account_cutover_pkey":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Ref Cash Account\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "r008_cash_account_cutover_pkey":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "r008_cash_account_cutover_pkey"
+      "definition": "CREATE UNIQUE INDEX r008_cash_account_cutover_pkey ON public.r008_cash_account_cutover USING btree (\"\
+        Ref Cash Account\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_17423":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "RI_ConstraintTrigger_c_17423"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17423\" AFTER INSERT ON r008_cash_account_cutover\
+        \ FROM \"Cash Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17424":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "RI_ConstraintTrigger_c_17424"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17424\" AFTER UPDATE ON r008_cash_account_cutover\
+        \ FROM \"Cash Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "protect_account_cutover":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "protect_account_cutover"
+      "definition": "CREATE TRIGGER protect_account_cutover BEFORE INSERT OR DELETE OR UPDATE ON r008_cash_account_cutover\
+        \ FOR EACH ROW EXECUTE FUNCTION protect_account_cutover()"
+      "enabled": "O"
+      "internal": false
+      "routine": "protect_account_cutover()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "protect_account_cutover_truncate":
+      "schema": "public"
+      "relation": "r008_cash_account_cutover"
+      "name": "protect_account_cutover_truncate"
+      "definition": "CREATE TRIGGER protect_account_cutover_truncate BEFORE TRUNCATE ON r008_cash_account_cutover FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION protect_account_cutover()"
+      "enabled": "O"
+      "internal": false
+      "routine": "protect_account_cutover()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

@@ -1,0 +1,430 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "view"
+  "name": "Outstanding Principle"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "definition":
+    "View name": "Outstanding Principle"
+    "Created by": "App owner"
+    "View type": "card"
+    "ActionType": "Square Image"
+    "Position": "ref"
+    "View configuration": "{\"Layout\":{\"style\":{\"type\":\"style\",\"color\":{\"type\":\"variable\",\"value\":\"primaryText\"\
+      ,\"id\":\"7169c5f7-dbee-4c27-a791-511f7aa9c621\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"border\"\
+      :{\"type\":\"variable\",\"value\":\"cardBorderStyle\",\"id\":\"b733bd6f-3d12-48f2-8c8c-262a27cd51b1\",\"inspection\"\
+      :{\"isInspectable\":true,\"eventHandlers\":{}}},\"borderRadius\":{\"type\":\"variable\",\"value\":\"cardBorderRadius\"\
+      ,\"id\":\"f30ece1b-778a-42a0-ae66-45440b33d7ec\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"borderColor\"\
+      :{\"type\":\"variable\",\"value\":\"cardOutline\",\"id\":\"4317a8cc-18e7-4e2e-afce-27769a8aa47d\",\"inspection\":{\"\
+      isInspectable\":true,\"eventHandlers\":{}}},\"display\":\"flex\",\"flexDirection\":\"column\",\"backgroundColor\":{\"\
+      type\":\"variable\",\"value\":\"mainContentBackground\",\"id\":\"bd58227d-e947-4c65-889b-1e4e256752e3\",\"inspection\"\
+      :{\"isInspectable\":true,\"eventHandlers\":{}}},\"fontSize\":16,\"highlightedUpdate\":{\"type\":\"style\",\"border\"\
+      :{\"type\":\"variable\",\"value\":\"cardBorderStyleSelected\",\"id\":\"6202903e-6c38-4748-9116-0d0d25596cc4\",\"inspection\"\
+      :{\"isInspectable\":true,\"eventHandlers\":{}}},\"borderColor\":{\"type\":\"variable\",\"value\":\"focusColor\",\"id\"\
+      :\"a72be658-207a-4ded-af8b-126b39a44503\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"adbb2638-cf80-444c-9932-d30f41cc764a\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"bf49015e-053c-4635-b2bf-a3afe738ec61\",\"inspection\"\
+      :{\"isInspectable\":true,\"eventHandlers\":{}}},\"children\":[{\"style\":{\"type\":\"style\",\"display\":\"flex\",\"\
+      alignItems\":\"center\",\"padding\":8,\"cursor\":\"pointer\",\"backgroundColor\":{\"type\":\"variable\",\"value\":\"\
+      mainContentBackground\",\"id\":\"0cacd2ef-e515-4884-8ba4-d900d3144ba4\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\"\
+      :{}}},\"borderRadius\":{\"type\":\"variable\",\"value\":\"cardBorderRadius\",\"id\":\"aed619a6-43c0-4379-b09f-e7810d722c04\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"transition\":\"background 0.8s\",\"hover\":{\"type\"\
+      :\"style\",\"background\":{\"type\":\"variable\",\"value\":\"cardHoverBackground\",\"id\":\"d220ae1c-9b38-45ec-b75a-b03d8592fede\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"boxShadow\":{\"type\":\"variable\",\"value\":\"cardHoverShadow\"\
+      ,\"id\":\"d220ae1c-9b38-45ec-b75a-b03d8592fede\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"transition\"\
+      :\"background 0.8s\",\"id\":\"b10155de-960d-4680-99ab-12250e16f9ee\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\"\
+      :{}}},\"highlighted\":{\"type\":\"style\",\"background\":{\"type\":\"variable\",\"value\":\"tableRowFocus\",\"id\":\"\
+      d220ae1c-9b38-45ec-b75a-b03d8592fed3\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"b10155de-960d-4680-99ab-12250e16f94e\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"highlightedUpdate\":{},\"down\":{\"type\":\"style\"\
+      ,\"background\":{\"type\":\"variable\",\"value\":\"cardHoverBackground\",\"id\":\"21f41bc4-1d8f-4212-a6e4-057bd3a8fe0b\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"transition\":\"background 0.8s\",\"id\":\"9205c7a9-35ed-4237-b9c8-92d448dc9b11\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"41561a21-2f97-490c-9ca2-d0f862f55568\",\"inspection\"\
+      :{\"isInspectable\":true,\"eventHandlers\":{}}},\"children\":[{\"value\":\"imageName\",\"child\":{\"id\":\"mainImage\"\
+      ,\"type\":\"image\",\"style\":{\"type\":\"style\",\"overflow\":\"hidden\",\"width\":70,\"height\":70,\"borderRadius\"\
+      :\"2px\",\"objectFit\":\"cover\",\"flex\":\"0 0 70px\",\"alignItems\":\"center\",\"justifyContent\":\"center\",\"id\"\
+      :\"bc54d99e-c9a5-4f7c-bc5a-7ff388247636\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\"\
+      :{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"28502c76-f322-4bee-a3dd-3517932edb72\",\"type\":\"variable\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"style\":{\"type\":\"style\",\"display\":\"flex\",\"\
+      flexDirection\":\"column\",\"marginLeft\":16,\"flexShrink\":1,\"flexGrow\":0,\"overflow\":\"hidden\",\"id\":\"1b750d3d-d245-4672-a22d-e194832d833c\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"children\":[{\"value\":\"Outstanding Principal\",\"\
+      child\":{\"id\":\"labelText\",\"type\":\"text\",\"style\":{\"type\":\"style\",\"id\":\"507ee6fc-c860-445f-880a-c8682b6bd878\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\"\
+      :{}},\"ignore\":false},\"id\":\"3f58a5eb-8102-4b18-b70c-81c3721275d3\",\"type\":\"binding\",\"ignore\":false,\"inspection\"\
+      :{\"isInspectable\":true,\"eventHandlers\":{}}},{\"value\":\"Active Loans\",\"child\":{\"id\":\"subtitleText\",\"type\"\
+      :\"text\",\"style\":{\"type\":\"style\",\"opacity\":0.6,\"fontSize\":12,\"maxHeight\":40,\"id\":\"0211ba96-1cee-43ff-a277-dc8081acdd07\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"inspection\":{\"isInspectable\":true,\"eventHandlers\"\
+      :{}},\"ignore\":false},\"id\":\"af00a19c-2913-444c-a6cf-f10de41f6961\",\"type\":\"binding\",\"ignore\":false,\"inspection\"\
+      :{\"isInspectable\":true,\"eventHandlers\":{}}}],\"id\":\"cc8e8bdf-8cbf-45fd-9bf6-3cc2da557703\",\"type\":\"container\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"style\":{\"type\":\"style\",\"justifyContent\":\"\
+      flex-end\",\"flexGrow\":1,\"display\":\"flex\",\"id\":\"03e8ac10-f699-4b0e-b962-c2f9b1beb94e\",\"inspection\":{\"isInspectable\"\
+      :true,\"eventHandlers\":{}}},\"children\":[{\"style\":{\"type\":\"style\",\"color\":{\"id\":\"ellipsisColor\",\"type\"\
+      :\"variable\",\"value\":\"primaryText\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"694ca369-547b-434e-ba14-5d20e7091987\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"items\":[{\"style\":{\"type\":\"style\",\"id\":\"771c2038-f239-4584-9a68-8e870783c818\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"onClick\":{\"id\":\"8969b669-2c65-49b4-8068-f388d058d3af\"\
+      ,\"type\":\"action\",\"ignore\":false,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"icon\":{\"type\"\
+      :\"constant\",\"value\":\"far fa-indent\",\"id\":\"e1d07767-257b-4bd2-80c4-cfe0773a3bde\",\"inspection\":{\"isInspectable\"\
+      :true,\"eventHandlers\":{}}},\"text\":{\"value\":\"Go to details\",\"id\":\"ae79459c-e025-4fbd-b8a5-a67c1951a6fa\",\"\
+      type\":\"actionDisplayText\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"cb2b0d60-7def-4900-93be-de47d032c897\"\
+      ,\"type\":\"systemAction\",\"ignore\":true,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"style\"\
+      :{\"type\":\"style\",\"id\":\"cda5f0a8-23ef-44a3-9ac3-4b25a63c857f\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\"\
+      :{}}},\"onClick\":{\"value\":\"Edit\",\"id\":\"9164b27a-0247-493c-91fe-5759897fd40b\",\"type\":\"action\",\"inspection\"\
+      :{\"isInspectable\":true,\"eventHandlers\":{}}},\"icon\":{\"type\":\"constant\",\"value\":\"fa-edit\",\"id\":\"c7e376a4-a10d-4255-a9d2-8e38befe4cea\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"text\":{\"value\":\"Edit\",\"id\":\"9414fa56-e4d7-4ac7-942d-b88c1433122b\"\
+      ,\"type\":\"actionDisplayText\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"e09dfed3-b0ba-4a3a-9d32-f1f34f7b82cb\"\
+      ,\"type\":\"systemAction\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},{\"style\":{\"type\":\"style\"\
+      ,\"id\":\"f62e1913-b059-422a-a0ce-c6c1ed939c19\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"onClick\"\
+      :{\"value\":\"Delete\",\"id\":\"b4573f97-1ca8-48ea-bffb-e03966b053c9\",\"type\":\"action\",\"inspection\":{\"isInspectable\"\
+      :true,\"eventHandlers\":{}}},\"icon\":{\"type\":\"constant\",\"value\":\"fa-trash-alt\",\"id\":\"67e305c4-18ca-47c6-b221-38bb5634e8bd\"\
+      ,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"text\":{\"value\":\"Delete\",\"id\":\"b75ef34e-a76d-4ce7-8ab8-5be5dc3ad59b\"\
+      ,\"type\":\"actionDisplayText\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"id\":\"c65d949d-a0ae-44ef-a7a0-1c3be8b647eb\"\
+      ,\"type\":\"systemAction\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}}],\"id\":\"cdf524ff-9a78-4f03-8b01-e5bde99d56fc\"\
+      ,\"type\":\"ellipsisMenu\",\"ignore\":false,\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}}],\"id\":\"\
+      c0bf415a-39e0-4d21-990a-f3fc8afae169\",\"type\":\"container\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\"\
+      :{}}}],\"onClick\":{\"id\":\"bfaf6abf-c1a8-4e20-b27f-24e65c0da7a1\",\"type\":\"action\",\"inspection\":{\"isInspectable\"\
+      :true,\"eventHandlers\":{}}},\"id\":\"357a17b3-b454-405e-9a77-59fd604173ce\",\"type\":\"container\",\"inspection\":{\"\
+      isInspectable\":true,\"eventHandlers\":{}}}],\"name\":\"list\",\"variables\":[{\"name\":\"imageName\",\"value\":\"https://www.appsheet.com/Content/editor/img/empty-media-template.png\"\
+      },{\"name\":\"labelName\",\"value\":\"Title goes here\"}],\"version\":0,\"id\":\"a89b72c9-97cf-43a7-8b48-b3daf0733a83\"\
+      ,\"type\":\"container\",\"inspection\":{\"isInspectable\":true,\"eventHandlers\":{}}},\"MainDeckImageColumn\":\"**auto**\"\
+      ,\"ImageShape\":\"Square Image\",\"PrimaryDeckHeaderColumn\":\"**auto**\",\"SecondaryDeckHeaderColumn\":\"**auto**\"\
+      ,\"DeckSummaryColumn\":\"**auto**\",\"DeckNestedTableColumn\":null,\"ShowActionBar\":true,\"ActionColumns\":[],\"ActionBarEntries\"\
+      :[],\"GroupBy\":[],\"GroupAggregate\":\"SUM :: Outstanding Principal\",\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\"\
+      :false,\"Events\":[],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+    "Visible?": "ALWAYS"
+    "Icon": ""
+    "Menu order": "1"
+  "editor":
+    "fields":
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Outstanding Principle"
+      "label": "View name"
+      "text": |-
+        View name
+        The unique name for this view.
+        ​
+        Go to display options
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Statistics"
+      "label": "For this data"
+      "text": |-
+        For this data
+        Which table or slice to display.
+        Statistics
+        ​
+        edit
+        Use slices to filter your data
+    - "choices": []
+      "controls": []
+      "label": "View type"
+      "text": |-
+        View type
+        What kind of view this is.
+        date_range
+        calendar
+        ballot
+        deck
+        view_list
+        table
+        border_all
+        gallery
+        category
+        detail
+        location_on
+        map
+        insert_chart_outlined
+        chart
+        view_quilt
+        dashboard
+        view_stream
+        form
+        view_carousel
+        onboarding
+        insert_photo
+        card
+    - "choices":
+      - "checked": "false"
+        "text": "first"
+      - "checked": "false"
+        "text": "next"
+      - "checked": "false"
+        "text": "middle"
+      - "checked": "false"
+        "text": "later"
+      - "checked": "false"
+        "text": "last"
+      - "checked": "false"
+        "text": "menu"
+      - "checked": "true"
+        "text": "ref"
+      "controls": []
+      "label": "Position"
+      "text": |-
+        Position
+        Where the button to access this view is located.
+        first
+        next
+        middle
+        later
+        last
+        menu
+        ref
+    - "choices": []
+      "controls": []
+      "label": "Sort by"
+      "text": |-
+        Sort by
+        Sort the rows by one or more columns.
+        Add
+    - "choices": []
+      "controls": []
+      "label": "Group by"
+      "text": |-
+        Group by
+        Group rows by the values in one or more of their columns.
+        Add
+    - "choices": []
+      "controls":
+      - "selected":
+        - "SUM :: Outstanding Principal"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "SUM :: Outstanding Principal"
+      "label": "Group aggregate"
+      "text": |-
+        Group aggregate
+        Display a numeric summary of the rows in each group.
+        NONE
+        COUNT
+        SUM :: Total Profit
+        AVERAGE :: Total Profit
+        MIN :: Total Profit
+        MAX :: Total Profit
+        SUM :: Outstanding Principal
+        AVERAGE :: Outstanding Principal
+        MIN :: Outstanding Principal
+        MAX :: Outstanding Principal
+        SUM :: Active Loans
+        AVERAGE :: Active Loans
+        MIN :: Active Loans
+        MAX :: Active Loans
+        SUM :: Today's Profit
+        AVERAGE :: Today's Profit
+        MIN :: Today's Profit
+        MAX :: Today's Profit
+        SUM :: Yesterday's Profit
+        AVERAGE :: Yesterday's Profit
+        MIN :: Yesterday's Profit
+        MAX :: Yesterday's Profit
+        SUM :: Realized Profit MTD
+        AVERAGE :: Realized Profit MTD
+        MIN :: Realized Profit MTD
+        MAX :: Realized Profit MTD
+        SUM :: Projected Monthly Profit
+        AVERAGE :: Projected Monthly Profit
+        MIN :: Projected Monthly Profit
+        MAX :: Projected Monthly Profit
+        SUM :: Pending Payment Amount
+        AVERAGE :: Pending Payment Amount
+        MIN :: Pending Payment Amount
+        MAX :: Pending Payment Amount
+        SUM :: Forecast Remaining Interest
+        AVERAGE :: Forecast Remaining Interest
+        MIN :: Forecast Remaining Interest
+        MAX :: Forecast Remaining Interest
+        SUM :: Today's Outstanding Interest
+        AVERAGE :: Today's Outstanding Interest
+        MIN :: Today's Outstanding Interest
+        MAX :: Today's Outstanding Interest
+        SUM :: Forecast Monthly Return on ADO
+        AVERAGE :: Forecast Monthly Return on ADO
+        MIN :: Forecast Monthly Return on ADO
+        MAX :: Forecast Monthly Return on ADO
+        SUM :: Peak Cash Pool 30D
+        AVERAGE :: Peak Cash Pool 30D
+        MIN :: Peak Cash Pool 30D
+        MAX :: Peak Cash Pool 30D
+        SUM :: Expected Daily Interest
+        AVERAGE :: Expected Daily Interest
+        MIN :: Expected Daily Interest
+        MAX :: Expected Daily Interest
+        SUM :: Total Profit of Outstanding Loans
+        AVERAGE :: Total Profit of Outstanding Loans
+        MIN :: Total Profit of Outstanding Loans
+        MAX :: Total Profit of Outstanding Loans
+        SUM :: Profit Coverage of Outstanding Principal
+        AVERAGE :: Profit Coverage of Outstanding Principal
+        MIN :: Profit Coverage of Outstanding Principal
+        MAX :: Profit Coverage of Outstanding Principal
+        SUM :: Total Cash Pool
+        AVERAGE :: Total Cash Pool
+        MIN :: Total Cash Pool
+        MAX :: Total Cash Pool
+        SUM :: Total Unsettled Profit
+        AVERAGE :: Total Unsettled Profit
+        MIN :: Total Unsettled Profit
+        MAX :: Total Unsettled Profit
+        SUM :: Expected Loan Account Balance
+        AVERAGE :: Expected Loan Account Balance
+        MIN :: Expected Loan Account Balance
+        MAX :: Expected Loan Account Balance
+        SUM :: Total Outstanding Principal
+        AVERAGE :: Total Outstanding Principal
+        MIN :: Total Outstanding Principal
+        MAX :: Total Outstanding Principal
+        SUM :: Borrowers Fully Paid Today
+        AVERAGE :: Borrowers Fully Paid Today
+        MIN :: Borrowers Fully Paid Today
+        MAX :: Borrowers Fully Paid Today
+        SUM :: Borrowers Partially Paid Today
+        AVERAGE :: Borrowers Partially Paid Today
+        MIN :: Borrowers Partially Paid Today
+        MAX :: Borrowers Partially Paid Today
+        SUM :: Borrowers with Overdue Payment
+        AVERAGE :: Borrowers with Overdue Payment
+        MIN :: Borrowers with Overdue Payment
+        MAX :: Borrowers with Overdue Payment
+        SUM :: Borrowers Not Paid Today
+        AVERAGE :: Borrowers Not Paid Today
+        MIN :: Borrowers Not Paid Today
+        MAX :: Borrowers Not Paid Today
+        SUM :: Amount Due Today
+        AVERAGE :: Amount Due Today
+        MIN :: Amount Due Today
+        MAX :: Amount Due Today
+        SUM :: Amount Collected Today
+        AVERAGE :: Amount Collected Today
+        MIN :: Amount Collected Today
+        MAX :: Amount Collected Today
+        SUM :: Amount Outstanding Today
+        AVERAGE :: Amount Outstanding Today
+        MIN :: Amount Outstanding Today
+        MAX :: Amount Outstanding Today
+        SUM :: Amount Collection Rate Today
+        AVERAGE :: Amount Collection Rate Today
+        MIN :: Amount Collection Rate Today
+        MAX :: Amount Collection Rate Today
+        SUM :: Total Business Expenses
+        AVERAGE :: Total Business Expenses
+        MIN :: Total Business Expenses
+        MAX :: Total Business Expenses
+        SUM :: Net Profit
+        AVERAGE :: Net Profit
+        MIN :: Net Profit
+        MAX :: Net Profit
+        SUM :: Expenses MTD
+        AVERAGE :: Expenses MTD
+        MIN :: Expenses MTD
+        MAX :: Expenses MTD
+        SUM :: Net Profit MTD
+        AVERAGE :: Net Profit MTD
+        MIN :: Net Profit MTD
+        MAX :: Net Profit MTD
+        SUM :: Operating Income MTD
+        AVERAGE :: Operating Income MTD
+        MIN :: Operating Income MTD
+        MAX :: Operating Income MTD
+        SUM :: Income Statement Expenses MTD
+        AVERAGE :: Income Statement Expenses MTD
+        MIN :: Income Statement Expenses MTD
+        MAX :: Income Statement Expenses MTD
+        SUM :: Net Unsettled Profit
+        AVERAGE :: Net Unsettled Profit
+        MIN :: Net Unsettled Profit
+        MAX :: Net Unsettled Profit
+        SUM :: Net Expected Loan Account Balance
+        AVERAGE :: Net Expected Loan Account Balance
+        MIN :: Net Expected Loan Account Balance
+        MAX :: Net Expected Loan Account Balance
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "radio"
+        "value": true
+      - "selected": null
+        "tag": "INPUT"
+        "type": "radio"
+        "value": false
+      - "selected": null
+        "tag": "INPUT"
+        "type": "radio"
+        "value": false
+      - "selected": null
+        "tag": "INPUT"
+        "type": "radio"
+        "value": false
+      "label": "Layout"
+      "text": |-
+        Layout
+        Click on an item in the card to customize it for your app.
+        list
+        photo
+        backdrop
+        large
+        Title goes here
+        Subtitle goes here
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Icon"
+      "text": "IconThe icon to use for this view.AllSolidRegularLight"
+    - "choices":
+      - "checked": "true"
+        "text": "title"
+      - "checked": "false"
+        "text": "science"
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "\"เงินต้นคงเหลือ / Outstanding Principle\""
+      "label": "Display name"
+      "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give it\
+        \ a text value (double-quoted) or a formula​titlescience"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Show if"
+      "text": "Show ifOptional Yes/No formula to decide whether this view should be shown=science​"
+    - "choices": []
+      "controls": []
+      "label": "Event Actions"
+      "text": "Event ActionsActions to take when events occur."
+    - "choices": []
+      "controls": []
+      "label": "App link"
+      "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Outstanding Principle\"\
+        )   .... or ... \"https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb#view=Outstanding%20Principle\""
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
+        \ app"
+    "generated_source_group": null

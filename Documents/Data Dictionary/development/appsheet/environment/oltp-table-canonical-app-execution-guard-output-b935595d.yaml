@@ -1,0 +1,31 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Canonical app execution guard Output"
+  "scope": "development:observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/development-oltp-observations.json"
+"content":
+  "production_identity":
+    "system": "appsheet"
+    "component": "oltp"
+    "kind": "table"
+    "name": "Canonical app execution guard Output"
+    "scope": "production"
+  "target": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "classification": "Observed environment source/generated identifiers and locale representation. PROD locale blank versus\
+    \ DEV en-US is not an approved policy change."
+  "changes":
+  - "pointer": "/binding/Source Path"
+    "before":
+      "state": "value"
+      "value": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/f741327d-34b5-4a88-a5d4-91bef0d40535/StepOutput_Canonical\
+        \ app execution guard"
+    "after":
+      "state": "value"
+      "value": "/ProcessStateTables/500b27b6-884a-41e8-a9ec-df801b0110ad/6a23c5b4-46cb-488d-8777-cd277a6f38ad/StepOutput_Canonical\
+        \ app execution guard"
+  "comparison_representation": "captured source object (before presentation into canonical YAML)"

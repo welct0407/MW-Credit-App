@@ -1,0 +1,479 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "view"
+  "name": "Partners"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/olap/views/partners-5dab502b.yaml"
+  "classification": "Captured source controls and choices match; supporting editor text/App links differ by environment or\
+    \ UI presentation."
+  "changes":
+  - "pointer": "/fields"
+    "before":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Partners"
+        "label": "View name"
+        "text": |-
+          View name
+          The unique name for this view.
+          ​
+          Go to display options
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Partners"
+        "label": "For this data"
+        "text": |-
+          For this data
+          Which table or slice to display.
+          Partners
+          ​
+          edit
+          Use slices to filter your data
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          date_range
+          calendar
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          category
+          detail
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_quilt
+          dashboard
+          view_stream
+          form
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices":
+        - "checked": "false"
+          "text": "first"
+        - "checked": "true"
+          "text": "next"
+        - "checked": "false"
+          "text": "middle"
+        - "checked": "false"
+          "text": "later"
+        - "checked": "false"
+          "text": "last"
+        - "checked": "false"
+          "text": "menu"
+        - "checked": "false"
+          "text": "ref"
+        "controls": []
+        "label": "Position"
+        "text": |-
+          Position
+          Where the button to access this view is located.
+          first
+          next
+          middle
+          later
+          last
+          menu
+          ref
+      - "choices": []
+        "controls": []
+        "label": "Sort by"
+        "text": |-
+          Sort by
+          Sort the rows by one or more columns.
+          Add
+      - "choices": []
+        "controls": []
+        "label": "Group by"
+        "text": |-
+          Group by
+          Group rows by the values in one or more of their columns.
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "NONE"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "NONE"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          Display a numeric summary of the rows in each group.
+          NONE
+          COUNT
+          SUM :: Current Pool Contribution
+          AVERAGE :: Current Pool Contribution
+          MIN :: Current Pool Contribution
+          MAX :: Current Pool Contribution
+          SUM :: Current Pool Share
+          AVERAGE :: Current Pool Share
+          MIN :: Current Pool Share
+          MAX :: Current Pool Share
+          SUM :: Total Profit Earned
+          AVERAGE :: Total Profit Earned
+          MIN :: Total Profit Earned
+          MAX :: Total Profit Earned
+          SUM :: Total Settlement Created
+          AVERAGE :: Total Settlement Created
+          MIN :: Total Settlement Created
+          MAX :: Total Settlement Created
+          SUM :: Completed Settlement
+          AVERAGE :: Completed Settlement
+          MIN :: Completed Settlement
+          MAX :: Completed Settlement
+          SUM :: Pending Settlement
+          AVERAGE :: Pending Settlement
+          MIN :: Pending Settlement
+          MAX :: Pending Settlement
+          SUM :: Available to Settle
+          AVERAGE :: Available to Settle
+          MIN :: Available to Settle
+          MAX :: Available to Settle
+          SUM :: Net Profit Earned
+          AVERAGE :: Net Profit Earned
+          MIN :: Net Profit Earned
+          MAX :: Net Profit Earned
+          SUM :: Net Available to Settle
+          AVERAGE :: Net Available to Settle
+          MIN :: Net Available to Settle
+          MAX :: Net Available to Settle
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "radio"
+          "value": false
+        - "selected": null
+          "tag": "INPUT"
+          "type": "radio"
+          "value": false
+        - "selected": null
+          "tag": "INPUT"
+          "type": "radio"
+          "value": false
+        - "selected": null
+          "tag": "INPUT"
+          "type": "radio"
+          "value": true
+        "label": "Layout"
+        "text": |-
+          Layout
+          Click on an item in the card to customize it for your app.
+          list
+          photo
+          backdrop
+          large
+          Title goes here
+          Subtitle goes here
+          Header goes here
+          Subheader goes here.
+          This is a long piece of text. The description goes here and has a bunch of text to display like this.
+          ACTION 1
+          ACTION 2
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Icon"
+        "text": "IconThe icon to use for this view.AllSolidRegularLight"
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "หุ้นส่วน"
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Show if"
+        "text": "Show ifOptional Yes/No formula to decide whether this view should be shown=science​"
+      - "choices": []
+        "controls": []
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur."
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Partners\")   .... or\
+          \ ... \"https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb#view=Partners\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"
+    "after":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Partners"
+        "label": "View name"
+        "text": |-
+          View name
+          The unique name for this view.
+          ​
+          Go to display options
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Partners"
+        "label": "For this data"
+        "text": |-
+          For this data
+          Which table or slice to display.
+          Partners
+          ​
+          edit
+          Use slices to filter your data
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          date_range
+          calendar
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          category
+          detail
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_quilt
+          dashboard
+          view_stream
+          form
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices":
+        - "checked": "false"
+          "text": "first"
+        - "checked": "true"
+          "text": "next"
+        - "checked": "false"
+          "text": "middle"
+        - "checked": "false"
+          "text": "later"
+        - "checked": "false"
+          "text": "last"
+        - "checked": "false"
+          "text": "menu"
+        - "checked": "false"
+          "text": "ref"
+        "controls": []
+        "label": "Position"
+        "text": |-
+          Position
+          Where the button to access this view is located.
+          first
+          next
+          middle
+          later
+          last
+          menu
+          ref
+      - "choices": []
+        "controls": []
+        "label": "Sort by"
+        "text": |-
+          Sort by
+          Sort the rows by one or more columns.
+          Add
+      - "choices": []
+        "controls": []
+        "label": "Group by"
+        "text": |-
+          Group by
+          Group rows by the values in one or more of their columns.
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "NONE"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "NONE"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          Display a numeric summary of the rows in each group.
+          NONE
+          COUNT
+          SUM :: Current Pool Contribution
+          AVERAGE :: Current Pool Contribution
+          MIN :: Current Pool Contribution
+          MAX :: Current Pool Contribution
+          SUM :: Current Pool Share
+          AVERAGE :: Current Pool Share
+          MIN :: Current Pool Share
+          MAX :: Current Pool Share
+          SUM :: Total Profit Earned
+          AVERAGE :: Total Profit Earned
+          MIN :: Total Profit Earned
+          MAX :: Total Profit Earned
+          SUM :: Total Settlement Created
+          AVERAGE :: Total Settlement Created
+          MIN :: Total Settlement Created
+          MAX :: Total Settlement Created
+          SUM :: Completed Settlement
+          AVERAGE :: Completed Settlement
+          MIN :: Completed Settlement
+          MAX :: Completed Settlement
+          SUM :: Pending Settlement
+          AVERAGE :: Pending Settlement
+          MIN :: Pending Settlement
+          MAX :: Pending Settlement
+          SUM :: Available to Settle
+          AVERAGE :: Available to Settle
+          MIN :: Available to Settle
+          MAX :: Available to Settle
+          SUM :: Net Profit Earned
+          AVERAGE :: Net Profit Earned
+          MIN :: Net Profit Earned
+          MAX :: Net Profit Earned
+          SUM :: Net Available to Settle
+          AVERAGE :: Net Available to Settle
+          MIN :: Net Available to Settle
+          MAX :: Net Available to Settle
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "radio"
+          "value": false
+        - "selected": null
+          "tag": "INPUT"
+          "type": "radio"
+          "value": false
+        - "selected": null
+          "tag": "INPUT"
+          "type": "radio"
+          "value": false
+        - "selected": null
+          "tag": "INPUT"
+          "type": "radio"
+          "value": true
+        "label": "Layout"
+        "text": |-
+          Layout
+          Click on an item in the card to customize it for your app.
+          list
+          photo
+          backdrop
+          large
+          Title goes here
+          Subtitle goes here
+          Header goes here
+          Subheader goes here.
+          This is a long piece of text. The description goes here and has a bunch of text to display like this.
+          ACTION 1
+          ACTION 2
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Icon"
+        "text": "IconThe icon to use for this view.AllSolidRegularLight"
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "หุ้นส่วน"
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Show if"
+        "text": "Show ifOptional Yes/No formula to decide whether this view should be shown=science​"
+      - "choices": []
+        "controls": []
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur."
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Partners\")   .... or\
+          \ ... \"https://www.appsheet.com/start/9f3422be-bc87-4a5a-a42a-67528ee80393#view=Partners\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"

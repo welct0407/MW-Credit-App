@@ -1,0 +1,33 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Charges.Default - Write Off Remaining Charge"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Default - Write Off Remaining Charge"
+    "Bulk action?": "Yes"
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "1"
+    "With these properties": "{\"Assignments\":[{\"ColumnToEdit\":\"Principal Due\",\"NewColumnValue\":\"=[Principal Paid]\"\
+      },{\"ColumnToEdit\":\"Interest Due\",\"NewColumnValue\":\"=[Interest Paid]\"}],\"ColumnToEdit\":\"Principal Due\",\"\
+      NewColumnValue\":\"=[Principal Paid]\",\"InputParametersUsed\":null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\"\
+      :false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\":true}"
+    "Do this": "SET_COLUMN_VALUE"
+    "Attach to column": "Principal Due"
+    "Set this column": "Principal Due"
+    "Only if this condition is true": "=FALSE"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Charges"
+    "Does this action apply to the whole table?": "No"
+    "To this value": "=[Principal Paid]"
+    "Visible?": "ALWAYS"

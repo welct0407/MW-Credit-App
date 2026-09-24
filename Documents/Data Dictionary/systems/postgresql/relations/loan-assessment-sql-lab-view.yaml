@@ -1,180 +1,617 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
-  "name": "Loan Assessment SQL Lab View"
-  "scope": "as-recorded"
+  "name": "public.Loan Assessment SQL Lab View"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/loan-assessment-sql-lab-view.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Loan Assessment SQL Lab View"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "Loan Assessment SQL Lab View"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT "Row ID",
+          "Assessment ID",
+          "Ref Borrower",
+          "Proposed Loan Amount",
+          "Minimum Daily Profit Rate",
+          "SQL Current Principal",
+          "SQL Interest Received",
+          "SQL Eligible Date",
+          "SQL Eligible Interest",
+          "SQL Eligible Principal",
+          "SQL Eligible Profit",
+          "SQL Eligible Coverage",
+          "SQL Eligible Margin",
+          "SQL Current Margin",
+          "SQL Calculated At",
+          "SQL As Of",
+          "SQL Forecast Start",
+          "SQL Forecast End",
+          "SQL Refresh Token",
+          "SQL Source Fingerprint",
+          "SQL Input Borrower",
+          "SQL Input Amount",
+          "SQL Input Rate",
+          "SQL As Of" = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date AND "SQL Source Fingerprint" = assessment_lab.fingerprint(assessment_lab.inputs("Ref Borrower")) AS "SQL Source Current"
+         FROM "Loan Assessment SQL Lab" a;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Row ID":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "Row ID"
-      "Position": 1
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Assessment ID":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "Assessment ID"
-      "Position": 2
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "Assessment ID"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Ref Borrower":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "Ref Borrower"
-      "Position": 3
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "Ref Borrower"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Proposed Loan Amount":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "Proposed Loan Amount"
-      "Position": 4
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "Proposed Loan Amount"
+      "ordinal": 4
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Minimum Daily Profit Rate":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "Minimum Daily Profit Rate"
-      "Position": 5
-      "PostgreSQL type": "real"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "Minimum Daily Profit Rate"
+      "ordinal": 5
+      "data_type": "real"
+      "type_schema": "pg_catalog"
+      "type_name": "float4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Current Principal":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Current Principal"
-      "Position": 6
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Current Principal"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Interest Received":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Interest Received"
-      "Position": 7
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Interest Received"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Eligible Date":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Eligible Date"
-      "Position": 8
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Eligible Date"
+      "ordinal": 8
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Eligible Interest":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Eligible Interest"
-      "Position": 9
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Eligible Interest"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Eligible Principal":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Eligible Principal"
-      "Position": 10
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Eligible Principal"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Eligible Profit":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Eligible Profit"
-      "Position": 11
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Eligible Profit"
+      "ordinal": 11
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Eligible Coverage":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Eligible Coverage"
-      "Position": 12
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Eligible Coverage"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Eligible Margin":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Eligible Margin"
-      "Position": 13
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Eligible Margin"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Current Margin":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Current Margin"
-      "Position": 14
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Current Margin"
+      "ordinal": 14
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Calculated At":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Calculated At"
-      "Position": 15
-      "PostgreSQL type": "timestamp without time zone"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Calculated At"
+      "ordinal": 15
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL As Of":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL As Of"
-      "Position": 16
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL As Of"
+      "ordinal": 16
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Forecast Start":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Forecast Start"
-      "Position": 17
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Forecast Start"
+      "ordinal": 17
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Forecast End":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Forecast End"
-      "Position": 18
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Forecast End"
+      "ordinal": 18
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Refresh Token":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Refresh Token"
-      "Position": 19
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Refresh Token"
+      "ordinal": 19
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "SQL Source Fingerprint":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Source Fingerprint"
-      "Position": 20
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Source Fingerprint"
+      "ordinal": 20
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "SQL Input Borrower":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Input Borrower"
-      "Position": 21
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Input Borrower"
+      "ordinal": 21
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "SQL Input Amount":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Input Amount"
-      "Position": 22
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Input Amount"
+      "ordinal": 22
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Input Rate":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Input Rate"
-      "Position": 23
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Input Rate"
+      "ordinal": 23
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "SQL Source Current":
-      "Table / view": "Loan Assessment SQL Lab View"
-      "Column": "SQL Source Current"
-      "Position": 24
-      "PostgreSQL type": "boolean"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab View"
+      "name": "SQL Source Current"
+      "ordinal": 24
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "Assessment ID"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "Minimum Daily Profit Rate"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "Proposed Loan Amount"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "Ref Borrower"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL As Of"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Calculated At"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Current Margin"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Current Principal"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Eligible Coverage"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Eligible Date"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Eligible Interest"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Eligible Margin"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Eligible Principal"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Eligible Profit"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Forecast End"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Forecast Start"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Input Amount"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Input Borrower"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Input Rate"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Interest Received"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Refresh Token"
+  - "schema": "public"
+    "relation": "Loan Assessment SQL Lab View"
+    "referenced_schema": "public"
+    "referenced_relation": "Loan Assessment SQL Lab"
+    "referenced_column": "SQL Source Fingerprint"

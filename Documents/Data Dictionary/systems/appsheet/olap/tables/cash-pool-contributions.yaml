@@ -4,22 +4,40 @@
   "component": "olap"
   "kind": "table"
   "name": "Cash Pool Contributions"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/olap/tables/cash-pool-contributions.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "olap"
+      "kind": "table"
+      "name": "Cash Pool Contributions"
+      "scope": "recorded-production"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
 "content":
   "source_app": "OLAP"
   "source_table": "Cash Pool Contributions"
   "binding":
-    "App": "OLAP"
-    "Version": "v1.100101"
-    "Table": "Cash Pool Contributions"
-    "Source": "database-2"
-    "Source path": "Cash Pool Contributions"
+    "Table name": "Cash Pool Contributions"
+    "Visible?": "ALWAYS"
+    "Shared?": "Yes"
     "Schema": "Cash Pool Contributions_Schema"
-    "Update permission": "ADDS_AND_UPDATES"
-    "Scope": "Business source"
+    "Are updates allowed?": "ADDS_AND_UPDATES"
+    "Source Path": "Cash Pool Contributions"
+    "Data Source": "database-2"
+    "Store for image and file capture": "_Default"
+    "Column Order List":
+    - "_RowNumber"
+    "Partitioned across many files/sources?": "No"
+    "Partitioned across many worksheets?": "No"
+  "schema":
+    "Schema Name": "Cash Pool Contributions_Schema"
+    "Visible?": "ALWAYS"
   "columns":
     "_RowNumber":
       "inventory":
@@ -33,16 +51,24 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "_RowNumber"
         "Visible?": "ALWAYS"
         "Description": "Number of this row"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "Yes"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "Yes"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -59,17 +85,25 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "Row ID"
         "Visible?": "ALWAYS"
         "Description": "ID of this row"
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "UNIQUEID(\"PackedUUID\")"
         "System Defined?": "No"
+        "Key": "Yes"
         "Part of Key?": "Yes"
         "Fixed definition?": "Yes"
         "Editable Initial Value?": "No"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -86,40 +120,41 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Ref Partner"
         "Visible?": "ALWAYS"
-        "Type Qualifier.ReferencedTableName": "Partners"
-        "Type Qualifier.ReferencedRootTableName": "Partners"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "false"
-        "Type Qualifier.InputMode": "Auto"
-        "Type Qualifier.Editable_If": |-
-          =COUNT(
-           SELECT(
-           Repayments[Row ID],
-           [Payment Date] >= [_THISROW].[Contribution Date]
-           )
-          ) = 0
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Partners\",\"ReferencedRootTableName\":\"Partners\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=COUNT(\\\
+          n  SELECT(\\n    Repayments[Row ID],\\n    [Payment Date] >= [_THISROW].[Contribution Date]\\n  )\\n) = 0\",\"Reset_If\"\
+          :null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
       "relationship":
-        "App": "OLAP"
-        "Child table": "Cash Pool Contributions"
-        "Ref column": "Ref Partner"
-        "Parent table": "Partners"
-        "Parent key": "Row ID"
-        "Part of parent": false
+        "ReferencedTableName": "Partners"
+        "ReferencedRootTableName": "Partners"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
     "Contribution Date":
       "inventory":
         "App": "OLAP"
@@ -132,23 +167,25 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Contribution Date"
         "Visible?": "ALWAYS"
         "Display name": "=\"วันที่ทำรายการ / Contribution Date\""
-        "Type Qualifier.UseLongDateFormat": "false"
-        "Type Qualifier.Editable_If": |-
-          =COUNT(
-           SELECT(
-           Repayments[Row ID],
-           [Payment Date] >= [_THISROW].[Contribution Date]
-           )
-          ) = 0
+        "Type": "Date"
+        "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
+          Required_If\":null,\"Editable_If\":\"=COUNT(\\n  SELECT(\\n    Repayments[Row ID],\\n    [Payment Date] >= [_THISROW].[Contribution\
+          \ Date]\\n  )\\n) = 0\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "Yes"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "TODAY()"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -165,30 +202,29 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Transaction Type"
         "Visible?": "ALWAYS"
         "Display name": "=\"ประเภทรายการ / Transaction Type\""
-        "Type Qualifier.EnumValues": "[\"Contribution\",\"Withdrawal\"]"
-        "Type Qualifier.AllowOtherValues": "false"
-        "Type Qualifier.AutoCompleteOtherValues": "true"
-        "Type Qualifier.BaseType": "Text"
-        "Type Qualifier.BaseTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.EnumInputMode": "Auto"
-        "Type Qualifier.Editable_If": |-
-          =COUNT(
-           SELECT(
-           Repayments[Row ID],
-           [Payment Date] >= [_THISROW].[Contribution Date]
-           )
-          ) = 0
+        "Type": "Enum"
+        "Type Qualifier": "{\"EnumValues\":[\"Contribution\",\"Withdrawal\"],\"AllowOtherValues\":false,\"AutoCompleteOtherValues\"\
+          :true,\"BaseType\":\"Text\",\"BaseTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
+          \":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"EnumInputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":\"=COUNT(\\n  SELECT(\\n    Repayments[Row ID],\\n    [Payment Date] >= [_THISROW].[Contribution\
+          \ Date]\\n  )\\n) = 0\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "=\"Contribution\""
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -205,48 +241,31 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Amount"
         "Visible?": "ALWAYS"
         "Display name": "=\"จำนวนเงิน / Amount\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": |-
-          =AND(
-           [_THIS] > 0,
-           OR(
-           [Transaction Type] = "Contribution",
-           AND(
-           [Transaction Type] = "Withdrawal",
-           [_THIS] <= SUM(
-           SELECT(
-           Cash Pool Contributions[Net Contribution],
-           AND(
-           [Ref Partner] = [_THISROW].[Ref Partner],
-           [Contribution Date] <= [_THISROW].[Contribution Date],
-           [Row ID] <> [_THISROW].[Row ID]
-           )
-           )
-           )
-           )
-           )
-          )
-        "Type Qualifier.Error_Message_If_Invalid": |-
-          ="จำนวนเงินต้องมากกว่า 0
-          Amount must be greater than zero / You can't withdraw more than what you contributed."
-        "Type Qualifier.Editable_If": |-
-          =COUNT(
-           SELECT(
-           Repayments[Row ID],
-           [Payment Date] >= [_THISROW].[Contribution Date]
-           )
-          ) = 0
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND(\\\
+          n  [_THIS] > 0,\\n  OR(\\n    [Transaction Type] = \\\"Contribution\\\",\\n    AND(\\n      [Transaction Type] =\
+          \ \\\"Withdrawal\\\",\\n      [_THIS] <= SUM(\\n        SELECT(\\n          Cash Pool Contributions[Net Contribution],\\\
+          n          AND(\\n            [Ref Partner] = [_THISROW].[Ref Partner],\\n            [Contribution Date] <= [_THISROW].[Contribution\
+          \ Date],\\n            [Row ID] <> [_THISROW].[Row ID]\\n          )\\n        )\\n      )\\n    )\\n  )\\n)\",\"\
+          Error_Message_If_Invalid\":\"=\\\"จำนวนเงินต้องมากกว่า 0\\nAmount must be greater than zero / You can't withdraw\
+          \ more than what you contributed.\\\"\",\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=COUNT(\\n  SELECT(\\\
+          n    Repayments[Row ID],\\n    [Payment Date] > [_THISROW].[Contribution Date]\\n  )\\n) = 0\",\"Reset_If\":null,\"\
+          Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -263,15 +282,23 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Notes"
         "Visible?": "ALWAYS"
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -288,19 +315,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Net Contribution"
         "Visible?": "ALWAYS"
         "Display name": "=\"ยอดสุทธิ / Net Contribution\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=IF([Transaction Type] = \"Contribution\", [Amount], -[Amount])"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -317,19 +350,238 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Transaction Type TE"
         "Visible?": "ALWAYS"
         "Display name": "=\"ประเภทรายการ / Transaction Type\""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
-        "App formula": "=IF( [Transaction Type] = \"Contribution\", \"เพิ่มเงิน - Contribution\", \"ถอนเงิน - Withdrawal\"\
-          \ )"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =IF(
+            [Transaction Type] = "Contribution",
+            "เพิ่มเงิน - Contribution",
+            "ถอนเงิน - Withdrawal"
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+  "editor":
+    "fields":
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Cash Pool Contributions"
+      "label": "Table name"
+      "text": |-
+        Table name
+        Name for this table (user-visible)
+        ​
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Updates"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Adds"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Deletes"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Read-Only"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "science"
+      "controls": []
+      "label": "Are updates allowed?"
+      "text": |-
+        Are updates allowed?
+        Are adds, deletes and updates allowed?
+        Updates
+        Adds
+        Deletes
+        Read-Only
+        science
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Cash Pool Contributions"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "6"
+      "label": "Source Path"
+      "text": "Source PathA user-understandable path to the table data - select a source -olap_borrowers_analyticsolap_loans_analyticsolap_repayments_analyticsStatisticsolap_charges_analyticsLoan\
+        \ Assessment SQL Lab ViewCash Pool ContributionsPartnersSettlementsDaily AnalyticsPayment AllocationsPaymentsBusiness\
+        \ ExpensesCash HoldersCash Holder BalancesCash Ledgerolap_portfolio_summaryCash AccountsCash Account Balances- browse\
+        \ for more data -"
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Add"
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "_RowNumber"
+      "label": "Column Order List"
+      "text": "Column Order ListThe order of columns to retrieve from the provider (only applies to some storage providers)drag_indicator_RowNumber​Add"
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Copy Data to New Source"
+      "controls": []
+      "label": "Data Source"
+      "text": "Data SourceName of the table data sourcedatabase-2Copy Data to New Source"
+    - "choices": []
+      "controls": []
+      "label": "Source Id"
+      "text": "Source IdA provider-specific path to the table data (not user-visible)Table=public.Cash Pool Contributions__Cash\
+        \ Pool Contributions"
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Default"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "_Default"
+      "label": "Store for image and file capture"
+      "text": "Store for image and file captureBy default, images and files captured by the app are stored in the cloud file\
+        \ system associated with the app owner's account. You can explicitly add an object store and use it instead.Default"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      "label": "Filter out all existing rows?"
+      "text": "Filter out all existing rows?Used only in forms apps that collect new data rows but never show any pre-existing\
+        \ rows."
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Security filter"
+      "text": "Security filterThe app uses only those rows that match this (optional) filter condition. Use this filter to\
+        \ limit what each user can see.=science​"
+    - "choices":
+      - "checked": "true"
+        "pressed": null
+        "role": "radio"
+        "text": "as app creator"
+      - "checked": "false"
+        "pressed": null
+        "role": "radio"
+        "text": "as app user"
+      "controls": []
+      "label": "Access mode"
+      "text": "Access modeThe app will access the spreadsheet using the app creator or app user credentials.as app creatoras\
+        \ app user"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      "label": "Shared?"
+      "text": "Shared?Is this table shared by all users? This option is normally checked. Before unchecking, carefully review\
+        \ 'Private Tables' in the documentation."
+    - "choices": []
+      "controls":
+      - "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      "label": "Data locale"
+      "text": "Data localeLocale used to read the tableCompatibility (For backward compatibility)Amharic (Ethiopia)Arabic\
+        \ (Algeria)Arabic (Bahrain)Arabic (Egypt)Arabic (Iraq)Arabic (Jordan)Arabic (Kuwait)Arabic (Lebanon)Arabic (Libya)Arabic\
+        \ (Morocco)Arabic (Oman)Arabic (Qatar)Arabic (Saudi Arabia)Arabic (Syria)Arabic (Tunisia)Arabic (United Arab Emirates)Arabic\
+        \ (Yemen)Armenian (Armenia)Azerbaijani (Cyrillic, Azerbaijan)Azerbaijani (Latin, Azerbaijan)Bengali (India)Bulgarian\
+        \ (Bulgaria)Burmese (Myanmar)Catalan (Catalan)Chinese (Simplified, China)Chinese (Traditional, Hong Kong SAR)Chinese\
+        \ (Traditional, Taiwan)Chinese Traditional (Malaysia)Croatian (Croatia)Czech (Czechia)Danish (Denmark)Dari (Afghanistan)Dutch\
+        \ (Aruba)Dutch (Belgium)Dutch (Curaçao)Dutch (Netherlands)English (Australia)English (Bahrain)English (Belgium)English\
+        \ (Brazil)English (Canada)English (Germany)English (Hong Kong SAR)English (India)English (Ireland)English (Kenya)English\
+        \ (Malaysia)English (New Zealand)English (Norway)English (Philippines)English (Singapore)English (South Africa)English\
+        \ (Sri Lanka)English (Tanzania)English (United Kingdom)English (United States)Filipino (Philippines)Finnish (Finland)French\
+        \ (Belgium)French (Cameroon)French (Canada)French (Côte d’Ivoire)French (France)French (Luxembourg)French (Mali)French\
+        \ (Morocco)French (Senegal)French (Switzerland)French Congo (DRC)Fulah (Latin, Senegal)Georgian (Georgia)German (Austria)German\
+        \ (Germany)German (Liechtenstein)German (Luxembourg)German (Switzerland)Greek (Greece)Gujarati (India)Hausa (Latin,\
+        \ Nigeria)Hebrew (Israel)Hindi (India)Hungarian (Hungary)Igbo (Nigeria)Indonesian (Indonesia)Irish (Ireland)Italian\
+        \ (Italy)Italian (Switzerland)Japanese (Japan)Kannada (India)Kinyarwanda (Rwanda)Kiswahili (Kenya)Kiswahili (Tanzania)Korean\
+        \ (Korea)Latvian (Latvia)Lingala (Angola)Lithuanian (Lithuania)Malay (Brunei)Malay (Malaysia)Malayalam (India)Marathi\
+        \ (India)Mongolian (Mongolia)Norwegian Bokmål (Norway)Norwegian Nynorsk (Norway)Oromo (Ethiopia)Pashto (Afghanistan)Persian\
+        \ (Iran)Polish (Poland)Portuguese (Angola)Portuguese (Brazil)Portuguese (Mozambique)Portuguese (Portugal)Romanian\
+        \ (Romania)Russian (Russia)Serbian (Cyrillic, Serbia)Serbian (Latin, Serbia)Serbian (Serbia)Setswana (Botswana)Sinhala\
+        \ (Sri Lanka)Slovak (Slovakia)Slovenian (Slovenia)Spanish (Argentina)Spanish (Bolivia)Spanish (Chile)Spanish (Colombia)Spanish\
+        \ (Costa Rica)Spanish (Dominican Republic)Spanish (Ecuador)Spanish (El Salvador)Spanish (Guatemala)Spanish (Honduras)Spanish\
+        \ (Latin America)Spanish (Latin America)Spanish (Mexico)Spanish (Nicaragua)Spanish (Panama)Spanish (Paraguay)Spanish\
+        \ (Peru)Spanish (Spain, International Sort)Spanish (United States)Spanish (Uruguay)Spanish (Venezuela)Swedish (Sweden)Tamil\
+        \ (India)Tamil (Sri Lanka)Telugu (India)Thai (Thailand)Tigrinya (Ethiopia)Turkish (Turkey)Ukrainian (Ukraine)Vietnamese\
+        \ (Vietnam)Yoruba (Nigeria)"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
+        \ app"
+    "update_permissions_snapshot": |2-
+
+        - heading "Table settings" [level=5]
+        - button "close":
+        - heading "Table name" [level=6]
+        - text: Name for this table (user-visible)
+        - textbox: Cash Pool Contributions
+        - heading "Are updates allowed?" [level=6]
+        - text: Are adds, deletes and updates allowed?
+        - button " Updates":
+          - text: 
+          - generic: Updates
+        - button " Adds":
+          - text: 
+          - generic: Adds
+        - button " Deletes":
+          - text: 
+          - generic: Deletes
+        - button "Read-Only"
+        - button "science"
+        - heading "Storage" [level=3]
+        - generic: 
+        - text: (ENTERPRISE Plan)
+        - heading "Security" [level=3]
+        - generic: 
+        - text: (APPSHEET CORE) (APPSHEET CORE) (APPSHEET CORE)

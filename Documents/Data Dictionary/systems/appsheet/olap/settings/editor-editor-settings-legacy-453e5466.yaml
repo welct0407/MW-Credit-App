@@ -1,0 +1,27 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "settings"
+  "name": "Editor settings/Legacy"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls": []
+    "snapshot": |2-
+        - paragraph: "Data: Legacy settings"
+        - heading "Expressions" [level=3]
+        - heading "Blank value comparison mode" [level=6]
+        - text: How comparison operators (e.g., =, <>) handle blank values.
+        - link "Learn more":
+          - /url: https://support.google.com/appsheet?p=configure-data-processing
+          - text: Learn more
+        - radiogroup:
+          - radio "Legacy":
+            - generic: Legacy
+          - radio "Consistent" [checked]:
+            - generic: Consistent

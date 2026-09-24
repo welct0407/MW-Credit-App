@@ -1,0 +1,67 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.guard_cash_account()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "guard_cash_account"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.guard_cash_account()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       IF TG_OP='DELETE' THEN RAISE EXCEPTION 'Cash accounts are retained; deactivate instead'; END IF;
+       IF TG_OP='UPDATE' AND (NEW."Row ID",NEW."Ref Cash Holder",NEW."Created At") IS DISTINCT FROM
+       (OLD."Row ID",OLD."Ref Cash Holder",OLD."Created At") THEN
+        RAISE EXCEPTION 'Cash account identity, holder and creation time are immutable';
+       END IF;
+       -- Try-lock serializes default changes without waiting behind a transfer holding an account.
+       IF NOT pg_try_advisory_xact_lock(hashtextextended('cash-account:'||NEW."Ref Cash Holder",0)) THEN
+        RAISE EXCEPTION 'Cash accounts are busy; sync and retry';
+       END IF;
+       IF NOT NEW."Active" AND NEW."Default Account" THEN
+        RAISE EXCEPTION 'An inactive cash account cannot be default';
+       END IF;
+       IF TG_OP='UPDATE' AND OLD."Default Account" AND NOT NEW."Active" AND EXISTS
+        (SELECT 1 FROM public."Cash Accounts" WHERE "Ref Cash Holder"=NEW."Ref Cash Holder"
+         AND "Row ID"<>NEW."Row ID" AND "Active") THEN
+        RAISE EXCEPTION 'Select a replacement default before deactivating this account';
+       END IF;
+       IF NEW."Active" AND (TG_OP='INSERT' OR NOT OLD."Active") AND NOT EXISTS(SELECT 1 FROM public."Cash Accounts"
+        WHERE "Ref Cash Holder"=NEW."Ref Cash Holder" AND "Active" AND "Row ID"<>NEW."Row ID") THEN
+        NEW."Default Account":=true;
+       END IF;
+       IF NEW."Default Account" THEN
+        UPDATE public."Cash Accounts" SET "Default Account"=false
+        WHERE "Ref Cash Holder"=NEW."Ref Cash Holder" AND "Row ID"<>NEW."Row ID" AND "Default Account";
+       END IF;
+       RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

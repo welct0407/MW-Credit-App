@@ -1,0 +1,613 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.cash_statement_account_effects"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "cash_statement_account_effects"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT jsonb_build_array(l."Row ID", s.direction, s.account)::text AS "Row ID",
+          l."Row ID" AS ledger_id,
+          s.direction,
+          s.account AS "Ref Cash Account",
+          l."Movement Date" AS "Statement Date",
+          l."Created At" AS "Sort Timestamp",
+          l."Created At"::time without time zone AS "Statement Time",
+          s.amount AS "Signed Amount",
+              CASE l."Movement Type"
+                  WHEN 'Payment Receipt'::text THEN
+                  CASE
+                      WHEN p."Allocation Method" = 'First-day Auto'::text THEN 'FIRST_DAY_PAYMENT'::text
+                      ELSE 'LOAN_PAYMENT'::text
+                  END
+                  WHEN 'Loan Disbursement'::text THEN 'LOAN_DISBURSEMENT'::text
+                  WHEN 'Business Expense'::text THEN
+                  CASE
+                      WHEN e."Source Type" = 'Referral Rebate'::text THEN 'REFERRAL_REBATE'::text
+                      ELSE 'BUSINESS_EXPENSE'::text
+                  END
+                  WHEN 'Partner Settlement'::text THEN 'PARTNER_SETTLEMENT'::text
+                  WHEN 'Cash Handover'::text THEN
+                  CASE
+                      WHEN fa."Ref Cash Holder" = ta."Ref Cash Holder" THEN 'ACCOUNT_TRANSFER'::text
+                      ELSE 'CASH_TRANSFER'::text
+                  END
+                  WHEN 'Expense Reimbursement'::text THEN 'EXPENSE_REIMBURSEMENT'::text
+                  WHEN 'Opening Balance'::text THEN 'OPENING_BALANCE'::text
+                  WHEN 'Manual Correction'::text THEN 'MANUAL_CORRECTION'::text
+                  ELSE 'OTHER'::text
+              END AS "Transaction Type Code",
+              CASE
+                  WHEN l."Movement Type" = ANY (ARRAY['Cash Handover'::text, 'Expense Reimbursement'::text]) THEN 'ACCOUNT'::text
+                  WHEN l."Movement Type" = 'Manual Correction'::text THEN 'ADJUSTMENT'::text
+                  WHEN COALESCE(p."Ref Borrower", n."Ref Borrowers", e."Ref Payee Borrower") IS NOT NULL THEN 'BORROWER'::text
+                  WHEN st."Ref Partner" IS NOT NULL THEN 'PARTNER'::text
+                  WHEN e."Row ID" IS NOT NULL THEN 'PAYEE'::text
+                  ELSE 'NONE'::text
+              END AS "Counterparty Kind",
+          COALESCE(NULLIF(e."Payee Name", ''::text), NULLIF(e."Expense Category", ''::text), ''::text) AS "Counterparty Text",
+          COALESCE(p."Ref Borrower", n."Ref Borrowers", e."Ref Payee Borrower") AS "Ref Borrower",
+          s.other_account AS "Ref Other Cash Account",
+          st."Ref Partner",
+          l."Ref Payment",
+          l."Ref Loan",
+          l."Ref Business Expense",
+          l."Ref Settlement" AS "Settlement Row ID",
+          l."Notes",
+          l."Source Type",
+          l."Source Key"
+         FROM "Cash Ledger" l
+           CROSS JOIN LATERAL ( VALUES ('OUT'::text,l."Ref From Cash Account",- l."Amount",l."Ref To Cash Account"), ('IN'::text,l."Ref To Cash Account",l."Amount",l."Ref From Cash Account")) s(direction, account, amount, other_account)
+           LEFT JOIN "Payments" p ON p."Row ID" = l."Ref Payment"
+           LEFT JOIN "Loans" n ON n."Row ID" = l."Ref Loan"
+           LEFT JOIN "Business Expenses" e ON e."Row ID" = l."Ref Business Expense"
+           LEFT JOIN "Settlements" st ON st."Row ID" = l."Ref Settlement"
+           LEFT JOIN "Cash Accounts" fa ON fa."Row ID" = l."Ref From Cash Account"
+           LEFT JOIN "Cash Accounts" ta ON ta."Row ID" = l."Ref To Cash Account"
+        WHERE s.account IS NOT NULL;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "ledger_id":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "ledger_id"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "direction":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "direction"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Cash Account":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Ref Cash Account"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Statement Date":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Statement Date"
+      "ordinal": 5
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Sort Timestamp":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Sort Timestamp"
+      "ordinal": 6
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Statement Time":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Statement Time"
+      "ordinal": 7
+      "data_type": "time without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "time"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Signed Amount":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Signed Amount"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Transaction Type Code":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Transaction Type Code"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Counterparty Kind":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Counterparty Kind"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Counterparty Text":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Counterparty Text"
+      "ordinal": 11
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Borrower":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Ref Borrower"
+      "ordinal": 12
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Other Cash Account":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Ref Other Cash Account"
+      "ordinal": 13
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Partner":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Ref Partner"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Payment":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Ref Payment"
+      "ordinal": 15
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Loan":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Ref Loan"
+      "ordinal": 16
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Business Expense":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Ref Business Expense"
+      "ordinal": 17
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Settlement Row ID":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Settlement Row ID"
+      "ordinal": 18
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Notes":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Notes"
+      "ordinal": 19
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Source Type":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Source Type"
+      "ordinal": 20
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Source Key":
+      "schema": "public"
+      "relation": "cash_statement_account_effects"
+      "name": "Source Key"
+      "ordinal": 21
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Expense Category"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Payee Name"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Ref Payee Borrower"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Source Type"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Ref Cash Holder"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Created At"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Movement Date"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Movement Type"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Notes"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref Business Expense"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref From Cash Account"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref Loan"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref Payment"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref Settlement"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref To Cash Account"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Source Key"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Source Type"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Allocation Method"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Ref Borrower"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Payments"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Settlements"
+    "referenced_column": "Ref Partner"
+  - "schema": "public"
+    "relation": "cash_statement_account_effects"
+    "referenced_schema": "public"
+    "referenced_relation": "Settlements"
+    "referenced_column": "Row ID"

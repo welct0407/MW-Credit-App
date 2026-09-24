@@ -1,0 +1,390 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "automation"
+  "name": "R008 Single Full Confirmed"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "panels":
+      "overview": |2-
+          - paragraph: R008 Single Full Confirmed
+          - generic "actions":
+            - button "More":
+          - paragraph: When this EVENT occurs
+          - generic: 
+          - generic: R008 Single Full Confirmed
+          - generic: Charges
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - paragraph: "Yes"
+          - paragraph: "No"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic: Notify exact posted receipt
+            - button:
+          - generic "process step":
+            - generic: Notify payment-closed loans
+            - button:
+          - generic "process step":
+            - generic: Send closure summary when loans closed
+            - button:
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+      "event": |2-
+          - paragraph: R008 Single Full Confirmed
+          - generic "actions":
+            - button "More":
+          - paragraph: When this EVENT occurs
+          - generic: 
+          - generic: R008 Single Full Confirmed
+          - generic: Charges
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - paragraph: "Yes"
+          - paragraph: "No"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic: Notify exact posted receipt
+            - button:
+          - generic "process step":
+            - generic: Notify payment-closed loans
+            - button:
+          - generic "process step":
+            - generic: Send closure summary when loans closed
+            - button:
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+          - heading "Settings" [level=6]
+          - button "Toggle Link Pane":
+          - separator
+          - checkbox "Toggle Linking"
+          - generic: Event name
+          - textbox: R008 Single Full Confirmed
+          - heading "Event source" [level=6]
+          - text: Select the product or schedule that runs your event
+          - generic "Event type":
+            - button "App":
+              - generic: App
+            - textbox: Change
+          - heading "Table" [level=6]
+          - text: Data changes to which table should trigger this event?
+          - combobox "Select an option":
+            - option "Borrowers"
+            - option "Business Expenses"
+            - option "Cash Statement Context"
+            - option "Charges" [selected]
+            - option "Loans"
+            - option "Payment Allocations"
+            - option "Payments"
+            - option "Repayments"
+            - option "Statistics"
+          - button "Edit this table":
+            - generic: edit
+          - heading "Data change type" [level=6]
+          - generic "description"
+          - listbox:
+            - option "Adds":
+              - generic: Adds
+              - checkbox
+            - option "Deletes":
+              - generic: Deletes
+              - checkbox
+            - option "Updates" [disabled] [selected]:
+              - generic: Updates
+              - checkbox [checked]
+          - heading "Condition" [level=6]
+          - text: Optional condition that is checked before running the process
+          - generic: =
+          - textbox: AND(ISNOTBLANK([Payment Request Token]), OR(ISBLANK([_THISROW_BEFORE].[Payment Request Token]), [Payment Request Token] <> [_THISROW_BEFORE].[Payment Request Token]))
+          - generic: science
+          - heading "Bypass Security Filters?" [level=6]
+          - text: Execute this event and the processes that it triggers as though there are no security filters on the data sources.
+          - checkbox
+          - heading "Display" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+      "step/Notify exact posted receipt": |2-
+          - paragraph: R008 Single Full Confirmed
+          - generic "actions":
+            - button "More":
+          - paragraph: When this EVENT occurs
+          - generic: 
+          - generic: R008 Single Full Confirmed
+          - generic: Charges
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - paragraph: "Yes"
+          - paragraph: "No"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic "entity name input":
+              - textbox: Notify exact posted receipt
+            - button:
+            - button "toggle step type menu":
+              - generic: Run a task
+            - button "Custom task":
+              - menuitem "Custom task":
+                - generic: Custom task
+            - textbox: __Custom_Entity__
+          - generic "process step":
+            - generic: Notify payment-closed loans
+            - button:
+          - generic "process step":
+            - generic: Send closure summary when loans closed
+            - button:
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+          - heading "Settings" [level=6]
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - separator
+          - radiogroup "Task category":
+            - radio "Send an email":
+              - generic: Send an email
+            - radio "Send a notification" [checked]:
+              - generic: Send a notification
+            - radio "Send an SMS":
+              - generic: Send an SMS
+            - radio "Call a webhook":
+              - generic: Call a webhook
+            - radio "Create a new file":
+              - generic: Create a new file
+            - radio "Call a script":
+              - generic: Call a script
+            - radio "Send a chat message":
+              - generic: Send a chat message
+            - radio "AI task":
+              - generic: AI task
+          - generic: Table:Charges
+          - generic: Table that this task works with. This is set in the process or determined by the event.
+          - button "Edit this table":
+            - generic: edit
+          - heading "To" [level=6]
+          - text: Send Notifications to people with these email addresses. (Expressions that yield email addresses are supported.)
+          - generic: drag_indicator
+          - generic: =
+          - textbox: SELECT(Partners[Email], AND(ISNOTBLANK([Email]), ISNOTBLANK(LOOKUP(LOWER(TRIM(LOOKUP(CONCATENATE("r008:Charges|", LEN([_THISROW].[Row ID]), ":", [_THISROW].[Row ID], "|", [_THISROW].[Payment Request Token]), "Payments", "Row ID", "Created By"))), "Partners", "Login Email", "Row ID")), [Row ID] <> LOOKUP(LOWER(TRIM(LOOKUP(CONCATENATE("r008:Charges|", LEN([_THISROW].[Row ID]), ":", [_THISROW].[Row ID], "|", [_THISROW].[Payment Request Token]), "Payments", "Row ID", "Created By"))), "Partners", "Login Email", "Row ID")), TRUE)
+          - generic: science
+          - radiogroup:
+            - radio:
+              - generic: title
+            - radio [checked]:
+              - generic: science
+          - button "Remove Item":
+          - button "Add":
+            - generic: Add
+          - heading "Use default content?" [level=6]
+          - text: Turn on to use default message content; turn off to customize message content
+          - checkbox
+          - heading "Notification Content" [level=3]
+          - heading "Title" [level=6]
+          - text: The Notification title. (Template that yields text is supported. Leave empty for default title.)
+          - textbox: ได้รับชำระเงิน / Payment Received
+          - generic: science
+          - heading "Body" [level=6]
+          - text: The Notification body. (Template that yields text is supported. Leave empty for default body.)
+          - textbox: "<<Start: FILTER(\"Payments\", [Row ID] = CONCATENATE(\"r008:Charges|\", LEN([_THISROW].[Row ID]), \":\", [_THISROW].[Row ID], \"|\", [_THISROW].[Payment Request Token]))>>ผู้กู้ Borrower: <<[Ref Borrower].[Borrower Name TE]>> จำนวนเงิน Amount: <<[Amount Received]>> ดอกเบี้ย Interest: <<SUM([Related Repayments][Interest Paid])>> เงินต้น Principal: <<SUM([Related Repayments][Principal Paid])>><<End>>"
+          - generic: science
+          - heading "DeepLink" [level=6]
+          - text: The DeepLink to include with the Notification. (Expression that yields a DeepLink is supported.)
+          - generic: =
+          - textbox: LINKTOROW(CONCATENATE("r008:Charges|", LEN([Row ID]), ":", [Row ID], "|", [Payment Request Token]), "Payments_Detail")
+          - generic: science
+          - radiogroup:
+            - radio:
+              - generic: title
+            - radio [checked]:
+              - generic: science
+          - heading "Advanced" [level=3]
+          - generic: 
+      "step/Notify payment-closed loans": |2-
+          - paragraph: R008 Single Full Confirmed
+          - generic "actions":
+            - button "More":
+          - paragraph: When this EVENT occurs
+          - generic: 
+          - generic: R008 Single Full Confirmed
+          - generic: Charges
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - paragraph: "Yes"
+          - paragraph: "No"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic: Notify exact posted receipt
+            - button:
+          - generic "process step":
+            - generic "entity name input":
+              - textbox: Notify payment-closed loans
+            - button:
+            - button "toggle step type menu":
+              - generic: Branch on a condition
+            - generic: =
+            - textbox "branch condition": COUNT(SELECT(Loans[Row ID], [Ref Closing Payment] = CONCATENATE("r008:Charges|", LEN([_THISROW].[Row ID]), ":", [_THISROW].[Row ID], "|", [_THISROW].[Payment Request Token]))) > 0
+            - generic: science
+          - generic "process step":
+            - generic: Send closure summary when loans closed
+            - button:
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+      "step/Send closure summary when loans closed": |2-
+          - paragraph: R008 Single Full Confirmed
+          - generic "actions":
+            - button "More":
+          - paragraph: When this EVENT occurs
+          - generic: 
+          - generic: R008 Single Full Confirmed
+          - generic: Charges
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - paragraph: "Yes"
+          - paragraph: "No"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic: Notify exact posted receipt
+            - button:
+          - generic "process step":
+            - generic: Notify payment-closed loans
+            - button:
+          - generic "process step":
+            - generic "entity name input":
+              - textbox: Send closure summary when loans closed
+            - button:
+            - button "toggle step type menu":
+              - generic: Run a task
+            - button "Custom task":
+              - menuitem "Custom task":
+                - generic: Custom task
+            - textbox: __Custom_Entity__
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+          - heading "Settings" [level=6]
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - separator
+          - radiogroup "Task category":
+            - radio "Send an email":
+              - generic: Send an email
+            - radio "Send a notification" [checked]:
+              - generic: Send a notification
+            - radio "Send an SMS":
+              - generic: Send an SMS
+            - radio "Call a webhook":
+              - generic: Call a webhook
+            - radio "Create a new file":
+              - generic: Create a new file
+            - radio "Call a script":
+              - generic: Call a script
+            - radio "Send a chat message":
+              - generic: Send a chat message
+            - radio "AI task":
+              - generic: AI task
+          - generic: Table:Charges
+          - generic: Table that this task works with. This is set in the process or determined by the event.
+          - button "Edit this table":
+            - generic: edit
+          - heading "To" [level=6]
+          - text: Send Notifications to people with these email addresses. (Expressions that yield email addresses are supported.)
+          - generic: drag_indicator
+          - generic: =
+          - textbox: SELECT(Partners[Email], AND(ISNOTBLANK([Email]), ISNOTBLANK(LOOKUP(LOWER(TRIM(LOOKUP(CONCATENATE("r008:Charges|", LEN([_THISROW].[Row ID]), ":", [_THISROW].[Row ID], "|", [_THISROW].[Payment Request Token]), "Payments", "Row ID", "Created By"))), "Partners", "Login Email", "Row ID")), [Row ID] <> LOOKUP(LOWER(TRIM(LOOKUP(CONCATENATE("r008:Charges|", LEN([_THISROW].[Row ID]), ":", [_THISROW].[Row ID], "|", [_THISROW].[Payment Request Token]), "Payments", "Row ID", "Created By"))), "Partners", "Login Email", "Row ID")), TRUE)
+          - generic: science
+          - radiogroup:
+            - radio:
+              - generic: title
+            - radio [checked]:
+              - generic: science
+          - button "Remove Item":
+          - button "Add":
+            - generic: Add
+          - heading "Use default content?" [level=6]
+          - text: Turn on to use default message content; turn off to customize message content
+          - checkbox
+          - heading "Notification Content" [level=3]
+          - heading "Title" [level=6]
+          - text: The Notification title. (Template that yields text is supported. Leave empty for default title.)
+          - textbox: ปิดเงินกู้แล้ว / Loans Closed (<<COUNT(SELECT(Loans[Row ID], [Ref Closing Payment] = CONCATENATE("r008:Charges|", LEN([_THISROW].[Row ID]), ":", [_THISROW].[Row ID], "|", [_THISROW].[Payment Request Token])))>>)
+          - generic: science
+          - heading "Body" [level=6]
+          - text: The Notification body. (Template that yields text is supported. Leave empty for default body.)
+          - textbox: "ผู้กู้ Borrower: <<[Ref Loans].[Ref Borrowers].[Borrower Name TE]>> <<Start: SELECT(Loans[Row ID], [Ref Closing Payment] = CONCATENATE(\"r008:Charges|\", LEN([_THISROW].[Row ID]), \":\", [_THISROW].[Row ID], \"|\", [_THISROW].[Payment Request Token]))>>สินเชื่อ Loan: <<[Loan Key]>> เงินต้น Principal: <<[Principal Amount]>> ดอกเบี้ย Interest: <<[Total Interest Received]>> <<End>>"
+          - generic: science
+          - heading "DeepLink" [level=6]
+          - text: The DeepLink to include with the Notification. (Expression that yields a DeepLink is supported.)
+          - generic: =
+          - textbox: LINKTOROW(CONCATENATE("r008:Charges|", LEN([Row ID]), ":", [Row ID], "|", [Payment Request Token]), "Payments_Detail")
+          - generic: science
+          - radiogroup:
+            - radio:
+              - generic: title
+            - radio [checked]:
+              - generic: science
+          - heading "Advanced" [level=3]
+          - generic: 
+    "bot_options":
+    - "controls":
+      - "type": "checkbox"
+        "value": false
+      "label": "Trigger other bots"
+      "values":
+      - "false"
+    - "controls":
+      - "type": "text"
+        "value": ""
+      "label": "Bot icon"
+      "values": []
+    - "controls":
+      - "type": "textarea"
+        "value": ""
+      - "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "values":
+      - ""

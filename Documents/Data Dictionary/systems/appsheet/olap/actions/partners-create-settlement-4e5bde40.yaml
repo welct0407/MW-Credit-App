@@ -1,0 +1,32 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "action"
+  "name": "Partners.Create Settlement"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Create Settlement"
+    "Bulk action?": "Yes"
+    "Confirmation Message": "Create a settlement for all currently available profit?"
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "Yes"
+    "Prominence": "Display_Overlay"
+    "Action order": "1"
+    "With these properties": "{\"ReferencedTable\":\"Settlements\",\"Assignments\":[{\"ColumnToEdit\":\"Ref Partner\",\"NewColumnValue\"\
+      :\"=[Row ID]\"},{\"ColumnToEdit\":\"Settlement Date\",\"NewColumnValue\":\"=TODAY()\"},{\"ColumnToEdit\":\"Amount\"\
+      ,\"NewColumnValue\":\"=[Available to Settle]\"},{\"ColumnToEdit\":\"Status\",\"NewColumnValue\":\"=\\\"Pending\\\"\"\
+      }],\"InputParametersUsed\":null,\"Prominence\":\"Display_Overlay\",\"NeedsConfirmation\":true,\"ConfirmationMessage\"\
+      :\"Create a settlement for all currently available profit?\",\"ModifiesData\":true,\"BulkApplicable\":true}"
+    "Do this": "ADD_RECORD_TO"
+    "Only if this condition is true": "=[Available to Settle] > 0"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Partners"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

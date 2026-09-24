@@ -1,0 +1,31 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Payments.Payment - Close Paid Loans"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Payment - Close Paid Loans"
+    "Bulk action?": "Yes"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "1"
+    "With these properties": "{\"ReferencedTable\":\"Loans\",\"ReferencedRows\":\"=SELECT(Repayments[Ref Loans], [Ref Payment]\
+      \ = [_THISROW].[Row ID], TRUE)\",\"ReferencedAction\":\"Set Loan Closed\",\"InputAssignments\":[],\"InputParametersUsed\"\
+      :null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"\
+      BulkApplicable\":true}"
+    "Do this": "REF_ACTION"
+    "Only if this condition is true": "=FALSE"
+    "Disable automatic updates?": "No"
+    "Display name": "\"ตรวจสอบการปิดยอด / Recheck Loan Closure\""
+    "Action icon": ""
+    "For a record of this table": "Payments"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

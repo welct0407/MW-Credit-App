@@ -1,0 +1,70 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "agent_audit.capture_change()"
+  "scope": "development:observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/development-postgresql-observations.json"
+"content":
+  "production_identity":
+    "system": "postgresql"
+    "component": "loan_manager_prod"
+    "kind": "routine"
+    "name": "agent_audit.capture_change()"
+    "scope": "production"
+  "target":
+    "instance": "appsheet-pg-prod-20260914"
+    "host": "34.21.174.215"
+    "port": 5432
+    "database": "loan_manager_dev"
+  "classification": "Six shared routine bodies differ only in CR line endings; seven cron extension routines are absent in\
+    \ DEV. Exact text preserved."
+  "changes":
+  - "pointer": "/definition/definition"
+    "before":
+      "state": "value"
+      "value": |
+        CREATE OR REPLACE FUNCTION agent_audit.capture_change()
+         RETURNS trigger
+         LANGUAGE plpgsql
+         SECURITY DEFINER
+         SET search_path TO 'pg_catalog'
+        AS $function$
+        DECLARE operation uuid; old_value jsonb; new_value jsonb; key_value jsonb;
+        BEGIN
+         -- AppSheet/shared database identities are not relabelled as agent DML.
+         -- API calls have central host audits, with the attribution limits in SCHEMA.md.
+         IF session_user<>'mw_reviewer_dml' THEN RETURN NULL; END IF;
+         operation:=nullif(current_setting('mw_agent.operation_id',true),'')::uuid;
+         IF operation IS NULL OR NOT EXISTS (
+            SELECT 1 FROM agent_audit.commits c
+            WHERE c.operation_id=operation AND c.database_txid=pg_current_xact_id()
+              AND c.database_session_role=session_user) THEN
+          RAISE EXCEPTION 'Reviewer DML requires its transaction audit marker';
+         END IF;
+         IF TG_OP<>'INSERT' THEN old_value:=to_jsonb(OLD); END IF;
+         IF TG_OP<>'DELETE' THEN new_value:=to_jsonb(NEW); END IF;
+         key_value:=coalesce(new_value,old_value)->'Row ID';
+         IF key_value IS NULL OR key_value='null'::jsonb THEN RAISE EXCEPTION 'Audited table key unavailable'; END IF;
+         INSERT INTO agent_audit.row_changes(operation_id,schema_name,table_name,action,row_key,before_row,after_row)
+         VALUES(operation,TG_TABLE_SCHEMA,TG_TABLE_NAME,TG_OP,jsonb_build_object('Row ID',key_value),old_value,new_value);
+         RETURN NULL;
+        END $function$
+    "after":
+      "state": "value"
+      "value": "CREATE OR REPLACE FUNCTION agent_audit.capture_change()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n\
+        \ SET search_path TO 'pg_catalog'\nAS $function$\r\nDECLARE operation uuid; old_value jsonb; new_value jsonb; key_value\
+        \ jsonb;\r\nBEGIN\r\n -- AppSheet/shared database identities are not relabelled as agent DML.\r\n -- API calls have\
+        \ central host audits, with the attribution limits in SCHEMA.md.\r\n IF session_user<>'mw_reviewer_dml' THEN RETURN\
+        \ NULL; END IF;\r\n operation:=nullif(current_setting('mw_agent.operation_id',true),'')::uuid;\r\n IF operation IS\
+        \ NULL OR NOT EXISTS (\r\n    SELECT 1 FROM agent_audit.commits c\r\n    WHERE c.operation_id=operation AND c.database_txid=pg_current_xact_id()\r\
+        \n      AND c.database_session_role=session_user) THEN\r\n  RAISE EXCEPTION 'Reviewer DML requires its transaction\
+        \ audit marker';\r\n END IF;\r\n IF TG_OP<>'INSERT' THEN old_value:=to_jsonb(OLD); END IF;\r\n IF TG_OP<>'DELETE'\
+        \ THEN new_value:=to_jsonb(NEW); END IF;\r\n key_value:=coalesce(new_value,old_value)->'Row ID';\r\n IF key_value\
+        \ IS NULL OR key_value='null'::jsonb THEN RAISE EXCEPTION 'Audited table key unavailable'; END IF;\r\n INSERT INTO\
+        \ agent_audit.row_changes(operation_id,schema_name,table_name,action,row_key,before_row,after_row)\r\n VALUES(operation,TG_TABLE_SCHEMA,TG_TABLE_NAME,TG_OP,jsonb_build_object('Row\
+        \ ID',key_value),old_value,new_value);\r\n RETURN NULL;\r\nEND $function$\n"
+  "comparison_representation": "captured source object (before presentation into canonical YAML)"

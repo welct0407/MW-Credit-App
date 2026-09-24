@@ -1,0 +1,37 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "settings"
+  "name": "Editor security/Domain Authentication"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/oltp/settings/editor-editor-security-domain-authentication-01959184.yaml"
+  "classification": "Environment app identity/version/folder/theme/access and supporting UI text; exact differences retained."
+  "changes":
+  - "pointer": "/controls"
+    "before":
+      "state": "value"
+      "value":
+      - "label": "Require domain authentication?"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+    "after":
+      "state": "value"
+      "value":
+      - "label": "Require domain authentication?"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Require domain authentication?"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""

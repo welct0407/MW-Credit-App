@@ -1,0 +1,424 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_cashflow_daily"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_cashflow_daily"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": "R016 zero-movement dates included. Opening + money in - money out = closing when opening is known. Balances\
+      \ are net cash (negative account balances retained), not positive-only custody. Historical corrections restate history."
+    "view_definition": |2-
+       WITH accounts AS (
+               SELECT a."Row ID" AS scope,
+                  a."Account Label" AS label,
+                  (c."Cutover At" AT TIME ZONE 'Asia/Bangkok'::text)::date AS available,
+                  c."Opening Balance" - c."Baseline Cash In" + c."Baseline Cash Out" AS baseline
+                 FROM "Cash Accounts" a
+                   LEFT JOIN r008_cash_account_cutover c ON c."Ref Cash Account" = a."Row ID"
+              ), scopes AS (
+               SELECT accounts.scope,
+                  accounts.label,
+                  accounts.available,
+                  accounts.baseline
+                 FROM accounts
+              UNION ALL
+               SELECT '__ALL__'::text,
+                  'All accounts'::text,
+                      CASE
+                          WHEN bool_and(accounts.available IS NOT NULL) THEN max(accounts.available)
+                          ELSE NULL::date
+                      END AS "case",
+                      CASE
+                          WHEN bool_and(accounts.baseline IS NOT NULL) THEN sum(accounts.baseline)
+                          ELSE NULL::numeric
+                      END AS "case"
+                 FROM accounts
+              ), flows AS (
+               SELECT reporting_cashflow_transactions."Scope ID" AS scope,
+                  reporting_cashflow_transactions."Date" AS d,
+                  sum(reporting_cashflow_transactions."Money In") AS cash_in,
+                  sum(reporting_cashflow_transactions."Money Out") AS cash_out,
+                  count(*) AS n,
+                  count(*) FILTER (WHERE reporting_cashflow_transactions."Internal Transfer") AS transfers
+                 FROM reporting_cashflow_transactions
+                GROUP BY reporting_cashflow_transactions."Scope ID", reporting_cashflow_transactions."Date"
+              ), bounds AS (
+               SELECT LEAST(min(l."Movement Date"), min((c."Cutover At" AT TIME ZONE 'Asia/Bangkok'::text)::date), (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date) AS first_date
+                 FROM "Cash Ledger" l
+                   FULL JOIN r008_cash_account_cutover c ON false
+              ), days AS (
+               SELECT generate_series(date_trunc('month'::text, bounds.first_date::timestamp with time zone)::date::timestamp with time zone, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date::timestamp with time zone, '1 day'::interval)::date AS d
+                 FROM bounds
+              ), grid AS (
+               SELECT s.scope,
+                  s.label,
+                  s.available,
+                  s.baseline,
+                  d.d,
+                  COALESCE(f.cash_in, 0::numeric) AS cash_in,
+                  COALESCE(f.cash_out, 0::numeric) AS cash_out,
+                  COALESCE(f.n, 0::bigint) AS n,
+                  COALESCE(f.transfers, 0::bigint) AS transfers
+                 FROM scopes s
+                   CROSS JOIN days d
+                   LEFT JOIN flows f ON f.scope = s.scope AND f.d = d.d
+              ), running AS (
+               SELECT grid.scope,
+                  grid.label,
+                  grid.available,
+                  grid.baseline,
+                  grid.d,
+                  grid.cash_in,
+                  grid.cash_out,
+                  grid.n,
+                  grid.transfers,
+                      CASE
+                          WHEN grid.d >= grid.available THEN grid.baseline + sum(grid.cash_in - grid.cash_out) OVER (PARTITION BY grid.scope ORDER BY grid.d ROWS UNBOUNDED PRECEDING)
+                          ELSE NULL::numeric
+                      END AS closing
+                 FROM grid
+              )
+       SELECT jsonb_build_array(scope, d)::text AS "Position ID",
+          scope AS "Scope ID",
+          label AS "Account",
+          d AS "Date",
+          closing - cash_in + cash_out AS "Opening Balance",
+          cash_in AS "Money In",
+          cash_out AS "Money Out",
+          cash_in - cash_out AS "Net Movement",
+          closing AS "Closing Balance",
+          n AS "Transaction Count",
+          transfers AS "Internal Transfer Count",
+          available AS "Available From",
+              CASE
+                  WHEN available IS NULL THEN 'Opening not initialized'::text
+                  WHEN d < available THEN 'Before known opening'::text
+                  ELSE 'Available'::text
+              END AS "Balance Status"
+         FROM running;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Position ID":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Position ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Scope ID":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Scope ID"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Account":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Account"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Date":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Date"
+      "ordinal": 4
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Opening Balance":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Opening Balance"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Money In":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Money In"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Money Out":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Money Out"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Movement":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Net Movement"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Closing Balance":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Closing Balance"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Transaction Count":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Transaction Count"
+      "ordinal": 10
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Internal Transfer Count":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Internal Transfer Count"
+      "ordinal": 11
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Available From":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Available From"
+      "ordinal": 12
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Balance Status":
+      "schema": "public"
+      "relation": "reporting_cashflow_daily"
+      "name": "Balance Status"
+      "ordinal": 13
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Account Label"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Movement Date"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash In"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash Out"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Cutover At"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Opening Balance"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Ref Cash Account"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cashflow_transactions"
+    "referenced_column": "Date"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cashflow_transactions"
+    "referenced_column": "Internal Transfer"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cashflow_transactions"
+    "referenced_column": "Money In"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cashflow_transactions"
+    "referenced_column": "Money Out"
+  - "schema": "public"
+    "relation": "reporting_cashflow_daily"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cashflow_transactions"
+    "referenced_column": "Scope ID"

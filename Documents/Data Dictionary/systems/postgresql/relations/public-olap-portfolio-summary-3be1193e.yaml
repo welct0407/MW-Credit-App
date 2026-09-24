@@ -1,0 +1,1292 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.olap_portfolio_summary"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "olap_portfolio_summary"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH ctx AS (
+               SELECT q.d,
+                  date_trunc('month'::text, q.d::timestamp with time zone)::date AS ms,
+                  (date_trunc('month'::text, q.d::timestamp with time zone) + '1 mon -1 days'::interval)::date AS me
+                 FROM ( SELECT olap_reporting_date() AS d) q
+              ), lr AS (
+               SELECT COALESCE(sum(olap_loans_analytics."Outstanding Principal"), 0::numeric) AS principal,
+                  count(*) FILTER (WHERE olap_loans_analytics."Loan Status" = 'ยังไม่ปิดยอด'::text) AS active,
+                  COALESCE(sum(olap_loans_analytics."Expected Interest This Month"), 0::numeric) AS forecast,
+                  COALESCE(sum(olap_loans_analytics."Principal Days MTD"), 0::numeric) AS days,
+                  COALESCE(sum(olap_loans_analytics."Expected Daily Interest Amount"), 0::numeric) AS daily,
+                  COALESCE(sum(olap_loans_analytics."Total Interest Received") FILTER (WHERE olap_loans_analytics."Loan Status" = 'ยังไม่ปิดยอด'::text), 0::numeric) AS active_profit
+                 FROM olap_loans_analytics
+              ), rr AS (
+               SELECT COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric), 0::numeric) AS profit,
+                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" = ctx.d), 0::numeric) AS today,
+                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" = (ctx.d - 1)), 0::numeric) AS yesterday,
+                  COALESCE(sum(olap_repayments_analytics."Interest Paid"::numeric) FILTER (WHERE olap_repayments_analytics."Payment Date" >= ctx.ms AND olap_repayments_analytics."Payment Date" <= ctx.me), 0::numeric) AS mtd,
+                  COALESCE(sum(olap_repayments_analytics."Principal Returned Days MTD"), 0::numeric) AS returned_days,
+                  COALESCE(sum(olap_repayments_analytics."Partner A Profit"), 0::numeric) AS profit_a,
+                  COALESCE(sum(olap_repayments_analytics."Partner B Profit"), 0::numeric) AS profit_b
+                 FROM olap_repayments_analytics
+                   CROSS JOIN ctx
+              ), cr AS (
+               SELECT COALESCE(sum(olap_charges_analytics."Amount Remaining") FILTER (WHERE NULLIF(olap_charges_analytics."Ref Loans", ''::text) IS NOT NULL AND olap_charges_analytics."Charge Date" <= ctx.d), 0::numeric) AS pending,
+                  COALESCE(sum(olap_charges_analytics."Interest Remaining") FILTER (WHERE NULLIF(olap_charges_analytics."Ref Loans", ''::text) IS NOT NULL AND olap_charges_analytics."Charge Date" <= ctx.d), 0::numeric) AS interest,
+                  COALESCE(sum(olap_charges_analytics."Amount Due") FILTER (WHERE olap_charges_analytics."Charge Date" = ctx.d), 0::numeric) AS due,
+                  COALESCE(sum(olap_charges_analytics."Total Paid") FILTER (WHERE olap_charges_analytics."Charge Date" = ctx.d), 0::numeric) AS paid,
+                  COALESCE(sum(olap_charges_analytics."Amount Remaining") FILTER (WHERE olap_charges_analytics."Charge Date" = ctx.d), 0::numeric) AS remaining
+                 FROM olap_charges_analytics
+                   CROSS JOIN ctx
+              ), br AS (
+               SELECT count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Fully Paid'::text) AS full_count,
+                  count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Partially Paid'::text) AS partial_count,
+                  count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Overdue'::text) AS overdue_count,
+                  count(*) FILTER (WHERE olap_borrowers_analytics."Daily Collection Status" = 'Not Paid'::text) AS notpaid_count
+                 FROM olap_borrowers_analytics
+              ), top3 AS (
+               SELECT COALESCE(sum(q.v), 0::numeric) AS total
+                 FROM ( SELECT "Borrowers"."Total Outstanding Principal" AS v
+                         FROM "Borrowers"
+                        WHERE "Borrowers"."Total Outstanding Principal" > 0::numeric
+                        ORDER BY "Borrowers"."Total Outstanding Principal" DESC
+                       LIMIT 3) q
+              ), pool AS (
+               SELECT COALESCE(sum(
+                      CASE
+                          WHEN "Cash Pool Contributions"."Transaction Type" = 'Contribution'::text THEN "Cash Pool Contributions"."Amount"::numeric
+                          ELSE - "Cash Pool Contributions"."Amount"::numeric
+                      END), 0::numeric) AS total
+                 FROM "Cash Pool Contributions"
+              ), settled AS (
+               SELECT COALESCE(sum(s."Amount"::numeric), 0::numeric) AS total
+                 FROM "Settlements" s
+                   JOIN "Partners" p ON p."Row ID" = s."Ref Partner"
+                WHERE s."Status" = 'Completed'::text
+              ), earned AS (
+               SELECT COALESCE(sum(
+                      CASE p."Partner Role"
+                          WHEN 'A'::text THEN rr.profit_a
+                          WHEN 'B'::text THEN rr.profit_b
+                          ELSE 0::numeric
+                      END), 0::numeric) AS total
+                 FROM "Partners" p
+                   CROSS JOIN rr
+              ), er AS (
+               SELECT COALESCE(sum("Business Expenses"."Amount"::numeric), 0::numeric) AS total,
+                  COALESCE(sum("Business Expenses"."Amount"::numeric) FILTER (WHERE "Business Expenses"."Expense Date" >= ctx.ms AND "Business Expenses"."Expense Date" <= ctx.d), 0::numeric) AS mtd
+                 FROM "Business Expenses"
+                   CROSS JOIN ctx
+              ), recent AS (
+               SELECT a."Row ID",
+                  a."Snapshot Date",
+                  a."Generated At",
+                  a."Model Version",
+                  a."Principal Issued",
+                  a."Loans Issued",
+                  a."Principal Returned",
+                  a."Interest Received",
+                  a."Repayments Count",
+                  a."Outstanding Principal EOD",
+                  a."Active Loans EOD",
+                  a."Active Borrowers EOD",
+                  a."Pending Charges EOD",
+                  a."Total Cash Pool EOD",
+                  a."Available Cash EOD",
+                  a."Unsettled Profit EOD",
+                  a."Business Expenses",
+                  a."Net Profit",
+                  a."Net Unsettled Profit EOD"
+                 FROM "Daily Analytics" a
+                WHERE a."Snapshot Date" >= ((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text) - '30 days'::interval)
+              ), peak AS (
+               SELECT COALESCE(max(recent."Outstanding Principal EOD"::numeric), 0::numeric) AS amount
+                 FROM recent
+              ), peakdate AS (
+               SELECT max(recent."Snapshot Date") AS dt
+                 FROM recent
+                   CROSS JOIN peak
+                WHERE recent."Outstanding Principal EOD"::numeric = peak.amount
+              ), a AS (
+               SELECT s."Row ID",
+                  s."Statistics ID",
+                  rr.profit AS "Total Profit",
+                  lr.principal AS "Outstanding Principal",
+                  lr.principal AS "Total Outstanding Principal",
+                  lr.active AS "Active Loans",
+                  rr.today AS "Today's Profit",
+                  rr.yesterday AS "Yesterday's Profit",
+                  rr.mtd AS "Realized Profit MTD",
+                  rr.mtd + cr.interest + lr.forecast AS "Projected Monthly Profit",
+                  cr.pending AS "Pending Payment Amount",
+                  lr.forecast AS "Forecast Remaining Interest",
+                  cr.interest AS "Today's Outstanding Interest",
+                  lr.days - rr.returned_days AS "Net Principal Days MTD",
+                  lr.principal * (ctx.me - ctx.d)::numeric AS "Forecast Remaining Principal Days",
+                  round((lr.days - rr.returned_days + lr.principal * (ctx.me - ctx.d)::numeric) / EXTRACT(day FROM ctx.me)) AS "Forecast Average Daily Outstanding Principal",
+                  peak.amount AS "Peak Cash Pool 30D",
+                  peakdate.dt AS "Peak Cash Pool Date 30D",
+                  lr.daily AS "Expected Daily Interest",
+                  lr.active_profit AS "Total Profit of Outstanding Loans",
+                      CASE
+                          WHEN lr.principal > 0::numeric THEN lr.active_profit / lr.principal
+                          ELSE 0::numeric
+                      END AS "Profit Coverage of Outstanding Principal",
+                  pool.total AS "Total Cash Pool",
+                  earned.total - settled.total AS "Total Unsettled Profit",
+                  pool.total - lr.principal + earned.total - settled.total AS "Expected Loan Account Balance",
+                      CASE
+                          WHEN lr.principal = 0::numeric THEN 0::numeric
+                          ELSE top3.total / lr.principal
+                      END AS "Top 3 Borrower Concentration",
+                  br.full_count AS "Borrowers Fully Paid Today",
+                  br.partial_count AS "Borrowers Partially Paid Today",
+                  br.overdue_count AS "Borrowers with Overdue Payment",
+                  br.notpaid_count AS "Borrowers Not Paid Today",
+                  cr.due AS "Amount Due Today",
+                  cr.paid AS "Amount Collected Today",
+                  cr.remaining AS "Amount Outstanding Today",
+                      CASE
+                          WHEN cr.due = 0::numeric THEN 0::numeric
+                          ELSE cr.paid / cr.due
+                      END AS "Amount Collection Rate Today",
+                  er.total AS "Total Business Expenses",
+                  rr.profit - er.total AS "Net Profit",
+                  er.mtd AS "Expenses MTD",
+                  rr.mtd - er.mtd AS "Net Profit MTD",
+                  earned.total - settled.total - er.total AS "Net Unsettled Profit",
+                  pool.total - lr.principal + earned.total - settled.total - er.total AS "Net Expected Loan Account Balance",
+                  rr.mtd AS "Operating Income MTD",
+                  - er.mtd AS "Income Statement Expenses MTD"
+                 FROM "Statistics" s
+                   CROSS JOIN ctx
+                   CROSS JOIN lr
+                   CROSS JOIN rr
+                   CROSS JOIN cr
+                   CROSS JOIN br
+                   CROSS JOIN top3
+                   CROSS JOIN pool
+                   CROSS JOIN settled
+                   CROSS JOIN earned
+                   CROSS JOIN er
+                   CROSS JOIN peak
+                   CROSS JOIN peakdate
+              ), final AS (
+               SELECT a."Row ID",
+                  a."Statistics ID",
+                  a."Total Profit",
+                  a."Outstanding Principal",
+                  a."Total Outstanding Principal",
+                  a."Active Loans",
+                  a."Today's Profit",
+                  a."Yesterday's Profit",
+                  a."Realized Profit MTD",
+                  a."Projected Monthly Profit",
+                  a."Pending Payment Amount",
+                  a."Forecast Remaining Interest",
+                  a."Today's Outstanding Interest",
+                  a."Net Principal Days MTD",
+                  a."Forecast Remaining Principal Days",
+                  a."Forecast Average Daily Outstanding Principal",
+                  a."Peak Cash Pool 30D",
+                  a."Peak Cash Pool Date 30D",
+                  a."Expected Daily Interest",
+                  a."Total Profit of Outstanding Loans",
+                  a."Profit Coverage of Outstanding Principal",
+                  a."Total Cash Pool",
+                  a."Total Unsettled Profit",
+                  a."Expected Loan Account Balance",
+                  a."Top 3 Borrower Concentration",
+                  a."Borrowers Fully Paid Today",
+                  a."Borrowers Partially Paid Today",
+                  a."Borrowers with Overdue Payment",
+                  a."Borrowers Not Paid Today",
+                  a."Amount Due Today",
+                  a."Amount Collected Today",
+                  a."Amount Outstanding Today",
+                  a."Amount Collection Rate Today",
+                  a."Total Business Expenses",
+                  a."Net Profit",
+                  a."Expenses MTD",
+                  a."Net Profit MTD",
+                  a."Net Unsettled Profit",
+                  a."Net Expected Loan Account Balance",
+                  a."Operating Income MTD",
+                  a."Income Statement Expenses MTD",
+                      CASE
+                          WHEN a."Forecast Average Daily Outstanding Principal" > 0::numeric THEN a."Projected Monthly Profit" / a."Forecast Average Daily Outstanding Principal"
+                          ELSE 0::numeric
+                      END AS "Forecast Monthly Return on ADO"
+                 FROM a
+              )
+       SELECT "Row ID",
+          "Statistics ID",
+          round("Total Profit", 0) AS "Total Profit",
+          round("Outstanding Principal", 0) AS "Outstanding Principal",
+          "Active Loans",
+          round("Today's Profit", 0) AS "Today's Profit",
+          round("Yesterday's Profit", 0) AS "Yesterday's Profit",
+          round("Realized Profit MTD", 0) AS "Realized Profit MTD",
+          round("Projected Monthly Profit", 0) AS "Projected Monthly Profit",
+          round("Pending Payment Amount", 0) AS "Pending Payment Amount",
+          round("Forecast Remaining Interest", 0) AS "Forecast Remaining Interest",
+          round("Today's Outstanding Interest", 0) AS "Today's Outstanding Interest",
+          "Net Principal Days MTD",
+          "Forecast Remaining Principal Days",
+          round("Forecast Average Daily Outstanding Principal", 0) AS "Forecast Average Daily Outstanding Principal",
+          round("Forecast Monthly Return on ADO", 2) AS "Forecast Monthly Return on ADO",
+          round("Peak Cash Pool 30D", 0) AS "Peak Cash Pool 30D",
+          "Peak Cash Pool Date 30D",
+          round("Expected Daily Interest", 0) AS "Expected Daily Interest",
+          round("Total Profit of Outstanding Loans", 0) AS "Total Profit of Outstanding Loans",
+          round("Profit Coverage of Outstanding Principal", 2) AS "Profit Coverage of Outstanding Principal",
+          round("Total Cash Pool", 0) AS "Total Cash Pool",
+          round("Total Unsettled Profit", 0) AS "Total Unsettled Profit",
+          round("Expected Loan Account Balance", 0) AS "Expected Loan Account Balance",
+          round("Total Outstanding Principal", 0) AS "Total Outstanding Principal",
+          round("Top 3 Borrower Concentration", 4) AS "Top 3 Borrower Concentration",
+          "Borrowers Fully Paid Today",
+          "Borrowers Partially Paid Today",
+          "Borrowers with Overdue Payment",
+          "Borrowers Not Paid Today",
+          round("Amount Due Today", 0) AS "Amount Due Today",
+          round("Amount Collected Today", 0) AS "Amount Collected Today",
+          round("Amount Outstanding Today", 0) AS "Amount Outstanding Today",
+          "Amount Collection Rate Today",
+          round("Total Business Expenses", 0) AS "Total Business Expenses",
+          round("Net Profit", 0) AS "Net Profit",
+          round("Expenses MTD", 0) AS "Expenses MTD",
+          round("Net Profit MTD", 0) AS "Net Profit MTD",
+          round("Net Unsettled Profit", 0) AS "Net Unsettled Profit",
+          round("Net Expected Loan Account Balance", 0) AS "Net Expected Loan Account Balance",
+          round("Income Statement Expenses MTD", 0) AS "Income Statement Expenses MTD",
+          round("Operating Income MTD", 0) AS "Operating Income MTD"
+         FROM final x;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Statistics ID":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Statistics ID"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Total Profit":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Total Profit"
+      "ordinal": 3
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Outstanding Principal":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Outstanding Principal"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Active Loans":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Active Loans"
+      "ordinal": 5
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Today's Profit":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Today's Profit"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Yesterday's Profit":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Yesterday's Profit"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Realized Profit MTD":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Realized Profit MTD"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Projected Monthly Profit":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Projected Monthly Profit"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Pending Payment Amount":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Pending Payment Amount"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Forecast Remaining Interest":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Forecast Remaining Interest"
+      "ordinal": 11
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Today's Outstanding Interest":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Today's Outstanding Interest"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Principal Days MTD":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Net Principal Days MTD"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Forecast Remaining Principal Days":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Forecast Remaining Principal Days"
+      "ordinal": 14
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Forecast Average Daily Outstanding Principal":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Forecast Average Daily Outstanding Principal"
+      "ordinal": 15
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Forecast Monthly Return on ADO":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Forecast Monthly Return on ADO"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Peak Cash Pool 30D":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Peak Cash Pool 30D"
+      "ordinal": 17
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Peak Cash Pool Date 30D":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Peak Cash Pool Date 30D"
+      "ordinal": 18
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Expected Daily Interest":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Expected Daily Interest"
+      "ordinal": 19
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Total Profit of Outstanding Loans":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Total Profit of Outstanding Loans"
+      "ordinal": 20
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Profit Coverage of Outstanding Principal":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Profit Coverage of Outstanding Principal"
+      "ordinal": 21
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Total Cash Pool":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Total Cash Pool"
+      "ordinal": 22
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Total Unsettled Profit":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Total Unsettled Profit"
+      "ordinal": 23
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Expected Loan Account Balance":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Expected Loan Account Balance"
+      "ordinal": 24
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Total Outstanding Principal":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Total Outstanding Principal"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Top 3 Borrower Concentration":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Top 3 Borrower Concentration"
+      "ordinal": 26
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Borrowers Fully Paid Today":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Borrowers Fully Paid Today"
+      "ordinal": 27
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Borrowers Partially Paid Today":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Borrowers Partially Paid Today"
+      "ordinal": 28
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Borrowers with Overdue Payment":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Borrowers with Overdue Payment"
+      "ordinal": 29
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Borrowers Not Paid Today":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Borrowers Not Paid Today"
+      "ordinal": 30
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Amount Due Today":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Amount Due Today"
+      "ordinal": 31
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Amount Collected Today":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Amount Collected Today"
+      "ordinal": 32
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Amount Outstanding Today":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Amount Outstanding Today"
+      "ordinal": 33
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Amount Collection Rate Today":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Amount Collection Rate Today"
+      "ordinal": 34
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Total Business Expenses":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Total Business Expenses"
+      "ordinal": 35
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Profit":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Net Profit"
+      "ordinal": 36
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Expenses MTD":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Expenses MTD"
+      "ordinal": 37
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Profit MTD":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Net Profit MTD"
+      "ordinal": 38
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Unsettled Profit":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Net Unsettled Profit"
+      "ordinal": 39
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Expected Loan Account Balance":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Net Expected Loan Account Balance"
+      "ordinal": 40
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Income Statement Expenses MTD":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Income Statement Expenses MTD"
+      "ordinal": 41
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Operating Income MTD":
+      "schema": "public"
+      "relation": "olap_portfolio_summary"
+      "name": "Operating Income MTD"
+      "ordinal": 42
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Total Outstanding Principal"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Expense Date"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Pool Contributions"
+    "referenced_column": "Transaction Type"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Active Borrowers EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Active Loans EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Available Cash EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Business Expenses"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Generated At"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Interest Received"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Loans Issued"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Model Version"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Net Profit"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Net Unsettled Profit EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Outstanding Principal EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Pending Charges EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Principal Issued"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Principal Returned"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Repayments Count"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Snapshot Date"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Total Cash Pool EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Unsettled Profit EOD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Role"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Settlements"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Settlements"
+    "referenced_column": "Ref Partner"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Settlements"
+    "referenced_column": "Status"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Statistics"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "Statistics"
+    "referenced_column": "Statistics ID"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Daily Collection Status"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Amount Due"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Amount Remaining"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Charge Date"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Interest Remaining"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_charges_analytics"
+    "referenced_column": "Total Paid"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Expected Daily Interest Amount"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Expected Interest This Month"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Status"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Outstanding Principal"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Principal Days MTD"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Total Interest Received"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner A Profit"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Partner B Profit"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "olap_portfolio_summary"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Principal Returned Days MTD"

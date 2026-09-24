@@ -1,0 +1,645 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Payments"
+  "scope": "development:observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/development-postgresql-observations.json"
+"content":
+  "production_identity":
+    "system": "postgresql"
+    "component": "loan_manager_prod"
+    "kind": "relation"
+    "name": "public.Payments"
+    "scope": "production"
+  "target":
+    "instance": "appsheet-pg-prod-20260914"
+    "host": "34.21.174.215"
+    "port": 5432
+    "database": "loan_manager_dev"
+  "classification": "Observed ACL, column-order and environment-specific internal trigger/constraint identifiers; PROD-only\
+    \ cron metadata retained as explicit absence in DEV."
+  "changes":
+  - "pointer": "/definition/acl"
+    "before":
+      "state": "value"
+      "value": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres}"
+    "after":
+      "state": "value"
+      "value": "{postgres=arwdDxtm/postgres,mw_reviewer_dml=d/postgres}"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16705"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_16705"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16705\" AFTER DELETE ON \"Payments\" FROM \"Repayments\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16706"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_16706"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16706\" AFTER UPDATE ON \"Payments\" FROM \"Repayments\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16735"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_16735"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16735\" AFTER DELETE ON \"Payments\" FROM \"Payment\
+          \ Allocations\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16736"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_16736"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16736\" AFTER UPDATE ON \"Payments\" FROM \"Payment\
+          \ Allocations\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16863"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_16863"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16863\" AFTER DELETE ON \"Payments\" FROM \"Loans\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16864"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_16864"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16864\" AFTER UPDATE ON \"Payments\" FROM \"Loans\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17202"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_17202"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17202\" AFTER DELETE ON \"Payments\" FROM \"Cash\
+          \ Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17203"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_17203"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17203\" AFTER UPDATE ON \"Payments\" FROM \"Cash\
+          \ Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18190"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_18190"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18190\" AFTER DELETE ON \"Payments\" FROM \"Cash\
+          \ Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18191"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_18191"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18191\" AFTER UPDATE ON \"Payments\" FROM \"Cash\
+          \ Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18230"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_18230"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18230\" AFTER DELETE ON \"Payments\" FROM \"Loans\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18231"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_18231"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18231\" AFTER UPDATE ON \"Payments\" FROM \"Loans\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18275"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_18275"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18275\" AFTER DELETE ON \"Payments\" FROM \"Repayments\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18276"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_18276"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18276\" AFTER UPDATE ON \"Payments\" FROM \"Repayments\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18305"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_18305"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18305\" AFTER DELETE ON \"Payments\" FROM \"Payment\
+          \ Allocations\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18306"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_a_18306"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18306\" AFTER UPDATE ON \"Payments\" FROM \"Payment\
+          \ Allocations\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_16747"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_16747"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16747\" AFTER INSERT ON \"Payments\" FROM \"Borrowers\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_16748"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_16748"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16748\" AFTER UPDATE ON \"Payments\" FROM \"Borrowers\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_16752"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_16752"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16752\" AFTER INSERT ON \"Payments\" FROM \"Charges\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_16753"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_16753"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16753\" AFTER UPDATE ON \"Payments\" FROM \"Charges\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_16884"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_16884"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16884\" AFTER INSERT ON \"Payments\" FROM \"Loans\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_16885"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_16885"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16885\" AFTER UPDATE ON \"Payments\" FROM \"Loans\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_17157"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_17157"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17157\" AFTER INSERT ON \"Payments\" FROM \"Cash\
+          \ Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_17158"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_17158"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17158\" AFTER UPDATE ON \"Payments\" FROM \"Cash\
+          \ Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_17370"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_17370"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17370\" AFTER INSERT ON \"Payments\" FROM \"Cash\
+          \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_17371"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_17371"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17371\" AFTER UPDATE ON \"Payments\" FROM \"Cash\
+          \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18242"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18242"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18242\" AFTER INSERT ON \"Payments\" FROM \"Cash\
+          \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18243"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18243"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18243\" AFTER UPDATE ON \"Payments\" FROM \"Cash\
+          \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18247"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18247"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18247\" AFTER INSERT ON \"Payments\" FROM \"Cash\
+          \ Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18248"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18248"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18248\" AFTER UPDATE ON \"Payments\" FROM \"Cash\
+          \ Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18252"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18252"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18252\" AFTER INSERT ON \"Payments\" FROM \"Loans\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18253"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18253"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18253\" AFTER UPDATE ON \"Payments\" FROM \"Loans\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18317"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18317"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18317\" AFTER INSERT ON \"Payments\" FROM \"Borrowers\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18318"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18318"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18318\" AFTER UPDATE ON \"Payments\" FROM \"Borrowers\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18322"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18322"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18322\" AFTER INSERT ON \"Payments\" FROM \"Charges\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18323"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "RI_ConstraintTrigger_c_18323"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18323\" AFTER UPDATE ON \"Payments\" FROM \"Charges\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  "comparison_representation": "captured source object (before presentation into canonical YAML)"

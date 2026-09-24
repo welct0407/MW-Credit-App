@@ -1,36 +1,82 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "appsheet-pg-prod-20260914"
+  "component": "loan_manager_prod"
   "kind": "relation"
   "name": "public.reporting_statement_calendar"
-  "scope": "development-and-production"
+  "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r016-20260922/statement-cleanup/README.md"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/reporting/reporting_statement_calendar.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "appsheet-pg-prod-20260914"
+      "kind": "relation"
+      "name": "public.reporting_statement_calendar"
+      "scope": "development-and-production"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_statement_calendar"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT generate_series(date_trunc('month'::text, LEAST(( SELECT min(reporting_income_events."Date") AS min
+                 FROM reporting_income_events), ( SELECT min("Cash Ledger"."Movement Date") AS min
+                 FROM "Cash Ledger"), ( SELECT min(reporting_cash_scopes.available) AS min
+                 FROM reporting_cash_scopes), olap_reporting_date())::timestamp with time zone)::date::timestamp with time zone, olap_reporting_date()::timestamp with time zone, '1 day'::interval)::date AS "Date";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Date":
-      "data_type": "date"
-      "udt_name": "date"
-      "nullable": true
+      "schema": "public"
+      "relation": "reporting_statement_calendar"
+      "name": "Date"
       "ordinal": 1
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
-  "definition": |-
-    CREATE VIEW public.reporting_statement_calendar AS
-    SELECT generate_series(date_trunc('month',least(
-     (SELECT min("Date") FROM public.reporting_income_events),
-     (SELECT min("Movement Date") FROM public."Cash Ledger"),
-     (SELECT min(available) FROM public.reporting_cash_scopes),public.olap_reporting_date()))::date,
-     public.olap_reporting_date(),interval '1 day')::date AS "Date";
-  "environments":
-  - "loan_manager_dev"
-  - "loan_manager_prod"
-  "migration": 38
-  "consumer": "Metabase restricted reporting; no AppSheet source changes"
-  "permissions": "SELECT only for metabase_borrower_reader"
-"evidence":
-  "/content/columns":
-    "reference": "outputs/r016-20260922/statement-cleanup/provider-columns.json"
-    "reason": "Verified restricted PROD catalog types and nullability"
-    "state": "value"
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_statement_calendar"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Movement Date"
+  - "schema": "public"
+    "relation": "reporting_statement_calendar"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_cash_scopes"
+    "referenced_column": "available"
+  - "schema": "public"
+    "relation": "reporting_statement_calendar"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_income_events"
+    "referenced_column": "Date"

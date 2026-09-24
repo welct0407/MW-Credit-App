@@ -1,0 +1,82 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "settings"
+  "name": "Editor security/Options"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls":
+    - "label": "Encrypt device data"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Secure PDF access"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Secure Image access"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Require Image and File URL Signing"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Require user consent"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Allow app embedding"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Treat all data columns as Sensitive"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Save images to gallery"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    "snapshot": |2-
+        - paragraph: Options
+        - link "Setup the security options for your app.menu_book":
+          - /url: https://support.google.com/appsheet?p=security
+        - heading "Encrypt device data (APPSHEET CORE)" [level=6]
+        - text: "Encrypt data stored locally on the device (note: encryption is not available on older devices)"
+        - checkbox
+        - heading "Secure PDF access (APPSHEET CORE)" [level=6]
+        - text: "Enforce app security for PDF access (note: enabling this option will block PDFs rendering outside the app) Enabling secure access might take up to a day to fully activate"
+        - checkbox
+        - heading "Secure Image access (APPSHEET CORE)" [level=6]
+        - text: "Enforce app security for image access (note: enabling this option will prevent images rendering outside the app) Enabling secure access might take up to a day to fully activate"
+        - checkbox
+        - heading "Require Image and File URL Signing (APPSHEET CORE)" [level=6]
+        - text: Require URLs to images and files within the app to be signed which prevents unauthorized access to these files. Disable this only if you don't consider this information sensitive and need to manually construct URLs to app files.
+        - checkbox [checked]
+        - heading "Require user consent" [level=6]
+        - text: Require users to provide consent before app usage. Disableing this will only impact users that are part of your team. Users outside your team will be required to consent in order to use the app.
+        - checkbox [checked]
+        - heading "Allow app embedding" [level=6]
+        - text: Allow the app to be rendered in an iframe?
+        - checkbox
+        - heading "Treat all data columns as Sensitive" [level=6]
+        - text: All updates to column data will be obscured from the audit logs.
+        - checkbox
+        - heading "Save images to gallery" [level=6]
+        - text: Save images taken within the app to the device's camera roll or gallery. This will make the images accessible outside of the app.
+        - checkbox [checked]

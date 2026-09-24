@@ -1,0 +1,25 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "sequence"
+  "name": "cron.jobid_seq"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "cron"
+    "name": "jobid_seq"
+    "owner": "postgres"
+    "data_type": "bigint"
+    "start": 1
+    "increment": 1
+    "maximum": 9223372036854775807
+    "minimum": 1
+    "cache": 1
+    "cycle": false
+    "acl": "{postgres=rwU/postgres,=r/postgres}"
+    "owned_by": null

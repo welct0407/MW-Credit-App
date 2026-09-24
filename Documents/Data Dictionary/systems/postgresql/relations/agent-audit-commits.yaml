@@ -1,204 +1,679 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
   "name": "agent_audit.commits"
-  "scope": "as-recorded"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/agent-audit-commits.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "agent_audit.commits"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "agent_audit"
+    "name": "commits"
+    "kind": "r"
+    "owner": "mw_business_audit_owner"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{mw_business_audit_owner=arwdDxtm/mw_business_audit_owner,mw_reviewer_dml=r/mw_business_audit_owner,mw_agent_relay=r/mw_business_audit_owner,mw_agent_auditor=r/mw_business_audit_owner}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "operation_id":
-      "Table / view": "agent_audit.commits"
-      "Column": "operation_id"
-      "Position": 1
-      "PostgreSQL type": "uuid"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "operation_id"
+      "ordinal": 1
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "database_txid":
-      "Table / view": "agent_audit.commits"
-      "Column": "database_txid"
-      "Position": 2
-      "PostgreSQL type": "xid8"
-      "Nullable": "NO"
-      "Default": "pg_current_xact_id()"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "database_txid"
+      "ordinal": 2
+      "data_type": "xid8"
+      "type_schema": "pg_catalog"
+      "type_name": "xid8"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "pg_current_xact_id()"
+      "collation": null
+      "acl": null
+      "comment": null
     "database_name":
-      "Table / view": "agent_audit.commits"
-      "Column": "database_name"
-      "Position": 3
-      "PostgreSQL type": "name"
-      "Nullable": "NO"
-      "Default": "current_database()"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "database_name"
+      "ordinal": 3
+      "data_type": "name"
+      "type_schema": "pg_catalog"
+      "type_name": "name"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "current_database()"
+      "collation": "\"C\""
+      "acl": null
+      "comment": null
     "reviewer_id":
-      "Table / view": "agent_audit.commits"
-      "Column": "reviewer_id"
-      "Position": 4
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "reviewer_id"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "reviewer_login":
-      "Table / view": "agent_audit.commits"
-      "Column": "reviewer_login"
-      "Position": 5
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "reviewer_login"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "plan_sha256":
-      "Table / view": "agent_audit.commits"
-      "Column": "plan_sha256"
-      "Position": 6
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "plan_sha256"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "request_reason":
-      "Table / view": "agent_audit.commits"
-      "Column": "request_reason"
-      "Position": 7
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "request_reason"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "direct_targets":
-      "Table / view": "agent_audit.commits"
-      "Column": "direct_targets"
-      "Position": 8
-      "PostgreSQL type": "jsonb"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "direct_targets"
+      "ordinal": 8
+      "data_type": "jsonb"
+      "type_schema": "pg_catalog"
+      "type_name": "jsonb"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "code_version":
-      "Table / view": "agent_audit.commits"
-      "Column": "code_version"
-      "Position": 9
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "code_version"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "recorded_in_transaction_at":
-      "Table / view": "agent_audit.commits"
-      "Column": "recorded_in_transaction_at"
-      "Position": 10
-      "PostgreSQL type": "timestamp with time zone"
-      "Nullable": "NO"
-      "Default": "clock_timestamp()"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "recorded_in_transaction_at"
+      "ordinal": 10
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "clock_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": null
     "database_session_role":
-      "Table / view": "agent_audit.commits"
-      "Column": "database_session_role"
-      "Position": 11
-      "PostgreSQL type": "name"
-      "Nullable": "NO"
-      "Default": "SESSION_USER"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "database_session_role"
+      "ordinal": 11
+      "data_type": "name"
+      "type_schema": "pg_catalog"
+      "type_name": "name"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "SESSION_USER"
+      "collation": "\"C\""
+      "acl": null
+      "comment": null
   "constraints":
     "commits_code_version_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_code_version_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL code_version"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_code_version_not_null"
+      "kind": "n"
+      "definition": "NOT NULL code_version"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_database_name_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_database_name_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL database_name"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_database_name_not_null"
+      "kind": "n"
+      "definition": "NOT NULL database_name"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_database_session_role_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_database_session_role_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL database_session_role"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_database_session_role_not_null"
+      "kind": "n"
+      "definition": "NOT NULL database_session_role"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 11
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_database_txid_key":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_database_txid_key"
-      "Type": "u"
-      "Validated": true
-      "Definition": "UNIQUE (database_txid)"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_database_txid_key"
+      "kind": "u"
+      "definition": "UNIQUE (database_txid)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_database_txid_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_database_txid_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL database_txid"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_database_txid_not_null"
+      "kind": "n"
+      "definition": "NOT NULL database_txid"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_direct_targets_check":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_direct_targets_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((jsonb_typeof(direct_targets) = 'array'::text))"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_direct_targets_check"
+      "kind": "c"
+      "definition": "CHECK (jsonb_typeof(direct_targets) = 'array'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_direct_targets_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_direct_targets_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL direct_targets"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_direct_targets_not_null"
+      "kind": "n"
+      "definition": "NOT NULL direct_targets"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_operation_id_database_txid_key":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_operation_id_database_txid_key"
-      "Type": "u"
-      "Validated": true
-      "Definition": "UNIQUE (operation_id, database_txid)"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_operation_id_database_txid_key"
+      "kind": "u"
+      "definition": "UNIQUE (operation_id, database_txid)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_operation_id_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_operation_id_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL operation_id"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_operation_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL operation_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_pkey":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_pkey"
-      "Type": "p"
-      "Validated": true
-      "Definition": "PRIMARY KEY (operation_id)"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (operation_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_plan_sha256_check":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_plan_sha256_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((plan_sha256 ~ '^[0-9a-f]{64}$'::text))"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_plan_sha256_check"
+      "kind": "c"
+      "definition": "CHECK (plan_sha256 ~ '^[0-9a-f]{64}$'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_plan_sha256_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_plan_sha256_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL plan_sha256"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_plan_sha256_not_null"
+      "kind": "n"
+      "definition": "NOT NULL plan_sha256"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_recorded_in_transaction_at_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_recorded_in_transaction_at_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL recorded_in_transaction_at"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_recorded_in_transaction_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL recorded_in_transaction_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 10
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_request_reason_check":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_request_reason_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((btrim(request_reason) <> ''::text))"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_request_reason_check"
+      "kind": "c"
+      "definition": "CHECK (btrim(request_reason) <> ''::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_request_reason_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_request_reason_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL request_reason"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_request_reason_not_null"
+      "kind": "n"
+      "definition": "NOT NULL request_reason"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_reviewer_id_check":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_reviewer_id_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((btrim(reviewer_id) <> ''::text))"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_reviewer_id_check"
+      "kind": "c"
+      "definition": "CHECK (btrim(reviewer_id) <> ''::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_reviewer_id_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_reviewer_id_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL reviewer_id"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_reviewer_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL reviewer_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_reviewer_login_check":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_reviewer_login_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((btrim(reviewer_login) <> ''::text))"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_reviewer_login_check"
+      "kind": "c"
+      "definition": "CHECK (btrim(reviewer_login) <> ''::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "commits_reviewer_login_not_null":
-      "Table": "agent_audit.commits"
-      "Constraint": "commits_reviewer_login_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL reviewer_login"
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_reviewer_login_not_null"
+      "kind": "n"
+      "definition": "NOT NULL reviewer_login"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "commits_database_txid_key":
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_database_txid_key"
+      "definition": "CREATE UNIQUE INDEX commits_database_txid_key ON agent_audit.commits USING btree (database_txid)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "commits_operation_id_database_txid_key":
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_operation_id_database_txid_key"
+      "definition": "CREATE UNIQUE INDEX commits_operation_id_database_txid_key ON agent_audit.commits USING btree (operation_id,\
+        \ database_txid)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "commits_pkey":
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_pkey"
+      "definition": "CREATE UNIQUE INDEX commits_pkey ON agent_audit.commits USING btree (operation_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_19176":
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "RI_ConstraintTrigger_a_19176"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19176\" AFTER DELETE ON agent_audit.commits FROM agent_audit.row_changes\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_19177":
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "RI_ConstraintTrigger_a_19177"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19177\" AFTER UPDATE ON agent_audit.commits FROM agent_audit.row_changes\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_19193":
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "RI_ConstraintTrigger_a_19193"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19193\" AFTER DELETE ON agent_audit.commits FROM agent_audit.exports\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_19194":
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "RI_ConstraintTrigger_a_19194"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19194\" AFTER UPDATE ON agent_audit.commits FROM agent_audit.exports\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "commits_append_only":
+      "schema": "agent_audit"
+      "relation": "commits"
+      "name": "commits_append_only"
+      "definition": "CREATE TRIGGER commits_append_only BEFORE DELETE OR UPDATE OR TRUNCATE ON agent_audit.commits FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION agent_audit.reject_rewrite()"
+      "enabled": "O"
+      "internal": false
+      "routine": "agent_audit.reject_rewrite()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

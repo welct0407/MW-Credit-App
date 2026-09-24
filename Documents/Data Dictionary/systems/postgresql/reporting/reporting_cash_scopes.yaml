@@ -1,56 +1,183 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "appsheet-pg-prod-20260914"
+  "component": "loan_manager_prod"
   "kind": "relation"
   "name": "public.reporting_cash_scopes"
-  "scope": "development-and-production"
+  "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r016-20260922/statement-cleanup/README.md"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/reporting/reporting_cash_scopes.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "appsheet-pg-prod-20260914"
+      "kind": "relation"
+      "name": "public.reporting_cash_scopes"
+      "scope": "development-and-production"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_cash_scopes"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH scopes AS (
+               SELECT a."Row ID" AS id,
+                  a."Account Label" AS label,
+                  (c."Cutover At" AT TIME ZONE 'Asia/Bangkok'::text)::date AS available,
+                  c."Opening Balance" - c."Baseline Cash In" + c."Baseline Cash Out" AS baseline
+                 FROM "Cash Accounts" a
+                   LEFT JOIN r008_cash_account_cutover c ON c."Ref Cash Account" = a."Row ID"
+              ), all_scopes AS (
+               SELECT scopes.id,
+                  scopes.label,
+                  scopes.available,
+                  scopes.baseline
+                 FROM scopes
+              UNION ALL
+               SELECT '__ALL__'::text,
+                  'All accounts'::text,
+                      CASE
+                          WHEN bool_and(scopes.available IS NOT NULL) THEN max(scopes.available)
+                          ELSE NULL::date
+                      END AS "case",
+                      CASE
+                          WHEN bool_and(scopes.baseline IS NOT NULL) THEN sum(scopes.baseline)
+                          ELSE NULL::numeric
+                      END AS "case"
+                 FROM scopes
+              )
+       SELECT id,
+          label,
+          available,
+          baseline
+         FROM all_scopes;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "id":
-      "data_type": "text"
-      "udt_name": "text"
-      "nullable": true
+      "schema": "public"
+      "relation": "reporting_cash_scopes"
+      "name": "id"
       "ordinal": 1
-    "label":
       "data_type": "text"
-      "udt_name": "text"
-      "nullable": true
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "label":
+      "schema": "public"
+      "relation": "reporting_cash_scopes"
+      "name": "label"
       "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "available":
-      "data_type": "date"
-      "udt_name": "date"
-      "nullable": true
+      "schema": "public"
+      "relation": "reporting_cash_scopes"
+      "name": "available"
       "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "baseline":
-      "data_type": "numeric"
-      "udt_name": "numeric"
-      "nullable": true
+      "schema": "public"
+      "relation": "reporting_cash_scopes"
+      "name": "baseline"
       "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
-  "definition": |-
-    CREATE VIEW public.reporting_cash_scopes AS
-    WITH scopes AS (
-     SELECT a."Row ID" id,a."Account Label" label,
-      (c."Cutover At" AT TIME ZONE 'Asia/Bangkok')::date available,
-      c."Opening Balance"-c."Baseline Cash In"+c."Baseline Cash Out" baseline
-     FROM public."Cash Accounts" a LEFT JOIN public.r008_cash_account_cutover c ON c."Ref Cash Account"=a."Row ID"
-    ), all_scopes AS (
-     SELECT * FROM scopes UNION ALL
-     SELECT '__ALL__','All accounts',CASE WHEN bool_and(available IS NOT NULL) THEN max(available) END,
-      CASE WHEN bool_and(baseline IS NOT NULL) THEN sum(baseline) END FROM scopes
-    ) SELECT * FROM all_scopes;
-  "environments":
-  - "loan_manager_dev"
-  - "loan_manager_prod"
-  "migration": 38
-  "consumer": "Metabase restricted reporting; no AppSheet source changes"
-  "permissions": "SELECT only for metabase_borrower_reader"
-"evidence":
-  "/content/columns":
-    "reference": "outputs/r016-20260922/statement-cleanup/provider-columns.json"
-    "reason": "Verified restricted PROD catalog types and nullability"
-    "state": "value"
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_cash_scopes"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Account Label"
+  - "schema": "public"
+    "relation": "reporting_cash_scopes"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cash_scopes"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash In"
+  - "schema": "public"
+    "relation": "reporting_cash_scopes"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash Out"
+  - "schema": "public"
+    "relation": "reporting_cash_scopes"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Cutover At"
+  - "schema": "public"
+    "relation": "reporting_cash_scopes"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Opening Balance"
+  - "schema": "public"
+    "relation": "reporting_cash_scopes"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Ref Cash Account"

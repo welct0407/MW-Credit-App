@@ -1,0 +1,31 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "action"
+  "name": "Loans.View Ref (Ref Disbursed From Cash Account)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "View Ref (Ref Disbursed From Cash Account)"
+    "Bulk action?": "No"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Display_Inline"
+    "Action order": "1"
+    "With these properties": "{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Cash%20Accounts&row=\\\", ENCODEURL([Ref\
+      \ Disbursed From Cash Account]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+      :\"\",\"ModifiesData\":false,\"BulkApplicable\":false}"
+    "Do this": "NAVIGATE_APP"
+    "Attach to column": "Ref Disbursed From Cash Account"
+    "Set this column": "Ref Disbursed From Cash Account"
+    "Only if this condition is true": "NOT(ISBLANK([Ref Disbursed From Cash Account]))"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Loans"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

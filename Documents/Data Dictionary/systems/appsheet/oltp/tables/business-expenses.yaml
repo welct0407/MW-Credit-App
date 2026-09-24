@@ -4,22 +4,40 @@
   "component": "oltp"
   "kind": "table"
   "name": "Business Expenses"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/oltp/tables/business-expenses.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "oltp"
+      "kind": "table"
+      "name": "Business Expenses"
+      "scope": "recorded-production"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
 "content":
   "source_app": "OLTP"
   "source_table": "Business Expenses"
   "binding":
-    "App": "OLTP"
-    "Version": "v3.000121"
-    "Table": "Business Expenses"
-    "Source": "database-2"
-    "Source path": "Business Expenses"
+    "Table name": "Business Expenses"
+    "Visible?": "ALWAYS"
+    "Shared?": "Yes"
     "Schema": "Business Expenses_Schema"
-    "Update permission": "ADDS_AND_UPDATES"
-    "Scope": "Business source"
+    "Are updates allowed?": "ADDS_AND_UPDATES"
+    "Source Path": "Business Expenses"
+    "Data Source": "database-2"
+    "Store for image and file capture": "_Default"
+    "Column Order List":
+    - "_RowNumber"
+    "Partitioned across many files/sources?": "No"
+    "Partitioned across many worksheets?": "No"
+  "schema":
+    "Schema Name": "Business Expenses_Schema"
+    "Visible?": "ALWAYS"
   "columns":
     "_RowNumber":
       "inventory":
@@ -32,6 +50,29 @@
         "Label": "No"
         "Read-only": "Yes"
         "Hidden": "Yes"
+      "rules":
+        "Column name": "_RowNumber"
+        "Visible?": "ALWAYS"
+        "Description": "Number of this row"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "Yes"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Row ID":
       "inventory":
         "App": "OLTP"
@@ -43,6 +84,29 @@
         "Label": "No"
         "Read-only": "Yes"
         "Hidden": "Yes"
+      "rules":
+        "Column name": "Row ID"
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=UNIQUEID()"
+        "System Defined?": "No"
+        "Key": "Yes"
+        "Part of Key?": "Yes"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Expense Date":
       "inventory":
         "App": "OLTP"
@@ -54,6 +118,28 @@
         "Label": "No"
         "Read-only": "No"
         "Hidden": "No"
+      "rules":
+        "Column name": "Expense Date"
+        "Visible?": "ALWAYS"
+        "Type": "Date"
+        "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
+          Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "TODAY()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Expense Category":
       "inventory":
         "App": "OLTP"
@@ -66,244 +152,20 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
-        "Valid_If": "IF([Source Type] = \"Referral Rebate\", LIST(\"Referral Rebate / เงินคืนค่าแนะนำลูกค้า\", \"Referral\
-          \ Rebate\"), LIST(\"Collection Cost / ค่าใช้จ่ายติดตามหนี้\", \"Transportation / ค่าเดินทาง\", \"Bank / Transfer\
-          \ Fee / ค่าธรรมเนียมธนาคารและโอนเงิน\", \"Software / Subscription / ค่าซอฟต์แวร์และสมาชิก\", \"Other / อื่น ๆ\"\
-          , \"Referral Rebate / เงินคืนค่าแนะนำลูกค้า\"))"
-    "Amount":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Amount"
-        "Type": "Price"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "No"
-        "Hidden": "No"
-      "rules":
-        "Valid_If": "AND([_THIS] <> 0, [_THIS] = ROUND([_THIS]), OR([_THIS] > 0, ISNOTBLANK([Notes])))"
-    "Payee Name":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Payee Name"
-        "Type": "Name"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "No"
-        "Hidden": "No"
-    "Ref Payee Borrower":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Ref Payee Borrower"
-        "Type": "Ref"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-      "relationship":
-        "App": "OLTP"
-        "Child table": "Business Expenses"
-        "Ref column": "Ref Payee Borrower"
-        "Parent table": "Borrowers"
-        "Parent key": "Row ID"
-        "Part of parent": "No"
-    "Ref Related Borrower":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Ref Related Borrower"
-        "Type": "Ref"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "No"
-        "Hidden": "No"
-      "relationship":
-        "App": "OLTP"
-        "Child table": "Business Expenses"
-        "Ref column": "Ref Related Borrower"
-        "Parent table": "Borrowers"
-        "Parent key": "Row ID"
-        "Part of parent": "No"
-    "Ref Related Loan":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Ref Related Loan"
-        "Type": "Ref"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "No"
-        "Hidden": "No"
-      "relationship":
-        "App": "OLTP"
-        "Child table": "Business Expenses"
-        "Ref column": "Ref Related Loan"
-        "Parent table": "Loans"
-        "Parent key": "Row ID"
-        "Part of parent": "No"
-    "Notes":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Notes"
-        "Type": "LongText"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "No"
-        "Hidden": "No"
-    "Source Type":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Source Type"
-        "Type": "Text"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Source Key":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Source Key"
-        "Type": "LongText"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Gross Profit Basis":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Gross Profit Basis"
-        "Type": "Price"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Allocation Basis":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Allocation Basis"
-        "Type": "LongText"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Partner A Share":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Partner A Share"
-        "Type": "Percent"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Partner B Share":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Partner B Share"
-        "Type": "Percent"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Partner A Expense":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Partner A Expense"
-        "Type": "Price"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Partner B Expense":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Partner B Expense"
-        "Type": "Price"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Rule Version":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Rule Version"
-        "Type": "LongText"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Created At":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Created At"
-        "Type": "DateTime"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Created By":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Created By"
-        "Type": "LongText"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-    "Ref Paid By Cash Holder":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Business Expenses"
-        "Column": "Ref Paid By Cash Holder"
-        "Type": "Ref"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "No"
-        "Hidden": "No"
-      "rules":
+        "Column name": "Expense Category"
         "Visible?": "ALWAYS"
-        "Display name": "=\"ผู้จ่ายเงิน / Paid By\""
-        "Type": "Ref"
-        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
-          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
-          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
-          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":\"=LIST(\\\"ch:dad\\\", \\\"ch:lisa\\\", \\\"ch:tommy\\\")\",\"Error_Message_If_Invalid\":null,\"\
-          Show_If\":null,\"Required_If\":\"=AND([Amount] > 0, OR(NOT(IN([Row ID], Business Expenses[Row ID])), ISNOTBLANK(LOOKUP([Row\
-          \ ID], \\\"Business Expenses\\\", \\\"Row ID\\\", \\\"Ref Paid By Cash Holder\\\"))))\",\"Editable_If\":\"=OR(ISBLANK([Source\
-          \ Type]), [Source Type] = \\\"Manual\\\")\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Type": "Enum"
+        "Type Qualifier": "{\"EnumValues\":[\"Referral Rebate / ค่านายหน้าแนะนำลูกค้า\",\"Collection Cost / ค่าใช้จ่ายติดตามหนี้\"\
+          ,\"Transportation / ค่าเดินทาง\",\"Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน\",\"Software / Subscription\
+          \ / ค่าซอฟต์แวร์และสมาชิก\",\"Other / อื่น ๆ\"],\"AllowOtherValues\":false,\"AutoCompleteOtherValues\":true,\"BaseType\"\
+          :\"Text\",\"BaseTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\"\
+          Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\
+          \":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\"\
+          ,\"EnumInputMode\":\"Auto\",\"Valid_If\":\"=IF([Source Type] = \\\"Referral Rebate\\\", LIST(\\\"Referral Rebate\
+          \ / เงินคืนค่าแนะนำลูกค้า\\\", \\\"Referral Rebate\\\"), LIST(\\\"Collection Cost / ค่าใช้จ่ายติดตามหนี้\\\", \\\
+          \"Transportation / ค่าเดินทาง\\\", \\\"Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน\\\", \\\"Software / Subscription\
+          \ / ค่าซอฟต์แวร์และสมาชิก\\\", \\\"Other / อื่น ๆ\\\", \\\"Referral Rebate / เงินคืนค่าแนะนำลูกค้า\\\"))\",\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -319,28 +181,1135 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.ReferencedTableName": "Cash Holders"
-        "Type Qualifier.ReferencedRootTableName": "Cash Holders"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "false"
-        "Type Qualifier.RelationshipName": null
-        "Type Qualifier.InputMode": "Auto"
-        "Type Qualifier.Valid_If": "=LIST(\"ch:dad\", \"ch:lisa\", \"ch:tommy\")"
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": "=AND([Amount] > 0, OR(NOT(IN([Row ID], Business Expenses[Row ID])), ISNOTBLANK(LOOKUP([Row\
-          \ ID], \"Business Expenses\", \"Row ID\", \"Ref Paid By Cash Holder\"))))"
-        "Type Qualifier.Editable_If": "=OR(ISBLANK([Source Type]), [Source Type] = \"Manual\")"
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
-      "relationship":
+    "Amount":
+      "inventory":
         "App": "OLTP"
-        "Child table": "Business Expenses"
-        "Ref column": "Ref Paid By Cash Holder"
-        "Parent table": "Cash Holders"
-        "Parent key": "Row ID"
-        "Part of parent": false
+        "Table": "Business Expenses"
+        "Column": "Amount"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Amount"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND([_THIS]\
+          \ <> 0, [_THIS] = ROUND([_THIS]), OR([_THIS] > 0, ISNOTBLANK([Notes])))\",\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Payee Name":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Payee Name"
+        "Type": "Name"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "Yes"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Payee Name"
+        "Visible?": "ALWAYS"
+        "Type": "Name"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "Yes"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Ref Payee Borrower":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Ref Payee Borrower"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Ref Payee Borrower"
+        "Visible?": "ALWAYS"
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Borrowers"
+        "ReferencedRootTableName": "Borrowers"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Ref Related Borrower":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Ref Related Borrower"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Ref Related Borrower"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"ผู้กู้ที่เกี่ยวข้อง (ไม่บังคับ) / Related Borrower (optional)\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Borrowers"
+        "ReferencedRootTableName": "Borrowers"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Ref Related Loan":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Ref Related Loan"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Ref Related Loan"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"สินเชื่อที่เกี่ยวข้อง (ไม่บังคับ) / Related Loan (optional)\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\":\"\
+          Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\
+          \"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"\
+          Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\"\
+          :null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Loans"
+        "ReferencedRootTableName": "Loans"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Notes":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Notes"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Notes"
+        "Visible?": "ALWAYS"
+        "Type": "LongText"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Source Type":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Source Type"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Source Type"
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=\"Manual\""
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Source Key":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Source Key"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Source Key"
+        "Visible?": "ALWAYS"
+        "Type": "LongText"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Gross Profit Basis":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Gross Profit Basis"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Gross Profit Basis"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Allocation Basis":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Allocation Basis"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Allocation Basis"
+        "Visible?": "ALWAYS"
+        "Type": "LongText"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Partner A Share":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Partner A Share"
+        "Type": "Percent"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Partner A Share"
+        "Visible?": "ALWAYS"
+        "Type": "Percent"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":2,\"NumericDigits\":null,\"\
+          ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Partner B Share":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Partner B Share"
+        "Type": "Percent"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Partner B Share"
+        "Visible?": "ALWAYS"
+        "Type": "Percent"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":2,\"NumericDigits\":null,\"\
+          ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Partner A Expense":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Partner A Expense"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Partner A Expense"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Partner B Expense":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Partner B Expense"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Partner B Expense"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Rule Version":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Rule Version"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Rule Version"
+        "Visible?": "ALWAYS"
+        "Type": "LongText"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Created At":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Created At"
+        "Type": "DateTime"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Created At"
+        "Visible?": "ALWAYS"
+        "Type": "DateTime"
+        "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
+          :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\"\
+          :null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "NOW()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Created By":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Created By"
+        "Type": "LongText"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Created By"
+        "Visible?": "ALWAYS"
+        "Type": "LongText"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=USEREMAIL()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Ref Paid By Cash Holder":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Ref Paid By Cash Holder"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Ref Paid By Cash Holder"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"ผู้จ่ายเงิน / Paid By\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":\"=LIST(\\\"ch:dad\\\", \\\"ch:lisa\\\", \\\"ch:tommy\\\")\",\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":null,\"Required_If\":\"=AND([Amount] > 0, OR(NOT(IN([Row ID], Business Expenses[Row ID])), ISNOTBLANK(LOOKUP([Row\
+          \ ID], \\\"Business Expenses\\\", \\\"Row ID\\\", \\\"Ref Paid By Cash Holder\\\"))))\",\"Editable_If\":\"=AND(NOT(IN([Row\
+          \ ID], Business Expenses[Row ID])), OR(ISBLANK([Source Type]), [Source Type] = \\\"Manual\\\"))\",\"Reset_If\":null,\"\
+          Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Cash Holders"
+        "ReferencedRootTableName": "Cash Holders"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Ref Paid By Cash Account":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Ref Paid By Cash Account"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Ref Paid By Cash Account"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"บัญชีผู้จ่าย / Paid From Account\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = [_THISROW].[Ref Paid By Cash\
+          \ Holder]), [Row ID] = [_THISROW].[Ref Paid By Cash Account]))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
+          Required_If\":\"=AND(NOT(IN([Row ID], Business Expenses[Row ID])), [Amount] > 0, OR(ISBLANK([Source Type]), [Source\
+          \ Type] = \\\"Manual\\\"))\",\"Editable_If\":\"=NOT(IN([Row ID], Business Expenses[Row ID]))\",\"Reset_If\":null,\"\
+          Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = [_THISROW].[Ref\
+          \ Paid By Cash Holder])))"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Cash Accounts"
+        "ReferencedRootTableName": "Cash Accounts"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Related Cash Account Statement Recents":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Business Expenses"
+        "Column": "Related Cash Account Statement Recents"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Cash Account Statement Recents"
+        "Visible?": "ALWAYS"
+        "Description": "Cash Account Statement Recent entries that reference this entry in the Ref Business Expense column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Account\
+          \ Statement Recent\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Account Statement Recent\\\",\\\"ReferencedType\\\
+          \":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\
+          \\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
+          \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\
+          \":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\"\
+          ,\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\
+          \":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\
+          \":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Cash Account Statement Recent\", \"Ref Business Expense\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+  "editor":
+    "fields":
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Business Expenses"
+      "label": "Table name"
+      "text": |-
+        Table name
+        Name for this table (user-visible)
+        ​
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Updates"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Adds"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Deletes"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Read-Only"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "science"
+      "controls": []
+      "label": "Are updates allowed?"
+      "text": |-
+        Are updates allowed?
+        Are adds, deletes and updates allowed?
+        Updates
+        Adds
+        Deletes
+        Read-Only
+        science
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Business Expenses"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "8"
+      "label": "Source Path"
+      "text": |-
+        Source Path
+        A user-understandable path to the table data
+        - select a source -
+        Borrowers
+        Loans
+        Repayments
+        Statistics
+        Charges
+        Partners
+        Payment Allocations
+        Payments
+        Business Expenses
+        Loan Form Context
+        Cash Holders
+        Cash Holder Balances
+        Cash Accounts
+        Cash Statement Context
+        Cash Account Daily Summary Recent
+        Cash Account Statement Recent
+        Cash Account Balances
+        Cash Dashboard
+        - browse for more data -
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Add"
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "_RowNumber"
+      "label": "Column Order List"
+      "text": |-
+        Column Order List
+        The order of columns to retrieve from the provider (only applies to some storage providers)
+        drag_indicator
+        _RowNumber
+        ​
+        Add
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Copy Data to New Source"
+      "controls": []
+      "label": "Data Source"
+      "text": |-
+        Data Source
+        Name of the table data source
+        database-2
+        Copy Data to New Source
+    - "choices": []
+      "controls": []
+      "label": "Source Id"
+      "text": |-
+        Source Id
+        A provider-specific path to the table data (not user-visible)
+        Table=public.Business Expenses__Business Expenses
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Default"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "_Default"
+      "label": "Store for image and file capture"
+      "text": |-
+        Store for image and file capture
+        By default, images and files captured by the app are stored in the cloud file system associated with the app owner's account. You can explicitly add an object store and use it instead.
+        Default
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      "label": "Filter out all existing rows?"
+      "text": |-
+        Filter out all existing rows?
+        Used only in forms apps that collect new data rows but never show any pre-existing rows.
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Security filter"
+      "text": |-
+        Security filter
+        The app uses only those rows that match this (optional) filter condition. Use this filter to limit what each user can see.
+        =
+        science
+        ​
+    - "choices":
+      - "checked": "true"
+        "pressed": null
+        "role": "radio"
+        "text": "as app creator"
+      - "checked": "false"
+        "pressed": null
+        "role": "radio"
+        "text": "as app user"
+      "controls": []
+      "label": "Access mode"
+      "text": |-
+        Access mode
+        The app will access the spreadsheet using the app creator or app user credentials.
+        as app creator
+        as app user
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      "label": "Shared?"
+      "text": |-
+        Shared?
+        Is this table shared by all users? This option is normally checked. Before unchecking, carefully review 'Private Tables' in the documentation.
+    - "choices": []
+      "controls":
+      - "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      "label": "Data locale"
+      "text": |-
+        Data locale
+        Locale used to read the table
+        Compatibility (For backward compatibility)
+        Amharic (Ethiopia)
+        Arabic (Algeria)
+        Arabic (Bahrain)
+        Arabic (Egypt)
+        Arabic (Iraq)
+        Arabic (Jordan)
+        Arabic (Kuwait)
+        Arabic (Lebanon)
+        Arabic (Libya)
+        Arabic (Morocco)
+        Arabic (Oman)
+        Arabic (Qatar)
+        Arabic (Saudi Arabia)
+        Arabic (Syria)
+        Arabic (Tunisia)
+        Arabic (United Arab Emirates)
+        Arabic (Yemen)
+        Armenian (Armenia)
+        Azerbaijani (Cyrillic, Azerbaijan)
+        Azerbaijani (Latin, Azerbaijan)
+        Bengali (India)
+        Bulgarian (Bulgaria)
+        Burmese (Myanmar)
+        Catalan (Catalan)
+        Chinese (Simplified, China)
+        Chinese (Traditional, Hong Kong SAR)
+        Chinese (Traditional, Taiwan)
+        Chinese Traditional (Malaysia)
+        Croatian (Croatia)
+        Czech (Czechia)
+        Danish (Denmark)
+        Dari (Afghanistan)
+        Dutch (Aruba)
+        Dutch (Belgium)
+        Dutch (Curaçao)
+        Dutch (Netherlands)
+        English (Australia)
+        English (Bahrain)
+        English (Belgium)
+        English (Brazil)
+        English (Canada)
+        English (Germany)
+        English (Hong Kong SAR)
+        English (India)
+        English (Ireland)
+        English (Kenya)
+        English (Malaysia)
+        English (New Zealand)
+        English (Norway)
+        English (Philippines)
+        English (Singapore)
+        English (South Africa)
+        English (Sri Lanka)
+        English (Tanzania)
+        English (United Kingdom)
+        English (United States)
+        Filipino (Philippines)
+        Finnish (Finland)
+        French (Belgium)
+        French (Cameroon)
+        French (Canada)
+        French (Côte d’Ivoire)
+        French (France)
+        French (Luxembourg)
+        French (Mali)
+        French (Morocco)
+        French (Senegal)
+        French (Switzerland)
+        French Congo (DRC)
+        Fulah (Latin, Senegal)
+        Georgian (Georgia)
+        German (Austria)
+        German (Germany)
+        German (Liechtenstein)
+        German (Luxembourg)
+        German (Switzerland)
+        Greek (Greece)
+        Gujarati (India)
+        Hausa (Latin, Nigeria)
+        Hebrew (Israel)
+        Hindi (India)
+        Hungarian (Hungary)
+        Igbo (Nigeria)
+        Indonesian (Indonesia)
+        Irish (Ireland)
+        Italian (Italy)
+        Italian (Switzerland)
+        Japanese (Japan)
+        Kannada (India)
+        Kinyarwanda (Rwanda)
+        Kiswahili (Kenya)
+        Kiswahili (Tanzania)
+        Korean (Korea)
+        Latvian (Latvia)
+        Lingala (Angola)
+        Lithuanian (Lithuania)
+        Malay (Brunei)
+        Malay (Malaysia)
+        Malayalam (India)
+        Marathi (India)
+        Mongolian (Mongolia)
+        Norwegian Bokmål (Norway)
+        Norwegian Nynorsk (Norway)
+        Oromo (Ethiopia)
+        Pashto (Afghanistan)
+        Persian (Iran)
+        Polish (Poland)
+        Portuguese (Angola)
+        Portuguese (Brazil)
+        Portuguese (Mozambique)
+        Portuguese (Portugal)
+        Romanian (Romania)
+        Russian (Russia)
+        Serbian (Cyrillic, Serbia)
+        Serbian (Latin, Serbia)
+        Serbian (Serbia)
+        Setswana (Botswana)
+        Sinhala (Sri Lanka)
+        Slovak (Slovakia)
+        Slovenian (Slovenia)
+        Spanish (Argentina)
+        Spanish (Bolivia)
+        Spanish (Chile)
+        Spanish (Colombia)
+        Spanish (Costa Rica)
+        Spanish (Dominican Republic)
+        Spanish (Ecuador)
+        Spanish (El Salvador)
+        Spanish (Guatemala)
+        Spanish (Honduras)
+        Spanish (Latin America)
+        Spanish (Latin America)
+        Spanish (Mexico)
+        Spanish (Nicaragua)
+        Spanish (Panama)
+        Spanish (Paraguay)
+        Spanish (Peru)
+        Spanish (Spain, International Sort)
+        Spanish (United States)
+        Spanish (Uruguay)
+        Spanish (Venezuela)
+        Swedish (Sweden)
+        Tamil (India)
+        Tamil (Sri Lanka)
+        Telugu (India)
+        Thai (Thailand)
+        Tigrinya (Ethiopia)
+        Turkish (Turkey)
+        Ukrainian (Ukraine)
+        Vietnamese (Vietnam)
+        Yoruba (Nigeria)
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "text": |-
+        Descriptive comment
+        Comments help you and your collaborators better record and understand the structure of the app
+    "update_permissions_snapshot": |2-
+
+        - heading "Table settings" [level=5]
+        - button "close":
+        - heading "Table name" [level=6]
+        - text: Name for this table (user-visible)
+        - textbox: Business Expenses
+        - heading "Are updates allowed?" [level=6]
+        - text: Are adds, deletes and updates allowed?
+        - button " Updates":
+          - text: 
+          - generic: Updates
+        - button " Adds":
+          - text: 
+          - generic: Adds
+        - button " Deletes":
+          - text: 
+          - generic: Deletes
+        - button "Read-Only"
+        - button "science"
+        - heading "Storage" [level=3]
+        - generic: 
+        - heading "Source Path" [level=6]
+        - text: A user-understandable path to the table data
+        - combobox "Select an option":
+          - option "- select a source -"

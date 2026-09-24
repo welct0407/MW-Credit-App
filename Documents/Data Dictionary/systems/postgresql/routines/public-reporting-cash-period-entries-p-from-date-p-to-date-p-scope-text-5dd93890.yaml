@@ -1,0 +1,55 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.reporting_cash_period_entries(p_from date, p_to date, p_scope text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_cash_period_entries"
+    "arguments": "p_from date, p_to date, p_scope text"
+    "kind": "f"
+    "arguments_with_defaults": "p_from date, p_to date, p_scope text"
+    "result": "SETOF reporting_cashflow_transactions"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.reporting_cash_period_entries(p_from date, p_to date, p_scope text)
+       RETURNS SETOF reporting_cashflow_transactions
+       LANGUAGE sql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+       WITH seed AS (
+        SELECT s.*,s.baseline+coalesce((SELECT sum(e."Net Movement") FROM public.reporting_cash_entries e
+         WHERE e."Scope ID"=p_scope AND e."Date"<p_from),0) opening
+        FROM public.reporting_cash_scopes s WHERE s.id=p_scope
+       ), selected AS (
+        SELECT e.*,CASE WHEN e."Date">=s.available THEN s.opening+sum(e."Net Movement") OVER
+         (ORDER BY e."Date",e."Posted At",e."Ledger ID" COLLATE "C",e."Entry ID" COLLATE "C" ROWS UNBOUNDED PRECEDING) END balance
+        FROM public.reporting_cash_entries e CROSS JOIN seed s
+        WHERE e."Scope ID"=p_scope AND e."Date" BETWEEN p_from AND p_to AND p_to<=public.olap_reporting_date()
+       )
+       SELECT "Entry ID","Scope ID","Account","Ledger ID","Date","Posted At","Transaction Type","Counterparty",
+       "From Account","To Account","Internal Transfer","Transaction Amount","Money In","Money Out","Net Movement",
+       balance,"Available From","Notes" FROM selected
+      $function$
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres}"
+    "comment": "Live opening seed then running balances only over selected transactions; unknown/pre-opening balances stay\
+      \ NULL."
+    "extension": null

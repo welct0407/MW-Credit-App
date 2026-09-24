@@ -1,168 +1,896 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
-  "name": "Payments"
-  "scope": "as-recorded"
+  "name": "public.Payments"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/payments.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Payments"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "Payments"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Row ID":
-      "Table / view": "Payments"
-      "Column": "Row ID"
-      "Position": 1
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Status":
-      "Table / view": "Payments"
-      "Column": "Status"
-      "Position": 2
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Status"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Ref Borrower":
-      "Table / view": "Payments"
-      "Column": "Ref Borrower"
-      "Position": 3
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Ref Borrower"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Amount Received":
-      "Table / view": "Payments"
-      "Column": "Amount Received"
-      "Position": 4
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Amount Received"
+      "ordinal": 4
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Payment Method":
-      "Table / view": "Payments"
-      "Column": "Payment Method"
-      "Position": 5
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Payment Method"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Allocation Method":
-      "Table / view": "Payments"
-      "Column": "Allocation Method"
-      "Position": 6
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Allocation Method"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Bank Reference":
-      "Table / view": "Payments"
-      "Column": "Bank Reference"
-      "Position": 7
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Bank Reference"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Notes":
-      "Table / view": "Payments"
-      "Column": "Notes"
-      "Position": 8
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Notes"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Created By":
-      "Table / view": "Payments"
-      "Column": "Created By"
-      "Position": 9
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Created By"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Payment Date":
-      "Table / view": "Payments"
-      "Column": "Payment Date"
-      "Position": 10
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Payment Date"
+      "ordinal": 10
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Created At":
-      "Table / view": "Payments"
-      "Column": "Created At"
-      "Position": 11
-      "PostgreSQL type": "timestamp without time zone"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Created At"
+      "ordinal": 11
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Processed At":
-      "Table / view": "Payments"
-      "Column": "Processed At"
-      "Position": 12
-      "PostgreSQL type": "timestamp without time zone"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Processed At"
+      "ordinal": 12
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Ref Target Charge":
-      "Table / view": "Payments"
-      "Column": "Ref Target Charge"
-      "Position": 13
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Ref Target Charge"
+      "ordinal": 13
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Ref Target Loan":
-      "Table / view": "Payments"
-      "Column": "Ref Target Loan"
-      "Position": 14
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Ref Target Loan"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Loan Close command target. AppSheet submits the loan; SQL prepares final charges and computes the receipt\
+        \ before unified posting. NULL for other methods and historical receipts."
     "Planned Allocation Amount":
-      "Table / view": "Payments"
-      "Column": "Planned Allocation Amount"
-      "Position": 15
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Planned Allocation Amount"
+      "ordinal": 15
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Posted Amount":
-      "Table / view": "Payments"
-      "Column": "Posted Amount"
-      "Position": 16
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Posted Amount"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Ref Received By Cash Holder":
-      "Table / view": "Payments"
-      "Column": "Ref Received By Cash Holder"
-      "Position": 17
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": "'ch:dad'::text"
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Ref Received By Cash Holder"
+      "ordinal": 17
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Received By Cash Account":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Ref Received By Cash Account"
+      "ordinal": 18
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
   "constraints":
-    "Payments_Row ID_not_null":
-      "Table": "Payments"
-      "Constraint": "Payments_Row ID_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Row ID\""
-    "Payments_pkey":
-      "Table": "Payments"
-      "Constraint": "Payments_pkey"
-      "Type": "p"
-      "Validated": true
-      "Definition": "PRIMARY KEY (\"Row ID\")"
-    "appsheet_ref_12":
-      "Table": "Payments"
-      "Constraint": "appsheet_ref_12"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\")"
-    "appsheet_ref_13":
-      "Table": "Payments"
-      "Constraint": "appsheet_ref_13"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref Target Charge\") REFERENCES \"Charges\"(\"Row ID\")"
-    "Payments_Ref Target Loan_fkey":
-      "Table": "Payments"
-      "Constraint": "Payments_Ref Target Loan_fkey"
-      "Type": "f"
-      "Validated": "true"
-      "Definition": "FOREIGN KEY (\"Ref Target Loan\") REFERENCES \"Loans\"(\"Row ID\")"
+    "Payments_Ref Received By Cash Account_fkey":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Payments_Ref Received By Cash Account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Received By Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 18
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
     "Payments_Ref Received By Cash Holder_fkey":
-      "Table": "Payments"
-      "Constraint": "Payments_Ref Received By Cash Holder_fkey"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref Received By Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Payments_Ref Received By Cash Holder_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Received By Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 17
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Holders\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
+    "Payments_Ref Target Loan_fkey":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Payments_Ref Target Loan_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Target Loan\") REFERENCES \"Loans\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 14
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Loans\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "Payments_Row ID_not_null":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Payments_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Payments_pkey":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Payments_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "appsheet_ref_12":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "appsheet_ref_12"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Borrowers\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "appsheet_ref_13":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "appsheet_ref_13"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Target Charge\") REFERENCES \"Charges\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 13
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Charges\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+  "indexes":
+    "Payments_pkey":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Payments_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Payments_pkey\" ON public.\"Payments\" USING btree (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "payments_borrower_status_idx":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "payments_borrower_status_idx"
+      "definition": "CREATE INDEX payments_borrower_status_idx ON public.\"Payments\" USING btree (\"Ref Borrower\", \"Status\"\
+        )"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "payments_target_loan_idx":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "payments_target_loan_idx"
+      "definition": "CREATE INDEX payments_target_loan_idx ON public.\"Payments\" USING btree (\"Ref Target Loan\") WHERE\
+        \ (\"Ref Target Loan\" IS NOT NULL)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": "(\"Ref Target Loan\" IS NOT NULL)"
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_16705":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_a_16705"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16705\" AFTER DELETE ON \"Payments\" FROM \"Repayments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16706":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_a_16706"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16706\" AFTER UPDATE ON \"Payments\" FROM \"Repayments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16735":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_a_16735"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16735\" AFTER DELETE ON \"Payments\" FROM \"Payment\
+        \ Allocations\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16736":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_a_16736"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16736\" AFTER UPDATE ON \"Payments\" FROM \"Payment\
+        \ Allocations\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16863":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_a_16863"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16863\" AFTER DELETE ON \"Payments\" FROM \"Loans\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16864":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_a_16864"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16864\" AFTER UPDATE ON \"Payments\" FROM \"Loans\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17202":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_a_17202"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17202\" AFTER DELETE ON \"Payments\" FROM \"Cash Ledger\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17203":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_a_17203"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17203\" AFTER UPDATE ON \"Payments\" FROM \"Cash Ledger\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16747":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_16747"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16747\" AFTER INSERT ON \"Payments\" FROM \"Borrowers\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16748":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_16748"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16748\" AFTER UPDATE ON \"Payments\" FROM \"Borrowers\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16752":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_16752"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16752\" AFTER INSERT ON \"Payments\" FROM \"Charges\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16753":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_16753"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16753\" AFTER UPDATE ON \"Payments\" FROM \"Charges\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16884":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_16884"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16884\" AFTER INSERT ON \"Payments\" FROM \"Loans\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16885":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_16885"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16885\" AFTER UPDATE ON \"Payments\" FROM \"Loans\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17157":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_17157"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17157\" AFTER INSERT ON \"Payments\" FROM \"Cash Holders\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17158":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_17158"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17158\" AFTER UPDATE ON \"Payments\" FROM \"Cash Holders\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17370":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_17370"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17370\" AFTER INSERT ON \"Payments\" FROM \"Cash Accounts\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17371":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "RI_ConstraintTrigger_c_17371"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17371\" AFTER UPDATE ON \"Payments\" FROM \"Cash Accounts\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a0_cash_account":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a0_cash_account"
+      "definition": "CREATE TRIGGER a0_cash_account BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ guard_source_cash_account()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_source_cash_account()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "aa_cash_holder":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "aa_cash_holder"
+      "definition": "CREATE TRIGGER aa_cash_holder BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION guard_source_cash_holder()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_source_cash_holder()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "aa_cash_identity":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "aa_cash_identity"
+      "definition": "CREATE TRIGGER aa_cash_identity BEFORE UPDATE OF \"Row ID\" ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ guard_cash_source_identity()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_cash_source_identity()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "appsheet_blank_refs":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "appsheet_blank_refs"
+      "definition": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ appsheet_normalize_blank_refs('Ref Borrower', 'Ref Target Charge')"
+      "enabled": "O"
+      "internal": false
+      "routine": "appsheet_normalize_blank_refs()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "close_loan_request":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "close_loan_request"
+      "definition": "CREATE TRIGGER close_loan_request BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ prepare_loan_close()"
+      "enabled": "O"
+      "internal": false
+      "routine": "prepare_loan_close()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "lump_sum_receipt_guard":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "lump_sum_receipt_guard"
+      "definition": "CREATE TRIGGER lump_sum_receipt_guard BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ lump_sum_receipt_guard()"
+      "enabled": "O"
+      "internal": false
+      "routine": "lump_sum_receipt_guard()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "mw_agent_capture":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "mw_agent_capture"
+      "definition": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE\
+        \ FUNCTION agent_audit.capture_change()"
+      "enabled": "O"
+      "internal": false
+      "routine": "agent_audit.capture_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "payment_delete_guard":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "payment_delete_guard"
+      "definition": "CREATE TRIGGER payment_delete_guard BEFORE DELETE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION lump_sum_receipt_guard()"
+      "enabled": "O"
+      "internal": false
+      "routine": "lump_sum_receipt_guard()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "process_lump_sum":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "process_lump_sum"
+      "definition": "CREATE TRIGGER process_lump_sum AFTER INSERT OR UPDATE OF \"Row ID\", \"Status\", \"Ref Borrower\", \"\
+        Amount Received\", \"Payment Method\", \"Allocation Method\", \"Bank Reference\", \"Notes\", \"Created By\", \"Payment\
+        \ Date\", \"Created At\", \"Processed At\", \"Ref Target Charge\", \"Ref Target Loan\" ON \"Payments\" FOR EACH ROW\
+        \ EXECUTE FUNCTION process_lump_sum()"
+      "enabled": "O"
+      "internal": false
+      "routine": "process_lump_sum()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zz_cash_source":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "zz_cash_source"
+      "definition": "CREATE TRIGGER zz_cash_source AFTER INSERT OR UPDATE OF \"Status\", \"Amount Received\", \"Payment Date\"\
+        , \"Ref Borrower\", \"Ref Received By Cash Holder\", \"Allocation Method\", \"Ref Received By Cash Account\" ON \"\
+        Payments\" FOR EACH ROW EXECUTE FUNCTION cash_source_changed('Payment')"
+      "enabled": "O"
+      "internal": false
+      "routine": "cash_source_changed()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zz_vc_payment_row":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "zz_vc_payment_row"
+      "definition": "CREATE TRIGGER zz_vc_payment_row BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ vc_payment_row()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_payment_row()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

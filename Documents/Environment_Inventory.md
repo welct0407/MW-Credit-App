@@ -31,7 +31,7 @@ Google sign-in is Active with domain auto-signup blank. The two ordinary partner
 
 ## AppSheet and Cloud SQL checkpoint
 
-Latest recorded checkpoint: **22 September 2026**, from [R015 production evidence](../outputs/r015-20260922/production-report.md) and [DEV database consolidation evidence](../outputs/dev-db-consolidation-20260920/verification.json). Current PROD is R015 (SQL/agent only; app definitions retain R014). Unaffected application facts retain their recorded evidence.
+Latest metadata checkpoint: **24 September 2026**, from the [dictionary reconciliation](../outputs/dictionary-reconciliation-20260924/README.md). All four saved app versions below, their 74 environment-specific business-source bindings and both PostgreSQL V39 targets were read independently. AppDoc properties and original SQL catalog sections remained unchanged at the final comparison. This read-only checkpoint does not change product-release status; unaffected operational facts retain their earlier evidence.
 
 ## App identities and bindings
 
@@ -75,7 +75,7 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
 | Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
-| Flyway | V37 migrated and validated (R016) | V37 migrated and validated (R016) | V37 unified daily cash snapshots plus V34–V36 reporting views; earlier posting, audit and source behavior preserved. Intended Partner delivery data and omitted DEV `pg_cron` differences remain. |
+| Flyway | V39; validation passed 24 September | V39; validation passed 24 September | [Current metadata and validation](../outputs/dictionary-reconciliation-20260924/README.md). V37 snapshots and V38–V39 statement providers are retained; DEV intentionally omits `pg_cron`. No migration was run during the dictionary audit. |
 
 The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. After the consolidated DEV database and natural scheduler run were verified, the owner authorized deletion of former instance `appsheet-pg-dev-20260915`. Cloud SQL completed deletion on 20 September 2026, released public IP `34.158.38.171`, and retained no backups or final backup for that instance. The verified private former-DEV logical dump remains outside Git as recovery evidence.
 

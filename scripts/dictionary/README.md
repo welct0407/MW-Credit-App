@@ -1,6 +1,6 @@
 # Dictionary tooling
 
-The authoritative text dictionary starts at [Documents/Data Dictionary](../../Documents/Data%20Dictionary/README.md). The Excel workbook is frozen migration evidence. Dictionary operations are local file operations; they never connect to an app or database.
+The authoritative text dictionary starts at [Documents/Data Dictionary](../../Documents/Data%20Dictionary/README.md). The Excel workbook is frozen migration evidence. Ordinary dictionary read/update/validate/export commands are local. The explicitly invoked PostgreSQL capture command below is a read-only live metadata collector.
 
 ## Single-file ChatGPT export
 
@@ -67,3 +67,21 @@ After normal future dictionary edits, the original migration equality check is e
 Owner-authorized cleanup removed obsolete/residue records and normalized one constant after the initial migration. To reproduce the original complete equality check, use an isolated checkout of migration commit `faa51d2`; the source manifest and row map describe that commit. Current validation reports deferred, resolved and informational register entries separately.
 
 The former Excel helper `scripts/releases/dictionary.mjs` and dated dictionary writers are historical tooling. They are not the update path for the maintained dictionary. Existing release payloads and historical artifacts retain their original meaning.
+
+## Reconciliation capture and verification
+
+The [24 September run](../../outputs/dictionary-reconciliation-20260924/README.md) reconciled independently captured PROD/DEV app and database metadata. These helpers preserve exact values; they do not establish business correctness or execute workflows.
+
+- `capture_postgresql.py <production|development> <private-output.json>` connects through `database/environments.json`, validates the expected instance/host/database tuple, requires SSL, and uses a read-only repeatable-read transaction with a 30-second statement timeout. It reads catalog/deployment/job metadata only, never business rows or application functions. It refuses an existing output or a destination outside approved private storage. Its reviewed queries target the captured PostgreSQL 18 schema. Review identity/version changes before reuse. Psycopg uses the existing external packages described in the scripts guide.
+- `appdoc_capture.py <private-folder>` independently compares complete saved AppDoc HTML with DOM-extracted ordered records and source summary counts. It rejects orphan schemas, duplicate properties and unexpected legacy workflows.
+- `reconcile_captures.py plan <private-folder> <new-run-folder>` creates a reviewed, hash-guarded local write plan. `apply <plan.json>` applies it with typed roundtrip and stale-file checks. Do not replay the completed run's compact, non-replayable `plan.json`, or rerun this broad planner for routine updates.
+- `reconcile_editor.py <private-folder> <run-folder> --apply` adds reviewed DOM metadata (bindings, views, bots, reusable tasks, settings, theme and access). It excludes preview/test rows, redacts private app-user identities and signed logo transport signatures, and checks file hashes. Preview without `--apply` first. Use `--verify` for saved-value readback only.
+- `capture_template.py <private-xlsx> <run-folder>` extracts the known export template's nonempty cells read-only and checks literal table/slice/column references. It does not render an export or evaluate template expressions.
+- `verify_reconciliation.py <run-folder>` independently reconstructs every captured PROD/DEV AppDoc and catalog object from saved YAML, checks both identity sets and exact typed property values, and rejects uncovered canonical production objects.
+- `validate_dependencies.py <run-folder>` checks source aliases, physical SQL columns, Refs, slice members, view/dashboard sources, action assignments/group order/references, format targets, view dependencies and trigger routine symbols.
+- `review_semantics.py <run-folder>` checks selected workflow symbol links, DEV/PROD routine-body differences and view/task control parity. It is explicitly not a complete expression or procedural SQL parser.
+- `finalize_evidence.py` and `close_reconciliation.py` are **dated run closure helpers**, not general future update commands. They consolidate already reviewed private captures, preserve historical pointers and write the run's coverage. Review them before use on another capture; never rerun them over later dictionary updates.
+
+Run verifiers that write `coverage.json` sequentially. Use the bundled Python and the existing external PyYAML runtime. The regular test command above covers exact state preservation, ordering, overload identity, stale guards, private-data removal and source-ID decoding. Public observation files are sanitized metadata; raw captures and downloaded templates stay outside Git. The dictionary index is navigation only, not a source of live truth.
+
+`validate_run.py <private-folder> <run-folder>` runs the dated run's local checks sequentially and records actual exit codes, outputs and artifact hashes. It performs no live access. Its private input is used for independent saved AppDoc parsing. Use it only with the matching complete run evidence.

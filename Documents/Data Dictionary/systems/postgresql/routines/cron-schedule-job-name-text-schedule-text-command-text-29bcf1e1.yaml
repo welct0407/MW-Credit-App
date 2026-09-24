@@ -1,0 +1,37 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "cron.schedule(job_name text, schedule text, command text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "cron"
+    "name": "schedule"
+    "arguments": "job_name text, schedule text, command text"
+    "kind": "f"
+    "arguments_with_defaults": "job_name text, schedule text, command text"
+    "result": "bigint"
+    "definition": |
+      CREATE OR REPLACE FUNCTION cron.schedule(job_name text, schedule text, command text)
+       RETURNS bigint
+       LANGUAGE c
+      AS '$libdir/pg_cron', $function$cron_schedule_named$function$
+    "owner": "postgres"
+    "language": "c"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 1.0
+    "rows": 0.0
+    "settings": null
+    "acl": null
+    "comment": "schedule a pg_cron job"
+    "extension": "pg_cron"

@@ -1,0 +1,53 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.vc_charge_values(p \"Charges\")"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "vc_charge_values"
+    "arguments": "p \"Charges\""
+    "kind": "f"
+    "arguments_with_defaults": "p \"Charges\""
+    "result": "TABLE(pp numeric, ip numeric, total numeric, pr numeric, ir numeric, remaining numeric, n integer, status text,\
+      \ paid_date date)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.vc_charge_values(p "Charges")
+       RETURNS TABLE(pp numeric, ip numeric, total numeric, pr numeric, ir numeric, remaining numeric, n integer, status text, paid_date date)
+       LANGUAGE sql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+       WITH a AS (
+        SELECT coalesce(sum(r."Principal Paid"::numeric),0) pp,
+         coalesce(sum(r."Interest Paid"::numeric),0) ip,count(*)::integer n,max(r."Payment Date") d
+        FROM public."Repayments" r WHERE r."Ref Charges"=p."Row ID"
+       ), b AS (
+        SELECT a.*,coalesce(p."Principal Due"::numeric,0)-pp pr,
+         coalesce(p."Interest Due"::numeric,0)-ip ir FROM a
+       ), c AS (
+        SELECT b.*,CASE WHEN (SELECT l."Loan Status" FROM public."Loans" l WHERE l."Row ID"=p."Ref Loans")='ปิดยอดแล้ว'
+         THEN 'ชำระแล้ว' WHEN pp+ip=0 THEN 'รอชำระ' WHEN pr+ir>0 THEN 'ชำระบางส่วน' ELSE 'ชำระแล้ว' END s FROM b
+       ) SELECT pp,ip,pp+ip,pr,ir,pr+ir,n,s,CASE WHEN s='ชำระแล้ว' THEN d END FROM c;
+      $function$
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

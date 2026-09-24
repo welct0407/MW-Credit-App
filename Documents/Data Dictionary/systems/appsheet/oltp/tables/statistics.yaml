@@ -4,22 +4,42 @@
   "component": "oltp"
   "kind": "table"
   "name": "Statistics"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/oltp/tables/statistics.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "oltp"
+      "kind": "table"
+      "name": "Statistics"
+      "scope": "recorded-production"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
 "content":
   "source_app": "OLTP"
   "source_table": "Statistics"
   "binding":
-    "App": "OLTP"
-    "Version": "v3.000121"
-    "Table": "Statistics"
-    "Source": "database-2"
-    "Source path": "Statistics"
+    "Table name": "Statistics"
+    "Visible?": "ALWAYS"
+    "Shared?": "Yes"
     "Schema": "Statistics_Schema"
-    "Update permission": "ALL_CHANGES"
-    "Scope": "Business source"
+    "Are updates allowed?": "ALL_CHANGES"
+    "Source Path": "Statistics"
+    "Data Source": "database-2"
+    "Store for image and file capture": "_Default"
+    "Column Order List":
+    - "_RowNumber"
+    - "Row ID"
+    - "Statistics ID"
+    "Partitioned across many files/sources?": "No"
+    "Partitioned across many worksheets?": "No"
+  "schema":
+    "Schema Name": "Statistics_Schema"
+    "Visible?": "ALWAYS"
   "columns":
     "_RowNumber":
       "inventory":
@@ -33,16 +53,24 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "_RowNumber"
         "Visible?": "ALWAYS"
         "Description": "Number of this row"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "Yes"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "Yes"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -59,17 +87,25 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "Row ID"
         "Visible?": "ALWAYS"
         "Description": "ID of this row"
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "UNIQUEID(\"PackedUUID\")"
         "System Defined?": "No"
+        "Key": "Yes"
         "Part of Key?": "Yes"
-        "Fixed definition?": "Yes"
-        "Editable Initial Value?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -86,19 +122,60 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Statistics ID"
         "Visible?": "ALWAYS"
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "Yes"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
         "NFC Scannable": "No"
+        "Sensitive data": "No"
+    "Analytics Refresh Request":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Statistics"
+        "Column": "Analytics Refresh Request"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Analytics Refresh Request"
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
         "Sensitive data": "No"
     "Total Profit":
       "inventory":
@@ -112,19 +189,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Total Profit"
         "Visible?": "ALWAYS"
         "Display name": "=\"กำไรรวม / Total Profit\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=SUM(Repayments[Interest Paid])"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -141,19 +224,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Outstanding Principal"
         "Visible?": "ALWAYS"
         "Display name": "=\"เงินต้นคงเหลือ / Outstanding Principal\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=SUM(Loans[Outstanding Principal])"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -170,19 +259,31 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Today's Profit"
         "Visible?": "ALWAYS"
         "Display name": "=\"กำไรวันนี้ / Today's Profit\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "=SUM( SELECT( Repayments[Interest Paid], [Payment Date] = TODAY() ) )"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =SUM(
+            SELECT(
+              Repayments[Interest Paid],
+              [Payment Date] = TODAY()
+            )
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -199,19 +300,31 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Yesterday's Profit"
         "Visible?": "ALWAYS"
         "Display name": "=\"กำไรเมื่อวาน / Yesterday's Profit\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "=SUM( SELECT( Repayments[Interest Paid], [Payment Date] = TODAY() - 1 ) )"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =SUM(
+            SELECT(
+              Repayments[Interest Paid],
+              [Payment Date] = TODAY() - 1
+            )
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -228,20 +341,34 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Realized Profit MTD"
         "Visible?": "ALWAYS"
         "Display name": "=\"กำไรเดือนนี้ (รับแล้ว) / Realized Profit MTD\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "=SUM( SELECT( Repayments[Interest Paid], AND( MONTH([Payment Date]) = MONTH(TODAY()), YEAR([Payment\
-          \ Date]) = YEAR(TODAY()) ) ) )"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =SUM(
+            SELECT(
+              Repayments[Interest Paid],
+              AND(
+                MONTH([Payment Date]) = MONTH(TODAY()),
+                YEAR([Payment Date]) = YEAR(TODAY())
+              )
+            )
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -258,19 +385,30 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Projected Monthly Profit"
         "Visible?": "ALWAYS"
         "Display name": "=\"คาดการณ์กำไรสิ้นเดือน / Projected Monthly Profit\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "=[Realized Profit MTD] + [Today's Outstanding Interest] + [Forecast Remaining Interest]"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =[Realized Profit MTD]
+          +
+          [Today's Outstanding Interest]
+          +
+          [Forecast Remaining Interest]
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -287,19 +425,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Pending Payment Amount"
         "Visible?": "ALWAYS"
         "Display name": "=\"ยอดค้างเก็บ / Pending Payment\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=SUM(SELECT(Charges[Amount Remaining], AND(ISNOTBLANK([Ref Loans]), [Charge Date] <= TODAY())))"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -316,19 +460,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Forecast Remaining Interest"
         "Visible?": "ALWAYS"
         "Display name": "=\"ดอกเบี้ยคาดการณ์ที่เหลือ / Forecast Remaining Interest\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=SUM(Loans[Expected Interest This Month])"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -345,18 +495,24 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Today's Outstanding Interest"
         "Visible?": "ALWAYS"
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=SUM(SELECT(Charges[Interest Remaining], AND(ISNOTBLANK([Ref Loans]), [Charge Date] <= TODAY())))"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -373,16 +529,24 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "Net Principal Days MTD"
         "Visible?": "ALWAYS"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=SUM(Loans[Principal Days MTD]) - SUM(Repayments[Principal Returned Days MTD])"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -399,16 +563,24 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "Forecast Remaining Principal Days"
         "Visible?": "ALWAYS"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=[Outstanding Principal] * ( DAY(EOMONTH(TODAY(), 0)) - DAY(TODAY()) )"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -425,18 +597,26 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "Forecast Average Daily Outstanding Principal"
         "Visible?": "ALWAYS"
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "=( [Net Principal Days MTD] + [Forecast Remaining Principal Days] ) / DAY(EOMONTH(TODAY(), 0))"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =( [Net Principal Days MTD] + [Forecast Remaining Principal Days] )
+          / DAY(EOMONTH(TODAY(), 0))
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -453,19 +633,30 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Forecast Monthly Return on ADO"
         "Visible?": "ALWAYS"
         "Display name": "=\"กำไรคาดการณ์เดือนนี้ / Forecast Monthly Return on ADO\""
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "=IF( [Forecast Average Daily Outstanding Principal] > 0, [Projected Monthly Profit] / [Forecast Average\
-          \ Daily Outstanding Principal], 0 )"
+        "Type": "Percent"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"\
+          ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =IF(
+            [Forecast Average Daily Outstanding Principal] > 0,
+            [Projected Monthly Profit] / [Forecast Average Daily Outstanding Principal],
+            0
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -482,19 +673,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Expected Daily Interest"
         "Visible?": "ALWAYS"
         "Display name": "=\"ดอกเบี้ยต่อวัน / Daily Interest\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=SUM(Loans[Expected Daily Interest Amount])"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -511,19 +708,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Total Profit of Outstanding Loans"
         "Visible?": "ALWAYS"
         "Display name": "=\"กำไรรวมจากเงินกู้คงค้าง / Total Profit of Outstanding Loans\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=SUM(SELECT(Loans[Total Interest Received], [Loan Status] = \"ยังไม่ปิดยอด\"))"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -540,18 +743,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Profit Coverage of Outstanding Principal"
         "Visible?": "ALWAYS"
         "Display name": "=\"กำไรเทียบเงินต้นคงค้าง (%) / Profit Coverage of Outstanding Principal\""
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Percent"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"\
+          ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=IF([Outstanding Principal] > 0, [Total Profit of Outstanding Loans] / [Outstanding Principal], 0)"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -568,17 +778,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Header - Outstanding Loans"
         "Visible?": "ALWAYS"
         "Display name": "=\" \""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=\"──── สินเชื่อคงค้าง / Outstanding Loans ────\""
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -595,17 +813,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Header - Monthly Forecast"
         "Visible?": "ALWAYS"
         "Display name": "=\" \""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=\"──── พยากรณ์ / Forecast ────\""
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -622,25 +848,32 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Borrowers Fully Paid Today"
         "Visible?": "ALWAYS"
         "Display name": "=\"ชำระครบ / Fully Paid\""
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": "=TRUE"
-        "Type Qualifier.Show_If": |-
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=TRUE\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=COUNT(\\\
+          n  SELECT(\\n    Borrowers[Row ID],\\n    [Daily Collection Status] = \\\"Fully Paid\\\"\\n  )\\n) > 0\",\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
           =COUNT(
-           SELECT(
-           Borrowers[Row ID],
-           [Daily Collection Status] = "Fully Paid"
-           )
-          ) > 0
-        "App formula": "=COUNT( SELECT( Borrowers[Row ID], [Daily Collection Status] = \"Fully Paid\" ) )"
+            SELECT(
+              Borrowers[Row ID],
+              [Daily Collection Status] = "Fully Paid"
+            )
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -657,25 +890,32 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Borrowers Partially Paid Today"
         "Visible?": "ALWAYS"
         "Display name": "=\"ชำระบางส่วน / Partially Paid\""
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": "=TRUE"
-        "Type Qualifier.Show_If": |-
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=TRUE\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=COUNT(\\\
+          n  SELECT(\\n    Borrowers[Row ID],\\n    [Daily Collection Status] = \\\"Partially Paid\\\"\\n  )\\n) > 0\",\"\
+          Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
           =COUNT(
-           SELECT(
-           Borrowers[Row ID],
-           [Daily Collection Status] = "Partially Paid"
-           )
-          ) > 0
-        "App formula": "=COUNT( SELECT( Borrowers[Row ID], [Daily Collection Status] = \"Partially Paid\" ) )"
+            SELECT(
+              Borrowers[Row ID],
+              [Daily Collection Status] = "Partially Paid"
+            )
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -692,25 +932,32 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Borrowers with Overdue Payment"
         "Visible?": "ALWAYS"
         "Display name": "=\"เกินกำหนด / Overdue\""
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": "=TRUE"
-        "Type Qualifier.Show_If": |-
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=TRUE\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=COUNT(\\\
+          n  SELECT(\\n    Borrowers[Row ID],\\n    [Daily Collection Status] = \\\"Overdue\\\"\\n  )\\n) > 0\",\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
           =COUNT(
-           SELECT(
-           Borrowers[Row ID],
-           [Daily Collection Status] = "Overdue"
-           )
-          ) > 0
-        "App formula": "=COUNT( SELECT( Borrowers[Row ID], [Daily Collection Status] = \"Overdue\" ) )"
+            SELECT(
+              Borrowers[Row ID],
+              [Daily Collection Status] = "Overdue"
+            )
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -727,25 +974,32 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Borrowers Not Paid Today"
         "Visible?": "ALWAYS"
         "Display name": "=\"ยังไม่ชำระ / Not Paid\""
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": "=TRUE"
-        "Type Qualifier.Show_If": |-
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=TRUE\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=COUNT(\\\
+          n  SELECT(\\n    Borrowers[Row ID],\\n    [Daily Collection Status] = \\\"Not Paid\\\"\\n  )\\n) > 0\",\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
           =COUNT(
-           SELECT(
-           Borrowers[Row ID],
-           [Daily Collection Status] = "Not Paid"
-           )
-          ) > 0
-        "App formula": "=COUNT( SELECT( Borrowers[Row ID], [Daily Collection Status] = \"Not Paid\" ) )"
+            SELECT(
+              Borrowers[Row ID],
+              [Daily Collection Status] = "Not Paid"
+            )
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -762,99 +1016,29 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Header - Collection Status"
         "Visible?": "ALWAYS"
         "Display name": "=\" \""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=\"──── สถานะชำระ / Collection ────\""
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-    "Analytics Refresh Request":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Statistics"
-        "Column": "Analytics Refresh Request"
-        "Type": "Text"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-      "rules":
-        "Visible?": "NEVER"
-        "Formula version": "0"
-        "Reset on edit?": "No"
-        "System Defined?": "No"
-        "Part of Key?": "No"
-        "Fixed definition?": "No"
-        "Editable Initial Value?": "No"
-        "Searchable": "No"
-        "Scannable": "No"
-        "Sensitive data": "No"
-        "Editable_If": "Blank"
-    "Net Profit":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Statistics"
-        "Column": "Net Profit"
-        "Type": "Price"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-    "Expenses MTD":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Statistics"
-        "Column": "Expenses MTD"
-        "Type": "Price"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-    "Net Profit MTD":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Statistics"
-        "Column": "Net Profit MTD"
-        "Type": "Price"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-    "Operating Income MTD":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Statistics"
-        "Column": "Operating Income MTD"
-        "Type": "Price"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-    "Income Statement Expenses MTD":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Statistics"
-        "Column": "Income Statement Expenses MTD"
-        "Type": "Price"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
     "Header - Income Statement MTD":
       "inventory":
         "App": "OLTP"
@@ -866,6 +1050,205 @@
         "Label": "No"
         "Read-only": "Yes"
         "Hidden": "No"
+      "rules":
+        "Column name": "Header - Income Statement MTD"
+        "Visible?": "ALWAYS"
+        "Display name": "=\" \""
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=\"──── กำไรขาดทุนเดือนนี้ / Income MTD ────\""
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Net Profit":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Statistics"
+        "Column": "Net Profit"
+        "Type": "Price"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Net Profit"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"กำไรสุทธิรวม / Total Net Profit\""
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=[Total Profit] - SUM(Business Expenses[Amount])"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Expenses MTD":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Statistics"
+        "Column": "Expenses MTD"
+        "Type": "Price"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Expenses MTD"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=SUM(SELECT(Business Expenses[Amount], AND([Expense Date] >= EOMONTH(TODAY(), -1) + 1, [Expense Date]\
+          \ <= TODAY())))"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Operating Income MTD":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Statistics"
+        "Column": "Operating Income MTD"
+        "Type": "Price"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Operating Income MTD"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"รายได้เดือนนี้ / Operating Income MTD\""
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=[Realized Profit MTD]"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Income Statement Expenses MTD":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Statistics"
+        "Column": "Income Statement Expenses MTD"
+        "Type": "Price"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Income Statement Expenses MTD"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"ค่าใช้จ่ายเดือนนี้ / Expenses MTD\""
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=0 - [Expenses MTD]"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Net Profit MTD":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Statistics"
+        "Column": "Net Profit MTD"
+        "Type": "Price"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Net Profit MTD"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"กำไรสุทธิเดือนนี้ / Net Profit MTD\""
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=[Realized Profit MTD] - [Expenses MTD]"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Total Cash Pool":
       "inventory":
         "App": "OLTP"
@@ -878,6 +1261,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Total Cash Pool"
         "Visible?": "ALWAYS"
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
@@ -899,18 +1283,405 @@
         "Searchable": "No"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.MaxValue": null
-        "Type Qualifier.MinValue": null
-        "Type Qualifier.StepValue": null
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.NumericDigits": null
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
+  "editor":
+    "fields":
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Statistics"
+      "label": "Table name"
+      "text": |-
+        Table name
+        Name for this table (user-visible)
+        ​
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Updates"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Adds"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Deletes"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Read-Only"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "science"
+      "controls": []
+      "label": "Are updates allowed?"
+      "text": |-
+        Are updates allowed?
+        Are adds, deletes and updates allowed?
+        Updates
+        Adds
+        Deletes
+        Read-Only
+        science
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Statistics"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "3"
+      "label": "Source Path"
+      "text": |-
+        Source Path
+        A user-understandable path to the table data
+        - select a source -
+        Borrowers
+        Loans
+        Repayments
+        Statistics
+        Charges
+        Partners
+        Payment Allocations
+        Payments
+        Business Expenses
+        Loan Form Context
+        Cash Holders
+        Cash Holder Balances
+        Cash Accounts
+        Cash Statement Context
+        Cash Account Daily Summary Recent
+        Cash Account Statement Recent
+        Cash Account Balances
+        Cash Dashboard
+        - browse for more data -
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Add"
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "_RowNumber"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Row ID"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Statistics ID"
+      "label": "Column Order List"
+      "text": |-
+        Column Order List
+        The order of columns to retrieve from the provider (only applies to some storage providers)
+        drag_indicator
+        _RowNumber
+        ​
+        drag_indicator
+        Row ID
+        ​
+        drag_indicator
+        Statistics ID
+        ​
+        Add
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Copy Data to New Source"
+      "controls": []
+      "label": "Data Source"
+      "text": |-
+        Data Source
+        Name of the table data source
+        database-2
+        Copy Data to New Source
+    - "choices": []
+      "controls": []
+      "label": "Source Id"
+      "text": |-
+        Source Id
+        A provider-specific path to the table data (not user-visible)
+        Table=public.Statistics__Statistics
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Default"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "_Default"
+      "label": "Store for image and file capture"
+      "text": |-
+        Store for image and file capture
+        By default, images and files captured by the app are stored in the cloud file system associated with the app owner's account. You can explicitly add an object store and use it instead.
+        Default
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      "label": "Filter out all existing rows?"
+      "text": |-
+        Filter out all existing rows?
+        Used only in forms apps that collect new data rows but never show any pre-existing rows.
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Security filter"
+      "text": |-
+        Security filter
+        The app uses only those rows that match this (optional) filter condition. Use this filter to limit what each user can see.
+        =
+        science
+        ​
+    - "choices":
+      - "checked": "true"
+        "pressed": null
+        "role": "radio"
+        "text": "as app creator"
+      - "checked": "false"
+        "pressed": null
+        "role": "radio"
+        "text": "as app user"
+      "controls": []
+      "label": "Access mode"
+      "text": |-
+        Access mode
+        The app will access the spreadsheet using the app creator or app user credentials.
+        as app creator
+        as app user
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      "label": "Shared?"
+      "text": |-
+        Shared?
+        Is this table shared by all users? This option is normally checked. Before unchecking, carefully review 'Private Tables' in the documentation.
+    - "choices": []
+      "controls":
+      - "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      "label": "Data locale"
+      "text": |-
+        Data locale
+        Locale used to read the table
+        Compatibility (For backward compatibility)
+        Amharic (Ethiopia)
+        Arabic (Algeria)
+        Arabic (Bahrain)
+        Arabic (Egypt)
+        Arabic (Iraq)
+        Arabic (Jordan)
+        Arabic (Kuwait)
+        Arabic (Lebanon)
+        Arabic (Libya)
+        Arabic (Morocco)
+        Arabic (Oman)
+        Arabic (Qatar)
+        Arabic (Saudi Arabia)
+        Arabic (Syria)
+        Arabic (Tunisia)
+        Arabic (United Arab Emirates)
+        Arabic (Yemen)
+        Armenian (Armenia)
+        Azerbaijani (Cyrillic, Azerbaijan)
+        Azerbaijani (Latin, Azerbaijan)
+        Bengali (India)
+        Bulgarian (Bulgaria)
+        Burmese (Myanmar)
+        Catalan (Catalan)
+        Chinese (Simplified, China)
+        Chinese (Traditional, Hong Kong SAR)
+        Chinese (Traditional, Taiwan)
+        Chinese Traditional (Malaysia)
+        Croatian (Croatia)
+        Czech (Czechia)
+        Danish (Denmark)
+        Dari (Afghanistan)
+        Dutch (Aruba)
+        Dutch (Belgium)
+        Dutch (Curaçao)
+        Dutch (Netherlands)
+        English (Australia)
+        English (Bahrain)
+        English (Belgium)
+        English (Brazil)
+        English (Canada)
+        English (Germany)
+        English (Hong Kong SAR)
+        English (India)
+        English (Ireland)
+        English (Kenya)
+        English (Malaysia)
+        English (New Zealand)
+        English (Norway)
+        English (Philippines)
+        English (Singapore)
+        English (South Africa)
+        English (Sri Lanka)
+        English (Tanzania)
+        English (United Kingdom)
+        English (United States)
+        Filipino (Philippines)
+        Finnish (Finland)
+        French (Belgium)
+        French (Cameroon)
+        French (Canada)
+        French (Côte d’Ivoire)
+        French (France)
+        French (Luxembourg)
+        French (Mali)
+        French (Morocco)
+        French (Senegal)
+        French (Switzerland)
+        French Congo (DRC)
+        Fulah (Latin, Senegal)
+        Georgian (Georgia)
+        German (Austria)
+        German (Germany)
+        German (Liechtenstein)
+        German (Luxembourg)
+        German (Switzerland)
+        Greek (Greece)
+        Gujarati (India)
+        Hausa (Latin, Nigeria)
+        Hebrew (Israel)
+        Hindi (India)
+        Hungarian (Hungary)
+        Igbo (Nigeria)
+        Indonesian (Indonesia)
+        Irish (Ireland)
+        Italian (Italy)
+        Italian (Switzerland)
+        Japanese (Japan)
+        Kannada (India)
+        Kinyarwanda (Rwanda)
+        Kiswahili (Kenya)
+        Kiswahili (Tanzania)
+        Korean (Korea)
+        Latvian (Latvia)
+        Lingala (Angola)
+        Lithuanian (Lithuania)
+        Malay (Brunei)
+        Malay (Malaysia)
+        Malayalam (India)
+        Marathi (India)
+        Mongolian (Mongolia)
+        Norwegian Bokmål (Norway)
+        Norwegian Nynorsk (Norway)
+        Oromo (Ethiopia)
+        Pashto (Afghanistan)
+        Persian (Iran)
+        Polish (Poland)
+        Portuguese (Angola)
+        Portuguese (Brazil)
+        Portuguese (Mozambique)
+        Portuguese (Portugal)
+        Romanian (Romania)
+        Russian (Russia)
+        Serbian (Cyrillic, Serbia)
+        Serbian (Latin, Serbia)
+        Serbian (Serbia)
+        Setswana (Botswana)
+        Sinhala (Sri Lanka)
+        Slovak (Slovakia)
+        Slovenian (Slovenia)
+        Spanish (Argentina)
+        Spanish (Bolivia)
+        Spanish (Chile)
+        Spanish (Colombia)
+        Spanish (Costa Rica)
+        Spanish (Dominican Republic)
+        Spanish (Ecuador)
+        Spanish (El Salvador)
+        Spanish (Guatemala)
+        Spanish (Honduras)
+        Spanish (Latin America)
+        Spanish (Latin America)
+        Spanish (Mexico)
+        Spanish (Nicaragua)
+        Spanish (Panama)
+        Spanish (Paraguay)
+        Spanish (Peru)
+        Spanish (Spain, International Sort)
+        Spanish (United States)
+        Spanish (Uruguay)
+        Spanish (Venezuela)
+        Swedish (Sweden)
+        Tamil (India)
+        Tamil (Sri Lanka)
+        Telugu (India)
+        Thai (Thailand)
+        Tigrinya (Ethiopia)
+        Turkish (Turkey)
+        Ukrainian (Ukraine)
+        Vietnamese (Vietnam)
+        Yoruba (Nigeria)
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "text": |-
+        Descriptive comment
+        Comments help you and your collaborators better record and understand the structure of the app
+    "update_permissions_snapshot": |2-
+
+        - heading "Table settings" [level=5]
+        - button "close":
+        - heading "Table name" [level=6]
+        - text: Name for this table (user-visible)
+        - textbox: Statistics
+        - heading "Are updates allowed?" [level=6]
+        - text: Are adds, deletes and updates allowed?
+        - button " Updates":
+          - text: 
+          - generic: Updates
+        - button " Adds":
+          - text: 
+          - generic: Adds
+        - button " Deletes":
+          - text: 
+          - generic: Deletes
+        - button "Read-Only"
+        - button "science"
+        - heading "Storage" [level=3]
+        - generic: 
+        - heading "Source Path" [level=6]
+        - text: A user-understandable path to the table data
+        - combobox "Select an option":
+          - option "- select a source -"

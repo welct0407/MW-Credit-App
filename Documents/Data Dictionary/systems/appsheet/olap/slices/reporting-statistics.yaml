@@ -4,101 +4,82 @@
   "component": "olap"
   "kind": "slice"
   "name": "Reporting Statistics"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/olap/slices/reporting-statistics.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "olap"
+      "kind": "slice"
+      "name": "Reporting Statistics"
+      "scope": "recorded-production"
 "content":
   "definition":
-    "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Permission": "READ_ONLY"
-    "Filter": null
-    "Actions": "**auto**"
+    "Slice Name": "Reporting Statistics"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Row ID"
+    - "Outstanding Principal"
+    - "Active Loans"
+    - "Realized Profit MTD"
+    - "Projected Monthly Profit"
+    - "Peak Cash Pool Date 30D"
+    - "Expected Daily Interest"
+    - "Total Cash Pool"
+    - "Total Unsettled Profit"
+    - "Expected Loan Account Balance"
+    - "Top 3 Borrower Concentration"
+    - "Amount Due Today"
+    - "Amount Collected Today"
+    - "Amount Outstanding Today"
+    - "Amount Collection Rate Today"
+    - "Total Outstanding Principal"
+    - "Analytics Refresh Request"
+    "Update mode": "READ_ONLY"
+    "Source Table": "Statistics"
+    "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
+    "Descriptive comment": "Curated Looker Studio source; includes only fields required by Loan Reports - Mobile."
   "members":
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 1
+  - "Ordinal": 1
     "Column": "_RowNumber"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 2
+  - "Ordinal": 2
     "Column": "Row ID"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 3
+  - "Ordinal": 3
     "Column": "Outstanding Principal"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 4
+  - "Ordinal": 4
     "Column": "Active Loans"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 5
+  - "Ordinal": 5
     "Column": "Realized Profit MTD"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 6
+  - "Ordinal": 6
     "Column": "Projected Monthly Profit"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 7
+  - "Ordinal": 7
     "Column": "Peak Cash Pool Date 30D"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 8
+  - "Ordinal": 8
     "Column": "Expected Daily Interest"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 9
+  - "Ordinal": 9
     "Column": "Total Cash Pool"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 10
+  - "Ordinal": 10
     "Column": "Total Unsettled Profit"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 11
+  - "Ordinal": 11
     "Column": "Expected Loan Account Balance"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 12
+  - "Ordinal": 12
     "Column": "Top 3 Borrower Concentration"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 13
+  - "Ordinal": 13
     "Column": "Amount Due Today"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 14
+  - "Ordinal": 14
     "Column": "Amount Collected Today"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 15
+  - "Ordinal": 15
     "Column": "Amount Outstanding Today"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 16
+  - "Ordinal": 16
     "Column": "Amount Collection Rate Today"
-  - "App": "OLAP"
-    "Slice": "Reporting Statistics"
-    "Source table": "Statistics"
-    "Ordinal": 17
+  - "Ordinal": 17
     "Column": "Total Outstanding Principal"
+  - "Ordinal": 18
+    "Column": "Analytics Refresh Request"

@@ -4,15 +4,20 @@ This folder is the maintained home for exact model and configuration documentati
 
 **Original migration, 23 September 2026:** all 16,496 nonempty data rows from the 14-sheet Excel dictionary were migrated into 185 text documents. Values, labels, source order and dated evidence were preserved. Imported objects are `imported-unreconciled`: the owner explicitly deferred live AppSheet inspection and reconciliation. A path under `recorded-production` describes the source sheet's label, not freshly verified production truth. Base definitions and release supplements can disagree.
 
-**Subsequent owner-authorized cleanup:** 182 documents remain after deleting the obsolete Calendar inventory and seven empty-identity residue rows. The single constant Excel formula was normalized to its matching literal value. There were no failed imports. The [register](unresolved.yaml) distinguishes four deferred reconciliation topics, two resolved cleanup items and one informational future-coverage item. Original migration evidence remains dated and unchanged.
+**Historical cleanup:** the original inventory was reduced to 182 documents after deleting the obsolete Calendar inventory and seven empty-identity residue rows. The single constant Excel formula was normalized to its matching literal value. There were no failed imports. Original migration evidence remains dated and unchanged.
+
+**Current reconciliation, 24 September 2026:** the owner authorized independent live metadata inspection of PROD/DEV OLTP, PROD/DEV OLAP and both PostgreSQL databases. Current `production` objects now contain complete captured AppDoc/catalog definitions, with editor supplements for physical sources, views, settings, access and automation. Explicit DEV deltas reconstruct the independently observed DEV state. Read the [coverage, findings and validation](../../outputs/dictionary-reconciliation-20260924/README.md) for exact coverage and limitations. `documented` describes evidence-backed content, not a claim of runtime correctness, owner acceptance or deployment readiness. Personal access identities and signed image access tokens are intentionally withheld from published evidence.
 
 | Need | Start here |
 | --- | --- |
 | OLTP table, column rules and Refs | [AppSheet OLTP tables](systems/appsheet/oltp/tables/) |
 | OLAP table, column rules and Refs | [AppSheet OLAP tables](systems/appsheet/olap/tables/) |
 | Slice filters, permissions and ordered membership | [OLTP slices](systems/appsheet/oltp/slices/) / [OLAP slices](systems/appsheet/olap/slices/) |
+| Current views, actions, formatting and bots | [AppSheet coverage guide](systems/appsheet/README.md) |
+| Current app settings and access | [OLTP settings](systems/appsheet/oltp/settings/) / [OLAP settings](systems/appsheet/olap/settings/) |
 | App settings grouped by their original labels | [Recorded AppSheet settings](systems/appsheet/recorded-settings/) |
 | SQL columns and constraints | [PostgreSQL relations](systems/postgresql/relations/) |
+| Current full SQL bodies, privileges and metadata | [PostgreSQL coverage guide](systems/postgresql/README.md) |
 | SQL logic and other database annotations | [Recorded database logic](systems/postgresql/recorded-logic/) |
 | Metabase model grain, fields and metadata | [Metabase models](systems/metabase/models/) |
 | Future Grafana definitions | [Grafana namespace](systems/grafana/README.md) |
@@ -27,7 +32,7 @@ This folder is the maintained home for exact model and configuration documentati
 
 Use `scripts/dictionary/dictionary.py find <object-name>` to locate a definition, then `read <file> --pointer <property-path>` to retrieve only the relevant portion. The generated [index](index.json) contains navigation metadata and object names, not a second copy of definitions. `find` defaults to 30 files and five matching subjects per file; increase `--limit` or `--matches` only when useful.
 
-`read` includes verification status and bounded name matches in the imported supplements. These matches are navigation aids and can be incomplete or ambiguous. Consult the relevant supplement before treating a base value as authoritative for live work. The tool never resolves precedence or computes an effective DEV configuration from old differences.
+`read` includes verification status and bounded name matches in imported supplements. These matches are navigation aids, not overrides. Current `production` scope with the 24 September evidence takes precedence as a dated observation over imported/as-recorded values for that same target/property. The tool never computes an effective DEV configuration from old differences; the reconciliation verifier explicitly reconstructs only its observed deltas.
 
 ## Maintenance
 
@@ -35,7 +40,7 @@ Use `scripts/dictionary/dictionary.py find <object-name>` to locate a definition
 - Run a guarded update or edit directly, rebuild the index when object names/locations change, and run `validate` before publication. Direct edits receive the same structural checks.
 - Keep dated evidence with the source records and change logs. Current versions and instance identities belong in [Environment Inventory](../Environment_Inventory.md); business behavior belongs in [Model Overview](../AppSheet_Data_Model_Overview.md) and [Solution Design](../Solution_Design.md).
 - Do not infer defaults or turn null into false, blank, zero or absence. Source strings containing JSON remain strings until a separately authorized normalization; source formula text remains literal.
-- New verified definitions can use `documented` with source evidence. Reconciliation of imported definitions requires a later explicit task. Moving a file or importing a record does not verify the live object.
+- New verified definitions can use `documented` with source evidence. The authorized 24 September reconciliation covers only its listed targets/properties; remaining imported definitions require their own evidence. Moving or importing a file does not verify it.
 - Add only metadata/configuration to this dictionary. Credentials, borrower records and financial transaction data belong in their authorized stores.
 
 The original [Excel workbook](../AppSheet_Data_Dictionary.xlsx) is frozen historical evidence at its existing path, preserving old links. Its SHA-256 is recorded in the catalog and checked by validation. All future dictionary updates go here. Do not run old workbook writers against it.

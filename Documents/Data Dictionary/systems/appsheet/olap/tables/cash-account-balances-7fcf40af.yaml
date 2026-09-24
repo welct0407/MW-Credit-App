@@ -1,0 +1,671 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "Cash Account Balances"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "source_app": "OLAP"
+  "source_table": "Cash Account Balances"
+  "binding":
+    "Table name": "Cash Account Balances"
+    "Visible?": "ALWAYS"
+    "Shared?": "Yes"
+    "Schema": "Cash Account Balances_Schema"
+    "Are updates allowed?": "READ_ONLY"
+    "Source Path": "Cash Account Balances"
+    "Data Source": "database-2"
+    "Store for image and file capture": "_Default"
+    "Column Order List":
+    - "_RowNumber"
+    "Partitioned across many files/sources?": "No"
+    "Partitioned across many worksheets?": "No"
+  "schema":
+    "Schema Name": "Cash Account Balances_Schema"
+    "Visible?": "ALWAYS"
+  "columns":
+    "_RowNumber":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "_RowNumber"
+        "Type": "Number"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "_RowNumber"
+        "Visible?": "ALWAYS"
+        "Description": "Number of this row"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "Yes"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Ref Cash Account":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Ref Cash Account"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "Yes"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Ref Cash Account"
+        "Visible?": "ALWAYS"
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "Yes"
+        "Part of Key?": "Yes"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Cash Accounts"
+        "ReferencedRootTableName": "Cash Accounts"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Ref Cash Holder":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Ref Cash Holder"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Ref Cash Holder"
+        "Visible?": "ALWAYS"
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Cash Holders"
+        "ReferencedRootTableName": "Cash Holders"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Holder Name":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Holder Name"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Holder Name"
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Account Label":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Account Label"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "Yes"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Account Label"
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "Yes"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Opening Balance":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Opening Balance"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Opening Balance"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Cash In":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Cash In"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Cash In"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Cash Out":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Cash Out"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Cash Out"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Current Balance":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Current Balance"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Current Balance"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Initialized":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Initialized"
+        "Type": "Yes/No"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Initialized"
+        "Visible?": "ALWAYS"
+        "Type": "Yes/No"
+        "Type Qualifier": "{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Business Cash Held":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Business Cash Held"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Business Cash Held"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Reimbursement / Advance Due":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Account Balances"
+        "Column": "Reimbursement / Advance Due"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Reimbursement / Advance Due"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+  "editor":
+    "fields":
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Cash Account Balances"
+      "label": "Table name"
+      "text": |-
+        Table name
+        Name for this table (user-visible)
+        ​
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Updates"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Adds"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Deletes"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Read-Only"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "science"
+      "controls": []
+      "label": "Are updates allowed?"
+      "text": |-
+        Are updates allowed?
+        Are adds, deletes and updates allowed?
+        Updates
+        Adds
+        Deletes
+        Read-Only
+        science
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Cash Account Balances"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "18"
+      "label": "Source Path"
+      "text": "Source PathA user-understandable path to the table data - select a source -olap_borrowers_analyticsolap_loans_analyticsolap_repayments_analyticsStatisticsolap_charges_analyticsLoan\
+        \ Assessment SQL Lab ViewCash Pool ContributionsPartnersSettlementsDaily AnalyticsPayment AllocationsPaymentsBusiness\
+        \ ExpensesCash HoldersCash Holder BalancesCash Ledgerolap_portfolio_summaryCash AccountsCash Account Balances- browse\
+        \ for more data -"
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Add"
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "_RowNumber"
+      "label": "Column Order List"
+      "text": "Column Order ListThe order of columns to retrieve from the provider (only applies to some storage providers)drag_indicator_RowNumber​Add"
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Copy Data to New Source"
+      "controls": []
+      "label": "Data Source"
+      "text": "Data SourceName of the table data sourcedatabase-2Copy Data to New Source"
+    - "choices": []
+      "controls": []
+      "label": "Source Id"
+      "text": "Source IdA provider-specific path to the table data (not user-visible)Table=public.Cash Account Balances__Cash\
+        \ Account Balances"
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Default"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "_Default"
+      "label": "Store for image and file capture"
+      "text": "Store for image and file captureBy default, images and files captured by the app are stored in the cloud file\
+        \ system associated with the app owner's account. You can explicitly add an object store and use it instead.Default"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      "label": "Filter out all existing rows?"
+      "text": "Filter out all existing rows?Used only in forms apps that collect new data rows but never show any pre-existing\
+        \ rows."
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Security filter"
+      "text": "Security filterThe app uses only those rows that match this (optional) filter condition. Use this filter to\
+        \ limit what each user can see.=science​"
+    - "choices":
+      - "checked": "true"
+        "pressed": null
+        "role": "radio"
+        "text": "as app creator"
+      - "checked": "false"
+        "pressed": null
+        "role": "radio"
+        "text": "as app user"
+      "controls": []
+      "label": "Access mode"
+      "text": "Access modeThe app will access the spreadsheet using the app creator or app user credentials.as app creatoras\
+        \ app user"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      "label": "Shared?"
+      "text": "Shared?Is this table shared by all users? This option is normally checked. Before unchecking, carefully review\
+        \ 'Private Tables' in the documentation."
+    - "choices": []
+      "controls":
+      - "selected":
+        - "5 minutes"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "FIVE_MINUTE"
+      "label": "Server caching interval"
+      "text": "Server caching intervalHow long should the data of this table be cached in AppSheet servers if the 'Server\
+        \ Caching' option is enabled?5 minutes30 minutesone hourone day"
+    - "choices": []
+      "controls":
+      - "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      "label": "Data locale"
+      "text": "Data localeLocale used to read the tableCompatibility (For backward compatibility)Amharic (Ethiopia)Arabic\
+        \ (Algeria)Arabic (Bahrain)Arabic (Egypt)Arabic (Iraq)Arabic (Jordan)Arabic (Kuwait)Arabic (Lebanon)Arabic (Libya)Arabic\
+        \ (Morocco)Arabic (Oman)Arabic (Qatar)Arabic (Saudi Arabia)Arabic (Syria)Arabic (Tunisia)Arabic (United Arab Emirates)Arabic\
+        \ (Yemen)Armenian (Armenia)Azerbaijani (Cyrillic, Azerbaijan)Azerbaijani (Latin, Azerbaijan)Bengali (India)Bulgarian\
+        \ (Bulgaria)Burmese (Myanmar)Catalan (Catalan)Chinese (Simplified, China)Chinese (Traditional, Hong Kong SAR)Chinese\
+        \ (Traditional, Taiwan)Chinese Traditional (Malaysia)Croatian (Croatia)Czech (Czechia)Danish (Denmark)Dari (Afghanistan)Dutch\
+        \ (Aruba)Dutch (Belgium)Dutch (Curaçao)Dutch (Netherlands)English (Australia)English (Bahrain)English (Belgium)English\
+        \ (Brazil)English (Canada)English (Germany)English (Hong Kong SAR)English (India)English (Ireland)English (Kenya)English\
+        \ (Malaysia)English (New Zealand)English (Norway)English (Philippines)English (Singapore)English (South Africa)English\
+        \ (Sri Lanka)English (Tanzania)English (United Kingdom)English (United States)Filipino (Philippines)Finnish (Finland)French\
+        \ (Belgium)French (Cameroon)French (Canada)French (Côte d’Ivoire)French (France)French (Luxembourg)French (Mali)French\
+        \ (Morocco)French (Senegal)French (Switzerland)French Congo (DRC)Fulah (Latin, Senegal)Georgian (Georgia)German (Austria)German\
+        \ (Germany)German (Liechtenstein)German (Luxembourg)German (Switzerland)Greek (Greece)Gujarati (India)Hausa (Latin,\
+        \ Nigeria)Hebrew (Israel)Hindi (India)Hungarian (Hungary)Igbo (Nigeria)Indonesian (Indonesia)Irish (Ireland)Italian\
+        \ (Italy)Italian (Switzerland)Japanese (Japan)Kannada (India)Kinyarwanda (Rwanda)Kiswahili (Kenya)Kiswahili (Tanzania)Korean\
+        \ (Korea)Latvian (Latvia)Lingala (Angola)Lithuanian (Lithuania)Malay (Brunei)Malay (Malaysia)Malayalam (India)Marathi\
+        \ (India)Mongolian (Mongolia)Norwegian Bokmål (Norway)Norwegian Nynorsk (Norway)Oromo (Ethiopia)Pashto (Afghanistan)Persian\
+        \ (Iran)Polish (Poland)Portuguese (Angola)Portuguese (Brazil)Portuguese (Mozambique)Portuguese (Portugal)Romanian\
+        \ (Romania)Russian (Russia)Serbian (Cyrillic, Serbia)Serbian (Latin, Serbia)Serbian (Serbia)Setswana (Botswana)Sinhala\
+        \ (Sri Lanka)Slovak (Slovakia)Slovenian (Slovenia)Spanish (Argentina)Spanish (Bolivia)Spanish (Chile)Spanish (Colombia)Spanish\
+        \ (Costa Rica)Spanish (Dominican Republic)Spanish (Ecuador)Spanish (El Salvador)Spanish (Guatemala)Spanish (Honduras)Spanish\
+        \ (Latin America)Spanish (Latin America)Spanish (Mexico)Spanish (Nicaragua)Spanish (Panama)Spanish (Paraguay)Spanish\
+        \ (Peru)Spanish (Spain, International Sort)Spanish (United States)Spanish (Uruguay)Spanish (Venezuela)Swedish (Sweden)Tamil\
+        \ (India)Tamil (Sri Lanka)Telugu (India)Thai (Thailand)Tigrinya (Ethiopia)Turkish (Turkey)Ukrainian (Ukraine)Vietnamese\
+        \ (Vietnam)Yoruba (Nigeria)"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
+        \ app"
+    "update_permissions_snapshot": |2-
+
+        - heading "Table settings" [level=5]
+        - button "close":
+        - heading "Table name" [level=6]
+        - text: Name for this table (user-visible)
+        - textbox: Cash Account Balances
+        - heading "Are updates allowed?" [level=6]
+        - text: Are adds, deletes and updates allowed?
+        - button " Updates":
+          - text: 
+          - generic: Updates
+        - button " Adds":
+          - text: 
+          - generic: Adds
+        - button " Deletes":
+          - text: 
+          - generic: Deletes
+        - button "Read-Only"
+        - button "science"
+        - heading "Storage" [level=3]
+        - generic: 
+        - text: (ENTERPRISE Plan)
+        - heading "Security" [level=3]
+        - generic: 
+        - text: (APPSHEET CORE) (APPSHEET CORE) (APPSHEET CORE)

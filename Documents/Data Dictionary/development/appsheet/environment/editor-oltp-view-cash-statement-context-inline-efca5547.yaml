@@ -1,0 +1,277 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Cash Statement Context_Inline"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/oltp/views/cash-statement-context-inline-efca5547.yaml"
+  "classification": "Captured source controls and choices match; supporting editor text/App links differ by environment or\
+    \ UI presentation."
+  "changes":
+  - "pointer": "/fields"
+    "before":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices": []
+        "controls": []
+        "label": "Sort by"
+        "text": |-
+          Sort by
+          Sort the rows by one or more columns.
+          Add
+      - "choices": []
+        "controls": []
+        "label": "Group by"
+        "text": |-
+          Group by
+          Group rows by the values in one or more of their columns.
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "NONE"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "NONE"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          Display a numeric summary of the rows in each group.
+          NONE
+          COUNT
+      - "choices":
+        - "checked": "true"
+          "text": "Automatic"
+        - "checked": "false"
+          "text": "Manual"
+        "controls": []
+        "label": "Column order"
+        "text": |-
+          Column order
+          Automatically or manually order columns displayed in view. Learn more
+          Automatic
+          Manual
+          Ref Cash Account
+          edit
+          Statement Date
+          edit
+      - "choices":
+        - "checked": "true"
+          "text": "Default"
+        - "checked": "false"
+          "text": "Narrow"
+        - "checked": "false"
+          "text": "Wide"
+        "controls": []
+        "label": "Column width"
+        "text": |-
+          Column width
+          How wide columns should be. Narrower widths let you fit more data on the screen.
+          Default
+          Narrow
+          Wide
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Enable QuickEdit (beta)"
+        "text": |-
+          Enable QuickEdit (beta)
+          Allow edits to be made directly in the table view. This is an experimental feature and still under development.
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur.Row SelectedAuto assign (View details)​"
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Cash Statement Context_Inline\"\
+          )   .... or ... \"https://www.appsheet.com/start/93844270-6aa5-420b-a960-bcdf08abd357#view=Cash%20Statement%20Context_Inline\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"
+    "after":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices": []
+        "controls": []
+        "label": "Sort by"
+        "text": |-
+          Sort by
+          Sort the rows by one or more columns.
+          Add
+      - "choices": []
+        "controls": []
+        "label": "Group by"
+        "text": |-
+          Group by
+          Group rows by the values in one or more of their columns.
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "NONE"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "NONE"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          Display a numeric summary of the rows in each group.
+          NONE
+          COUNT
+      - "choices":
+        - "checked": "true"
+          "text": "Automatic"
+        - "checked": "false"
+          "text": "Manual"
+        "controls": []
+        "label": "Column order"
+        "text": |-
+          Column order
+          Automatically or manually order columns displayed in view. Learn more
+          Automatic
+          Manual
+          Ref Cash Account
+          edit
+          Statement Date
+          edit
+      - "choices":
+        - "checked": "true"
+          "text": "Default"
+        - "checked": "false"
+          "text": "Narrow"
+        - "checked": "false"
+          "text": "Wide"
+        "controls": []
+        "label": "Column width"
+        "text": |-
+          Column width
+          How wide columns should be. Narrower widths let you fit more data on the screen.
+          Default
+          Narrow
+          Wide
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Enable QuickEdit (beta)"
+        "text": |-
+          Enable QuickEdit (beta)
+          Allow edits to be made directly in the table view. This is an experimental feature and still under development.
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur.Row SelectedAuto assign (View details)​"
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Cash Statement Context_Inline\"\
+          )   .... or ... \"https://www.appsheet.com/start/500b27b6-884a-41e8-a9ec-df801b0110ad#view=Cash%20Statement%20Context_Inline\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"

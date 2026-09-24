@@ -1,0 +1,65 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.initialize_cash_accounts(p_holder text, p_openings jsonb, p_actor text, p_notes text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "initialize_cash_accounts"
+    "arguments": "p_holder text, p_openings jsonb, p_actor text, p_notes text"
+    "kind": "f"
+    "arguments_with_defaults": "p_holder text, p_openings jsonb, p_actor text, p_notes text"
+    "result": "void"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.initialize_cash_accounts(p_holder text, p_openings jsonb, p_actor text, p_notes text)
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE balance numeric; total numeric; stamp timestamptz; previous_setting text;
+      BEGIN
+       -- Table locks serialize with source writes; never disable integrity triggers.
+       LOCK TABLE public."Payments",public."Loans",public."Business Expenses",public."Settlements",public."Cash Ledger",public."Cash Accounts" IN SHARE ROW EXCLUSIVE MODE;
+       IF jsonb_typeof(p_openings) IS DISTINCT FROM 'object' OR nullif(btrim(p_actor),'') IS NULL OR nullif(btrim(p_notes),'') IS NULL THEN
+        RAISE EXCEPTION 'Initialization requires account balances, actor and notes'; END IF;
+       IF NOT EXISTS(SELECT 1 FROM public."Cash Accounts" WHERE "Ref Cash Holder"=p_holder) THEN RAISE EXCEPTION 'Holder has no cash accounts'; END IF;
+       IF EXISTS(SELECT 1 FROM jsonb_each_text(p_openings) j JOIN public.r008_cash_account_cutover c ON c."Ref Cash Account"=j.key) THEN
+        RAISE EXCEPTION 'Cash account has already been initialized'; END IF;
+       IF EXISTS(SELECT 1 FROM public."Cash Accounts" a WHERE "Ref Cash Holder"=p_holder AND NOT p_openings ? "Row ID"
+        AND NOT EXISTS(SELECT 1 FROM public.r008_cash_account_cutover c WHERE c."Ref Cash Account"=a."Row ID"))
+       OR EXISTS(SELECT 1 FROM jsonb_each_text(p_openings) j LEFT JOIN public."Cash Accounts" a ON a."Row ID"=j.key WHERE a."Ref Cash Holder" IS DISTINCT FROM p_holder) THEN
+        RAISE EXCEPTION 'Opening allocation must include exactly all uninitialized accounts of this holder'; END IF;
+       SELECT "Current Balance" INTO STRICT balance FROM public."Cash Holder Balances" WHERE "Ref Cash Holder"=p_holder;
+       SELECT sum(value::numeric) INTO total FROM jsonb_each_text(p_openings);
+       total:=total+coalesce((SELECT sum("Current Balance") FROM public."Cash Account Balances" WHERE "Ref Cash Holder"=p_holder AND "Initialized"),0);
+       IF total IS DISTINCT FROM balance THEN RAISE EXCEPTION 'Account openings must sum exactly to the current holder balance'; END IF;
+       stamp:=clock_timestamp(); previous_setting:=current_setting('r008.initializing',true);
+       PERFORM set_config('r008.initializing','on',true);
+       INSERT INTO public.r008_cash_account_cutover("Ref Cash Account","Cutover At","Opening Balance","Baseline Cash In","Baseline Cash Out","Created By","Notes")
+       SELECT j.key,stamp,j.value::numeric,
+        coalesce((SELECT sum("Amount") FROM public."Cash Ledger" WHERE "Ref To Cash Account"=j.key),0),
+        coalesce((SELECT sum("Amount") FROM public."Cash Ledger" WHERE "Ref From Cash Account"=j.key),0),p_actor,p_notes
+       FROM jsonb_each_text(p_openings) j;
+       PERFORM set_config('r008.initializing',coalesce(previous_setting,''),true);
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

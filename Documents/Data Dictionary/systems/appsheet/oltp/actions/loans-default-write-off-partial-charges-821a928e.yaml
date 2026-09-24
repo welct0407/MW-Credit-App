@@ -1,0 +1,31 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Loans.Default - Write Off Partial Charges"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Default - Write Off Partial Charges"
+    "Bulk action?": "Yes"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "1"
+    "With these properties": "{\"ReferencedTable\":\"Charges\",\"ReferencedRows\":\"=SELECT(Charges[Row ID], AND([Ref Loans]\
+      \ = [_THISROW].[Row ID], [Amount Remaining] > 0, OR([Total Paid] > 0, IN([Row ID], Payment Allocations[Ref Charge]))))\"\
+      ,\"ReferencedAction\":\"Default - Write Off Remaining Charge\",\"InputAssignments\":[],\"InputParametersUsed\":null,\"\
+      Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\"\
+      :true}"
+    "Do this": "REF_ACTION"
+    "Only if this condition is true": "=FALSE"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Loans"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

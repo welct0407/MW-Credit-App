@@ -1,0 +1,31 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "action"
+  "name": "Payment Allocations.View Ref (Ref Charge)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "View Ref (Ref Charge)"
+    "Bulk action?": "No"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Display_Inline"
+    "Action order": "1"
+    "With these properties": "{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Charges&row=\\\", ENCODEURL([Ref Charge])\
+      \ )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"\
+      BulkApplicable\":false}"
+    "Do this": "NAVIGATE_APP"
+    "Attach to column": "Ref Charge"
+    "Set this column": "Ref Charge"
+    "Only if this condition is true": "NOT(ISBLANK([Ref Charge]))"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Payment Allocations"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

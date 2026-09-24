@@ -1,0 +1,30 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Charges.Close Related Loan - Fixed Due Date"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Close Related Loan - Fixed Due Date"
+    "Bulk action?": "Yes"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "6"
+    "With these properties": "{\"ReferencedTable\":\"Loans\",\"ReferencedRows\":\"=LIST([Ref Loans])\",\"ReferencedAction\"\
+      :\"Set Loan Closed\",\"InputAssignments\":[],\"InputParametersUsed\":null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\"\
+      :false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\":true}"
+    "Do this": "REF_ACTION"
+    "Only if this condition is true": "=AND(IN([Ref Loans].[Loan Type], LIST(\"กำหนดวันชำระ\", \"ผ่อนชำระรายวัน\")), [Principal\
+      \ Due] > 0)"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Charges"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

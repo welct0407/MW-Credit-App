@@ -1,0 +1,77 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "settings"
+  "name": "Editor settings/Integrations"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls":
+    - "label": "App Id"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "93844270-6aa5-420b-a960-bcdf08abd357"
+    - "label": "Enable"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Allow Firebase"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Allow maps and geocoding"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Allow barcode/QRcode scanning"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Barcode/QRcode scanning service"
+      "selected":
+      - "System Default"
+      "tag": "SELECT"
+      "type": "select-one"
+      "value": "System Default: Google MLKit"
+    "snapshot": |2-
+        - paragraph: Integrations
+        - 'heading "IN: from cloud services to your app" [level=3]'
+        - heading "Allow cloud-based services like Looker Studio and Zapier to communicate with your app." [level=4]
+        - generic: Allow cloud-based services like Looker Studio and Zapier to communicate with your app
+        - heading "App Id" [level=6]
+        - generic "description"
+        - textbox [disabled]: 93844270-6aa5-420b-a960-bcdf08abd357
+        - heading "Enable" [level=6]
+        - generic "description"
+        - checkbox [checked]
+        - heading "Application Access Keys" [level=3]
+        - paragraph: Provide these keys to third party services accessing your app
+        - list
+        - button "Create Application Access Key":
+          - generic: Create Application Access Key
+        - heading "External Services" [level=3]
+        - heading "Control various external services and their integration with your apps." [level=4]
+        - generic: Control various services and their integration with your apps.
+        - heading "Allow Firebase" [level=6]
+        - text: Controls whether Firebase is allowed to be initialized for the application. Disabling can change the app's relaunch requirements. Note this setting also controls PushNotifications, Crashlytics, and Firebase Dynamic Links.
+        - checkbox [checked]
+        - heading "Allow maps and geocoding" [level=6]
+        - text: Controls whether maps and geocoding are allowed in the application
+        - checkbox [checked]
+        - heading "Allow barcode/QRcode scanning" [level=6]
+        - text: Controls whether barcode/QRcode scanning can be used in the application
+        - checkbox [checked]
+        - heading "Barcode/QRcode scanning service" [level=6]
+        - text: You can create your own scanning service via the MyAccount page
+        - combobox "Select an option":
+          - option "System Default" [selected]

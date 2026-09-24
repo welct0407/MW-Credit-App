@@ -1,52 +1,160 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "appsheet-pg-prod-20260914"
+  "component": "loan_manager_prod"
   "kind": "relation"
   "name": "public.reporting_income_events"
-  "scope": "development-and-production"
+  "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r016-20260922/statement-cleanup/README.md"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/reporting/reporting_income_events.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "appsheet-pg-prod-20260914"
+      "kind": "relation"
+      "name": "public.reporting_income_events"
+      "scope": "development-and-production"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_income_events"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT 'repayment:'::text || olap_repayments_analytics."Row ID" AS "Event ID",
+          olap_repayments_analytics."Payment Date" AS "Date",
+          olap_repayments_analytics."Interest Paid"::numeric AS "Income",
+          0::numeric AS "Expenses"
+         FROM olap_repayments_analytics
+        WHERE olap_repayments_analytics."Payment Date" <= olap_reporting_date()
+      UNION ALL
+       SELECT 'expense:'::text || "Business Expenses"."Row ID" AS "Event ID",
+          "Business Expenses"."Expense Date" AS "Date",
+          0::numeric AS "Income",
+          "Business Expenses"."Amount"::numeric AS "Expenses"
+         FROM "Business Expenses"
+        WHERE "Business Expenses"."Expense Date" <= olap_reporting_date();
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Event ID":
-      "data_type": "text"
-      "udt_name": "text"
-      "nullable": true
+      "schema": "public"
+      "relation": "reporting_income_events"
+      "name": "Event ID"
       "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Date":
-      "data_type": "date"
-      "udt_name": "date"
-      "nullable": true
+      "schema": "public"
+      "relation": "reporting_income_events"
+      "name": "Date"
       "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Income":
-      "data_type": "numeric"
-      "udt_name": "numeric"
-      "nullable": true
+      "schema": "public"
+      "relation": "reporting_income_events"
+      "name": "Income"
       "ordinal": 3
-    "Expenses":
       "data_type": "numeric"
-      "udt_name": "numeric"
-      "nullable": true
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Expenses":
+      "schema": "public"
+      "relation": "reporting_income_events"
+      "name": "Expenses"
       "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints": {}
-  "definition": |-
-    CREATE VIEW public.reporting_income_events AS
-    SELECT 'repayment:'||"Row ID" AS "Event ID", "Payment Date" AS "Date",
-     "Interest Paid"::numeric AS "Income",0::numeric AS "Expenses"
-    FROM public.olap_repayments_analytics WHERE "Payment Date"<=public.olap_reporting_date()
-    UNION ALL
-    SELECT 'expense:'||"Row ID","Expense Date",0::numeric,"Amount"::numeric
-    FROM public."Business Expenses" WHERE "Expense Date"<=public.olap_reporting_date();
-  "environments":
-  - "loan_manager_dev"
-  - "loan_manager_prod"
-  "migration": 38
-  "consumer": "Metabase restricted reporting; no AppSheet source changes"
-  "permissions": "SELECT only for metabase_borrower_reader"
-"evidence":
-  "/content/columns":
-    "reference": "outputs/r016-20260922/statement-cleanup/provider-columns.json"
-    "reason": "Verified restricted PROD catalog types and nullability"
-    "state": "value"
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_income_events"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "reporting_income_events"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Expense Date"
+  - "schema": "public"
+    "relation": "reporting_income_events"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_income_events"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "reporting_income_events"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_income_events"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Row ID"

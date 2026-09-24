@@ -1,0 +1,21 @@
+{
+  "checked_utc": "2026-09-24T13:09:44.486040+00:00",
+  "source_object_counts": {
+    "production-oltp": 268,
+    "production-olap": 238,
+    "development-oltp": 268,
+    "development-olap": 238,
+    "postgresql-production": 156,
+    "postgresql-development": 144
+  },
+  "exact_properties_verified": {
+    "production-oltp": 18496,
+    "development-oltp": 18514,
+    "production-olap": 16375,
+    "development-olap": 16394,
+    "postgresql-production": 28507,
+    "postgresql-development": 27692
+  },
+  "failures": [],
+  "scope": "All captured AppDoc and SQL catalog properties; remaining UI/semantic/stability checks are separately tracked."
+}

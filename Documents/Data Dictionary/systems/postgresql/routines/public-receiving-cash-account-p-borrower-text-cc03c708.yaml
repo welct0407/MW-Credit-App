@@ -1,0 +1,45 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.receiving_cash_account(p_borrower text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "receiving_cash_account"
+    "arguments": "p_borrower text"
+    "kind": "f"
+    "arguments_with_defaults": "p_borrower text"
+    "result": "text"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.receiving_cash_account(p_borrower text)
+       RETURNS text
+       LANGUAGE sql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+       SELECT coalesce((SELECT a."Row ID" FROM public."Borrowers" b JOIN public."Cash Accounts" a
+        ON a."Row ID"=b."Ref Preferred Receiving Cash Account" JOIN public."Cash Holders" h
+        ON h."Row ID"=a."Ref Cash Holder" WHERE b."Row ID"=p_borrower AND a."Active" AND h."Active"),
+        public.default_cash_account('ch:dad'));
+      $function$
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

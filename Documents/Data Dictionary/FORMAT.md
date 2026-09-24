@@ -52,13 +52,30 @@ At initial import, the exceptional Excel formula was represented as `{"excel_for
 
 ## Development and historical evidence
 
-Imported differences and supplements remain under `imports/` with their original labels. They are excluded from automatic environment overlays and current-state inference. Later verified DEV deltas belong under `development/`, with a release reference, exact target identity and explicit before/after states. They may use the registered system/object envelope, but do not mix them into a baseline file or claim a tool-computed effective configuration. A future reconciliation can establish canonical production definitions and structured active deltas within its own scope.
+Imported differences and supplements remain under `imports/` with their original labels. They are excluded from automatic environment overlays and current-state inference. Verified DEV deltas belong under `development/`, with exact target identity and explicit before/after states. Use a release reference only when ownership is established; a read-only observation must not invent one. The 24 September audit uses `development:observed` for AppDoc/SQL deltas and `development:editor-observed` for editor supplements. Its dedicated verifiers reconstruct effective observed DEV content; the ordinary dictionary reader does not apply overlays.
+
+## Reconciled content contracts
+
+These supplement the historical contracts above; consult scope and provenance before interpreting an object.
+
+| Object | Current structure |
+| --- | --- |
+| AppSheet table | Exact `binding`, `schema`, and `columns.<name>.rules`; derived navigation `inventory`/`relationship`; optional `editor.fields` for actual source/security/update controls |
+| AppSheet slice/view/action/format-rule | Exact `definition` from AppDoc, including full embedded configuration strings; slice `members` remains ordered; view `editor` adds fields and actual generated source group |
+| AppSheet automation | `editor.panels` retains saved event/process-step configuration; `bot_options` retains exact options. Named `Tasks:` objects hold complete captured task fields. No task execution is implied. |
+| AppSheet editor settings | `editor.controls` and configuration `snapshot`, with selected theme attributes and access roster where relevant; personal identities/access signatures explicitly redacted |
+| PostgreSQL relation | `definition`, named `columns`, `constraints`, `indexes`, `triggers`, `policies`, plus ordered catalog `dependencies` |
+| PostgreSQL routine/schema/sequence/type | `definition` is the exact captured metadata mapping; routine name includes schema and argument signature, with the complete body in `definition.definition` |
+| PostgreSQL settings | `sections` groups database metadata, privileges/roles, extensions, jobs, history and inspected empty categories |
+| Observed DEV difference | Baseline reference/identity plus guarded `changes` using JSON Pointers and explicit `before`/`after` value/absent states; source representation identified separately from canonical presentation |
+
+Editor field arrays preserve observed order and source values, including hidden disclosure controls already present in the DOM. Supporting UI text is evidence, not a substitute for an expression. Snapshot cleanup excludes emulator/preview/test data and navigation; focus/presentation differences can remain and are not automatically classified as behavioral changes. Exact verification is against the independently captured source representation, after documented privacy exclusions.
 
 ## Validation and references
 
 Validation rejects malformed YAML, duplicate keys/identities, unregistered systems/kinds, invalid content containers, invalid slice ordinals, stale navigation indices and a changed frozen workbook. It validates the common envelope and imported structural contracts. It does not parse arbitrary AppSheet expressions or SQL, prove live correctness, or fill missing coverage.
 
-Ref relationships, constraint definitions and source links are retained exactly. Semantic referential validation is deferred with reconciliation: a missing base column might be defined in a supplement, and imported database labels do not establish current physical identities. Existing ambiguity is recorded in `unresolved.yaml`; it must not be silently repaired to make a structural check pass.
+Ref relationships, constraint definitions and source links are retained exactly. Current reconciliation evidence includes static source/column/Ref/slice/view/action/format-target checks. Imported database labels alone still do not establish current physical identities. Existing ambiguity is recorded in `unresolved.yaml`; it must not be silently repaired to make a structural check pass. Static checks do not implement a complete AppSheet or procedural-SQL parser.
 
 The register separates `deferred` reconciliation topics, `resolved` cleanup items, and `informational` future coverage. Validation counts these separately; a deferred topic is not an import failure. Original migration verification establishes complete source coverage independently.
 

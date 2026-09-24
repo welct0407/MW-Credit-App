@@ -1,0 +1,27 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Statistics.Delete"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Delete"
+    "Bulk action?": "Yes"
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "Yes"
+    "Prominence": "Do_Not_Display"
+    "Action order": "21"
+    "With these properties": "{\"InputParametersUsed\":null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":true,\"\
+      ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\":true}"
+    "Do this": "DELETE_RECORD"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Statistics"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ADVANCED"

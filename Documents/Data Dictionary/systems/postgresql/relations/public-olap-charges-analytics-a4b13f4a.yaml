@@ -1,0 +1,692 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.olap_charges_analytics"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "olap_charges_analytics"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       SELECT old_view."Row ID",
+          old_view."Ref Loans",
+          old_view."Charge Date",
+          old_view."Interest Due",
+          old_view."Principal Due",
+          old_view."Notes",
+          old_view."Principal Paid",
+          old_view."Interest Paid",
+          old_view."Total Paid",
+          old_view."Principal Remaining",
+          old_view."Interest Remaining",
+          old_view."Amount Remaining",
+          old_view."Payment Count",
+          old_view."Payment Status",
+          old_view."Payment Date",
+          old_view."Amount Due",
+          old_view."Last Payment Date",
+          old_view."First Payment Date",
+          old_view."Days Late",
+          old_view."Historical On Time",
+          old_view."Historical Late",
+          old_view."Ref Collection Borrower",
+          b."Payment Request Cash Account",
+          b."Payment Request Token"
+         FROM ( WITH ctx AS (
+                       SELECT q.d,
+                          date_trunc('month'::text, q.d::timestamp with time zone)::date AS ms,
+                          (date_trunc('month'::text, q.d::timestamp with time zone) + '1 mon -1 days'::interval)::date AS me
+                         FROM ( SELECT olap_reporting_date() AS d) q
+                      ), rp AS (
+                       SELECT "Repayments"."Ref Charges" AS id,
+                          min("Repayments"."Payment Date") AS first_date,
+                          max("Repayments"."Payment Date") AS last_date,
+                          bool_or("Repayments"."Payment Date" = ctx.d) AS today
+                         FROM "Repayments"
+                           CROSS JOIN ctx
+                        GROUP BY "Repayments"."Ref Charges"
+                      ), a AS (
+                       SELECT c."Row ID",
+                          c."Ref Loans",
+                          c."Charge Date",
+                          c."Interest Due",
+                          c."Principal Due",
+                          c."Notes",
+                          c."Principal Paid",
+                          c."Interest Paid",
+                          c."Total Paid",
+                          c."Principal Remaining",
+                          c."Interest Remaining",
+                          c."Amount Remaining",
+                          c."Payment Count",
+                          c."Payment Status",
+                          c."Payment Date",
+                          COALESCE(c."Principal Due"::numeric, 0::numeric) + COALESCE(c."Interest Due"::numeric, 0::numeric) AS "Amount Due",
+                          rp.first_date AS "First Payment Date",
+                          rp.last_date AS "Last Payment Date",
+                              CASE
+                                  WHEN c."Payment Status" = 'ชำระแล้ว'::text AND c."Payment Date" IS NOT NULL THEN GREATEST(0, c."Payment Date" - c."Charge Date")
+                                  WHEN c."Charge Date" < ctx.d THEN ctx.d - c."Charge Date"
+                                  ELSE 0
+                              END AS "Days Late",
+                              CASE
+                                  WHEN c."Payment Status" IS DISTINCT FROM 'ชำระแล้ว'::text AND c."Charge Date" <= ctx.d OR c."Payment Status" = 'ชำระแล้ว'::text AND c."Payment Date" = ctx.d OR rp.today THEN l."Ref Borrowers"
+                                  ELSE NULL::text
+                              END AS "Ref Collection Borrower"
+                         FROM "Charges" c
+                           CROSS JOIN ctx
+                           LEFT JOIN rp ON rp.id = c."Row ID"
+                           LEFT JOIN "Loans" l ON l."Row ID" = c."Ref Loans"
+                      ), final AS (
+                       SELECT a."Row ID",
+                          a."Ref Loans",
+                          a."Charge Date",
+                          a."Interest Due",
+                          a."Principal Due",
+                          a."Notes",
+                          a."Principal Paid",
+                          a."Interest Paid",
+                          a."Total Paid",
+                          a."Principal Remaining",
+                          a."Interest Remaining",
+                          a."Amount Remaining",
+                          a."Payment Count",
+                          a."Payment Status",
+                          a."Payment Date",
+                          a."Amount Due",
+                          a."First Payment Date",
+                          a."Last Payment Date",
+                          a."Days Late",
+                          a."Ref Collection Borrower",
+                          COALESCE(a."Charge Date" < ctx.d AND a."Payment Status" = 'ชำระแล้ว'::text AND a."Days Late" = 0, false) AS "Historical On Time",
+                          COALESCE(a."Charge Date" < ctx.d AND a."Days Late" > 0, false) AS "Historical Late"
+                         FROM a
+                           CROSS JOIN ctx
+                      )
+               SELECT x."Row ID",
+                  x."Ref Loans",
+                  x."Charge Date",
+                  x."Interest Due",
+                  x."Principal Due",
+                  x."Notes",
+                  x."Principal Paid",
+                  x."Interest Paid",
+                  x."Total Paid",
+                  x."Principal Remaining",
+                  x."Interest Remaining",
+                  x."Amount Remaining",
+                  x."Payment Count",
+                  x."Payment Status",
+                  x."Payment Date",
+                  round(x."Amount Due", 0) AS "Amount Due",
+                  x."Last Payment Date",
+                  x."First Payment Date",
+                  x."Days Late",
+                  x."Historical On Time",
+                  x."Historical Late",
+                  x."Ref Collection Borrower"
+                 FROM final x) old_view
+           JOIN "Charges" b ON b."Row ID" = old_view."Row ID";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Ref Loans":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Ref Loans"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Charge Date":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Charge Date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Interest Due":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Interest Due"
+      "ordinal": 4
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Principal Due":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Principal Due"
+      "ordinal": 5
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Notes":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Notes"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Principal Paid":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Principal Paid"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Interest Paid":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Interest Paid"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Total Paid":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Total Paid"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Principal Remaining":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Principal Remaining"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Interest Remaining":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Interest Remaining"
+      "ordinal": 11
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Amount Remaining":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Amount Remaining"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Payment Count":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Payment Count"
+      "ordinal": 13
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Payment Status":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Payment Status"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Payment Date":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Payment Date"
+      "ordinal": 15
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Amount Due":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Amount Due"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Last Payment Date":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Last Payment Date"
+      "ordinal": 17
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "First Payment Date":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "First Payment Date"
+      "ordinal": 18
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Days Late":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Days Late"
+      "ordinal": 19
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Historical On Time":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Historical On Time"
+      "ordinal": 20
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Historical Late":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Historical Late"
+      "ordinal": 21
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Ref Collection Borrower":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Ref Collection Borrower"
+      "ordinal": 22
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Payment Request Cash Account":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Payment Request Cash Account"
+      "ordinal": 23
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Payment Request Token":
+      "schema": "public"
+      "relation": "olap_charges_analytics"
+      "name": "Payment Request Token"
+      "ordinal": 24
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Amount Remaining"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Charge Date"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Interest Due"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Interest Remaining"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Notes"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Payment Count"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Payment Request Cash Account"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Payment Request Token"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Payment Status"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Principal Due"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Principal Remaining"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Charges"
+    "referenced_column": "Total Paid"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Loans"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "olap_charges_analytics"
+    "referenced_schema": "public"
+    "referenced_relation": "Repayments"
+    "referenced_column": "Ref Charges"

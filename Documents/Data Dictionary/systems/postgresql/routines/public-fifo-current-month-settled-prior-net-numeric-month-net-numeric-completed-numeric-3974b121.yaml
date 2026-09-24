@@ -1,0 +1,42 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.fifo_current_month_settled(prior_net numeric, month_net numeric, completed numeric)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "fifo_current_month_settled"
+    "arguments": "prior_net numeric, month_net numeric, completed numeric"
+    "kind": "f"
+    "arguments_with_defaults": "prior_net numeric, month_net numeric, completed numeric"
+    "result": "numeric"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.fifo_current_month_settled(prior_net numeric, month_net numeric, completed numeric)
+       RETURNS numeric
+       LANGUAGE sql
+       IMMUTABLE PARALLEL SAFE STRICT
+       SET search_path TO 'pg_catalog'
+      AS $function$
+       SELECT least(greatest(month_net,0), greatest(completed-greatest(prior_net,0),0))
+      $function$
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "i"
+    "strict": true
+    "security_definer": false
+    "leakproof": false
+    "parallel": "s"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog"
+    "acl": null
+    "comment": null
+    "extension": null

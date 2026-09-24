@@ -1,0 +1,264 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Partners"
+  "scope": "development:observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/development-postgresql-observations.json"
+"content":
+  "production_identity":
+    "system": "postgresql"
+    "component": "loan_manager_prod"
+    "kind": "relation"
+    "name": "public.Partners"
+    "scope": "production"
+  "target":
+    "instance": "appsheet-pg-prod-20260914"
+    "host": "34.21.174.215"
+    "port": 5432
+    "database": "loan_manager_dev"
+  "classification": "Observed ACL, column-order and environment-specific internal trigger/constraint identifiers; PROD-only\
+    \ cron metadata retained as explicit absence in DEV."
+  "changes":
+  - "pointer": "/columns/Partner Name/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Partner Role/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Row ID/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/definition/acl"
+    "before":
+      "state": "value"
+      "value": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16725"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_16725"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16725\" AFTER DELETE ON \"Partners\" FROM \"Cash\
+          \ Pool Contributions\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16726"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_16726"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16726\" AFTER UPDATE ON \"Partners\" FROM \"Cash\
+          \ Pool Contributions\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16730"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_16730"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16730\" AFTER DELETE ON \"Partners\" FROM \"Settlements\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_16731"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_16731"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16731\" AFTER UPDATE ON \"Partners\" FROM \"Settlements\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17540"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_17540"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17540\" AFTER DELETE ON \"Partners\" FROM \"Cash\
+          \ Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_cascade_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_cascade_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17541"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_17541"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17541\" AFTER UPDATE ON \"Partners\" FROM \"Cash\
+          \ Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18215"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_18215"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18215\" AFTER DELETE ON \"Partners\" FROM \"Cash\
+          \ Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_cascade_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_cascade_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18216"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_18216"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18216\" AFTER UPDATE ON \"Partners\" FROM \"Cash\
+          \ Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18295"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_18295"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18295\" AFTER DELETE ON \"Partners\" FROM \"Cash\
+          \ Pool Contributions\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18296"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_18296"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18296\" AFTER UPDATE ON \"Partners\" FROM \"Cash\
+          \ Pool Contributions\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18300"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_18300"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18300\" AFTER DELETE ON \"Partners\" FROM \"Settlements\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18301"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Partners"
+        "name": "RI_ConstraintTrigger_a_18301"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18301\" AFTER UPDATE ON \"Partners\" FROM \"Settlements\"\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  "comparison_representation": "captured source object (before presentation into canonical YAML)"

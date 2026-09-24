@@ -1,0 +1,38 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "cron.alter_job(job_id bigint, schedule text, command text, database text, username text, active boolean)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "cron"
+    "name": "alter_job"
+    "arguments": "job_id bigint, schedule text, command text, database text, username text, active boolean"
+    "kind": "f"
+    "arguments_with_defaults": "job_id bigint, schedule text DEFAULT NULL::text, command text DEFAULT NULL::text, database\
+      \ text DEFAULT NULL::text, username text DEFAULT NULL::text, active boolean DEFAULT NULL::boolean"
+    "result": "void"
+    "definition": |
+      CREATE OR REPLACE FUNCTION cron.alter_job(job_id bigint, schedule text DEFAULT NULL::text, command text DEFAULT NULL::text, database text DEFAULT NULL::text, username text DEFAULT NULL::text, active boolean DEFAULT NULL::boolean)
+       RETURNS void
+       LANGUAGE c
+      AS '$libdir/pg_cron', $function$cron_alter_job$function$
+    "owner": "postgres"
+    "language": "c"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 1.0
+    "rows": 0.0
+    "settings": null
+    "acl": "{postgres=X/postgres}"
+    "comment": "Alter the job identified by job_id. Any option left as NULL will not be modified."
+    "extension": "pg_cron"

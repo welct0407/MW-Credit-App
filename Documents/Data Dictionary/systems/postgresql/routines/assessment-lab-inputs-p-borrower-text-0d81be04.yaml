@@ -1,0 +1,47 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "assessment_lab.inputs(p_borrower text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "assessment_lab"
+    "name": "inputs"
+    "arguments": "p_borrower text"
+    "kind": "f"
+    "arguments_with_defaults": "p_borrower text"
+    "result": "jsonb"
+    "definition": "CREATE OR REPLACE FUNCTION assessment_lab.inputs(p_borrower text)\n RETURNS jsonb\n LANGUAGE sql\n STABLE\n\
+      AS $function$\r\nWITH repayments_loan AS (SELECT \"Ref Loans\" id,sum(\"Principal Paid\"::numeric) pp,sum(\"Interest\
+      \ Paid\"::numeric) ip FROM public.\"Repayments\" GROUP BY 1),\r\nrepayments_charge AS (SELECT \"Ref Charges\" id,sum(\"\
+      Principal Paid\"::numeric) pp,sum(\"Interest Paid\"::numeric) ip FROM public.\"Repayments\" GROUP BY 1),\r\nloans AS\
+      \ MATERIALIZED(SELECT l.*,coalesce(r.pp,0) pp,coalesce(r.ip,0) ip FROM public.\"Loans\" l LEFT JOIN repayments_loan\
+      \ r ON r.id=l.\"Row ID\" WHERE \"Ref Borrowers\"=p_borrower AND \"Loan Status\"='ยังไม่ปิดยอด')\r\nSELECT jsonb_build_object('loans',coalesce((SELECT\
+      \ jsonb_agg(jsonb_build_object('id',\"Row ID\",'kind',\"Loan Type\",'auto',coalesce(\"Auto Charge Enabled\",false),'start_date',\"\
+      Loan Date\",'due_date',\"Due Date\",'principal',\"Principal Amount\"::numeric,'outstanding',\"Principal Amount\"::numeric-pp,'received_interest',ip,'daily_interest',coalesce(\"\
+      Current Daily Interest\"::numeric,0),'fixed_interest',coalesce(\"Fixed Interest\"::numeric,0),'daily_payment',coalesce(\"\
+      Daily Payment Amount\"::numeric,0),'last_charge',(SELECT max(\"Charge Date\") FROM public.\"Charges\" c WHERE c.\"Ref\
+      \ Loans\"=loans.\"Row ID\"))) FROM loans),'[]'::jsonb),\r\n'charges',coalesce((SELECT jsonb_agg(jsonb_build_object('loan_id',c.\"\
+      Ref Loans\",'charge_date',c.\"Charge Date\",'principal_due',coalesce(c.\"Principal Due\"::numeric,0),'principal_remaining',coalesce(c.\"\
+      Principal Due\"::numeric,0)-coalesce(r.pp,0),'amount_remaining',coalesce(c.\"Principal Due\"::numeric,0)+coalesce(c.\"\
+      Interest Due\"::numeric,0)-coalesce(r.pp,0)-coalesce(r.ip,0))) FROM public.\"Charges\" c JOIN loans l ON l.\"Row ID\"\
+      =c.\"Ref Loans\" LEFT JOIN repayments_charge r ON r.id=c.\"Row ID\"),'[]'::jsonb))\r\n$function$\n"
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings": null
+    "acl": null
+    "comment": null
+    "extension": null

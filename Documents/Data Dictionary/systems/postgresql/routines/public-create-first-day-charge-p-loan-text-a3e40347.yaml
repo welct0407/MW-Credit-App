@@ -1,0 +1,61 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.create_first_day_charge(p_loan text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "create_first_day_charge"
+    "arguments": "p_loan text"
+    "kind": "f"
+    "arguments_with_defaults": "p_loan text"
+    "result": "void"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.create_first_day_charge(p_loan text)
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE l public."Loans"%ROWTYPE; principal numeric:=0; interest numeric; days integer;
+      BEGIN
+        SELECT * INTO STRICT l FROM public."Loans" WHERE "Row ID"=p_loan;
+        IF NOT coalesce(l."Auto Charge Enabled",false) OR NOT coalesce((
+          (l."Loan Type"='ดอกเบี้ยรายวัน' AND l."Current Daily Interest"::numeric>0) OR
+          (l."Loan Type"='ผ่อนชำระรายวัน' AND l."Daily Payment Amount"::numeric>0)),false) THEN RETURN; END IF;
+        PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=l."Ref Borrowers" FOR UPDATE;
+        IF EXISTS(SELECT 1 FROM public."Charges" WHERE "Ref Loans"=p_loan AND "Charge Date"=l."Loan Date") THEN RETURN; END IF;
+        IF l."Loan Date" IS NULL THEN RAISE EXCEPTION 'First-day charge requires Loan Date'; END IF;
+        IF l."Loan Type"='ผ่อนชำระรายวัน' THEN
+          days:=l."Due Date"-l."Loan Date"+1;
+          IF days IS NULL OR days<=0 OR l."Principal Amount" IS NULL OR l."Principal Amount"::numeric<0 THEN
+            RAISE EXCEPTION 'Invalid installment principal or inclusive loan term';
+          END IF;
+          principal:=floor(l."Principal Amount"::numeric/days)+CASE WHEN mod(l."Principal Amount"::numeric,days)>0 THEN 1 ELSE 0 END;
+          interest:=l."Daily Payment Amount"::numeric-principal+coalesce(l."Transfer Fee"::numeric,0);
+        ELSE interest:=l."Current Daily Interest"::numeric+coalesce(l."Transfer Fee"::numeric,0);
+        END IF;
+        IF interest IS NULL OR interest<0 THEN RAISE EXCEPTION 'Invalid first-day interest component'; END IF;
+        INSERT INTO public."Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
+          VALUES('fd6:'||p_loan,p_loan,l."Loan Date",principal::money,interest::money);
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

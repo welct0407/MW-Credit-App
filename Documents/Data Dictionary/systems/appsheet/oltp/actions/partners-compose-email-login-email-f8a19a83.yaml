@@ -1,0 +1,30 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Partners.Compose Email (Login Email)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Compose Email (Login Email)"
+    "Bulk action?": "No"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Display_Inline"
+    "Action order": "1"
+    "With these properties": "{\"EmailTo\":\"[Login Email]\",\"Subject\":null,\"Body\":null,\"Prominence\":\"Display_Inline\"\
+      ,\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\":false}"
+    "Do this": "EMAIL"
+    "Attach to column": "Login Email"
+    "Set this column": "Login Email"
+    "Only if this condition is true": "NOT(ISBLANK([Login Email]))"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Partners"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

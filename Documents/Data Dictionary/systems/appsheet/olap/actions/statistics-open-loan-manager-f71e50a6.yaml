@@ -1,0 +1,30 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "action"
+  "name": "Statistics.Open Loan Manager"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Open Loan Manager"
+    "Bulk action?": "No"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Display_Prominently"
+    "Action order": "1"
+    "With these properties": "{\"NavigateTarget\":\"=LINKTOAPP(\\\"LoanManager-975338008-26-08-07\\\")\",\"Prominence\":\"\
+      Display_Prominently\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\"\
+      :false}"
+    "Do this": "NAVIGATE_DIFFERENT_APP"
+    "Only if this condition is true": "=CONTEXT(\"View\") = \"Operations App Shortcut\""
+    "Disable automatic updates?": "No"
+    "Display name": "\"เปิด Loan Manager / Open Operations App\""
+    "Action icon": ""
+    "For a record of this table": "Statistics"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

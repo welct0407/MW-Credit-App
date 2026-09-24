@@ -1,0 +1,53 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "settings"
+  "name": "Editor security/Require sign-in"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls":
+    - "label": "Require user sign-in?"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Authentication provider"
+      "selected":
+      - "Google"
+      "tag": "SELECT"
+      "type": "select-one"
+      "value": "google"
+    - "label": "Allow all signed-in users"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    "snapshot": |2-
+        - paragraph: Require sign-in
+        - link "Control who can access the appmenu_book":
+          - /url: https://support.google.com/appsheet?p=require-sign-in
+        - heading "Require user sign-in?" [level=6]
+        - text: Require app users to sign-in? (needs a secure subscription plan when deployed). This should be chosen for all apps used within a company or organization.
+        - checkbox [checked]
+        - heading "Authentication provider" [level=6]
+        - text: Provider for user sign-in and file storage
+        - combobox "Select an option":
+          - option "Any provider"
+          - option "Google" [selected]
+          - option "Microsoft"
+          - option "Apple"
+          - option "Dropbox"
+          - option "Smartsheet"
+          - option "Box"
+          - option "Salesforce"
+        - heading "Allow all signed-in users" [level=6]
+        - text: If this option is enabled, there is no need for a user list. Enable this option when you do not need to restrict access to a specific list of users, but you still want to access user-specific information like their email, or use personalization features like security filters or private tables
+        - checkbox
+        - button "Manage users":
+          - text: Manage users

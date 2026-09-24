@@ -1,249 +1,694 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
-  "name": "Daily Analytics"
-  "scope": "as-recorded"
+  "name": "public.Daily Analytics"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/daily-analytics.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Daily Analytics"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "Daily Analytics"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Row ID":
-      "Table / view": "Daily Analytics"
-      "Column": "Row ID"
-      "Position": 1
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Snapshot Date":
-      "Table / view": "Daily Analytics"
-      "Column": "Snapshot Date"
-      "Position": 2
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Snapshot Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Generated At":
-      "Table / view": "Daily Analytics"
-      "Column": "Generated At"
-      "Position": 3
-      "PostgreSQL type": "timestamp without time zone"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Generated At"
+      "ordinal": 3
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Model Version":
-      "Table / view": "Daily Analytics"
-      "Column": "Model Version"
-      "Position": 4
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Model Version"
+      "ordinal": 4
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Principal Issued":
-      "Table / view": "Daily Analytics"
-      "Column": "Principal Issued"
-      "Position": 5
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Principal Issued"
+      "ordinal": 5
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Loans Issued":
-      "Table / view": "Daily Analytics"
-      "Column": "Loans Issued"
-      "Position": 6
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Loans Issued"
+      "ordinal": 6
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Principal Returned":
-      "Table / view": "Daily Analytics"
-      "Column": "Principal Returned"
-      "Position": 7
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Principal Returned"
+      "ordinal": 7
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Interest Received":
-      "Table / view": "Daily Analytics"
-      "Column": "Interest Received"
-      "Position": 8
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Interest Received"
+      "ordinal": 8
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Repayments Count":
-      "Table / view": "Daily Analytics"
-      "Column": "Repayments Count"
-      "Position": 9
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Repayments Count"
+      "ordinal": 9
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Outstanding Principal EOD":
-      "Table / view": "Daily Analytics"
-      "Column": "Outstanding Principal EOD"
-      "Position": 10
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Outstanding Principal EOD"
+      "ordinal": 10
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Active Loans EOD":
-      "Table / view": "Daily Analytics"
-      "Column": "Active Loans EOD"
-      "Position": 11
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Active Loans EOD"
+      "ordinal": 11
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Active Borrowers EOD":
-      "Table / view": "Daily Analytics"
-      "Column": "Active Borrowers EOD"
-      "Position": 12
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Active Borrowers EOD"
+      "ordinal": 12
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Pending Charges EOD":
-      "Table / view": "Daily Analytics"
-      "Column": "Pending Charges EOD"
-      "Position": 13
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Pending Charges EOD"
+      "ordinal": 13
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": "Model 3: sum per-charge max(principal due + interest due - dated posted principal/interest payments,0),\
+        \ for charges due through snapshot date. Includes partially paid charges; historical corrections restate snapshots."
     "Total Cash Pool EOD":
-      "Table / view": "Daily Analytics"
-      "Column": "Total Cash Pool EOD"
-      "Position": 14
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Total Cash Pool EOD"
+      "ordinal": 14
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Available Cash EOD":
-      "Table / view": "Daily Analytics"
-      "Column": "Available Cash EOD"
-      "Position": 15
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Available Cash EOD"
+      "ordinal": 15
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "Remaining lending capital = signed contributed capital minus dated outstanding principal. NOT actual account\
+        \ cash."
     "Unsettled Profit EOD":
-      "Table / view": "Daily Analytics"
-      "Column": "Unsettled Profit EOD"
-      "Position": 16
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Unsettled Profit EOD"
+      "ordinal": 16
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Business Expenses":
-      "Table / view": "Daily Analytics"
-      "Column": "Business Expenses"
-      "Position": "17"
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Business Expenses"
+      "ordinal": 17
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Net Profit":
-      "Table / view": "Daily Analytics"
-      "Column": "Net Profit"
-      "Position": "18"
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Net Profit"
+      "ordinal": 18
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Net Unsettled Profit EOD":
-      "Table / view": "Daily Analytics"
-      "Column": "Net Unsettled Profit EOD"
-      "Position": "19"
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Net Unsettled Profit EOD"
+      "ordinal": 19
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Capital Contributed":
-      "Table / view": "Daily Analytics"
-      "Column": "Capital Contributed"
-      "Position": 20
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Capital Contributed"
+      "ordinal": 20
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Capital Withdrawn":
-      "Table / view": "Daily Analytics"
-      "Column": "Capital Withdrawn"
-      "Position": 21
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Capital Withdrawn"
+      "ordinal": 21
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Partner Settlements":
-      "Table / view": "Daily Analytics"
-      "Column": "Partner Settlements"
-      "Position": 22
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Partner Settlements"
+      "ordinal": 22
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "Completed settlements on Transfer Date; excludes Pending and Cancelled. Actual dated payments, not FIFO\
+        \ profit-period allocation."
     "Partner A Net Profit":
-      "Table / view": "Daily Analytics"
-      "Column": "Partner A Net Profit"
-      "Position": 23
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Partner A Net Profit"
+      "ordinal": 23
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Partner B Net Profit":
-      "Table / view": "Daily Analytics"
-      "Column": "Partner B Net Profit"
-      "Position": 24
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Partner B Net Profit"
+      "ordinal": 24
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Partner A Settlements":
-      "Table / view": "Daily Analytics"
-      "Column": "Partner A Settlements"
-      "Position": 25
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Partner A Settlements"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Partner B Settlements":
-      "Table / view": "Daily Analytics"
-      "Column": "Partner B Settlements"
-      "Position": 26
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Partner B Settlements"
+      "ordinal": 26
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Money In":
-      "Table / view": "Daily Analytics"
-      "Column": "Cash Money In"
-      "Position": 27
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Cash Money In"
+      "ordinal": 27
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Money Out":
-      "Table / view": "Daily Analytics"
-      "Column": "Cash Money Out"
-      "Position": 28
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Cash Money Out"
+      "ordinal": 28
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Opening Balance":
-      "Table / view": "Daily Analytics"
-      "Column": "Cash Opening Balance"
-      "Position": 29
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Cash Opening Balance"
+      "ordinal": 29
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Balance EOD":
-      "Table / view": "Daily Analytics"
-      "Column": "Cash Balance EOD"
-      "Position": 30
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Cash Balance EOD"
+      "ordinal": 30
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "Signed sum of account closing balances, including negatives. NULL unless all current accounts have a known\
+        \ opening by this date."
     "Cash Available From":
-      "Table / view": "Daily Analytics"
-      "Column": "Cash Available From"
-      "Position": 31
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Cash Available From"
+      "ordinal": 31
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Balance Status":
-      "Table / view": "Daily Analytics"
-      "Column": "Cash Balance Status"
-      "Position": 32
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Cash Balance Status"
+      "ordinal": 32
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
   "constraints":
     "Daily Analytics_Row ID_not_null":
-      "Table": "Daily Analytics"
-      "Constraint": "Daily Analytics_Row ID_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Row ID\""
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Daily Analytics_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Daily Analytics_pkey":
-      "Table": "Daily Analytics"
-      "Constraint": "Daily Analytics_pkey"
-      "Type": "p"
-      "Validated": true
-      "Definition": "PRIMARY KEY (\"Row ID\")"
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Daily Analytics_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Daily Analytics_pkey":
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "Daily Analytics_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Daily Analytics_pkey\" ON public.\"Daily Analytics\" USING btree (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "daily_analytics_snapshot_date_unique":
+      "schema": "public"
+      "relation": "Daily Analytics"
+      "name": "daily_analytics_snapshot_date_unique"
+      "definition": "CREATE UNIQUE INDEX daily_analytics_snapshot_date_unique ON public.\"Daily Analytics\" USING btree (\"\
+        Snapshot Date\")"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers": {}
+  "policies": {}
+  "dependencies": []

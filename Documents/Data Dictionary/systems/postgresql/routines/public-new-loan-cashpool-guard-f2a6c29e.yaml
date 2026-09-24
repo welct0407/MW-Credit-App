@@ -1,0 +1,64 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.new_loan_cashpool_guard()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "new_loan_cashpool_guard"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.new_loan_cashpool_guard()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE pool numeric; outstanding numeric; available numeric;
+      BEGIN
+       -- A pre-existing repeatable snapshot cannot establish current capacity.
+       IF current_setting('transaction_isolation') <> 'read committed' THEN
+        RAISE EXCEPTION 'New loan cashpool check requires READ COMMITTED; sync and retry';
+       END IF;
+       IF NEW."Principal Amount" IS NULL OR NEW."Principal Amount"::numeric<=0 THEN
+        RAISE EXCEPTION 'New loan principal must be greater than zero' USING ERRCODE='23514';
+       END IF;
+       SELECT coalesce(sum(CASE WHEN "Transaction Type"='Contribution'
+        THEN "Amount"::numeric ELSE -"Amount"::numeric END),0) INTO pool
+       FROM public."Cash Pool Contributions";
+       -- Canonical ledger, equivalent to SUM(Loans[Outstanding Principal]); includes
+       -- this transaction's earlier rows even before deferred caches are refreshed.
+       SELECT coalesce(sum(coalesce(l."Principal Amount"::numeric,0)),0)
+        - coalesce((SELECT sum(r."Principal Paid"::numeric) FROM public."Repayments" r
+           JOIN public."Loans" x ON x."Row ID"=r."Ref Loans"),0)
+       INTO outstanding FROM public."Loans" l;
+       available:=pool-outstanding;
+       IF NEW."Principal Amount"::numeric>available THEN
+        RAISE EXCEPTION 'New loan exceeds available cashpool. Principal: %; available: %. Reduce the amount or add contributed capital, then sync and retry.',
+         NEW."Principal Amount"::numeric,available USING ERRCODE='23514';
+       END IF;
+       RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

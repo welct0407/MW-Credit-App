@@ -1,0 +1,35 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "Business Expenses"
+  "scope": "development:observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/development-olap-observations.json"
+"content":
+  "production_identity":
+    "system": "appsheet"
+    "component": "olap"
+    "kind": "table"
+    "name": "Business Expenses"
+    "scope": "production"
+  "target": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+  "classification": "Observed environment source/generated identifiers and locale representation. PROD locale blank versus\
+    \ DEV en-US is not an approved policy change."
+  "changes":
+  - "pointer": "/binding/Data Source"
+    "before":
+      "state": "value"
+      "value": "database-2"
+    "after":
+      "state": "value"
+      "value": "database-3"
+  - "pointer": "/binding/Data locale"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value": "en-US"
+  "comparison_representation": "captured source object (before presentation into canonical YAML)"

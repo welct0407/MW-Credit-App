@@ -1,0 +1,374 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "view"
+  "name": "Statistics_Inline"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "definition":
+    "View name": "Statistics_Inline"
+    "Created by": "System"
+    "View type": "table"
+    "Position": "ref"
+    "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[],\"GroupBy\":[],\"GroupAggregate\"\
+      :\"NONE\",\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row\
+      \ Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-table\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+    "Visible?": "ALWAYS"
+    "Icon": ""
+    "Menu order": "1"
+  "editor":
+    "fields":
+    - "choices": []
+      "controls": []
+      "label": "View type"
+      "text": |-
+        View type
+        What kind of view this is.
+        ballot
+        deck
+        view_list
+        table
+        border_all
+        gallery
+        location_on
+        map
+        insert_chart_outlined
+        chart
+        view_carousel
+        onboarding
+        insert_photo
+        card
+    - "choices": []
+      "controls": []
+      "label": "Sort by"
+      "text": |-
+        Sort by
+        Sort the rows by one or more columns.
+        Add
+    - "choices": []
+      "controls": []
+      "label": "Group by"
+      "text": |-
+        Group by
+        Group rows by the values in one or more of their columns.
+        Add
+    - "choices": []
+      "controls":
+      - "selected":
+        - "NONE"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "NONE"
+      "label": "Group aggregate"
+      "text": |-
+        Group aggregate
+        Display a numeric summary of the rows in each group.
+        NONE
+        COUNT
+        SUM :: Total Profit
+        AVERAGE :: Total Profit
+        MIN :: Total Profit
+        MAX :: Total Profit
+        SUM :: Outstanding Principal
+        AVERAGE :: Outstanding Principal
+        MIN :: Outstanding Principal
+        MAX :: Outstanding Principal
+        SUM :: Active Loans
+        AVERAGE :: Active Loans
+        MIN :: Active Loans
+        MAX :: Active Loans
+        SUM :: Today's Profit
+        AVERAGE :: Today's Profit
+        MIN :: Today's Profit
+        MAX :: Today's Profit
+        SUM :: Yesterday's Profit
+        AVERAGE :: Yesterday's Profit
+        MIN :: Yesterday's Profit
+        MAX :: Yesterday's Profit
+        SUM :: Realized Profit MTD
+        AVERAGE :: Realized Profit MTD
+        MIN :: Realized Profit MTD
+        MAX :: Realized Profit MTD
+        SUM :: Projected Monthly Profit
+        AVERAGE :: Projected Monthly Profit
+        MIN :: Projected Monthly Profit
+        MAX :: Projected Monthly Profit
+        SUM :: Pending Payment Amount
+        AVERAGE :: Pending Payment Amount
+        MIN :: Pending Payment Amount
+        MAX :: Pending Payment Amount
+        SUM :: Forecast Remaining Interest
+        AVERAGE :: Forecast Remaining Interest
+        MIN :: Forecast Remaining Interest
+        MAX :: Forecast Remaining Interest
+        SUM :: Today's Outstanding Interest
+        AVERAGE :: Today's Outstanding Interest
+        MIN :: Today's Outstanding Interest
+        MAX :: Today's Outstanding Interest
+        SUM :: Forecast Monthly Return on ADO
+        AVERAGE :: Forecast Monthly Return on ADO
+        MIN :: Forecast Monthly Return on ADO
+        MAX :: Forecast Monthly Return on ADO
+        SUM :: Peak Cash Pool 30D
+        AVERAGE :: Peak Cash Pool 30D
+        MIN :: Peak Cash Pool 30D
+        MAX :: Peak Cash Pool 30D
+        SUM :: Expected Daily Interest
+        AVERAGE :: Expected Daily Interest
+        MIN :: Expected Daily Interest
+        MAX :: Expected Daily Interest
+        SUM :: Total Profit of Outstanding Loans
+        AVERAGE :: Total Profit of Outstanding Loans
+        MIN :: Total Profit of Outstanding Loans
+        MAX :: Total Profit of Outstanding Loans
+        SUM :: Profit Coverage of Outstanding Principal
+        AVERAGE :: Profit Coverage of Outstanding Principal
+        MIN :: Profit Coverage of Outstanding Principal
+        MAX :: Profit Coverage of Outstanding Principal
+        SUM :: Total Cash Pool
+        AVERAGE :: Total Cash Pool
+        MIN :: Total Cash Pool
+        MAX :: Total Cash Pool
+        SUM :: Total Unsettled Profit
+        AVERAGE :: Total Unsettled Profit
+        MIN :: Total Unsettled Profit
+        MAX :: Total Unsettled Profit
+        SUM :: Expected Loan Account Balance
+        AVERAGE :: Expected Loan Account Balance
+        MIN :: Expected Loan Account Balance
+        MAX :: Expected Loan Account Balance
+        SUM :: Total Outstanding Principal
+        AVERAGE :: Total Outstanding Principal
+        MIN :: Total Outstanding Principal
+        MAX :: Total Outstanding Principal
+        SUM :: Borrowers Fully Paid Today
+        AVERAGE :: Borrowers Fully Paid Today
+        MIN :: Borrowers Fully Paid Today
+        MAX :: Borrowers Fully Paid Today
+        SUM :: Borrowers Partially Paid Today
+        AVERAGE :: Borrowers Partially Paid Today
+        MIN :: Borrowers Partially Paid Today
+        MAX :: Borrowers Partially Paid Today
+        SUM :: Borrowers with Overdue Payment
+        AVERAGE :: Borrowers with Overdue Payment
+        MIN :: Borrowers with Overdue Payment
+        MAX :: Borrowers with Overdue Payment
+        SUM :: Borrowers Not Paid Today
+        AVERAGE :: Borrowers Not Paid Today
+        MIN :: Borrowers Not Paid Today
+        MAX :: Borrowers Not Paid Today
+        SUM :: Amount Due Today
+        AVERAGE :: Amount Due Today
+        MIN :: Amount Due Today
+        MAX :: Amount Due Today
+        SUM :: Amount Collected Today
+        AVERAGE :: Amount Collected Today
+        MIN :: Amount Collected Today
+        MAX :: Amount Collected Today
+        SUM :: Amount Outstanding Today
+        AVERAGE :: Amount Outstanding Today
+        MIN :: Amount Outstanding Today
+        MAX :: Amount Outstanding Today
+        SUM :: Amount Collection Rate Today
+        AVERAGE :: Amount Collection Rate Today
+        MIN :: Amount Collection Rate Today
+        MAX :: Amount Collection Rate Today
+        SUM :: Total Business Expenses
+        AVERAGE :: Total Business Expenses
+        MIN :: Total Business Expenses
+        MAX :: Total Business Expenses
+        SUM :: Net Profit
+        AVERAGE :: Net Profit
+        MIN :: Net Profit
+        MAX :: Net Profit
+        SUM :: Expenses MTD
+        AVERAGE :: Expenses MTD
+        MIN :: Expenses MTD
+        MAX :: Expenses MTD
+        SUM :: Net Profit MTD
+        AVERAGE :: Net Profit MTD
+        MIN :: Net Profit MTD
+        MAX :: Net Profit MTD
+        SUM :: Operating Income MTD
+        AVERAGE :: Operating Income MTD
+        MIN :: Operating Income MTD
+        MAX :: Operating Income MTD
+        SUM :: Income Statement Expenses MTD
+        AVERAGE :: Income Statement Expenses MTD
+        MIN :: Income Statement Expenses MTD
+        MAX :: Income Statement Expenses MTD
+        SUM :: Net Unsettled Profit
+        AVERAGE :: Net Unsettled Profit
+        MIN :: Net Unsettled Profit
+        MAX :: Net Unsettled Profit
+        SUM :: Net Expected Loan Account Balance
+        AVERAGE :: Net Expected Loan Account Balance
+        MIN :: Net Expected Loan Account Balance
+        MAX :: Net Expected Loan Account Balance
+    - "choices":
+      - "checked": "true"
+        "text": "Automatic"
+      - "checked": "false"
+        "text": "Manual"
+      "controls": []
+      "label": "Column order"
+      "text": |-
+        Column order
+        Automatically or manually order columns displayed in view. Learn more
+        Automatic
+        Manual
+        Statistics ID
+        edit
+        Total Profit
+        edit
+        Outstanding Principal
+        edit
+        Active Loans
+        edit
+        Today's Profit
+        edit
+        Yesterday's Profit
+        edit
+        Realized Profit MTD
+        edit
+        Projected Monthly Profit
+        edit
+        Pending Payment Amount
+        edit
+        Forecast Remaining Interest
+        edit
+        Today's Outstanding Interest
+        edit
+        Forecast Monthly Return on ADO
+        edit
+        Peak Cash Pool 30D
+        edit
+        Peak Cash Pool Date 30D
+        edit
+        Expected Daily Interest
+        edit
+        Total Profit of Outstanding Loans
+        edit
+        Profit Coverage of Outstanding Principal
+        edit
+        Header - Outstanding Loans
+        edit
+        Header - Monthly Forecast
+        edit
+        Total Cash Pool
+        edit
+        Total Unsettled Profit
+        edit
+        Expected Loan Account Balance
+        edit
+        Header - Cash Pool
+        edit
+        Total Outstanding Principal
+        edit
+        Borrowers Fully Paid Today
+        edit
+        Borrowers Partially Paid Today
+        edit
+        Borrowers with Overdue Payment
+        edit
+        Borrowers Not Paid Today
+        edit
+        Header - Collection Status
+        edit
+        Amount Due Today
+        edit
+        Amount Collected Today
+        edit
+        Amount Outstanding Today
+        edit
+        Amount Collection Rate Today
+        edit
+        Total Business Expenses
+        edit
+        Net Profit
+        edit
+        Expenses MTD
+        edit
+        Net Profit MTD
+        edit
+        Operating Income MTD
+        edit
+        Income Statement Expenses MTD
+        edit
+        Header - Income Statement MTD
+        edit
+        Net Unsettled Profit
+        edit
+        Net Expected Loan Account Balance
+        edit
+    - "choices":
+      - "checked": "true"
+        "text": "Default"
+      - "checked": "false"
+        "text": "Narrow"
+      - "checked": "false"
+        "text": "Wide"
+      "controls": []
+      "label": "Column width"
+      "text": |-
+        Column width
+        How wide columns should be. Narrower widths let you fit more data on the screen.
+        Default
+        Narrow
+        Wide
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      "label": "Enable QuickEdit (beta)"
+      "text": |-
+        Enable QuickEdit (beta)
+        Allow edits to be made directly in the table view. This is an experimental feature and still under development.
+    - "choices":
+      - "checked": "true"
+        "text": "title"
+      - "checked": "false"
+        "text": "science"
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Display name"
+      "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give it\
+        \ a text value (double-quoted) or a formula​titlescience"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "**auto**"
+      "label": "Event Actions"
+      "text": "Event ActionsActions to take when events occur.Row SelectedAuto assign (View details)​"
+    - "choices": []
+      "controls": []
+      "label": "App link"
+      "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Statistics_Inline\") \
+        \  .... or ... \"https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb#view=Statistics_Inline\""
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
+        \ app"
+    "generated_source_group": "Statistics"

@@ -1,0 +1,1000 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Cash Accounts"
+  "scope": "development:observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/development-postgresql-observations.json"
+"content":
+  "production_identity":
+    "system": "postgresql"
+    "component": "loan_manager_prod"
+    "kind": "relation"
+    "name": "public.Cash Accounts"
+    "scope": "production"
+  "target":
+    "instance": "appsheet-pg-prod-20260914"
+    "host": "34.21.174.215"
+    "port": 5432
+    "database": "loan_manager_dev"
+  "classification": "Observed ACL, column-order and environment-specific internal trigger/constraint identifiers; PROD-only\
+    \ cron metadata retained as explicit absence in DEV."
+  "changes":
+  - "pointer": "/columns/Account Label/acl"
+    "before":
+      "state": "value"
+      "value": "{mw_reviewer_dml=w/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/definition/acl"
+    "before":
+      "state": "value"
+      "value": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17343"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17343"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17343\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17344"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17344"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17344\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17348"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17348"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17348\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17349"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17349"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17349\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17353"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17353"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17353\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Charges\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17354"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17354"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17354\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Charges\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17358"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17358"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17358\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17359"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17359"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17359\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17363"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17363"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17363\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17364"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17364"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17364\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17368"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17368"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17368\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17369"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17369"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17369\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17373"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17373"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17373\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Business Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17374"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17374"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17374\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Business Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17378"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17378"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17378\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Settlements\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17379"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17379"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17379\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Settlements\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17383"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17383"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17383\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17384"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17384"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17384\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17388"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17388"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17388\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17389"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17389"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17389\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17421"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17421"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17421\" AFTER DELETE ON \"Cash Accounts\" FROM r008_cash_account_cutover\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17422"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17422"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17422\" AFTER UPDATE ON \"Cash Accounts\" FROM r008_cash_account_cutover\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17545"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17545"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17545\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Cash Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_setnull_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_setnull_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_17546"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_17546"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17546\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18125"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18125"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18125\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18126"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18126"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18126\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18130"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18130"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18130\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18131"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18131"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18131\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18140"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18140"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18140\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Business Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18141"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18141"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18141\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Business Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18175"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18175"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18175\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18176"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18176"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18176\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18200"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18200"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18200\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18201"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18201"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18201\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18210"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18210"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18210\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Cash Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_setnull_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_setnull_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18211"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18211"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18211\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18220"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18220"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18220\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Charges\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18221"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18221"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18221\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Charges\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18225"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18225"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18225\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18226"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18226"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18226\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18235"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18235"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18235\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18236"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18236"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18236\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18240"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18240"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18240\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18241"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18241"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18241\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18255"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18255"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18255\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Settlements\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18256"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18256"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18256\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Settlements\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18325"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18325"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18325\" AFTER DELETE ON \"Cash Accounts\" FROM r008_cash_account_cutover\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_restrict_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_18326"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_18326"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_18326\" AFTER UPDATE ON \"Cash Accounts\" FROM r008_cash_account_cutover\
+          \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19642"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_19642"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19642\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Cash Account Daily Analytics\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19643"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_19643"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19643\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Account Daily Analytics\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19680"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_19680"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19680\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+          Cash Account Daily Analytics\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_del\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_a_19681"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_a_19681"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19681\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Account Daily Analytics\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+          ()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_noaction_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_17337"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_c_17337"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17337\" AFTER INSERT ON \"Cash Accounts\" FROM \"\
+          Cash Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_17338"
+    "before":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_c_17338"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17338\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+    "after":
+      "state": "absent"
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18167"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_c_18167"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18167\" AFTER INSERT ON \"Cash Accounts\" FROM \"\
+          Cash Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_ins\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  - "pointer": "/triggers/RI_ConstraintTrigger_c_18168"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Cash Accounts"
+        "name": "RI_ConstraintTrigger_c_18168"
+        "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_18168\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+          Cash Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+        "enabled": "O"
+        "internal": true
+        "routine": "\"RI_FKey_check_upd\"()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  "comparison_representation": "captured source object (before presentation into canonical YAML)"

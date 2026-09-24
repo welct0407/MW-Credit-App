@@ -1,0 +1,274 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_cash_accounts"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_cash_accounts"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": "R016: database-owned Income Statement source. Live Bangkok dates; original model grain and financial semantics\
+      \ preserved."
+    "view_definition": |2-
+       SELECT "Ref Cash Account" AS "Cash Account ID",
+          "Ref Cash Holder" AS "Cash Holder ID",
+          "Holder Name" AS "Cash Holder",
+          "Account Label" AS "Account",
+          "Current Balance",
+          "Initialized",
+          "Business Cash Held",
+          "Reimbursement / Advance Due" AS "Advance Due",
+              CASE
+                  WHEN bool_and("Initialized") OVER (PARTITION BY "Ref Cash Holder") THEN "Business Cash Held"
+                  ELSE NULL::numeric
+              END AS "Holder Cash Component",
+              CASE
+                  WHEN "Initialized" THEN 'Known'::text
+                  ELSE 'Opening balance missing'::text
+              END AS "Balance Status"
+         FROM "Cash Account Balances";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Cash Account ID":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Cash Account ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Cash Holder ID":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Cash Holder ID"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Cash Holder":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Cash Holder"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Account":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Account"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Current Balance":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Current Balance"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Initialized":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Initialized"
+      "ordinal": 6
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Business Cash Held":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Business Cash Held"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Advance Due":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Advance Due"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Holder Cash Component":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Holder Cash Component"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Balance Status":
+      "schema": "public"
+      "relation": "reporting_cash_accounts"
+      "name": "Balance Status"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_cash_accounts"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Account Label"
+  - "schema": "public"
+    "relation": "reporting_cash_accounts"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Business Cash Held"
+  - "schema": "public"
+    "relation": "reporting_cash_accounts"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Current Balance"
+  - "schema": "public"
+    "relation": "reporting_cash_accounts"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Holder Name"
+  - "schema": "public"
+    "relation": "reporting_cash_accounts"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Initialized"
+  - "schema": "public"
+    "relation": "reporting_cash_accounts"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Ref Cash Account"
+  - "schema": "public"
+    "relation": "reporting_cash_accounts"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Ref Cash Holder"
+  - "schema": "public"
+    "relation": "reporting_cash_accounts"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Reimbursement / Advance Due"

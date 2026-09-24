@@ -1,0 +1,77 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.lump_sum_receipt_guard()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "lump_sum_receipt_guard"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.lump_sum_receipt_guard()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE prepared boolean;
+      BEGIN
+        IF TG_OP='DELETE' THEN
+          IF OLD."Status"='Posted' OR EXISTS(SELECT 1 FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID")
+            OR EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID") THEN
+            RAISE EXCEPTION 'Posted or prepared payment cannot be deleted; use an auditable adjustment';
+          END IF;
+          RETURN OLD;
+        END IF;
+        PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=NEW."Ref Borrower" FOR UPDATE;
+        IF TG_OP='INSERT' AND NEW."Status" IS DISTINCT FROM 'Processing' THEN
+          RAISE EXCEPTION 'New payments must start in Processing';
+        END IF;
+        IF TG_OP='UPDATE' THEN
+          SELECT EXISTS(SELECT 1 FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID")
+            OR EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID") INTO prepared;
+          IF OLD."Status"='Posted' OR prepared THEN
+            IF ROW(NEW."Row ID",NEW."Ref Borrower",NEW."Amount Received",NEW."Payment Date",NEW."Allocation Method",NEW."Ref Target Charge")
+              IS DISTINCT FROM ROW(OLD."Row ID",OLD."Ref Borrower",OLD."Amount Received",OLD."Payment Date",OLD."Allocation Method",OLD."Ref Target Charge") THEN
+              RAISE EXCEPTION 'Prepared or posted payment financial inputs cannot be changed';
+            END IF;
+          END IF;
+          IF OLD."Status"='Posted' THEN NEW."Status":=OLD."Status"; NEW."Processed At":=OLD."Processed At";
+          ELSIF NEW."Status"='Posted' AND (NOT prepared OR
+            NEW."Amount Received"::numeric IS DISTINCT FROM (SELECT sum("Allocated Amount"::numeric) FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID") OR
+            NEW."Amount Received"::numeric IS DISTINCT FROM (SELECT sum("Principal Paid"::numeric+"Interest Paid"::numeric) FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID") OR
+            EXISTS(SELECT 1 FROM public."Payment Allocations" a FULL JOIN public."Repayments" r ON r."Ref Payment Allocation"=a."Row ID"
+              WHERE (a."Ref Payment"=OLD."Row ID" OR r."Ref Payment"=OLD."Row ID") AND
+                (a."Row ID" IS NULL OR r."Row ID" IS NULL OR a."Ref Payment" IS DISTINCT FROM r."Ref Payment"
+                 OR a."Ref Charge" IS DISTINCT FROM r."Ref Charges" OR a."Allocated Interest" IS DISTINCT FROM r."Interest Paid"
+                 OR a."Allocated Principal" IS DISTINCT FROM r."Principal Paid" OR a."Allocated Amount"::numeric<=0
+                 OR a."Allocated Interest"::numeric<0 OR a."Allocated Principal"::numeric<0
+                 OR a."Allocated Amount"::numeric<>a."Allocated Interest"::numeric+a."Allocated Principal"::numeric))) THEN
+            RAISE EXCEPTION 'Cannot mark an unreconciled payment Posted';
+          END IF;
+        END IF;
+        RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

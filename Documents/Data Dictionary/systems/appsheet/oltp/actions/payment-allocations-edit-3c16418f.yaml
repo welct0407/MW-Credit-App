@@ -1,0 +1,29 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Payment Allocations.Edit"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Edit"
+    "Bulk action?": "No"
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "1"
+    "With these properties": "{\"DesktopBehavior\":\"Open a form\",\"DesktopEditBehavior\":\"Edit in place\",\"Prominence\"\
+      :\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\"\
+      :false}"
+    "Do this": "EDIT_RECORD"
+    "Only if this condition is true": "=FALSE"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Payment Allocations"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

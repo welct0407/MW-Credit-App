@@ -1,0 +1,43 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Charges.Payment - Snapshot Charge"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Payment - Snapshot Charge"
+    "Bulk action?": "Yes"
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "1"
+    "With these properties": "{\"ReferencedTable\":\"Payment Allocations\",\"Assignments\":[{\"ColumnToEdit\":\"Charge Date\
+      \ Snapshot\",\"NewColumnValue\":\"=[Charge Date]\"},{\"ColumnToEdit\":\"Charge Row Number Snapshot\",\"NewColumnValue\"\
+      :\"=[_RowNumber]\"},{\"ColumnToEdit\":\"Interest Remaining Snapshot\",\"NewColumnValue\":\"=[Interest Remaining]\"},{\"\
+      ColumnToEdit\":\"Principal Remaining Snapshot\",\"NewColumnValue\":\"=[Principal Remaining]\"},{\"ColumnToEdit\":\"\
+      Amount Remaining Snapshot\",\"NewColumnValue\":\"=[Amount Remaining]\"},{\"ColumnToEdit\":\"Ref Payment\",\"NewColumnValue\"\
+      :\"=ANY(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Ref Loans].[Ref Borrowers], [Status] = \\\"Processing\\\
+      \")))\"},{\"ColumnToEdit\":\"Ref Charge\",\"NewColumnValue\":\"=[Row ID]\"}],\"InputParametersUsed\":null,\"Prominence\"\
+      :\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\"\
+      :true}"
+    "Do this": "ADD_RECORD_TO"
+    "Only if this condition is true": "=AND(COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Ref Loans].[Ref\
+      \ Borrowers], [Status] = \"Processing\", IFS(IN([Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day\
+      \ Auto\")), [Ref Target Charge] = [_THISROW].[Row ID], [Allocation Method] = \"Loan Close\", [Ref Target Charge].[Ref\
+      \ Loans] = [_THISROW].[Ref Loans], IN([Allocation Method], LIST(\"Receive All\", \"Lump Sum\")), [_THISROW].[Charge\
+      \ Date] <= [Payment Date], TRUE, FALSE)))) = 1, [Amount Remaining] > 0, [Interest Remaining] >= 0, [Principal Remaining]\
+      \ >= 0, [Amount Remaining] = [Interest Remaining] + [Principal Remaining], COUNT(SELECT(Payment Allocations[Row ID],\
+      \ AND([Ref Payment].[Ref Borrower] = [_THISROW].[Ref Loans].[Ref Borrowers], [Ref Payment].[Status] = \"Processing\"\
+      , [Ref Charge] = [_THISROW].[Row ID]))) = 0, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment].[Ref Borrower]\
+      \ = [_THISROW].[Ref Loans].[Ref Borrowers], [Ref Payment].[Status] = \"Processing\", [Allocation Order] > 0))) = 0)"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Charges"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

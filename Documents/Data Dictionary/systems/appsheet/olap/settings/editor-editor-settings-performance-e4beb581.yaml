@@ -1,0 +1,78 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "settings"
+  "name": "Editor settings/Performance"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls":
+    - "label": "Server caching"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Delta sync"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Quick sync"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Sync on start"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Delayed sync"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Automatic updates"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    "snapshot": |2-
+        - paragraph: Performance
+        - alert:
+          - generic: Control when changes in the app are synced with your data in the cloud
+          - button "Learn more":
+            - generic: Learn more
+        - 'heading "Sync: Cloud to Data Source" [level=3]'
+        - heading "Server caching (APPSHEET CORE)" [level=6]
+        - text: Data will be stored on the AppSheet server instead of being fetched from your cloud provider every time. This will make syncing faster for large tables, but will only be used for rarely-updated, read-only data.
+        - checkbox
+        - heading "Delta sync (APPSHEET CORE)" [level=6]
+        - generic "description":
+          - text: Only update tables that have changed since the last sync. This makes syncing faster, but can't be used in certain cases (e.g., spreadsheets with external formulas, or when virtual columns need to be updated at each sync). More info
+          - link "here":
+            - /url: https://support.google.com/appsheet?p=offline-and-sync#sync-cloud-to-datasource
+          - text: .
+        - checkbox
+        - heading "Quick sync (APPSHEET CORE)" [level=6]
+        - generic "description":
+          - text: Instantly see other users' changes as they are saved. You shouldn't use this feature if your app uses external formulas or virtual columns that need to be updated with each data change. Users only see changes made by other users that are using the same version of the app.
+          - link "Learn more":
+            - /url: https://support.google.com/appsheet?p=quick-sync
+          - text: .
+        - checkbox
+        - 'heading "Sync: App to Cloud" [level=3]'
+        - heading "Sync on start" [level=6]
+        - text: Sync data every time the app starts to make sure the user has the latest data.
+        - checkbox [checked]
+        - heading "Delayed sync" [level=6]
+        - text: Only sync when the user presses the sync button, instead of syncing after every change.
+        - checkbox
+        - heading "Automatic updates" [level=6]
+        - text: Automatically send changes the user makes as they occur. Automatically retrieves changes made by other users about every 30 minutes.
+        - checkbox [checked]

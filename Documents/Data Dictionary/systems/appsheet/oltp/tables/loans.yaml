@@ -4,22 +4,59 @@
   "component": "oltp"
   "kind": "table"
   "name": "Loans"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/oltp/tables/loans.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "oltp"
+      "kind": "table"
+      "name": "Loans"
+      "scope": "recorded-production"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
 "content":
   "source_app": "OLTP"
   "source_table": "Loans"
   "binding":
-    "App": "OLTP"
-    "Version": "v3.000121"
-    "Table": "Loans"
-    "Source": "database-2"
-    "Source path": "Loans"
+    "Table name": "Loans"
+    "Visible?": "ALWAYS"
+    "Shared?": "Yes"
     "Schema": "Loans_Schema"
-    "Update permission": "ALL_CHANGES"
-    "Scope": "Business source"
+    "Are updates allowed?": "ALL_CHANGES"
+    "Source Path": "Loans"
+    "Data Source": "database-2"
+    "Store for image and file capture": "_Default"
+    "Column Order List":
+    - "_RowNumber"
+    - "Row ID"
+    - "Loan Date"
+    - "Close Date"
+    - "Principal Amount"
+    - "Due Date"
+    - "Ref Borrowers"
+    - "Loan Arrangement"
+    - "Loan Status"
+    - "Borrower Name"
+    - "Loan Type"
+    - "Current Daily Interest"
+    - "Fixed Interest"
+    - "Transfer Fee"
+    - "Interest Payment Interval"
+    - "Created By"
+    - "Closed By"
+    - "Defaulted"
+    - "Default Loss Amount"
+    - "Daily Payment Amount"
+    "Partitioned across many files/sources?": "No"
+    "Partitioned across many worksheets?": "No"
+  "schema":
+    "Schema Name": "Loans_Schema"
+    "Visible?": "ALWAYS"
   "columns":
     "_RowNumber":
       "inventory":
@@ -33,16 +70,24 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "_RowNumber"
         "Visible?": "ALWAYS"
         "Description": "Number of this row"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "Yes"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "Yes"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -59,17 +104,25 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "Row ID"
         "Visible?": "ALWAYS"
         "Description": "ID of this row"
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "UNIQUEID(\"PackedUUID\")"
         "System Defined?": "No"
+        "Key": "Yes"
         "Part of Key?": "Yes"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -86,16 +139,24 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Loan Date"
         "Visible?": "ALWAYS"
         "Display name": "=\"วันที่ให้กู้ / Loan Date\""
-        "Type Qualifier.UseLongDateFormat": "false"
+        "Type": "Date"
+        "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
+          Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "TODAY()"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -113,15 +174,23 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Close Date"
         "Visible?": "ALWAYS"
         "Display name": "=\"วันที่ปิดเงินกู้ / Loan End Date\""
-        "Type Qualifier.UseLongDateFormat": "false"
+        "Type": "Date"
+        "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
+          Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -139,24 +208,35 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Principal Amount"
         "Visible?": "ALWAYS"
-        "Display name": "=\"เงินต้น / Principal Amount\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": |-
-          =AND(
-           [_THIS] > 0,
-           OR([Loan Type] <> "ผ่อนชำระรายวัน", MOD([_THIS], 1) = 0)
-          )
-        "Type Qualifier.Error_Message_If_Invalid": "=จำนวนเงินต้นต้องมากกว่า 0"
+        "Description": "=\"\""
+        "Display name": "=CONCATENATE(\"เงินต้น / Principal Amount\", IF(AND(CONTEXT(\"ViewType\") = \"Form\", NOT(IN([Row\
+          \ ID], Loans[Row ID])), COUNT(Loan Form Context[Row ID]) = 1), CONCATENATE(\" (฿\", ANY(Loan Form Context[Available\
+          \ Cashpool]), \")\"), \"\"))"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND([_THIS]\
+          \ > 0, OR([Loan Type] <> \\\"ผ่อนชำระรายวัน\\\", MOD([_THIS], 1) = 0), OR(IN([Row ID], Loans[Row ID]), AND(COUNT(Loan\
+          \ Form Context[Row ID]) = 1, [_THIS] <= ANY(Loan Form Context[Available Cashpool]))))\",\"Error_Message_If_Invalid\"\
+          :\"=IFS([_THIS] <= 0, \\\"เงินต้นต้องมากกว่า 0 / Principal must be greater than zero\\\", AND([Loan Type] = \\\"\
+          ผ่อนชำระรายวัน\\\", MOD([_THIS], 1) <> 0), \\\"เงินต้นผ่อนรายวันต้องเป็นจำนวนเต็มบาท / Daily installment principal\
+          \ must be whole baht\\\", COUNT(Loan Form Context[Row ID]) <> 1, \\\"กรุณาซิงค์เพื่อโหลดวงเงิน / Sync to load available\
+          \ cashpool\\\", TRUE, CONCATENATE(\\\"เงินต้นเกินเงินทุนคงเหลือ / Principal exceeds available cashpool: ฿\\\", ANY(Loan\
+          \ Form Context[Available Cashpool]), \\\". ลดเงินต้นหรือซิงค์หลังเพิ่มทุน / Reduce principal or sync after adding\
+          \ capital.\\\"))\",\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -174,26 +254,26 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Due Date"
         "Visible?": "ALWAYS"
         "Display name": "=\"วันครบกำหนด / Due Date\""
-        "Type Qualifier.UseLongDateFormat": "false"
-        "Type Qualifier.Valid_If": |-
-          =IFS(
-           [Loan Type] = "กำหนดวันชำระ",
-           AND(ISNOTBLANK([Due Date]), [Due Date] > [Loan Date]),
-           [Loan Type] = "ผ่อนชำระรายวัน",
-           AND(ISNOTBLANK([Due Date]), [Due Date] >= [Loan Date]),
-           TRUE,
-           TRUE
-          )
-        "Type Qualifier.Show_If": "=IN([Loan Type], LIST(\"กำหนดวันชำระ\", \"ผ่อนชำระรายวัน\"))"
-        "Type Qualifier.Required_If": "=IN([Loan Type], LIST(\"กำหนดวันชำระ\", \"ผ่อนชำระรายวัน\"))"
+        "Type": "Date"
+        "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":\"=IFS(\\n  [Loan Type] = \\\"กำหนดวันชำระ\\\",\\n  \
+          \  AND(ISNOTBLANK([Due Date]), [Due Date] > [Loan Date]),\\n  [Loan Type] = \\\"ผ่อนชำระรายวัน\\\",\\n    AND(ISNOTBLANK([Due\
+          \ Date]), [Due Date] >= [Loan Date]),\\n  TRUE,\\n    TRUE\\n)\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"\
+          =IN([Loan Type], LIST(\\\"กำหนดวันชำระ\\\", \\\"ผ่อนชำระรายวัน\\\"))\",\"Required_If\":\"=IN([Loan Type], LIST(\\\
+          \"กำหนดวันชำระ\\\", \\\"ผ่อนชำระรายวัน\\\"))\",\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -211,34 +291,41 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Ref Borrowers"
         "Visible?": "ALWAYS"
-        "Type Qualifier.ReferencedTableName": "Borrowers"
-        "Type Qualifier.ReferencedRootTableName": "Borrowers"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "true"
-        "Type Qualifier.InputMode": "Auto"
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":true,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
         "NFC Scannable": "No"
         "Sensitive data": "No"
       "relationship":
-        "App": "OLTP"
-        "Child table": "Loans"
-        "Ref column": "Ref Borrowers"
-        "Parent table": "Borrowers"
-        "Parent key": "Row ID"
-        "Part of parent": true
+        "ReferencedTableName": "Borrowers"
+        "ReferencedRootTableName": "Borrowers"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": true
     "Loan Arrangement":
       "inventory":
         "App": "OLTP"
@@ -251,16 +338,24 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Loan Arrangement"
         "Visible?": "ALWAYS"
         "Display name": "=\"ข้อตกลงการกู้ยืม / Loan Arrangement\""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "LongText"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -278,24 +373,28 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Loan Status"
         "Visible?": "ALWAYS"
         "Display name": "=\"สถานะ / Loan Status\""
-        "Type Qualifier.EnumValues": "[\"ยังไม่ปิดยอด\",\"ปิดยอดแล้ว\"]"
-        "Type Qualifier.AllowOtherValues": "false"
-        "Type Qualifier.AutoCompleteOtherValues": "true"
-        "Type Qualifier.BaseType": "Text"
-        "Type Qualifier.BaseTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.EnumInputMode": "Auto"
-        "Type Qualifier.Editable_If": "=FALSE"
+        "Type": "Enum"
+        "Type Qualifier": "{\"EnumValues\":[\"ยังไม่ปิดยอด\",\"ปิดยอดแล้ว\"],\"AllowOtherValues\":false,\"AutoCompleteOtherValues\"\
+          :true,\"BaseType\":\"Text\",\"BaseTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
+          \":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"EnumInputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "=\"ยังไม่ปิดยอด\""
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -313,22 +412,27 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Loan Type"
         "Visible?": "ALWAYS"
         "Display name": "=\"ประเภทเงินกู้ / Loan Type\""
-        "Type Qualifier.EnumValues": "[\"กำหนดวันชำระ\",\"ดอกเบี้ยรายวัน\",\"ผ่อนชำระรายวัน\"]"
-        "Type Qualifier.AllowOtherValues": "false"
-        "Type Qualifier.AutoCompleteOtherValues": "true"
-        "Type Qualifier.BaseType": "Text"
-        "Type Qualifier.BaseTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.EnumInputMode": "Auto"
+        "Type": "Enum"
+        "Type Qualifier": "{\"EnumValues\":[\"กำหนดวันชำระ\",\"ดอกเบี้ยรายวัน\",\"ผ่อนชำระรายวัน\"],\"AllowOtherValues\":false,\"\
+          AutoCompleteOtherValues\":true,\"BaseType\":\"Text\",\"BaseTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\
+          \":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"\
+          Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\
+          \":null,\\\"Suggested_Values\\\":null}\",\"EnumInputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -346,25 +450,26 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Current Daily Interest"
         "Visible?": "ALWAYS"
         "Display name": "=\"ดอกเบี้ยต่อวันปัจจุบัน / Current Daily Interest\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": |-
-          =OR(
-           [Loan Type] <> "ดอกเบี้ยรายวัน",
-           [Current Daily Interest] > 0
-          )
-        "Type Qualifier.Show_If": "=[Loan Type] = \"ดอกเบี้ยรายวัน\""
-        "Type Qualifier.Required_If": "=[Loan Type] = \"ดอกเบี้ยรายวัน\""
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=OR(\\n\
+          \  [Loan Type] <> \\\"ดอกเบี้ยรายวัน\\\",\\n  [Current Daily Interest] > 0\\n)\",\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\"\",\"Required_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\"\",\"\
+          Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -382,25 +487,26 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Fixed Interest"
         "Visible?": "ALWAYS"
         "Display name": "=\"ดอกเบี้ยคงที่ / Fixed Interest\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": |-
-          =OR(
-           [Loan Type] <> "กำหนดวันชำระ",
-           [Fixed Interest] > 0
-          )
-        "Type Qualifier.Show_If": "=[Loan Type] = \"กำหนดวันชำระ\""
-        "Type Qualifier.Required_If": "=[Loan Type] = \"กำหนดวันชำระ\""
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=OR(\\n\
+          \  [Loan Type] <> \\\"กำหนดวันชำระ\\\",\\n  [Fixed Interest] > 0\\n)\",\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :\"=[Loan Type] = \\\"กำหนดวันชำระ\\\"\",\"Required_If\":\"=[Loan Type] = \\\"กำหนดวันชำระ\\\"\",\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -418,21 +524,26 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Transfer Fee"
         "Visible?": "ALWAYS"
         "Display name": "=\"ค่าธรรมเนียมการโอน / Transfer Fee\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": "=[_THIS] >= 0"
-        "Type Qualifier.Error_Message_If_Invalid": "=ค่าธรรมเนียมการโอนต้องมากกว่าหรือเท่ากับ 0"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=[_THIS]\
+          \ >= 0\",\"Error_Message_If_Invalid\":\"=ค่าธรรมเนียมการโอนต้องมากกว่าหรือเท่ากับ 0\",\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "=0"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -450,26 +561,29 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Interest Payment Interval"
         "Visible?": "ALWAYS"
         "Description": "=\"จำนวนวันที่สะสมก่อนสร้างยอดเรียกเก็บครั้งถัดไป / Number of elapsed daily amounts combined into\
           \ the next charge.\""
         "Display name": "=\"รอบการชำระ (วัน) / Payment Interval (Days)\""
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": |-
-          =AND(
-           [_THIS] >= 1,
-           FLOOR([_THIS]) = [_THIS]
-          )
-        "Type Qualifier.Show_If": "=IN([Loan Type], LIST(\"ดอกเบี้ยรายวัน\", \"ผ่อนชำระรายวัน\"))"
-        "Type Qualifier.Required_If": "=IN([Loan Type], LIST(\"ดอกเบี้ยรายวัน\", \"ผ่อนชำระรายวัน\"))"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND(\\n  [_THIS] >= 1,\\n  FLOOR([_THIS]) = [_THIS]\\n)\",\"\
+          Error_Message_If_Invalid\":null,\"Show_If\":\"=IN([Loan Type], LIST(\\\"ดอกเบี้ยรายวัน\\\", \\\"ผ่อนชำระรายวัน\\\
+          \"))\",\"Required_If\":\"=IN([Loan Type], LIST(\\\"ดอกเบี้ยรายวัน\\\", \\\"ผ่อนชำระรายวัน\\\"))\",\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "=1"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -487,14 +601,23 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "Created By"
         "Visible?": "ALWAYS"
+        "Type": "Email"
+        "Type Qualifier": "{\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "=USEREMAIL()"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -512,13 +635,22 @@
         "Read-only": "No"
         "Hidden": "Yes"
       "rules":
+        "Column name": "Closed By"
         "Visible?": "ALWAYS"
+        "Type": "Email"
+        "Type Qualifier": "{\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "Yes"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -536,18 +668,23 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Defaulted"
         "Visible?": "ALWAYS"
-        "Type Qualifier.YesLabel": null
-        "Type Qualifier.NoLabel": null
-        "Type Qualifier.Show_If": "=[Defaulted]"
-        "Type Qualifier.Editable_If": "=FALSE"
+        "Type": "Yes/No"
+        "Type Qualifier": "{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :\"=[Defaulted]\",\"Required_If\":null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "=FALSE"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -565,20 +702,25 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Default Loss Amount"
         "Visible?": "ALWAYS"
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Show_If": "=[Defaulted]"
-        "Type Qualifier.Editable_If": "=FALSE"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":\"=[Defaulted]\",\"Required_If\":null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "=0"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -596,26 +738,30 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Daily Payment Amount"
         "Visible?": "ALWAYS"
         "Description": "=\"ยอดรวมต่อหนึ่งวันตามสัญญา ระบบจะรวมหลายวันเมื่อรอบการชำระมากกว่า 1 วัน / Contract amount per day;\
           \ interval charges combine elapsed days.\""
         "Display name": "=\"ยอดชำระรายวัน / Daily Payment Amount\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": "=AND([_THIS] > 0, MOD([_THIS], 1) = 0, [_THIS] * (TOTALHOURS([Due Date] - [Loan Date])\
-          \ / 24 + 1) > [Principal Amount])"
-        "Type Qualifier.Error_Message_If_Invalid": "=\"ต้องเป็นจำนวนเต็มบวก และยอดชำระรวมต้องมากกว่าเงินต้น / Enter a positive\
-          \ whole-baht amount whose scheduled total exceeds principal.\""
-        "Type Qualifier.Show_If": "=[Loan Type] = \"ผ่อนชำระรายวัน\""
-        "Type Qualifier.Required_If": "=[Loan Type] = \"ผ่อนชำระรายวัน\""
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND([_THIS]\
+          \ > 0, MOD([_THIS], 1) = 0, [_THIS] * (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1) > [Principal Amount])\",\"\
+          Error_Message_If_Invalid\":\"=\\\"ต้องเป็นจำนวนเต็มบวก และยอดชำระรวมต้องมากกว่าเงินต้น / Enter a positive whole-baht\
+          \ amount whose scheduled total exceeds principal.\\\"\",\"Show_If\":\"=[Loan Type] = \\\"ผ่อนชำระรายวัน\\\"\",\"\
+          Required_If\":\"=[Loan Type] = \\\"ผ่อนชำระรายวัน\\\"\",\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -633,57 +779,144 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Auto Charge Enabled"
         "Visible?": "ALWAYS"
         "Description": "=\"On: generate charges from loan terms. Off: manual charges only; stored interest rate retained.\
           \ Before re-enabling, verify the last charge covers the paused period to avoid catch-up charges.\""
-        "Type Qualifier.YesLabel": null
-        "Type Qualifier.NoLabel": null
+        "Type": "Yes/No"
+        "Type Qualifier": "{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "Initial value": "=TRUE"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-    "Related Repayments":
+    "Interest Schedule Anchor Date":
       "inventory":
         "App": "OLTP"
         "Table": "Loans"
-        "Column": "Related Repayments"
-        "Type": "List"
-        "Virtual": "Yes"
+        "Column": "Interest Schedule Anchor Date"
+        "Type": "Date"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Interest Schedule Anchor Date"
+        "Visible?": "ALWAYS"
+        "Description": "=\"เว้นว่างเพื่อใช้วันที่กู้ รอบถัดไป = วันที่เริ่มรอบ + ช่วงชำระ เช่น 14 ก.ย. + 3 วัน = 17 ก.ย. ไม่เปลี่ยนดอกเบี้ยสะสม\
+          \ / Blank uses Loan Date. Next scheduled charge = anchor + interval. Interest accrual is unchanged.\""
+        "Display name": "=\"วันที่เริ่มรอบดอกเบี้ย / Interest Schedule Anchor Date\""
+        "Type": "Date"
+        "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":\"=OR(ISBLANK([_THIS]), AND(ISNOTBLANK([Loan Date]),\
+          \ [_THIS] >= [Loan Date]))\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\
+          \"\",\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Ref Closing Payment":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Loans"
+        "Column": "Ref Closing Payment"
+        "Type": "Ref"
+        "Virtual": "No"
         "Key": "No"
         "Label": "No"
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Ref Closing Payment"
         "Visible?": "ALWAYS"
-        "Description": "Repayments entries that reference this entry in the Ref Loans column"
-        "Display name": "=\U0001F4B5 การชำระคืนที่เกี่ยวข้อง"
-        "Type Qualifier.ElementType": "Ref"
-        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Repayments\",\"ReferencedRootTableName\":\"Repayments\"\
-          ,\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
-          \":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+        "Display name": "=\"รายการรับชำระที่ปิดยอด / Closing Payment\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Payments\",\"ReferencedRootTableName\":\"Payments\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
           \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
           ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
           Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ItemSeparator": " , "
-        "App formula": "REF_ROWS(\"Repayments\", \"Ref Loans\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
-        "System Defined?": "Yes"
+        "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Payments"
+        "ReferencedRootTableName": "Payments"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Charge Generation Request":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Loans"
+        "Column": "Charge Generation Request"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Charge Generation Request"
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
-        "NFC Scannable": "No"
         "Sensitive data": "No"
     "Total Interest Received":
       "inventory":
@@ -697,18 +930,24 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Total Interest Received"
         "Visible?": "ALWAYS"
         "Display name": "=\"ดอกเบี้ยที่ได้รับทั้งหมด / Total Interest Received\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -725,18 +964,24 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Total Principal Received"
         "Visible?": "ALWAYS"
         "Display name": "=\"เงินต้นที่ได้รับคืนทั้งหมด / Total Principal Received\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -753,18 +998,24 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Outstanding Principal"
         "Visible?": "ALWAYS"
         "Display name": "=\"เงินต้นคงเหลือ / Outstanding Principal\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -781,21 +1032,247 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Total Amount Received"
         "Visible?": "ALWAYS"
         "Display name": "=\"ยอดเงินที่ได้รับทั้งหมด / Total Amount Received\""
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
+        "Sensitive data": "No"
+    "Expected Daily Interest Amount":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Loans"
+        "Column": "Expected Daily Interest Amount"
+        "Type": "Price"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Expected Daily Interest Amount"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Ref Disbursed From Cash Account":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Loans"
+        "Column": "Ref Disbursed From Cash Account"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Ref Disbursed From Cash Account"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"บัญชีจ่ายเงินกู้ / Disbursement Account\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = \\\"ch:lisa\\\"), [Row ID] =\
+          \ [_THISROW].[Ref Disbursed From Cash Account]))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :\"=NOT(IN([Row ID], Loans[Row ID]))\",\"Editable_If\":\"=NOT(IN([Row ID], Loans[Row ID]))\",\"Reset_If\":null,\"\
+          Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = \"ch:lisa\"\
+          )))"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Cash Accounts"
+        "ReferencedRootTableName": "Cash Accounts"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Payment Request Cash Account":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Loans"
+        "Column": "Payment Request Cash Account"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Payment Request Cash Account"
+        "Visible?": "ALWAYS"
+        "Description": "=CONCATENATE(\"เงินต้นคงเหลือที่จะปิดยอด / Outstanding principal: ฿\", [Outstanding Principal])"
+        "Display name": "=\"รับเข้าบัญชี / Received Into\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":\"=IF(AND([Loan Status] = \\\"ยังไม่ปิดยอด\\\", [Loan Type] = \\\"ดอกเบี้ยรายวัน\\\", [Auto Charge\
+          \ Enabled] = TRUE, ISNOTBLANK([Loan Date]), [Loan Date] <= TODAY(), ISNOTBLANK([Current Daily Interest]), [Current\
+          \ Daily Interest] >= 0, [Outstanding Principal] > 0), SELECT(Cash Accounts[Row ID], [Active] = TRUE), LIST())\"\
+          ,\"Error_Message_If_Invalid\":\"=\\\"ปิดยอดไม่ได้ กรุณาซิงค์และตรวจว่าสินเชื่อยังเปิดอยู่ เป็นดอกเบี้ยรายวัน เปิด\
+          \ Auto Charge มีวันที่และดอกเบี้ยที่ถูกต้อง และมีเงินต้นคงเหลือ / Cannot close this loan. Sync and confirm it is\
+          \ open, daily-interest, auto-charge enabled, has valid date/rate, and positive outstanding principal.\\\"\",\"Show_If\"\
+          :\"=CONTEXT(\\\"View\\\") = \\\"R008 Close Loan\\\"\",\"Required_If\":\"=CONTEXT(\\\"View\\\") = \\\"R008 Close\
+          \ Loan\\\"\",\"Editable_If\":\"=CONTEXT(\\\"View\\\") = \\\"R008 Close Loan\\\"\",\"Reset_If\":\"=CONTEXT(\\\"View\\\
+          \") = \\\"R008 Close Loan\\\"\",\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "=CONTEXT(\"View\") = \"R008 Close Loan\""
+        "Initial value": "=IF(AND(ISNOTBLANK([Ref Borrowers].[Ref Preferred Receiving Cash Account]), [Ref Borrowers].[Ref\
+          \ Preferred Receiving Cash Account].[Active]), [Ref Borrowers].[Ref Preferred Receiving Cash Account], ANY(SELECT(Cash\
+          \ Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = \"ch:dad\"))))"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Cash Accounts"
+        "ReferencedRootTableName": "Cash Accounts"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Payment Request Token":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Loans"
+        "Column": "Payment Request Token"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Payment Request Token"
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :\"=FALSE\",\"Reset_If\":\"=CONTEXT(\\\"View\\\") = \\\"R008 Close Loan\\\"\",\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "=CONTEXT(\"View\") = \"R008 Close Loan\""
+        "Initial value": "=CONCATENATE(TEXT(TODAY(), \"YYYY-MM-DD\"), \"|\", UNIQUEID(), \"|\", USEREMAIL())"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Related Repayments":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Loans"
+        "Column": "Related Repayments"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Repayments"
+        "Visible?": "ALWAYS"
+        "Description": "Repayments entries that reference this entry in the Ref Loans column"
+        "Display name": "=\U0001F4B5 การชำระคืนที่เกี่ยวข้อง"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Repayments\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Repayments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Repayments\", \"Ref Loans\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "NFC Scannable": "No"
         "Sensitive data": "No"
     "Statistics Header":
       "inventory":
@@ -809,17 +1286,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Statistics Header"
         "Visible?": "ALWAYS"
         "Display name": "=\" \""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=\"\U0001F4CA สถิติการกู้ / Statistics\""
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -836,24 +1321,32 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Related Charges"
         "Visible?": "ALWAYS"
         "Description": "Charges entries that reference this entry in the Ref Loans column"
-        "Type Qualifier.ElementType": "Ref"
-        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Charges\",\"ReferencedRootTableName\":\"Charges\"\
-          ,\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
-          \":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
-          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
-          Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ItemSeparator": " , "
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Charges\\\"\
+          ,\\\"ReferencedRootTableName\\\":\\\"Charges\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "REF_ROWS(\"Charges\", \"Ref Loans\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "Yes"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -871,17 +1364,33 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Loan Key"
         "Visible?": "ALWAYS"
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
-        "App formula": "=CONCATENATE( [Borrower Name], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"\
-          ), \"-\", TEXT([Effective Daily Interest Rate]) )"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =CONCATENATE(
+            [Borrower Name TE],
+            "-",
+            TEXT([Principal Amount]),
+            "-",
+            TEXT([Loan Date], "DD/MM"),
+            "-",
+            TEXT([Effective Daily Interest Rate])
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "Yes"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -898,18 +1407,15 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Expected Interest This Month"
         "Visible?": "ALWAYS"
         "Display name": "=คาดการณ์ดอกเบี้ยเดือนนี้"
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": |-
-          =OR(
-           [Loan Type] <> "ดอกเบี้ยรายวัน",
-           [Current Daily Interest] > 0
-          )
-        "Type Qualifier.Show_If": "=IN([Loan Type], LIST(\"ดอกเบี้ยรายวัน\", \"ผ่อนชำระรายวัน\"))"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=OR(\\n\
+          \  [Loan Type] <> \\\"ดอกเบี้ยรายวัน\\\",\\n  [Current Daily Interest] > 0\\n)\",\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":\"=IN([Loan Type], LIST(\\\"ดอกเบี้ยรายวัน\\\", \\\"ผ่อนชำระรายวัน\\\"))\",\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=IF([Loan Status] = \"ปิดยอดแล้ว\", 0, IFS(OR(NOT([Auto Charge Enabled]), AND([Loan Type] = \"ดอกเบี้ยรายวัน\"\
           , [Current Daily Interest] = 0)), SUM(SELECT([Related Charges][Interest Remaining], AND([Charge Date] > TODAY(),\
           \ [Charge Date] <= EOMONTH(TODAY(), 0)))), [Loan Type] = \"ดอกเบี้ยรายวัน\", MAX(LIST([Current Daily Interest] *\
@@ -931,12 +1437,17 @@
           \ Date] < EOMONTH(TODAY(), 0), [Due Date], EOMONTH(TODAY(), 0)) - [Loan Date]) / 24 + 1), MOD([Principal Amount],\
           \ (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1))) - (TOTALHOURS(MAX([Related Charges][Charge Date]) - [Loan Date])\
           \ / 24 + 2) + 1), 0)), 0), TRUE, 0))"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -953,22 +1464,29 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Effective Daily Interest Rate"
         "Visible?": "ALWAYS"
         "Display name": "=อัตราดอกเบี้ยต่อวัน"
-        "Type Qualifier.DecimalDigits": "2"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "Expression text: =IF([Outstanding Principal] > 0, IFS([Loan Type] = \"ดอกเบี้ยรายวัน\", [Current Daily\
-          \ Interest] / [Outstanding Principal], [Loan Type] = \"กำหนดวันชำระ\", ([Fixed Interest] / (TOTALHOURS([Due Date]\
-          \ - [Loan Date]) / 24 + 1)) / [Outstanding Principal], [Loan Type] = \"ผ่อนชำระรายวัน\", ((([Daily Payment Amount]\
-          \ * (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)) - [Principal Amount]) / (TOTALHOURS([Due Date] - [Loan Date])\
-          \ / 24 + 1)) / [Outstanding Principal], TRUE, 0), 0)"
+        "Type": "Percent"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":2,\"NumericDigits\":null,\"\
+          ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=IF([Outstanding Principal] > 0, IFS([Loan Type] = \"ดอกเบี้ยรายวัน\", [Current Daily Interest] /\
+          \ [Outstanding Principal], [Loan Type] = \"กำหนดวันชำระ\", ([Fixed Interest] / (TOTALHOURS([Due Date] - [Loan Date])\
+          \ / 24 + 1)) / [Outstanding Principal], [Loan Type] = \"ผ่อนชำระรายวัน\", ((([Daily Payment Amount] * (TOTALHOURS([Due\
+          \ Date] - [Loan Date]) / 24 + 1)) - [Principal Amount]) / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1)) / [Outstanding\
+          \ Principal], TRUE, 0), 0)"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -985,18 +1503,30 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Principal Recovered by Interest %"
         "Visible?": "ALWAYS"
         "Display name": "=\"คืนทุนจากดอกเบี้ย % / Principal Recovered by Interest %\""
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "=IF( [Principal Amount] > 0, [Total Interest Received] / [Principal Amount], 0 )"
+        "Type": "Percent"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":0,\"NumericDigits\":null,\"\
+          ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =IF(
+            [Principal Amount] > 0,
+            [Total Interest Received] / [Principal Amount],
+            0
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -1013,17 +1543,34 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Principal Days MTD"
         "Visible?": "ALWAYS"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "=IF( [Loan Date] > TODAY(), 0, [Principal Amount] * IF( AND(MONTH([Loan Date]) = MONTH(TODAY()), YEAR([Loan\
-          \ Date]) = YEAR(TODAY())), DAY(TODAY()) - DAY([Loan Date]) + 1, DAY(TODAY()) ) )"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =IF(
+            [Loan Date] > TODAY(),
+            0,
+            [Principal Amount]
+              * IF(
+                AND(MONTH([Loan Date]) = MONTH(TODAY()), YEAR([Loan Date]) = YEAR(TODAY())),
+                DAY(TODAY()) - DAY([Loan Date]) + 1,
+                DAY(TODAY())
+              )
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -1040,17 +1587,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Borrower Name TE"
         "Visible?": "ALWAYS"
         "Display name": "=\"ชื่อผู้กู้ / Borrower\""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=[Ref Borrowers].[Borrower Name TE]"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -1067,17 +1622,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Loan Status TE"
         "Visible?": "ALWAYS"
         "Display name": "=\"สถานะ / Loan Status\""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=IF([Loan Status] = \"ปิดยอดแล้ว\", \"ปิดยอดแล้ว / Closed\", \"ยังไม่ปิดยอด / Active\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -1094,18 +1657,26 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Loan Type TE"
         "Visible?": "ALWAYS"
         "Display name": "=\"ประเภทเงินกู้ / Loan Type\""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=SWITCH([Loan Type], \"กำหนดวันชำระ\", \"กำหนดวันชำระ / Fixed Due Date\", \"ดอกเบี้ยรายวัน\", \"ดอกเบี้ยรายวัน\
           \ / Daily Interest\", \"ผ่อนชำระรายวัน\", \"ผ่อนชำระรายวัน / Daily Installment\", \"ไม่ทราบประเภท / Unknown\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -1122,19 +1693,30 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Loan Duration"
         "Visible?": "ALWAYS"
         "Display name": "=\"ระยะเวลากู้ / Loan Duration\""
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Show_If": "=ISNOTBLANK([Close Date])"
-        "App formula": "=IF( ISNOTBLANK([Close Date]), FLOOR(TOTALHOURS([Close Date] - [Loan Date]) / 24) + 1, NUMBER(\"\"\
-          ) )"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":\"=ISNOTBLANK([Close\
+          \ Date])\",\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": |-
+          =IF(
+            ISNOTBLANK([Close Date]),
+            FLOOR(TOTALHOURS([Close Date] - [Loan Date]) / 24) + 1,
+            NUMBER("")
+          )
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -1151,15 +1733,23 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Last Interest Charge Date"
         "Visible?": "ALWAYS"
-        "Type Qualifier.UseLongDateFormat": "false"
-        "App formula": "=MAX(SELECT([Related Charges][Charge Date], [Charge Date] <= TODAY()))"
+        "Type": "Date"
+        "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
+          Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=MAX(SELECT([Related Charges][Charge Date], [Charge Date] <= DATE(UTCNOW() + \"007:00:00\")))"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
@@ -1176,17 +1766,25 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Accrued Interest Days"
         "Visible?": "ALWAYS"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "App formula": "=MAX(LIST(0, FLOOR(IF(ISBLANK([Last Interest Charge Date]), TOTALHOURS(TODAY() - [Loan Date]) / 24,\
-          \ TOTALHOURS(TODAY() - [Last Interest Charge Date]) / 24))))"
+        "Type": "Number"
+        "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
+          :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=MAX(LIST(0, FLOOR(IF(ISBLANK([Last Interest Charge Date]), TOTALHOURS(DATE(UTCNOW() + \"007:00:00\"\
+          ) - [Loan Date]) / 24, TOTALHOURS(DATE(UTCNOW() + \"007:00:00\") - [Last Interest Charge Date]) / 24))))"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -1203,53 +1801,27 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Accrued Interest"
         "Visible?": "ALWAYS"
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": |-
-          =OR(
-           [Loan Type] <> "ดอกเบี้ยรายวัน",
-           [Current Daily Interest] > 0
-          )
-        "Type Qualifier.Show_If": "=[Loan Type] = \"ดอกเบี้ยรายวัน\""
-        "Type Qualifier.Required_If": "=[Loan Type] = \"ดอกเบี้ยรายวัน\""
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=OR(\\n\
+          \  [Loan Type] <> \\\"ดอกเบี้ยรายวัน\\\",\\n  [Current Daily Interest] > 0\\n)\",\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\"\",\"Required_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\"\",\"\
+          Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=IF([Auto Charge Enabled], IF( [Loan Type] = \"ดอกเบี้ยรายวัน\", [Current Daily Interest] * [Accrued\
           \ Interest Days], 0), 0)"
-        "Formula version": "0"
-        "Reset on edit?": "No"
-        "System Defined?": "No"
-        "Part of Key?": "No"
-        "Fixed definition?": "No"
-        "Editable Initial Value?": "Yes"
-        "LocaleName": "en-US"
-        "Searchable": "No"
-        "Scannable": "No"
-        "Sensitive data": "No"
-    "Expected Daily Interest Amount":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Loans"
-        "Column": "Expected Daily Interest Amount"
-        "Type": "Price"
-        "Virtual": "No"
-        "Key": "No"
+        "Read-Only": "Yes"
+        "Hidden": "No"
         "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-      "rules":
-        "Visible?": "ALWAYS"
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.DecimalDigits": "2"
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "No"
         "Scannable": "No"
@@ -1266,122 +1838,29 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Borrower Name"
         "Visible?": "ALWAYS"
         "Display name": "=\"ชื่อผู้กู้ / Borrower\""
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
+        "Type": "Name"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "App formula": "=[Ref Borrowers].[Borrower Name]"
-        "Formula version": "0"
-        "Reset on edit?": "No"
-        "System Defined?": "No"
-        "Part of Key?": "No"
-        "Fixed definition?": "No"
-        "Editable Initial Value?": "Yes"
-        "LocaleName": "en-US"
-        "Searchable": "Yes"
-        "Scannable": "No"
-        "Sensitive data": "No"
-    "Interest Schedule Anchor Date":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Loans"
-        "Column": "Interest Schedule Anchor Date"
-        "Type": "Date"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "No"
+        "Read-Only": "Yes"
         "Hidden": "No"
-      "rules":
-        "Visible?": "ALWAYS"
-        "Description": "=\"เว้นว่างเพื่อใช้วันที่กู้ รอบถัดไป = วันที่เริ่มรอบ + ช่วงชำระ เช่น 14 ก.ย. + 3 วัน = 17 ก.ย. ไม่เปลี่ยนดอกเบี้ยสะสม\
-          \ / Blank uses Loan Date. Next scheduled charge = anchor + interval. Interest accrual is unchanged.\""
-        "Display name": "=\"วันที่เริ่มรอบดอกเบี้ย / Interest Schedule Anchor Date\""
-        "Type Qualifier.UseLongDateFormat": "false"
-        "Type Qualifier.Valid_If": "=OR(ISBLANK([_THIS]), AND(ISNOTBLANK([Loan Date]), [_THIS] >= [Loan Date]))"
-        "Type Qualifier.Show_If": "=[Loan Type] = \"ดอกเบี้ยรายวัน\""
+        "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
         "System Defined?": "No"
+        "Key": "No"
         "Part of Key?": "No"
         "Fixed definition?": "No"
         "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
         "LocaleName": "en-US"
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Initial value": "Blank; optional schedule origin"
-        "App formula": "Blank; stored physical Date"
-    "Ref Closing Payment":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Loans"
-        "Column": "Ref Closing Payment"
-        "Type": "Ref"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
-        "Visible?": "ALWAYS"
-        "Display name": "=\"รายการรับชำระที่ปิดยอด / Closing Payment\""
-        "Type Qualifier.ReferencedTableName": "Payments"
-        "Type Qualifier.ReferencedRootTableName": "Payments"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "false"
-        "Type Qualifier.InputMode": "Auto"
-        "Initial value": "Blank"
-        "App formula": "Blank"
-      "relationship":
-        "App": "OLTP"
-        "Child table": "Loans"
-        "Ref column": "Ref Closing Payment"
-        "Parent table": "Payments"
-        "Parent key": "Row ID"
-        "Part of parent": "false"
-    "Charge Generation Request":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Loans"
-        "Column": "Charge Generation Request"
-        "Type": "Text"
-        "Virtual": "No"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "No"
-        "Hidden": "Yes"
-      "rules":
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
-        "Visible?": "ALWAYS"
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
-        "Type Qualifier.Editable_If": "=FALSE"
-        "Initial value": "Blank"
-        "App formula": "Blank"
     "Related Payments":
       "inventory":
         "App": "OLTP"
@@ -1394,29 +1873,37 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
+        "Column name": "Related Payments"
         "Visible?": "ALWAYS"
-        "App formula": "REF_ROWS(\"Payments\", \"Ref Target Loan\")"
         "Description": "Payments entries that reference this entry in the Ref Target Loan column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payments\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Payments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Payments\", \"Ref Target Loan\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
         "NFC Scannable": "No"
-        "Type Qualifier.ElementType": "Ref"
-        "Type Qualifier.ElementTypeQualifier": "{\"ReferencedTableName\":\"Payments\",\"ReferencedRootTableName\":\"Payments\"\
-          ,\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
-          \":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
-          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
-          Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ItemSeparator": " , "
+        "Sensitive data": "No"
     "Related Business Expenses":
       "inventory":
         "App": "OLTP"
@@ -1428,3 +1915,668 @@
         "Label": "No"
         "Read-only": "Yes"
         "Hidden": "No"
+      "rules":
+        "Column name": "Related Business Expenses"
+        "Visible?": "ALWAYS"
+        "Description": "Business Expenses entries that reference this entry in the Ref Related Loan column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Business Expenses\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Business Expenses\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Business Expenses\", \"Ref Related Loan\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+    "Related Cash Account Statement Recents":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Loans"
+        "Column": "Related Cash Account Statement Recents"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Cash Account Statement Recents"
+        "Visible?": "ALWAYS"
+        "Description": "Cash Account Statement Recent entries that reference this entry in the Ref Loan column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Account\
+          \ Statement Recent\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Account Statement Recent\\\",\\\"ReferencedType\\\
+          \":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\
+          \\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
+          \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\
+          \":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\"\
+          ,\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\
+          \":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\
+          \":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Cash Account Statement Recent\", \"Ref Loan\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+  "editor":
+    "fields":
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Loans"
+      "label": "Table name"
+      "text": |-
+        Table name
+        Name for this table (user-visible)
+        ​
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Updates"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Adds"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Deletes"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Read-Only"
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "science"
+      "controls": []
+      "label": "Are updates allowed?"
+      "text": |-
+        Are updates allowed?
+        Are adds, deletes and updates allowed?
+        Updates
+        Adds
+        Deletes
+        Read-Only
+        science
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Loans"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "1"
+      "label": "Source Path"
+      "text": |-
+        Source Path
+        A user-understandable path to the table data
+        - select a source -
+        Borrowers
+        Loans
+        Repayments
+        Statistics
+        Charges
+        Partners
+        Payment Allocations
+        Payments
+        Business Expenses
+        Loan Form Context
+        Cash Holders
+        Cash Holder Balances
+        Cash Accounts
+        Cash Statement Context
+        Cash Account Daily Summary Recent
+        Cash Account Statement Recent
+        Cash Account Balances
+        Cash Dashboard
+        - browse for more data -
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Add"
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "_RowNumber"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Row ID"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Loan Date"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Close Date"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Principal Amount"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Due Date"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Ref Borrowers"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Loan Arrangement"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Loan Status"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Borrower Name"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Loan Type"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Current Daily Interest"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Fixed Interest"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Transfer Fee"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Interest Payment Interval"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Created By"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Closed By"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Defaulted"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Default Loss Amount"
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Daily Payment Amount"
+      "label": "Column Order List"
+      "text": |-
+        Column Order List
+        The order of columns to retrieve from the provider (only applies to some storage providers)
+        drag_indicator
+        _RowNumber
+        ​
+        drag_indicator
+        Row ID
+        ​
+        drag_indicator
+        Loan Date
+        ​
+        drag_indicator
+        Close Date
+        ​
+        drag_indicator
+        Principal Amount
+        ​
+        drag_indicator
+        Due Date
+        ​
+        drag_indicator
+        Ref Borrowers
+        ​
+        drag_indicator
+        Loan Arrangement
+        ​
+        drag_indicator
+        Loan Status
+        ​
+        drag_indicator
+        Borrower Name
+        ​
+        drag_indicator
+        Loan Type
+        ​
+        drag_indicator
+        Current Daily Interest
+        ​
+        drag_indicator
+        Fixed Interest
+        ​
+        drag_indicator
+        Transfer Fee
+        ​
+        drag_indicator
+        Interest Payment Interval
+        ​
+        drag_indicator
+        Created By
+        ​
+        drag_indicator
+        Closed By
+        ​
+        drag_indicator
+        Defaulted
+        ​
+        drag_indicator
+        Default Loss Amount
+        ​
+        drag_indicator
+        Daily Payment Amount
+        ​
+        Add
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Copy Data to New Source"
+      "controls": []
+      "label": "Data Source"
+      "text": |-
+        Data Source
+        Name of the table data source
+        database-2
+        Copy Data to New Source
+    - "choices": []
+      "controls": []
+      "label": "Source Id"
+      "text": |-
+        Source Id
+        A provider-specific path to the table data (not user-visible)
+        Table=public.Loans__Loans
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Default"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "_Default"
+      "label": "Store for image and file capture"
+      "text": |-
+        Store for image and file capture
+        By default, images and files captured by the app are stored in the cloud file system associated with the app owner's account. You can explicitly add an object store and use it instead.
+        Default
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      "label": "Filter out all existing rows?"
+      "text": |-
+        Filter out all existing rows?
+        Used only in forms apps that collect new data rows but never show any pre-existing rows.
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Security filter"
+      "text": |-
+        Security filter
+        The app uses only those rows that match this (optional) filter condition. Use this filter to limit what each user can see.
+        =
+        science
+        ​
+    - "choices":
+      - "checked": "true"
+        "pressed": null
+        "role": "radio"
+        "text": "as app creator"
+      - "checked": "false"
+        "pressed": null
+        "role": "radio"
+        "text": "as app user"
+      "controls": []
+      "label": "Access mode"
+      "text": |-
+        Access mode
+        The app will access the spreadsheet using the app creator or app user credentials.
+        as app creator
+        as app user
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      "label": "Shared?"
+      "text": |-
+        Shared?
+        Is this table shared by all users? This option is normally checked. Before unchecking, carefully review 'Private Tables' in the documentation.
+    - "choices": []
+      "controls":
+      - "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      "label": "Data locale"
+      "text": |-
+        Data locale
+        Locale used to read the table
+        Compatibility (For backward compatibility)
+        Amharic (Ethiopia)
+        Arabic (Algeria)
+        Arabic (Bahrain)
+        Arabic (Egypt)
+        Arabic (Iraq)
+        Arabic (Jordan)
+        Arabic (Kuwait)
+        Arabic (Lebanon)
+        Arabic (Libya)
+        Arabic (Morocco)
+        Arabic (Oman)
+        Arabic (Qatar)
+        Arabic (Saudi Arabia)
+        Arabic (Syria)
+        Arabic (Tunisia)
+        Arabic (United Arab Emirates)
+        Arabic (Yemen)
+        Armenian (Armenia)
+        Azerbaijani (Cyrillic, Azerbaijan)
+        Azerbaijani (Latin, Azerbaijan)
+        Bengali (India)
+        Bulgarian (Bulgaria)
+        Burmese (Myanmar)
+        Catalan (Catalan)
+        Chinese (Simplified, China)
+        Chinese (Traditional, Hong Kong SAR)
+        Chinese (Traditional, Taiwan)
+        Chinese Traditional (Malaysia)
+        Croatian (Croatia)
+        Czech (Czechia)
+        Danish (Denmark)
+        Dari (Afghanistan)
+        Dutch (Aruba)
+        Dutch (Belgium)
+        Dutch (Curaçao)
+        Dutch (Netherlands)
+        English (Australia)
+        English (Bahrain)
+        English (Belgium)
+        English (Brazil)
+        English (Canada)
+        English (Germany)
+        English (Hong Kong SAR)
+        English (India)
+        English (Ireland)
+        English (Kenya)
+        English (Malaysia)
+        English (New Zealand)
+        English (Norway)
+        English (Philippines)
+        English (Singapore)
+        English (South Africa)
+        English (Sri Lanka)
+        English (Tanzania)
+        English (United Kingdom)
+        English (United States)
+        Filipino (Philippines)
+        Finnish (Finland)
+        French (Belgium)
+        French (Cameroon)
+        French (Canada)
+        French (Côte d’Ivoire)
+        French (France)
+        French (Luxembourg)
+        French (Mali)
+        French (Morocco)
+        French (Senegal)
+        French (Switzerland)
+        French Congo (DRC)
+        Fulah (Latin, Senegal)
+        Georgian (Georgia)
+        German (Austria)
+        German (Germany)
+        German (Liechtenstein)
+        German (Luxembourg)
+        German (Switzerland)
+        Greek (Greece)
+        Gujarati (India)
+        Hausa (Latin, Nigeria)
+        Hebrew (Israel)
+        Hindi (India)
+        Hungarian (Hungary)
+        Igbo (Nigeria)
+        Indonesian (Indonesia)
+        Irish (Ireland)
+        Italian (Italy)
+        Italian (Switzerland)
+        Japanese (Japan)
+        Kannada (India)
+        Kinyarwanda (Rwanda)
+        Kiswahili (Kenya)
+        Kiswahili (Tanzania)
+        Korean (Korea)
+        Latvian (Latvia)
+        Lingala (Angola)
+        Lithuanian (Lithuania)
+        Malay (Brunei)
+        Malay (Malaysia)
+        Malayalam (India)
+        Marathi (India)
+        Mongolian (Mongolia)
+        Norwegian Bokmål (Norway)
+        Norwegian Nynorsk (Norway)
+        Oromo (Ethiopia)
+        Pashto (Afghanistan)
+        Persian (Iran)
+        Polish (Poland)
+        Portuguese (Angola)
+        Portuguese (Brazil)
+        Portuguese (Mozambique)
+        Portuguese (Portugal)
+        Romanian (Romania)
+        Russian (Russia)
+        Serbian (Cyrillic, Serbia)
+        Serbian (Latin, Serbia)
+        Serbian (Serbia)
+        Setswana (Botswana)
+        Sinhala (Sri Lanka)
+        Slovak (Slovakia)
+        Slovenian (Slovenia)
+        Spanish (Argentina)
+        Spanish (Bolivia)
+        Spanish (Chile)
+        Spanish (Colombia)
+        Spanish (Costa Rica)
+        Spanish (Dominican Republic)
+        Spanish (Ecuador)
+        Spanish (El Salvador)
+        Spanish (Guatemala)
+        Spanish (Honduras)
+        Spanish (Latin America)
+        Spanish (Latin America)
+        Spanish (Mexico)
+        Spanish (Nicaragua)
+        Spanish (Panama)
+        Spanish (Paraguay)
+        Spanish (Peru)
+        Spanish (Spain, International Sort)
+        Spanish (United States)
+        Spanish (Uruguay)
+        Spanish (Venezuela)
+        Swedish (Sweden)
+        Tamil (India)
+        Tamil (Sri Lanka)
+        Telugu (India)
+        Thai (Thailand)
+        Tigrinya (Ethiopia)
+        Turkish (Turkey)
+        Ukrainian (Ukraine)
+        Vietnamese (Vietnam)
+        Yoruba (Nigeria)
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "text": |-
+        Descriptive comment
+        Comments help you and your collaborators better record and understand the structure of the app
+    "update_permissions_snapshot": |2-
+
+        - heading "Table settings" [level=5]
+        - button "close":
+        - heading "Table name" [level=6]
+        - text: Name for this table (user-visible)
+        - textbox: Loans
+        - heading "Are updates allowed?" [level=6]
+        - text: Are adds, deletes and updates allowed?
+        - button " Updates":
+          - text: 
+          - generic: Updates
+        - button " Adds":
+          - text: 
+          - generic: Adds
+        - button " Deletes":
+          - text: 
+          - generic: Deletes
+        - button "Read-Only"
+        - button "science"
+        - heading "Storage" [level=3]
+        - generic: 
+        - heading "Source Path" [level=6]
+        - text: A user-understandable path to the table data
+        - combobox "Select an option":
+          - option "- select a source -"

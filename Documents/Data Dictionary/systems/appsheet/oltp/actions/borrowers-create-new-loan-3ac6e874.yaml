@@ -1,0 +1,31 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Borrowers.Create New Loan"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Create New Loan"
+    "Bulk action?": "No"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Display_Inline"
+    "Action order": "1"
+    "With these properties": "{\"NavigateTarget\":\"=LINKTOFORM(\\n  \\\"Loans_Form\\\",\\n  \\\"Ref Borrowers\\\", [Row ID],\\\
+      n  \\\"Loan Date\\\", TODAY()\\n)\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+      :\"\",\"ModifiesData\":false,\"BulkApplicable\":false}"
+    "Do this": "NAVIGATE_APP"
+    "Attach to column": "Row ID"
+    "Only if this condition is true": "true"
+    "Disable automatic updates?": "No"
+    "Display name": "สร้างเงินกู้ใหม่"
+    "Action icon": ""
+    "For a record of this table": "Borrowers"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

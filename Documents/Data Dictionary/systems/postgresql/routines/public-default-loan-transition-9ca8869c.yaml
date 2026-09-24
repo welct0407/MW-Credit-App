@@ -1,0 +1,62 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.default_loan_transition()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "default_loan_transition"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.default_loan_transition()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+        IF TG_OP='INSERT' THEN
+          IF coalesce(NEW."Defaulted",false) THEN RAISE EXCEPTION 'Create the loan before confirming default'; END IF;
+          RETURN NEW;
+        END IF;
+        IF coalesce(OLD."Defaulted",false) THEN
+          IF NEW."Defaulted" IS DISTINCT FROM OLD."Defaulted" OR NEW."Default Loss Amount" IS DISTINCT FROM OLD."Default Loss Amount"
+            OR NEW."Loan Status" IS DISTINCT FROM OLD."Loan Status" OR NEW."Close Date" IS DISTINCT FROM OLD."Close Date"
+            OR NEW."Closed By" IS DISTINCT FROM OLD."Closed By" OR NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount"
+            OR NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers" THEN
+            RAISE EXCEPTION 'Recorded default is immutable; use a reviewed correction';
+          END IF;
+          RETURN NEW;
+        END IF;
+        IF NOT coalesce(NEW."Defaulted",false) THEN RETURN NEW; END IF;
+        IF NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount" OR NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers"
+          OR NEW."Auto Charge Enabled" IS DISTINCT FROM OLD."Auto Charge Enabled" THEN
+          RAISE EXCEPTION 'Do not change loan inputs while confirming default';
+        END IF;
+        NEW."Default Loss Amount":=public.post_loan_default(OLD,NEW."Close Date",NEW."Closed By")::money;
+        NEW."Loan Status":='ปิดยอดแล้ว';
+        RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

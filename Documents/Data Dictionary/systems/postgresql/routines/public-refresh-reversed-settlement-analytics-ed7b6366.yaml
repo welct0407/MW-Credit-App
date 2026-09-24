@@ -1,0 +1,50 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.refresh_reversed_settlement_analytics()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "refresh_reversed_settlement_analytics"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.refresh_reversed_settlement_analytics()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE first_snapshot date; last_snapshot date;
+      BEGIN
+       IF OLD."Status"='Completed' AND NEW."Status"='Cancelled' THEN
+        SELECT min("Snapshot Date"),max("Snapshot Date") INTO first_snapshot,last_snapshot
+        FROM public."Daily Analytics" WHERE "Snapshot Date">=OLD."Transfer Date";
+        IF first_snapshot IS NOT NULL THEN
+         PERFORM public.refresh_daily_analytics(first_snapshot,last_snapshot);
+        END IF;
+       END IF;
+       RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

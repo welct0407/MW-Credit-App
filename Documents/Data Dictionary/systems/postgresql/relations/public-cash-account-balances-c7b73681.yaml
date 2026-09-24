@@ -1,0 +1,345 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Cash Account Balances"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "Cash Account Balances"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH flows AS (
+               SELECT "Cash Ledger"."Ref To Cash Account" AS account,
+                  "Cash Ledger"."Amount" AS cash_in,
+                  0::numeric AS cash_out
+                 FROM "Cash Ledger"
+                WHERE "Cash Ledger"."Ref To Cash Account" IS NOT NULL
+              UNION ALL
+               SELECT "Cash Ledger"."Ref From Cash Account",
+                  0::numeric AS "numeric",
+                  "Cash Ledger"."Amount"
+                 FROM "Cash Ledger"
+                WHERE "Cash Ledger"."Ref From Cash Account" IS NOT NULL
+              ), totals AS (
+               SELECT flows.account,
+                  sum(flows.cash_in) AS cash_in,
+                  sum(flows.cash_out) AS cash_out
+                 FROM flows
+                GROUP BY flows.account
+              ), balances AS (
+               SELECT a."Row ID" AS "Ref Cash Account",
+                  a."Ref Cash Holder",
+                  h."Holder Name",
+                  a."Account Label",
+                  c."Opening Balance",
+                  COALESCE(t.cash_in, 0::numeric) - COALESCE(c."Baseline Cash In", 0::numeric) AS "Cash In",
+                  COALESCE(t.cash_out, 0::numeric) - COALESCE(c."Baseline Cash Out", 0::numeric) AS "Cash Out",
+                  c."Opening Balance" + COALESCE(t.cash_in, 0::numeric) - c."Baseline Cash In" - COALESCE(t.cash_out, 0::numeric) + c."Baseline Cash Out" AS "Current Balance",
+                  c."Ref Cash Account" IS NOT NULL AS "Initialized"
+                 FROM "Cash Accounts" a
+                   JOIN "Cash Holders" h ON h."Row ID" = a."Ref Cash Holder"
+                   LEFT JOIN totals t ON t.account = a."Row ID"
+                   LEFT JOIN r008_cash_account_cutover c ON c."Ref Cash Account" = a."Row ID"
+              )
+       SELECT "Ref Cash Account",
+          "Ref Cash Holder",
+          "Holder Name",
+          "Account Label",
+          "Opening Balance",
+          "Cash In",
+          "Cash Out",
+          "Current Balance",
+          "Initialized",
+              CASE
+                  WHEN "Initialized" THEN GREATEST("Current Balance", 0::numeric)
+                  ELSE NULL::numeric
+              END AS "Business Cash Held",
+              CASE
+                  WHEN "Initialized" THEN GREATEST(- "Current Balance", 0::numeric)
+                  ELSE NULL::numeric
+              END AS "Reimbursement / Advance Due"
+         FROM balances;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Ref Cash Account":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Ref Cash Account"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Ref Cash Holder":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Ref Cash Holder"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Holder Name":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Holder Name"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Account Label":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Account Label"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Opening Balance":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Opening Balance"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash In":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Cash In"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash Out":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Cash Out"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Current Balance":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Current Balance"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Initialized":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Initialized"
+      "ordinal": 9
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Business Cash Held":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Business Cash Held"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+    "Reimbursement / Advance Due":
+      "schema": "public"
+      "relation": "Cash Account Balances"
+      "name": "Reimbursement / Advance Due"
+      "ordinal": 11
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Account Label"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Ref Cash Holder"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Holder Name"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref From Cash Account"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref To Cash Account"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash In"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash Out"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Opening Balance"
+  - "schema": "public"
+    "relation": "Cash Account Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Ref Cash Account"

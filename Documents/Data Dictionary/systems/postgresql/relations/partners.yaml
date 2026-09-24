@@ -1,87 +1,435 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
-  "name": "Partners"
-  "scope": "as-recorded"
+  "name": "public.Partners"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/partners.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Partners"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "Partners"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Row ID":
-      "Table / view": "Partners"
-      "Column": "Row ID"
-      "Position": 1
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Partner Name":
-      "Table / view": "Partners"
-      "Column": "Partner Name"
-      "Position": 2
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Partner Name"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Partner Role":
-      "Table / view": "Partners"
-      "Column": "Partner Role"
-      "Position": 3
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Partner Role"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{metabase_borrower_reader=r/postgres}"
+      "comment": null
     "Email":
-      "Table / view": "Partners"
-      "Column": "Email"
-      "Position": 4
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Email"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Notification delivery address; may be shared. Never use this field to identify/exclude the actor."
     "Instagram Username":
-      "Table / view": "Partners"
-      "Column": "Instagram Username"
-      "Position": 5
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Instagram Username"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Language Preference":
-      "Table / view": "Partners"
-      "Column": "Language Preference"
-      "Position": 6
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Language Preference"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "IG Integration Enabled":
-      "Table / view": "Partners"
-      "Column": "IG Integration Enabled"
-      "Position": 7
-      "PostgreSQL type": "boolean"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Partners"
+      "name": "IG Integration Enabled"
+      "ordinal": 7
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Login Email":
-      "Table / view": "Partners"
-      "Column": "Login Email"
-      "Position": "8"
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Login Email"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Unique AppSheet sign-in identity; independent of notification Email. Null means no login mapping."
+    "AI Reviewer":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "AI Reviewer"
+      "ordinal": 9
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "false"
+      "collation": null
+      "acl": null
+      "comment": "Receives and decides AI payment reviews. Does not control daily summaries or Instagram integration. Initial\
+        \ reviewer: Tommy."
   "constraints":
+    "Partners_AI Reviewer_not_null":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Partners_AI Reviewer_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"AI Reviewer\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Partners_Row ID_not_null":
-      "Table": "Partners"
-      "Constraint": "Partners_Row ID_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Row ID\""
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Partners_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Partners_pkey":
-      "Table": "Partners"
-      "Constraint": "Partners_pkey"
-      "Type": "p"
-      "Validated": true
-      "Definition": "PRIMARY KEY (\"Row ID\")"
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Partners_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "expense_partner_changed":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "expense_partner_changed"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "partners_login_email_nonblank":
-      "Table": "Partners"
-      "Constraint": "partners_login_email_nonblank"
-      "Type": "c"
-      "Validated": "1"
-      "Definition": "CHECK (\"Login Email\" IS NULL OR btrim(\"Login Email\") <> '')"
+      "schema": "public"
+      "relation": "Partners"
+      "name": "partners_login_email_nonblank"
+      "kind": "c"
+      "definition": "CHECK (\"Login Email\" IS NULL OR btrim(\"Login Email\") <> ''::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Partners_pkey":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "Partners_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Partners_pkey\" ON public.\"Partners\" USING btree (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "partners_login_email_unique":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "partners_login_email_unique"
+      "definition": "CREATE UNIQUE INDEX partners_login_email_unique ON public.\"Partners\" USING btree (lower(btrim(\"Login\
+        \ Email\"))) WHERE (\"Login Email\" IS NOT NULL)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": "(\"Login Email\" IS NOT NULL)"
+      "expressions": "lower(btrim(\"Login Email\"))"
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_16725":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "RI_ConstraintTrigger_a_16725"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16725\" AFTER DELETE ON \"Partners\" FROM \"Cash Pool\
+        \ Contributions\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16726":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "RI_ConstraintTrigger_a_16726"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16726\" AFTER UPDATE ON \"Partners\" FROM \"Cash Pool\
+        \ Contributions\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16730":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "RI_ConstraintTrigger_a_16730"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16730\" AFTER DELETE ON \"Partners\" FROM \"Settlements\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16731":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "RI_ConstraintTrigger_a_16731"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16731\" AFTER UPDATE ON \"Partners\" FROM \"Settlements\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17540":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "RI_ConstraintTrigger_a_17540"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17540\" AFTER DELETE ON \"Partners\" FROM \"Cash Statement\
+        \ Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_cascade_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_cascade_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17541":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "RI_ConstraintTrigger_a_17541"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17541\" AFTER UPDATE ON \"Partners\" FROM \"Cash Statement\
+        \ Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "expense_allocation_lock":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "expense_allocation_lock"
+      "definition": "CREATE TRIGGER expense_allocation_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Partners\" FOR EACH STATEMENT\
+        \ EXECUTE FUNCTION expense_allocation_lock()"
+      "enabled": "O"
+      "internal": false
+      "routine": "expense_allocation_lock()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "expense_partner_changed":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "expense_partner_changed"
+      "definition": "CREATE CONSTRAINT TRIGGER expense_partner_changed AFTER INSERT OR DELETE OR UPDATE ON \"Partners\" DEFERRABLE\
+        \ INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION expense_contribution_changed()"
+      "enabled": "O"
+      "internal": false
+      "routine": "expense_contribution_changed()"
+      "deferrable": true
+      "initially_deferred": true
+      "comment": null
+    "seed_cash_statement_context":
+      "schema": "public"
+      "relation": "Partners"
+      "name": "seed_cash_statement_context"
+      "definition": "CREATE TRIGGER seed_cash_statement_context AFTER INSERT ON \"Partners\" FOR EACH ROW EXECUTE FUNCTION\
+        \ seed_cash_statement_context()"
+      "enabled": "O"
+      "internal": false
+      "routine": "seed_cash_statement_context()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

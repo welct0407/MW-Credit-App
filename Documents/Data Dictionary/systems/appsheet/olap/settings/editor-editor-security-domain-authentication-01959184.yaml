@@ -1,0 +1,26 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "settings"
+  "name": "Editor security/Domain Authentication"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls":
+    - "label": "Require domain authentication?"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    "snapshot": |2-
+        - paragraph: Domain Authentication
+        - link "Integrates with corporate domains.menu_book":
+          - /url: https://support.google.com/appsheet?p=domain-integration
+        - heading "Require domain authentication? (ENTERPRISE Plan)" [level=6]
+        - text: Authenticate via a domain group? (needs a corporate subscription plan when deployed).
+        - checkbox

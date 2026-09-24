@@ -1,0 +1,977 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_income_statement"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_income_statement"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": "R016: database-owned Income Statement source. Live Bangkok dates; original model grain and financial semantics\
+      \ preserved."
+    "view_definition": |2-
+       SELECT "Row ID" AS "Statement ID",
+          (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date AS "As Of Date",
+          date_trunc('month'::text, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text))::date AS "Month Start",
+          to_char((CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text), 'FMMonth YYYY'::text) AS "Statement Month",
+          "Operating Income MTD",
+          "Expenses MTD",
+          "Net Profit MTD",
+          "Tommy Withdrawn MTD",
+          "Lisa Withdrawn MTD",
+          "Unsettled Profit MTD",
+          "Cash Pool Remaining",
+          "Business Cash Held",
+          "Net Profit MTD" / NULLIF("Operating Income MTD", 0::numeric) AS "Net Margin",
+          - ("Tommy Withdrawn MTD" + "Lisa Withdrawn MTD") AS "Partner Draws MTD",
+          "Business Cash Held" - "Cash Pool Remaining" - "Unsettled Profit MTD" AS "Cash Reconciliation Difference",
+          ( SELECT COALESCE(sum(unnamed_subquery."Net Profit"), 0::numeric) AS "coalesce"
+                 FROM ( WITH income AS (
+                               SELECT date_trunc('month'::text, unnamed_subquery_1."Payment Date"::timestamp with time zone)::date AS period_month,
+                                  sum(unnamed_subquery_1."Interest Paid") AS amount
+                                 FROM ( WITH context AS (
+       SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date AS today
+      )
+                                       SELECT r."Row ID" AS "Repayment ID",
+                                          r."Ref Loans" AS "Loan ID",
+                                          l."Borrower ID",
+                                          l."Borrower",
+                                          l."Hidden",
+                                          l."Loan Type",
+                                          r."Payment Date",
+                                          r."Interest Paid"::numeric AS "Interest Paid",
+                                          r."Principal Paid"::numeric AS "Principal Paid",
+      CASE
+       WHEN r."Payment Date" >= (c.today - 29) AND r."Payment Date" <= c.today THEN r."Interest Paid"::numeric
+       ELSE 0::numeric
+      END AS "Interest 30D",
+      CASE
+       WHEN r."Payment Date" >= (c.today - 6) AND r."Payment Date" <= c.today THEN r."Interest Paid"::numeric
+       ELSE 0::numeric
+      END AS "Interest Recent 7D",
+      CASE
+       WHEN r."Payment Date" >= (c.today - 14) AND r."Payment Date" <= (c.today - 8) THEN r."Interest Paid"::numeric
+       ELSE 0::numeric
+      END AS "Interest Prior 7D",
+                                          r."Payment Date" >= (c.today - 29) AND r."Payment Date" <= c.today AS "In Last 30 Days"
+                                         FROM olap_repayments_analytics r
+                                           LEFT JOIN ( SELECT l_1."Row ID" AS "Loan ID",
+          l_1."Ref Borrowers" AS "Borrower ID",
+          b."Borrower",
+          b."Hidden",
+          l_1."Loan Date",
+        CASE l_1."Loan Type"
+         WHEN 'กำหนดวันชำระ'::text THEN 'Fixed Due Date'::text
+         WHEN 'ดอกเบี้ยรายวัน'::text THEN 'Daily Interest'::text
+         WHEN 'ผ่อนชำระรายวัน'::text THEN 'Daily Installment'::text
+         ELSE 'Unknown'::text
+        END AS "Loan Type",
+          l_1."Loan Type" AS "Loan Type Thai",
+          l_1."Outstanding Principal",
+          l_1."Principal Amount"::numeric AS "Principal Amount",
+          l_1."Close Date",
+          l_1."Due Date",
+        CASE l_1."Loan Status"
+         WHEN 'ปิดยอดแล้ว'::text THEN 'Closed'::text
+         WHEN 'ยังไม่ปิดยอด'::text THEN 'Active'::text
+         ELSE l_1."Loan Status"
+        END AS "Loan Status",
+          l_1."Current Daily Interest"::numeric AS "Current Daily Interest",
+          l_1."Expected Interest This Month",
+          l_1."Total Interest Received",
+          l_1."Total Principal Received",
+          l_1."Loan Age Days",
+          l_1."Loan Age Bucket",
+          l_1."Defaulted Flag",
+          l_1."Default Loss Amount"::numeric AS "Default Loss Amount",
+          date_trunc('week'::text, l_1."Loan Date"::timestamp with time zone)::date AS "Loan Week"
+         FROM olap_loans_analytics l_1
+           LEFT JOIN ( SELECT b_1."Row ID" AS "Borrower ID",
+            b_1."Description" AS "Borrower",
+            b_1."Creation Date" AS "Created Date",
+            b_1."Hidden Flag" AS "Hidden",
+            b_1."Total Outstanding Principal" AS "Outstanding Principal",
+            b_1."Active Loan Count" AS "Active Loans",
+            b_1."Overdue Amount",
+            b_1."Has Active Loan",
+            b_1."Total Interest Earned",
+            b_1."Total Number of Loans",
+            b_1."Return on Active Principal",
+            b_1."Profit Last 30 Days",
+            b_1."30D Average Outstanding Principal",
+            b_1."30D Return on Average Principal",
+            b_1."Daily Collection Status",
+            b_1."Todays Amount Due",
+            b_1."Todays Amount Collected",
+            b_1."Todays Amount Remaining",
+            b_1."Portfolio Exposure %",
+            b_1."Oldest Active Loan Age",
+            b_1."Historical Charge Count",
+            b_1."Lifetime On Time Rate",
+            b_1."Recent 30D On Time Rate",
+            b_1."Lifetime Late Payment Count",
+            b_1."Recent 30D Late Payment Count",
+            b_1."Maximum Days Late",
+            b_1."Last Late Payment Date",
+            b_1."Largest Successful Loan",
+            b_1."Average Successful Loan Size",
+            b_1."Default Count",
+            b_1."Lifetime Default Loss",
+            b_1."Portfolio Outstanding Principal",
+            b_1."Projected Monthly Profit Contribution",
+            b_1."Matrix Economic Contribution",
+            b_1."Matrix Recent Reliability Score",
+            b_1."Matrix Historical Reliability Score",
+            b_1."Matrix Delay Severity Score",
+            b_1."Matrix Current Condition Score",
+            b_1."Matrix History Sufficient",
+            b_1."Matrix Stability Score",
+            b_1."Matrix Quadrant",
+            b_1."Matrix Scaled Economic Contribution",
+            (b_1."Description" || ' · '::text) || COALESCE(b_1."Matrix Quadrant", 'Unclassified'::text) AS "Matrix Label",
+            row_number() OVER (ORDER BY b_1."Total Outstanding Principal" DESC NULLS LAST, b_1."Row ID") AS "Principal Rank",
+            (EXISTS ( SELECT 1
+             FROM olap_loans_analytics l_2
+            WHERE l_2."Ref Borrowers" = b_1."Row ID" AND l_2."Loan Status" = 'ปิดยอดแล้ว'::text)) AS "Has Closed Loan"
+           FROM olap_borrowers_analytics b_1) b ON b."Borrower ID" = l_1."Ref Borrowers") l ON l."Loan ID" = r."Ref Loans"
+                                           CROSS JOIN context c) unnamed_subquery_1
+                                WHERE unnamed_subquery_1."Payment Date" <= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date
+                                GROUP BY (date_trunc('month'::text, unnamed_subquery_1."Payment Date"::timestamp with time zone)::date)
+                              ), expenses AS (
+                               SELECT unnamed_subquery_1."Expense Month" AS period_month,
+                                  sum(unnamed_subquery_1."Expense Amount") AS amount
+                                 FROM ( SELECT "Business Expenses"."Row ID" AS "Expense ID",
+                                          "Business Expenses"."Expense Date",
+                                          "Business Expenses"."Expense Category",
+                                          "Business Expenses"."Amount"::numeric AS "Expense Amount",
+                                          - "Business Expenses"."Amount"::numeric AS "Statement Expense",
+                                          date_trunc('month'::text, "Business Expenses"."Expense Date"::timestamp with time zone)::date AS "Expense Month",
+                                          "Business Expenses"."Expense Date" >= date_trunc('month'::text, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text))::date AND "Business Expenses"."Expense Date" <= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date AS "In Current Month"
+                                         FROM "Business Expenses"
+                                        WHERE "Business Expenses"."Expense Date" <= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date) unnamed_subquery_1
+                                GROUP BY unnamed_subquery_1."Expense Month"
+                              ), bounds AS (
+                               SELECT min(dates.period_month) AS first_month
+                                 FROM ( SELECT income.period_month
+                                         FROM income
+                                      UNION ALL
+                                       SELECT expenses.period_month
+                                         FROM expenses) dates
+                              ), months AS (
+                               SELECT generate_series(COALESCE(bounds.first_month, date_trunc('month'::text, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text))::date)::timestamp with time zone, date_trunc('month'::text, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text))::date::timestamp with time zone, '1 mon'::interval)::date AS period_month
+                                 FROM bounds
+                              )
+                       SELECT m.period_month AS "Month",
+                          COALESCE(i.amount, 0::numeric) AS "Operating Income",
+                          COALESCE(e.amount, 0::numeric) AS "Expenses",
+                          - COALESCE(e.amount, 0::numeric) AS "Signed Expenses",
+                          COALESCE(i.amount, 0::numeric) - COALESCE(e.amount, 0::numeric) AS "Net Profit",
+                          (COALESCE(i.amount, 0::numeric) - COALESCE(e.amount, 0::numeric)) / NULLIF(i.amount, 0::numeric) AS "Net Margin",
+                          m.period_month = date_trunc('month'::text, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text))::date AS "Is Current Month",
+                              CASE
+                                  WHEN m.period_month = date_trunc('month'::text, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text))::date THEN 'Month to date'::text
+                                  ELSE 'Full month'::text
+                              END AS "Period Coverage",
+                          m.period_month >= (date_trunc('month'::text, (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)) - '11 mons'::interval)::date AS "In Last 12 Months"
+                         FROM months m
+                           LEFT JOIN income i USING (period_month)
+                           LEFT JOIN expenses e USING (period_month)) unnamed_subquery) AS "Net Profit Since Inception",
+          ( SELECT count(*) AS count
+                 FROM ( SELECT "Cash Account Balances"."Ref Cash Account" AS "Cash Account ID",
+                          "Cash Account Balances"."Ref Cash Holder" AS "Cash Holder ID",
+                          "Cash Account Balances"."Holder Name" AS "Cash Holder",
+                          "Cash Account Balances"."Account Label" AS "Account",
+                          "Cash Account Balances"."Current Balance",
+                          "Cash Account Balances"."Initialized",
+                          "Cash Account Balances"."Business Cash Held",
+                          "Cash Account Balances"."Reimbursement / Advance Due" AS "Advance Due",
+                              CASE
+                                  WHEN bool_and("Cash Account Balances"."Initialized") OVER (PARTITION BY "Cash Account Balances"."Ref Cash Holder") THEN "Cash Account Balances"."Business Cash Held"
+                                  ELSE NULL::numeric
+                              END AS "Holder Cash Component",
+                              CASE
+                                  WHEN "Cash Account Balances"."Initialized" THEN 'Known'::text
+                                  ELSE 'Opening balance missing'::text
+                              END AS "Balance Status"
+                         FROM "Cash Account Balances") unnamed_subquery
+                WHERE NOT unnamed_subquery."Initialized") AS "Uninitialized Accounts",
+              CASE
+                  WHEN "Business Cash Held" IS NULL THEN 'Account opening balance missing'::text
+                  WHEN abs("Business Cash Held" - "Cash Pool Remaining" - "Unsettled Profit MTD") < 0.005 THEN 'Reconciled'::text
+                  ELSE 'Review difference'::text
+              END AS "Cash Reconciliation Status"
+         FROM "Cash Dashboard" s;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Statement ID":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Statement ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "As Of Date":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "As Of Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Month Start":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Month Start"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Statement Month":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Statement Month"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Operating Income MTD":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Operating Income MTD"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Expenses MTD":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Expenses MTD"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Profit MTD":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Net Profit MTD"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Tommy Withdrawn MTD":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Tommy Withdrawn MTD"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Lisa Withdrawn MTD":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Lisa Withdrawn MTD"
+      "ordinal": 9
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Unsettled Profit MTD":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Unsettled Profit MTD"
+      "ordinal": 10
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash Pool Remaining":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Cash Pool Remaining"
+      "ordinal": 11
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Business Cash Held":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Business Cash Held"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Margin":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Net Margin"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Partner Draws MTD":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Partner Draws MTD"
+      "ordinal": 14
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash Reconciliation Difference":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Cash Reconciliation Difference"
+      "ordinal": 15
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Profit Since Inception":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Net Profit Since Inception"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Uninitialized Accounts":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Uninitialized Accounts"
+      "ordinal": 17
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Cash Reconciliation Status":
+      "schema": "public"
+      "relation": "reporting_income_statement"
+      "name": "Cash Reconciliation Status"
+      "ordinal": 18
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Expense Category"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Expense Date"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Business Expenses"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Account Label"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Business Cash Held"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Current Balance"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Holder Name"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Initialized"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Ref Cash Account"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Ref Cash Holder"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Account Balances"
+    "referenced_column": "Reimbursement / Advance Due"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Business Cash Held"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Cash Pool Remaining"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Expenses MTD"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Lisa Withdrawn MTD"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Net Profit MTD"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Operating Income MTD"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Tommy Withdrawn MTD"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Dashboard"
+    "referenced_column": "Unsettled Profit MTD"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "30D Average Outstanding Principal"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "30D Return on Average Principal"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Active Loan Count"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Average Successful Loan Size"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Creation Date"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Daily Collection Status"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Default Count"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Description"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Has Active Loan"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Hidden Flag"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Historical Charge Count"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Largest Successful Loan"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Last Late Payment Date"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Lifetime Default Loss"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Lifetime Late Payment Count"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Lifetime On Time Rate"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Matrix Current Condition Score"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Matrix Delay Severity Score"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Matrix Economic Contribution"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Matrix Historical Reliability Score"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Matrix History Sufficient"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Matrix Quadrant"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Matrix Recent Reliability Score"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Matrix Scaled Economic Contribution"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Matrix Stability Score"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Maximum Days Late"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Oldest Active Loan Age"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Overdue Amount"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Portfolio Exposure %"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Portfolio Outstanding Principal"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Profit Last 30 Days"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Projected Monthly Profit Contribution"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Recent 30D Late Payment Count"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Recent 30D On Time Rate"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Return on Active Principal"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Todays Amount Collected"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Todays Amount Due"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Todays Amount Remaining"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Total Interest Earned"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Total Number of Loans"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_borrowers_analytics"
+    "referenced_column": "Total Outstanding Principal"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Close Date"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Current Daily Interest"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Default Loss Amount"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Defaulted Flag"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Due Date"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Expected Interest This Month"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Age Bucket"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Age Days"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Date"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Status"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Loan Type"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Outstanding Principal"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Principal Amount"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Ref Borrowers"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Total Interest Received"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_loans_analytics"
+    "referenced_column": "Total Principal Received"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Interest Paid"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Payment Date"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Principal Paid"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Ref Loans"
+  - "schema": "public"
+    "relation": "reporting_income_statement"
+    "referenced_schema": "public"
+    "referenced_relation": "olap_repayments_analytics"
+    "referenced_column": "Row ID"

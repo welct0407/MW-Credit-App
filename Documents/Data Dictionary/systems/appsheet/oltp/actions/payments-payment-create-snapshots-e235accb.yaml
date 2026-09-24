@@ -1,0 +1,32 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Payments.Payment - Create Snapshots"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Payment - Create Snapshots"
+    "Bulk action?": "Yes"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "1"
+    "With these properties": "{\"ReferencedTable\":\"Charges\",\"ReferencedRows\":\"=[Eligible Charges]\",\"ReferencedAction\"\
+      :\"Payment - Snapshot Charge\",\"InputAssignments\":[],\"InputParametersUsed\":null,\"Prominence\":\"Do_Not_Display\"\
+      ,\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\":true}"
+    "Do this": "REF_ACTION"
+    "Only if this condition is true": "=IF([Allocation Method] = \"Lump Sum\", FALSE, AND([Status] = \"Processing\", [Amount\
+      \ Received] > 0, [Amount Received] <= [Eligible Outstanding], COUNT([Eligible Charges]) > 0, COUNT(SELECT(Payments[Row\
+      \ ID], AND([Ref Borrower] = [_THISROW].[Ref Borrower], [Status] = \"Processing\"))) = 1, COUNT(SELECT(Payment Allocations[Row\
+      \ ID], AND([Ref Payment] = [_THISROW].[Row ID], [Allocation Order] > 0))) = 0, COUNT([Related Repayments]) = 0))"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Payments"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

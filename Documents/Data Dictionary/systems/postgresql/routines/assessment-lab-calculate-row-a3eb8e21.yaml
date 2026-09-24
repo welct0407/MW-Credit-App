@@ -1,0 +1,51 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "assessment_lab.calculate_row()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "assessment_lab"
+    "name": "calculate_row"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": "CREATE OR REPLACE FUNCTION assessment_lab.calculate_row()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\
+      \nDECLARE j jsonb; r record; started timestamptz:=clock_timestamp();\r\nBEGIN\r\n NEW.\"SQL As Of\":=(started AT TIME\
+      \ ZONE 'Asia/Bangkok')::date;\r\n NEW.\"SQL Calculated At\":=started AT TIME ZONE 'Asia/Bangkok';\r\n NEW.\"SQL Forecast\
+      \ Start\":=coalesce(NEW.\"SQL Forecast Start\",date '2026-08-01');\r\n NEW.\"SQL Forecast End\":=coalesce(NEW.\"SQL\
+      \ Forecast End\",date '2026-12-31');\r\n IF NEW.\"SQL Forecast End\"<NEW.\"SQL As Of\" OR NEW.\"SQL Forecast Start\"\
+      >NEW.\"SQL As Of\" OR NEW.\"SQL Forecast End\"-NEW.\"SQL Forecast Start\">3660 THEN\r\n  RAISE EXCEPTION 'Forecast window\
+      \ must include today and cannot exceed 3660 days';\r\n END IF;\r\n j:=assessment_lab.inputs(NEW.\"Ref Borrower\");\r\
+      \n SELECT coalesce(sum((x->>'outstanding')::numeric),0),coalesce(sum((x->>'received_interest')::numeric),0)\r\n INTO\
+      \ NEW.\"SQL Current Principal\",NEW.\"SQL Interest Received\" FROM jsonb_array_elements(j->'loans') x;\r\n NEW.\"SQL\
+      \ Eligible Date\":=NULL; NEW.\"SQL Eligible Interest\":=NULL; NEW.\"SQL Eligible Principal\":=NULL;\r\n NEW.\"SQL Eligible\
+      \ Profit\":=NULL; NEW.\"SQL Eligible Coverage\":=NULL; NEW.\"SQL Eligible Margin\":=NULL; NEW.\"SQL Current Margin\"\
+      :=NULL;\r\n FOR r IN SELECT * FROM assessment_lab.forecast(j->'loans',j->'charges',coalesce(NEW.\"Proposed Loan Amount\"\
+      ::numeric,0),coalesce(NEW.\"Minimum Daily Profit Rate\"::text::numeric,0),NEW.\"SQL As Of\",NEW.\"SQL Forecast Start\"\
+      ,NEW.\"SQL Forecast End\") LOOP\r\n  IF r.day=NEW.\"SQL As Of\" THEN NEW.\"SQL Current Margin\":=r.margin; END IF;\r\
+      \n  IF NEW.\"SQL Eligible Date\" IS NULL AND r.day>=NEW.\"SQL As Of\" AND r.margin>=0\r\n     AND nullif(NEW.\"Ref Borrower\"\
+      ,'') IS NOT NULL AND NEW.\"Proposed Loan Amount\"::numeric>0 AND NEW.\"Minimum Daily Profit Rate\">0 THEN\r\n   NEW.\"\
+      SQL Eligible Date\":=r.day; NEW.\"SQL Eligible Interest\":=r.interest; NEW.\"SQL Eligible Principal\":=r.principal;\r\
+      \n   NEW.\"SQL Eligible Profit\":=r.minimum_profit; NEW.\"SQL Eligible Coverage\":=r.coverage; NEW.\"SQL Eligible Margin\"\
+      :=r.margin;\r\n  END IF;\r\n END LOOP;\r\n RETURN NEW;\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings": null
+    "acl": null
+    "comment": null
+    "extension": null

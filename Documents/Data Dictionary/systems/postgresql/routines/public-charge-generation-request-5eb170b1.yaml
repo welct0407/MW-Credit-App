@@ -1,0 +1,53 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.charge_generation_request()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "charge_generation_request"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.charge_generation_request()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE request_date date;
+      BEGIN
+        IF NEW."Charge Generation Request" IS NULL OR
+          (TG_OP='UPDATE' AND NEW."Charge Generation Request" IS NOT DISTINCT FROM OLD."Charge Generation Request") THEN RETURN NULL; END IF;
+        IF NEW."Charge Generation Request" !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}\|[A-Za-z0-9_-]+$' THEN
+          RAISE EXCEPTION 'Invalid charge generation request';
+        END IF;
+        request_date:=split_part(NEW."Charge Generation Request",'|',1)::date;
+        IF request_date IS DISTINCT FROM (statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date THEN
+          RAISE EXCEPTION 'Charge generation request is stale; sync and request again';
+        END IF;
+        PERFORM public.generate_loan_charge(NEW."Row ID",request_date,true);
+        RETURN NULL;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

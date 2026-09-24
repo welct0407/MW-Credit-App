@@ -4,22 +4,41 @@
   "component": "olap"
   "kind": "table"
   "name": "Cash Ledger"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/olap/tables/cash-ledger.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "olap"
+      "kind": "table"
+      "name": "Cash Ledger"
+      "scope": "recorded-production"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
 "content":
   "source_app": "OLAP"
   "source_table": "Cash Ledger"
   "binding":
-    "App": "OLAP"
-    "Version": "v1.100122"
-    "Table": "Cash Ledger"
-    "Source": "database-2"
-    "Source path": "Cash Ledger"
+    "Table name": "Cash Ledger"
+    "Visible?": "ALWAYS"
+    "Shared?": "Yes"
     "Schema": "Cash Ledger_Schema"
-    "Update permission": "ALL_CHANGES"
-    "Scope": "R005 saved PROD; "
+    "Are updates allowed?": "ALL_CHANGES"
+    "Expression for update mode": "=\"ADDS_AND_UPDATES\""
+    "Source Path": "Cash Ledger"
+    "Data Source": "database-2"
+    "Store for image and file capture": "_Default"
+    "Column Order List":
+    - "_RowNumber"
+    "Partitioned across many files/sources?": "No"
+    "Partitioned across many worksheets?": "No"
+  "schema":
+    "Schema Name": "Cash Ledger_Schema"
+    "Visible?": "ALWAYS"
   "columns":
     "_RowNumber":
       "inventory":
@@ -33,6 +52,7 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "_RowNumber"
         "Visible?": "ALWAYS"
         "Description": "Number of this row"
         "Type": "Number"
@@ -54,19 +74,6 @@
         "Searchable": "No"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.MaxValue": null
-        "Type Qualifier.MinValue": null
-        "Type Qualifier.StepValue": null
-        "Type Qualifier.NumericDigits": null
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Row ID":
       "inventory":
         "App": "OLAP"
@@ -79,6 +86,7 @@
         "Read-only": "Yes"
         "Hidden": "Yes"
       "rules":
+        "Column name": "Row ID"
         "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
@@ -100,17 +108,6 @@
         "Searchable": "No"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.MaxLength": null
-        "Type Qualifier.MinLength": null
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Movement Date":
       "inventory":
         "App": "OLAP"
@@ -123,10 +120,12 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Movement Date"
         "Visible?": "ALWAYS"
         "Type": "Date"
         "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
-          Required_If\":null,\"Editable_If\":\"=[Entry Origin] = \\\"Manual\\\"\",\"Reset_If\":null,\"Suggested_Values\":null}"
+          Required_If\":null,\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\"\
+          ,\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "Yes"
@@ -143,14 +142,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.UseLongDateFormat": "false"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": "=[Entry Origin] = \"Manual\""
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Movement Type":
       "inventory":
         "App": "OLAP"
@@ -163,6 +154,7 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Movement Type"
         "Visible?": "ALWAYS"
         "Type": "Enum"
         "Type Qualifier": "{\"EnumValues\":[],\"AllowOtherValues\":true,\"AutoCompleteOtherValues\":true,\"BaseType\":\"Text\"\
@@ -171,7 +163,8 @@
           \"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"EnumInputMode\"\
           :\"Auto\",\"Valid_If\":\"=IF([Entry Origin] = \\\"System\\\", LIST([_THIS]), LIST(\\\"Cash Handover\\\", \\\"Expense\
           \ Reimbursement\\\"))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
-          :\"=[Entry Origin] = \\\"Manual\\\"\",\"Reset_If\":null,\"Suggested_Values\":null}"
+          :\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -187,22 +180,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.EnumValues": "[]"
-        "Type Qualifier.AllowOtherValues": "true"
-        "Type Qualifier.AutoCompleteOtherValues": "true"
-        "Type Qualifier.BaseType": "Text"
-        "Type Qualifier.BaseTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.EnumInputMode": "Auto"
-        "Type Qualifier.Valid_If": "=IF([Entry Origin] = \"System\", LIST([_THIS]), LIST(\"Cash Handover\", \"Expense Reimbursement\"\
-          ))"
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": "=[Entry Origin] = \"Manual\""
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Amount":
       "inventory":
         "App": "OLAP"
@@ -215,12 +192,14 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Amount"
         "Visible?": "ALWAYS"
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
           :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND([_THIS]\
           \ > 0, [_THIS] = FLOOR([_THIS]))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
-          :\"=[Entry Origin] = \\\"Manual\\\"\",\"Reset_If\":null,\"Suggested_Values\":null}"
+          :\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -236,21 +215,6 @@
         "Searchable": "No"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.CurrencySymbol": "฿"
-        "Type Qualifier.MaxValue": null
-        "Type Qualifier.MinValue": null
-        "Type Qualifier.StepValue": null
-        "Type Qualifier.DecimalDigits": "0"
-        "Type Qualifier.NumericDigits": null
-        "Type Qualifier.ShowThousandsSeparator": "true"
-        "Type Qualifier.NumberDisplayMode": "Auto"
-        "Type Qualifier.Valid_If": "=AND([_THIS] > 0, [_THIS] = FLOOR([_THIS]))"
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": "=[Entry Origin] = \"Manual\""
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Ref From Cash Holder":
       "inventory":
         "App": "OLAP"
@@ -263,6 +227,7 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Ref From Cash Holder"
         "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
@@ -270,10 +235,11 @@
           :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
           \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":\"=IF([Entry Origin] = \\\"System\\\", LIST([_THIS]), IF([Movement Type] = \\\"Expense Reimbursement\\\
-          \", LIST(\\\"ch:lisa\\\"), LIST(\\\"ch:dad\\\", \\\"ch:lisa\\\")))\",\"Error_Message_If_Invalid\":null,\"Show_If\"\
-          :null,\"Required_If\":\"=[Entry Origin] = \\\"Manual\\\"\",\"Editable_If\":\"=[Entry Origin] = \\\"Manual\\\"\"\
-          ,\"Reset_If\":null,\"Suggested_Values\":null}"
+          ,\"Valid_If\":\"=IF(OR([Entry Origin] = \\\"System\\\", IN([Row ID], Cash Ledger[Row ID])), LIST([_THIS]), IF([Movement\
+          \ Type] = \\\"Expense Reimbursement\\\", LIST(\\\"ch:lisa\\\"), LIST(\\\"ch:dad\\\", \\\"ch:lisa\\\", \\\"ch:tommy\\\
+          \")))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":\"=[Entry Origin] = \\\"Manual\\\"\"\
+          ,\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\"\
+          :null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -289,31 +255,15 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.ReferencedTableName": "Cash Holders"
-        "Type Qualifier.ReferencedRootTableName": "Cash Holders"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "false"
-        "Type Qualifier.RelationshipName": null
-        "Type Qualifier.InputMode": "Auto"
-        "Type Qualifier.Valid_If": "=IF([Entry Origin] = \"System\", LIST([_THIS]), IF([Movement Type] = \"Expense Reimbursement\"\
-          , LIST(\"ch:lisa\"), LIST(\"ch:dad\", \"ch:lisa\")))"
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": "=[Entry Origin] = \"Manual\""
-        "Type Qualifier.Editable_If": "=[Entry Origin] = \"Manual\""
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
       "relationship":
-        "App": "OLAP"
-        "Child table": "Cash Ledger"
-        "Ref column": "Ref From Cash Holder"
-        "Parent table": "Cash Holders"
-        "Parent key": "Row ID"
-        "Part of parent": false
+        "ReferencedTableName": "Cash Holders"
+        "ReferencedRootTableName": "Cash Holders"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
     "Ref To Cash Holder":
       "inventory":
         "App": "OLAP"
@@ -326,6 +276,7 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Ref To Cash Holder"
         "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
@@ -333,10 +284,11 @@
           :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
           \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":\"=IF([Entry Origin] = \\\"System\\\", LIST([_THIS]), IF([Movement Type] = \\\"Expense Reimbursement\\\
-          \", LIST(\\\"ch:tommy\\\"), LIST(\\\"ch:dad\\\", \\\"ch:lisa\\\") - LIST([Ref From Cash Holder])))\",\"Error_Message_If_Invalid\"\
-          :null,\"Show_If\":null,\"Required_If\":\"=[Entry Origin] = \\\"Manual\\\"\",\"Editable_If\":\"=[Entry Origin] =\
-          \ \\\"Manual\\\"\",\"Reset_If\":null,\"Suggested_Values\":null}"
+          ,\"Valid_If\":\"=IF(OR([Entry Origin] = \\\"System\\\", IN([Row ID], Cash Ledger[Row ID])), LIST([_THIS]), IF([Movement\
+          \ Type] = \\\"Expense Reimbursement\\\", LIST(\\\"ch:tommy\\\"), IF([Ref From Cash Holder] = \\\"ch:tommy\\\", LIST(\\\
+          \"ch:tommy\\\"), LIST(\\\"ch:dad\\\", \\\"ch:lisa\\\"))))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
+          Required_If\":\"=[Entry Origin] = \\\"Manual\\\"\",\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row\
+          \ ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -352,31 +304,15 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.ReferencedTableName": "Cash Holders"
-        "Type Qualifier.ReferencedRootTableName": "Cash Holders"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "false"
-        "Type Qualifier.RelationshipName": null
-        "Type Qualifier.InputMode": "Auto"
-        "Type Qualifier.Valid_If": "=IF([Entry Origin] = \"System\", LIST([_THIS]), IF([Movement Type] = \"Expense Reimbursement\"\
-          , LIST(\"ch:tommy\"), LIST(\"ch:dad\", \"ch:lisa\") - LIST([Ref From Cash Holder])))"
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": "=[Entry Origin] = \"Manual\""
-        "Type Qualifier.Editable_If": "=[Entry Origin] = \"Manual\""
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
       "relationship":
-        "App": "OLAP"
-        "Child table": "Cash Ledger"
-        "Ref column": "Ref To Cash Holder"
-        "Parent table": "Cash Holders"
-        "Parent key": "Row ID"
-        "Part of parent": false
+        "ReferencedTableName": "Cash Holders"
+        "ReferencedRootTableName": "Cash Holders"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
     "Ref Payment":
       "inventory":
         "App": "OLAP"
@@ -389,6 +325,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Ref Payment"
         "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Payments\",\"ReferencedRootTableName\":\"Payments\",\"ReferencedType\"\
@@ -413,30 +350,15 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.ReferencedTableName": "Payments"
-        "Type Qualifier.ReferencedRootTableName": "Payments"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "false"
-        "Type Qualifier.RelationshipName": null
-        "Type Qualifier.InputMode": "Auto"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
       "relationship":
-        "App": "OLAP"
-        "Child table": "Cash Ledger"
-        "Ref column": "Ref Payment"
-        "Parent table": "Payments"
-        "Parent key": "Row ID"
-        "Part of parent": false
+        "ReferencedTableName": "Payments"
+        "ReferencedRootTableName": "Payments"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
     "Ref Loan":
       "inventory":
         "App": "OLAP"
@@ -449,6 +371,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Ref Loan"
         "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\":\"\
@@ -473,30 +396,15 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.ReferencedTableName": "Loans"
-        "Type Qualifier.ReferencedRootTableName": "Loans"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "false"
-        "Type Qualifier.RelationshipName": null
-        "Type Qualifier.InputMode": "Auto"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
       "relationship":
-        "App": "OLAP"
-        "Child table": "Cash Ledger"
-        "Ref column": "Ref Loan"
-        "Parent table": "Loans"
-        "Parent key": "Row ID"
-        "Part of parent": false
+        "ReferencedTableName": "Loans"
+        "ReferencedRootTableName": "Loans"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
     "Ref Business Expense":
       "inventory":
         "App": "OLAP"
@@ -509,6 +417,7 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Ref Business Expense"
         "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Business Expenses\",\"ReferencedRootTableName\":\"Business Expenses\"\
@@ -519,8 +428,8 @@
           ,\"Valid_If\":\"=IF([Entry Origin] = \\\"System\\\", LIST([_THIS]), SELECT(Business Expenses[Row ID], AND([Amount]\
           \ > 0, [Ref Paid By Cash Holder] = \\\"ch:tommy\\\")))\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=OR([Entry\
           \ Origin] = \\\"System\\\", [Movement Type] = \\\"Expense Reimbursement\\\")\",\"Required_If\":null,\"Editable_If\"\
-          :\"=AND([Entry Origin] = \\\"Manual\\\", [Movement Type] = \\\"Expense Reimbursement\\\")\",\"Reset_If\":null,\"\
-          Suggested_Values\":null}"
+          :\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -536,31 +445,15 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.ReferencedTableName": "Business Expenses"
-        "Type Qualifier.ReferencedRootTableName": "Business Expenses"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "false"
-        "Type Qualifier.RelationshipName": null
-        "Type Qualifier.InputMode": "Auto"
-        "Type Qualifier.Valid_If": "=IF([Entry Origin] = \"System\", LIST([_THIS]), SELECT(Business Expenses[Row ID], AND([Amount]\
-          \ > 0, [Ref Paid By Cash Holder] = \"ch:tommy\")))"
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": "=OR([Entry Origin] = \"System\", [Movement Type] = \"Expense Reimbursement\")"
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": "=AND([Entry Origin] = \"Manual\", [Movement Type] = \"Expense Reimbursement\")"
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
       "relationship":
-        "App": "OLAP"
-        "Child table": "Cash Ledger"
-        "Ref column": "Ref Business Expense"
-        "Parent table": "Business Expenses"
-        "Parent key": "Row ID"
-        "Part of parent": false
+        "ReferencedTableName": "Business Expenses"
+        "ReferencedRootTableName": "Business Expenses"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
     "Ref Settlement":
       "inventory":
         "App": "OLAP"
@@ -573,6 +466,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Ref Settlement"
         "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Settlements\",\"ReferencedRootTableName\":\"Settlements\",\"ReferencedType\"\
@@ -597,30 +491,15 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.ReferencedTableName": "Settlements"
-        "Type Qualifier.ReferencedRootTableName": "Settlements"
-        "Type Qualifier.ReferencedType": "Text"
-        "Type Qualifier.ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\"\
-          ,\"IsMulticolumnKey\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Type Qualifier.ReferencedKeyColumn": "Row ID"
-        "Type Qualifier.IsAPartOf": "false"
-        "Type Qualifier.RelationshipName": null
-        "Type Qualifier.InputMode": "Auto"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
       "relationship":
-        "App": "OLAP"
-        "Child table": "Cash Ledger"
-        "Ref column": "Ref Settlement"
-        "Parent table": "Settlements"
-        "Parent key": "Row ID"
-        "Part of parent": false
+        "ReferencedTableName": "Settlements"
+        "ReferencedRootTableName": "Settlements"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
     "Entry Origin":
       "inventory":
         "App": "OLAP"
@@ -633,6 +512,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Entry Origin"
         "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
@@ -654,17 +534,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.MaxLength": null
-        "Type Qualifier.MinLength": null
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Source Type":
       "inventory":
         "App": "OLAP"
@@ -677,6 +546,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Source Type"
         "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
@@ -697,17 +567,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.MaxLength": null
-        "Type Qualifier.MinLength": null
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Source Key":
       "inventory":
         "App": "OLAP"
@@ -720,6 +579,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Source Key"
         "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
@@ -740,17 +600,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.MaxLength": null
-        "Type Qualifier.MinLength": null
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Notes":
       "inventory":
         "App": "OLAP"
@@ -763,6 +612,7 @@
         "Read-only": "No"
         "Hidden": "No"
       "rules":
+        "Column name": "Notes"
         "Visible?": "ALWAYS"
         "Type": "LongText"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
@@ -783,17 +633,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.MaxLength": null
-        "Type Qualifier.MinLength": null
-        "Type Qualifier.LongTextFormatting": "Plain Text"
-        "Type Qualifier.IsMulticolumnKey": "false"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": "=[Entry Origin] = \"Manual\""
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Created At":
       "inventory":
         "App": "OLAP"
@@ -806,6 +645,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Created At"
         "Visible?": "ALWAYS"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
@@ -827,17 +667,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.MinValue": null
-        "Type Qualifier.MaxValue": null
-        "Type Qualifier.UseLongDateFormat": "false"
-        "Type Qualifier.IgnoreSeconds": "false"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Created By":
       "inventory":
         "App": "OLAP"
@@ -850,6 +679,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Created By"
         "Visible?": "ALWAYS"
         "Type": "Email"
         "Type Qualifier": "{\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
@@ -870,13 +700,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
     "Updated At":
       "inventory":
         "App": "OLAP"
@@ -889,6 +712,7 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "Column name": "Updated At"
         "Visible?": "ALWAYS"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
@@ -910,17 +734,110 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Type Qualifier.MinValue": null
-        "Type Qualifier.MaxValue": null
-        "Type Qualifier.UseLongDateFormat": "false"
-        "Type Qualifier.IgnoreSeconds": "false"
-        "Type Qualifier.Valid_If": null
-        "Type Qualifier.Error_Message_If_Invalid": null
-        "Type Qualifier.Show_If": null
-        "Type Qualifier.Required_If": null
-        "Type Qualifier.Editable_If": null
-        "Type Qualifier.Reset_If": null
-        "Type Qualifier.Suggested_Values": null
+    "Ref From Cash Account":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Ledger"
+        "Column": "Ref From Cash Account"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Ref From Cash Account"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"จากบัญชี / From Account\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = [_THISROW].[Ref From Cash Holder]),\
+          \ AND(IN([_THISROW].[Row ID], Cash Ledger[Row ID]), [Row ID] = [_THISROW].[Ref From Cash Account])))\",\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":\"=AND(NOT(IN([Row ID], Cash Ledger[Row ID])), ISNOTBLANK([Ref From Cash\
+          \ Holder]))\",\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\"\
+          ,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = [_THISROW].[Ref\
+          \ From Cash Holder])))"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Cash Accounts"
+        "ReferencedRootTableName": "Cash Accounts"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+    "Ref To Cash Account":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Cash Ledger"
+        "Column": "Ref To Cash Account"
+        "Type": "Ref"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Ref To Cash Account"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"เข้าบัญชี / To Account\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = [_THISROW].[Ref To Cash Holder],\
+          \ [Row ID] <> [_THISROW].[Ref From Cash Account]), AND(IN([_THISROW].[Row ID], Cash Ledger[Row ID]), [Row ID] =\
+          \ [_THISROW].[Ref To Cash Account])))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":\"=AND(NOT(IN([Row\
+          \ ID], Cash Ledger[Row ID])), ISNOTBLANK([Ref To Cash Holder]))\",\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\
+          \", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = [_THISROW].[Ref\
+          \ To Cash Holder], [Row ID] <> [_THISROW].[Ref From Cash Account])))"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Cash Accounts"
+        "ReferencedRootTableName": "Cash Accounts"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
     "Movement Time":
       "inventory":
         "App": "OLAP"
@@ -932,6 +849,29 @@
         "Label": "No"
         "Read-only": "Yes"
         "Hidden": "No"
+      "rules":
+        "Column name": "Movement Time"
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=TEXT([Created At], \"HH:MM\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Ref Borrower":
       "inventory":
         "App": "OLAP"
@@ -943,3 +883,232 @@
         "Label": "No"
         "Read-only": "Yes"
         "Hidden": "No"
+      "rules":
+        "Column name": "Ref Borrower"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"ผู้กู้ / Borrower\""
+        "Type": "Ref"
+        "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
+          :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
+          :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
+          \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=IFS(ISNOTBLANK([Ref Payment]), [Ref Payment].[Ref Borrower], ISNOTBLANK([Ref Loan]), [Ref Loan].[Ref\
+          \ Borrowers], ISNOTBLANK([Ref Business Expense].[Ref Related Borrower]), [Ref Business Expense].[Ref Related Borrower],\
+          \ TRUE, \"\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+      "relationship":
+        "ReferencedTableName": "Borrowers"
+        "ReferencedRootTableName": "Borrowers"
+        "ReferencedType": "Text"
+        "ReferencedTypeQualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "ReferencedKeyColumn": "Row ID"
+        "IsAPartOf": false
+  "editor":
+    "fields":
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Cash Ledger"
+      "label": "Table name"
+      "text": |-
+        Table name
+        Name for this table (user-visible)
+        ​
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "\"ADDS_AND_UPDATES\""
+      "label": "Are updates allowed?"
+      "text": |-
+        Are updates allowed?
+        Are adds, deletes and updates allowed?
+        =
+        ​
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Cash Ledger"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "15"
+      "label": "Source Path"
+      "text": "Source PathA user-understandable path to the table data - select a source -olap_borrowers_analyticsolap_loans_analyticsolap_repayments_analyticsStatisticsolap_charges_analyticsLoan\
+        \ Assessment SQL Lab ViewCash Pool ContributionsPartnersSettlementsDaily AnalyticsPayment AllocationsPaymentsBusiness\
+        \ ExpensesCash HoldersCash Holder BalancesCash Ledgerolap_portfolio_summaryCash AccountsCash Account Balances- browse\
+        \ for more data -"
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": ""
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Add"
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "_RowNumber"
+      "label": "Column Order List"
+      "text": "Column Order ListThe order of columns to retrieve from the provider (only applies to some storage providers)drag_indicator_RowNumber​Add"
+    - "choices":
+      - "checked": null
+        "pressed": null
+        "role": null
+        "text": "Copy Data to New Source"
+      "controls": []
+      "label": "Data Source"
+      "text": "Data SourceName of the table data sourcedatabase-2Copy Data to New Source"
+    - "choices": []
+      "controls": []
+      "label": "Source Id"
+      "text": "Source IdA provider-specific path to the table data (not user-visible)Table=public.Cash Ledger__Cash Ledger"
+    - "choices": []
+      "controls":
+      - "selected":
+        - "Default"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "_Default"
+      "label": "Store for image and file capture"
+      "text": "Store for image and file captureBy default, images and files captured by the app are stored in the cloud file\
+        \ system associated with the app owner's account. You can explicitly add an object store and use it instead.Default"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      "label": "Filter out all existing rows?"
+      "text": "Filter out all existing rows?Used only in forms apps that collect new data rows but never show any pre-existing\
+        \ rows."
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Security filter"
+      "text": "Security filterThe app uses only those rows that match this (optional) filter condition. Use this filter to\
+        \ limit what each user can see.=science​"
+    - "choices":
+      - "checked": "true"
+        "pressed": null
+        "role": "radio"
+        "text": "as app creator"
+      - "checked": "false"
+        "pressed": null
+        "role": "radio"
+        "text": "as app user"
+      "controls": []
+      "label": "Access mode"
+      "text": "Access modeThe app will access the spreadsheet using the app creator or app user credentials.as app creatoras\
+        \ app user"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      "label": "Shared?"
+      "text": "Shared?Is this table shared by all users? This option is normally checked. Before unchecking, carefully review\
+        \ 'Private Tables' in the documentation."
+    - "choices": []
+      "controls":
+      - "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      "label": "Data locale"
+      "text": "Data localeLocale used to read the tableCompatibility (For backward compatibility)Amharic (Ethiopia)Arabic\
+        \ (Algeria)Arabic (Bahrain)Arabic (Egypt)Arabic (Iraq)Arabic (Jordan)Arabic (Kuwait)Arabic (Lebanon)Arabic (Libya)Arabic\
+        \ (Morocco)Arabic (Oman)Arabic (Qatar)Arabic (Saudi Arabia)Arabic (Syria)Arabic (Tunisia)Arabic (United Arab Emirates)Arabic\
+        \ (Yemen)Armenian (Armenia)Azerbaijani (Cyrillic, Azerbaijan)Azerbaijani (Latin, Azerbaijan)Bengali (India)Bulgarian\
+        \ (Bulgaria)Burmese (Myanmar)Catalan (Catalan)Chinese (Simplified, China)Chinese (Traditional, Hong Kong SAR)Chinese\
+        \ (Traditional, Taiwan)Chinese Traditional (Malaysia)Croatian (Croatia)Czech (Czechia)Danish (Denmark)Dari (Afghanistan)Dutch\
+        \ (Aruba)Dutch (Belgium)Dutch (Curaçao)Dutch (Netherlands)English (Australia)English (Bahrain)English (Belgium)English\
+        \ (Brazil)English (Canada)English (Germany)English (Hong Kong SAR)English (India)English (Ireland)English (Kenya)English\
+        \ (Malaysia)English (New Zealand)English (Norway)English (Philippines)English (Singapore)English (South Africa)English\
+        \ (Sri Lanka)English (Tanzania)English (United Kingdom)English (United States)Filipino (Philippines)Finnish (Finland)French\
+        \ (Belgium)French (Cameroon)French (Canada)French (Côte d’Ivoire)French (France)French (Luxembourg)French (Mali)French\
+        \ (Morocco)French (Senegal)French (Switzerland)French Congo (DRC)Fulah (Latin, Senegal)Georgian (Georgia)German (Austria)German\
+        \ (Germany)German (Liechtenstein)German (Luxembourg)German (Switzerland)Greek (Greece)Gujarati (India)Hausa (Latin,\
+        \ Nigeria)Hebrew (Israel)Hindi (India)Hungarian (Hungary)Igbo (Nigeria)Indonesian (Indonesia)Irish (Ireland)Italian\
+        \ (Italy)Italian (Switzerland)Japanese (Japan)Kannada (India)Kinyarwanda (Rwanda)Kiswahili (Kenya)Kiswahili (Tanzania)Korean\
+        \ (Korea)Latvian (Latvia)Lingala (Angola)Lithuanian (Lithuania)Malay (Brunei)Malay (Malaysia)Malayalam (India)Marathi\
+        \ (India)Mongolian (Mongolia)Norwegian Bokmål (Norway)Norwegian Nynorsk (Norway)Oromo (Ethiopia)Pashto (Afghanistan)Persian\
+        \ (Iran)Polish (Poland)Portuguese (Angola)Portuguese (Brazil)Portuguese (Mozambique)Portuguese (Portugal)Romanian\
+        \ (Romania)Russian (Russia)Serbian (Cyrillic, Serbia)Serbian (Latin, Serbia)Serbian (Serbia)Setswana (Botswana)Sinhala\
+        \ (Sri Lanka)Slovak (Slovakia)Slovenian (Slovenia)Spanish (Argentina)Spanish (Bolivia)Spanish (Chile)Spanish (Colombia)Spanish\
+        \ (Costa Rica)Spanish (Dominican Republic)Spanish (Ecuador)Spanish (El Salvador)Spanish (Guatemala)Spanish (Honduras)Spanish\
+        \ (Latin America)Spanish (Latin America)Spanish (Mexico)Spanish (Nicaragua)Spanish (Panama)Spanish (Paraguay)Spanish\
+        \ (Peru)Spanish (Spain, International Sort)Spanish (United States)Spanish (Uruguay)Spanish (Venezuela)Swedish (Sweden)Tamil\
+        \ (India)Tamil (Sri Lanka)Telugu (India)Thai (Thailand)Tigrinya (Ethiopia)Turkish (Turkey)Ukrainian (Ukraine)Vietnamese\
+        \ (Vietnam)Yoruba (Nigeria)"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
+        \ app"
+    "update_permissions_snapshot": |2-
+
+        - heading "Table settings" [level=5]
+        - button "close":
+        - heading "Table name" [level=6]
+        - text: Name for this table (user-visible)
+        - textbox: Cash Ledger
+        - heading "Are updates allowed?" [level=6]
+        - text: Are adds, deletes and updates allowed?
+        - generic: =
+        - textbox: "\"ADDS_AND_UPDATES\""
+        - button:
+          - generic: 
+        - heading "Storage" [level=3]
+        - generic: 
+        - text: (ENTERPRISE Plan)
+        - heading "Security" [level=3]
+        - generic: 
+        - text: (APPSHEET CORE) (APPSHEET CORE) (APPSHEET CORE)
+        - heading "Localization" [level=3]
+        - generic: 
+        - heading "Documentation" [level=3]
+        - generic: 
+        - button "Done":
+          - generic: Done

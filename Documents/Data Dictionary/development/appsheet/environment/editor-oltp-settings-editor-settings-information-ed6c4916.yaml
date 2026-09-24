@@ -1,0 +1,524 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "settings"
+  "name": "Editor settings/Information"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/oltp/settings/editor-editor-settings-information-ed6c4916.yaml"
+  "classification": "Environment app identity/version/folder/theme/access and supporting UI text; exact differences retained."
+  "changes":
+  - "pointer": "/controls"
+    "before":
+      "state": "value"
+      "value":
+      - "label": "Short Name"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "Loan Manager ผู้จัดการสินเชื่อ"
+      - "label": "Version"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "3.000246"
+      - "label": "Short Description"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "This app assists users in managing the loans."
+      - "label": "Category"
+        "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      - "label": "Function"
+        "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      - "label": "Industry"
+        "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      - "label": "Description"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Description"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Personal use only?"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Default app folder"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "/appsheet/data/LoanManager-975338008-26-08-07"
+      - "label": "User Guidance"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "User Guidance"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "About Url"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      - "label": "Privacy policy"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Privacy policy"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Terms of use"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Terms of use"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Purpose"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Purpose"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Design Details"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Design Details"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Readme PDF document"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      - "label": "Reference Url"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+    "after":
+      "state": "value"
+      "value":
+      - "label": "Short Name"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "MW-OLTP-DEV-20260919"
+      - "label": "Version"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "1.000075"
+      - "label": "Short Description"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "This app assists users in managing the loans."
+      - "label": "Category"
+        "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      - "label": "Function"
+        "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      - "label": "Industry"
+        "selected":
+        - ""
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": ""
+      - "label": "Description"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Description"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Personal use only?"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Default app folder"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "/appsheet/data/MW-OLTP-DEV-20260919-578763613"
+      - "label": "User Guidance"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "User Guidance"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "About Url"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      - "label": "Privacy policy"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Privacy policy"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Terms of use"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Terms of use"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Purpose"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Purpose"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Design Details"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "label": "Design Details"
+        "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      - "label": "Readme PDF document"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      - "label": "Reference Url"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      - "label": "Short Name"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+  - "pointer": "/snapshot"
+    "before":
+      "state": "value"
+      "value": |2-
+          - paragraph: Information
+          - alert:
+            - generic: Customize information for app users and set app properties
+          - heading "App Properties" [level=3]
+          - heading "Short Name" [level=6]
+          - text: Unique (one-word) handle for app
+          - textbox: Loan Manager ผู้จัดการสินเชื่อ
+          - heading "Version" [level=6]
+          - text: Major and minor version number. Increment the major version number when you make significant changes to the app column structure
+          - textbox: "3.000246"
+          - heading "Short Description" [level=6]
+          - text: One sentence description of the application
+          - textbox: This app assists users in managing the loans.
+          - heading "Category" [level=6]
+          - text: Category for the application
+          - combobox "Select an option":
+            - option [selected]
+            - option "Business Solution"
+            - option "Professional Solution"
+            - option "Personal Solution"
+            - option "Custom Apps"
+            - option "System Apps"
+            - option "How-to Apps"
+          - heading "Function" [level=6]
+          - text: Target function for the application
+          - combobox "Select an option":
+            - option [selected]
+            - option "Field Service"
+            - option "Inspections & Surveys"
+            - option "Property Management"
+            - option "Inventory Management"
+            - option "Customer Engagement"
+            - option "Sales & CRM"
+            - option "Planning & Project Management"
+            - option "Human Resources"
+            - option "Education & Training"
+            - option "Marketing"
+            - option "Legal"
+            - option "Accounting"
+            - option "Manufacturing"
+            - option "Operations"
+            - option "Procurement"
+            - option "Logistics"
+            - option "E-Commerce"
+            - option "Maintenance"
+            - option "Production"
+            - option "Quality Management"
+            - option "Administration"
+            - option "Health, Safety and Environment"
+            - option "Productivity"
+            - option "Personal/Fun"
+            - option "Other"
+          - heading "Industry" [level=6]
+          - text: Target industry for the application
+          - combobox "Select an option":
+            - option [selected]
+            - option "Education"
+            - option "Non-Profit"
+            - option "Government"
+            - option "Legal"
+            - option "Manufacturing"
+            - option "Transportation"
+            - option "Construction"
+            - option "Retail"
+            - option "Agriculture"
+            - option "Real Estate"
+            - option "Technology"
+            - option "Hospitality"
+            - option "Medical"
+            - option "Automotive"
+            - option "Insurance"
+            - option "Sports"
+            - option "Travel"
+            - option "Media"
+            - option "Financial Services"
+            - option "Consumer Services"
+            - option "Business Services"
+            - option "Other"
+          - heading "Tags" [level=6]
+          - text: Feature tags used by this application
+          - button "Add":
+            - generic: Add
+          - heading "Description" [level=6]
+          - text: A verbose (one-paragraph) description of the application
+          - textbox
+          - heading "Personal use only?" [level=6]
+          - text: Is the app meant for personal use only, not for work or in a group or organization?
+          - checkbox
+          - heading "Default app folder" [level=6]
+          - text: The default location for app files
+          - textbox: /appsheet/data/LoanManager-975338008-26-08-07
+          - heading "Information for App Users" [level=3]
+          - heading "User Guidance" [level=6]
+          - text: How-to information that users of the app will see
+          - textbox
+          - heading "About Url" [level=6]
+          - text: URL to a web page with more information about this app
+          - textbox
+          - heading "Privacy policy" [level=6]
+          - text: Privacy policy for end-users of the app. This information is publicly visible.
+          - textbox
+          - text: The Privacy Policy for this app is publicly available
+          - link "here":
+            - /url: /appinfo/privacypolicy?appId=93844270-6aa5-420b-a960-bcdf08abd357
+          - heading "Terms of use" [level=6]
+          - text: Terms of use for end-users of the app. This information is publicly visible.
+          - textbox
+          - text: The Terms of Use for this app are publicly available
+          - link "here":
+            - /url: /appinfo/termsofuse?appId=93844270-6aa5-420b-a960-bcdf08abd357
+          - heading "App Documentation" [level=3]
+          - heading "Purpose" [level=6]
+          - text: Description of the purpose of the app, target users, usage scenarios, and the expected benefit
+          - textbox
+          - heading "Design Details" [level=6]
+          - text: Description of app design details, for the app creator or for others who look at the implementation of the app
+          - textbox
+          - heading "Readme PDF document" [level=6]
+          - text: An optional PDF description associated with the app definition. This file is copied along with the app definition
+          - textbox
+          - button "Choose file":
+          - heading "Reference Url" [level=6]
+          - text: An optional url associated with the app definition. This is used for further documentation
+          - textbox
+          - text: The documentation page for this app is available
+          - link "here":
+            - /url: /template/appdoc?appId=93844270-6aa5-420b-a960-bcdf08abd357
+    "after":
+      "state": "value"
+      "value": |2-
+          - paragraph: Information
+          - alert:
+            - generic: Customize information for app users and set app properties
+          - heading "App Properties" [level=3]
+          - heading "Short Name" [level=6]
+          - text: Unique (one-word) handle for app
+          - textbox: MW-OLTP-DEV-20260919
+          - heading "Version" [level=6]
+          - text: Major and minor version number. Increment the major version number when you make significant changes to the app column structure
+          - textbox: "1.000075"
+          - heading "Short Description" [level=6]
+          - text: One sentence description of the application
+          - textbox: This app assists users in managing the loans.
+          - heading "Category" [level=6]
+          - text: Category for the application
+          - combobox "Select an option":
+            - option [selected]
+            - option "Business Solution"
+            - option "Professional Solution"
+            - option "Personal Solution"
+            - option "Custom Apps"
+            - option "System Apps"
+            - option "How-to Apps"
+          - heading "Function" [level=6]
+          - text: Target function for the application
+          - combobox "Select an option":
+            - option [selected]
+            - option "Field Service"
+            - option "Inspections & Surveys"
+            - option "Property Management"
+            - option "Inventory Management"
+            - option "Customer Engagement"
+            - option "Sales & CRM"
+            - option "Planning & Project Management"
+            - option "Human Resources"
+            - option "Education & Training"
+            - option "Marketing"
+            - option "Legal"
+            - option "Accounting"
+            - option "Manufacturing"
+            - option "Operations"
+            - option "Procurement"
+            - option "Logistics"
+            - option "E-Commerce"
+            - option "Maintenance"
+            - option "Production"
+            - option "Quality Management"
+            - option "Administration"
+            - option "Health, Safety and Environment"
+            - option "Productivity"
+            - option "Personal/Fun"
+            - option "Other"
+          - heading "Industry" [level=6]
+          - text: Target industry for the application
+          - combobox "Select an option":
+            - option [selected]
+            - option "Education"
+            - option "Non-Profit"
+            - option "Government"
+            - option "Legal"
+            - option "Manufacturing"
+            - option "Transportation"
+            - option "Construction"
+            - option "Retail"
+            - option "Agriculture"
+            - option "Real Estate"
+            - option "Technology"
+            - option "Hospitality"
+            - option "Medical"
+            - option "Automotive"
+            - option "Insurance"
+            - option "Sports"
+            - option "Travel"
+            - option "Media"
+            - option "Financial Services"
+            - option "Consumer Services"
+            - option "Business Services"
+            - option "Other"
+          - heading "Tags" [level=6]
+          - text: Feature tags used by this application
+          - button "Add":
+            - generic: Add
+          - heading "Description" [level=6]
+          - text: A verbose (one-paragraph) description of the application
+          - textbox
+          - heading "Personal use only?" [level=6]
+          - text: Is the app meant for personal use only, not for work or in a group or organization?
+          - checkbox
+          - heading "Default app folder" [level=6]
+          - text: The default location for app files
+          - textbox: /appsheet/data/MW-OLTP-DEV-20260919-578763613
+          - heading "Information for App Users" [level=3]
+          - heading "User Guidance" [level=6]
+          - text: How-to information that users of the app will see
+          - textbox
+          - heading "About Url" [level=6]
+          - text: URL to a web page with more information about this app
+          - textbox
+          - heading "Privacy policy" [level=6]
+          - text: Privacy policy for end-users of the app. This information is publicly visible.
+          - textbox
+          - text: The Privacy Policy for this app is publicly available
+          - link "here":
+            - /url: /appinfo/privacypolicy?appId=500b27b6-884a-41e8-a9ec-df801b0110ad
+          - heading "Terms of use" [level=6]
+          - text: Terms of use for end-users of the app. This information is publicly visible.
+          - textbox
+          - text: The Terms of Use for this app are publicly available
+          - link "here":
+            - /url: /appinfo/termsofuse?appId=500b27b6-884a-41e8-a9ec-df801b0110ad
+          - heading "App Documentation" [level=3]
+          - heading "Purpose" [level=6]
+          - text: Description of the purpose of the app, target users, usage scenarios, and the expected benefit
+          - textbox
+          - heading "Design Details" [level=6]
+          - text: Description of app design details, for the app creator or for others who look at the implementation of the app
+          - textbox
+          - heading "Readme PDF document" [level=6]
+          - text: An optional PDF description associated with the app definition. This file is copied along with the app definition
+          - textbox
+          - button "Choose file":
+          - heading "Reference Url" [level=6]
+          - text: An optional url associated with the app definition. This is used for further documentation
+          - textbox
+          - text: The documentation page for this app is available
+          - link "here":
+            - /url: /template/appdoc?appId=500b27b6-884a-41e8-a9ec-df801b0110ad

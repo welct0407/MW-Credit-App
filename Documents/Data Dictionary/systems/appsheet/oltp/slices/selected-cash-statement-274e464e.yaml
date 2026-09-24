@@ -1,0 +1,101 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "slice"
+  "name": "Selected Cash Statement"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Slice Name": "Selected Cash Statement"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Row ID"
+    - "Ref Cash Account"
+    - "Statement Date"
+    - "Statement Time"
+    - "Sort Timestamp"
+    - "Transaction Type Code"
+    - "Counterparty Kind"
+    - "Counterparty Text"
+    - "Ref Borrower"
+    - "Ref Other Cash Account"
+    - "Ref Partner"
+    - "Ref Payment"
+    - "Ref Loan"
+    - "Ref Business Expense"
+    - "Settlement Row ID"
+    - "Signed Amount"
+    - "Balance After"
+    - "Is Initialized"
+    - "Notes"
+    - "Source Type"
+    - "Source Key"
+    - "User Language"
+    - "Transaction"
+    - "Counterparty"
+    - "Amount Display"
+    "Row filter condition": "=AND([Ref Cash Account] = ANY(Cash Statement Context[Ref Cash Account]), [Statement Date] = ANY(Cash\
+      \ Statement Context[Statement Date]))"
+    "Update mode": "READ_ONLY"
+    "Source Table": "Cash Account Statement Recent"
+    "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
+  "members":
+  - "Ordinal": 1
+    "Column": "_RowNumber"
+  - "Ordinal": 2
+    "Column": "Row ID"
+  - "Ordinal": 3
+    "Column": "Ref Cash Account"
+  - "Ordinal": 4
+    "Column": "Statement Date"
+  - "Ordinal": 5
+    "Column": "Statement Time"
+  - "Ordinal": 6
+    "Column": "Sort Timestamp"
+  - "Ordinal": 7
+    "Column": "Transaction Type Code"
+  - "Ordinal": 8
+    "Column": "Counterparty Kind"
+  - "Ordinal": 9
+    "Column": "Counterparty Text"
+  - "Ordinal": 10
+    "Column": "Ref Borrower"
+  - "Ordinal": 11
+    "Column": "Ref Other Cash Account"
+  - "Ordinal": 12
+    "Column": "Ref Partner"
+  - "Ordinal": 13
+    "Column": "Ref Payment"
+  - "Ordinal": 14
+    "Column": "Ref Loan"
+  - "Ordinal": 15
+    "Column": "Ref Business Expense"
+  - "Ordinal": 16
+    "Column": "Settlement Row ID"
+  - "Ordinal": 17
+    "Column": "Signed Amount"
+  - "Ordinal": 18
+    "Column": "Balance After"
+  - "Ordinal": 19
+    "Column": "Is Initialized"
+  - "Ordinal": 20
+    "Column": "Notes"
+  - "Ordinal": 21
+    "Column": "Source Type"
+  - "Ordinal": 22
+    "Column": "Source Key"
+  - "Ordinal": 23
+    "Column": "User Language"
+  - "Ordinal": 24
+    "Column": "Transaction"
+  - "Ordinal": 25
+    "Column": "Counterparty"
+  - "Ordinal": 26
+    "Column": "Amount Display"

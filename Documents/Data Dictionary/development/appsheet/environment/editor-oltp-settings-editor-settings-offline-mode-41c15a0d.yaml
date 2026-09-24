@@ -1,0 +1,47 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "settings"
+  "name": "Editor settings/Offline mode"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/oltp/settings/editor-editor-settings-offline-mode-41c15a0d.yaml"
+  "classification": "Environment app identity/version/folder/theme/access and supporting UI text; exact differences retained."
+  "changes":
+  - "pointer": "/controls"
+    "before":
+      "state": "value"
+      "value":
+      - "label": "The app can start when offline"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      - "label": "Store content for offline use"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+    "after":
+      "state": "value"
+      "value":
+      - "label": "The app can start when offline"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      - "label": "Store content for offline use"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "The app can start when offline"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""

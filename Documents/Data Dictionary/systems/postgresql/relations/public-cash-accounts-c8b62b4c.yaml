@@ -1,0 +1,863 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.Cash Accounts"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "Cash Accounts"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": "(gen_random_uuid())::text"
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Cash Holder":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Ref Cash Holder"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Account Label":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Account Label"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{mw_reviewer_dml=w/postgres}"
+      "comment": null
+    "Bank Name":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Bank Name"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Account Number":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Account Number"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Default Account":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Default Account"
+      "ordinal": 6
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "false"
+      "collation": null
+      "acl": null
+      "comment": null
+    "Active":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Active"
+      "ordinal": 7
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "true"
+      "collation": null
+      "acl": null
+      "comment": null
+    "Sort Order":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Sort Order"
+      "ordinal": 8
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "1"
+      "collation": null
+      "acl": null
+      "comment": null
+    "Created At":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Created At"
+      "ordinal": 9
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+      "collation": null
+      "acl": null
+      "comment": null
+    "Alternative Account Number":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Alternative Account Number"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Optional second bank account or PromptPay number mapped to this cash account; receipt matching must reject\
+        \ ambiguous matches."
+  "constraints":
+    "Cash Accounts_Account Label_check":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Account Label_check"
+      "kind": "c"
+      "definition": "CHECK (btrim(\"Account Label\") <> ''::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Account Label_not_null":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Account Label_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Account Label\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Active_not_null":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Active_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Active\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Bank Name_check":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Bank Name_check"
+      "kind": "c"
+      "definition": "CHECK (btrim(\"Bank Name\") <> ''::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Bank Name_not_null":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Bank Name_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Bank Name\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Created At_not_null":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Created At_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Created At\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Default Account_not_null":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Default Account_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Default Account\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Ref Cash Holder_Account Label_key":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Ref Cash Holder_Account Label_key"
+      "kind": "u"
+      "definition": "UNIQUE (\"Ref Cash Holder\", \"Account Label\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Ref Cash Holder_fkey":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Ref Cash Holder_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Holders\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
+    "Cash Accounts_Ref Cash Holder_not_null":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Ref Cash Holder_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Ref Cash Holder\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Row ID_not_null":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_Sort Order_not_null":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Sort Order_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Sort Order\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_check":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_check"
+      "kind": "c"
+      "definition": "CHECK (NOT \"Default Account\" OR \"Active\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Cash Accounts_pkey":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Cash Accounts_Ref Cash Holder_Account Label_key":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_Ref Cash Holder_Account Label_key"
+      "definition": "CREATE UNIQUE INDEX \"Cash Accounts_Ref Cash Holder_Account Label_key\" ON public.\"Cash Accounts\" USING\
+        \ btree (\"Ref Cash Holder\", \"Account Label\")"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "Cash Accounts_pkey":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "Cash Accounts_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Cash Accounts_pkey\" ON public.\"Cash Accounts\" USING btree (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "cash_account_one_default":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "cash_account_one_default"
+      "definition": "CREATE UNIQUE INDEX cash_account_one_default ON public.\"Cash Accounts\" USING btree (\"Ref Cash Holder\"\
+        ) WHERE (\"Active\" AND \"Default Account\")"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": "(\"Active\" AND \"Default Account\")"
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_17343":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17343"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17343\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17344":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17344"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17344\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17348":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17348"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17348\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17349":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17349"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17349\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17353":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17353"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17353\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Charges\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17354":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17354"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17354\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Charges\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17358":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17358"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17358\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17359":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17359"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17359\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17363":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17363"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17363\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17364":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17364"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17364\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Loans\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17368":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17368"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17368\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17369":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17369"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17369\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Payments\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17373":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17373"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17373\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Business Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17374":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17374"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17374\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Business Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17378":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17378"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17378\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Settlements\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17379":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17379"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17379\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Settlements\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17383":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17383"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17383\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17384":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17384"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17384\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17388":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17388"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17388\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17389":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17389"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17389\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17421":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17421"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17421\" AFTER DELETE ON \"Cash Accounts\" FROM r008_cash_account_cutover\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17422":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17422"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17422\" AFTER UPDATE ON \"Cash Accounts\" FROM r008_cash_account_cutover\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17545":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17545"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17545\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Cash Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_setnull_del\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_setnull_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17546":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_17546"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17546\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Cash Statement Context\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_19680":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_19680"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19680\" AFTER DELETE ON \"Cash Accounts\" FROM \"\
+        Cash Account Daily Analytics\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_19681":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_a_19681"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_19681\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Cash Account Daily Analytics\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"\
+        ()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17337":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_c_17337"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17337\" AFTER INSERT ON \"Cash Accounts\" FROM \"\
+        Cash Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17338":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "RI_ConstraintTrigger_c_17338"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17338\" AFTER UPDATE ON \"Cash Accounts\" FROM \"\
+        Cash Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "guard_cash_account":
+      "schema": "public"
+      "relation": "Cash Accounts"
+      "name": "guard_cash_account"
+      "definition": "CREATE TRIGGER guard_cash_account BEFORE INSERT OR DELETE OR UPDATE ON \"Cash Accounts\" FOR EACH ROW\
+        \ EXECUTE FUNCTION guard_cash_account()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_cash_account()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

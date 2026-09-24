@@ -8,6 +8,8 @@
 "verification":
   "status": "imported-unreconciled"
   "source": "excel-20260923"
+  "current_definition": "Documents/Data Dictionary/systems/postgresql/relations/business-expenses.yaml"
+  "note": "Historical imported label retained unchanged; use the current canonical relation and verified DEV overlay."
 "content":
   "columns":
     "Row ID":

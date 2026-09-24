@@ -1,0 +1,22 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "format-rule"
+  "name": "Statistics - Overdue"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Rule name": "Statistics - Overdue"
+    "Format these columns and actions":
+    - "Borrowers with Overdue Payment"
+    "For this data": "Statistics"
+    "Rule order": "1"
+    "Is this format rule disabled?": "No"
+    "Like this": "{\"textColor\":\"purple\",\"highlightColor\":\"\",\"textSize\":1.0,\"underline\":false,\"strikethrough\"\
+      :false,\"bold\":true,\"italic\":false,\"uppercase\":false,\"icon\":null,\"imageSize\":null}"
+    "Visible?": "ALWAYS"

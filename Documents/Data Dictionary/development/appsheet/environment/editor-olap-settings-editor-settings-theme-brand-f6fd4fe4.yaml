@@ -1,0 +1,339 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "settings"
+  "name": "Editor settings/Theme & Brand"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/olap/settings/editor-editor-settings-theme-brand-f6fd4fe4.yaml"
+  "classification": "Environment app identity/version/folder/theme/access and supporting UI text; exact differences retained."
+  "changes":
+  - "pointer": "/controls"
+    "before":
+      "state": "value"
+      "value":
+      - "label": "App logo"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "https://www.appsheet.com:443/fsimage.png?appid=e74dd368-654f-44d7-bccf-83cf361d1cdb&datasource=google&filename=DocId%3D1Nn8uugKPoEK_BYUcqjlo1f38rpn1O7Ul&signature=[REDACTED-ACCESS-SIGNATURE]&tableprovider=google&userid=578763613"
+      - "label": "Show view name in header"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Show logo in header"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      - "label": "Hide menu and search buttons"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Font style"
+        "selected":
+        - "Rubik"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "Rubik"
+      - "label": "Text size"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "20"
+    "after":
+      "state": "value"
+      "value":
+      - "label": "Show view name in header"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Show logo in header"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      - "label": "Hide menu and search buttons"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Font style"
+        "selected":
+        - "Rubik"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "Rubik"
+      - "label": "Text size"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "20"
+      - "label": "Theme"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+  - "pointer": "/selected_control_values"
+    "before":
+      "state": "value"
+      "value":
+      - "label": "Theme"
+        "schemaPath": null
+        "values":
+        - "White"
+      - "label": "Primary color"
+        "schemaPath": null
+        "values":
+        - "#0abab5"
+      - "label": "App logo"
+        "schemaPath": "Presentation.LogoUrl"
+        "values":
+        - "https://www.appsheet.com:443/fsimage.png?appid=e74dd368-654f-44d7-bccf-83cf361d1cdb&datasource=google&filename=DocId%3D1Nn8uugKPoEK_BYUcqjlo1f38rpn1O7Ul&signature=[REDACTED-ACCESS-SIGNATURE]&tableprovider=google&userid=578763613"
+        - "https://www.appsheet.com:443/fsimage.png?appid=e74dd368-654f-44d7-bccf-83cf361d1cdb&datasource=google&filename=DocId%3D1Nn8uugKPoEK_BYUcqjlo1f38rpn1O7Ul&signature=[REDACTED-ACCESS-SIGNATURE]&tableprovider=google&userid=578763613"
+        - "https://www.appsheet.com:443/fsimage.png?appid=e74dd368-654f-44d7-bccf-83cf361d1cdb&datasource=google&filename=DocId%3D1Nn8uugKPoEK_BYUcqjlo1f38rpn1O7Ul&signature=[REDACTED-ACCESS-SIGNATURE]&tableprovider=google&userid=578763613"
+      - "label": "Launch image"
+        "schemaPath": "Presentation.BackgroundImageUrl"
+        "values":
+        - "https://www.appsheet.com/Content/img/backgrounds/solid-white.jpg"
+      - "label": "Background image"
+        "schemaPath": "Presentation.PageBackgroundImageUrl"
+        "values":
+        - ""
+      - "label": "Show view name in header"
+        "schemaPath": "Presentation.ShowViewNameInHeader"
+        "values":
+        - "false"
+      - "label": "Show logo in header"
+        "schemaPath": "Presentation.ShowIconInHeader"
+        "values":
+        - "true"
+      - "label": "Hide menu and search buttons"
+        "schemaPath": "Presentation.HideSystemButtons"
+        "values":
+        - "false"
+      - "label": "Style"
+        "schemaPath": "Presentation.FooterStyle"
+        "values":
+        - "Color"
+      - "label": "Font style"
+        "schemaPath": "Presentation.FontFamily"
+        "values": []
+      - "label": "Text size"
+        "schemaPath": "Presentation.FontSize"
+        "values":
+        - "20"
+    "after":
+      "state": "value"
+      "value":
+      - "label": "Theme"
+        "schemaPath": null
+        "values":
+        - "White"
+      - "label": "Primary color"
+        "schemaPath": null
+        "values":
+        - "#1e88e5"
+      - "label": "App logo"
+        "schemaPath": "Presentation.LogoUrl"
+        "values":
+        - "https://www.appsheet.com/Content/img/appicons/productivity.png"
+      - "label": "Launch image"
+        "schemaPath": "Presentation.BackgroundImageUrl"
+        "values":
+        - "https://www.appsheet.com/Content/img/backgrounds/solid-white.jpg"
+      - "label": "Background image"
+        "schemaPath": "Presentation.PageBackgroundImageUrl"
+        "values":
+        - ""
+      - "label": "Show view name in header"
+        "schemaPath": "Presentation.ShowViewNameInHeader"
+        "values":
+        - "false"
+      - "label": "Show logo in header"
+        "schemaPath": "Presentation.ShowIconInHeader"
+        "values":
+        - "true"
+      - "label": "Hide menu and search buttons"
+        "schemaPath": "Presentation.HideSystemButtons"
+        "values":
+        - "false"
+      - "label": "Style"
+        "schemaPath": "Presentation.FooterStyle"
+        "values":
+        - "Color"
+      - "label": "Font style"
+        "schemaPath": "Presentation.FontFamily"
+        "values": []
+      - "label": "Text size"
+        "schemaPath": "Presentation.FontSize"
+        "values":
+        - "20"
+  - "pointer": "/snapshot"
+    "before":
+      "state": "value"
+      "value": |2-
+          - paragraph: Theme & Brand
+          - alert:
+            - generic: Customize the look and feel of your app
+            - button "Learn more":
+              - generic: Learn more
+          - heading "Theme" [level=6]
+          - text: What theme contrast to use in the app.
+          - button " light":
+            - generic: 
+            - generic: light
+          - button " dark":
+            - generic: 
+            - generic: dark
+          - heading "Primary color" [level=6]
+          - text: What color to use in the app interface.
+          - button
+          - button
+          - button
+          - button
+          - button
+          - button
+          - button
+          - button
+          - button "":
+            - generic: 
+          - generic: "#0abab5"
+          - heading "App logo" [level=6]
+          - text: Choose an image to use as your app's logo.
+          - button "":
+            - text: 
+          - textbox "Enter an image URL or upload a file": https://www.appsheet.com:443/fsimage.png?appid=e74dd368-654f-44d7-bccf-83cf361d1cdb&datasource=google&filename=DocId%3D1Nn8uugKPoEK_BYUcqjlo1f38rpn1O7Ul&signature=[REDACTED-ACCESS-SIGNATURE]&tableprovider=google&userid=578763613
+          - button "Choose file":
+          - heading "Launch image" [level=6]
+          - text: Choose an image to show on the launch and sync screens.
+          - button "":
+            - text: 
+          - heading "Background image" [level=6]
+          - text: Choose an image to show in the background of your app.
+          - button "None ":
+            - generic: None
+            - text: 
+          - heading "Header & Footer" [level=3]
+          - heading "Show view name in header" [level=6]
+          - text: Does not apply in Desktop mode.
+          - checkbox
+          - heading "Show logo in header" [level=6]
+          - generic "description"
+          - checkbox [checked]
+          - heading "Hide menu and search buttons" [level=6]
+          - generic "description"
+          - checkbox
+          - heading "Style" [level=6]
+          - generic "description"
+          - button "Black/White"
+          - button "Colored"
+          - button "Accented Footer"
+          - heading "Fonts" [level=3]
+          - heading "Font style" [level=6]
+          - text: The style of text in the app.
+          - combobox "Select an option":
+            - option "Roboto"
+            - option "Rubik" [selected]
+            - option "Asap"
+            - option "Libre Franklin"
+            - option "Roboto Condensed"
+            - option "Open Sans"
+            - option "Tangerine"
+            - option "Source Sans Pro"
+            - option "Droid Sans"
+            - option "Lato"
+          - heading "Text size" [level=6]
+          - text: How big text is in the app.
+          - button:
+            - generic: 
+          - textbox: "20"
+          - button:
+            - generic: 
+    "after":
+      "state": "value"
+      "value": |2-
+          - paragraph: Theme & Brand
+          - alert:
+            - generic: Customize the look and feel of your app
+            - button "Learn more":
+              - generic: Learn more
+          - heading "Theme" [level=6]
+          - text: What theme contrast to use in the app.
+          - button " light":
+            - generic: 
+            - generic: light
+          - button " dark":
+            - generic: 
+            - generic: dark
+          - heading "Primary color" [level=6]
+          - text: What color to use in the app interface.
+          - button "":
+            - generic: 
+          - button
+          - button
+          - button
+          - button
+          - button
+          - button
+          - button
+          - button "":
+            - generic: 
+          - generic: Custom
+          - heading "App logo" [level=6]
+          - text: Choose an image to use as your app's logo.
+          - button "":
+            - text: 
+          - heading "Launch image" [level=6]
+          - text: Choose an image to show on the launch and sync screens.
+          - button "":
+            - text: 
+          - heading "Background image" [level=6]
+          - text: Choose an image to show in the background of your app.
+          - button "None ":
+            - generic: None
+            - text: 
+          - heading "Header & Footer" [level=3]
+          - heading "Show view name in header" [level=6]
+          - text: Does not apply in Desktop mode.
+          - checkbox
+          - heading "Show logo in header" [level=6]
+          - generic "description"
+          - checkbox [checked]
+          - heading "Hide menu and search buttons" [level=6]
+          - generic "description"
+          - checkbox
+          - heading "Style" [level=6]
+          - generic "description"
+          - button "Black/White"
+          - button "Colored"
+          - button "Accented Footer"
+          - heading "Fonts" [level=3]
+          - heading "Font style" [level=6]
+          - text: The style of text in the app.
+          - combobox "Select an option":
+            - option "Roboto"
+            - option "Rubik" [selected]
+            - option "Asap"
+            - option "Libre Franklin"
+            - option "Roboto Condensed"
+            - option "Open Sans"
+            - option "Tangerine"
+            - option "Source Sans Pro"
+            - option "Droid Sans"
+            - option "Lato"
+          - heading "Text size" [level=6]
+          - text: How big text is in the app.
+          - button:
+            - generic: 
+          - textbox: "20"
+          - button:
+            - generic: 

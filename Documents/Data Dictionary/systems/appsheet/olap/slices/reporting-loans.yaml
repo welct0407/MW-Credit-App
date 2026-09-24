@@ -4,211 +4,153 @@
   "component": "olap"
   "kind": "slice"
   "name": "Reporting Loans"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/olap/slices/reporting-loans.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "olap"
+      "kind": "slice"
+      "name": "Reporting Loans"
+      "scope": "recorded-production"
 "content":
   "definition":
-    "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Permission": "READ_ONLY"
-    "Filter": null
-    "Actions": "**auto**"
+    "Slice Name": "Reporting Loans"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Row ID"
+    - "Loan Date"
+    - "Close Date"
+    - "Principal Amount"
+    - "Due Date"
+    - "Ref Borrowers"
+    - "Total Interest Received"
+    - "Total Principal Received"
+    - "Outstanding Principal"
+    - "Total Amount Received"
+    - "Loan Status TE"
+    - "Loan Age Bucket"
+    - "Loan Type TE"
+    - "Loan Status"
+    - "Loan Type"
+    - "Current Daily Interest"
+    - "Fixed Interest"
+    - "Transfer Fee"
+    - "Interest Payment Interval"
+    - "Principal Recovered by Interest %"
+    - "Expected Interest This Month"
+    - "Effective Daily Interest Rate"
+    - "Default Loss Amount"
+    - "Defaulted Flag"
+    - "Borrower Name"
+    - "Borrower Name TE"
+    - "Loan Duration"
+    - "Defaulted"
+    - "Maximum Days Late"
+    - "Daily Payment Amount"
+    - "Expected Daily Interest Amount"
+    - "Auto Charge Enabled"
+    - "Interest Schedule Anchor Date"
+    - "Ref Closing Payment"
+    - "Related Payments"
+    - "Charge Generation Request"
+    - "Related Business Expenses"
+    - "Related Cash Ledgers"
+    - "Ref Disbursed From Cash Account"
+    - "Payment Request Cash Account"
+    - "Payment Request Token"
+    "Update mode": "READ_ONLY"
+    "Source Table": "Loans"
+    "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
   "members":
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 1
+  - "Ordinal": 1
     "Column": "_RowNumber"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 2
+  - "Ordinal": 2
     "Column": "Row ID"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 3
+  - "Ordinal": 3
     "Column": "Loan Date"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 4
+  - "Ordinal": 4
     "Column": "Close Date"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 5
+  - "Ordinal": 5
     "Column": "Principal Amount"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 6
+  - "Ordinal": 6
     "Column": "Due Date"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 7
+  - "Ordinal": 7
     "Column": "Ref Borrowers"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 8
+  - "Ordinal": 8
     "Column": "Total Interest Received"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 9
+  - "Ordinal": 9
     "Column": "Total Principal Received"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 10
+  - "Ordinal": 10
     "Column": "Outstanding Principal"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 11
+  - "Ordinal": 11
     "Column": "Total Amount Received"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 12
+  - "Ordinal": 12
     "Column": "Loan Status TE"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 13
+  - "Ordinal": 13
     "Column": "Loan Age Bucket"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 14
+  - "Ordinal": 14
     "Column": "Loan Type TE"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 15
+  - "Ordinal": 15
     "Column": "Loan Status"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 16
+  - "Ordinal": 16
     "Column": "Loan Type"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 17
+  - "Ordinal": 17
     "Column": "Current Daily Interest"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 18
+  - "Ordinal": 18
     "Column": "Fixed Interest"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 19
+  - "Ordinal": 19
     "Column": "Transfer Fee"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 20
+  - "Ordinal": 20
     "Column": "Interest Payment Interval"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 21
+  - "Ordinal": 21
     "Column": "Principal Recovered by Interest %"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 22
+  - "Ordinal": 22
     "Column": "Expected Interest This Month"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 23
+  - "Ordinal": 23
     "Column": "Effective Daily Interest Rate"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 24
+  - "Ordinal": 24
     "Column": "Default Loss Amount"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 25
+  - "Ordinal": 25
     "Column": "Defaulted Flag"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 26
+  - "Ordinal": 26
     "Column": "Borrower Name"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 27
+  - "Ordinal": 27
     "Column": "Borrower Name TE"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 28
+  - "Ordinal": 28
     "Column": "Loan Duration"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 29
+  - "Ordinal": 29
     "Column": "Defaulted"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 30
+  - "Ordinal": 30
     "Column": "Maximum Days Late"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 31
+  - "Ordinal": 31
     "Column": "Daily Payment Amount"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 32
+  - "Ordinal": 32
     "Column": "Expected Daily Interest Amount"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 33
+  - "Ordinal": 33
     "Column": "Auto Charge Enabled"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 34
+  - "Ordinal": 34
     "Column": "Interest Schedule Anchor Date"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 35
+  - "Ordinal": 35
     "Column": "Ref Closing Payment"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 36
+  - "Ordinal": 36
     "Column": "Related Payments"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 37
+  - "Ordinal": 37
     "Column": "Charge Generation Request"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 38
+  - "Ordinal": 38
     "Column": "Related Business Expenses"
-  - "App": "OLAP"
-    "Slice": "Reporting Loans"
-    "Source table": "Loans"
-    "Ordinal": 39
+  - "Ordinal": 39
     "Column": "Related Cash Ledgers"
+  - "Ordinal": 40
+    "Column": "Ref Disbursed From Cash Account"
+  - "Ordinal": 41
+    "Column": "Payment Request Cash Account"
+  - "Ordinal": 42
+    "Column": "Payment Request Token"

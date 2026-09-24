@@ -1,0 +1,38 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "action"
+  "name": "Settlements.Delete Settlement"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Delete Settlement"
+    "Bulk action?": "Yes"
+    "Confirmation Message": "\"Delete this settlement and reverse its cash and settlement totals? The record will be retained\
+      \ in history.\""
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "Yes"
+    "Prominence": "Display_Prominently"
+    "Action order": "1"
+    "With these properties": "{\"Assignments\":[{\"ColumnToEdit\":\"Status\",\"NewColumnValue\":\"=\\\"Cancelled\\\"\"},{\"\
+      ColumnToEdit\":\"Notes\",\"NewColumnValue\":\"=CONCATENATE([Notes], \\\" | Deleted settlement by \\\", USEREMAIL(),\
+      \ \\\" at \\\", TEXT(NOW()))\"}],\"ColumnToEdit\":\"Status\",\"NewColumnValue\":\"=\\\"Cancelled\\\"\",\"InputParametersUsed\"\
+      :null,\"Prominence\":\"Display_Prominently\",\"NeedsConfirmation\":true,\"ConfirmationMessage\":\"\\\"Delete this settlement\
+      \ and reverse its cash and settlement totals? The record will be retained in history.\\\"\",\"ModifiesData\":true,\"\
+      BulkApplicable\":true}"
+    "Do this": "SET_COLUMN_VALUE"
+    "Attach to column": "Status"
+    "Set this column": "Status"
+    "Only if this condition is true": "=[Status] <> \"Cancelled\""
+    "Disable automatic updates?": "No"
+    "Display name": "\"Delete\""
+    "Action icon": ""
+    "For a record of this table": "Settlements"
+    "Does this action apply to the whole table?": "No"
+    "To this value": "=\"Cancelled\""
+    "Visible?": "ALWAYS"

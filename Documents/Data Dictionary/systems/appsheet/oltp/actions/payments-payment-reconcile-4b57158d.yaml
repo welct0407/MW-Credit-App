@@ -1,0 +1,86 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Payments.Payment - Reconcile"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Payment - Reconcile"
+    "Bulk action?": "Yes"
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "1"
+    "With these properties": "{\"Assignments\":[{\"ColumnToEdit\":\"Status\",\"NewColumnValue\":\"=IF([Allocation Method]\
+      \ = \\\"Lump Sum\\\", \\\"Posted\\\", IF(AND(AND([Amount Received] > 0, [Amount Received] = SUM(SELECT(Payment Allocations[Allocated\
+      \ Amount], [Ref Payment] = [_THISROW].[Row ID])), [Amount Received] = SUM(SELECT(Repayments[Principal Paid], [Ref Payment]\
+      \ = [_THISROW].[Row ID])) + SUM(SELECT(Repayments[Interest Paid], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Payment\
+      \ Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref\
+      \ Payment] = [_THISROW].[Row ID], OR([Allocation Order] <= 0, [Allocated Amount] <> [Allocated Interest] + [Allocated\
+      \ Principal], [Allocated Interest] < 0, [Allocated Principal] < 0)))) = 0, COUNT(SELECT(Repayments[Row ID], [Ref Payment]\
+      \ = [_THISROW].[Row ID])) = COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row ID], [Allocated\
+      \ Amount] > 0))), COUNT(SELECT(Repayments[Ref Payment Allocation], [Ref Payment] = [_THISROW].[Row ID], TRUE)) = COUNT(SELECT(Repayments[Row\
+      \ ID], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Repayments[Row ID], AND([Ref Payment] = [_THISROW].[Row ID],\
+      \ OR(ISBLANK([Ref Payment Allocation]), [Ref Payment Allocation].[Ref Payment] <> [_THISROW].[Row ID], [Ref Charges]\
+      \ <> [Ref Payment Allocation].[Ref Charge], [Principal Paid] <> [Ref Payment Allocation].[Allocated Principal], [Interest\
+      \ Paid] <> [Ref Payment Allocation].[Allocated Interest], [Ref Payment Allocation].[Allocated Amount] <= 0)))) = 0),\
+      \ COUNT([Eligible Charges] - SELECT(Payment Allocations[Ref Charge], [Ref Payment] = [_THISROW].[Row ID])) = 0), \\\"\
+      Posted\\\", \\\"Error\\\"))\"},{\"ColumnToEdit\":\"Processed At\",\"NewColumnValue\":\"=IF([Allocation Method] = \\\"\
+      Lump Sum\\\", NOW(), IF(AND(AND([Amount Received] > 0, [Amount Received] = SUM(SELECT(Payment Allocations[Allocated\
+      \ Amount], [Ref Payment] = [_THISROW].[Row ID])), [Amount Received] = SUM(SELECT(Repayments[Principal Paid], [Ref Payment]\
+      \ = [_THISROW].[Row ID])) + SUM(SELECT(Repayments[Interest Paid], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Payment\
+      \ Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref\
+      \ Payment] = [_THISROW].[Row ID], OR([Allocation Order] <= 0, [Allocated Amount] <> [Allocated Interest] + [Allocated\
+      \ Principal], [Allocated Interest] < 0, [Allocated Principal] < 0)))) = 0, COUNT(SELECT(Repayments[Row ID], [Ref Payment]\
+      \ = [_THISROW].[Row ID])) = COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row ID], [Allocated\
+      \ Amount] > 0))), COUNT(SELECT(Repayments[Ref Payment Allocation], [Ref Payment] = [_THISROW].[Row ID], TRUE)) = COUNT(SELECT(Repayments[Row\
+      \ ID], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Repayments[Row ID], AND([Ref Payment] = [_THISROW].[Row ID],\
+      \ OR(ISBLANK([Ref Payment Allocation]), [Ref Payment Allocation].[Ref Payment] <> [_THISROW].[Row ID], [Ref Charges]\
+      \ <> [Ref Payment Allocation].[Ref Charge], [Principal Paid] <> [Ref Payment Allocation].[Allocated Principal], [Interest\
+      \ Paid] <> [Ref Payment Allocation].[Allocated Interest], [Ref Payment Allocation].[Allocated Amount] <= 0)))) = 0),\
+      \ COUNT([Eligible Charges] - SELECT(Payment Allocations[Ref Charge], [Ref Payment] = [_THISROW].[Row ID])) = 0), NOW(),\
+      \ \\\"\\\"))\"}],\"ColumnToEdit\":\"Status\",\"NewColumnValue\":\"=IF([Allocation Method] = \\\"Lump Sum\\\", \\\"Posted\\\
+      \", IF(AND(AND([Amount Received] > 0, [Amount Received] = SUM(SELECT(Payment Allocations[Allocated Amount], [Ref Payment]\
+      \ = [_THISROW].[Row ID])), [Amount Received] = SUM(SELECT(Repayments[Principal Paid], [Ref Payment] = [_THISROW].[Row\
+      \ ID])) + SUM(SELECT(Repayments[Interest Paid], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Payment Allocations[Row\
+      \ ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row\
+      \ ID], OR([Allocation Order] <= 0, [Allocated Amount] <> [Allocated Interest] + [Allocated Principal], [Allocated Interest]\
+      \ < 0, [Allocated Principal] < 0)))) = 0, COUNT(SELECT(Repayments[Row ID], [Ref Payment] = [_THISROW].[Row ID])) = COUNT(SELECT(Payment\
+      \ Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row ID], [Allocated Amount] > 0))), COUNT(SELECT(Repayments[Ref\
+      \ Payment Allocation], [Ref Payment] = [_THISROW].[Row ID], TRUE)) = COUNT(SELECT(Repayments[Row ID], [Ref Payment]\
+      \ = [_THISROW].[Row ID])), COUNT(SELECT(Repayments[Row ID], AND([Ref Payment] = [_THISROW].[Row ID], OR(ISBLANK([Ref\
+      \ Payment Allocation]), [Ref Payment Allocation].[Ref Payment] <> [_THISROW].[Row ID], [Ref Charges] <> [Ref Payment\
+      \ Allocation].[Ref Charge], [Principal Paid] <> [Ref Payment Allocation].[Allocated Principal], [Interest Paid] <> [Ref\
+      \ Payment Allocation].[Allocated Interest], [Ref Payment Allocation].[Allocated Amount] <= 0)))) = 0), COUNT([Eligible\
+      \ Charges] - SELECT(Payment Allocations[Ref Charge], [Ref Payment] = [_THISROW].[Row ID])) = 0), \\\"Posted\\\", \\\"\
+      Error\\\"))\",\"InputParametersUsed\":null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+      :\"\",\"ModifiesData\":true,\"BulkApplicable\":true}"
+    "Do this": "SET_COLUMN_VALUE"
+    "Attach to column": "Status"
+    "Set this column": "Status"
+    "Only if this condition is true": "=[Status] = \"Processing\""
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Payments"
+    "Does this action apply to the whole table?": "No"
+    "To this value": "=IF([Allocation Method] = \"Lump Sum\", \"Posted\", IF(AND(AND([Amount Received] > 0, [Amount Received]\
+      \ = SUM(SELECT(Payment Allocations[Allocated Amount], [Ref Payment] = [_THISROW].[Row ID])), [Amount Received] = SUM(SELECT(Repayments[Principal\
+      \ Paid], [Ref Payment] = [_THISROW].[Row ID])) + SUM(SELECT(Repayments[Interest Paid], [Ref Payment] = [_THISROW].[Row\
+      \ ID])), COUNT(SELECT(Payment Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment Allocations[Row\
+      \ ID], AND([Ref Payment] = [_THISROW].[Row ID], OR([Allocation Order] <= 0, [Allocated Amount] <> [Allocated Interest]\
+      \ + [Allocated Principal], [Allocated Interest] < 0, [Allocated Principal] < 0)))) = 0, COUNT(SELECT(Repayments[Row\
+      \ ID], [Ref Payment] = [_THISROW].[Row ID])) = COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row\
+      \ ID], [Allocated Amount] > 0))), COUNT(SELECT(Repayments[Ref Payment Allocation], [Ref Payment] = [_THISROW].[Row ID],\
+      \ TRUE)) = COUNT(SELECT(Repayments[Row ID], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Repayments[Row ID],\
+      \ AND([Ref Payment] = [_THISROW].[Row ID], OR(ISBLANK([Ref Payment Allocation]), [Ref Payment Allocation].[Ref Payment]\
+      \ <> [_THISROW].[Row ID], [Ref Charges] <> [Ref Payment Allocation].[Ref Charge], [Principal Paid] <> [Ref Payment Allocation].[Allocated\
+      \ Principal], [Interest Paid] <> [Ref Payment Allocation].[Allocated Interest], [Ref Payment Allocation].[Allocated\
+      \ Amount] <= 0)))) = 0), COUNT([Eligible Charges] - SELECT(Payment Allocations[Ref Charge], [Ref Payment] = [_THISROW].[Row\
+      \ ID])) = 0), \"Posted\", \"Error\"))"
+    "Visible?": "ALWAYS"

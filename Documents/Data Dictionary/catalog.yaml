@@ -5,7 +5,7 @@
   "sha256": "1b33aebd71f79ef16023d510ceb8276942444b4665045611f12acce5f247b377"
 "systems":
   "appsheet":
-    "status": "imported-unreconciled"
+    "status": "documented-with-historical-imports"
     "kinds":
     - "table"
     - "slice"
@@ -13,12 +13,17 @@
     - "action"
     - "view"
     - "automation"
+    - "format-rule"
   "postgresql":
-    "status": "imported-unreconciled"
+    "status": "documented-with-historical-imports"
     "kinds":
     - "relation"
     - "recorded-logic"
     - "routine"
+    - "schema"
+    - "sequence"
+    - "type"
+    - "settings"
   "metabase":
     "status": "imported-unreconciled"
     "kinds":

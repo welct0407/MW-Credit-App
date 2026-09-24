@@ -1,250 +1,854 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
-  "name": "reporting_daily_snapshot"
-  "scope": "as-recorded"
+  "name": "public.reporting_daily_snapshot"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/reporting-daily-snapshot.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "reporting_daily_snapshot"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_daily_snapshot"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": "R016 stored portfolio/date history. Sum daily flows; select EOD balances at a date, never sum them across\
+      \ dates. Current operational cards must use existing live providers. Reconstructed from current source facts, not an\
+      \ as-recorded audit archive."
+    "view_definition": |2-
+       SELECT "Row ID",
+          "Snapshot Date",
+          "Generated At",
+          "Model Version",
+          "Principal Issued",
+          "Loans Issued",
+          "Principal Returned",
+          "Interest Received",
+          "Repayments Count",
+          "Outstanding Principal EOD",
+          "Active Loans EOD",
+          "Active Borrowers EOD",
+          "Pending Charges EOD",
+          "Total Cash Pool EOD",
+          "Available Cash EOD",
+          "Unsettled Profit EOD",
+          "Business Expenses",
+          "Net Profit",
+          "Net Unsettled Profit EOD",
+          "Capital Contributed",
+          "Capital Withdrawn",
+          "Partner Settlements",
+          "Partner A Net Profit",
+          "Partner B Net Profit",
+          "Partner A Settlements",
+          "Partner B Settlements",
+          "Cash Money In",
+          "Cash Money Out",
+          "Cash Opening Balance",
+          "Cash Balance EOD",
+          "Cash Available From",
+          "Cash Balance Status",
+          "Snapshot Date" = olap_reporting_date() AS "Provisional",
+          'Hourly snapshot'::text AS "Freshness Basis"
+         FROM "Daily Analytics" a;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Row ID":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Row ID"
-      "Position": 1
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Snapshot Date":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Snapshot Date"
-      "Position": 2
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Snapshot Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Generated At":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Generated At"
-      "Position": 3
-      "PostgreSQL type": "timestamp without time zone"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Generated At"
+      "ordinal": 3
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Model Version":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Model Version"
-      "Position": 4
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Model Version"
+      "ordinal": 4
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Principal Issued":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Principal Issued"
-      "Position": 5
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Principal Issued"
+      "ordinal": 5
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Loans Issued":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Loans Issued"
-      "Position": 6
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Loans Issued"
+      "ordinal": 6
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Principal Returned":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Principal Returned"
-      "Position": 7
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Principal Returned"
+      "ordinal": 7
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Interest Received":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Interest Received"
-      "Position": 8
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Interest Received"
+      "ordinal": 8
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Repayments Count":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Repayments Count"
-      "Position": 9
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Repayments Count"
+      "ordinal": 9
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Outstanding Principal EOD":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Outstanding Principal EOD"
-      "Position": 10
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Outstanding Principal EOD"
+      "ordinal": 10
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Active Loans EOD":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Active Loans EOD"
-      "Position": 11
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Active Loans EOD"
+      "ordinal": 11
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Active Borrowers EOD":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Active Borrowers EOD"
-      "Position": 12
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Active Borrowers EOD"
+      "ordinal": 12
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Pending Charges EOD":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Pending Charges EOD"
-      "Position": 13
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Pending Charges EOD"
+      "ordinal": 13
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Total Cash Pool EOD":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Total Cash Pool EOD"
-      "Position": 14
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Total Cash Pool EOD"
+      "ordinal": 14
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Available Cash EOD":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Available Cash EOD"
-      "Position": 15
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Available Cash EOD"
+      "ordinal": 15
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Unsettled Profit EOD":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Unsettled Profit EOD"
-      "Position": 16
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Unsettled Profit EOD"
+      "ordinal": 16
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Business Expenses":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Business Expenses"
-      "Position": 17
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Business Expenses"
+      "ordinal": 17
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Net Profit":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Net Profit"
-      "Position": 18
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Net Profit"
+      "ordinal": 18
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Net Unsettled Profit EOD":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Net Unsettled Profit EOD"
-      "Position": 19
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Net Unsettled Profit EOD"
+      "ordinal": 19
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Capital Contributed":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Capital Contributed"
-      "Position": 20
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Capital Contributed"
+      "ordinal": 20
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Capital Withdrawn":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Capital Withdrawn"
-      "Position": 21
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Capital Withdrawn"
+      "ordinal": 21
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Partner Settlements":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Partner Settlements"
-      "Position": 22
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Partner Settlements"
+      "ordinal": 22
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Partner A Net Profit":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Partner A Net Profit"
-      "Position": 23
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Partner A Net Profit"
+      "ordinal": 23
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Partner B Net Profit":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Partner B Net Profit"
-      "Position": 24
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Partner B Net Profit"
+      "ordinal": 24
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Partner A Settlements":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Partner A Settlements"
-      "Position": 25
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Partner A Settlements"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Partner B Settlements":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Partner B Settlements"
-      "Position": 26
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Partner B Settlements"
+      "ordinal": 26
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Money In":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Cash Money In"
-      "Position": 27
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Cash Money In"
+      "ordinal": 27
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Money Out":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Cash Money Out"
-      "Position": 28
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Cash Money Out"
+      "ordinal": 28
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Opening Balance":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Cash Opening Balance"
-      "Position": 29
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Cash Opening Balance"
+      "ordinal": 29
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Balance EOD":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Cash Balance EOD"
-      "Position": 30
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Cash Balance EOD"
+      "ordinal": 30
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Available From":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Cash Available From"
-      "Position": 31
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Cash Available From"
+      "ordinal": 31
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Balance Status":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Cash Balance Status"
-      "Position": 32
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Cash Balance Status"
+      "ordinal": 32
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Provisional":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Provisional"
-      "Position": 33
-      "PostgreSQL type": "boolean"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Provisional"
+      "ordinal": 33
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Freshness Basis":
-      "Table / view": "reporting_daily_snapshot"
-      "Column": "Freshness Basis"
-      "Position": 34
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "reporting_daily_snapshot"
+      "name": "Freshness Basis"
+      "ordinal": 34
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Active Borrowers EOD"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Active Loans EOD"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Available Cash EOD"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Business Expenses"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Capital Contributed"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Capital Withdrawn"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Available From"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Balance EOD"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Balance Status"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Money In"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Money Out"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Cash Opening Balance"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Generated At"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Interest Received"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Loans Issued"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Model Version"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Net Profit"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Net Unsettled Profit EOD"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Outstanding Principal EOD"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner A Net Profit"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner A Settlements"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner B Net Profit"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner B Settlements"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Partner Settlements"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Pending Charges EOD"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Principal Issued"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Principal Returned"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Repayments Count"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Snapshot Date"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Total Cash Pool EOD"
+  - "schema": "public"
+    "relation": "reporting_daily_snapshot"
+    "referenced_schema": "public"
+    "referenced_relation": "Daily Analytics"
+    "referenced_column": "Unsettled Profit EOD"

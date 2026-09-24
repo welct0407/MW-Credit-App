@@ -1,0 +1,425 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "cron.job"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "cron"
+    "name": "job"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": true
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,=r/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": "pg_cron"
+  "columns":
+    "jobid":
+      "schema": "cron"
+      "relation": "job"
+      "name": "jobid"
+      "ordinal": 1
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "nextval('cron.jobid_seq'::regclass)"
+      "collation": null
+      "acl": null
+      "comment": null
+    "schedule":
+      "schema": "cron"
+      "relation": "job"
+      "name": "schedule"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "command":
+      "schema": "cron"
+      "relation": "job"
+      "name": "command"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "nodename":
+      "schema": "cron"
+      "relation": "job"
+      "name": "nodename"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": "'localhost'::text"
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "nodeport":
+      "schema": "cron"
+      "relation": "job"
+      "name": "nodeport"
+      "ordinal": 5
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "inet_server_port()"
+      "collation": null
+      "acl": null
+      "comment": null
+    "database":
+      "schema": "cron"
+      "relation": "job"
+      "name": "database"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": "current_database()"
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "username":
+      "schema": "cron"
+      "relation": "job"
+      "name": "username"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": "CURRENT_USER"
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "active":
+      "schema": "cron"
+      "relation": "job"
+      "name": "active"
+      "ordinal": 8
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "true"
+      "collation": null
+      "acl": null
+      "comment": null
+    "jobname":
+      "schema": "cron"
+      "relation": "job"
+      "name": "jobname"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints":
+    "job_active_not_null":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_active_not_null"
+      "kind": "n"
+      "definition": "NOT NULL active"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "job_command_not_null":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_command_not_null"
+      "kind": "n"
+      "definition": "NOT NULL command"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "job_database_not_null":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_database_not_null"
+      "kind": "n"
+      "definition": "NOT NULL database"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "job_jobid_not_null":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_jobid_not_null"
+      "kind": "n"
+      "definition": "NOT NULL jobid"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "job_nodename_not_null":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_nodename_not_null"
+      "kind": "n"
+      "definition": "NOT NULL nodename"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "job_nodeport_not_null":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_nodeport_not_null"
+      "kind": "n"
+      "definition": "NOT NULL nodeport"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "job_pkey":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (jobid)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "job_schedule_not_null":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_schedule_not_null"
+      "kind": "n"
+      "definition": "NOT NULL schedule"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "job_username_not_null":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_username_not_null"
+      "kind": "n"
+      "definition": "NOT NULL username"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "jobname_username_uniq":
+      "schema": "cron"
+      "relation": "job"
+      "name": "jobname_username_uniq"
+      "kind": "u"
+      "definition": "UNIQUE (jobname, username)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "job_pkey":
+      "schema": "cron"
+      "relation": "job"
+      "name": "job_pkey"
+      "definition": "CREATE UNIQUE INDEX job_pkey ON cron.job USING btree (jobid)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "jobname_username_uniq":
+      "schema": "cron"
+      "relation": "job"
+      "name": "jobname_username_uniq"
+      "definition": "CREATE UNIQUE INDEX jobname_username_uniq ON cron.job USING btree (jobname, username)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "cron_job_cache_invalidate":
+      "schema": "cron"
+      "relation": "job"
+      "name": "cron_job_cache_invalidate"
+      "definition": "CREATE TRIGGER cron_job_cache_invalidate AFTER INSERT OR DELETE OR UPDATE OR TRUNCATE ON cron.job FOR\
+        \ EACH STATEMENT EXECUTE FUNCTION cron.job_cache_invalidate()"
+      "enabled": "O"
+      "internal": false
+      "routine": "cron.job_cache_invalidate()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies":
+    "cron_job_policy":
+      "schema": "cron"
+      "relation": "job"
+      "name": "cron_job_policy"
+      "permissive": "PERMISSIVE"
+      "roles":
+      - "public"
+      "cmd": "ALL"
+      "qual": "(username = CURRENT_USER)"
+      "with_check": null
+  "dependencies": []

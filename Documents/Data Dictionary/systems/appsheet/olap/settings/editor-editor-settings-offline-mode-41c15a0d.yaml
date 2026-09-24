@@ -1,0 +1,37 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "settings"
+  "name": "Editor settings/Offline mode"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls":
+    - "label": "The app can start when offline"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Store content for offline use"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    "snapshot": |2-
+        - paragraph: Offline Mode
+        - alert:
+          - generic: Set up your app to work offline
+          - button "Learn more":
+            - generic: Learn more
+        - heading "Offline Use" [level=3]
+        - heading "The app can start when offline" [level=6]
+        - text: Allow the app to start even when there is no internet connection. Changes will not be synced until the user is online again.
+        - checkbox [checked]
+        - heading "Store content for offline use" [level=6]
+        - text: Make all images and files available offline.
+        - checkbox

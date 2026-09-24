@@ -1,0 +1,95 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Notify payment-closed loans Output 4"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "source_app": "OLTP"
+  "source_table": "Notify payment-closed loans Output 4"
+  "binding":
+    "Table name": "Notify payment-closed loans Output 4"
+    "Visible?": "NEVER"
+    "Shared?": "Yes"
+    "Schema": "Notify payment-closed loans Output 4_Schema"
+    "Are updates allowed?": "READ_ONLY"
+    "Source Path": "/ProcessStateTables/93844270-6aa5-420b-a960-bcdf08abd357/348e8394-990b-4067-8d9c-aeeb8bc7ee6e/StepOutput_Notify\
+      \ payment-closed loans"
+    "Data Source": "native"
+    "Store for image and file capture": "_Default"
+    "Column Order List":
+    - "_RowNumber"
+    "Partitioned across many files/sources?": "No"
+    "Partitioned across many worksheets?": "No"
+  "schema":
+    "Schema Name": "Notify payment-closed loans Output 4_Schema"
+    "Visible?": "NEVER"
+  "columns":
+    "Instance Id":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Notify payment-closed loans Output 4"
+        "Column": "Instance Id"
+        "Type": "Text"
+        "Virtual": "No"
+        "Key": "Yes"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Instance Id"
+        "Visible?": "ALWAYS"
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "Yes"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Result":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Notify payment-closed loans Output 4"
+        "Column": "Result"
+        "Type": "Yes/No"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Result"
+        "Visible?": "ALWAYS"
+        "Type": "Yes/No"
+        "Type Qualifier": "{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "Yes"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"

@@ -1,0 +1,30 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Repayments.Delete"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Delete"
+    "Bulk action?": "Yes"
+    "Confirmation Message": "=\"ยืนยันลบรายการชำระเงินนี้หรือไม่? Confirm deleting this payment record?\""
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "Yes"
+    "Prominence": "Display_Prominently"
+    "Action order": "13"
+    "With these properties": "{\"InputParametersUsed\":null,\"Prominence\":\"Display_Prominently\",\"NeedsConfirmation\":true,\"\
+      ConfirmationMessage\":\"=\\\"ยืนยันลบรายการชำระเงินนี้หรือไม่? Confirm deleting this payment record?\\\"\",\"ModifiesData\"\
+      :true,\"BulkApplicable\":true}"
+    "Do this": "DELETE_RECORD"
+    "Only if this condition is true": "=ISBLANK([Ref Payment])"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Repayments"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ADVANCED"

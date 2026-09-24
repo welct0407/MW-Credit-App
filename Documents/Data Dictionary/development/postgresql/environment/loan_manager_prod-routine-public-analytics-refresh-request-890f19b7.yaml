@@ -1,0 +1,58 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.analytics_refresh_request()"
+  "scope": "development:observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/development-postgresql-observations.json"
+"content":
+  "production_identity":
+    "system": "postgresql"
+    "component": "loan_manager_prod"
+    "kind": "routine"
+    "name": "public.analytics_refresh_request()"
+    "scope": "production"
+  "target":
+    "instance": "appsheet-pg-prod-20260914"
+    "host": "34.21.174.215"
+    "port": 5432
+    "database": "loan_manager_dev"
+  "classification": "Six shared routine bodies differ only in CR line endings; seven cron extension routines are absent in\
+    \ DEV. Exact text preserved."
+  "changes":
+  - "pointer": "/definition/definition"
+    "before":
+      "state": "value"
+      "value": |
+        CREATE OR REPLACE FUNCTION public.analytics_refresh_request()
+         RETURNS trigger
+         LANGUAGE plpgsql
+         SET search_path TO 'pg_catalog', 'public'
+        AS $function$
+        DECLARE parts text[]; today date:=public.olap_reporting_date(); first_date date;
+        BEGIN
+         IF TG_OP='UPDATE' AND NEW."Analytics Refresh Request" IS NOT DISTINCT FROM OLD."Analytics Refresh Request" THEN RETURN NEW; END IF;
+         IF NEW."Analytics Refresh Request" IS NULL THEN RETURN NEW; END IF;
+         parts:=string_to_array(NEW."Analytics Refresh Request",'|');
+         IF cardinality(parts)<>3 OR parts[1]<>today::text OR parts[2] NOT IN ('Recent','Full') OR coalesce(parts[3],'')='' THEN
+          RAISE EXCEPTION 'Analytics refresh requires Bangkok today, Recent or Full, and a unique token';
+         END IF;
+         first_date:=CASE WHEN parts[2]='Recent' THEN today-1 ELSE public.analytics_history_start() END;
+         PERFORM public.refresh_daily_analytics(first_date,today);
+         RETURN NEW;
+        END $function$
+    "after":
+      "state": "value"
+      "value": "CREATE OR REPLACE FUNCTION public.analytics_refresh_request()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path\
+        \ TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE parts text[]; today date:=public.olap_reporting_date(); first_date\
+        \ date;\r\nBEGIN\r\n IF TG_OP='UPDATE' AND NEW.\"Analytics Refresh Request\" IS NOT DISTINCT FROM OLD.\"Analytics\
+        \ Refresh Request\" THEN RETURN NEW; END IF;\r\n IF NEW.\"Analytics Refresh Request\" IS NULL THEN RETURN NEW; END\
+        \ IF;\r\n parts:=string_to_array(NEW.\"Analytics Refresh Request\",'|');\r\n IF cardinality(parts)<>3 OR parts[1]<>today::text\
+        \ OR parts[2] NOT IN ('Recent','Full') OR coalesce(parts[3],'')='' THEN\r\n  RAISE EXCEPTION 'Analytics refresh requires\
+        \ Bangkok today, Recent or Full, and a unique token';\r\n END IF;\r\n first_date:=CASE WHEN parts[2]='Recent' THEN\
+        \ today-1 ELSE public.analytics_history_start() END;\r\n PERFORM public.refresh_daily_analytics(first_date,today);\r\
+        \n RETURN NEW;\r\nEND $function$\n"
+  "comparison_representation": "captured source object (before presentation into canonical YAML)"

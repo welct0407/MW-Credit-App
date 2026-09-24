@@ -1,61 +1,224 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
-  "name": "Cash Holder Balances"
-  "scope": "as-recorded"
+  "name": "public.Cash Holder Balances"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/cash-holder-balances.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Cash Holder Balances"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "Cash Holder Balances"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres}"
+    "comment": null
+    "view_definition": |2-
+       WITH flows AS (
+               SELECT "Cash Ledger"."Ref To Cash Holder" AS holder,
+                  "Cash Ledger"."Amount" AS cash_in,
+                  0::numeric AS cash_out
+                 FROM "Cash Ledger"
+                WHERE "Cash Ledger"."Ref To Cash Holder" IS NOT NULL
+              UNION ALL
+               SELECT "Cash Ledger"."Ref From Cash Holder",
+                  0::numeric AS "numeric",
+                  "Cash Ledger"."Amount"
+                 FROM "Cash Ledger"
+                WHERE "Cash Ledger"."Ref From Cash Holder" IS NOT NULL
+              ), totals AS (
+               SELECT flows.holder,
+                  sum(flows.cash_in) AS cash_in,
+                  sum(flows.cash_out) AS cash_out
+                 FROM flows
+                GROUP BY flows.holder
+              )
+       SELECT h."Row ID" AS "Ref Cash Holder",
+          h."Holder Name",
+          COALESCE(t.cash_in, 0::numeric) AS "Cash In",
+          COALESCE(t.cash_out, 0::numeric) AS "Cash Out",
+          COALESCE(t.cash_in, 0::numeric) - COALESCE(t.cash_out, 0::numeric) AS "Current Balance",
+          GREATEST(COALESCE(t.cash_in, 0::numeric) - COALESCE(t.cash_out, 0::numeric), 0::numeric) AS "Business Cash Held",
+          GREATEST(COALESCE(t.cash_out, 0::numeric) - COALESCE(t.cash_in, 0::numeric), 0::numeric) AS "Reimbursement / Advance Due"
+         FROM "Cash Holders" h
+           LEFT JOIN totals t ON t.holder = h."Row ID";
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Ref Cash Holder":
-      "Table / view": "Cash Holder Balances"
-      "Column": "Ref Cash Holder"
-      "Position": 1
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holder Balances"
+      "name": "Ref Cash Holder"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Holder Name":
-      "Table / view": "Cash Holder Balances"
-      "Column": "Holder Name"
-      "Position": 2
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holder Balances"
+      "name": "Holder Name"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Cash In":
-      "Table / view": "Cash Holder Balances"
-      "Column": "Cash In"
-      "Position": 3
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holder Balances"
+      "name": "Cash In"
+      "ordinal": 3
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Cash Out":
-      "Table / view": "Cash Holder Balances"
-      "Column": "Cash Out"
-      "Position": 4
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holder Balances"
+      "name": "Cash Out"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Current Balance":
-      "Table / view": "Cash Holder Balances"
-      "Column": "Current Balance"
-      "Position": 5
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holder Balances"
+      "name": "Current Balance"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Business Cash Held":
-      "Table / view": "Cash Holder Balances"
-      "Column": "Business Cash Held"
-      "Position": 6
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holder Balances"
+      "name": "Business Cash Held"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Reimbursement / Advance Due":
-      "Table / view": "Cash Holder Balances"
-      "Column": "Reimbursement / Advance Due"
-      "Position": 7
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holder Balances"
+      "name": "Reimbursement / Advance Due"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "Cash Holder Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Holder Name"
+  - "schema": "public"
+    "relation": "Cash Holder Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Holders"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "Cash Holder Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Amount"
+  - "schema": "public"
+    "relation": "Cash Holder Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref From Cash Holder"
+  - "schema": "public"
+    "relation": "Cash Holder Balances"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Ledger"
+    "referenced_column": "Ref To Cash Holder"

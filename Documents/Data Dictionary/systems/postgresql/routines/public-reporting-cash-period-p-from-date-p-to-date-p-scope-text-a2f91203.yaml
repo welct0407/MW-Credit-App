@@ -1,0 +1,62 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.reporting_cash_period(p_from date, p_to date, p_scope text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_cash_period"
+    "arguments": "p_from date, p_to date, p_scope text"
+    "kind": "f"
+    "arguments_with_defaults": "p_from date, p_to date, p_scope text"
+    "result": "TABLE(\"Period Start\" date, \"Period End\" date, \"Account\" text, \"Available From\" date, \"Opening Balance\"\
+      \ numeric, \"Money In\" numeric, \"Money Out\" numeric, \"Net Movement\" numeric, \"Closing Balance\" numeric, \"Transaction\
+      \ Count\" bigint, \"Statement Status\" text)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.reporting_cash_period(p_from date, p_to date, p_scope text)
+       RETURNS TABLE("Period Start" date, "Period End" date, "Account" text, "Available From" date, "Opening Balance" numeric, "Money In" numeric, "Money Out" numeric, "Net Movement" numeric, "Closing Balance" numeric, "Transaction Count" bigint, "Statement Status" text)
+       LANGUAGE sql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+       WITH amounts AS (
+        SELECT s.id,s.label,s.available,s.baseline,
+         coalesce(sum(e."Net Movement") FILTER(WHERE e."Date"<p_from),0) prior,
+         coalesce(sum(e."Money In") FILTER(WHERE e."Date">=p_from),0) cash_in,
+         coalesce(sum(e."Money Out") FILTER(WHERE e."Date">=p_from),0) cash_out,
+         count(e."Entry ID") FILTER(WHERE e."Date">=p_from) n
+        FROM public.reporting_cash_scopes s LEFT JOIN public.reporting_cash_entries e
+         ON e."Scope ID"=s.id AND e."Date"<=p_to
+        WHERE s.id=p_scope AND p_from<=p_to AND p_to<=public.olap_reporting_date()
+        GROUP BY s.id,s.label,s.available,s.baseline
+       ), balances AS (
+        SELECT *,CASE WHEN p_from>=available THEN baseline+prior END opening,
+         CASE WHEN p_to>=available THEN baseline+prior+cash_in-cash_out END closing FROM amounts
+       )
+       SELECT p_from,p_to,label,available,opening,cash_in,cash_out,cash_in-cash_out,closing,n,
+        CASE WHEN opening IS NULL THEN 'Opening unavailable' WHEN closing IS NULL THEN 'Closing unavailable'
+         WHEN abs(opening+cash_in-cash_out-closing)<0.005 THEN 'Balances match'
+         ELSE 'Balance mismatch' END FROM balances
+      $function$
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": "{postgres=X/postgres,metabase_borrower_reader=X/postgres}"
+    "comment": "Live bounded period totals with fresh opening seed from source ledger. No daily history grid, snapshot seed\
+      \ or FIFO."
+    "extension": null

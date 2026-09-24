@@ -38,6 +38,8 @@ Partners[AI Reviewer] and the reviewed integration-agent policy are deployed. To
 
 ## Intentional environment differences
 
+**Dictionary observation, 24 September:** both apps' PROD business-table `Data locale` controls are blank, while every corresponding DEV table explicitly selects `en-US`. The exact blank/value states are retained in the [current dictionary evidence](../outputs/dictionary-reconciliation-20260924/findings.md); effective inheritance and the intended locale policy have not been established. This is an observed difference for review, not an approved setting change or a newly allocated release. The same audit verified the existing source aliases, companion links and four theme colors; it changed no live app, SQL or delivery data.
+
 R015 is promoted and closed: both databases have V33 internal transaction audit. The agent uses separate `mw_agent` PostgreSQL state and append-only audit, with current-reviewer API-first corrections and approved exact-key DELETE. AppSheet definitions remain at the R014 versions. No open R015 product difference remains. [Production evidence](../outputs/r015-20260922/production-report.md).
 
 - Separate DEV database and app identities, DEV themes and within-DEV companion links. DEV uses `loan_manager_dev` and PROD uses `loan_manager_prod` on the same Cloud SQL instance; see [Environment Inventory](Environment_Inventory.md).

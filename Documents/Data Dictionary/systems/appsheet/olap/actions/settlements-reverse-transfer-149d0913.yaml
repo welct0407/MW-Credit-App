@@ -1,0 +1,36 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "action"
+  "name": "Settlements.Reverse Transfer"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Reverse Transfer"
+    "Bulk action?": "Yes"
+    "Confirmation Message": "=\"ยืนยันยกเลิกสถานะการโอนหรือไม่? Confirm that the transfer will be reversed?\""
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "Yes"
+    "Prominence": "Display_Inline"
+    "Action order": "1"
+    "With these properties": "{\"Assignments\":[{\"ColumnToEdit\":\"Status\",\"NewColumnValue\":\"=\\\"Pending\\\"\"},{\"\
+      ColumnToEdit\":\"Transfer Date\",\"NewColumnValue\":\"=\\\"\\\"\"}],\"ColumnToEdit\":\"Status\",\"NewColumnValue\":\"\
+      =\\\"Pending\\\"\",\"InputParametersUsed\":null,\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":true,\"ConfirmationMessage\"\
+      :\"=\\\"ยืนยันยกเลิกสถานะการโอนหรือไม่? Confirm that the transfer will be reversed?\\\"\",\"ModifiesData\":true,\"BulkApplicable\"\
+      :true}"
+    "Do this": "SET_COLUMN_VALUE"
+    "Attach to column": "Status"
+    "Set this column": "Status"
+    "Only if this condition is true": "=[Status] = \"Completed\""
+    "Disable automatic updates?": "No"
+    "Display name": "ยกเลิกการโอน"
+    "Action icon": ""
+    "For a record of this table": "Settlements"
+    "Does this action apply to the whole table?": "No"
+    "To this value": "=\"Pending\""
+    "Visible?": "ALWAYS"

@@ -1,0 +1,31 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "action"
+  "name": "Partners.Settle Exact Amount"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Settle Exact Amount"
+    "Bulk action?": "No"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Display_Prominently"
+    "Action order": "1"
+    "With these properties": "{\"NavigateTarget\":\"=LINKTOFORM(\\\"Settlements_Form\\\", \\\"Ref Partner\\\", [Row ID], \\\
+      \"Settlement Date\\\", TODAY(), \\\"Status\\\", \\\"Pending\\\")\",\"Prominence\":\"Display_Prominently\",\"NeedsConfirmation\"\
+      :false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"BulkApplicable\":false}"
+    "Do this": "NAVIGATE_APP"
+    "Attach to column": "Row ID"
+    "Only if this condition is true": "=[Available to Settle] > 0"
+    "Disable automatic updates?": "No"
+    "Display name": "\"ระบุยอด / Set Amount\""
+    "Action icon": ""
+    "For a record of this table": "Partners"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

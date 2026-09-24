@@ -1,0 +1,169 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "settings"
+  "name": "Editor settings/View type options"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls":
+    - "label": "Show primary actions in dashboards"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Include Show columns in detail views"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Nested row display"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "20"
+    - "label": "Hide form numbering"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Advance forms automatically"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Apply show-if constraints universally"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Use my Google Maps integration"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Map pin limit"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "200"
+    - "label": "Hide points of interest"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Show column headers"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Keep original column order"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Right-align numeric columns"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Disable user sorting"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    "snapshot": |2-
+        - paragraph: "Views: View type options"
+        - heading "Dashboard View" [level=3]
+        - heading "Show primary actions in dashboards" [level=6]
+        - text: Allows all views within dashboards to show primary actions
+        - checkbox
+        - heading "Detail View" [level=3]
+        - heading "Detail style" [level=6]
+        - text: The default style for detail views. Views you add can override this.
+        - radiogroup:
+          - radio "Normal" [checked]:
+            - generic: Normal
+          - radio "Centered":
+            - generic: Centered
+          - radio "No Headings":
+            - generic: No Headings
+          - radio "Side-by-side":
+            - generic: Side-by-side
+        - heading "Detail image style" [level=6]
+        - text: The default style for images in detail views. Views you add can override this.
+        - radiogroup:
+          - radio "Fill" [checked]:
+            - generic: Fill
+          - radio "Fit":
+            - generic: Fit
+          - radio "Background":
+            - generic: Background
+        - heading "Include Show columns in detail views" [level=6]
+        - text: Include Show type columns in detail views, not just form views
+        - checkbox
+        - heading "Nested row display" [level=6]
+        - text: Maximum number of rows to display without further user interaction for related reference lists.
+        - button:
+          - generic: 
+        - textbox: "20"
+        - button:
+          - generic: 
+        - heading "Forms" [level=3]
+        - heading "Form page style" [level=6]
+        - text: How form pages are displayed.
+        - radiogroup:
+          - radio "Simple" [checked]:
+            - generic: Simple
+          - radio "Page Count":
+            - generic: Page Count
+          - radio "Tabs":
+            - generic: Tabs
+        - heading "Form style" [level=6]
+        - text: How form inputs are displayed.
+        - radiogroup:
+          - radio "Default" [checked]:
+            - generic: Default
+          - radio "Side-by-side":
+            - generic: Side-by-side
+        - heading "Hide form numbering" [level=6]
+        - text: Leave off the number labels from form fields.
+        - checkbox [checked]
+        - heading "Advance forms automatically" [level=6]
+        - text: Go to the next field (or next page) after filling out the previous field. Camera, scanner, selection pop-ups, etc. will appear automatically for required fields.
+        - checkbox
+        - heading "Apply show-if constraints universally" [level=6]
+        - text: If this is option is enabled, Show-If column constraints apply to all views. If disabled, they only apply in forms.
+        - checkbox [checked]
+        - heading "Map View" [level=3]
+        - heading "Use my Google Maps integration" [level=6]
+        - text: Use Google Maps key from account settings for geocoding requests. Required for accounts with more than 1000 geocoded addresses per month.
+        - checkbox [checked]
+        - heading "Map pin limit" [level=6]
+        - text: Maximum number of pins to show in maps views.
+        - button:
+          - generic: 
+        - textbox: "200"
+        - button:
+          - generic: 
+        - heading "Hide points of interest" [level=6]
+        - text: Disable automatic icons for local businesses, restaurants, and attractions.
+        - checkbox [checked]
+        - heading "Table View" [level=3]
+        - heading "Show column headers" [level=6]
+        - text: Show column names at the top of table views.
+        - checkbox [checked]
+        - heading "Keep original column order" [level=6]
+        - text: Prevent AppSheet from intelligently re-ordering columns.
+        - checkbox
+        - heading "Right-align numeric columns" [level=6]
+        - text: Display all numeric types right-aligned.
+        - checkbox
+        - heading "Disable user sorting" [level=6]
+        - text: Prevent users from clicking on headers to sort table rows.
+        - checkbox

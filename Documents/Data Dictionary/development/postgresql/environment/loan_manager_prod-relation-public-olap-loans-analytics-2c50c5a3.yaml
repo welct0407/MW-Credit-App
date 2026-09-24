@@ -1,0 +1,152 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.olap_loans_analytics"
+  "scope": "development:observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/development-postgresql-observations.json"
+"content":
+  "production_identity":
+    "system": "postgresql"
+    "component": "loan_manager_prod"
+    "kind": "relation"
+    "name": "public.olap_loans_analytics"
+    "scope": "production"
+  "target":
+    "instance": "appsheet-pg-prod-20260914"
+    "host": "34.21.174.215"
+    "port": 5432
+    "database": "loan_manager_dev"
+  "classification": "Observed ACL, column-order and environment-specific internal trigger/constraint identifiers; PROD-only\
+    \ cron metadata retained as explicit absence in DEV."
+  "changes":
+  - "pointer": "/columns/Close Date/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Current Daily Interest/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Default Loss Amount/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Defaulted Flag/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Due Date/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Expected Interest This Month/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Loan Age Bucket/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Loan Age Days/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Loan Date/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Loan Status/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Loan Type/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Outstanding Principal/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Principal Amount/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Ref Borrowers/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Row ID/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Total Interest Received/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/columns/Total Principal Received/acl"
+    "before":
+      "state": "value"
+      "value": "{metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  - "pointer": "/definition/acl"
+    "before":
+      "state": "value"
+      "value": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres,metabase_borrower_reader=r/postgres}"
+    "after":
+      "state": "value"
+      "value": null
+  "comparison_representation": "captured source object (before presentation into canonical YAML)"

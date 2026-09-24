@@ -1,0 +1,24 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "format-rule"
+  "name": "Collection Status - Partial"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Rule name": "Collection Status - Partial"
+    "Format these columns and actions":
+    - "Amount Due"
+    - "Amount Remaining"
+    "For this data": "Charges"
+    "If this condition is true": "=[Payment Status] = \"ชำระบางส่วน\""
+    "Rule order": "5"
+    "Is this format rule disabled?": "No"
+    "Like this": "{\"textColor\":\"orange\",\"highlightColor\":\"orange\",\"textSize\":1.0,\"underline\":false,\"strikethrough\"\
+      :false,\"bold\":false,\"italic\":false,\"uppercase\":false,\"icon\":\"far fa-hand-holding-usd\",\"imageSize\":null}"
+    "Visible?": "ALWAYS"

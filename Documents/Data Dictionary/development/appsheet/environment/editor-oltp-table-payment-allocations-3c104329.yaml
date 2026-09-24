@@ -1,0 +1,611 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Payment Allocations"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/oltp/tables/payment-allocations.yaml"
+  "classification": "Observed environment source/generated identifiers and locale representation. PROD locale blank versus\
+    \ DEV en-US is not an approved policy change."
+  "changes":
+  - "pointer": "/fields"
+    "before":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Payment Allocations"
+        "label": "Table name"
+        "text": |-
+          Table name
+          Name for this table (user-visible)
+          ​
+      - "choices":
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Updates"
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Adds"
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Deletes"
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Read-Only"
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "science"
+        "controls": []
+        "label": "Are updates allowed?"
+        "text": |-
+          Are updates allowed?
+          Are adds, deletes and updates allowed?
+          Updates
+          Adds
+          Deletes
+          Read-Only
+          science
+      - "choices": []
+        "controls":
+        - "selected":
+          - "Payment Allocations"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "6"
+        "label": "Source Path"
+        "text": |-
+          Source Path
+          A user-understandable path to the table data
+          - select a source -
+          Borrowers
+          Loans
+          Repayments
+          Statistics
+          Charges
+          Partners
+          Payment Allocations
+          Payments
+          Business Expenses
+          Loan Form Context
+          Cash Holders
+          Cash Holder Balances
+          Cash Accounts
+          Cash Statement Context
+          Cash Account Daily Summary Recent
+          Cash Account Statement Recent
+          Cash Account Balances
+          Cash Dashboard
+          - browse for more data -
+      - "choices":
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": ""
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Add"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "_RowNumber"
+        "label": "Column Order List"
+        "text": |-
+          Column Order List
+          The order of columns to retrieve from the provider (only applies to some storage providers)
+          drag_indicator
+          _RowNumber
+          ​
+          Add
+      - "choices":
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Copy Data to New Source"
+        "controls": []
+        "label": "Data Source"
+        "text": |-
+          Data Source
+          Name of the table data source
+          database-2
+          Copy Data to New Source
+      - "choices": []
+        "controls": []
+        "label": "Source Id"
+        "text": |-
+          Source Id
+          A provider-specific path to the table data (not user-visible)
+          Table=public.Payment Allocations__Payment Allocations
+      - "choices": []
+        "controls":
+        - "selected":
+          - "Default"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "_Default"
+        "label": "Store for image and file capture"
+        "text": |-
+          Store for image and file capture
+          By default, images and files captured by the app are stored in the cloud file system associated with the app owner's account. You can explicitly add an object store and use it instead.
+          Default
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Filter out all existing rows?"
+        "text": |-
+          Filter out all existing rows?
+          Used only in forms apps that collect new data rows but never show any pre-existing rows.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Security filter"
+        "text": |-
+          Security filter
+          The app uses only those rows that match this (optional) filter condition. Use this filter to limit what each user can see.
+          =
+          science
+          ​
+      - "choices":
+        - "checked": "true"
+          "pressed": null
+          "role": "radio"
+          "text": "as app creator"
+        - "checked": "false"
+          "pressed": null
+          "role": "radio"
+          "text": "as app user"
+        "controls": []
+        "label": "Access mode"
+        "text": |-
+          Access mode
+          The app will access the spreadsheet using the app creator or app user credentials.
+          as app creator
+          as app user
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": true
+        "label": "Shared?"
+        "text": |-
+          Shared?
+          Is this table shared by all users? This option is normally checked. Before unchecking, carefully review 'Private Tables' in the documentation.
+      - "choices": []
+        "controls":
+        - "selected":
+          - ""
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": ""
+        "label": "Data locale"
+        "text": |-
+          Data locale
+          Locale used to read the table
+          Compatibility (For backward compatibility)
+          Amharic (Ethiopia)
+          Arabic (Algeria)
+          Arabic (Bahrain)
+          Arabic (Egypt)
+          Arabic (Iraq)
+          Arabic (Jordan)
+          Arabic (Kuwait)
+          Arabic (Lebanon)
+          Arabic (Libya)
+          Arabic (Morocco)
+          Arabic (Oman)
+          Arabic (Qatar)
+          Arabic (Saudi Arabia)
+          Arabic (Syria)
+          Arabic (Tunisia)
+          Arabic (United Arab Emirates)
+          Arabic (Yemen)
+          Armenian (Armenia)
+          Azerbaijani (Cyrillic, Azerbaijan)
+          Azerbaijani (Latin, Azerbaijan)
+          Bengali (India)
+          Bulgarian (Bulgaria)
+          Burmese (Myanmar)
+          Catalan (Catalan)
+          Chinese (Simplified, China)
+          Chinese (Traditional, Hong Kong SAR)
+          Chinese (Traditional, Taiwan)
+          Chinese Traditional (Malaysia)
+          Croatian (Croatia)
+          Czech (Czechia)
+          Danish (Denmark)
+          Dari (Afghanistan)
+          Dutch (Aruba)
+          Dutch (Belgium)
+          Dutch (Curaçao)
+          Dutch (Netherlands)
+          English (Australia)
+          English (Bahrain)
+          English (Belgium)
+          English (Brazil)
+          English (Canada)
+          English (Germany)
+          English (Hong Kong SAR)
+          English (India)
+          English (Ireland)
+          English (Kenya)
+          English (Malaysia)
+          English (New Zealand)
+          English (Norway)
+          English (Philippines)
+          English (Singapore)
+          English (South Africa)
+          English (Sri Lanka)
+          English (Tanzania)
+          English (United Kingdom)
+          English (United States)
+          Filipino (Philippines)
+          Finnish (Finland)
+          French (Belgium)
+          French (Cameroon)
+          French (Canada)
+          French (Côte d’Ivoire)
+          French (France)
+          French (Luxembourg)
+          French (Mali)
+          French (Morocco)
+          French (Senegal)
+          French (Switzerland)
+          French Congo (DRC)
+          Fulah (Latin, Senegal)
+          Georgian (Georgia)
+          German (Austria)
+          German (Germany)
+          German (Liechtenstein)
+          German (Luxembourg)
+          German (Switzerland)
+          Greek (Greece)
+          Gujarati (India)
+          Hausa (Latin, Nigeria)
+          Hebrew (Israel)
+          Hindi (India)
+          Hungarian (Hungary)
+          Igbo (Nigeria)
+          Indonesian (Indonesia)
+          Irish (Ireland)
+          Italian (Italy)
+          Italian (Switzerland)
+          Japanese (Japan)
+          Kannada (India)
+          Kinyarwanda (Rwanda)
+          Kiswahili (Kenya)
+          Kiswahili (Tanzania)
+          Korean (Korea)
+          Latvian (Latvia)
+          Lingala (Angola)
+          Lithuanian (Lithuania)
+          Malay (Brunei)
+          Malay (Malaysia)
+          Malayalam (India)
+          Marathi (India)
+          Mongolian (Mongolia)
+          Norwegian Bokmål (Norway)
+          Norwegian Nynorsk (Norway)
+          Oromo (Ethiopia)
+          Pashto (Afghanistan)
+          Persian (Iran)
+          Polish (Poland)
+          Portuguese (Angola)
+          Portuguese (Brazil)
+          Portuguese (Mozambique)
+          Portuguese (Portugal)
+          Romanian (Romania)
+          Russian (Russia)
+          Serbian (Cyrillic, Serbia)
+          Serbian (Latin, Serbia)
+          Serbian (Serbia)
+          Setswana (Botswana)
+          Sinhala (Sri Lanka)
+          Slovak (Slovakia)
+          Slovenian (Slovenia)
+          Spanish (Argentina)
+          Spanish (Bolivia)
+          Spanish (Chile)
+          Spanish (Colombia)
+          Spanish (Costa Rica)
+          Spanish (Dominican Republic)
+          Spanish (Ecuador)
+          Spanish (El Salvador)
+          Spanish (Guatemala)
+          Spanish (Honduras)
+          Spanish (Latin America)
+          Spanish (Latin America)
+          Spanish (Mexico)
+          Spanish (Nicaragua)
+          Spanish (Panama)
+          Spanish (Paraguay)
+          Spanish (Peru)
+          Spanish (Spain, International Sort)
+          Spanish (United States)
+          Spanish (Uruguay)
+          Spanish (Venezuela)
+          Swedish (Sweden)
+          Tamil (India)
+          Tamil (Sri Lanka)
+          Telugu (India)
+          Thai (Thailand)
+          Tigrinya (Ethiopia)
+          Turkish (Turkey)
+          Ukrainian (Ukraine)
+          Vietnamese (Vietnam)
+          Yoruba (Nigeria)
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": |-
+          Descriptive comment
+          Comments help you and your collaborators better record and understand the structure of the app
+    "after":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Payment Allocations"
+        "label": "Table name"
+        "text": |-
+          Table name
+          Name for this table (user-visible)
+          ​
+      - "choices":
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Updates"
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Adds"
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Deletes"
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Read-Only"
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "science"
+        "controls": []
+        "label": "Are updates allowed?"
+        "text": |-
+          Are updates allowed?
+          Are adds, deletes and updates allowed?
+          Updates
+          Adds
+          Deletes
+          Read-Only
+          science
+      - "choices": []
+        "controls":
+        - "selected":
+          - "Payment Allocations"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "6"
+        "label": "Source Path"
+        "text": "Source PathA user-understandable path to the table data - select a source -BorrowersLoansRepaymentsStatisticsChargesPartnersPayment\
+          \ AllocationsPaymentsBusiness ExpensesLoan Form ContextCash HoldersCash Holder BalancesCash AccountsCash Statement\
+          \ ContextCash Account Daily Summary RecentCash Account Statement RecentCash Account BalancesCash Dashboard- browse\
+          \ for more data -"
+      - "choices":
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": ""
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Add"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "_RowNumber"
+        "label": "Column Order List"
+        "text": "Column Order ListThe order of columns to retrieve from the provider (only applies to some storage providers)drag_indicator_RowNumber​Add"
+      - "choices":
+        - "checked": null
+          "pressed": null
+          "role": null
+          "text": "Copy Data to New Source"
+        "controls": []
+        "label": "Data Source"
+        "text": "Data SourceName of the table data sourcedatabase-3Copy Data to New Source"
+      - "choices": []
+        "controls": []
+        "label": "Source Id"
+        "text": "Source IdA provider-specific path to the table data (not user-visible)Table=public.Payment Allocations__Payment\
+          \ Allocations"
+      - "choices": []
+        "controls":
+        - "selected":
+          - "Default"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "_Default"
+        "label": "Store for image and file capture"
+        "text": "Store for image and file captureBy default, images and files captured by the app are stored in the cloud\
+          \ file system associated with the app owner's account. You can explicitly add an object store and use it instead.Default"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Filter out all existing rows?"
+        "text": "Filter out all existing rows?Used only in forms apps that collect new data rows but never show any pre-existing\
+          \ rows."
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Security filter"
+        "text": "Security filterThe app uses only those rows that match this (optional) filter condition. Use this filter\
+          \ to limit what each user can see.=science​"
+      - "choices":
+        - "checked": "true"
+          "pressed": null
+          "role": "radio"
+          "text": "as app creator"
+        - "checked": "false"
+          "pressed": null
+          "role": "radio"
+          "text": "as app user"
+        "controls": []
+        "label": "Access mode"
+        "text": "Access modeThe app will access the spreadsheet using the app creator or app user credentials.as app creatoras\
+          \ app user"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": true
+        "label": "Shared?"
+        "text": "Shared?Is this table shared by all users? This option is normally checked. Before unchecking, carefully review\
+          \ 'Private Tables' in the documentation."
+      - "choices": []
+        "controls":
+        - "selected":
+          - "English (United States)"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "en-US"
+        "label": "Data locale"
+        "text": "Data localeLocale used to read the tableCompatibility (For backward compatibility)Amharic (Ethiopia)Arabic\
+          \ (Algeria)Arabic (Bahrain)Arabic (Egypt)Arabic (Iraq)Arabic (Jordan)Arabic (Kuwait)Arabic (Lebanon)Arabic (Libya)Arabic\
+          \ (Morocco)Arabic (Oman)Arabic (Qatar)Arabic (Saudi Arabia)Arabic (Syria)Arabic (Tunisia)Arabic (United Arab Emirates)Arabic\
+          \ (Yemen)Armenian (Armenia)Azerbaijani (Cyrillic, Azerbaijan)Azerbaijani (Latin, Azerbaijan)Bengali (India)Bulgarian\
+          \ (Bulgaria)Burmese (Myanmar)Catalan (Catalan)Chinese (Simplified, China)Chinese (Traditional, Hong Kong SAR)Chinese\
+          \ (Traditional, Taiwan)Chinese Traditional (Malaysia)Croatian (Croatia)Czech (Czechia)Danish (Denmark)Dari (Afghanistan)Dutch\
+          \ (Aruba)Dutch (Belgium)Dutch (Curaçao)Dutch (Netherlands)English (Australia)English (Bahrain)English (Belgium)English\
+          \ (Brazil)English (Canada)English (Germany)English (Hong Kong SAR)English (India)English (Ireland)English (Kenya)English\
+          \ (Malaysia)English (New Zealand)English (Norway)English (Philippines)English (Singapore)English (South Africa)English\
+          \ (Sri Lanka)English (Tanzania)English (United Kingdom)English (United States)Filipino (Philippines)Finnish (Finland)French\
+          \ (Belgium)French (Cameroon)French (Canada)French (Côte d’Ivoire)French (France)French (Luxembourg)French (Mali)French\
+          \ (Morocco)French (Senegal)French (Switzerland)French Congo (DRC)Fulah (Latin, Senegal)Georgian (Georgia)German\
+          \ (Austria)German (Germany)German (Liechtenstein)German (Luxembourg)German (Switzerland)Greek (Greece)Gujarati (India)Hausa\
+          \ (Latin, Nigeria)Hebrew (Israel)Hindi (India)Hungarian (Hungary)Igbo (Nigeria)Indonesian (Indonesia)Irish (Ireland)Italian\
+          \ (Italy)Italian (Switzerland)Japanese (Japan)Kannada (India)Kinyarwanda (Rwanda)Kiswahili (Kenya)Kiswahili (Tanzania)Korean\
+          \ (Korea)Latvian (Latvia)Lingala (Angola)Lithuanian (Lithuania)Malay (Brunei)Malay (Malaysia)Malayalam (India)Marathi\
+          \ (India)Mongolian (Mongolia)Norwegian Bokmål (Norway)Norwegian Nynorsk (Norway)Oromo (Ethiopia)Pashto (Afghanistan)Persian\
+          \ (Iran)Polish (Poland)Portuguese (Angola)Portuguese (Brazil)Portuguese (Mozambique)Portuguese (Portugal)Romanian\
+          \ (Romania)Russian (Russia)Serbian (Cyrillic, Serbia)Serbian (Latin, Serbia)Serbian (Serbia)Setswana (Botswana)Sinhala\
+          \ (Sri Lanka)Slovak (Slovakia)Slovenian (Slovenia)Spanish (Argentina)Spanish (Bolivia)Spanish (Chile)Spanish (Colombia)Spanish\
+          \ (Costa Rica)Spanish (Dominican Republic)Spanish (Ecuador)Spanish (El Salvador)Spanish (Guatemala)Spanish (Honduras)Spanish\
+          \ (Latin America)Spanish (Latin America)Spanish (Mexico)Spanish (Nicaragua)Spanish (Panama)Spanish (Paraguay)Spanish\
+          \ (Peru)Spanish (Spain, International Sort)Spanish (United States)Spanish (Uruguay)Spanish (Venezuela)Swedish (Sweden)Tamil\
+          \ (India)Tamil (Sri Lanka)Telugu (India)Thai (Thailand)Tigrinya (Ethiopia)Turkish (Turkey)Ukrainian (Ukraine)Vietnamese\
+          \ (Vietnam)Yoruba (Nigeria)"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"
+  - "pointer": "/update_permissions_snapshot"
+    "before":
+      "state": "value"
+      "value": |2-
+
+          - heading "Table settings" [level=5]
+          - button "close":
+          - heading "Table name" [level=6]
+          - text: Name for this table (user-visible)
+          - textbox: Payment Allocations
+          - heading "Are updates allowed?" [level=6]
+          - text: Are adds, deletes and updates allowed?
+          - button " Updates":
+            - text: 
+            - generic: Updates
+          - button " Adds":
+            - text: 
+            - generic: Adds
+          - button " Deletes":
+            - text: 
+            - generic: Deletes
+          - button "Read-Only"
+          - button "science"
+          - heading "Storage" [level=3]
+          - generic: 
+          - heading "Source Path" [level=6]
+          - text: A user-understandable path to the table data
+          - combobox "Select an option":
+            - option "- select a source -"
+    "after":
+      "state": "value"
+      "value": |2-
+
+          - heading "Table settings" [level=5]
+          - button "close":
+          - heading "Table name" [level=6]
+          - text: Name for this table (user-visible)
+          - textbox: Payment Allocations
+          - heading "Are updates allowed?" [level=6]
+          - text: Are adds, deletes and updates allowed?
+          - button " Updates":
+            - text: 
+            - generic: Updates
+          - button " Adds":
+            - text: 
+            - generic: Adds
+          - button " Deletes":
+            - text: 
+            - generic: Deletes
+          - button "Read-Only"
+          - button "science"
+          - heading "Storage" [level=3]
+          - generic: 
+          - text: (ENTERPRISE Plan)
+          - heading "Security" [level=3]
+          - generic: 
+          - text: (APPSHEET CORE) (APPSHEET CORE) (APPSHEET CORE)

@@ -1,0 +1,50 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.vc_repayment_changed()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "vc_repayment_changed"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.vc_repayment_changed()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE k text; o jsonb:=CASE WHEN TG_OP<>'INSERT' THEN to_jsonb(OLD) ELSE '{}'::jsonb END;
+       n jsonb:=CASE WHEN TG_OP<>'DELETE' THEN to_jsonb(NEW) ELSE '{}'::jsonb END;
+      BEGIN
+       FOR k IN SELECT DISTINCT x FROM unnest(ARRAY[o->>'Ref Charges',n->>'Ref Charges']) x WHERE x IS NOT NULL ORDER BY x LOOP
+        PERFORM public.vc_refresh_charge(k);
+       END LOOP;
+       FOR k IN SELECT DISTINCT x FROM unnest(ARRAY[o->>'Ref Loans',n->>'Ref Loans']) x WHERE x IS NOT NULL ORDER BY x LOOP
+        PERFORM public.vc_refresh_loan(k);
+       END LOOP;
+       RETURN NULL;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

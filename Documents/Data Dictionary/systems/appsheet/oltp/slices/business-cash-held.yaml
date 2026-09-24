@@ -4,56 +4,52 @@
   "component": "oltp"
   "kind": "slice"
   "name": "Business Cash Held"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/oltp/slices/business-cash-held.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "oltp"
+      "kind": "slice"
+      "name": "Business Cash Held"
+      "scope": "recorded-production"
 "content":
   "definition":
-    "App": "OLTP"
-    "Slice": "Business Cash Held"
-    "Source table": "Cash Holder Balances"
-    "Permission": "READ_ONLY"
-    "Filter": "=[Business Cash Held] <> 0"
-    "Actions": "**auto**"
+    "Slice Name": "Business Cash Held"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Ref Cash Holder"
+    - "Holder Name"
+    - "Cash In"
+    - "Cash Out"
+    - "Current Balance"
+    - "Business Cash Held"
+    - "Reimbursement / Advance Due"
+    "Row filter condition": "=[Business Cash Held] <> 0"
+    "Update mode": "READ_ONLY"
+    "Source Table": "Cash Holder Balances"
+    "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
   "members":
-  - "App": "OLTP"
-    "Slice": "Business Cash Held"
-    "Source table": "Cash Holder Balances"
-    "Ordinal": 1
+  - "Ordinal": 1
     "Column": "_RowNumber"
-  - "App": "OLTP"
-    "Slice": "Business Cash Held"
-    "Source table": "Cash Holder Balances"
-    "Ordinal": 2
+  - "Ordinal": 2
     "Column": "Ref Cash Holder"
-  - "App": "OLTP"
-    "Slice": "Business Cash Held"
-    "Source table": "Cash Holder Balances"
-    "Ordinal": 3
+  - "Ordinal": 3
     "Column": "Holder Name"
-  - "App": "OLTP"
-    "Slice": "Business Cash Held"
-    "Source table": "Cash Holder Balances"
-    "Ordinal": 4
+  - "Ordinal": 4
     "Column": "Cash In"
-  - "App": "OLTP"
-    "Slice": "Business Cash Held"
-    "Source table": "Cash Holder Balances"
-    "Ordinal": 5
+  - "Ordinal": 5
     "Column": "Cash Out"
-  - "App": "OLTP"
-    "Slice": "Business Cash Held"
-    "Source table": "Cash Holder Balances"
-    "Ordinal": 6
+  - "Ordinal": 6
     "Column": "Current Balance"
-  - "App": "OLTP"
-    "Slice": "Business Cash Held"
-    "Source table": "Cash Holder Balances"
-    "Ordinal": 7
+  - "Ordinal": 7
     "Column": "Business Cash Held"
-  - "App": "OLTP"
-    "Slice": "Business Cash Held"
-    "Source table": "Cash Holder Balances"
-    "Ordinal": 8
+  - "Ordinal": 8
     "Column": "Reimbursement / Advance Due"

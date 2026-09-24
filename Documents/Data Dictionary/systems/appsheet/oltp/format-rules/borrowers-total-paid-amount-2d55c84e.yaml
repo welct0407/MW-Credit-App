@@ -1,0 +1,23 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "format-rule"
+  "name": "Borrowers - Total Paid Amount"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Rule name": "Borrowers - Total Paid Amount"
+    "Format these columns and actions":
+    - "Todays Amount Collected"
+    "For this data": "Borrowers"
+    "If this condition is true": "=[Todays Amount Collected] > 0"
+    "Rule order": "1"
+    "Is this format rule disabled?": "No"
+    "Like this": "{\"textColor\":\"green\",\"highlightColor\":null,\"textSize\":1.1,\"underline\":false,\"strikethrough\"\
+      :false,\"bold\":false,\"italic\":false,\"uppercase\":false,\"icon\":null,\"imageSize\":null}"
+    "Visible?": "ALWAYS"

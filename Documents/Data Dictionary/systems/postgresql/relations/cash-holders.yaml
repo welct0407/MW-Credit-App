@@ -1,90 +1,421 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
-  "name": "Cash Holders"
-  "scope": "as-recorded"
+  "name": "public.Cash Holders"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/cash-holders.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Cash Holders"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "Cash Holders"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=r/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Row ID":
-      "Table / view": "Cash Holders"
-      "Column": "Row ID"
-      "Position": 1
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Holder Name":
-      "Table / view": "Cash Holders"
-      "Column": "Holder Name"
-      "Position": 2
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Holder Name"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": "{mw_reviewer_dml=w/postgres}"
+      "comment": null
     "Active":
-      "Table / view": "Cash Holders"
-      "Column": "Active"
-      "Position": 3
-      "PostgreSQL type": "boolean"
-      "Nullable": "NO"
-      "Default": "true"
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Active"
+      "ordinal": 3
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "true"
+      "collation": null
+      "acl": null
+      "comment": null
     "Sort Order":
-      "Table / view": "Cash Holders"
-      "Column": "Sort Order"
-      "Position": 4
-      "PostgreSQL type": "integer"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Sort Order"
+      "ordinal": 4
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Created At":
-      "Table / view": "Cash Holders"
-      "Column": "Created At"
-      "Position": 5
-      "PostgreSQL type": "timestamp without time zone"
-      "Nullable": "NO"
-      "Default": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Created At"
+      "ordinal": 5
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints":
     "Cash Holders_Active_not_null":
-      "Table": "Cash Holders"
-      "Constraint": "Cash Holders_Active_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Active\""
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Cash Holders_Active_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Active\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Holders_Created At_not_null":
-      "Table": "Cash Holders"
-      "Constraint": "Cash Holders_Created At_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Created At\""
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Cash Holders_Created At_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Created At\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Holders_Holder Name_key":
-      "Table": "Cash Holders"
-      "Constraint": "Cash Holders_Holder Name_key"
-      "Type": "u"
-      "Validated": true
-      "Definition": "UNIQUE (\"Holder Name\")"
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Cash Holders_Holder Name_key"
+      "kind": "u"
+      "definition": "UNIQUE (\"Holder Name\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Holders_Holder Name_not_null":
-      "Table": "Cash Holders"
-      "Constraint": "Cash Holders_Holder Name_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Holder Name\""
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Cash Holders_Holder Name_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Holder Name\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Holders_Row ID_not_null":
-      "Table": "Cash Holders"
-      "Constraint": "Cash Holders_Row ID_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Row ID\""
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Cash Holders_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Holders_Sort Order_not_null":
-      "Table": "Cash Holders"
-      "Constraint": "Cash Holders_Sort Order_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Sort Order\""
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Cash Holders_Sort Order_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Sort Order\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Holders_pkey":
-      "Table": "Cash Holders"
-      "Constraint": "Cash Holders_pkey"
-      "Type": "p"
-      "Validated": true
-      "Definition": "PRIMARY KEY (\"Row ID\")"
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Cash Holders_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Cash Holders_Holder Name_key":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Cash Holders_Holder Name_key"
+      "definition": "CREATE UNIQUE INDEX \"Cash Holders_Holder Name_key\" ON public.\"Cash Holders\" USING btree (\"Holder\
+        \ Name\")"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "Cash Holders_pkey":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "Cash Holders_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Cash Holders_pkey\" ON public.\"Cash Holders\" USING btree (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_17155":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17155"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17155\" AFTER DELETE ON \"Cash Holders\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17156":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17156"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17156\" AFTER UPDATE ON \"Cash Holders\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17161":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17161"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17161\" AFTER DELETE ON \"Cash Holders\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17162":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17162"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17162\" AFTER UPDATE ON \"Cash Holders\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17192":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17192"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17192\" AFTER DELETE ON \"Cash Holders\" FROM \"Cash\
+        \ Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17193":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17193"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17193\" AFTER UPDATE ON \"Cash Holders\" FROM \"Cash\
+        \ Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17197":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17197"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17197\" AFTER DELETE ON \"Cash Holders\" FROM \"Cash\
+        \ Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17198":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17198"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17198\" AFTER UPDATE ON \"Cash Holders\" FROM \"Cash\
+        \ Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17335":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17335"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17335\" AFTER DELETE ON \"Cash Holders\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17336":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "RI_ConstraintTrigger_a_17336"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17336\" AFTER UPDATE ON \"Cash Holders\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "aa_cash_identity":
+      "schema": "public"
+      "relation": "Cash Holders"
+      "name": "aa_cash_identity"
+      "definition": "CREATE TRIGGER aa_cash_identity BEFORE UPDATE OF \"Row ID\" ON \"Cash Holders\" FOR EACH ROW EXECUTE\
+        \ FUNCTION guard_cash_source_identity()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_cash_source_identity()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

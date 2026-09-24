@@ -1,0 +1,517 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Repayments_Inline"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/oltp/views/repayments-inline-aa98d66b.yaml"
+  "classification": "Captured source controls and choices match; supporting editor text/App links differ by environment or\
+    \ UI presentation."
+  "changes":
+  - "pointer": "/fields"
+    "before":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Payment Date"
+        - "selected":
+          - "Descending"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "Descending"
+        "label": "Sort by"
+        "text": |-
+          Sort by
+          Sort the rows by one or more columns.
+          drag_indicator
+          Payment Date
+          ​
+          Ascending
+          Descending
+          edit
+          Add
+      - "choices": []
+        "controls": []
+        "label": "Group by"
+        "text": |-
+          Group by
+          Group rows by the values in one or more of their columns.
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "NONE"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "NONE"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          Display a numeric summary of the rows in each group.
+          NONE
+          COUNT
+          SUM :: Principal Paid
+          AVERAGE :: Principal Paid
+          MIN :: Principal Paid
+          MAX :: Principal Paid
+          SUM :: Interest Paid
+          AVERAGE :: Interest Paid
+          MIN :: Interest Paid
+          MAX :: Interest Paid
+          SUM :: Principal Returned Days MTD
+          AVERAGE :: Principal Returned Days MTD
+          MIN :: Principal Returned Days MTD
+          MAX :: Principal Returned Days MTD
+          SUM :: Amount Received
+          AVERAGE :: Amount Received
+          MIN :: Amount Received
+          MAX :: Amount Received
+          SUM :: Payment Amount Today
+          AVERAGE :: Payment Amount Today
+          MIN :: Payment Amount Today
+          MAX :: Payment Amount Today
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Main image"
+        "text": |-
+          Main image
+          The image column to display for each row.
+          Auto assign (None)
+          ​
+      - "choices":
+        - "checked": "true"
+          "text": "Square Image"
+        - "checked": "false"
+          "text": "Round Image"
+        - "checked": "false"
+          "text": "Full Image"
+        "controls": []
+        "label": "Image shape"
+        "text": |-
+          Image shape
+          What shape should the main image be?
+          Square Image
+          Round Image
+          Full Image
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Primary header"
+        "text": |-
+          Primary header
+          The top text for each row
+          Auto assign (Payment Date)
+          ​
+          edit
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Amount Received"
+        "label": "Secondary header"
+        "text": |-
+          Secondary header
+          The bottom text for each row.
+          Amount Received
+          ​
+          edit
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Summary column"
+        "text": |-
+          Summary column
+          The top-right text for each row.
+          Auto assign (None)
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Nested table column"
+        "text": |-
+          Nested table column
+          An optional nested table (list of ref values).
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": true
+        "label": "Show action bar"
+        "text": |-
+          Show action bar
+          Show action buttons at the bottom of each row?
+      - "choices":
+        - "checked": "false"
+          "text": "Automatic"
+        - "checked": "true"
+          "text": "Manual"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Actions"
+        "text": |-
+          Actions
+          Which actions to include in the action bar?
+          Automatic
+          Manual
+          Select all
+          Move to
+          Add
+          Remove
+          ​
+          Delete
+          Edit
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur.Row SelectedAuto assign (View details)​Row Swiped Left (beta)Auto\
+          \ assign (None)​Row Swiped Right (beta)Auto assign (None)​"
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Repayments_Inline\"\
+          )   .... or ... \"https://www.appsheet.com/start/93844270-6aa5-420b-a960-bcdf08abd357#view=Repayments_Inline\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"
+    "after":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Payment Date"
+        - "selected":
+          - "Descending"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "Descending"
+        "label": "Sort by"
+        "text": |-
+          Sort by
+          Sort the rows by one or more columns.
+          drag_indicator
+          Payment Date
+          ​
+          Ascending
+          Descending
+          edit
+          Add
+      - "choices": []
+        "controls": []
+        "label": "Group by"
+        "text": |-
+          Group by
+          Group rows by the values in one or more of their columns.
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "NONE"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "NONE"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          Display a numeric summary of the rows in each group.
+          NONE
+          COUNT
+          SUM :: Principal Paid
+          AVERAGE :: Principal Paid
+          MIN :: Principal Paid
+          MAX :: Principal Paid
+          SUM :: Interest Paid
+          AVERAGE :: Interest Paid
+          MIN :: Interest Paid
+          MAX :: Interest Paid
+          SUM :: Principal Returned Days MTD
+          AVERAGE :: Principal Returned Days MTD
+          MIN :: Principal Returned Days MTD
+          MAX :: Principal Returned Days MTD
+          SUM :: Amount Received
+          AVERAGE :: Amount Received
+          MIN :: Amount Received
+          MAX :: Amount Received
+          SUM :: Payment Amount Today
+          AVERAGE :: Payment Amount Today
+          MIN :: Payment Amount Today
+          MAX :: Payment Amount Today
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Main image"
+        "text": |-
+          Main image
+          The image column to display for each row.
+          Auto assign (None)
+          ​
+      - "choices":
+        - "checked": "true"
+          "text": "Square Image"
+        - "checked": "false"
+          "text": "Round Image"
+        - "checked": "false"
+          "text": "Full Image"
+        "controls": []
+        "label": "Image shape"
+        "text": |-
+          Image shape
+          What shape should the main image be?
+          Square Image
+          Round Image
+          Full Image
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Primary header"
+        "text": |-
+          Primary header
+          The top text for each row
+          Auto assign (Payment Date)
+          ​
+          edit
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Amount Received"
+        "label": "Secondary header"
+        "text": |-
+          Secondary header
+          The bottom text for each row.
+          Amount Received
+          ​
+          edit
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Summary column"
+        "text": |-
+          Summary column
+          The top-right text for each row.
+          Auto assign (None)
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Nested table column"
+        "text": |-
+          Nested table column
+          An optional nested table (list of ref values).
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": true
+        "label": "Show action bar"
+        "text": |-
+          Show action bar
+          Show action buttons at the bottom of each row?
+      - "choices":
+        - "checked": "false"
+          "text": "Automatic"
+        - "checked": "true"
+          "text": "Manual"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Actions"
+        "text": |-
+          Actions
+          Which actions to include in the action bar?
+          Automatic
+          Manual
+          Select all
+          Move to
+          Add
+          Remove
+          ​
+          Delete
+          Edit
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur.Row SelectedAuto assign (View details)​Row Swiped Left (beta)Auto\
+          \ assign (None)​Row Swiped Right (beta)Auto assign (None)​"
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Repayments_Inline\"\
+          )   .... or ... \"https://www.appsheet.com/start/500b27b6-884a-41e8-a9ec-df801b0110ad#view=Repayments_Inline\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"

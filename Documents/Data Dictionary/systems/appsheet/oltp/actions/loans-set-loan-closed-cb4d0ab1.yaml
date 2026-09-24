@@ -1,0 +1,44 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Loans.Set Loan Closed"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Set Loan Closed"
+    "Bulk action?": "Yes"
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "4"
+    "With these properties": "{\"Assignments\":[{\"ColumnToEdit\":\"Loan Status\",\"NewColumnValue\":\"=\\\"ปิดยอดแล้ว\\\"\
+      \"},{\"ColumnToEdit\":\"Closed By\",\"NewColumnValue\":\"=USEREMAIL()\"},{\"ColumnToEdit\":\"Close Date\",\"NewColumnValue\"\
+      :\"=TODAY()\"}],\"ColumnToEdit\":\"Loan Status\",\"NewColumnValue\":\"=\\\"ปิดยอดแล้ว\\\"\",\"InputParametersUsed\"\
+      :null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"\
+      BulkApplicable\":true}"
+    "Do this": "SET_COLUMN_VALUE"
+    "Attach to column": "Loan Status"
+    "Set this column": "Loan Status"
+    "Only if this condition is true": |-
+      =AND(
+        [Loan Status] = "ยังไม่ปิดยอด",
+        [Principal Amount] <= SUM(SELECT(Repayments[Principal Paid], [Ref Loans] = [_THISROW].[Row ID])),
+        COUNT(SELECT(Charges[Row ID], AND(
+          [Ref Loans] = [_THISROW].[Row ID],
+          [Principal Due] + [Interest Due] >
+            SUM(SELECT(Repayments[Principal Paid], [Ref Charges] = [_THISROW-1].[Row ID])) +
+            SUM(SELECT(Repayments[Interest Paid], [Ref Charges] = [_THISROW-1].[Row ID]))
+        ))) = 0
+      )
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Loans"
+    "Does this action apply to the whole table?": "No"
+    "To this value": "=\"ปิดยอดแล้ว\""
+    "Visible?": "ALWAYS"

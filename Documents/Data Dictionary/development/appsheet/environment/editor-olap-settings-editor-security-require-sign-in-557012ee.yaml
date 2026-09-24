@@ -1,0 +1,59 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "settings"
+  "name": "Editor security/Require sign-in"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/olap/settings/editor-editor-security-require-sign-in-557012ee.yaml"
+  "classification": "Environment app identity/version/folder/theme/access and supporting UI text; exact differences retained."
+  "changes":
+  - "pointer": "/controls"
+    "before":
+      "state": "value"
+      "value":
+      - "label": "Require user sign-in?"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      - "label": "Authentication provider"
+        "selected":
+        - "Google"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "google"
+      - "label": "Allow all signed-in users"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+    "after":
+      "state": "value"
+      "value":
+      - "label": "Require user sign-in?"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      - "label": "Authentication provider"
+        "selected":
+        - "Google"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "google"
+      - "label": "Allow all signed-in users"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Require user sign-in?"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""

@@ -1,0 +1,58 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.payment_charge_balances(p_id text)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "payment_charge_balances"
+    "arguments": "p_id text"
+    "kind": "f"
+    "arguments_with_defaults": "p_id text"
+    "result": "TABLE(charge text, loan text, charge_day date, principal numeric, interest numeric)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.payment_charge_balances(p_id text)
+       RETURNS TABLE(charge text, loan text, charge_day date, principal numeric, interest numeric)
+       LANGUAGE sql
+       STABLE
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+        SELECT c."Row ID",c."Ref Loans",c."Charge Date",
+          c."Principal Due"::numeric-paid.p,c."Interest Due"::numeric-paid.i
+        FROM public."Payments" p
+        JOIN public."Loans" l ON l."Ref Borrowers"=p."Ref Borrower"
+        JOIN public."Charges" c ON c."Ref Loans"=l."Row ID"
+        LEFT JOIN public."Charges" target ON target."Row ID"=p."Ref Target Charge"
+        CROSS JOIN LATERAL (
+          SELECT coalesce(sum(r."Principal Paid"::numeric),0) p,
+                 coalesce(sum(r."Interest Paid"::numeric),0) i
+          FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID"
+        ) paid
+        WHERE p."Row ID"=p_id AND CASE
+          WHEN p."Allocation Method" IN ('Single Full','Single Partial','First-day Auto')
+            THEN c."Row ID"=p."Ref Target Charge"
+          WHEN p."Allocation Method"='Loan Close' THEN c."Ref Loans"=target."Ref Loans"
+          WHEN p."Allocation Method" IN ('Receive All','Lump Sum') THEN c."Charge Date"<=p."Payment Date"
+          ELSE false END;
+      $function$
+    "owner": "postgres"
+    "language": "sql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 1000.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

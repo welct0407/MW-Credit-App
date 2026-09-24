@@ -1,0 +1,30 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "action"
+  "name": "Borrowers.Chart Data for Daily Interest Contribution"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Chart Data for Daily Interest Contribution"
+    "Bulk action?": "No"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Display_Prominently"
+    "Action order": "1"
+    "With these properties": "{\"NavigateTarget\":\"=\\\"#page=fastTable&table=Borrowers%20with%20Outstanding%20Loans\\\"\"\
+      ,\"Prominence\":\"Display_Prominently\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":false,\"\
+      BulkApplicable\":false}"
+    "Do this": "NAVIGATE_APP"
+    "Only if this condition is true": "=CONTEXT(\"View\") = \"Daily Interest Contribution\""
+    "Disable automatic updates?": "No"
+    "Display name": "Data"
+    "Action icon": ""
+    "For a record of this table": "Borrowers"
+    "Does this action apply to the whole table?": "Yes"
+    "Visible?": "ALWAYS"

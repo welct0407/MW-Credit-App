@@ -1,0 +1,211 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "automation"
+  "name": "Payments - Process Receipt"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "panels":
+      "overview": |2-
+          - paragraph: Payments - Process Receipt
+          - generic "actions":
+            - button "More":
+          - generic "Bot is disabled":
+            - text: Bot is disabled
+            - button "info-closed":
+          - paragraph: When this EVENT occurs
+          - generic: 
+          - generic: Payment queued or retried
+          - generic: Payments
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic: Payment - Process Receipt
+            - button:
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+      "event": |2-
+          - paragraph: Payments - Process Receipt
+          - generic "actions":
+            - button "More":
+          - generic "Bot is disabled":
+            - text: Bot is disabled
+            - button "info-closed":
+          - paragraph: When this EVENT occurs
+          - generic: 
+          - generic: Payment queued or retried
+          - generic: Payments
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic: Payment - Process Receipt
+            - button:
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+          - heading "Settings" [level=6]
+          - button "Toggle Link Pane":
+          - separator
+          - checkbox "Toggle Linking"
+          - generic: Event name
+          - textbox: Payment queued or retried
+          - heading "Event source" [level=6]
+          - text: Select the product or schedule that runs your event
+          - generic "Event type":
+            - button "App":
+              - generic: App
+            - textbox: Change
+          - heading "Table" [level=6]
+          - text: Data changes to which table should trigger this event?
+          - combobox "Select an option":
+            - option "Borrowers"
+            - option "Business Expenses"
+            - option "Cash Statement Context"
+            - option "Charges"
+            - option "Loans"
+            - option "Payment Allocations"
+            - option "Payments" [selected]
+            - option "Repayments"
+            - option "Statistics"
+          - button "Edit this table":
+            - generic: edit
+          - heading "Data change type" [level=6]
+          - generic "description"
+          - listbox:
+            - option "Adds" [selected]:
+              - generic: Adds
+              - checkbox [checked]
+            - option "Deletes":
+              - generic: Deletes
+              - checkbox
+            - option "Updates" [selected]:
+              - generic: Updates
+              - checkbox [checked]
+          - heading "Condition" [level=6]
+          - text: Optional condition that is checked before running the process
+          - generic: =
+          - textbox: "[Status] = \"Processing\""
+          - generic: science
+          - heading "Bypass Security Filters?" [level=6]
+          - text: Execute this event and the processes that it triggers as though there are no security filters on the data sources.
+          - checkbox
+          - heading "Display" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+      "step/Payment - Process Receipt": |2-
+          - paragraph: Payments - Process Receipt
+          - generic "actions":
+            - button "More":
+          - generic "Bot is disabled":
+            - text: Bot is disabled
+            - button "info-closed":
+          - paragraph: When this EVENT occurs
+          - generic: 
+          - generic: Payment queued or retried
+          - generic: Payments
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic "entity name input":
+              - textbox: Payment - Process Receipt
+            - button:
+            - button "toggle step type menu":
+              - generic: Run a data action
+            - button "Payment - Process Receipt":
+              - menuitem "Payment - Process Receipt":
+                - generic: 
+                - generic: Payment - Process Receipt
+            - textbox: Payment - Process Receipt
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+          - heading "Settings" [level=6]
+          - button "Toggle Link Pane":
+            - generic: "1"
+          - checkbox "Toggle Linking" [checked]
+          - separator
+          - heading "Action name" [level=6]
+          - textbox: Payment - Process Receipt
+          - radiogroup:
+            - radio "Add new rows":
+              - generic: Add new rows
+            - radio "Delete row":
+              - generic: Delete row
+            - radio "Set row values":
+              - generic: Set row values
+            - radio "Run action on rows":
+              - generic: Run action on rows
+            - radio "Grouped actions" [checked]:
+              - generic: Grouped actions
+          - heading "Actions" [level=6]
+          - button "Payment - Create Snapshots"
+          - textbox: Payment - Create Snapshots
+          - button "Delete Icon":
+          - button "Payment - Freeze Plan"
+          - textbox: Payment - Freeze Plan
+          - button "Delete Icon":
+          - button "Payment - Post Plan"
+          - textbox: Payment - Post Plan
+          - button "Delete Icon":
+          - button "Payment - Reconcile"
+          - textbox: Payment - Reconcile
+          - button "Delete Icon":
+          - button "Payment - Close Paid Loans"
+          - textbox: Payment - Close Paid Loans
+          - button "Delete Icon":
+          - button "Add":
+            - generic: Add
+          - paragraph: "Go to:"
+          - paragraph: Action
+    "bot_options":
+    - "controls":
+      - "type": "checkbox"
+        "value": true
+      "label": "Trigger other bots"
+      "values":
+      - "true"
+    - "controls":
+      - "type": "text"
+        "value": ""
+      "label": "Bot icon"
+      "values": []
+    - "controls":
+      - "type": "textarea"
+        "value": ""
+      - "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "values":
+      - ""

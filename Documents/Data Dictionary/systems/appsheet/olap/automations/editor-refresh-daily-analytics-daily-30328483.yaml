@@ -1,0 +1,381 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "automation"
+  "name": "Refresh Daily Analytics Daily"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "panels":
+      "event": |2-
+          - paragraph: Refresh Daily Analytics Daily
+          - generic "actions":
+            - button "More":
+          - paragraph: When this EVENT occurs
+          - generic: Every Hour
+          - generic: Hourly
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - paragraph: "Yes"
+          - paragraph: "No"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic: Canonical app execution guard
+            - button:
+          - generic "process step":
+            - generic: Request Recent Analytics Refresh
+            - button:
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+          - heading "Settings" [level=6]
+          - button "Toggle Link Pane":
+          - separator
+          - checkbox "Toggle Linking"
+          - generic: Event name
+          - textbox: Every Hour
+          - heading "Event source" [level=6]
+          - text: Select the product or schedule that runs your event
+          - generic "Event type":
+            - button "Scheduled":
+              - generic: Scheduled
+            - textbox: Scheduled
+          - heading "Schedule" [level=6]
+          - text: What schedule will trigger this workflow rule?
+          - radiogroup:
+            - radio "Hourly" [checked]:
+              - generic: Hourly
+            - radio "Daily":
+              - generic: Daily
+            - radio "Weekly":
+              - generic: Weekly
+            - radio "Monthly":
+              - generic: Monthly
+            - radio "Monthly (by week)":
+              - generic: Monthly (by week)
+          - generic: Minute of the hour
+          - textbox: "0"
+          - heading "Time zone" [level=6]
+          - text: What time zone should the schedule use?
+          - combobox "Select an option":
+            - option "(GMT-12:00) Dateline Standard Time"
+            - option "(GMT-11:00) UTC-11"
+            - option "(GMT-10:00) Hawaiian Standard Time"
+            - option "(GMT-08:00) Alaskan Standard Time"
+            - option "(GMT-07:00) Pacific Standard Time (Mexico)"
+            - option "(GMT-07:00) Pacific Standard Time"
+            - option "(GMT-07:00) US Mountain Standard Time"
+            - option "(GMT-06:00) Mountain Standard Time (Mexico)"
+            - option "(GMT-06:00) Mountain Standard Time"
+            - option "(GMT-06:00) Central America Standard Time"
+            - option "(GMT-05:00) Central Standard Time"
+            - option "(GMT-05:00) Easter Island Standard Time"
+            - option "(GMT-06:00) Central Standard Time (Mexico)"
+            - option "(GMT-06:00) Canada Central Standard Time"
+            - option "(GMT-05:00) SA Pacific Standard Time"
+            - option "(GMT-04:00) Eastern Standard Time (Mexico)"
+            - option "(GMT-04:00) Eastern Standard Time"
+            - option "(GMT-04:00) Haiti Standard Time"
+            - option "(GMT-04:00) US Eastern Standard Time"
+            - option "(GMT-04:00) Venezuela Standard Time"
+            - option "(GMT-03:00) Paraguay Standard Time"
+            - option "(GMT-03:00) Atlantic Standard Time"
+            - option "(GMT-04:00) Central Brazilian Standard Time"
+            - option "(GMT-04:00) SA Western Standard Time"
+            - option "(GMT-03:00) Pacific SA Standard Time"
+            - option "(GMT-02:30) Newfoundland Standard Time"
+            - option "(GMT-03:00) E. South America Standard Time"
+            - option "(GMT-03:00) SA Eastern Standard Time"
+            - option "(GMT-03:00) Argentina Standard Time"
+            - option "(GMT-01:00) Greenland Standard Time"
+            - option "(GMT-03:00) Montevideo Standard Time"
+            - option "(GMT-03:00) Bahia Standard Time"
+            - option "(GMT-02:00) UTC-02"
+            - option "(GMT-02:00) Mid-Atlantic Standard Time"
+            - option "(GMT-01:00) Azores Standard Time"
+            - option "(GMT-01:00) Cape Verde Standard Time"
+            - option "(GMT+01:00) Morocco Standard Time"
+            - option "(GMT+00:00) UTC"
+            - option "(GMT+00:00) GMT Standard Time"
+            - option "(GMT+00:00) Greenwich Standard Time"
+            - option "(GMT+02:00) W. Europe Standard Time"
+            - option "(GMT+02:00) Central Europe Standard Time"
+            - option "(GMT+02:00) Romance Standard Time"
+            - option "(GMT+02:00) Central European Standard Time"
+            - option "(GMT+01:00) W. Central Africa Standard Time"
+            - option "(GMT+02:00) Namibia Standard Time"
+            - option "(GMT+03:00) Jordan Standard Time"
+            - option "(GMT+03:00) GTB Standard Time"
+            - option "(GMT+03:00) Middle East Standard Time"
+            - option "(GMT+03:00) Egypt Standard Time"
+            - option "(GMT+03:00) Syria Standard Time"
+            - option "(GMT+03:00) E. Europe Standard Time"
+            - option "(GMT+02:00) South Africa Standard Time"
+            - option "(GMT+03:00) FLE Standard Time"
+            - option "(GMT+03:00) Turkey Standard Time"
+            - option "(GMT+03:00) Israel Standard Time"
+            - option "(GMT+02:00) Kaliningrad Standard Time"
+            - option "(GMT+02:00) Libya Standard Time"
+            - option "(GMT+03:00) Arabic Standard Time"
+            - option "(GMT+03:00) Arab Standard Time"
+            - option "(GMT+03:00) Belarus Standard Time"
+            - option "(GMT+03:00) Russian Standard Time"
+            - option "(GMT+03:00) E. Africa Standard Time"
+            - option "(GMT+03:30) Iran Standard Time"
+            - option "(GMT+04:00) Arabian Standard Time"
+            - option "(GMT+04:00) Astrakhan Standard Time"
+            - option "(GMT+04:00) Azerbaijan Standard Time"
+            - option "(GMT+04:00) Russia Time Zone 3"
+            - option "(GMT+04:00) Mauritius Standard Time"
+            - option "(GMT+04:00) Georgian Standard Time"
+            - option "(GMT+04:00) Caucasus Standard Time"
+            - option "(GMT+04:30) Afghanistan Standard Time"
+            - option "(GMT+05:00) West Asia Standard Time"
+            - option "(GMT+05:00) Ekaterinburg Standard Time"
+            - option "(GMT+05:00) Pakistan Standard Time"
+            - option "(GMT+05:30) India Standard Time"
+            - option "(GMT+05:30) Sri Lanka Standard Time"
+            - option "(GMT+05:45) Nepal Standard Time"
+            - option "(GMT+05:00) Central Asia Standard Time"
+            - option "(GMT+06:00) Bangladesh Standard Time"
+            - option "(GMT+07:00) N. Central Asia Standard Time"
+            - option "(GMT+06:30) Myanmar Standard Time"
+            - option "(GMT+07:00) SE Asia Standard Time" [selected]
+            - option "(GMT+07:00) Altai Standard Time"
+            - option "(GMT+07:00) North Asia Standard Time"
+            - option "(GMT+08:00) China Standard Time"
+            - option "(GMT+08:00) North Asia East Standard Time"
+            - option "(GMT+08:00) Singapore Standard Time"
+            - option "(GMT+08:00) W. Australia Standard Time"
+            - option "(GMT+08:00) Taipei Standard Time"
+            - option "(GMT+08:00) Ulaanbaatar Standard Time"
+            - option "(GMT+09:00) North Korea Standard Time"
+            - option "(GMT+09:00) Transbaikal Standard Time"
+            - option "(GMT+09:00) Tokyo Standard Time"
+            - option "(GMT+09:00) Korea Standard Time"
+            - option "(GMT+09:00) Yakutsk Standard Time"
+            - option "(GMT+09:30) Cen. Australia Standard Time"
+            - option "(GMT+09:30) AUS Central Standard Time"
+            - option "(GMT+10:00) E. Australia Standard Time"
+            - option "(GMT+10:00) AUS Eastern Standard Time"
+            - option "(GMT+10:00) West Pacific Standard Time"
+            - option "(GMT+10:00) Tasmania Standard Time"
+            - option "(GMT+11:00) Magadan Standard Time"
+            - option "(GMT+11:00) Vladivostok Standard Time"
+            - option "(GMT+11:00) Russia Time Zone 10"
+            - option "(GMT+11:00) Sakhalin Standard Time"
+            - option "(GMT+10:00) Central Pacific Standard Time"
+            - option "(GMT+11:00) Russia Time Zone 11"
+            - option "(GMT+12:00) New Zealand Standard Time"
+            - option "(GMT+12:00) UTC+12"
+            - option "(GMT+12:00) Fiji Standard Time"
+            - option "(GMT+12:00) Kamchatka Standard Time"
+            - option "(GMT+13:00) Tonga Standard Time"
+            - option "(GMT+13:00) Samoa Standard Time"
+            - option "(GMT+14:00) Line Islands Standard Time"
+          - heading "For Each Row In Table" [level=6]
+          - text: Is this trigger for each row in the given table?
+          - checkbox "for each row in table?" [checked]
+          - heading "Table" [level=6]
+          - text: What table to query?
+          - combobox "Select an option":
+            - option "Borrowers"
+            - option "Borrowers with Outstanding Loans (slice)"
+            - option "Business Expenses"
+            - option "Cash Account Balances"
+            - option "Cash Accounts"
+            - option "Cash Holder Balances"
+            - option "Cash Holders"
+            - option "Cash Ledger"
+            - option "Cash Pool Contributions"
+            - option "Charges"
+            - option "Daily Analytics"
+            - option "Daily Analytics 7 Days (slice)"
+            - option "Daily Analytics 30 Days (slice)"
+            - option "Daily Analytics 90 Days (slice)"
+            - option "Loan Assessment"
+            - option "Loans"
+            - option "Partners"
+            - option "Payment Allocations"
+            - option "Payments"
+            - option "Portfolio Summary"
+            - option "Profit Contribution 30D (slice)"
+            - option "Repayments"
+            - option "Reporting Borrowers (slice)"
+            - option "Reporting Charges (slice)"
+            - option "Reporting Daily Analytics (slice)"
+            - option "Reporting Loans (slice)"
+            - option "Reporting Repayments (slice)"
+            - option "Reporting Statistics (slice)"
+            - option "Settlements"
+            - option "Statistics" [selected]
+            - option "Todays Collection Board (slice)"
+          - button "Edit this table":
+            - generic: edit
+          - heading "Filter Condition" [level=6]
+          - text: Filter condition to specify which rows of the table?
+          - generic: =
+          - textbox: AND(IN(CONTEXT("AppName"), LIST("MW-OLAP-DEV-20260919-578763613", "LoanBusinessInsights-975338008")), [Row ID] = INDEX(SORT(Statistics[Row ID]), 1))
+          - generic: science
+          - heading "Bypass Security Filters?" [level=6]
+          - text: Execute this event and the processes that it triggers as though there are no security filters on the data sources.
+          - checkbox
+          - heading "Display" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+      "step/Canonical app execution guard": |2-
+          - paragraph: Refresh Daily Analytics Daily
+          - generic "actions":
+            - button "More":
+          - paragraph: When this EVENT occurs
+          - generic: Every Hour
+          - generic: Hourly
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - paragraph: "Yes"
+          - paragraph: "No"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic "entity name input":
+              - textbox: Canonical app execution guard
+            - button:
+            - button "toggle step type menu":
+              - generic: Branch on a condition
+            - generic: =
+            - textbox "branch condition": IN(CONTEXT("AppName"), LIST("MW-OLAP-DEV-20260919-578763613", "LoanBusinessInsights-975338008"))
+            - generic: science
+          - generic "process step":
+            - generic: Request Recent Analytics Refresh
+            - button:
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+      "step/Request Recent Analytics Refresh": |2-
+          - paragraph: Refresh Daily Analytics Daily
+          - generic "actions":
+            - button "More":
+          - paragraph: When this EVENT occurs
+          - generic: Every Hour
+          - generic: Hourly
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - paragraph: "Yes"
+          - paragraph: "No"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic: Canonical app execution guard
+            - button:
+          - generic "process step":
+            - generic "entity name input":
+              - textbox: Request Recent Analytics Refresh
+            - button:
+            - button "toggle step type menu":
+              - generic: Run a data action
+            - button "Custom action":
+              - menuitem "Custom action":
+                - generic: Custom action
+            - textbox: __Custom_Entity__
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+          - heading "Settings" [level=6]
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - separator
+          - radiogroup:
+            - radio "Add new rows":
+              - generic: Add new rows
+            - radio "Delete row":
+              - generic: Delete row
+            - radio "Set row values" [checked]:
+              - generic: Set row values
+            - radio "Run action on rows":
+              - generic: Run action on rows
+            - radio "Grouped actions":
+              - generic: Grouped actions
+          - heading "Set these column(s)" [level=6]
+          - button "Analytics Refresh Request"
+          - textbox: Analytics Refresh Request
+          - generic: =
+          - textbox: CONCATENATE(TEXT(TODAY(), "YYYY-MM-DD"), "|Recent|", UNIQUEID())
+          - generic: science
+          - button "Delete Icon":
+          - button "Add":
+            - generic: Add
+          - heading "Advanced" [level=3]
+          - generic: 
+      "overview": |2-
+          - paragraph: Refresh Daily Analytics Daily
+          - generic "actions":
+            - button "More":
+          - paragraph: When this EVENT occurs
+          - generic: Every Hour
+          - generic: Hourly
+          - button:
+          - separator
+          - paragraph: Run this PROCESS
+          - button:
+          - button "Toggle Link Pane":
+          - checkbox "Toggle Linking"
+          - paragraph: "Yes"
+          - paragraph: "No"
+          - button "Add a step":
+            - text: Add a step
+          - paragraph: END
+          - generic "process step":
+            - generic: Canonical app execution guard
+            - button:
+          - generic "process step":
+            - generic: Request Recent Analytics Refresh
+            - button:
+          - heading "Options" [level=3]
+          - generic: 
+          - heading "Documentation" [level=3]
+          - generic: 
+    "bot_options":
+    - "controls":
+      - "type": "checkbox"
+        "value": false
+      "label": "Trigger other bots"
+      "values":
+      - "false"
+    - "controls":
+      - "type": "text"
+        "value": ""
+      "label": "Bot icon"
+      "values": []
+    - "controls":
+      - "type": "textarea"
+        "value": ""
+      - "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "values":
+      - ""

@@ -1,0 +1,159 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "settings"
+  "name": "Editor settings/General"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls":
+    - "label": "Use accounting format"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Starting view"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "Dashboard"
+    - "label": "Start with About"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Show name and email in the side menu"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Pull to refresh"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Preview new features"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Enable new mobile framework"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Desktop design"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Save images to gallery"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Allow image input from gallery"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Allow scan input override"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Allow five views in the bottom navigation bar"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    - "label": "Disable share button"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": false
+    - "label": "Allow users to provide feedback"
+      "selected": null
+      "tag": "INPUT"
+      "type": "checkbox"
+      "value": true
+    "snapshot": |2-
+        - paragraph: "Views: General"
+        - alert:
+          - generic: Provide default settings to control the user experience across the entire app
+        - heading "Data Formats" [level=3]
+        - heading "Use accounting format" [level=6]
+        - text: Display price columns in accounting format.
+        - checkbox
+        - heading "General" [level=3]
+        - heading "Starting view" [level=6]
+        - text: What view appears when the app is started.
+        - button "Dashboard"
+        - textbox: Dashboard
+        - radiogroup:
+          - radio [checked]:
+            - generic: title
+          - radio:
+            - generic: science
+        - heading "Start with About" [level=6]
+        - text: Instead of a view, show the About pane when the app is started.
+        - checkbox
+        - heading "Show name and email in the side menu" [level=6]
+        - text: Hide the user information in the side menu.
+        - checkbox [checked]
+        - heading "Pull to refresh" [level=6]
+        - text: Dragging down will initiate a sync
+        - checkbox [checked]
+        - heading "Preview new features" [level=6]
+        - text: Show new features before they come out. This may make the app unstable.
+        - link "Learn more":
+          - /url: https://support.google.com/appsheet?p=preview-program
+          - text: Learn more
+        - checkbox
+        - heading "New mobile framework (preview)" [level=6]
+        - text: Improves mobile responsiveness and stability, with a more modernized user experience. Will replace current mobile framework in future.
+        - link "Learn more":
+          - /url: https://support.google.com/appsheet?p=new-mobile-framework
+          - text: Learn more
+        - checkbox "Enable new mobile framework"
+        - heading "Desktop design" [level=6]
+        - text: Optimize design when using app in desktop browser
+        - checkbox [checked]
+        - heading "Inputs" [level=3]
+        - heading "Image upload size" [level=6]
+        - text: Sets how much the image is compressed and its size in the app.
+        - radiogroup:
+          - radio "Low":
+            - generic: Low
+          - radio "Default" [checked]:
+            - generic: Default
+          - radio "Medium":
+            - generic: Medium
+          - radio "High":
+            - generic: High
+          - radio "Full":
+            - generic: Full
+        - heading "Save images to gallery" [level=6]
+        - text: Save images taken within the app to the device's camera roll or gallery. This will make the images accessible outside of the app.
+        - checkbox [checked]
+        - heading "Allow image input from gallery" [level=6]
+        - text: Allow users to upload images from their device's photo roll or gallery.
+        - checkbox [checked]
+        - heading "Allow scan input override" [level=6]
+        - text: Allow users to manually override values captured via a scan.
+        - checkbox [checked]
+        - heading "System Buttons" [level=3]
+        - heading "Allow five views in the bottom navigation bar" [level=6]
+        - text: The sync button will move to the top header bar, and the share button will move to the side menu.
+        - checkbox [checked]
+        - heading "Disable share button" [level=6]
+        - text: Prevent users from sending app install links to other people. Does not apply in Desktop mode.
+        - checkbox
+        - heading "Allow users to provide feedback" [level=6]
+        - text: Apps that require user sign-in can enable users to give feedback to the app creator.
+        - checkbox [checked]

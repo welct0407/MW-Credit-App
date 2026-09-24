@@ -1,0 +1,87 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "settings"
+  "name": "Editor settings/Performance"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/oltp/settings/editor-editor-settings-performance-e4beb581.yaml"
+  "classification": "Environment app identity/version/folder/theme/access and supporting UI text; exact differences retained."
+  "changes":
+  - "pointer": "/controls"
+    "before":
+      "state": "value"
+      "value":
+      - "label": "Server caching"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Delta sync"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Quick sync"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Sync on start"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      - "label": "Delayed sync"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Automatic updates"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+    "after":
+      "state": "value"
+      "value":
+      - "label": "Server caching"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Delta sync"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Quick sync"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Sync on start"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      - "label": "Delayed sync"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      - "label": "Automatic updates"
+        "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": true
+      - "label": "Server caching"
+        "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""

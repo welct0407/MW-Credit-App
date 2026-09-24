@@ -1,0 +1,28 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "action"
+  "name": "Cash Accounts.Edit"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Edit"
+    "Bulk action?": "No"
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "No"
+    "Prominence": "Display_Overlay"
+    "Action order": "1"
+    "With these properties": "{\"DesktopBehavior\":\"Open a form\",\"DesktopEditBehavior\":\"Edit in place\",\"Prominence\"\
+      :\"Display_Overlay\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\"\
+      :false}"
+    "Do this": "EDIT_RECORD"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Cash Accounts"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

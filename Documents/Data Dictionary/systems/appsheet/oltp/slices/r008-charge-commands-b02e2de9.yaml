@@ -1,0 +1,105 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "slice"
+  "name": "R008 Charge Commands"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Slice Name": "R008 Charge Commands"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Row ID"
+    - "Ref Loans"
+    - "Charge Date"
+    - "Interest Due"
+    - "Principal Due"
+    - "Notes"
+    - "Principal Paid"
+    - "Interest Paid"
+    - "Total Paid"
+    - "Principal Remaining"
+    - "Interest Remaining"
+    - "Amount Remaining"
+    - "Payment Count"
+    - "Payment Status"
+    - "Payment Date"
+    - "Payment Request Cash Account"
+    - "Payment Request Token"
+    - "Amount Due"
+    - "Borrower Name"
+    - "Related Repayments"
+    - "Borrower Name TE"
+    - "Payment Status TE"
+    - "Days Outstanding"
+    - "Payment Received Today"
+    - "Related Payment Allocations"
+    - "Related Payments"
+    - "Borrower Reference TE"
+    "Update mode": "UPDATES_ONLY"
+    "Source Table": "Charges"
+    "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
+  "members":
+  - "Ordinal": 1
+    "Column": "_RowNumber"
+  - "Ordinal": 2
+    "Column": "Row ID"
+  - "Ordinal": 3
+    "Column": "Ref Loans"
+  - "Ordinal": 4
+    "Column": "Charge Date"
+  - "Ordinal": 5
+    "Column": "Interest Due"
+  - "Ordinal": 6
+    "Column": "Principal Due"
+  - "Ordinal": 7
+    "Column": "Notes"
+  - "Ordinal": 8
+    "Column": "Principal Paid"
+  - "Ordinal": 9
+    "Column": "Interest Paid"
+  - "Ordinal": 10
+    "Column": "Total Paid"
+  - "Ordinal": 11
+    "Column": "Principal Remaining"
+  - "Ordinal": 12
+    "Column": "Interest Remaining"
+  - "Ordinal": 13
+    "Column": "Amount Remaining"
+  - "Ordinal": 14
+    "Column": "Payment Count"
+  - "Ordinal": 15
+    "Column": "Payment Status"
+  - "Ordinal": 16
+    "Column": "Payment Date"
+  - "Ordinal": 17
+    "Column": "Payment Request Cash Account"
+  - "Ordinal": 18
+    "Column": "Payment Request Token"
+  - "Ordinal": 19
+    "Column": "Amount Due"
+  - "Ordinal": 20
+    "Column": "Borrower Name"
+  - "Ordinal": 21
+    "Column": "Related Repayments"
+  - "Ordinal": 22
+    "Column": "Borrower Name TE"
+  - "Ordinal": 23
+    "Column": "Payment Status TE"
+  - "Ordinal": 24
+    "Column": "Days Outstanding"
+  - "Ordinal": 25
+    "Column": "Payment Received Today"
+  - "Ordinal": 26
+    "Column": "Related Payment Allocations"
+  - "Ordinal": 27
+    "Column": "Related Payments"
+  - "Ordinal": 28
+    "Column": "Borrower Reference TE"

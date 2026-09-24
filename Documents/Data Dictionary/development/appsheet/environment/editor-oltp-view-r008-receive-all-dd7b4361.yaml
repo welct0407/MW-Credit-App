@@ -1,0 +1,545 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "R008 Receive All"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/oltp/views/r008-receive-all-dd7b4361.yaml"
+  "classification": "Captured source controls and choices match; supporting editor text/App links differ by environment or\
+    \ UI presentation."
+  "changes":
+  - "pointer": "/fields"
+    "before":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "R008 Receive All"
+        "label": "View name"
+        "text": |-
+          View name
+          The unique name for this view.
+          ​
+          Go to display options
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "R008 Borrower Commands"
+        "label": "For this data"
+        "text": |-
+          For this data
+          Which table or slice to display.
+          R008 Borrower Commands
+          ​
+          edit
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          date_range
+          calendar
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          category
+          detail
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_quilt
+          dashboard
+          view_stream
+          form
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices":
+        - "checked": "false"
+          "text": "first"
+        - "checked": "false"
+          "text": "next"
+        - "checked": "false"
+          "text": "middle"
+        - "checked": "false"
+          "text": "later"
+        - "checked": "false"
+          "text": "last"
+        - "checked": "false"
+          "text": "menu"
+        - "checked": "true"
+          "text": "ref"
+        "controls": []
+        "label": "Position"
+        "text": |-
+          Position
+          Where the button to access this view is located.
+          first
+          next
+          middle
+          later
+          last
+          menu
+          ref
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Row key"
+        "text": |-
+          Row key
+          Only edit one specific row, identified by this key.
+          =
+          science
+          ​
+      - "choices":
+        - "checked": "true"
+          "text": "Automatic"
+        - "checked": "false"
+          "text": "Simple"
+        - "checked": "false"
+          "text": "Page Count"
+        - "checked": "false"
+          "text": "Tabs"
+        "controls": []
+        "label": "Page style"
+        "text": |-
+          Page style
+          How form pages are displayed.
+          Automatic
+          Simple
+          Page Count
+          Tabs
+      - "choices":
+        - "checked": "true"
+          "text": "Automatic"
+        - "checked": "false"
+          "text": "Default"
+        - "checked": "false"
+          "text": "Side-by-side"
+        "controls": []
+        "label": "Form style"
+        "text": |-
+          Form style
+          How form inputs are displayed.
+          Automatic
+          Default
+          Side-by-side
+      - "choices":
+        - "checked": "false"
+          "text": "Automatic"
+        - "checked": "true"
+          "text": "Manual"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Column order"
+        "text": |-
+          Column order
+          Automatically or manually order columns displayed in view. Learn more
+          Automatic
+          Manual
+          Select all
+          Move to
+          Add
+          Remove
+          ​
+          Payment Request Cash Account
+      - "choices":
+        - "checked": "true"
+          "text": "Bottom"
+        - "checked": "false"
+          "text": "Top"
+        "controls": []
+        "label": "Save / cancel position"
+        "text": |-
+          Save / cancel position
+          How the save / cancel buttons are positioned.
+          Bottom
+          Top
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "5"
+        "label": "Max. nested rows"
+        "text": |-
+          Max. nested rows
+          The maximum number of rows to show for related references lists.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Auto save"
+        "text": |-
+          Auto save
+          Automatically save the form after the last field is filled in.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Auto re-open"
+        "text": |-
+          Auto re-open
+          Automatically re-open the form after saving.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**Automatic**"
+        "label": "Finish view"
+        "text": |-
+          Finish view
+          Navigate to this view after creating a new entry.
+          Auto assign (Go Back)
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Icon"
+        "text": "IconThe icon to use for this view.AllSolidRegularLight"
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Show if"
+        "text": "Show ifOptional Yes/No formula to decide whether this view should be shown=science​"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur.Form SavedAuto assign (Go back)​"
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"R008 Receive All\")\
+          \   .... or ... \"https://www.appsheet.com/start/93844270-6aa5-420b-a960-bcdf08abd357#view=R008%20Receive%20All\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"
+    "after":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "R008 Receive All"
+        "label": "View name"
+        "text": |-
+          View name
+          The unique name for this view.
+          ​
+          Go to display options
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "R008 Borrower Commands"
+        "label": "For this data"
+        "text": |-
+          For this data
+          Which table or slice to display.
+          R008 Borrower Commands
+          ​
+          edit
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          date_range
+          calendar
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          category
+          detail
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_quilt
+          dashboard
+          view_stream
+          form
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices":
+        - "checked": "false"
+          "text": "first"
+        - "checked": "false"
+          "text": "next"
+        - "checked": "false"
+          "text": "middle"
+        - "checked": "false"
+          "text": "later"
+        - "checked": "false"
+          "text": "last"
+        - "checked": "false"
+          "text": "menu"
+        - "checked": "true"
+          "text": "ref"
+        "controls": []
+        "label": "Position"
+        "text": |-
+          Position
+          Where the button to access this view is located.
+          first
+          next
+          middle
+          later
+          last
+          menu
+          ref
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Row key"
+        "text": |-
+          Row key
+          Only edit one specific row, identified by this key.
+          =
+          science
+          ​
+      - "choices":
+        - "checked": "true"
+          "text": "Automatic"
+        - "checked": "false"
+          "text": "Simple"
+        - "checked": "false"
+          "text": "Page Count"
+        - "checked": "false"
+          "text": "Tabs"
+        "controls": []
+        "label": "Page style"
+        "text": |-
+          Page style
+          How form pages are displayed.
+          Automatic
+          Simple
+          Page Count
+          Tabs
+      - "choices":
+        - "checked": "true"
+          "text": "Automatic"
+        - "checked": "false"
+          "text": "Default"
+        - "checked": "false"
+          "text": "Side-by-side"
+        "controls": []
+        "label": "Form style"
+        "text": |-
+          Form style
+          How form inputs are displayed.
+          Automatic
+          Default
+          Side-by-side
+      - "choices":
+        - "checked": "false"
+          "text": "Automatic"
+        - "checked": "true"
+          "text": "Manual"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Column order"
+        "text": |-
+          Column order
+          Automatically or manually order columns displayed in view. Learn more
+          Automatic
+          Manual
+          Select all
+          Move to
+          Add
+          Remove
+          ​
+          Payment Request Cash Account
+      - "choices":
+        - "checked": "true"
+          "text": "Bottom"
+        - "checked": "false"
+          "text": "Top"
+        "controls": []
+        "label": "Save / cancel position"
+        "text": |-
+          Save / cancel position
+          How the save / cancel buttons are positioned.
+          Bottom
+          Top
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "5"
+        "label": "Max. nested rows"
+        "text": |-
+          Max. nested rows
+          The maximum number of rows to show for related references lists.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Auto save"
+        "text": |-
+          Auto save
+          Automatically save the form after the last field is filled in.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Auto re-open"
+        "text": |-
+          Auto re-open
+          Automatically re-open the form after saving.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**Automatic**"
+        "label": "Finish view"
+        "text": |-
+          Finish view
+          Navigate to this view after creating a new entry.
+          Auto assign (Go Back)
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Icon"
+        "text": "IconThe icon to use for this view.AllSolidRegularLight"
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Show if"
+        "text": "Show ifOptional Yes/No formula to decide whether this view should be shown=science​"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur.Form SavedAuto assign (Go back)​"
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"R008 Receive All\")\
+          \   .... or ... \"https://www.appsheet.com/start/500b27b6-884a-41e8-a9ec-df801b0110ad#view=R008%20Receive%20All\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"

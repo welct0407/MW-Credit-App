@@ -1,0 +1,1876 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "settings"
+  "name": "Editor settings/Localization"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "editor":
+    "controls":
+    - "label": "Yes"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Yes\", \"\
+        ใช่\")"
+    - "label": "No"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"No\", \"ไม่ใช่\"\
+        )"
+    - "label": "New"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"New\", \"\
+        ใหม่\")"
+    - "label": "Delete"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Delete\",\
+        \ \"ลบ\")"
+    - "label": "Share"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Share\", \"\
+        แชร์\")"
+    - "label": "Sync"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Sync\", \"\
+        ซิงค์\")"
+    - "label": "Next"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Next\", \"\
+        ถัดไป\")"
+    - "label": "Prev"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Prev\", \"\
+        ก่อนหน้า\")"
+    - "label": "Back"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Back\", \"\
+        กลับ\")"
+    - "label": "View"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"View\", \"\
+        ดู\")"
+    - "label": "Save"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Save\", \"\
+        บันทึก\")"
+    - "label": "Submit"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Submit\",\
+        \ \"ส่ง\")"
+    - "label": "Reset"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Reset\", \"\
+        รีเซ็ต\")"
+    - "label": "Cancel"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Cancel\",\
+        \ \"ยกเลิก\")"
+    - "label": "Discard"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Discard\"\
+        , \"ละทิ้ง\")"
+    - "label": "Done"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Done\", \"\
+        เสร็จสิ้น\")"
+    - "label": "Clear"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Clear\", \"\
+        ล้าง\")"
+    - "label": "Retake"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Retake\",\
+        \ \"ถ่ายใหม่\")"
+    - "label": "All"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"All\", \"\
+        ทั้งหมด\")"
+    - "label": "Select All"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Select All\"\
+        , \"เลือกทั้งหมด\")"
+    - "label": "Search"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Search\",\
+        \ \"ค้นหา\")"
+    - "label": "Add"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Add\", \"\
+        เพิ่ม\")"
+    - "label": "Add or search"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Add or search\"\
+        , \"เพิ่มหรือค้นหา\")"
+    - "label": "Confirm"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Confirm\"\
+        , \"ยืนยัน\")"
+    - "label": "OK"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"OK\", \"ตกลง\"\
+        )"
+    - "label": "Are you sure?"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Are you sure?\"\
+        , \"คุณแน่ใจหรือไม่?\")"
+    - "label": "There is already a row with the key:"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"There is already\
+        \ a row with the key:\", \"มีแถวที่ใช้คีย์นี้อยู่แล้ว:\")"
+    - "label": "Are you sure you want to close the app?"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Are you sure\
+        \ you want to close the app?\", \"คุณแน่ใจหรือไม่ว่าต้องการปิดแอป?\")"
+    - "label": "Day"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Day\", \"\
+        วัน\")"
+    - "label": "Week"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Week\", \"\
+        สัปดาห์\")"
+    - "label": "Month"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Month\", \"\
+        เดือน\")"
+    - "label": "Today"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Today\", \"\
+        วันนี้\")"
+    - "label": "Starting up"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Starting up\"\
+        , \"กำลังเริ่มต้น\")"
+    - "label": "Syncing..."
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Syncing...\"\
+        , \"กำลังซิงค์...\")"
+    - "label": "About"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"About\", \"\
+        เกี่ยวกับ\")"
+    - "label": "More information"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"More information\"\
+        , \"ข้อมูลเพิ่มเติม\")"
+    - "label": "Log Out"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Log Out\"\
+        , \"ออกจากระบบ\")"
+    - "label": "Are you sure you want to logout?"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Are you sure\
+        \ you want to logout?\", \"คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?\")"
+    - "label": "Feedback for the app creator"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Feedback for\
+        \ the app creator\", \"ข้อเสนอแนะสำหรับผู้สร้างแอป\")"
+    - "label": "please provide your feedback here"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"please provide\
+        \ your feedback here\", \"โปรดระบุข้อเสนอแนะของคุณที่นี่\")"
+    - "label": "Feedback"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Feedback\"\
+        , \"ข้อเสนอแนะ\")"
+    - "label": "This entry is required"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"This entry\
+        \ is required\", \"จำเป็นต้องกรอกข้อมูลนี้\")"
+    - "label": "This entry is invalid"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"This entry\
+        \ is invalid\", \"ข้อมูลนี้ไม่ถูกต้อง\")"
+    - "label": "Select photo source"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Select photo\
+        \ source\", \"เลือกแหล่งที่มาของรูปภาพ\")"
+    - "label": "Take a Photo"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Take a Photo\"\
+        , \"ถ่ายรูป\")"
+    - "label": "Photo"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Photo\", \"\
+        รูปภาพ\")"
+    - "label": "Draw"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Draw\", \"\
+        วาด\")"
+    - "label": "Choose from Existing"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Choose from\
+        \ Existing\", \"เลือกจากที่มีอยู่\")"
+    - "label": "Ready to scan NFC"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Ready to scan\
+        \ NFC\", \"พร้อมสแกน NFC\")"
+    - "label": "Touch NFC tag with the back of your device"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Touch NFC\
+        \ tag with the back of your device\", \"แตะแท็ก NFC ที่ด้านหลังอุปกรณ์ของคุณ\")"
+    - "label": "Tap to unlock"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Tap to unlock\"\
+        , \"แตะเพื่อปลดล็อก\")"
+    - "label": "The scan result didn't match any known entries."
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"The scan result\
+        \ didn't match any known entries.\", \"ผลการสแกนไม่ตรงกับรายการที่รู้จัก\")"
+    - "label": "Send change log"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Send change\
+        \ log\", \"ส่งบันทึกการเปลี่ยนแปลง\")"
+    - "label": "Pending changes"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Pending changes\"\
+        , \"การเปลี่ยนแปลงที่รอซิงค์\")"
+    - "label": "Show Changes"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Show Changes\"\
+        , \"แสดงการเปลี่ยนแปลง\")"
+    - "label": "Reset Changes"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Reset Changes\"\
+        , \"รีเซ็ตการเปลี่ยนแปลง\")"
+    - "label": "Saving changes"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Saving changes\"\
+        , \"กำลังบันทึกการเปลี่ยนแปลง\")"
+    - "label": "Unable to save changes"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Unable to\
+        \ save changes\", \"ไม่สามารถบันทึกการเปลี่ยนแปลงได้\")"
+    - "label": "Discard changes?"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Discard changes?\"\
+        , \"ละทิ้งการเปลี่ยนแปลงหรือไม่?\")"
+    - "label": "Any edits will be lost"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Any edits\
+        \ will be lost\", \"การแก้ไขทั้งหมดจะหายไป\")"
+    - "label": "Reset local changes?"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Reset local\
+        \ changes?\", \"รีเซ็ตการเปลี่ยนแปลงในเครื่องหรือไม่?\")"
+    - "label": "This will permanently discard all local changes."
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"This will\
+        \ permanently discard all local changes.\", \"การดำเนินการนี้จะละทิ้งการเปลี่ยนแปลงในเครื่องทั้งหมดอย่างถาวร\")"
+    - "label": "Local changes have not been synced. Proceed anyway?"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Local changes\
+        \ have not been synced. Proceed anyway?\", \"การเปลี่ยนแปลงในเครื่องยังไม่ได้ซิงค์ ต้องการดำเนินการต่อหรือไม่?\")"
+    - "label": "Go to details"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Go to details\"\
+        , \"ไปที่รายละเอียด\")"
+    - "label": "Min"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Min\", \"\
+        ต่ำสุด\")"
+    - "label": "Max"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Max\", \"\
+        สูงสุด\")"
+    - "label": "From current location"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"From current\
+        \ location\", \"จากตำแหน่งปัจจุบัน\")"
+    - "label": "Contains"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Contains\"\
+        , \"มีคำว่า\")"
+    - "label": "(empty)"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"(empty)\"\
+        , \"(ว่าง)\")"
+    - "label": "Filter"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Filter\",\
+        \ \"ตัวกรอง\")"
+    - "label": "Start date"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Start date\"\
+        , \"วันที่เริ่มต้น\")"
+    - "label": "End date"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"End date\"\
+        , \"วันที่สิ้นสุด\")"
+    - "label": "Start time"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Start time\"\
+        , \"เวลาเริ่มต้น\")"
+    - "label": "End time"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"End time\"\
+        , \"เวลาสิ้นสุด\")"
+    - "label": "No results"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"No results\"\
+        , \"ไม่พบผลลัพธ์\")"
+    - "label": "No available values"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"No available\
+        \ values\", \"ไม่มีตัวเลือก\")"
+    - "label": "Has attachment"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Has attachment\"\
+        , \"มีไฟล์แนบ\")"
+    - "label": "No attachment"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"No attachment\"\
+        , \"ไม่มีไฟล์แนบ\")"
+    - "label": "All filters"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"All filters\"\
+        , \"ตัวกรองทั้งหมด\")"
+    - "label": "No items"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"No items\"\
+        , \"ไม่มีรายการ\")"
+    - "label": "No items selected"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"No items selected\"\
+        , \"ยังไม่ได้เลือกรายการ\")"
+    - "label": "Create a new"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Create a new\"\
+        , \"สร้างใหม่\")"
+    - "label": "Selected"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Selected\"\
+        , \"เลือกแล้ว\")"
+    - "label": "Select"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Select\",\
+        \ \"เลือก\")"
+    - "label": "Deselect"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Deselect\"\
+        , \"ยกเลิกการเลือก\")"
+    - "label": "Clear all"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Clear all\"\
+        , \"ล้างทั้งหมด\")"
+    - "label": "Continue editing"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Continue editing\"\
+        , \"แก้ไขต่อ\")"
+    - "label": "Sync status"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Sync status\"\
+        , \"สถานะการซิงค์\")"
+    - "label": "Reconnect to sync"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Reconnect\
+        \ to sync\", \"เชื่อมต่อเพื่อซิงค์ใหม่\")"
+    - "label": "Last sync:"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Last sync:\"\
+        , \"ซิงค์ล่าสุด:\")"
+    - "label": "Unsynced changes:"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Unsynced changes:\"\
+        , \"การเปลี่ยนแปลงที่ยังไม่ได้ซิงค์:\")"
+    - "label": "Offline"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Offline\"\
+        , \"ออฟไลน์\")"
+    - "label": "Up to date"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Up to date\"\
+        , \"เป็นข้อมูลล่าสุด\")"
+    - "label": "Sync complete"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Sync complete\"\
+        , \"ซิงค์เสร็จสิ้น\")"
+    - "label": "Unable to sync"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Unable to\
+        \ sync\", \"ไม่สามารถซิงค์ได้\")"
+    - "label": "View error details"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"View error\
+        \ details\", \"ดูรายละเอียดข้อผิดพลาด\")"
+    - "label": "Error details"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Error details\"\
+        , \"รายละเอียดข้อผิดพลาด\")"
+    - "label": "View app status"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"View app status\"\
+        , \"ดูสถานะแอป\")"
+    - "label": "Discard unsynced changes"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Discard unsynced\
+        \ changes\", \"ละทิ้งการเปลี่ยนแปลงที่ยังไม่ได้ซิงค์\")"
+    - "label": "Discard changes"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Discard changes\"\
+        , \"ละทิ้งการเปลี่ยนแปลง\")"
+    - "label": "Sync failed"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Sync failed\"\
+        , \"ซิงค์ไม่สำเร็จ\")"
+    - "label": "Add a new option by typing"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Add a new\
+        \ option by typing\", \"เพิ่มตัวเลือกใหม่โดยพิมพ์\")"
+    - "label": "Cancel Selection"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Cancel Selection\"\
+        , \"ยกเลิกการเลือก\")"
+    - "label": "Close"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Close\", \"\
+        ปิด\")"
+    - "label": "Enable Edits"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Enable Edits\"\
+        , \"เปิดการแก้ไข\")"
+    - "label": "Expand"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Expand\",\
+        \ \"ขยาย\")"
+    - "label": "Open"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Open\", \"\
+        เปิด\")"
+    - "label": "Reset Dashboard"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Reset Dashboard\"\
+        , \"รีเซ็ตแดชบอร์ด\")"
+    - "label": "Return to split view"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Return to\
+        \ split view\", \"กลับไปยังมุมมองแบบแบ่ง\")"
+    - "label": "Select Items"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Select Items\"\
+        , \"เลือกรายการ\")"
+    - "label": "More"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"More\", \"\
+        เพิ่มเติม\")"
+    - "label": "Place pin"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Place pin\"\
+        , \"ปักหมุด\")"
+    - "label": "blank"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"blank\", \"\
+        ว่าง\")"
+    - "label": "Insert Current Location"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Insert Current\
+        \ Location\", \"แทรกตำแหน่งปัจจุบัน\")"
+    - "label": "Get driving directions"
+      "selected": null
+      "tag": "INPUT"
+      "type": "text"
+      "value": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Get driving\
+        \ directions\", \"ขอเส้นทางการขับรถ\")"
+    "snapshot": |2-
+        - paragraph: "Views: Localization"
+        - alert:
+          - generic: "Localization: Change the text shown in system buttons and notifications"
+          - button "Learn more":
+            - generic: Learn more
+        - heading "Customize System Text" [level=3]
+        - button "Copy localizations":
+          - generic: Copy localizations
+        - button "Paste localizations":
+          - generic: Paste localizations
+        - textbox "search box"
+        - heading "Yes" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Yes", "ใช่")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "No" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "No", "ไม่ใช่")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "New" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "New", "ใหม่")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Edit" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Edit", "แก้ไข")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Delete" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Delete", "ลบ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Share" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Share", "แชร์")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Sync" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Sync", "ซิงค์")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Next" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Next", "ถัดไป")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Prev" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Prev", "ก่อนหน้า")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Back" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Back", "กลับ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "View" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "View", "ดู")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Save" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Save", "บันทึก")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Submit" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Submit", "ส่ง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Reset" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Reset", "รีเซ็ต")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Cancel" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Cancel", "ยกเลิก")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Discard" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Discard", "ละทิ้ง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Done" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Done", "เสร็จสิ้น")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Clear" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Clear", "ล้าง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Retake" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Retake", "ถ่ายใหม่")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "All" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "All", "ทั้งหมด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Select All" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Select All", "เลือกทั้งหมด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Search" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Search", "ค้นหา")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Add" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Add", "เพิ่ม")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Add or search" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Add or search", "เพิ่มหรือค้นหา")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Confirm" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Confirm", "ยืนยัน")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "OK" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "OK", "ตกลง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Are you sure?" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Are you sure?", "คุณแน่ใจหรือไม่?")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "There is already a row with the key:" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "There is already a row with the key:", "มีแถวที่ใช้คีย์นี้อยู่แล้ว:")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Are you sure you want to close the app?" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Are you sure you want to close the app?", "คุณแน่ใจหรือไม่ว่าต้องการปิดแอป?")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Day" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Day", "วัน")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Week" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Week", "สัปดาห์")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Month" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Month", "เดือน")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Today" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Today", "วันนี้")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Starting up" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Starting up", "กำลังเริ่มต้น")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Syncing..." [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Syncing...", "กำลังซิงค์...")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "About" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "About", "เกี่ยวกับ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "More information" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "More information", "ข้อมูลเพิ่มเติม")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Log Out" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Log Out", "ออกจากระบบ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Are you sure you want to logout?" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Are you sure you want to logout?", "คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Feedback for the app creator" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Feedback for the app creator", "ข้อเสนอแนะสำหรับผู้สร้างแอป")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "please provide your feedback here" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "please provide your feedback here", "โปรดระบุข้อเสนอแนะของคุณที่นี่")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Feedback" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Feedback", "ข้อเสนอแนะ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "This entry is required" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "This entry is required", "จำเป็นต้องกรอกข้อมูลนี้")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "This entry is invalid" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "This entry is invalid", "ข้อมูลนี้ไม่ถูกต้อง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Select photo source" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Select photo source", "เลือกแหล่งที่มาของรูปภาพ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Take a Photo" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Take a Photo", "ถ่ายรูป")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Photo" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Photo", "รูปภาพ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Draw" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Draw", "วาด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Choose from Existing" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Choose from Existing", "เลือกจากที่มีอยู่")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Ready to scan NFC" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Ready to scan NFC", "พร้อมสแกน NFC")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Touch NFC tag with the back of your device" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Touch NFC tag with the back of your device", "แตะแท็ก NFC ที่ด้านหลังอุปกรณ์ของคุณ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Tap to unlock" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Tap to unlock", "แตะเพื่อปลดล็อก")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "The scan result didn't match any known entries." [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "The scan result didn't match any known entries.", "ผลการสแกนไม่ตรงกับรายการที่รู้จัก")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Send change log" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Send change log", "ส่งบันทึกการเปลี่ยนแปลง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Pending changes" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Pending changes", "การเปลี่ยนแปลงที่รอซิงค์")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Show Changes" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Show Changes", "แสดงการเปลี่ยนแปลง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Reset Changes" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Reset Changes", "รีเซ็ตการเปลี่ยนแปลง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Saving changes" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Saving changes", "กำลังบันทึกการเปลี่ยนแปลง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Unable to save changes" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Unable to save changes", "ไม่สามารถบันทึกการเปลี่ยนแปลงได้")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Discard changes?" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Discard changes?", "ละทิ้งการเปลี่ยนแปลงหรือไม่?")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Any edits will be lost" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Any edits will be lost", "การแก้ไขทั้งหมดจะหายไป")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Reset local changes?" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Reset local changes?", "รีเซ็ตการเปลี่ยนแปลงในเครื่องหรือไม่?")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "This will permanently discard all local changes." [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "This will permanently discard all local changes.", "การดำเนินการนี้จะละทิ้งการเปลี่ยนแปลงในเครื่องทั้งหมดอย่างถาวร")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Local changes have not been synced. Proceed anyway?" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Local changes have not been synced. Proceed anyway?", "การเปลี่ยนแปลงในเครื่องยังไม่ได้ซิงค์ ต้องการดำเนินการต่อหรือไม่?")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Go to details" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Go to details", "ไปที่รายละเอียด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Min" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Min", "ต่ำสุด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Max" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Max", "สูงสุด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "From current location" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "From current location", "จากตำแหน่งปัจจุบัน")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Contains" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Contains", "มีคำว่า")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "(empty)" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "(empty)", "(ว่าง)")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Filter" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Filter", "ตัวกรอง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Start date" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Start date", "วันที่เริ่มต้น")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "End date" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "End date", "วันที่สิ้นสุด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Start time" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Start time", "เวลาเริ่มต้น")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "End time" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "End time", "เวลาสิ้นสุด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "No results" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "No results", "ไม่พบผลลัพธ์")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "No available values" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "No available values", "ไม่มีตัวเลือก")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Has attachment" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Has attachment", "มีไฟล์แนบ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "No attachment" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "No attachment", "ไม่มีไฟล์แนบ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "All filters" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "All filters", "ตัวกรองทั้งหมด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "No items" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "No items", "ไม่มีรายการ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "No items selected" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "No items selected", "ยังไม่ได้เลือกรายการ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Create a new" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Create a new", "สร้างใหม่")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Selected" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Selected", "เลือกแล้ว")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Select" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Select", "เลือก")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Deselect" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Deselect", "ยกเลิกการเลือก")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Clear all" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Clear all", "ล้างทั้งหมด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Continue editing" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Continue editing", "แก้ไขต่อ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Sync status" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Sync status", "สถานะการซิงค์")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Reconnect to sync" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Reconnect to sync", "เชื่อมต่อเพื่อซิงค์ใหม่")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Last sync:" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Last sync:", "ซิงค์ล่าสุด:")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Unsynced changes:" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Unsynced changes:", "การเปลี่ยนแปลงที่ยังไม่ได้ซิงค์:")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Offline" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Offline", "ออฟไลน์")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Up to date" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Up to date", "เป็นข้อมูลล่าสุด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Sync complete" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Sync complete", "ซิงค์เสร็จสิ้น")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Unable to sync" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Unable to sync", "ไม่สามารถซิงค์ได้")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "View error details" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "View error details", "ดูรายละเอียดข้อผิดพลาด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Error details" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Error details", "รายละเอียดข้อผิดพลาด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "View app status" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "View app status", "ดูสถานะแอป")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Discard unsynced changes" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Discard unsynced changes", "ละทิ้งการเปลี่ยนแปลงที่ยังไม่ได้ซิงค์")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Discard changes" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Discard changes", "ละทิ้งการเปลี่ยนแปลง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Sync failed" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Sync failed", "ซิงค์ไม่สำเร็จ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Add a new option by typing" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Add a new option by typing", "เพิ่มตัวเลือกใหม่โดยพิมพ์")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Cancel Selection" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Cancel Selection", "ยกเลิกการเลือก")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Close" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Close", "ปิด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Enable Edits" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Enable Edits", "เปิดการแก้ไข")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Expand" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Expand", "ขยาย")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Open" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Open", "เปิด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Reset Dashboard" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Reset Dashboard", "รีเซ็ตแดชบอร์ด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Return to split view" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Return to split view", "กลับไปยังมุมมองแบบแบ่ง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Select Items" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Select Items", "เลือกรายการ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "More" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "More", "เพิ่มเติม")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Place pin" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Place pin", "ปักหมุด")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "blank" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "blank", "ว่าง")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Insert Current Location" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Insert Current Location", "แทรกตำแหน่งปัจจุบัน")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science
+        - heading "Get driving directions" [level=6]
+        - generic "description"
+        - generic: =
+        - textbox: IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Get driving directions", "ขอเส้นทางการขับรถ")
+        - generic: science
+        - radiogroup:
+          - radio:
+            - generic: title
+          - radio [checked]:
+            - generic: science

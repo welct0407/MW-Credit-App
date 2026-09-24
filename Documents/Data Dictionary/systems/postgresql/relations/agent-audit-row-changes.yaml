@@ -1,163 +1,523 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
   "name": "agent_audit.row_changes"
-  "scope": "as-recorded"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/agent-audit-row-changes.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "agent_audit.row_changes"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "agent_audit"
+    "name": "row_changes"
+    "kind": "r"
+    "owner": "mw_business_audit_owner"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{mw_business_audit_owner=arwdDxtm/mw_business_audit_owner,mw_reviewer_dml=r/mw_business_audit_owner,mw_agent_relay=r/mw_business_audit_owner,mw_agent_auditor=r/mw_business_audit_owner}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "change_id":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "change_id"
-      "Position": 1
-      "PostgreSQL type": "bigint"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "change_id"
+      "ordinal": 1
+      "data_type": "bigint"
+      "type_schema": "pg_catalog"
+      "type_name": "int8"
+      "not_null": true
+      "identity": "a"
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "operation_id":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "operation_id"
-      "Position": 2
-      "PostgreSQL type": "uuid"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "operation_id"
+      "ordinal": 2
+      "data_type": "uuid"
+      "type_schema": "pg_catalog"
+      "type_name": "uuid"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "database_txid":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "database_txid"
-      "Position": 3
-      "PostgreSQL type": "xid8"
-      "Nullable": "NO"
-      "Default": "pg_current_xact_id()"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "database_txid"
+      "ordinal": 3
+      "data_type": "xid8"
+      "type_schema": "pg_catalog"
+      "type_name": "xid8"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "pg_current_xact_id()"
+      "collation": null
+      "acl": null
+      "comment": null
     "schema_name":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "schema_name"
-      "Position": 4
-      "PostgreSQL type": "name"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "schema_name"
+      "ordinal": 4
+      "data_type": "name"
+      "type_schema": "pg_catalog"
+      "type_name": "name"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"C\""
+      "acl": null
+      "comment": null
     "table_name":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "table_name"
-      "Position": 5
-      "PostgreSQL type": "name"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "table_name"
+      "ordinal": 5
+      "data_type": "name"
+      "type_schema": "pg_catalog"
+      "type_name": "name"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"C\""
+      "acl": null
+      "comment": null
     "action":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "action"
-      "Position": 6
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "action"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "row_key":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "row_key"
-      "Position": 7
-      "PostgreSQL type": "jsonb"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_key"
+      "ordinal": 7
+      "data_type": "jsonb"
+      "type_schema": "pg_catalog"
+      "type_name": "jsonb"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "before_row":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "before_row"
-      "Position": 8
-      "PostgreSQL type": "jsonb"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "before_row"
+      "ordinal": 8
+      "data_type": "jsonb"
+      "type_schema": "pg_catalog"
+      "type_name": "jsonb"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "after_row":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "after_row"
-      "Position": 9
-      "PostgreSQL type": "jsonb"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "after_row"
+      "ordinal": 9
+      "data_type": "jsonb"
+      "type_schema": "pg_catalog"
+      "type_name": "jsonb"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "observed_at":
-      "Table / view": "agent_audit.row_changes"
-      "Column": "observed_at"
-      "Position": 10
-      "PostgreSQL type": "timestamp with time zone"
-      "Nullable": "NO"
-      "Default": "clock_timestamp()"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "observed_at"
+      "ordinal": 10
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "clock_timestamp()"
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints":
     "row_changes_action_check":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_action_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((action = ANY (ARRAY['INSERT'::text, 'UPDATE'::text, 'DELETE'::text])))"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_action_check"
+      "kind": "c"
+      "definition": "CHECK (action = ANY (ARRAY['INSERT'::text, 'UPDATE'::text, 'DELETE'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_action_not_null":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_action_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL action"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_action_not_null"
+      "kind": "n"
+      "definition": "NOT NULL action"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_change_id_not_null":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_change_id_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL change_id"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_change_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL change_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_check":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((((action = 'INSERT'::text) AND (before_row IS NULL) AND (after_row IS NOT NULL)) OR ((action\
-        \ = 'UPDATE'::text) AND (before_row IS NOT NULL) AND (after_row IS NOT NULL)) OR ((action = 'DELETE'::text) AND (before_row\
-        \ IS NOT NULL) AND (after_row IS NULL))))"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_check"
+      "kind": "c"
+      "definition": "CHECK (action = 'INSERT'::text AND before_row IS NULL AND after_row IS NOT NULL OR action = 'UPDATE'::text\
+        \ AND before_row IS NOT NULL AND after_row IS NOT NULL OR action = 'DELETE'::text AND before_row IS NOT NULL AND after_row\
+        \ IS NULL)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      - 8
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_database_txid_not_null":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_database_txid_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL database_txid"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_database_txid_not_null"
+      "kind": "n"
+      "definition": "NOT NULL database_txid"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_observed_at_not_null":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_observed_at_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL observed_at"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_observed_at_not_null"
+      "kind": "n"
+      "definition": "NOT NULL observed_at"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 10
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_operation_id_database_txid_fkey":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_operation_id_database_txid_fkey"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (operation_id, database_txid) REFERENCES agent_audit.commits(operation_id, database_txid)"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_operation_id_database_txid_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (operation_id, database_txid) REFERENCES agent_audit.commits(operation_id, database_txid)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      - 3
+      "referenced_column_numbers":
+      - 1
+      - 2
+      "referenced_relation": "agent_audit.commits"
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
     "row_changes_operation_id_not_null":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_operation_id_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL operation_id"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_operation_id_not_null"
+      "kind": "n"
+      "definition": "NOT NULL operation_id"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_pkey":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_pkey"
-      "Type": "p"
-      "Validated": true
-      "Definition": "PRIMARY KEY (change_id)"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (change_id)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_row_key_check":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_row_key_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((jsonb_typeof(row_key) = 'object'::text))"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_row_key_check"
+      "kind": "c"
+      "definition": "CHECK (jsonb_typeof(row_key) = 'object'::text)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_row_key_not_null":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_row_key_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL row_key"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_row_key_not_null"
+      "kind": "n"
+      "definition": "NOT NULL row_key"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_schema_name_not_null":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_schema_name_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL schema_name"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_schema_name_not_null"
+      "kind": "n"
+      "definition": "NOT NULL schema_name"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "row_changes_table_name_not_null":
-      "Table": "agent_audit.row_changes"
-      "Constraint": "row_changes_table_name_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL table_name"
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_table_name_not_null"
+      "kind": "n"
+      "definition": "NOT NULL table_name"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "row_changes_operation_idx":
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_operation_idx"
+      "definition": "CREATE INDEX row_changes_operation_idx ON agent_audit.row_changes USING btree (operation_id, change_id)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "row_changes_pkey":
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_pkey"
+      "definition": "CREATE UNIQUE INDEX row_changes_pkey ON agent_audit.row_changes USING btree (change_id)"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_19178":
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "RI_ConstraintTrigger_c_19178"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_19178\" AFTER INSERT ON agent_audit.row_changes FROM\
+        \ agent_audit.commits NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_19179":
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "RI_ConstraintTrigger_c_19179"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_19179\" AFTER UPDATE ON agent_audit.row_changes FROM\
+        \ agent_audit.commits NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "row_changes_append_only":
+      "schema": "agent_audit"
+      "relation": "row_changes"
+      "name": "row_changes_append_only"
+      "definition": "CREATE TRIGGER row_changes_append_only BEFORE DELETE OR UPDATE OR TRUNCATE ON agent_audit.row_changes\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION agent_audit.reject_rewrite()"
+      "enabled": "O"
+      "internal": false
+      "routine": "agent_audit.reject_rewrite()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

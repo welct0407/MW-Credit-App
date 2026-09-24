@@ -1,273 +1,1163 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
-  "name": "Cash Ledger"
-  "scope": "as-recorded"
+  "name": "public.Cash Ledger"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/cash-ledger.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Cash Ledger"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "Cash Ledger"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Row ID":
-      "Table / view": "Cash Ledger"
-      "Column": "Row ID"
-      "Position": 1
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Movement Date":
-      "Table / view": "Cash Ledger"
-      "Column": "Movement Date"
-      "Position": 2
-      "PostgreSQL type": "date"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Movement Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Movement Type":
-      "Table / view": "Cash Ledger"
-      "Column": "Movement Type"
-      "Position": 3
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Movement Type"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Amount":
-      "Table / view": "Cash Ledger"
-      "Column": "Amount"
-      "Position": 4
-      "PostgreSQL type": "numeric"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Amount"
+      "ordinal": 4
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Ref From Cash Holder":
-      "Table / view": "Cash Ledger"
-      "Column": "Ref From Cash Holder"
-      "Position": 5
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Ref From Cash Holder"
+      "ordinal": 5
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Ref To Cash Holder":
-      "Table / view": "Cash Ledger"
-      "Column": "Ref To Cash Holder"
-      "Position": 6
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Ref To Cash Holder"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Ref Payment":
-      "Table / view": "Cash Ledger"
-      "Column": "Ref Payment"
-      "Position": 7
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Ref Payment"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Ref Loan":
-      "Table / view": "Cash Ledger"
-      "Column": "Ref Loan"
-      "Position": 8
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Ref Loan"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Ref Business Expense":
-      "Table / view": "Cash Ledger"
-      "Column": "Ref Business Expense"
-      "Position": 9
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Ref Business Expense"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Ref Settlement":
-      "Table / view": "Cash Ledger"
-      "Column": "Ref Settlement"
-      "Position": 10
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Ref Settlement"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Entry Origin":
-      "Table / view": "Cash Ledger"
-      "Column": "Entry Origin"
-      "Position": 11
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": "'Manual'::text"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Entry Origin"
+      "ordinal": 11
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": "'Manual'::text"
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Source Type":
-      "Table / view": "Cash Ledger"
-      "Column": "Source Type"
-      "Position": 12
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": "'Manual'::text"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Source Type"
+      "ordinal": 12
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": "'Manual'::text"
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Source Key":
-      "Table / view": "Cash Ledger"
-      "Column": "Source Key"
-      "Position": 13
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Source Key"
+      "ordinal": 13
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Notes":
-      "Table / view": "Cash Ledger"
-      "Column": "Notes"
-      "Position": 14
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Notes"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Created At":
-      "Table / view": "Cash Ledger"
-      "Column": "Created At"
-      "Position": 15
-      "PostgreSQL type": "timestamp without time zone"
-      "Nullable": "NO"
-      "Default": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Created At"
+      "ordinal": 15
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+      "collation": null
+      "acl": null
+      "comment": null
     "Created By":
-      "Table / view": "Cash Ledger"
-      "Column": "Created By"
-      "Position": 16
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": "'SQL'::text"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Created By"
+      "ordinal": 16
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": "'SQL'::text"
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Updated At":
-      "Table / view": "Cash Ledger"
-      "Column": "Updated At"
-      "Position": 17
-      "PostgreSQL type": "timestamp without time zone"
-      "Nullable": "NO"
-      "Default": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Updated At"
+      "ordinal": 17
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)"
+      "collation": null
+      "acl": null
+      "comment": null
+    "Ref From Cash Account":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Ref From Cash Account"
+      "ordinal": 18
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref To Cash Account":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Ref To Cash Account"
+      "ordinal": 19
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
   "constraints":
     "Cash Ledger_Amount_check":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Amount_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK (((\"Amount\" > (0)::numeric) AND (\"Amount\" < 'Infinity'::numeric) AND (\"Amount\" = trunc(\"\
-        Amount\"))))"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Amount_check"
+      "kind": "c"
+      "definition": "CHECK (\"Amount\" > 0::numeric AND \"Amount\" < 'Infinity'::numeric AND \"Amount\" = trunc(\"Amount\"\
+        ))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Amount_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Amount_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Amount\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Amount_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Amount\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 4
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Created At_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Created At_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Created At\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Created At_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Created At\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 15
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Created By_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Created By_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Created By\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Created By_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Created By\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 16
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Entry Origin_check":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Entry Origin_check"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((\"Entry Origin\" = ANY (ARRAY['System'::text, 'Manual'::text])))"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Entry Origin_check"
+      "kind": "c"
+      "definition": "CHECK (\"Entry Origin\" = ANY (ARRAY['System'::text, 'Manual'::text]))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 11
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Entry Origin_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Entry Origin_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Entry Origin\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Entry Origin_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Entry Origin\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 11
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Movement Date_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Movement Date_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Movement Date\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Movement Date_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Movement Date\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Movement Type_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Movement Type_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Movement Type\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Movement Type_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Movement Type\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 3
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Ref Business Expense_fkey":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Ref Business Expense_fkey"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref Business Expense\") REFERENCES \"Business Expenses\"(\"Row ID\") ON DELETE RESTRICT"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Ref Business Expense_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Business Expense\") REFERENCES \"Business Expenses\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 9
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Business Expenses\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
+    "Cash Ledger_Ref From Cash Account_fkey":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Ref From Cash Account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref From Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 18
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
     "Cash Ledger_Ref From Cash Holder_fkey":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Ref From Cash Holder_fkey"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref From Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Ref From Cash Holder_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref From Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Holders\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
     "Cash Ledger_Ref Loan_fkey":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Ref Loan_fkey"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref Loan\") REFERENCES \"Loans\"(\"Row ID\") ON DELETE RESTRICT"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Ref Loan_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Loan\") REFERENCES \"Loans\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 8
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Loans\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
     "Cash Ledger_Ref Payment_fkey":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Ref Payment_fkey"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\") ON DELETE RESTRICT"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Ref Payment_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 7
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Payments\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
     "Cash Ledger_Ref Settlement_fkey":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Ref Settlement_fkey"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref Settlement\") REFERENCES \"Settlements\"(\"Row ID\") ON DELETE RESTRICT"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Ref Settlement_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Settlement\") REFERENCES \"Settlements\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 10
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Settlements\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
+    "Cash Ledger_Ref To Cash Account_fkey":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Ref To Cash Account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref To Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 19
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
     "Cash Ledger_Ref To Cash Holder_fkey":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Ref To Cash Holder_fkey"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref To Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Ref To Cash Holder_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref To Cash Holder\") REFERENCES \"Cash Holders\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Holders\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
     "Cash Ledger_Row ID_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Row ID_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Row ID\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Source Key_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Source Key_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Source Key\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Source Key_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Source Key\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 13
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Source Type_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Source Type_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Source Type\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Source Type_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Source Type\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 12
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_Updated At_not_null":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_Updated At_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Updated At\""
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_Updated At_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Updated At\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 17
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "Cash Ledger_pkey":
-      "Table": "Cash Ledger"
-      "Constraint": "Cash Ledger_pkey"
-      "Type": "p"
-      "Validated": true
-      "Definition": "PRIMARY KEY (\"Row ID\")"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "cash_ledger_direction":
-      "Table": "Cash Ledger"
-      "Constraint": "cash_ledger_direction"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK (((COALESCE(\"Ref From Cash Holder\", \"Ref To Cash Holder\") IS NOT NULL) AND (\"Ref From Cash\
-        \ Holder\" IS DISTINCT FROM \"Ref To Cash Holder\")))"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "cash_ledger_direction"
+      "kind": "c"
+      "definition": "CHECK (COALESCE(\"Ref From Cash Holder\", \"Ref To Cash Holder\") IS NOT NULL AND (\"Ref From Cash Holder\"\
+        \ IS DISTINCT FROM \"Ref To Cash Holder\" OR \"Ref From Cash Account\" IS NOT NULL AND \"Ref To Cash Account\" IS\
+        \ NOT NULL AND \"Ref From Cash Account\" <> \"Ref To Cash Account\"))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 5
+      - 6
+      - 18
+      - 19
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "cash_ledger_source":
-      "Table": "Cash Ledger"
-      "Constraint": "cash_ledger_source"
-      "Type": "c"
-      "Validated": true
-      "Definition": "CHECK ((((\"Entry Origin\" = 'Manual'::text) AND (\"Source Type\" = 'Manual'::text) AND (\"Source Key\"\
-        \ = ('MANUAL:'::text || \"Row ID\")) AND (\"Ref Payment\" IS NULL) AND (\"Ref Loan\" IS NULL) AND (\"Ref Settlement\"\
-        \ IS NULL) AND (\"Movement Type\" = ANY (ARRAY['Cash Handover'::text, 'Expense Reimbursement'::text, 'Opening Balance'::text,\
-        \ 'Manual Correction'::text]))) OR ((\"Entry Origin\" = 'System'::text) AND (((\"Source Type\" = 'Payment'::text)\
-        \ AND (\"Movement Type\" = 'Payment Receipt'::text) AND (\"Source Key\" = ('PAYMENT:'::text || \"Ref Payment\")) AND\
-        \ (\"Ref Payment\" IS NOT NULL) AND (num_nonnulls(\"Ref Payment\", \"Ref Loan\", \"Ref Business Expense\", \"Ref Settlement\"\
-        ) = 1)) OR ((\"Source Type\" = 'Loan'::text) AND (\"Movement Type\" = 'Loan Disbursement'::text) AND (\"Source Key\"\
-        \ = ('LOAN:'::text || \"Ref Loan\")) AND (\"Ref Loan\" IS NOT NULL) AND (num_nonnulls(\"Ref Payment\", \"Ref Loan\"\
-        , \"Ref Business Expense\", \"Ref Settlement\") = 1)) OR ((\"Source Type\" = 'Business Expense'::text) AND (\"Movement\
-        \ Type\" = 'Business Expense'::text) AND (\"Source Key\" = ('EXPENSE:'::text || \"Ref Business Expense\")) AND (\"\
-        Ref Business Expense\" IS NOT NULL) AND (num_nonnulls(\"Ref Payment\", \"Ref Loan\", \"Ref Business Expense\", \"\
-        Ref Settlement\") = 1)) OR ((\"Source Type\" = 'Settlement'::text) AND (\"Movement Type\" = 'Partner Settlement'::text)\
-        \ AND (\"Source Key\" = ('SETTLEMENT:'::text || \"Ref Settlement\")) AND (\"Ref Settlement\" IS NOT NULL) AND (num_nonnulls(\"\
-        Ref Payment\", \"Ref Loan\", \"Ref Business Expense\", \"Ref Settlement\") = 1))))))"
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "cash_ledger_source"
+      "kind": "c"
+      "definition": "CHECK (\"Entry Origin\" = 'Manual'::text AND \"Source Type\" = 'Manual'::text AND \"Source Key\" = ('MANUAL:'::text\
+        \ || \"Row ID\") AND \"Ref Payment\" IS NULL AND \"Ref Loan\" IS NULL AND \"Ref Settlement\" IS NULL AND (\"Movement\
+        \ Type\" = ANY (ARRAY['Cash Handover'::text, 'Expense Reimbursement'::text, 'Opening Balance'::text, 'Manual Correction'::text]))\
+        \ OR \"Entry Origin\" = 'System'::text AND (\"Source Type\" = 'Payment'::text AND \"Movement Type\" = 'Payment Receipt'::text\
+        \ AND \"Source Key\" = ('PAYMENT:'::text || \"Ref Payment\") AND \"Ref Payment\" IS NOT NULL AND num_nonnulls(\"Ref\
+        \ Payment\", \"Ref Loan\", \"Ref Business Expense\", \"Ref Settlement\") = 1 OR \"Source Type\" = 'Loan'::text AND\
+        \ \"Movement Type\" = 'Loan Disbursement'::text AND \"Source Key\" = ('LOAN:'::text || \"Ref Loan\") AND \"Ref Loan\"\
+        \ IS NOT NULL AND num_nonnulls(\"Ref Payment\", \"Ref Loan\", \"Ref Business Expense\", \"Ref Settlement\") = 1 OR\
+        \ \"Source Type\" = 'Business Expense'::text AND \"Movement Type\" = 'Business Expense'::text AND \"Source Key\" =\
+        \ ('EXPENSE:'::text || \"Ref Business Expense\") AND \"Ref Business Expense\" IS NOT NULL AND num_nonnulls(\"Ref Payment\"\
+        , \"Ref Loan\", \"Ref Business Expense\", \"Ref Settlement\") = 1 OR \"Source Type\" = 'Settlement'::text AND \"Movement\
+        \ Type\" = 'Partner Settlement'::text AND \"Source Key\" = ('SETTLEMENT:'::text || \"Ref Settlement\") AND \"Ref Settlement\"\
+        \ IS NOT NULL AND num_nonnulls(\"Ref Payment\", \"Ref Loan\", \"Ref Business Expense\", \"Ref Settlement\") = 1))"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 11
+      - 12
+      - 13
+      - 1
+      - 7
+      - 8
+      - 10
+      - 3
+      - 9
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Cash Ledger_pkey":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "Cash Ledger_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Cash Ledger_pkey\" ON public.\"Cash Ledger\" USING btree (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "cash_ledger_expense":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "cash_ledger_expense"
+      "definition": "CREATE INDEX cash_ledger_expense ON public.\"Cash Ledger\" USING btree (\"Ref Business Expense\")"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "cash_ledger_from_account":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "cash_ledger_from_account"
+      "definition": "CREATE INDEX cash_ledger_from_account ON public.\"Cash Ledger\" USING btree (\"Ref From Cash Account\"\
+        )"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "cash_ledger_from_date":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "cash_ledger_from_date"
+      "definition": "CREATE INDEX cash_ledger_from_date ON public.\"Cash Ledger\" USING btree (\"Ref From Cash Holder\", \"\
+        Movement Date\")"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "cash_ledger_system_source":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "cash_ledger_system_source"
+      "definition": "CREATE UNIQUE INDEX cash_ledger_system_source ON public.\"Cash Ledger\" USING btree (\"Source Type\"\
+        , \"Source Key\") WHERE (\"Entry Origin\" = 'System'::text)"
+      "unique": true
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": "(\"Entry Origin\" = 'System'::text)"
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "cash_ledger_to_account":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "cash_ledger_to_account"
+      "definition": "CREATE INDEX cash_ledger_to_account ON public.\"Cash Ledger\" USING btree (\"Ref To Cash Account\")"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "cash_ledger_to_date":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "cash_ledger_to_date"
+      "definition": "CREATE INDEX cash_ledger_to_date ON public.\"Cash Ledger\" USING btree (\"Ref To Cash Holder\", \"Movement\
+        \ Date\")"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 2
+      "total_attribute_count": 2
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_c_17194":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17194"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17194\" AFTER INSERT ON \"Cash Ledger\" FROM \"Cash\
+        \ Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17195":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17195"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17195\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Cash\
+        \ Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17199":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17199"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17199\" AFTER INSERT ON \"Cash Ledger\" FROM \"Cash\
+        \ Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17200":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17200"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17200\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Cash\
+        \ Holders\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17204":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17204"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17204\" AFTER INSERT ON \"Cash Ledger\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17205":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17205"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17205\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17209":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17209"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17209\" AFTER INSERT ON \"Cash Ledger\" FROM \"Loans\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17210":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17210"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17210\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Loans\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17214":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17214"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17214\" AFTER INSERT ON \"Cash Ledger\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17215":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17215"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17215\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17219":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17219"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17219\" AFTER INSERT ON \"Cash Ledger\" FROM \"Settlements\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17220":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17220"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17220\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Settlements\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17385":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17385"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17385\" AFTER INSERT ON \"Cash Ledger\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17386":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17386"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17386\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17390":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17390"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17390\" AFTER INSERT ON \"Cash Ledger\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17391":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_17391"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17391\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Cash\
+        \ Accounts\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a0_ledger_cash_accounts":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "a0_ledger_cash_accounts"
+      "definition": "CREATE TRIGGER a0_ledger_cash_accounts BEFORE INSERT OR DELETE OR UPDATE ON \"Cash Ledger\" FOR EACH\
+        \ ROW EXECUTE FUNCTION guard_ledger_cash_accounts()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_ledger_cash_accounts()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "guard_cash_ledger":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "guard_cash_ledger"
+      "definition": "CREATE TRIGGER guard_cash_ledger BEFORE INSERT OR DELETE OR UPDATE ON \"Cash Ledger\" FOR EACH ROW EXECUTE\
+        \ FUNCTION guard_cash_ledger()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_cash_ledger()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "mw_agent_capture":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "mw_agent_capture"
+      "definition": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Cash Ledger\" FOR EACH ROW EXECUTE\
+        \ FUNCTION agent_audit.capture_change()"
+      "enabled": "O"
+      "internal": false
+      "routine": "agent_audit.capture_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

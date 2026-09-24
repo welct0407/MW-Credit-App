@@ -1,0 +1,643 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Business Cash Held"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/oltp/views/business-cash-held-414699e4.yaml"
+  "classification": "Captured source controls and choices match; supporting editor text/App links differ by environment or\
+    \ UI presentation."
+  "changes":
+  - "pointer": "/fields"
+    "before":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Business Cash Held"
+        "label": "View name"
+        "text": |-
+          View name
+          The unique name for this view.
+          ​
+          Go to display options
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Cash Account Balances"
+        "label": "For this data"
+        "text": |-
+          For this data
+          Which table or slice to display.
+          Cash Account Balances
+          ​
+          edit
+          Use slices to filter your data
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          date_range
+          calendar
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          category
+          detail
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_quilt
+          dashboard
+          view_stream
+          form
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices":
+        - "checked": "false"
+          "text": "first"
+        - "checked": "false"
+          "text": "next"
+        - "checked": "false"
+          "text": "middle"
+        - "checked": "false"
+          "text": "later"
+        - "checked": "false"
+          "text": "last"
+        - "checked": "false"
+          "text": "menu"
+        - "checked": "true"
+          "text": "ref"
+        "controls": []
+        "label": "Position"
+        "text": |-
+          Position
+          Where the button to access this view is located.
+          first
+          next
+          middle
+          later
+          last
+          menu
+          ref
+      - "choices": []
+        "controls": []
+        "label": "Sort by"
+        "text": |-
+          Sort by
+          Sort the rows by one or more columns.
+          Add
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Holder Name"
+        - "selected":
+          - "Ascending"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "Ascending"
+        "label": "Group by"
+        "text": |-
+          Group by
+          Group rows by the values in one or more of their columns.
+          drag_indicator
+          Holder Name
+          ​
+          Ascending
+          Descending
+          edit
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "SUM :: Current Balance"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "SUM :: Current Balance"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          Display a numeric summary of the rows in each group.
+          NONE
+          COUNT
+          SUM :: Opening Balance
+          AVERAGE :: Opening Balance
+          MIN :: Opening Balance
+          MAX :: Opening Balance
+          SUM :: Cash In
+          AVERAGE :: Cash In
+          MIN :: Cash In
+          MAX :: Cash In
+          SUM :: Cash Out
+          AVERAGE :: Cash Out
+          MIN :: Cash Out
+          MAX :: Cash Out
+          SUM :: Current Balance
+          AVERAGE :: Current Balance
+          MIN :: Current Balance
+          MAX :: Current Balance
+          SUM :: Business Cash Held
+          AVERAGE :: Business Cash Held
+          MIN :: Business Cash Held
+          MAX :: Business Cash Held
+          SUM :: Reimbursement / Advance Due
+          AVERAGE :: Reimbursement / Advance Due
+          MIN :: Reimbursement / Advance Due
+          MAX :: Reimbursement / Advance Due
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Main image"
+        "text": |-
+          Main image
+          The image column to display for each row.
+          Auto assign (None)
+          ​
+      - "choices":
+        - "checked": "true"
+          "text": "Square Image"
+        - "checked": "false"
+          "text": "Round Image"
+        - "checked": "false"
+          "text": "Full Image"
+        "controls": []
+        "label": "Image shape"
+        "text": |-
+          Image shape
+          What shape should the main image be?
+          Square Image
+          Round Image
+          Full Image
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Account Label"
+        "label": "Primary header"
+        "text": |-
+          Primary header
+          The top text for each row
+          Account Label
+          ​
+          edit
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Current Balance"
+        "label": "Secondary header"
+        "text": |-
+          Secondary header
+          The bottom text for each row.
+          Current Balance
+          ​
+          edit
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**none**"
+        "label": "Summary column"
+        "text": |-
+          Summary column
+          The top-right text for each row.
+          None
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Nested table column"
+        "text": |-
+          Nested table column
+          An optional nested table (list of ref values).
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Show action bar"
+        "text": |-
+          Show action bar
+          Show action buttons at the bottom of each row?
+      - "choices":
+        - "checked": "true"
+          "text": "Automatic"
+        - "checked": "false"
+          "text": "Manual"
+        "controls": []
+        "label": "Actions"
+        "text": |-
+          Actions
+          Which actions to include in the action bar?
+          Automatic
+          Manual
+          Action order set automatically by AppSheet. You can change the order.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Icon"
+        "text": "IconThe icon to use for this view.AllSolidRegularLight"
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "\"เงินสดของธุรกิจ / Business Cash\""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Show if"
+        "text": "Show ifOptional Yes/No formula to decide whether this view should be shown=science​"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur.Row SelectedAuto assign (View details)​Row Swiped Left (beta)Auto\
+          \ assign (None)​Row Swiped Right (beta)Auto assign (None)​"
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Business Cash Held\"\
+          )   .... or ... \"https://www.appsheet.com/start/93844270-6aa5-420b-a960-bcdf08abd357#view=Business%20Cash%20Held\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"
+    "after":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Business Cash Held"
+        "label": "View name"
+        "text": |-
+          View name
+          The unique name for this view.
+          ​
+          Go to display options
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Cash Account Balances"
+        "label": "For this data"
+        "text": |-
+          For this data
+          Which table or slice to display.
+          Cash Account Balances
+          ​
+          edit
+          Use slices to filter your data
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          date_range
+          calendar
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          category
+          detail
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_quilt
+          dashboard
+          view_stream
+          form
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices":
+        - "checked": "false"
+          "text": "first"
+        - "checked": "false"
+          "text": "next"
+        - "checked": "false"
+          "text": "middle"
+        - "checked": "false"
+          "text": "later"
+        - "checked": "false"
+          "text": "last"
+        - "checked": "false"
+          "text": "menu"
+        - "checked": "true"
+          "text": "ref"
+        "controls": []
+        "label": "Position"
+        "text": |-
+          Position
+          Where the button to access this view is located.
+          first
+          next
+          middle
+          later
+          last
+          menu
+          ref
+      - "choices": []
+        "controls": []
+        "label": "Sort by"
+        "text": |-
+          Sort by
+          Sort the rows by one or more columns.
+          Add
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Holder Name"
+        - "selected":
+          - "Ascending"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "Ascending"
+        "label": "Group by"
+        "text": |-
+          Group by
+          Group rows by the values in one or more of their columns.
+          drag_indicator
+          Holder Name
+          ​
+          Ascending
+          Descending
+          edit
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "SUM :: Current Balance"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "SUM :: Current Balance"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          Display a numeric summary of the rows in each group.
+          NONE
+          COUNT
+          SUM :: Opening Balance
+          AVERAGE :: Opening Balance
+          MIN :: Opening Balance
+          MAX :: Opening Balance
+          SUM :: Cash In
+          AVERAGE :: Cash In
+          MIN :: Cash In
+          MAX :: Cash In
+          SUM :: Cash Out
+          AVERAGE :: Cash Out
+          MIN :: Cash Out
+          MAX :: Cash Out
+          SUM :: Current Balance
+          AVERAGE :: Current Balance
+          MIN :: Current Balance
+          MAX :: Current Balance
+          SUM :: Business Cash Held
+          AVERAGE :: Business Cash Held
+          MIN :: Business Cash Held
+          MAX :: Business Cash Held
+          SUM :: Reimbursement / Advance Due
+          AVERAGE :: Reimbursement / Advance Due
+          MIN :: Reimbursement / Advance Due
+          MAX :: Reimbursement / Advance Due
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Main image"
+        "text": |-
+          Main image
+          The image column to display for each row.
+          Auto assign (None)
+          ​
+      - "choices":
+        - "checked": "true"
+          "text": "Square Image"
+        - "checked": "false"
+          "text": "Round Image"
+        - "checked": "false"
+          "text": "Full Image"
+        "controls": []
+        "label": "Image shape"
+        "text": |-
+          Image shape
+          What shape should the main image be?
+          Square Image
+          Round Image
+          Full Image
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Account Label"
+        "label": "Primary header"
+        "text": |-
+          Primary header
+          The top text for each row
+          Account Label
+          ​
+          edit
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Current Balance"
+        "label": "Secondary header"
+        "text": |-
+          Secondary header
+          The bottom text for each row.
+          Current Balance
+          ​
+          edit
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**none**"
+        "label": "Summary column"
+        "text": |-
+          Summary column
+          The top-right text for each row.
+          None
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Nested table column"
+        "text": |-
+          Nested table column
+          An optional nested table (list of ref values).
+          ​
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Show action bar"
+        "text": |-
+          Show action bar
+          Show action buttons at the bottom of each row?
+      - "choices":
+        - "checked": "true"
+          "text": "Automatic"
+        - "checked": "false"
+          "text": "Manual"
+        "controls": []
+        "label": "Actions"
+        "text": |-
+          Actions
+          Which actions to include in the action bar?
+          Automatic
+          Manual
+          Action order set automatically by AppSheet. You can change the order.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Icon"
+        "text": "IconThe icon to use for this view.AllSolidRegularLight"
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "\"เงินสดของธุรกิจ / Business Cash\""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Show if"
+        "text": "Show ifOptional Yes/No formula to decide whether this view should be shown=science​"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "**auto**"
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur.Row SelectedAuto assign (View details)​Row Swiped Left (beta)Auto\
+          \ assign (None)​Row Swiped Right (beta)Auto assign (None)​"
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Business Cash Held\"\
+          )   .... or ... \"https://www.appsheet.com/start/500b27b6-884a-41e8-a9ec-df801b0110ad#view=Business%20Cash%20Held\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"

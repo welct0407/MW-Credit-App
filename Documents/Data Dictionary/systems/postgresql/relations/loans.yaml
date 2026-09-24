@@ -1,233 +1,1253 @@
 "format": 1
 "identity":
   "system": "postgresql"
-  "component": "unassigned-database"
+  "component": "loan_manager_prod"
   "kind": "relation"
-  "name": "Loans"
-  "scope": "as-recorded"
+  "name": "public.Loans"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/postgresql/relations/loans.yaml"
+    "identity":
+      "system": "postgresql"
+      "component": "unassigned-database"
+      "kind": "relation"
+      "name": "Loans"
+      "scope": "as-recorded"
 "content":
+  "definition":
+    "schema": "public"
+    "name": "Loans"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,mw_reviewer_dml=arwd/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
   "columns":
     "Row ID":
-      "Table / view": "Loans"
-      "Column": "Row ID"
-      "Position": 1
-      "PostgreSQL type": "text"
-      "Nullable": "NO"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": true
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Loan Date":
-      "Table / view": "Loans"
-      "Column": "Loan Date"
-      "Position": 2
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loan Date"
+      "ordinal": 2
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Close Date":
-      "Table / view": "Loans"
-      "Column": "Close Date"
-      "Position": 3
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Close Date"
+      "ordinal": 3
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Principal Amount":
-      "Table / view": "Loans"
-      "Column": "Principal Amount"
-      "Position": 4
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Principal Amount"
+      "ordinal": 4
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Due Date":
-      "Table / view": "Loans"
-      "Column": "Due Date"
-      "Position": 5
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Due Date"
+      "ordinal": 5
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Ref Borrowers":
-      "Table / view": "Loans"
-      "Column": "Ref Borrowers"
-      "Position": 6
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Ref Borrowers"
+      "ordinal": 6
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Loan Arrangement":
-      "Table / view": "Loans"
-      "Column": "Loan Arrangement"
-      "Position": 7
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loan Arrangement"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Loan Status":
-      "Table / view": "Loans"
-      "Column": "Loan Status"
-      "Position": 8
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loan Status"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Loan Type":
-      "Table / view": "Loans"
-      "Column": "Loan Type"
-      "Position": 10
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loan Type"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Current Daily Interest":
-      "Table / view": "Loans"
-      "Column": "Current Daily Interest"
-      "Position": 11
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Current Daily Interest"
+      "ordinal": 11
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Fixed Interest":
-      "Table / view": "Loans"
-      "Column": "Fixed Interest"
-      "Position": 12
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Fixed Interest"
+      "ordinal": 12
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Transfer Fee":
-      "Table / view": "Loans"
-      "Column": "Transfer Fee"
-      "Position": 13
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Transfer Fee"
+      "ordinal": 13
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Interest Payment Interval":
-      "Table / view": "Loans"
-      "Column": "Interest Payment Interval"
-      "Position": 14
-      "PostgreSQL type": "integer"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Interest Payment Interval"
+      "ordinal": 14
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Created By":
-      "Table / view": "Loans"
-      "Column": "Created By"
-      "Position": 15
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Created By"
+      "ordinal": 15
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Closed By":
-      "Table / view": "Loans"
-      "Column": "Closed By"
-      "Position": 16
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Closed By"
+      "ordinal": 16
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
     "Defaulted":
-      "Table / view": "Loans"
-      "Column": "Defaulted"
-      "Position": 17
-      "PostgreSQL type": "boolean"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Defaulted"
+      "ordinal": 17
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Default Loss Amount":
-      "Table / view": "Loans"
-      "Column": "Default Loss Amount"
-      "Position": 18
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Default Loss Amount"
+      "ordinal": 18
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Daily Payment Amount":
-      "Table / view": "Loans"
-      "Column": "Daily Payment Amount"
-      "Position": 19
-      "PostgreSQL type": "money"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Daily Payment Amount"
+      "ordinal": 19
+      "data_type": "money"
+      "type_schema": "pg_catalog"
+      "type_name": "money"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Auto Charge Enabled":
-      "Table / view": "Loans"
-      "Column": "Auto Charge Enabled"
-      "Position": 20
-      "PostgreSQL type": "boolean"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Auto Charge Enabled"
+      "ordinal": 20
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Interest Schedule Anchor Date":
-      "Table / view": "Loans"
-      "Column": "Interest Schedule Anchor Date"
-      "Position": 21
-      "PostgreSQL type": "date"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Interest Schedule Anchor Date"
+      "ordinal": 21
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "Optional daily-interest schedule origin. First subsequent scheduled charge is anchor plus Interest Payment\
+        \ Interval. NULL uses Loan Date. Does not reset interest accrual or change existing charges."
     "Ref Closing Payment":
-      "Table / view": "Loans"
-      "Column": "Ref Closing Payment"
-      "Position": 22
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Ref Closing Payment"
+      "ordinal": 22
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Payment that changed this loan from open to closed. SQL-owned; NULL for pre-migration or non-payment closure.\
+        \ No historical inference/backfill."
     "Charge Generation Request":
-      "Table / view": "Loans"
-      "Column": "Charge Generation Request"
-      "Position": 23
-      "PostgreSQL type": "text"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Charge Generation Request"
+      "ordinal": 23
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Manual generation command: Bangkok YYYY-MM-DD|unique token. Hidden and user-read-only in AppSheet; SQL derives\
+        \ charge components. Latest command only, not a financial ledger."
     "Total Interest Received":
-      "Table / view": "Loans"
-      "Column": "Total Interest Received"
-      "Position": 24
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Total Interest Received"
+      "ordinal": 24
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Total Principal Received":
-      "Table / view": "Loans"
-      "Column": "Total Principal Received"
-      "Position": 25
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Total Principal Received"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Outstanding Principal":
-      "Table / view": "Loans"
-      "Column": "Outstanding Principal"
-      "Position": 26
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Outstanding Principal"
+      "ordinal": 26
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Total Amount Received":
-      "Table / view": "Loans"
-      "Column": "Total Amount Received"
-      "Position": 27
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Total Amount Received"
+      "ordinal": 27
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
     "Expected Daily Interest Amount":
-      "Table / view": "Loans"
-      "Column": "Expected Daily Interest Amount"
-      "Position": 28
-      "PostgreSQL type": "numeric"
-      "Nullable": "YES"
-      "Default": null
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Expected Daily Interest Amount"
+      "ordinal": 28
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Ref Disbursed From Cash Account":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Ref Disbursed From Cash Account"
+      "ordinal": 29
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Payment Request Cash Account":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Payment Request Cash Account"
+      "ordinal": 30
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Payment Request Token":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Payment Request Token"
+      "ordinal": 31
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
   "constraints":
-    "Loans_Row ID_not_null":
-      "Table": "Loans"
-      "Constraint": "Loans_Row ID_not_null"
-      "Type": "n"
-      "Validated": true
-      "Definition": "NOT NULL \"Row ID\""
-    "Loans_pkey":
-      "Table": "Loans"
-      "Constraint": "Loans_pkey"
-      "Type": "p"
-      "Validated": true
-      "Definition": "PRIMARY KEY (\"Row ID\")"
-    "appsheet_ref_01":
-      "Table": "Loans"
-      "Constraint": "appsheet_ref_01"
-      "Type": "f"
-      "Validated": true
-      "Definition": "FOREIGN KEY (\"Ref Borrowers\") REFERENCES \"Borrowers\"(\"Row ID\")"
-    "loans_interest_schedule_anchor_date_check":
-      "Table": "Loans"
-      "Constraint": "loans_interest_schedule_anchor_date_check"
-      "Type": "c"
-      "Validated": "true"
-      "Definition": "CHECK (((\"Interest Schedule Anchor Date\" IS NULL) OR ((\"Loan Date\" IS NOT NULL) AND (\"Interest Schedule\
-        \ Anchor Date\" >= \"Loan Date\"))))"
+    "Loans_Payment Request Cash Account_fkey":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loans_Payment Request Cash Account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Payment Request Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 30
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
     "Loans_Ref Closing Payment_fkey":
-      "Table": "Loans"
-      "Constraint": "Loans_Ref Closing Payment_fkey"
-      "Type": "f"
-      "Validated": "true"
-      "Definition": "FOREIGN KEY (\"Ref Closing Payment\") REFERENCES \"Payments\"(\"Row ID\")"
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loans_Ref Closing Payment_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Closing Payment\") REFERENCES \"Payments\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 22
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Payments\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "Loans_Ref Disbursed From Cash Account_fkey":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loans_Ref Disbursed From Cash Account_fkey"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Disbursed From Cash Account\") REFERENCES \"Cash Accounts\"(\"Row ID\") ON DELETE\
+        \ RESTRICT"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 29
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Cash Accounts\""
+      "update_action": "a"
+      "delete_action": "r"
+      "match_type": "s"
+      "comment": null
+    "Loans_Row ID_not_null":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loans_Row ID_not_null"
+      "kind": "n"
+      "definition": "NOT NULL \"Row ID\""
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "Loans_pkey":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loans_pkey"
+      "kind": "p"
+      "definition": "PRIMARY KEY (\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 1
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "appsheet_ref_01":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "appsheet_ref_01"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Borrowers\") REFERENCES \"Borrowers\"(\"Row ID\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 6
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Borrowers\""
+      "update_action": "a"
+      "delete_action": "a"
+      "match_type": "s"
+      "comment": null
+    "loans_interest_schedule_anchor_date_check":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "loans_interest_schedule_anchor_date_check"
+      "kind": "c"
+      "definition": "CHECK (\"Interest Schedule Anchor Date\" IS NULL OR \"Loan Date\" IS NOT NULL AND \"Interest Schedule\
+        \ Anchor Date\" >= \"Loan Date\")"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 21
+      - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "referral_loan_closed":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "referral_loan_closed"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "vc_borrower_changed":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "vc_borrower_changed"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "vc_loan_status_changed":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "vc_loan_status_changed"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+  "indexes":
+    "Loans_pkey":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Loans_pkey"
+      "definition": "CREATE UNIQUE INDEX \"Loans_pkey\" ON public.\"Loans\" USING btree (\"Row ID\")"
+      "unique": true
+      "primary": true
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "loans_borrower_idx":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "loans_borrower_idx"
+      "definition": "CREATE INDEX loans_borrower_idx ON public.\"Loans\" USING btree (\"Ref Borrowers\")"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": null
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+    "loans_closing_payment_idx":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "loans_closing_payment_idx"
+      "definition": "CREATE INDEX loans_closing_payment_idx ON public.\"Loans\" USING btree (\"Ref Closing Payment\") WHERE\
+        \ (\"Ref Closing Payment\" IS NOT NULL)"
+      "unique": false
+      "primary": false
+      "valid": true
+      "ready": true
+      "replica_identity": false
+      "key_attribute_count": 1
+      "total_attribute_count": 1
+      "predicate": "(\"Ref Closing Payment\" IS NOT NULL)"
+      "expressions": null
+      "options": null
+      "access_method": "btree"
+      "comment": null
+  "triggers":
+    "RI_ConstraintTrigger_a_16695":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_16695"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16695\" AFTER DELETE ON \"Loans\" FROM \"Repayments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16696":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_16696"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16696\" AFTER UPDATE ON \"Loans\" FROM \"Repayments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16715":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_16715"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16715\" AFTER DELETE ON \"Loans\" FROM \"Charges\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16716":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_16716"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16716\" AFTER UPDATE ON \"Loans\" FROM \"Charges\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16882":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_16882"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16882\" AFTER DELETE ON \"Loans\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_16883":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_16883"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16883\" AFTER UPDATE ON \"Loans\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17074":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_17074"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17074\" AFTER DELETE ON \"Loans\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17075":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_17075"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17075\" AFTER UPDATE ON \"Loans\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17207":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_17207"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17207\" AFTER DELETE ON \"Loans\" FROM \"Cash Ledger\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_restrict_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_17208":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_a_17208"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17208\" AFTER UPDATE ON \"Loans\" FROM \"Cash Ledger\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16692":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_16692"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16692\" AFTER INSERT ON \"Loans\" FROM \"Borrowers\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16693":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_16693"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16693\" AFTER UPDATE ON \"Loans\" FROM \"Borrowers\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16865":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_16865"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16865\" AFTER INSERT ON \"Loans\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_16866":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_16866"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16866\" AFTER UPDATE ON \"Loans\" FROM \"Payments\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17360":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_17360"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17360\" AFTER INSERT ON \"Loans\" FROM \"Cash Accounts\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17361":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_17361"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17361\" AFTER UPDATE ON \"Loans\" FROM \"Cash Accounts\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17365":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_17365"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17365\" AFTER INSERT ON \"Loans\" FROM \"Cash Accounts\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_17366":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "RI_ConstraintTrigger_c_17366"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17366\" AFTER UPDATE ON \"Loans\" FROM \"Cash Accounts\"\
+        \ NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a0_cash_account":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "a0_cash_account"
+      "definition": "CREATE TRIGGER a0_cash_account BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION guard_source_cash_account()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_source_cash_account()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "aa_cash_identity":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "aa_cash_identity"
+      "definition": "CREATE TRIGGER aa_cash_identity BEFORE UPDATE OF \"Row ID\" ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION\
+        \ guard_cash_source_identity()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_cash_source_identity()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "aa_cashpool_lock":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "aa_cashpool_lock"
+      "definition": "CREATE TRIGGER aa_cashpool_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH STATEMENT EXECUTE\
+        \ FUNCTION loan_cashpool_lock()"
+      "enabled": "O"
+      "internal": false
+      "routine": "loan_cashpool_lock()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "aa_vc_daily_lock":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "aa_vc_daily_lock"
+      "definition": "CREATE TRIGGER aa_vc_daily_lock BEFORE UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION vc_lock_daily_parent()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_lock_daily_parent()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "aa_vc_lock":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "aa_vc_lock"
+      "definition": "CREATE TRIGGER aa_vc_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION\
+        \ vc_lock_parents()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_lock_parents()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "ab_new_loan_cashpool_guard":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "ab_new_loan_cashpool_guard"
+      "definition": "CREATE TRIGGER ab_new_loan_cashpool_guard BEFORE INSERT ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION new_loan_cashpool_guard()"
+      "enabled": "O"
+      "internal": false
+      "routine": "new_loan_cashpool_guard()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "appsheet_blank_refs":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "appsheet_blank_refs"
+      "definition": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION\
+        \ appsheet_normalize_blank_refs('Ref Borrowers')"
+      "enabled": "O"
+      "internal": false
+      "routine": "appsheet_normalize_blank_refs()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "closing_payment_guard":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "closing_payment_guard"
+      "definition": "CREATE TRIGGER closing_payment_guard BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION\
+        \ closing_payment_guard()"
+      "enabled": "O"
+      "internal": false
+      "routine": "closing_payment_guard()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "default_loan_transition":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "default_loan_transition"
+      "definition": "CREATE TRIGGER default_loan_transition BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION\
+        \ default_loan_transition()"
+      "enabled": "O"
+      "internal": false
+      "routine": "default_loan_transition()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "first_day_charge":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "first_day_charge"
+      "definition": "CREATE TRIGGER first_day_charge AFTER INSERT ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION first_day_loan_trigger()"
+      "enabled": "O"
+      "internal": false
+      "routine": "first_day_loan_trigger()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "manual_charge_generation":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "manual_charge_generation"
+      "definition": "CREATE TRIGGER manual_charge_generation AFTER INSERT OR UPDATE OF \"Charge Generation Request\" ON \"\
+        Loans\" FOR EACH ROW EXECUTE FUNCTION charge_generation_request()"
+      "enabled": "O"
+      "internal": false
+      "routine": "charge_generation_request()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "mw_agent_capture":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "mw_agent_capture"
+      "definition": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION\
+        \ agent_audit.capture_change()"
+      "enabled": "O"
+      "internal": false
+      "routine": "agent_audit.capture_change()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "quick_payment_request":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "quick_payment_request"
+      "definition": "CREATE TRIGGER quick_payment_request AFTER UPDATE OF \"Payment Request Token\" ON \"Loans\" FOR EACH\
+        \ ROW EXECUTE FUNCTION quick_payment_request()"
+      "enabled": "O"
+      "internal": false
+      "routine": "quick_payment_request()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "referral_loan_closed":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "referral_loan_closed"
+      "definition": "CREATE CONSTRAINT TRIGGER referral_loan_closed AFTER UPDATE ON \"Loans\" DEFERRABLE INITIALLY DEFERRED\
+        \ FOR EACH ROW EXECUTE FUNCTION referral_loan_closed()"
+      "enabled": "O"
+      "internal": false
+      "routine": "referral_loan_closed()"
+      "deferrable": true
+      "initially_deferred": true
+      "comment": null
+    "vc_borrower_changed":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "vc_borrower_changed"
+      "definition": "CREATE CONSTRAINT TRIGGER vc_borrower_changed AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" DEFERRABLE\
+        \ INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_borrower_changed()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_borrower_changed()"
+      "deferrable": true
+      "initially_deferred": true
+      "comment": null
+    "vc_loan_status_changed":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "vc_loan_status_changed"
+      "definition": "CREATE CONSTRAINT TRIGGER vc_loan_status_changed AFTER UPDATE ON \"Loans\" DEFERRABLE INITIALLY DEFERRED\
+        \ FOR EACH ROW WHEN (old.\"Loan Status\" IS DISTINCT FROM new.\"Loan Status\") EXECUTE FUNCTION vc_loan_status_changed()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_loan_status_changed()"
+      "deferrable": true
+      "initially_deferred": true
+      "comment": null
+    "zz_cash_source":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "zz_cash_source"
+      "definition": "CREATE TRIGGER zz_cash_source AFTER INSERT OR UPDATE OF \"Principal Amount\", \"Loan Date\", \"Ref Disbursed\
+        \ From Cash Account\" ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION cash_source_changed('Loan')"
+      "enabled": "O"
+      "internal": false
+      "routine": "cash_source_changed()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zz_vc_daily_interest":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "zz_vc_daily_interest"
+      "definition": "CREATE TRIGGER zz_vc_daily_interest BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION\
+        \ vc_daily_interest_row()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_daily_interest_row()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zz_vc_loan_row":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "zz_vc_loan_row"
+      "definition": "CREATE TRIGGER zz_vc_loan_row BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION vc_loan_row()"
+      "enabled": "O"
+      "internal": false
+      "routine": "vc_loan_row()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+  "policies": {}
+  "dependencies": []

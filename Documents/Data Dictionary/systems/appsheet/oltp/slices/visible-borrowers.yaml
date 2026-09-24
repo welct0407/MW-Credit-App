@@ -4,216 +4,177 @@
   "component": "oltp"
   "kind": "slice"
   "name": "Visible Borrowers"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/oltp/slices/visible-borrowers.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "oltp"
+      "kind": "slice"
+      "name": "Visible Borrowers"
+      "scope": "recorded-production"
 "content":
   "definition":
-    "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Permission": "ALL_CHANGES"
-    "Filter": "=NOT([Hidden Flag])"
-    "Actions": "**auto**"
+    "Slice Name": "Visible Borrowers"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Row ID"
+    - "Borrower Name"
+    - "Description"
+    - "Creation Date"
+    - "Hidden Flag"
+    - "Related Loans"
+    - "Total Interest Earned"
+    - "Total Amount Loaned"
+    - "Total Number of Loans"
+    - "Total Outstanding Principal"
+    - "Header - Active Loans"
+    - "Borrower Name TE"
+    - "Return on Active Principal"
+    - "Active Loan Interest Earned"
+    - "Active Daily Interest"
+    - "Projected Interest Coverage Date"
+    - "Closed Loan Interest Earned"
+    - "Closed Loan Principle"
+    - "Has Closed Loan"
+    - "Return on Closed Loans"
+    - "Header - Closed Loans"
+    - "Has Active Loan"
+    - "Daily Collection Status"
+    - "Todays Collection Charges"
+    - "Todays Amount Due"
+    - "Todays Amount Collected"
+    - "Todays Amount Remaining"
+    - "Daily Collection Status - Order"
+    - "Active Profit After Principal Coverage"
+    - "Related Payments"
+    - "Communication Name"
+    - "Instagram Username"
+    - "AI Collection Enabled"
+    - "City"
+    - "Working Location"
+    - "Address"
+    - "Ref Referrer"
+    - "Related Business Expenses By Ref Payee Borrower"
+    - "Related Business Expenses By Ref Related Borrower"
+    - "Borrower Reference TE"
+    - "Ref Preferred Receiving Cash Account"
+    - "Payment Request Cash Account"
+    - "Payment Request Token"
+    - "Related Charges"
+    - "Related Repayments"
+    - "Related Cash Account Statement Recents"
+    - "Borrower Note"
+    - "Borrower Activity Group"
+    "Row filter condition": "=NOT([Hidden Flag])"
+    "Update mode": "ALL_CHANGES"
+    "Source Table": "Borrowers"
+    "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
+    "Descriptive comment": "Primary OLTP borrower-list slice. Excludes rows where [Hidden Flag] is TRUE; base-table relationships,\
+      \ loans, collections, and calculations remain unchanged."
   "members":
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 1
+  - "Ordinal": 1
     "Column": "_RowNumber"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 2
+  - "Ordinal": 2
     "Column": "Row ID"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 3
+  - "Ordinal": 3
     "Column": "Borrower Name"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 4
+  - "Ordinal": 4
     "Column": "Description"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 5
+  - "Ordinal": 5
     "Column": "Creation Date"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 6
+  - "Ordinal": 6
     "Column": "Hidden Flag"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 7
+  - "Ordinal": 7
     "Column": "Related Loans"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 8
+  - "Ordinal": 8
     "Column": "Total Interest Earned"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 9
+  - "Ordinal": 9
     "Column": "Total Amount Loaned"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 10
+  - "Ordinal": 10
     "Column": "Total Number of Loans"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 11
+  - "Ordinal": 11
     "Column": "Total Outstanding Principal"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 12
+  - "Ordinal": 12
     "Column": "Header - Active Loans"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 13
+  - "Ordinal": 13
     "Column": "Borrower Name TE"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 14
+  - "Ordinal": 14
     "Column": "Return on Active Principal"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 15
+  - "Ordinal": 15
     "Column": "Active Loan Interest Earned"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 16
+  - "Ordinal": 16
     "Column": "Active Daily Interest"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 17
+  - "Ordinal": 17
     "Column": "Projected Interest Coverage Date"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 18
+  - "Ordinal": 18
     "Column": "Closed Loan Interest Earned"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 19
+  - "Ordinal": 19
     "Column": "Closed Loan Principle"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 20
+  - "Ordinal": 20
     "Column": "Has Closed Loan"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 21
+  - "Ordinal": 21
     "Column": "Return on Closed Loans"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 22
+  - "Ordinal": 22
     "Column": "Header - Closed Loans"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 23
+  - "Ordinal": 23
     "Column": "Has Active Loan"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 24
+  - "Ordinal": 24
     "Column": "Daily Collection Status"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 25
+  - "Ordinal": 25
     "Column": "Todays Collection Charges"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 26
+  - "Ordinal": 26
     "Column": "Todays Amount Due"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 27
+  - "Ordinal": 27
     "Column": "Todays Amount Collected"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 28
+  - "Ordinal": 28
     "Column": "Todays Amount Remaining"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 29
+  - "Ordinal": 29
     "Column": "Daily Collection Status - Order"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 30
+  - "Ordinal": 30
     "Column": "Active Profit After Principal Coverage"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 31
+  - "Ordinal": 31
     "Column": "Related Payments"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 32
+  - "Ordinal": 32
     "Column": "Communication Name"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 33
+  - "Ordinal": 33
     "Column": "Instagram Username"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 34
+  - "Ordinal": 34
     "Column": "AI Collection Enabled"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 35
+  - "Ordinal": 35
     "Column": "City"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 36
+  - "Ordinal": 36
     "Column": "Working Location"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 37
+  - "Ordinal": 37
     "Column": "Address"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 38
+  - "Ordinal": 38
     "Column": "Ref Referrer"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 39
+  - "Ordinal": 39
     "Column": "Related Business Expenses By Ref Payee Borrower"
-  - "App": "OLTP"
-    "Slice": "Visible Borrowers"
-    "Source table": "Borrowers"
-    "Ordinal": 40
+  - "Ordinal": 40
     "Column": "Related Business Expenses By Ref Related Borrower"
+  - "Ordinal": 41
+    "Column": "Borrower Reference TE"
+  - "Ordinal": 42
+    "Column": "Ref Preferred Receiving Cash Account"
+  - "Ordinal": 43
+    "Column": "Payment Request Cash Account"
+  - "Ordinal": 44
+    "Column": "Payment Request Token"
+  - "Ordinal": 45
+    "Column": "Related Charges"
+  - "Ordinal": 46
+    "Column": "Related Repayments"
+  - "Ordinal": 47
+    "Column": "Related Cash Account Statement Recents"
+  - "Ordinal": 48
+    "Column": "Borrower Note"
+  - "Ordinal": 49
+    "Column": "Borrower Activity Group"

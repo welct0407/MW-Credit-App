@@ -1,0 +1,579 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "view"
+  "name": "Weekly Profit"
+  "scope": "development:editor-observed"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "target_app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+  "production_baseline": "Documents/Data Dictionary/systems/appsheet/olap/views/weekly-profit-1fb59f27.yaml"
+  "classification": "Captured source controls and choices match; supporting editor text/App links differ by environment or\
+    \ UI presentation."
+  "changes":
+  - "pointer": "/fields"
+    "before":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Weekly Profit"
+        "label": "View name"
+        "text": |-
+          View name
+          The unique name for this view.
+          ​
+          Go to display options
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Daily Analytics 30 Days"
+        "label": "For this data"
+        "text": |-
+          For this data
+          Which table or slice to display.
+          Daily Analytics 30 Days
+          ​
+          edit
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          date_range
+          calendar
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          category
+          detail
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_quilt
+          dashboard
+          view_stream
+          form
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices":
+        - "checked": "false"
+          "text": "first"
+        - "checked": "false"
+          "text": "next"
+        - "checked": "false"
+          "text": "middle"
+        - "checked": "false"
+          "text": "later"
+        - "checked": "false"
+          "text": "last"
+        - "checked": "false"
+          "text": "menu"
+        - "checked": "true"
+          "text": "ref"
+        "controls": []
+        "label": "Position"
+        "text": |-
+          Position
+          Where the button to access this view is located.
+          first
+          next
+          middle
+          later
+          last
+          menu
+          ref
+      - "choices": []
+        "controls": []
+        "label": "Chart type"
+        "text": |-
+          Chart type
+          The type of chart to show.
+          histogram
+      - "choices": []
+        "controls":
+        - "selected":
+          - "SUM :: Interest Received"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "SUM :: Interest Received"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          How to aggregate data for aggregate charts.
+          NONE
+          COUNT
+          SUM :: Model Version
+          AVERAGE :: Model Version
+          MIN :: Model Version
+          MAX :: Model Version
+          SUM :: Principal Issued
+          AVERAGE :: Principal Issued
+          MIN :: Principal Issued
+          MAX :: Principal Issued
+          SUM :: Loans Issued
+          AVERAGE :: Loans Issued
+          MIN :: Loans Issued
+          MAX :: Loans Issued
+          SUM :: Principal Returned
+          AVERAGE :: Principal Returned
+          MIN :: Principal Returned
+          MAX :: Principal Returned
+          SUM :: Interest Received
+          AVERAGE :: Interest Received
+          MIN :: Interest Received
+          MAX :: Interest Received
+          SUM :: Repayments Count
+          AVERAGE :: Repayments Count
+          MIN :: Repayments Count
+          MAX :: Repayments Count
+          SUM :: Outstanding Principal EOD
+          AVERAGE :: Outstanding Principal EOD
+          MIN :: Outstanding Principal EOD
+          MAX :: Outstanding Principal EOD
+          SUM :: Active Loans EOD
+          AVERAGE :: Active Loans EOD
+          MIN :: Active Loans EOD
+          MAX :: Active Loans EOD
+          SUM :: Active Borrowers EOD
+          AVERAGE :: Active Borrowers EOD
+          MIN :: Active Borrowers EOD
+          MAX :: Active Borrowers EOD
+          SUM :: Pending Charges EOD
+          AVERAGE :: Pending Charges EOD
+          MIN :: Pending Charges EOD
+          MAX :: Pending Charges EOD
+          SUM :: Total Cash Pool EOD
+          AVERAGE :: Total Cash Pool EOD
+          MIN :: Total Cash Pool EOD
+          MAX :: Total Cash Pool EOD
+          SUM :: Available Cash EOD
+          AVERAGE :: Available Cash EOD
+          MIN :: Available Cash EOD
+          MAX :: Available Cash EOD
+          SUM :: Unsettled Profit EOD
+          AVERAGE :: Unsettled Profit EOD
+          MIN :: Unsettled Profit EOD
+          MAX :: Unsettled Profit EOD
+          SUM :: Business Expenses
+          AVERAGE :: Business Expenses
+          MIN :: Business Expenses
+          MAX :: Business Expenses
+          SUM :: Net Profit
+          AVERAGE :: Net Profit
+          MIN :: Net Profit
+          MAX :: Net Profit
+          SUM :: Net Unsettled Profit EOD
+          AVERAGE :: Net Unsettled Profit EOD
+          MIN :: Net Unsettled Profit EOD
+          MAX :: Net Unsettled Profit EOD
+          SUM :: Daily Capital Employed
+          AVERAGE :: Daily Capital Employed
+          MIN :: Daily Capital Employed
+          MAX :: Daily Capital Employed
+          SUM :: Daily Capital Yield
+          AVERAGE :: Daily Capital Yield
+          MIN :: Daily Capital Yield
+          MAX :: Daily Capital Yield
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Week"
+        "label": "Chart columns"
+        "text": |-
+          Chart columns
+          Which columns to include.
+          drag_indicator
+          Week
+          ​
+          edit
+          Add
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "green"
+        "label": "Chart colors"
+        "text": |-
+          Chart colors
+          Use custom colors for this chart.
+          drag_indicator
+          ​
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "None"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "None"
+        "label": "Trend line"
+        "text": |-
+          Trend line
+          Overlay chart with regression trend line.
+          None
+          Linear
+          Exponential
+          Logarithmic
+          Power
+          Polynomial
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Show legend"
+        "text": |-
+          Show legend
+          Include a chart legend.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Icon"
+        "text": "IconThe icon to use for this view.AllSolidRegularLight"
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "\"กำไรรายสัปดาห์ / Weekly Profit\""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Show if"
+        "text": "Show ifOptional Yes/No formula to decide whether this view should be shown=science​"
+      - "choices": []
+        "controls": []
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur."
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Weekly Profit\")   ....\
+          \ or ... \"https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb#view=Weekly%20Profit\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"
+    "after":
+      "state": "value"
+      "value":
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Weekly Profit"
+        "label": "View name"
+        "text": |-
+          View name
+          The unique name for this view.
+          ​
+          Go to display options
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Daily Analytics 30 Days"
+        "label": "For this data"
+        "text": |-
+          For this data
+          Which table or slice to display.
+          Daily Analytics 30 Days
+          ​
+          edit
+      - "choices": []
+        "controls": []
+        "label": "View type"
+        "text": |-
+          View type
+          What kind of view this is.
+          date_range
+          calendar
+          ballot
+          deck
+          view_list
+          table
+          border_all
+          gallery
+          category
+          detail
+          location_on
+          map
+          insert_chart_outlined
+          chart
+          view_quilt
+          dashboard
+          view_stream
+          form
+          view_carousel
+          onboarding
+          insert_photo
+          card
+      - "choices":
+        - "checked": "false"
+          "text": "first"
+        - "checked": "false"
+          "text": "next"
+        - "checked": "false"
+          "text": "middle"
+        - "checked": "false"
+          "text": "later"
+        - "checked": "false"
+          "text": "last"
+        - "checked": "false"
+          "text": "menu"
+        - "checked": "true"
+          "text": "ref"
+        "controls": []
+        "label": "Position"
+        "text": |-
+          Position
+          Where the button to access this view is located.
+          first
+          next
+          middle
+          later
+          last
+          menu
+          ref
+      - "choices": []
+        "controls": []
+        "label": "Chart type"
+        "text": |-
+          Chart type
+          The type of chart to show.
+          histogram
+      - "choices": []
+        "controls":
+        - "selected":
+          - "SUM :: Interest Received"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "SUM :: Interest Received"
+        "label": "Group aggregate"
+        "text": |-
+          Group aggregate
+          How to aggregate data for aggregate charts.
+          NONE
+          COUNT
+          SUM :: Model Version
+          AVERAGE :: Model Version
+          MIN :: Model Version
+          MAX :: Model Version
+          SUM :: Principal Issued
+          AVERAGE :: Principal Issued
+          MIN :: Principal Issued
+          MAX :: Principal Issued
+          SUM :: Loans Issued
+          AVERAGE :: Loans Issued
+          MIN :: Loans Issued
+          MAX :: Loans Issued
+          SUM :: Principal Returned
+          AVERAGE :: Principal Returned
+          MIN :: Principal Returned
+          MAX :: Principal Returned
+          SUM :: Interest Received
+          AVERAGE :: Interest Received
+          MIN :: Interest Received
+          MAX :: Interest Received
+          SUM :: Repayments Count
+          AVERAGE :: Repayments Count
+          MIN :: Repayments Count
+          MAX :: Repayments Count
+          SUM :: Outstanding Principal EOD
+          AVERAGE :: Outstanding Principal EOD
+          MIN :: Outstanding Principal EOD
+          MAX :: Outstanding Principal EOD
+          SUM :: Active Loans EOD
+          AVERAGE :: Active Loans EOD
+          MIN :: Active Loans EOD
+          MAX :: Active Loans EOD
+          SUM :: Active Borrowers EOD
+          AVERAGE :: Active Borrowers EOD
+          MIN :: Active Borrowers EOD
+          MAX :: Active Borrowers EOD
+          SUM :: Pending Charges EOD
+          AVERAGE :: Pending Charges EOD
+          MIN :: Pending Charges EOD
+          MAX :: Pending Charges EOD
+          SUM :: Total Cash Pool EOD
+          AVERAGE :: Total Cash Pool EOD
+          MIN :: Total Cash Pool EOD
+          MAX :: Total Cash Pool EOD
+          SUM :: Available Cash EOD
+          AVERAGE :: Available Cash EOD
+          MIN :: Available Cash EOD
+          MAX :: Available Cash EOD
+          SUM :: Unsettled Profit EOD
+          AVERAGE :: Unsettled Profit EOD
+          MIN :: Unsettled Profit EOD
+          MAX :: Unsettled Profit EOD
+          SUM :: Business Expenses
+          AVERAGE :: Business Expenses
+          MIN :: Business Expenses
+          MAX :: Business Expenses
+          SUM :: Net Profit
+          AVERAGE :: Net Profit
+          MIN :: Net Profit
+          MAX :: Net Profit
+          SUM :: Net Unsettled Profit EOD
+          AVERAGE :: Net Unsettled Profit EOD
+          MIN :: Net Unsettled Profit EOD
+          MAX :: Net Unsettled Profit EOD
+          SUM :: Daily Capital Employed
+          AVERAGE :: Daily Capital Employed
+          MIN :: Daily Capital Employed
+          MAX :: Daily Capital Employed
+          SUM :: Daily Capital Yield
+          AVERAGE :: Daily Capital Yield
+          MIN :: Daily Capital Yield
+          MAX :: Daily Capital Yield
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "Week"
+        "label": "Chart columns"
+        "text": |-
+          Chart columns
+          Which columns to include.
+          drag_indicator
+          Week
+          ​
+          edit
+          Add
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "green"
+        "label": "Chart colors"
+        "text": |-
+          Chart colors
+          Use custom colors for this chart.
+          drag_indicator
+          ​
+          Add
+      - "choices": []
+        "controls":
+        - "selected":
+          - "None"
+          "tag": "SELECT"
+          "type": "select-one"
+          "value": "None"
+        "label": "Trend line"
+        "text": |-
+          Trend line
+          Overlay chart with regression trend line.
+          None
+          Linear
+          Exponential
+          Logarithmic
+          Power
+          Polynomial
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "checkbox"
+          "value": false
+        "label": "Show legend"
+        "text": |-
+          Show legend
+          Include a chart legend.
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Icon"
+        "text": "IconThe icon to use for this view.AllSolidRegularLight"
+      - "choices":
+        - "checked": "true"
+          "text": "title"
+        - "checked": "false"
+          "text": "science"
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": "\"กำไรรายสัปดาห์ / Weekly Profit\""
+        "label": "Display name"
+        "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give\
+          \ it a text value (double-quoted) or a formula​titlescience"
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "INPUT"
+          "type": "text"
+          "value": ""
+        "label": "Show if"
+        "text": "Show ifOptional Yes/No formula to decide whether this view should be shown=science​"
+      - "choices": []
+        "controls": []
+        "label": "Event Actions"
+        "text": "Event ActionsActions to take when events occur."
+      - "choices": []
+        "controls": []
+        "label": "App link"
+        "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Weekly Profit\")   ....\
+          \ or ... \"https://www.appsheet.com/start/9f3422be-bc87-4a5a-a42a-67528ee80393#view=Weekly%20Profit\""
+      - "choices": []
+        "controls":
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": ""
+        - "selected": null
+          "tag": "TEXTAREA"
+          "type": "textarea"
+          "value": "x"
+        "label": "Descriptive comment"
+        "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of\
+          \ the app"

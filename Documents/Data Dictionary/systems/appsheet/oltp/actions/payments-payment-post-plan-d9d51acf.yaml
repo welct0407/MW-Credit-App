@@ -1,0 +1,40 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Payments.Payment - Post Plan"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Action name": "Payment - Post Plan"
+    "Bulk action?": "Yes"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Do_Not_Display"
+    "Action order": "1"
+    "With these properties": "{\"ReferencedTable\":\"Payment Allocations\",\"ReferencedRows\":\"=IF(AND(AND([Status] = \\\"\
+      Processing\\\", COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Ref Borrower], [Status] = \\\"Processing\\\
+      \"))) = 1, [Amount Received] > 0, [Amount Received] = SUM(SELECT(Payment Allocations[Allocated Amount], [Ref Payment]\
+      \ = [_THISROW].[Row ID])), COUNT(SELECT(Payment Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment\
+      \ Allocations[Row ID], AND([Ref Payment] = [_THISROW].[Row ID], [Allocation Order] = 0))) = 0), COUNT([Eligible Charges]\
+      \ - SELECT(Payment Allocations[Ref Charge], [Ref Payment] = [_THISROW].[Row ID])) = 0), SELECT(Payment Allocations[Row\
+      \ ID], AND([Ref Payment] = [_THISROW].[Row ID], [Allocated Amount] > 0)) - SELECT(Repayments[Ref Payment Allocation],\
+      \ [Ref Payment] = [_THISROW].[Row ID]), LIST())\",\"ReferencedAction\":\"Payment - Post Allocation\",\"InputAssignments\"\
+      :[],\"InputParametersUsed\":null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
+      :\"\",\"ModifiesData\":false,\"BulkApplicable\":true}"
+    "Do this": "REF_ACTION"
+    "Only if this condition is true": "=IF([Allocation Method] = \"Lump Sum\", FALSE, AND([Status] = \"Processing\", COUNT(SELECT(Payments[Row\
+      \ ID], AND([Ref Borrower] = [_THISROW].[Ref Borrower], [Status] = \"Processing\"))) = 1, [Amount Received] > 0, [Amount\
+      \ Received] = SUM(SELECT(Payment Allocations[Allocated Amount], [Ref Payment] = [_THISROW].[Row ID])), COUNT(SELECT(Payment\
+      \ Allocations[Row ID], [Ref Payment] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref\
+      \ Payment] = [_THISROW].[Row ID], [Allocation Order] = 0))) = 0))"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Payments"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

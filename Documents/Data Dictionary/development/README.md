@@ -1,6 +1,8 @@
-# Future verified development differences
+# Verified and historical development differences
 
-No active DEV overlay was inferred during migration. Existing workbook differences remain under [imported evidence](../imports/excel-20260923/README.md), with their original labels and values.
+No active DEV overlay was inferred during migration. Existing workbook differences remain under [imported evidence](../imports/excel-20260923/README.md), with their original labels and values. The owner-authorized [24 September reconciliation](../../../outputs/dictionary-reconciliation-20260924/README.md) independently observed DEV and PROD and created explicit guarded deltas under `appsheet/environment/` and `postgresql/environment/`.
+
+`development:observed` reconstructs AppDoc or SQL source objects. `development:editor-observed` reconstructs editor supplements; it is a separate representation, not an additional product change. Both are checked by the reconciliation verifiers. Many deltas are source IDs, locale state, generated identifiers, ACL/ordinal differences or UI representation differences. Classification explains the evidence without inventing release ownership. The `environment/` directory is storage for the observation set, not proof that every difference was intentionally approved.
 
 For a later authorized, verified change, use `development/<system>/<release>/<object>.yaml` for product deltas and `development/<system>/environment/<object>.yaml` for intentional environment differences. Follow the [common envelope](../FORMAT.md), register the relevant object kind, set a distinct scope such as `development:Rnnn`, and record exact target identity, before/after values, evidence and release ownership inside content.
 

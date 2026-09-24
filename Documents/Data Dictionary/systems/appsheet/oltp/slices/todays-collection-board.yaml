@@ -4,116 +4,115 @@
   "component": "oltp"
   "kind": "slice"
   "name": "Todays Collection Board"
-  "scope": "recorded-production"
+  "scope": "production"
 "verification":
-  "status": "imported-unreconciled"
-  "source": "excel-20260923"
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "previous_record":
+    "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
+    "path": "Documents/Data Dictionary/systems/appsheet/oltp/slices/todays-collection-board.yaml"
+    "identity":
+      "system": "appsheet"
+      "component": "oltp"
+      "kind": "slice"
+      "name": "Todays Collection Board"
+      "scope": "recorded-production"
 "content":
   "definition":
-    "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Permission": "READ_ONLY"
-    "Filter": "=ISNOTBLANK([Daily Collection Status])"
-    "Actions": "**auto**"
+    "Slice Name": "Todays Collection Board"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Row ID"
+    - "Borrower Name"
+    - "Description"
+    - "Daily Collection Status - Order"
+    - "Todays Amount Due"
+    - "Todays Amount Collected"
+    - "Todays Amount Remaining"
+    - "Todays Collection Charges"
+    - "Hidden Flag"
+    - "Related Payments"
+    - "Communication Name"
+    - "Instagram Username"
+    - "AI Collection Enabled"
+    - "City"
+    - "Working Location"
+    - "Address"
+    - "Ref Referrer"
+    - "Related Business Expenses By Ref Payee Borrower"
+    - "Related Business Expenses By Ref Related Borrower"
+    - "Borrower Name TE"
+    - "Borrower Reference TE"
+    - "Ref Preferred Receiving Cash Account"
+    - "Payment Request Cash Account"
+    - "Payment Request Token"
+    - "Related Charges"
+    - "Related Repayments"
+    - "Related Cash Account Statement Recents"
+    - "Borrower Note"
+    "Row filter condition": "=ISNOTBLANK([Daily Collection Status])"
+    "Update mode": "UPDATES_ONLY"
+    "Source Table": "Borrowers"
+    "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
   "members":
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 1
+  - "Ordinal": 1
     "Column": "_RowNumber"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 2
+  - "Ordinal": 2
     "Column": "Row ID"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 3
+  - "Ordinal": 3
     "Column": "Borrower Name"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 4
+  - "Ordinal": 4
     "Column": "Description"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 5
+  - "Ordinal": 5
     "Column": "Daily Collection Status - Order"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 6
+  - "Ordinal": 6
     "Column": "Todays Amount Due"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 7
+  - "Ordinal": 7
     "Column": "Todays Amount Collected"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 8
+  - "Ordinal": 8
     "Column": "Todays Amount Remaining"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 9
+  - "Ordinal": 9
     "Column": "Todays Collection Charges"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 10
+  - "Ordinal": 10
     "Column": "Hidden Flag"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 11
+  - "Ordinal": 11
     "Column": "Related Payments"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 12
+  - "Ordinal": 12
     "Column": "Communication Name"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 13
+  - "Ordinal": 13
     "Column": "Instagram Username"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 14
+  - "Ordinal": 14
     "Column": "AI Collection Enabled"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 15
+  - "Ordinal": 15
     "Column": "City"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 16
+  - "Ordinal": 16
     "Column": "Working Location"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 17
+  - "Ordinal": 17
     "Column": "Address"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 18
+  - "Ordinal": 18
     "Column": "Ref Referrer"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 19
+  - "Ordinal": 19
     "Column": "Related Business Expenses By Ref Payee Borrower"
-  - "App": "OLTP"
-    "Slice": "Todays Collection Board"
-    "Source table": "Borrowers"
-    "Ordinal": 20
+  - "Ordinal": 20
     "Column": "Related Business Expenses By Ref Related Borrower"
+  - "Ordinal": 21
+    "Column": "Borrower Name TE"
+  - "Ordinal": 22
+    "Column": "Borrower Reference TE"
+  - "Ordinal": 23
+    "Column": "Ref Preferred Receiving Cash Account"
+  - "Ordinal": 24
+    "Column": "Payment Request Cash Account"
+  - "Ordinal": 25
+    "Column": "Payment Request Token"
+  - "Ordinal": 26
+    "Column": "Related Charges"
+  - "Ordinal": 27
+    "Column": "Related Repayments"
+  - "Ordinal": 28
+    "Column": "Related Cash Account Statement Recents"
+  - "Ordinal": 29
+    "Column": "Borrower Note"

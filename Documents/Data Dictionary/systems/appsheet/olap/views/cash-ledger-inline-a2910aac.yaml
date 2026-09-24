@@ -1,0 +1,194 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "view"
+  "name": "Cash Ledger_Inline"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+  "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
+"content":
+  "definition":
+    "View name": "Cash Ledger_Inline"
+    "Created by": "System"
+    "View type": "table"
+    "Position": "ref"
+    "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[],\"GroupBy\":[],\"GroupAggregate\"\
+      :\"NONE\",\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row\
+      \ Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-table\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+    "Visible?": "ALWAYS"
+    "Icon": ""
+    "Menu order": "1"
+  "editor":
+    "fields":
+    - "choices": []
+      "controls": []
+      "label": "View type"
+      "text": |-
+        View type
+        What kind of view this is.
+        ballot
+        deck
+        view_list
+        table
+        border_all
+        gallery
+        location_on
+        map
+        insert_chart_outlined
+        chart
+        view_carousel
+        onboarding
+        insert_photo
+        card
+    - "choices": []
+      "controls": []
+      "label": "Sort by"
+      "text": |-
+        Sort by
+        Sort the rows by one or more columns.
+        Add
+    - "choices": []
+      "controls": []
+      "label": "Group by"
+      "text": |-
+        Group by
+        Group rows by the values in one or more of their columns.
+        Add
+    - "choices": []
+      "controls":
+      - "selected":
+        - "NONE"
+        "tag": "SELECT"
+        "type": "select-one"
+        "value": "NONE"
+      "label": "Group aggregate"
+      "text": |-
+        Group aggregate
+        Display a numeric summary of the rows in each group.
+        NONE
+        COUNT
+        SUM :: Amount
+        AVERAGE :: Amount
+        MIN :: Amount
+        MAX :: Amount
+    - "choices":
+      - "checked": "true"
+        "text": "Automatic"
+      - "checked": "false"
+        "text": "Manual"
+      "controls": []
+      "label": "Column order"
+      "text": |-
+        Column order
+        Automatically or manually order columns displayed in view. Learn more
+        Automatic
+        Manual
+        Movement Date
+        edit
+        Created By
+        edit
+        Movement Type
+        edit
+        Amount
+        edit
+        Ref From Cash Holder
+        edit
+        Ref To Cash Holder
+        edit
+        Ref Payment
+        edit
+        Ref Loan
+        edit
+        Ref Business Expense
+        edit
+        Ref Settlement
+        edit
+        Entry Origin
+        edit
+        Source Type
+        edit
+        Source Key
+        edit
+        Notes
+        edit
+        Created At
+        edit
+        Updated At
+        edit
+        Ref From Cash Account
+        edit
+        Ref To Cash Account
+        edit
+        Movement Time
+        edit
+        Ref Borrower
+        edit
+    - "choices":
+      - "checked": "true"
+        "text": "Default"
+      - "checked": "false"
+        "text": "Narrow"
+      - "checked": "false"
+        "text": "Wide"
+      "controls": []
+      "label": "Column width"
+      "text": |-
+        Column width
+        How wide columns should be. Narrower widths let you fit more data on the screen.
+        Default
+        Narrow
+        Wide
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
+      "label": "Enable QuickEdit (beta)"
+      "text": |-
+        Enable QuickEdit (beta)
+        Allow edits to be made directly in the table view. This is an experimental feature and still under development.
+    - "choices":
+      - "checked": "true"
+        "text": "title"
+      - "checked": "false"
+        "text": "science"
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": ""
+      "label": "Display name"
+      "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give it\
+        \ a text value (double-quoted) or a formula​titlescience"
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "INPUT"
+        "type": "text"
+        "value": "**auto**"
+      "label": "Event Actions"
+      "text": "Event ActionsActions to take when events occur.Row SelectedAuto assign (View details)​"
+    - "choices": []
+      "controls": []
+      "label": "App link"
+      "text": "App linkUse this wherever you need a deep app link to this specific viewLINKTOVIEW(\"Cash Ledger_Inline\")\
+        \   .... or ... \"https://www.appsheet.com/start/e74dd368-654f-44d7-bccf-83cf361d1cdb#view=Cash%20Ledger_Inline\""
+    - "choices": []
+      "controls":
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": ""
+      - "selected": null
+        "tag": "TEXTAREA"
+        "type": "textarea"
+        "value": "x"
+      "label": "Descriptive comment"
+      "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
+        \ app"
+    "generated_source_group": "Cash Ledger"

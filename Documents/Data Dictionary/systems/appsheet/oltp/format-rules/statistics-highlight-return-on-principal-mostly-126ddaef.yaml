@@ -1,0 +1,27 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "format-rule"
+  "name": "Statistics - Highlight Return on Principal - Mostly"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
+"content":
+  "definition":
+    "Rule name": "Statistics - Highlight Return on Principal - Mostly"
+    "Format these columns and actions":
+    - "Profit Coverage of Outstanding Principal"
+    "For this data": "Statistics"
+    "If this condition is true": |-
+      =AND(
+        [Profit Coverage of Outstanding Principal] >= 0.6,
+        [Profit Coverage of Outstanding Principal] < 1
+      )
+    "Rule order": "1"
+    "Is this format rule disabled?": "No"
+    "Like this": "{\"textColor\":\"yellow\",\"highlightColor\":null,\"textSize\":1.2,\"underline\":false,\"strikethrough\"\
+      :false,\"bold\":true,\"italic\":false,\"uppercase\":false,\"icon\":\"\",\"imageSize\":null}"
+    "Visible?": "ALWAYS"

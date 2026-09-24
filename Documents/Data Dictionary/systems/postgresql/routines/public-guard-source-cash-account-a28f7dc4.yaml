@@ -1,0 +1,110 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.guard_source_cash_account()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "guard_source_cash_account"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.guard_source_cash_account()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE account_id text; holder text; selected_holder text; old_account text;
+       required_account boolean:=false; changed boolean:=false;
+      BEGIN
+       IF TG_TABLE_NAME='Payments' THEN
+        account_id:=nullif(btrim(NEW."Ref Received By Cash Account"),'');
+        selected_holder:=nullif(btrim(NEW."Ref Received By Cash Holder"),'');
+        IF TG_OP='INSERT' AND NEW."Allocation Method"='First-day Auto' THEN
+         SELECT l."Ref Disbursed From Cash Account" INTO account_id FROM public."Charges" c
+          JOIN public."Loans" l ON l."Row ID"=c."Ref Loans" WHERE c."Row ID"=NEW."Ref Target Charge";
+         account_id:=coalesce(account_id,public.default_cash_account('ch:lisa'));
+         selected_holder:='ch:lisa';
+        END IF;
+        IF TG_OP='UPDATE' THEN
+         old_account:=OLD."Ref Received By Cash Account";
+         changed:=(account_id,selected_holder) IS DISTINCT FROM (old_account,OLD."Ref Received By Cash Holder");
+         -- R005 permits custody-only correction. Require an appended explanation and retain
+         -- allocations/repayments; the existing receipt guard still protects financial facts.
+         IF changed AND OLD."Status"='Posted' AND (NEW."Notes" IS NOT DISTINCT FROM OLD."Notes"
+          OR nullif(btrim(NEW."Notes"),'') IS NULL
+          OR left(NEW."Notes",length(coalesce(OLD."Notes",'')))<>coalesce(OLD."Notes",'')) THEN
+          RAISE EXCEPTION 'Posted account correction requires an appended audit note';
+         END IF;
+        END IF;
+        required_account:=TG_OP='INSERT' OR changed OR old_account IS NOT NULL;
+       ELSIF TG_TABLE_NAME='Loans' THEN
+        account_id:=nullif(btrim(NEW."Ref Disbursed From Cash Account"),''); selected_holder:='ch:lisa';
+        IF TG_OP='UPDATE' THEN
+         old_account:=OLD."Ref Disbursed From Cash Account";
+         IF account_id IS DISTINCT FROM old_account THEN RAISE EXCEPTION 'Posted disbursement account is immutable'; END IF;
+        END IF;
+        required_account:=TG_OP='INSERT';
+       ELSIF TG_TABLE_NAME='Business Expenses' THEN
+        account_id:=nullif(btrim(NEW."Ref Paid By Cash Account"),'');
+        selected_holder:=nullif(btrim(NEW."Ref Paid By Cash Holder"),'');
+        IF TG_OP='INSERT' AND NEW."Source Type"='Referral Rebate' THEN
+         account_id:=coalesce(account_id,public.default_cash_account('ch:lisa')); selected_holder:='ch:lisa';
+        END IF;
+        IF TG_OP='UPDATE' THEN
+         old_account:=OLD."Ref Paid By Cash Account";
+         IF account_id IS DISTINCT FROM old_account THEN RAISE EXCEPTION 'Posted expense account is immutable'; END IF;
+        END IF;
+        -- R005 negative accounting-only adjustments have no holder/account movement.
+        required_account:=TG_OP='INSERT' AND (NEW."Amount"::numeric>0 OR selected_holder IS NOT NULL);
+       ELSE
+        account_id:=nullif(btrim(NEW."Ref Paid From Cash Account"),''); selected_holder:='ch:lisa';
+        IF TG_OP='UPDATE' THEN
+         old_account:=OLD."Ref Paid From Cash Account";
+         IF OLD."Status" IN ('Completed','Cancelled') AND account_id IS DISTINCT FROM old_account THEN
+          RAISE EXCEPTION 'Completed settlement account is immutable';
+         END IF;
+         required_account:=NEW."Status"='Completed' AND OLD."Status" IS DISTINCT FROM 'Completed';
+        ELSE required_account:=NEW."Status"='Completed'; END IF;
+       END IF;
+       IF account_id IS NULL AND required_account THEN RAISE EXCEPTION 'A cash account is required for this new cash movement'; END IF;
+       IF account_id IS NOT NULL THEN
+        holder:=public.cash_account_holder(account_id,TG_OP='INSERT' OR required_account AND
+          (TG_OP<>'UPDATE' OR account_id IS DISTINCT FROM old_account) OR
+          (TG_TABLE_NAME='Settlements' AND required_account));
+        IF selected_holder IS NOT NULL AND selected_holder IS DISTINCT FROM holder THEN
+         RAISE EXCEPTION 'Cash holder and account disagree';
+        END IF;
+        IF TG_TABLE_NAME='Payments' THEN
+         IF NEW."Allocation Method"='First-day Auto' AND holder<>'ch:lisa' THEN RAISE EXCEPTION 'First-day account must belong to Lisa'; END IF;
+         NEW."Ref Received By Cash Account":=account_id; NEW."Ref Received By Cash Holder":=holder;
+        ELSIF TG_TABLE_NAME='Loans' THEN NEW."Ref Disbursed From Cash Account":=account_id;
+        ELSIF TG_TABLE_NAME='Business Expenses' THEN
+         NEW."Ref Paid By Cash Account":=account_id; NEW."Ref Paid By Cash Holder":=holder;
+        ELSE NEW."Ref Paid From Cash Account":=account_id; END IF;
+       END IF;
+       RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

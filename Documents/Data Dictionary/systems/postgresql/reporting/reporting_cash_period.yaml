@@ -4,10 +4,12 @@
   "component": "appsheet-pg-prod-20260914"
   "kind": "routine"
   "name": "public.reporting_cash_period(date,date,text)"
-  "scope": "development-and-production"
+  "scope": "historical:R016"
 "verification":
   "status": "documented"
   "source": "outputs/r016-20260922/statement-cleanup/README.md"
+  "current_definition": "Documents/Data Dictionary/systems/postgresql/routines/public-reporting-cash-period-p-from-date-p-to-date-p-scope-text-a2f91203.yaml"
+  "note": "Retained R016 declaration; current full signed routine identity is linked separately."
 "content":
   "definition": |-
     CREATE FUNCTION public.reporting_cash_period(p_from date,p_to date,p_scope text)

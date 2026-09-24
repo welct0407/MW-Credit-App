@@ -1,0 +1,669 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "relation"
+  "name": "public.reporting_cashflow_transactions"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "coverage": "catalog metadata"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "reporting_cashflow_transactions"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_integration_agent=r/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": "R016 one ledger side per account or one consolidated entry per ledger. Reuses OLTP effects; internal transfers\
+      \ net to zero only in All accounts. Running balances computed before filtering; unknown/pre-opening balances remain\
+      \ NULL."
+    "view_definition": |2-
+       WITH scopes AS (
+               SELECT a."Row ID" AS id,
+                  a."Account Label" AS label,
+                  (c."Cutover At" AT TIME ZONE 'Asia/Bangkok'::text)::date AS available,
+                  c."Opening Balance" - c."Baseline Cash In" + c."Baseline Cash Out" AS baseline
+                 FROM "Cash Accounts" a
+                   LEFT JOIN r008_cash_account_cutover c ON c."Ref Cash Account" = a."Row ID"
+              ), all_scopes AS (
+               SELECT scopes.id,
+                  scopes.label,
+                  scopes.available,
+                  scopes.baseline
+                 FROM scopes
+              UNION ALL
+               SELECT '__ALL__'::text,
+                  'All accounts'::text,
+                      CASE
+                          WHEN bool_and(scopes.available IS NOT NULL) THEN max(scopes.available)
+                          ELSE NULL::date
+                      END AS "case",
+                      CASE
+                          WHEN bool_and(scopes.baseline IS NOT NULL) THEN sum(scopes.baseline)
+                          ELSE NULL::numeric
+                      END AS "case"
+                 FROM scopes
+              ), effects AS (
+               SELECT e."Row ID",
+                  e.ledger_id,
+                  e.direction,
+                  e."Ref Cash Account",
+                  e."Statement Date",
+                  e."Sort Timestamp",
+                  e."Statement Time",
+                  e."Signed Amount",
+                  e."Transaction Type Code",
+                  e."Counterparty Kind",
+                  e."Counterparty Text",
+                  e."Ref Borrower",
+                  e."Ref Other Cash Account",
+                  e."Ref Partner",
+                  e."Ref Payment",
+                  e."Ref Loan",
+                  e."Ref Business Expense",
+                  e."Settlement Row ID",
+                  e."Notes",
+                  e."Source Type",
+                  e."Source Key",
+                      CASE
+                          WHEN e.direction = 'OUT'::text THEN e."Ref Cash Account"
+                          ELSE e."Ref Other Cash Account"
+                      END AS from_account,
+                      CASE
+                          WHEN e.direction = 'IN'::text THEN e."Ref Cash Account"
+                          ELSE e."Ref Other Cash Account"
+                      END AS to_account
+                 FROM cash_statement_account_effects e
+                WHERE e."Statement Date" <= (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok'::text)::date
+              ), entries AS (
+               SELECT effects."Ref Cash Account" AS scope,
+                  effects.ledger_id,
+                  effects."Statement Date" AS d,
+                  effects."Sort Timestamp" AS ts,
+                  effects.direction,
+                  effects."Signed Amount" AS amount,
+                  abs(effects."Signed Amount") AS transfer_amount,
+                  effects."Transaction Type Code" AS code,
+                  effects."Ref Borrower" AS borrower,
+                  effects."Ref Partner" AS partner,
+                  effects."Counterparty Text" AS payee,
+                  effects.from_account,
+                  effects.to_account,
+                  effects."Notes" AS notes
+                 FROM effects
+              UNION ALL
+               SELECT '__ALL__'::text,
+                  effects.ledger_id,
+                  min(effects."Statement Date") AS min,
+                  min(effects."Sort Timestamp") AS min,
+                  'NET'::text,
+                  sum(effects."Signed Amount") AS sum,
+                  max(abs(effects."Signed Amount")) AS max,
+                  min(effects."Transaction Type Code") AS min,
+                  min(effects."Ref Borrower") AS min,
+                  min(effects."Ref Partner") AS min,
+                  min(effects."Counterparty Text") AS min,
+                  min(effects.from_account) AS min,
+                  min(effects.to_account) AS min,
+                  min(effects."Notes") AS min
+                 FROM effects
+                GROUP BY effects.ledger_id
+              ), running AS (
+               SELECT e.scope,
+                  e.ledger_id,
+                  e.d,
+                  e.ts,
+                  e.direction,
+                  e.amount,
+                  e.transfer_amount,
+                  e.code,
+                  e.borrower,
+                  e.partner,
+                  e.payee,
+                  e.from_account,
+                  e.to_account,
+                  e.notes,
+                  s.label,
+                  s.available,
+                      CASE
+                          WHEN e.d >= s.available THEN s.baseline + sum(e.amount) OVER (PARTITION BY e.scope ORDER BY e.d, e.ts, (e.ledger_id COLLATE "C"), (e.direction COLLATE "C") ROWS UNBOUNDED PRECEDING)
+                          ELSE NULL::numeric
+                      END AS balance
+                 FROM entries e
+                   JOIN all_scopes s ON s.id = e.scope
+              )
+       SELECT jsonb_build_array(r.scope, r.ledger_id, r.direction)::text AS "Entry ID",
+          r.scope AS "Scope ID",
+          r.label AS "Account",
+          r.ledger_id AS "Ledger ID",
+          r.d AS "Date",
+          r.ts AS "Posted At",
+          initcap(replace(r.code, '_'::text, ' '::text)) AS "Transaction Type",
+              CASE
+                  WHEN r.borrower IS NOT NULL THEN COALESCE(NULLIF(b."Description", ''::text), b."Borrower Name", r.borrower)
+                  WHEN r.partner IS NOT NULL THEN COALESCE(p."Partner Name", r.partner)
+                  WHEN r.from_account IS NOT NULL AND r.to_account IS NOT NULL THEN concat(f."Account Label", ' → ', t."Account Label")
+                  ELSE NULLIF(r.payee, ''::text)
+              END AS "Counterparty",
+          f."Account Label" AS "From Account",
+          t."Account Label" AS "To Account",
+          r.from_account IS NOT NULL AND r.to_account IS NOT NULL AS "Internal Transfer",
+          r.transfer_amount AS "Transaction Amount",
+          GREATEST(r.amount, 0::numeric) AS "Money In",
+          GREATEST(- r.amount, 0::numeric) AS "Money Out",
+          r.amount AS "Net Movement",
+          r.balance AS "Balance After",
+          r.available AS "Available From",
+          r.notes AS "Notes"
+         FROM running r
+           LEFT JOIN "Borrowers" b ON b."Row ID" = r.borrower
+           LEFT JOIN "Partners" p ON p."Row ID" = r.partner
+           LEFT JOIN "Cash Accounts" f ON f."Row ID" = r.from_account
+           LEFT JOIN "Cash Accounts" t ON t."Row ID" = r.to_account;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Entry ID":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Entry ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Scope ID":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Scope ID"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Account":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Account"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ledger ID":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Ledger ID"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Date":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Date"
+      "ordinal": 5
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Posted At":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Posted At"
+      "ordinal": 6
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Transaction Type":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Transaction Type"
+      "ordinal": 7
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Counterparty":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Counterparty"
+      "ordinal": 8
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "From Account":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "From Account"
+      "ordinal": 9
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "To Account":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "To Account"
+      "ordinal": 10
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Internal Transfer":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Internal Transfer"
+      "ordinal": 11
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Transaction Amount":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Transaction Amount"
+      "ordinal": 12
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Money In":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Money In"
+      "ordinal": 13
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Money Out":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Money Out"
+      "ordinal": 14
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Net Movement":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Net Movement"
+      "ordinal": 15
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Balance After":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Balance After"
+      "ordinal": 16
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Available From":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Available From"
+      "ordinal": 17
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Notes":
+      "schema": "public"
+      "relation": "reporting_cashflow_transactions"
+      "name": "Notes"
+      "ordinal": 18
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Borrower Name"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Description"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Account Label"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "Cash Accounts"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Partner Name"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "Partners"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Counterparty Kind"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Counterparty Text"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Notes"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Ref Borrower"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Ref Business Expense"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Ref Cash Account"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Ref Loan"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Ref Other Cash Account"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Ref Partner"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Ref Payment"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Settlement Row ID"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Signed Amount"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Sort Timestamp"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Source Key"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Source Type"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Statement Date"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Statement Time"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "Transaction Type Code"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "direction"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "cash_statement_account_effects"
+    "referenced_column": "ledger_id"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash In"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Baseline Cash Out"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Cutover At"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Opening Balance"
+  - "schema": "public"
+    "relation": "reporting_cashflow_transactions"
+    "referenced_schema": "public"
+    "referenced_relation": "r008_cash_account_cutover"
+    "referenced_column": "Ref Cash Account"
