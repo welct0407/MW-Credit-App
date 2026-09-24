@@ -19,6 +19,8 @@ The recorded pilot state is that both the AppSheet bot and Codex automation were
 
 ## Workbook contract
 
+**24 September 2026 template correction:** the shared Drive template retains schema 1.1 and now renders Manifest Source App / Source App ID through AppSheet's `<<_APPNAME>>` and `<<_APPID>>` built-ins. It no longer labels DEV exports with the PROD identity. All other workbook parts are unchanged. The Singapore label matches the disabled export schedule; this correction neither activates the pilot nor establishes runtime export acceptance. [Verified replacement](../../outputs/r026-dictionary-fixes/template/verification.json). The historical local v1.2 below is not the currently selected Drive template.
+
 | Worksheet | Grain and purpose |
 |---|---|
 | `Manifest` | One export-run row with freshness, source, schema version, and population counts. |

@@ -11,10 +11,10 @@
 "content":
   "id": "1g4xHHsTVvRR5ek4u3DslZAb_UerH05E5"
   "url": "https://drive.google.com/file/d/1g4xHHsTVvRR5ek4u3DslZAb_UerH05E5/view"
-  "source_modified_utc": "2026-08-31T02:45:22.635Z"
-  "captured_utc": "2026-09-24T12:55:28.476198+00:00"
+  "source_modified_utc": "2026-09-24T13:58:30.756Z"
+  "captured_utc": "2026-09-24T14:00:00Z"
   "method": "Google Drive connector raw stored XLSX; openpyxl read-only cell extraction"
-  "sha256": "20a767f5cb772d029b2e94f96191dac2645d4faf8ccad7c9cc399fbe6c5140d1"
+  "sha256": "00e31a1ca76c0dc927f3fb7e6a2984913fe5ad0a9eb1988410b131534ab67396"
   "sheets":
   - "name": "Manifest"
     "cells":
@@ -62,10 +62,10 @@
       "value": "Asia/Singapore"
     - "address": "D2"
       "type": "s"
-      "value": "Loan Business Insights"
+      "value": "<<_APPNAME>>"
     - "address": "E2"
       "type": "s"
-      "value": "e74dd368-654f-44d7-bccf-83cf361d1cdb"
+      "value": "<<_APPID>>"
     - "address": "F2"
       "type": "s"
       "value": "Borrowers[Description]"
@@ -691,3 +691,20 @@
     - "address": "G2"
       "type": "s"
       "value": "<<[Ref Charges]>><<End>>"
+"evidence":
+  "/content/source_modified_utc":
+    "reference": "outputs/r026-dictionary-fixes/template/verification.json"
+    "reason": "Verified in-place Drive update and downloaded candidate hash; export remains disabled."
+    "state": "value"
+  "/content/captured_utc":
+    "reference": "outputs/r026-dictionary-fixes/template/verification.json"
+    "reason": "Verified in-place Drive update and downloaded candidate hash; export remains disabled."
+    "state": "value"
+  "/content/sha256":
+    "reference": "outputs/r026-dictionary-fixes/template/verification.json"
+    "reason": "Verified in-place Drive update and downloaded candidate hash; export remains disabled."
+    "state": "value"
+  "/content/sheets":
+    "reference": "outputs/r026-dictionary-fixes/template/verification.json"
+    "reason": "Verified in-place Drive update and downloaded candidate hash; export remains disabled."
+    "state": "value"
