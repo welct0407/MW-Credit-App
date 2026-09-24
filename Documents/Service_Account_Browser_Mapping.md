@@ -19,30 +19,28 @@ Browser routing applies to UI work. It does not require replacing a suitable API
 
 ## Service register
 
-Account assignments are **awaiting owner input**. These service/scope names are a starter inventory from [Environment Inventory](Environment_Inventory.md), [Solution Design](Solution_Design.md), [Resource Monitoring](Resource_Monitoring.md) and this repository's Git remote. They are not a fresh service/login audit. Split a row when different environments, tenants or roles use different accounts. An explicit account provided for one task can be used immediately; record a reusable assignment only when confirmed for that service/scope.
+Accounts and authentication notes were supplied by the owner in the completed review workbook and imported on 24 September 2026. Browser routing follows the rule above; Chrome work and Chrome Gmail mean the corresponding signed-in profiles. These are confirmed assignments, not a fresh live sign-in audit.
 
-| Service | Scope | Account | Browser |
-| --- | --- | --- | --- |
-| AppSheet | PROD OLTP / Loan Manager | Pending | Pending |
-| AppSheet | PROD OLAP / Loan Business Insights | Pending | Pending |
-| AppSheet | DEV OLTP | Pending | Pending |
-| AppSheet | DEV OLAP | Pending | Pending |
-| Google Cloud Console | Cloud SQL, project access and billing | Pending | Pending |
-| Google Drive / Docs / Sheets | Project files and templates | Pending | Pending |
-| Metabase | Loan reports / reports.mw-credit.com | Pending | Pending |
-| Railway | Metabase hosting and billing | Pending | Pending |
-| Cloudflare | DNS, domains and tunnels | Pending | Pending |
-| Grafana Cloud | Resource dashboards / monitor.mw-credit.com | Pending | Pending |
-| GitHub | AppSheet-Loan-Project repository | Pending | Pending |
-| Microsoft Azure | VM administration and billing | Pending | Pending |
-| Tailscale | Private network administration | Pending | Pending |
-| Outlook | Existing fallback email service | Pending | Pending |
-| Google Sites | Existing privacy/public site | Pending | Pending |
-| Looker Studio | Existing / legacy reports | Pending | Pending |
-| ChatGPT / Codex web | Account and subscription UI | Pending | Pending |
+| Service | Scope | Account | Browser | Authentication notes |
+| --- | --- | --- | --- | --- |
+| AppSheet | PROD OLTP / Loan Manager | welct0407@mw-credit.com | Chrome work | |
+| AppSheet | PROD OLAP / Loan Business Insights | welct0407@mw-credit.com | Chrome work | |
+| AppSheet | DEV OLTP | welct0407@mw-credit.com | Chrome work | |
+| AppSheet | DEV OLAP | welct0407@mw-credit.com | Chrome work | |
+| Google Cloud Console | Cloud SQL, project access and billing | welct0407@mw-credit.com | Chrome work | |
+| Google Drive / Docs / Sheets | Project files and templates | welct0407@mw-credit.com | Chrome work | |
+| Metabase | Loan reports / reports.mw-credit.com | welct0407@gmail.com | Chrome Gmail | |
+| Railway | Metabase hosting and billing | welct0407@gmail.com | Chrome Gmail | Using Github authentication |
+| Cloudflare | DNS, domains and tunnels | zhcyidea@gmail.com | Edge | |
+| Grafana Cloud | Resource dashboards / monitor.mw-credit.com | welct0407@mw-credit.com | Chrome work | |
+| GitHub | AppSheet-Loan-Project repository | welct0407@gmail.com | Chrome Gmail | |
+| Microsoft Azure | VM administration and billing | zhcyidea@gmail.com | Edge | |
+| Tailscale | Private network administration | zhcyidea@gmail.com | Edge | Gmail authentication |
+| Outlook | Existing fallback email service | welctcodex@outlook.com | Edge | |
+| Google Sites | Existing privacy/public site | welct0407@mw-credit.com | Chrome work | |
+| Looker Studio | Existing / legacy reports | welct0407@gmail.com | Chrome Gmail | |
+| ChatGPT / Codex web | Account and subscription UI | zhcyidea@gmail.com | Edge | |
 
-## Owner input and maintenance
+## Maintenance
 
-Fill the yellow **Account** cells in [the temporary review workbook](../outputs/service-account-review-20260924/Service_Account_Review.xlsx); the Browser column derives the route. Add/remove services, split roles/accounts and add useful notes as needed. Enter the actual login identifier, not “work”, “personal” or a password. Additional blank rows are provided.
-
-After the owner returns the completed workbook, reconcile its filled rows into this Markdown register and derive Browser using the routing table. Leave unanswered rows Pending; do not infer assignments from the provider or domain. This document is the execution reference; the workbook is temporary collection evidence, not a second maintained master. Ordinary releases do not re-audit this register; update only changed accounts/services or a concrete routing problem.
+This Markdown register is the single maintained execution reference; the temporary workbook was retired after verifying all 17 imported rows and their notes. AGENTS.md directs browser work here. Update confirmed account/service changes directly in this table and derive Browser using the routing rule. Split rows when environments, tenants or roles use different accounts. An explicit task account can be used immediately; record a reusable assignment only when confirmed for that service/scope. Unknown assignments require clarification; do not infer them from the provider or domain. Ordinary releases do not re-audit this register.
