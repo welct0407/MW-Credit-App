@@ -1,54 +1,6 @@
 {
   "layout": [
     {
-      "id": -2,
-      "card_id": -102,
-      "dashboard_tab_id": 18,
-      "col": 19,
-      "row": 3,
-      "size_x": 5,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "review-performance",
-          "card_id": -102,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {}
-    },
-    {
-      "id": -1,
-      "card_id": -101,
-      "dashboard_tab_id": 18,
-      "col": 14,
-      "row": 3,
-      "size_x": 5,
-      "size_y": 3,
-      "series": [],
-      "parameter_mappings": [
-        {
-          "parameter_id": "review-performance",
-          "card_id": -101,
-          "target": [
-            "dimension",
-            [
-              "template-tag",
-              "performance_period"
-            ]
-          ]
-        }
-      ],
-      "visualization_settings": {}
-    },
-    {
       "id": 603,
       "card_id": null,
       "dashboard_tab_id": 18,
@@ -110,7 +62,9 @@
           ]
         }
       ],
-      "visualization_settings": {}
+      "visualization_settings": {
+        "card.title": "Gross interest"
+      }
     },
     {
       "id": 606,
@@ -134,7 +88,9 @@
           ]
         }
       ],
-      "visualization_settings": {}
+      "visualization_settings": {
+        "card.title": "Principal issued"
+      }
     },
     {
       "id": 607,
@@ -158,7 +114,9 @@
           ]
         }
       ],
-      "visualization_settings": {}
+      "visualization_settings": {
+        "card.title": "Loans issued"
+      }
     },
     {
       "id": 608,
@@ -642,7 +600,59 @@
           }
         }
       }
+    },
+    {
+      "id": 626,
+      "card_id": 234,
+      "dashboard_tab_id": 18,
+      "col": 14,
+      "row": 3,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 234,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Net deployed"
+      }
+    },
+    {
+      "id": 627,
+      "card_id": 235,
+      "dashboard_tab_id": 18,
+      "col": 19,
+      "row": 3,
+      "size_x": 5,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "review-performance",
+          "card_id": 235,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "performance_period"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "card.title": "Cohort return"
+      }
     }
   ],
-  "scope": "Add two summary cards in a five-card row; all existing queries and filters preserved"
+  "scope": "Add two summary cards in a five-card row; all existing queries and filters preserved; short dashboard labels keep full names in saved questions"
 }

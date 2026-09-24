@@ -3274,23 +3274,131 @@
         - "Week starting"
         "stackable.stack_type": null
       "collection_id": 5
+    - "id": 234
+      "name": "Net principal deployed · live"
+      "description": "Selected-period principal issued minus principal repayments received from all loans, including older\
+        \ cohorts. Positive means net lending; negative means net capital recovery. Uses Loan Date for issuance and Payment\
+        \ Date for returns. Live on refresh; Bangkok dates, future excluded. Not cash balance or profit. No transactions =\
+        \ 0; no eligible dates/unknown inputs = unavailable."
+      "display": "scalar"
+      "dataset_query":
+        "stages":
+        - "template-tags":
+          - "widget-type": "date/all-options"
+            "id": "r021-period"
+            "name": "performance_period"
+            "display-name": "Performance period"
+            "type": "dimension"
+            "dimension":
+            - "field"
+            - "base-type": "type/Date"
+              "lib/uuid": "ef8f22ae-7277-4f7f-80c7-071f8e6408b9"
+              "effective-type": "type/Date"
+            - 82
+            "alias": "d.\"Date\""
+          - "type": "card"
+            "id": "r021-model-70"
+            "name": "#70"
+            "display-name": "Model 70"
+            "card-id": 70
+          - "type": "card"
+            "id": "r021-model-71"
+            "name": "#71"
+            "display-name": "Model 71"
+            "card-id": 71
+          "lib/type": "mbql.stage/native"
+          "native": |-
+            WITH clock AS (SELECT public.olap_reporting_date() today),
+             available AS (SELECT min("Date") starts FROM public.reporting_statement_calendar),
+             selected AS (
+             SELECT d."Date" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',INTERVAL '1 day')::date AS "Date") d
+             WHERE [[{{performance_period}} --]] d."Date" BETWEEN (SELECT starts FROM available) AND (SELECT today FROM clock)
+             ), bounds AS (SELECT min("Date") starts,max("Date") ends,count(*) days,
+             count(*)>0 AND count(*)=max("Date")-min("Date")+1 continuous FROM selected),
+             live_days AS (SELECT d."Date" FROM selected d CROSS JOIN bounds b CROSS JOIN clock c WHERE b.continuous AND d."Date"<=c.today),
+             history_days AS (SELECT d."Date" FROM selected d CROSS JOIN bounds b CROSS JOIN clock c WHERE b.continuous AND d."Date"<c.today), issued AS (SELECT s."Principal Amount" amount FROM {{#70}} s JOIN live_days d ON s."Loan Date"=d."Date"),
+            returned AS (SELECT s."Principal Paid" amount FROM {{#71}} s JOIN live_days d ON s."Payment Date"=d."Date")
+            SELECT CASE WHEN EXISTS(SELECT 1 FROM live_days)
+             AND NOT EXISTS(SELECT 1 FROM issued WHERE amount IS NULL) AND NOT EXISTS(SELECT 1 FROM returned WHERE amount IS NULL)
+             THEN (SELECT coalesce(sum(amount),0) FROM issued)-(SELECT coalesce(sum(amount),0) FROM returned) END AS "Net principal deployed"
+        "lib/type": "mbql/query"
+        "database": 2
+      "visualization_settings":
+        "scalar.field": "Net principal deployed"
+        "column_settings":
+          "[\"name\",\"Net principal deployed\"]":
+            "number_style": "decimal"
+            "decimals": 0
+            "number_separators": ".,"
+            "compact": false
+    - "id": 235
+      "name": "Loan-cohort return · live"
+      "description": "Interest received within the selected period from loans issued in that same period, divided by their\
+        \ original principal counted once. Ratio of totals, not average of weekly percentages. Same contract as weekly chart\
+        \ 233. Gross interest, not net profit; unpaid loans retained; zero denominator/unknown inputs = unavailable. Live\
+        \ on refresh, includes today when selected. Recent loans have less time to earn interest."
+      "display": "scalar"
+      "dataset_query":
+        "stages":
+        - "template-tags":
+          - "widget-type": "date/all-options"
+            "id": "r021-period"
+            "name": "performance_period"
+            "display-name": "Performance period"
+            "type": "dimension"
+            "dimension":
+            - "field"
+            - "base-type": "type/Date"
+              "lib/uuid": "34b9ca58-150c-43cd-9d3f-ed463284c3b5"
+              "effective-type": "type/Date"
+            - 82
+            "alias": "d.\"Date\""
+          - "type": "card"
+            "id": "r021-model-70"
+            "name": "#70"
+            "display-name": "Model 70"
+            "card-id": 70
+          - "type": "card"
+            "id": "r021-model-71"
+            "name": "#71"
+            "display-name": "Model 71"
+            "card-id": 71
+          "lib/type": "mbql.stage/native"
+          "native": |-
+            WITH clock AS (SELECT public.olap_reporting_date() today),
+             available AS (SELECT min("Date") starts FROM public.reporting_statement_calendar),
+             selected AS (
+             SELECT d."Date" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',INTERVAL '1 day')::date AS "Date") d
+             WHERE [[{{performance_period}} --]] d."Date" BETWEEN (SELECT starts FROM available) AND (SELECT today FROM clock)
+             ), bounds AS (SELECT min("Date") starts,max("Date") ends,count(*) days,
+             count(*)>0 AND count(*)=max("Date")-min("Date")+1 continuous FROM selected),
+             live_days AS (SELECT d."Date" FROM selected d CROSS JOIN bounds b CROSS JOIN clock c WHERE b.continuous AND d."Date"<=c.today),
+             history_days AS (SELECT d."Date" FROM selected d CROSS JOIN bounds b CROSS JOIN clock c WHERE b.continuous AND d."Date"<c.today)
+            , issued AS (
+             SELECT l."Loan ID",l."Loan Date",l."Principal Amount"
+             FROM {{#70}} l JOIN live_days d ON l."Loan Date"=d."Date"
+            ), received AS (
+             SELECT p."Loan ID",count(*) payments,count(p."Interest Paid") known_interest,sum(p."Interest Paid") interest
+             FROM {{#71}} p JOIN issued l ON l."Loan ID"=p."Loan ID"
+             JOIN live_days d ON p."Payment Date"=d."Date"
+             GROUP BY p."Loan ID"
+            ), per_loan AS (
+             SELECT l.*,CASE WHEN p.payments IS NULL THEN 0 WHEN p.payments=p.known_interest THEN p.interest END interest
+             FROM issued l LEFT JOIN received p ON p."Loan ID"=l."Loan ID"
+            )
+            SELECT CASE WHEN count(interest)=count(*) AND count("Principal Amount")=count(*)
+             THEN sum(interest)/nullif(sum("Principal Amount"),0) END AS "Loan-cohort return" FROM per_loan
+        "lib/type": "mbql/query"
+        "database": 2
+      "visualization_settings":
+        "scalar.field": "Loan-cohort return"
+        "column_settings":
+          "[\"name\",\"Loan-cohort return\"]":
+            "number_style": "percent"
+            "decimals": 2
+            "number_separators": ".,"
+            "compact": false
     "layout":
-    - "id": 612
-      "card_id": 228
-      "dashboard_tab_id": 18
-      "col": 0
-      "row": 18
-      "size_x": 24
-      "size_y": 7
-      "series": []
-      "parameter_mappings":
-      - "parameter_id": "review-performance"
-        "card_id": 228
-        "target":
-        - "dimension"
-        - - "template-tag"
-          - "performance_period"
-      "visualization_settings": {}
     - "id": 603
       "card_id": null
       "dashboard_tab_id": 18
@@ -3306,6 +3414,119 @@
           "display": "heading"
           "visualization_settings":
             "text": "Selected-period results · live on report refresh"
+    - "id": 604
+      "card_id": null
+      "dashboard_tab_id": 18
+      "col": 0
+      "row": 1
+      "size_x": 24
+      "size_y": 2
+      "series": []
+      "parameter_mappings": []
+      "visualization_settings":
+        "card.background": false
+        "virtual_card":
+          "display": "text"
+          "visualization_settings":
+            "text": "All portfolio · baht · Bangkok dates."
+    - "id": 605
+      "card_id": 217
+      "dashboard_tab_id": 18
+      "col": 0
+      "row": 3
+      "size_x": 5
+      "size_y": 3
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 217
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings":
+        "card.title": "Gross interest"
+    - "id": 606
+      "card_id": 218
+      "dashboard_tab_id": 18
+      "col": 5
+      "row": 3
+      "size_x": 5
+      "size_y": 3
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 218
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings":
+        "card.title": "Principal issued"
+    - "id": 607
+      "card_id": 219
+      "dashboard_tab_id": 18
+      "col": 10
+      "row": 3
+      "size_x": 4
+      "size_y": 3
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 219
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings":
+        "card.title": "Loans issued"
+    - "id": 608
+      "card_id": 220
+      "dashboard_tab_id": 18
+      "col": 0
+      "row": 6
+      "size_x": 16
+      "size_y": 7
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 220
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings": {}
+    - "id": 609
+      "card_id": 221
+      "dashboard_tab_id": 18
+      "col": 16
+      "row": 6
+      "size_x": 8
+      "size_y": 7
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 221
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings": {}
+    - "id": 610
+      "card_id": null
+      "dashboard_tab_id": 18
+      "col": 0
+      "row": 13
+      "size_x": 24
+      "size_y": 1
+      "series": []
+      "parameter_mappings": []
+      "visualization_settings":
+        "card.background": false
+        "virtual_card":
+          "display": "heading"
+          "visualization_settings":
+            "text": "Performance trends · snapshots except loan-cohort return (live)"
     - "id": 611
       "card_id": null
       "dashboard_tab_id": 18
@@ -3322,110 +3543,17 @@
           "visualization_settings":
             "text": "Yesterday refreshes hourly; rebuild older corrections. MA7 needs 7 complete days, including before the\
               \ filter. Cumulative starts at history origin. Use one continuous range."
-    - "id": 610
-      "card_id": null
+    - "id": 612
+      "card_id": 228
       "dashboard_tab_id": 18
       "col": 0
-      "row": 13
+      "row": 18
       "size_x": 24
-      "size_y": 1
-      "series": []
-      "parameter_mappings": []
-      "visualization_settings":
-        "card.background": false
-        "virtual_card":
-          "display": "heading"
-          "visualization_settings":
-            "text": "Performance trends · snapshots except loan-cohort return (live)"
-    - "id": 615
-      "card_id": 224
-      "dashboard_tab_id": 18
-      "col": 12
-      "row": 37
-      "size_x": 12
       "size_y": 7
       "series": []
       "parameter_mappings":
       - "parameter_id": "review-performance"
-        "card_id": 224
-        "target":
-        - "dimension"
-        - - "template-tag"
-          - "performance_period"
-      "visualization_settings": {}
-    - "id": 614
-      "card_id": 223
-      "dashboard_tab_id": 18
-      "col": 0
-      "row": 37
-      "size_x": 12
-      "size_y": 7
-      "series": []
-      "parameter_mappings":
-      - "parameter_id": "review-performance"
-        "card_id": 223
-        "target":
-        - "dimension"
-        - - "template-tag"
-          - "performance_period"
-      "visualization_settings": {}
-    - "id": 604
-      "card_id": null
-      "dashboard_tab_id": 18
-      "col": 0
-      "row": 1
-      "size_x": 24
-      "size_y": 2
-      "series": []
-      "parameter_mappings": []
-      "visualization_settings":
-        "card.background": false
-        "virtual_card":
-          "display": "text"
-          "visualization_settings":
-            "text": "All portfolio · baht · Bangkok dates."
-    - "id": 620
-      "card_id": 227
-      "dashboard_tab_id": 18
-      "col": 0
-      "row": 63
-      "size_x": 24
-      "size_y": 9
-      "series": []
-      "parameter_mappings":
-      - "parameter_id": "review-performance"
-        "card_id": 227
-        "target":
-        - "dimension"
-        - - "template-tag"
-          - "performance_period"
-      "visualization_settings": {}
-    - "id": 617
-      "card_id": null
-      "dashboard_tab_id": 18
-      "col": 0
-      "row": 51
-      "size_x": 24
-      "size_y": 2
-      "series": []
-      "parameter_mappings": []
-      "visualization_settings":
-        "card.background": false
-        "virtual_card":
-          "display": "text"
-          "visualization_settings":
-            "text": "Avg loan size = principal ÷ loans. Selected days only."
-    - "id": 616
-      "card_id": 225
-      "dashboard_tab_id": 18
-      "col": 0
-      "row": 44
-      "size_x": 12
-      "size_y": 7
-      "series": []
-      "parameter_mappings":
-      - "parameter_id": "review-performance"
-        "card_id": 225
+        "card_id": 228
         "target":
         - "dimension"
         - - "template-tag"
@@ -3448,6 +3576,69 @@
           - "Date"
           - "base-type": "type/Date"
       "visualization_settings": {}
+    - "id": 614
+      "card_id": 223
+      "dashboard_tab_id": 18
+      "col": 0
+      "row": 37
+      "size_x": 12
+      "size_y": 7
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 223
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings": {}
+    - "id": 615
+      "card_id": 224
+      "dashboard_tab_id": 18
+      "col": 12
+      "row": 37
+      "size_x": 12
+      "size_y": 7
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 224
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings": {}
+    - "id": 616
+      "card_id": 225
+      "dashboard_tab_id": 18
+      "col": 0
+      "row": 44
+      "size_x": 12
+      "size_y": 7
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 225
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings": {}
+    - "id": 617
+      "card_id": null
+      "dashboard_tab_id": 18
+      "col": 0
+      "row": 51
+      "size_x": 24
+      "size_y": 2
+      "series": []
+      "parameter_mappings": []
+      "visualization_settings":
+        "card.background": false
+        "virtual_card":
+          "display": "text"
+          "visualization_settings":
+            "text": "Avg loan size = principal ÷ loans. Selected days only."
     - "id": 618
       "card_id": 226
       "dashboard_tab_id": 18
@@ -3519,102 +3710,21 @@
           "display": "text"
           "visualization_settings":
             "text": "End-of-day counts use loan/close dates; do not sum across dates."
-    - "id": 605
-      "card_id": 217
+    - "id": 620
+      "card_id": 227
       "dashboard_tab_id": 18
       "col": 0
-      "row": 3
-      "size_x": 8
-      "size_y": 3
-      "series": []
-      "parameter_mappings":
-      - "parameter_id": "review-performance"
-        "card_id": 217
-        "target":
-        - "dimension"
-        - - "template-tag"
-          - "performance_period"
-      "visualization_settings": {}
-    - "id": 606
-      "card_id": 218
-      "dashboard_tab_id": 18
-      "col": 8
-      "row": 3
-      "size_x": 8
-      "size_y": 3
-      "series": []
-      "parameter_mappings":
-      - "parameter_id": "review-performance"
-        "card_id": 218
-        "target":
-        - "dimension"
-        - - "template-tag"
-          - "performance_period"
-      "visualization_settings": {}
-    - "id": 607
-      "card_id": 219
-      "dashboard_tab_id": 18
-      "col": 16
-      "row": 3
-      "size_x": 8
-      "size_y": 3
-      "series": []
-      "parameter_mappings":
-      - "parameter_id": "review-performance"
-        "card_id": 219
-        "target":
-        - "dimension"
-        - - "template-tag"
-          - "performance_period"
-      "visualization_settings": {}
-    - "id": 608
-      "card_id": 220
-      "dashboard_tab_id": 18
-      "col": 0
-      "row": 6
-      "size_x": 16
-      "size_y": 7
-      "series": []
-      "parameter_mappings":
-      - "parameter_id": "review-performance"
-        "card_id": 220
-        "target":
-        - "dimension"
-        - - "template-tag"
-          - "performance_period"
-      "visualization_settings": {}
-    - "id": 609
-      "card_id": 221
-      "dashboard_tab_id": 18
-      "col": 16
-      "row": 6
-      "size_x": 8
-      "size_y": 7
-      "series": []
-      "parameter_mappings":
-      - "parameter_id": "review-performance"
-        "card_id": 221
-        "target":
-        - "dimension"
-        - - "template-tag"
-          - "performance_period"
-      "visualization_settings": {}
-    - "id": 622
-      "card_id": 231
-      "dashboard_tab_id": 18
-      "col": 0
-      "row": 25
+      "row": 63
       "size_x": 24
-      "size_y": 4
+      "size_y": 9
       "series": []
       "parameter_mappings":
       - "parameter_id": "review-performance"
-        "card_id": 231
+        "card_id": 227
         "target":
         - "dimension"
-        - - "field"
-          - "Date"
-          - "base-type": "type/Date"
+        - - "template-tag"
+          - "performance_period"
       "visualization_settings": {}
     - "id": 621
       "card_id": 230
@@ -3627,6 +3737,23 @@
       "parameter_mappings":
       - "parameter_id": "review-performance"
         "card_id": 230
+        "target":
+        - "dimension"
+        - - "field"
+          - "Date"
+          - "base-type": "type/Date"
+      "visualization_settings": {}
+    - "id": 622
+      "card_id": 231
+      "dashboard_tab_id": 18
+      "col": 0
+      "row": 25
+      "size_x": 24
+      "size_y": 4
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 231
         "target":
         - "dimension"
         - - "field"
@@ -3682,6 +3809,40 @@
           "visualization_settings":
             "text": "Loan dates and interest-payment dates both use this filter. Principal is counted once per loan. Live\
               \ on refresh."
+    - "id": 626
+      "card_id": 234
+      "dashboard_tab_id": 18
+      "col": 14
+      "row": 3
+      "size_x": 5
+      "size_y": 3
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 234
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings":
+        "card.title": "Net deployed"
+    - "id": 627
+      "card_id": 235
+      "dashboard_tab_id": 18
+      "col": 19
+      "row": 3
+      "size_x": 5
+      "size_y": 3
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "review-performance"
+        "card_id": 235
+        "target":
+        - "dimension"
+        - - "template-tag"
+          - "performance_period"
+      "visualization_settings":
+        "card.title": "Cohort return"
     "evidence": "outputs/r016-20260922/performance-redesign/ROLLING_IMPLEMENTATION.md"
     "rolling_averages":
       "helper": 229
@@ -3732,6 +3893,24 @@
       "source": "Live on report refresh; daily portfolio snapshots lack Loan ID attribution"
       "supersedes": "R018 period ratio of unrelated interest and principal totals"
       "evidence": "outputs/r019-20260924/README.md"
+    "summary_metrics":
+      "net_principal_deployed":
+        "question_id": 234
+        "formula": "Selected-period principal issued minus principal paid from all loans within the period; older cohorts\
+          \ included"
+        "source": "Live models 70 and 71"
+        "empty_eligible_period": 0
+        "no_eligible_dates_or_unknown_inputs": null
+      "loan_cohort_return":
+        "question_id": 235
+        "formula": "Interest received within the selected period from loans issued in the same period / original principal\
+          \ counted once"
+        "source": "Live models 70 and 71; same per-loan attribution as chart 233"
+        "aggregation": "Ratio of totals, not mean of weekly ratios"
+        "zero_denominator_or_unknown_inputs": null
+      "layout": "Five cards across: Gross interest, Principal issued, Loans issued, Net deployed, Cohort return. Live section\
+        \ heading supplies freshness label."
+      "evidence": "outputs/r021-20260924/README.md"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -3750,8 +3929,8 @@
     "reason": "Document installed Metabase 6R rolling averages and preserve owner tab order/name"
     "state": "value"
   "/content/performance_review":
-    "reference": "outputs/r020-20260924/README.md"
-    "reason": "Compact live cohort chart beside EOD activity; calculations unchanged"
+    "reference": "outputs/r021-20260924/README.md"
+    "reason": "Add two live summary metrics and five-card first row"
     "state": "value"
   "/content/parameters":
     "reference": "outputs/r016-20260922/performance-redesign/IMPLEMENTATION.md"

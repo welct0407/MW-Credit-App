@@ -48,3 +48,7 @@ R001–R015 product differences are closed according to the [Release Tracker](Re
 ## R020 — Compact 6R chart layout (released)
 
 Weekly loan-cohort return now sits beside EOD activity at half width. Notes retain source/filter distinctions; the trends heading identifies the live exception. No query, filter, DB or app changes. [Evidence](../outputs/r020-20260924/README.md).
+
+## R021 — Live Performance summary metrics (released)
+
+Added questions 234 Net Principal Deployed and 235 Loan-Cohort Return to 6R, retaining the original three cards in one five-card row. Same live period filter; saved questions describe the two different attribution rules. Short dashboard labels fit the row. No other queries, database or AppSheet changes. Eight installed checks and Chrome desktop visual verification passed. [Evidence](../outputs/r021-20260924/README.md).

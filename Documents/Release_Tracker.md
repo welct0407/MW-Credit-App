@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R022 | Future development; deployed reporting dependencies | Open — no feature scope allocated | 2026-09-24T09:45:43.369Z: opened at R021 promotion start | [Handoff](../outputs/r021-20260924/manifest.json) |
-| R021 | Net Principal Deployed and Loan-Cohort Return summary cards | Frozen for promotion | 2026-09-24T09:45:43.369Z: tested package 01619420c396382596da9550e9079c8fd56dbbe6 | [Evidence](../outputs/r021-20260924/README.md) |
+| R021 | Net Principal Deployed and Loan-Cohort Return summary cards | Released — report-only | 2026-09-24: questions 234/235; 8 installed checks and Chrome visual verification passed | [Evidence](../outputs/r021-20260924/README.md) · tag R021 |
 | R020 | Compact 6R loan-return chart layout | Released — report-only layout | 2026-09-24: half-width chart grouped beside EOD; saved-state and Chrome visual checks passed | [Evidence](../outputs/r020-20260924/README.md) · tag R020 |
 | R019 | Correct weekly Loan Return to issuance cohorts; live selected-period interest | Released — report-only correction | 2026-09-24: question 233 corrected; 15 checks and desktop/mobile passed | [Evidence](../outputs/r019-20260924/README.md) · [Checklist](../outputs/r019-20260924/promotion-checklist.md) · tag R019 |
 | R018 | Additional weekly Loan Return on 6R; deployed R016/R017 reporting | Released — metric superseded by R019 | 2026-09-24: question 233; 100% reference; 29 checks and desktop/mobile passed; capital yield retained | [Evidence](../outputs/r018-20260924/README.md) · [Checklist](../outputs/r018-20260924/promotion-checklist.md) · tag R018 |
