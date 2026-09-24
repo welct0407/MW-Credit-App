@@ -12,7 +12,17 @@ The filled checklist links the manifest, log, tests, SQL pins and source-mapping
 
 ## 6.1 Develop and integrate — Gate A
 
-Development owns the tests and concise scope/DEV checkpoint. At promotion, reuse that evidence; rerun only invalidated checks. Before readiness fixes, establish affected rollback points under AGENTS. Keep R010/later work separate from an already captured release. A readiness recommendation is not owner acceptance or production authority.
+Start each development task with the tracker's [Current development release](Release_Tracker.md#current-development-release); use that single Open number for all included features/refinements. Development owns the tests and concise scope/DEV checkpoint. At promotion, reuse that evidence; rerun only invalidated checks. Before readiness fixes, establish affected rollback points under AGENTS. Keep later work separate from a frozen release. A readiness recommendation is not a scope freeze, owner acceptance or production authority.
+
+### Release-scope freeze and number handoff
+
+Keep the release Open through development, tests and review. **When authorized promotion actually starts (P13, before RC capture or PROD changes)**, pin its scope, dependencies, tested commit, available DEV versions, SQL manifest/hashes and external deliverables in the existing release records. For SQL-only/report-only releases the same handoff applies; no RC is required just to freeze scope. Existing acceptance/authority is reused, not requested again.
+
+In one coordinated tracker update, mark that release **Frozen for promotion** with date/time/timezone and evidence link, change **Current development release** to the next unused number **Open**, add that number's row and advance the next-number field. Publish the handoff before other tasks use the successor; re-read the latest tracker and reconcile a competing update instead of reserving twice. A task completing or becoming Ready never advances the number. No second current-release document or parallel counter is maintained.
+
+The successor may begin after this handoff, with local/isolated work while shared DEV is briefly paused for capture. Resume shared DEV changes only once the frozen release's independent RC definitions and/or exact SQL/external package are captured. RC preparation may still make required PROD substitutions; final RC-version immutability starts after that preparation. Opening the next number is not production authorization for it.
+
+After freezing, promotion fixes/retries stay with the frozen release and its fixed scope. Record corrections as a new candidate/package revision and rerun affected checks; use the pinned baseline if shared DEV has advanced, never recopy later unrelated work. Reconcile relevant fixes into the Open release. Failure/delay does not silently thaw the release or renumber its successor; preserve dependencies before any later promotion. Scope replanning/cancellation must leave at most one Open release and retain the history of allocated numbers.
 
 ### Test selection and evidence reuse
 

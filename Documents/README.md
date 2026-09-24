@@ -4,7 +4,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 
 | Need | Reference |
 | --- | --- |
-| Release numbers/status | [Release Tracker](Release_Tracker.md) |
+| Which release to use for new development / status | [Current development release](Release_Tracker.md#current-development-release) and tracker history |
 | Open DEV work | [Development Changes](Development_Changes.md) |
 | Current identities/settings | [Environment Inventory](Environment_Inventory.md) |
 | Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |

@@ -20,7 +20,7 @@ Test compatibility of the **old app and new app with expanded SQL** in DEV. Incl
 
 ## Hotfix and emergency reconciliation
 
-Normal hotfix: reserve the next Rnnn (mark it a hotfix and link the predecessor) → reproduce/reconcile the current PROD baseline in controlled DEV → implement/test → named new RC → PROD mappings/themes and containment → immutable freeze → authorized App Upgrade → validation/documentation/tag. Keep the project-wide numbering convention; don't invent `Rnnn.1` outside the tracker sequence.
+Normal hotfix uses the [current Open release](Release_Tracker.md#current-development-release), marked as a hotfix with its predecessor linked; never reserve a second Open number. Reconcile its scope/dependencies, explicitly deferring unrelated unfinished work to the successor when the hotfix freezes. Reproduce the PROD defect in controlled DEV → implement/test → authorized promotion start and release-scope freeze/number handoff → named new RC → PROD mappings/themes and containment → final RC-version freeze → App Upgrade → validation/documentation/tag. A correction to an already-frozen promotion stays in that release as a new candidate revision. Keep the project-wide numbering convention; don't invent `Rnnn.1` or freeze a release merely to obtain a number.
 
 If shared DEV already contains later features, preserve them and use an isolated development copy of the current production baseline for the hotfix. Integrate the fix back into main DEV and retest affected paths before its next RC. Independent feature copies must never be promoted sequentially as if App Upgrade merged them.
 

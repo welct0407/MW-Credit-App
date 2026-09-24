@@ -1,6 +1,18 @@
 # Release tracker
 
-Recorded PROD baseline: **R015**. Next available number: **R017**. Numbering/approval rules are in [AGENTS](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026).
+## Current development release
+
+| Start-of-work lookup | Value |
+| --- | --- |
+| **Use this release for new development** | **R016 — Open** |
+| Next number, not yet open or usable | **R017 — opens only when R016 is frozen at promotion start** |
+| Current release evidence | [R016 log](../Change%20Logs/CHANGE_NOTES_R016_2026-09-22.md) · [working checklist](../outputs/r016-20260922/promotion-checklist.md) |
+
+Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
+
+Rule adopted 24 September 2026: R016 remains the current Open release. Its earlier staged PROD/report deliveries retain their actual history; this policy update does not retroactively declare a scope freeze or authorize promotion. Recorded completed PROD baseline remains **R015**; R016's partial deliveries are documented in its evidence. See [numbering policy](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026) and [freeze handoff](Release_Workflow.md#release-scope-freeze-and-number-handoff).
+
+## Release history and status
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |

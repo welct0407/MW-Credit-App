@@ -2,6 +2,8 @@
 
 ## One checklist per release
 
+Before new development, use the [current Open release](../../Documents/Release_Tracker.md#current-development-release); copying a template never reserves or opens another number. Only authorized promotion start freezes that scope and opens its successor through the [tracker handoff](../../Documents/Release_Workflow.md#release-scope-freeze-and-number-handoff). Frozen-release retries continue their existing checklist/package revision.
+
 The only promotion/documentation master is [templates/promotion-checklist.md](templates/promotion-checklist.md). Fill one release copy; never regenerate over recorded results or keep a parallel Excel/document checklist. Read only a triggered implementation section in [Release Workflow](../../Documents/Release_Workflow.md).
 
 `node scripts/releases/checklist.mjs Rnnn outputs/<release>/promotion-checklist.md [affected Documents/path ...]`
