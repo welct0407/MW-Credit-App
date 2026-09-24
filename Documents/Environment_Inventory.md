@@ -1,5 +1,9 @@
 # Environment inventory
 
+## R025 — Collection Monitor review
+
+Dashboard 3 now includes **8R · Collection Monitor** (tab 19), directly after original **8 · Daily Collection** (9). **12 tabs / 210 placements**; all 189 original placements preserved. Sixteen isolated query-builder questions provide four colored status lanes, summary/freshness cards and separately filtered detail. Shared models, source/permissions, database/AppSheet and jobs unchanged. R025 remains Open for owner review; original tab retained and final cutover deferred. [Implementation and limitations](../outputs/r025-20260924/README.md).
+
 R024 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings are unchanged. [Evidence](../outputs/r024-20260924/README.md).
 
 R023 current Performance: owner accepted 6R as the replacement. Tab18 is now **6 · Performance**, sixth in order; old tab7 and its 18 placements are removed. The unused performance-date filter is removed, while Performance period remains. Dashboard3 has **11 tabs / 189 placements**. Saved questions retained, including shared question56. All retained chart definitions/layouts and other tab order preserved. [Evidence](../outputs/r023-20260924/README.md).

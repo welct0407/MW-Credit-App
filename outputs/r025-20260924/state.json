@@ -1,0 +1,23 @@
+{
+  "cards": {
+    "people": 236,
+    "receipts": 237,
+    "remaining": 238,
+    "completion": 239,
+    "overdue-count": 240,
+    "overdue-list": 241,
+    "unpaid-count": 242,
+    "unpaid-list": 243,
+    "partial-count": 244,
+    "partial-list": 245,
+    "paid-count": 246,
+    "paid-list": 247,
+    "detail": 248,
+    "today-charges": 249,
+    "freshness": 250,
+    "unclassified": 251
+  },
+  "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r025-collection-monitor",
+  "baselineCommit": "f4b8ffd86a73667b0d30c429a7b6d85da6151a5b",
+  "tab": 19
+}

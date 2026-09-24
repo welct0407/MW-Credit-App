@@ -1,0 +1,85 @@
+{
+  "at": "2026-09-24T11:42:11.134Z",
+  "checks": [
+    {
+      "key": "people",
+      "ms": 271,
+      "completed": true
+    },
+    {
+      "key": "receipts",
+      "ms": 373,
+      "completed": true
+    },
+    {
+      "key": "remaining",
+      "ms": 219,
+      "completed": true
+    },
+    {
+      "key": "completion",
+      "ms": 245,
+      "completed": true
+    },
+    {
+      "key": "overdue-count",
+      "ms": 225,
+      "completed": true
+    },
+    {
+      "key": "overdue-list",
+      "ms": 283,
+      "completed": true
+    },
+    {
+      "key": "unpaid-count",
+      "ms": 238,
+      "completed": true
+    },
+    {
+      "key": "unpaid-list",
+      "ms": 276,
+      "completed": true
+    },
+    {
+      "key": "partial-count",
+      "ms": 255,
+      "completed": true
+    },
+    {
+      "key": "partial-list",
+      "ms": 250,
+      "completed": true
+    },
+    {
+      "key": "paid-count",
+      "ms": 248,
+      "completed": true
+    },
+    {
+      "key": "paid-list",
+      "ms": 309,
+      "completed": true
+    },
+    {
+      "key": "detail",
+      "ms": 306,
+      "completed": true
+    },
+    {
+      "key": "today-charges",
+      "ms": 341,
+      "completed": true
+    },
+    {
+      "key": "freshness",
+      "ms": 316,
+      "completed": true
+    },
+    {
+      "key": "unclassified",
+      "ms": 207,
+      "completed": true
+    }
+  ]
+}

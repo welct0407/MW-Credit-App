@@ -1,0 +1,2064 @@
+{
+  "dashboard": 3,
+  "tab": 19,
+  "questions": [
+    {
+      "key": "people",
+      "name": "People on board",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__77",
+          "aggregation": [
+            [
+              "aggregation-options",
+              [
+                "distinct",
+                [
+                  "field",
+                  "Borrower ID",
+                  {
+                    "base-type": "type/Text"
+                  }
+                ]
+              ],
+              {
+                "name": "People on board",
+                "display-name": "People on board"
+              }
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "People on board",
+        "column_settings": {
+          "[\"name\",\"People on board\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Current board participants only. Bangkok today. Signed amounts retained; no hidden-borrower exclusion.",
+      "id": 236
+    },
+    {
+      "key": "receipts",
+      "name": "Receipts today",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__77",
+          "aggregation": [
+            [
+              "aggregation-options",
+              [
+                "coalesce",
+                [
+                  "sum",
+                  [
+                    "field",
+                    "Receipts Today",
+                    {
+                      "base-type": "type/Decimal"
+                    }
+                  ]
+                ],
+                0
+              ],
+              {
+                "name": "Receipts today",
+                "display-name": "Receipts today"
+              }
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Receipts today",
+        "column_settings": {
+          "[\"name\",\"Receipts today\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Current board participants only. Bangkok today. Signed amounts retained; no hidden-borrower exclusion.",
+      "id": 237
+    },
+    {
+      "key": "remaining",
+      "name": "Left to collect",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__77",
+          "aggregation": [
+            [
+              "aggregation-options",
+              [
+                "coalesce",
+                [
+                  "sum",
+                  [
+                    "field",
+                    "Amount Remaining",
+                    {
+                      "base-type": "type/Decimal"
+                    }
+                  ]
+                ],
+                0
+              ],
+              {
+                "name": "Left to collect",
+                "display-name": "Left to collect"
+              }
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Left to collect",
+        "column_settings": {
+          "[\"name\",\"Left to collect\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Current board participants only. Bangkok today. Signed amounts retained; no hidden-borrower exclusion.",
+      "id": 238
+    },
+    {
+      "key": "completion",
+      "name": "People fully paid",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-query": {
+            "source-table": "card__77",
+            "aggregation": [
+              [
+                "aggregation-options",
+                [
+                  "distinct",
+                  [
+                    "field",
+                    "Borrower ID",
+                    {
+                      "base-type": "type/Text"
+                    }
+                  ]
+                ],
+                {
+                  "name": "Total",
+                  "display-name": "Total"
+                }
+              ],
+              [
+                "aggregation-options",
+                [
+                  "count-where",
+                  [
+                    "=",
+                    [
+                      "field",
+                      "Daily Collection Status",
+                      {
+                        "base-type": "type/Text"
+                      }
+                    ],
+                    "Fully Paid"
+                  ]
+                ],
+                {
+                  "name": "Paid",
+                  "display-name": "Paid"
+                }
+              ]
+            ]
+          },
+          "expressions": {
+            "People fully paid": [
+              "case",
+              [
+                [
+                  [
+                    ">",
+                    [
+                      "field",
+                      "Total",
+                      {
+                        "base-type": "type/Decimal"
+                      }
+                    ],
+                    0
+                  ],
+                  [
+                    "/",
+                    [
+                      "field",
+                      "Paid",
+                      {
+                        "base-type": "type/Decimal"
+                      }
+                    ],
+                    [
+                      "field",
+                      "Total",
+                      {
+                        "base-type": "type/Decimal"
+                      }
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          },
+          "fields": [
+            [
+              "expression",
+              "People fully paid"
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "People fully paid",
+        "column_settings": {
+          "[\"name\",\"People fully paid\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Fully Paid people / all board people, including any unclassified exceptions. Zero denominator is unavailable. This is a people percentage, not amount collection rate.",
+      "id": 239
+    },
+    {
+      "key": "overdue-count",
+      "name": "🚨 Overdue · people",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__162",
+          "filter": [
+            "=",
+            [
+              "field",
+              "Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Overdue"
+          ],
+          "fields": [
+            [
+              "field",
+              "Borrower Count",
+              {
+                "base-type": "type/Integer"
+              }
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Borrower Count",
+        "column_settings": {
+          "[\"name\",\"Borrower Count\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Zero means this group is empty. Status comes from governed source.",
+      "id": 240
+    },
+    {
+      "key": "overdue-list",
+      "name": "🚨 Overdue · borrowers",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__77",
+          "fields": [
+            [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ],
+          "filter": [
+            "=",
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Overdue"
+          ],
+          "order-by": [
+            [
+              "asc",
+              [
+                "field",
+                "Borrower",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ],
+            [
+              "asc",
+              [
+                "field",
+                "Borrower ID",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Receipts Today",
+            "fieldRef": [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Amount Remaining",
+            "fieldRef": [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          },
+          {
+            "name": "Daily Collection Status",
+            "fieldRef": [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Receipts Today\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Received"
+          },
+          "[\"name\",\"Amount Remaining\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Left"
+          }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Amount Remaining"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#FEE4E2",
+            "highlight_row": true
+          }
+        ],
+        "table.cell_column_widths": [
+          105,
+          73,
+          70
+        ]
+      },
+      "description": "R025 / 8R Collection Monitor. One row per borrower. Received = posted principal + interest receipts dated today; Left = collection-set remaining including older dues. Alphabetical stable order. Overdue takes precedence even after a payment today.",
+      "id": 241
+    },
+    {
+      "key": "unpaid-count",
+      "name": "🟠 Not paid · people",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__162",
+          "filter": [
+            "=",
+            [
+              "field",
+              "Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Not Paid"
+          ],
+          "fields": [
+            [
+              "field",
+              "Borrower Count",
+              {
+                "base-type": "type/Integer"
+              }
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Borrower Count",
+        "column_settings": {
+          "[\"name\",\"Borrower Count\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Zero means this group is empty. Status comes from governed source.",
+      "id": 242
+    },
+    {
+      "key": "unpaid-list",
+      "name": "🟠 Not paid · borrowers",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__77",
+          "fields": [
+            [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ],
+          "filter": [
+            "=",
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Not Paid"
+          ],
+          "order-by": [
+            [
+              "asc",
+              [
+                "field",
+                "Borrower",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ],
+            [
+              "asc",
+              [
+                "field",
+                "Borrower ID",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Receipts Today",
+            "fieldRef": [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Amount Remaining",
+            "fieldRef": [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          },
+          {
+            "name": "Daily Collection Status",
+            "fieldRef": [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Receipts Today\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Received"
+          },
+          "[\"name\",\"Amount Remaining\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Left"
+          }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Amount Remaining"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#FFF1D6",
+            "highlight_row": true
+          }
+        ],
+        "table.cell_column_widths": [
+          105,
+          73,
+          70
+        ]
+      },
+      "description": "R025 / 8R Collection Monitor. One row per borrower. Received = posted principal + interest receipts dated today; Left = collection-set remaining including older dues. Alphabetical stable order. Overdue takes precedence even after a payment today.",
+      "id": 243
+    },
+    {
+      "key": "partial-count",
+      "name": "🔵 Partially paid · people",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__162",
+          "filter": [
+            "=",
+            [
+              "field",
+              "Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Partially Paid"
+          ],
+          "fields": [
+            [
+              "field",
+              "Borrower Count",
+              {
+                "base-type": "type/Integer"
+              }
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Borrower Count",
+        "column_settings": {
+          "[\"name\",\"Borrower Count\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Zero means this group is empty. Status comes from governed source.",
+      "id": 244
+    },
+    {
+      "key": "partial-list",
+      "name": "🔵 Partially paid · borrowers",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__77",
+          "fields": [
+            [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ],
+          "filter": [
+            "=",
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Partially Paid"
+          ],
+          "order-by": [
+            [
+              "asc",
+              [
+                "field",
+                "Borrower",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ],
+            [
+              "asc",
+              [
+                "field",
+                "Borrower ID",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Receipts Today",
+            "fieldRef": [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Amount Remaining",
+            "fieldRef": [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          },
+          {
+            "name": "Daily Collection Status",
+            "fieldRef": [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Receipts Today\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Received"
+          },
+          "[\"name\",\"Amount Remaining\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Left"
+          }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Amount Remaining"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#EAF2FF",
+            "highlight_row": true
+          }
+        ],
+        "table.cell_column_widths": [
+          105,
+          73,
+          70
+        ]
+      },
+      "description": "R025 / 8R Collection Monitor. One row per borrower. Received = posted principal + interest receipts dated today; Left = collection-set remaining including older dues. Alphabetical stable order. Overdue takes precedence even after a payment today.",
+      "id": 245
+    },
+    {
+      "key": "paid-count",
+      "name": "🟢 Fully paid · people",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__162",
+          "filter": [
+            "=",
+            [
+              "field",
+              "Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Fully Paid"
+          ],
+          "fields": [
+            [
+              "field",
+              "Borrower Count",
+              {
+                "base-type": "type/Integer"
+              }
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Borrower Count",
+        "column_settings": {
+          "[\"name\",\"Borrower Count\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Zero means this group is empty. Status comes from governed source.",
+      "id": 246
+    },
+    {
+      "key": "paid-list",
+      "name": "🟢 Fully paid · borrowers",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__77",
+          "fields": [
+            [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ],
+          "filter": [
+            "=",
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "Fully Paid"
+          ],
+          "order-by": [
+            [
+              "asc",
+              [
+                "field",
+                "Borrower",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ],
+            [
+              "asc",
+              [
+                "field",
+                "Borrower ID",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Receipts Today",
+            "fieldRef": [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Amount Remaining",
+            "fieldRef": [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          },
+          {
+            "name": "Daily Collection Status",
+            "fieldRef": [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Receipts Today\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Received"
+          },
+          "[\"name\",\"Amount Remaining\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Left"
+          }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Amount Remaining"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#ECFDF3",
+            "highlight_row": true
+          }
+        ],
+        "table.cell_column_widths": [
+          105,
+          73,
+          70
+        ]
+      },
+      "description": "R025 / 8R Collection Monitor. One row per borrower. Received = posted principal + interest receipts dated today; Left = collection-set remaining including older dues. Alphabetical stable order. Overdue takes precedence even after a payment today.",
+      "id": 247
+    },
+    {
+      "key": "detail",
+      "name": "Collection detail · filters above affect only this table",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__77",
+          "fields": [
+            [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            [
+              "field",
+              "Amount Due",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Amount Collected",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Overdue Amount",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ],
+          "order-by": [
+            [
+              "desc",
+              [
+                "field",
+                "Amount Remaining",
+                {
+                  "base-type": "type/Decimal"
+                }
+              ]
+            ],
+            [
+              "asc",
+              [
+                "field",
+                "Borrower",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ],
+            [
+              "asc",
+              [
+                "field",
+                "Borrower ID",
+                {
+                  "base-type": "type/Text"
+                }
+              ]
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Daily Collection Status",
+            "fieldRef": [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Amount Due",
+            "fieldRef": [
+              "field",
+              "Amount Due",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Amount Collected",
+            "fieldRef": [
+              "field",
+              "Amount Collected",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Amount Remaining",
+            "fieldRef": [
+              "field",
+              "Amount Remaining",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Receipts Today",
+            "fieldRef": [
+              "field",
+              "Receipts Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue Amount",
+            "fieldRef": [
+              "field",
+              "Overdue Amount",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Daily Collection Status\"]": {
+            "column_title": "Status"
+          },
+          "[\"name\",\"Amount Due\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Collection due"
+          },
+          "[\"name\",\"Amount Collected\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Collection received today"
+          },
+          "[\"name\",\"Amount Remaining\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Left to collect"
+          },
+          "[\"name\",\"Receipts Today\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Receipts today"
+          },
+          "[\"name\",\"Overdue Amount\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Overdue balance"
+          }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Daily Collection Status"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Overdue",
+            "color": "#FEE4E2",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Daily Collection Status"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Not Paid",
+            "color": "#FFF1D6",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Daily Collection Status"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Partially Paid",
+            "color": "#EAF2FF",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Daily Collection Status"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Fully Paid",
+            "color": "#ECFDF3",
+            "highlight_row": true
+          }
+        ]
+      },
+      "description": "R025 / 8R Collection Monitor. Detail filters only. The main monitoring board always shows its full population. Overdue is already included in Left; do not add it again.",
+      "id": 248
+    },
+    {
+      "key": "today-charges",
+      "name": "Charges dated today · separate from board balances",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__73",
+          "expressions": {
+            "Paid percentage": [
+              "case",
+              [
+                [
+                  [
+                    ">",
+                    [
+                      "field",
+                      "Amount Due Today",
+                      {
+                        "base-type": "type/Decimal"
+                      }
+                    ],
+                    0
+                  ],
+                  [
+                    "/",
+                    [
+                      "field",
+                      "Amount Collected Today",
+                      {
+                        "base-type": "type/Decimal"
+                      }
+                    ],
+                    [
+                      "field",
+                      "Amount Due Today",
+                      {
+                        "base-type": "type/Decimal"
+                      }
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          },
+          "fields": [
+            [
+              "field",
+              "Amount Due Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Amount Collected Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "field",
+              "Amount Outstanding Today",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            [
+              "expression",
+              "Paid percentage"
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "column_settings": {
+          "[\"name\",\"Amount Due Today\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Due"
+          },
+          "[\"name\",\"Amount Collected Today\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Paid against these charges"
+          },
+          "[\"name\",\"Amount Outstanding Today\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false,
+            "column_title": "Remaining"
+          },
+          "[\"name\",\"Paid percentage\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Charges dated Bangkok today only; paid is Total Paid against those charges. Not receipts posted today across all charge dates. Zero due => unavailable percentage.",
+      "id": 249
+    },
+    {
+      "key": "freshness",
+      "name": "Bangkok date & query time",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__73",
+          "expressions": {
+            "Queried at": [
+              "now"
+            ]
+          },
+          "fields": [
+            [
+              "field",
+              "As Of Date",
+              {
+                "base-type": "type/Date"
+              }
+            ],
+            [
+              "expression",
+              "Queried at"
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.cell_column_widths": [
+          130,
+          230
+        ],
+        "column_settings": {
+          "[\"name\",\"As Of Date\"]": {
+            "column_title": "Bangkok date",
+            "date_style": "D/M/YYYY"
+          },
+          "[\"name\",\"Queried at\"]": {
+            "date_style": "D/M/YYYY",
+            "time_enabled": "minutes",
+            "time_style": "HH:mm"
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Time this helper query ran; not proof every card succeeded. Unsynced AppSheet payments are not visible. Native errors remain visible.",
+      "id": 250
+    },
+    {
+      "key": "unclassified",
+      "name": "Unclassified people · expected 0",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "query",
+        "query": {
+          "source-table": "card__77",
+          "filter": [
+            "not",
+            [
+              "=",
+              [
+                "field",
+                "Daily Collection Status",
+                {
+                  "base-type": "type/Text"
+                }
+              ],
+              "Overdue",
+              "Not Paid",
+              "Partially Paid",
+              "Fully Paid"
+            ]
+          ],
+          "aggregation": [
+            [
+              "aggregation-options",
+              [
+                "distinct",
+                [
+                  "field",
+                  "Borrower ID",
+                  {
+                    "base-type": "type/Text"
+                  }
+                ]
+              ],
+              {
+                "name": "Unclassified",
+                "display-name": "Unclassified"
+              }
+            ]
+          ]
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Unclassified",
+        "column_settings": {
+          "[\"name\",\"Unclassified\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R025 / 8R Collection Monitor. Any positive count requires investigation; full detail retains unexpected statuses. Do not treat unknown statuses as paid.",
+      "id": 251
+    }
+  ],
+  "parameters": [
+    {
+      "id": "collection-detail-borrower",
+      "name": "Detail only · Borrower",
+      "slug": "collection_detail_borrower",
+      "type": "string/=",
+      "sectionId": "string",
+      "values_query_type": "list",
+      "values_source_type": "card",
+      "values_source_config": {
+        "card_id": 77,
+        "value_field": [
+          "field",
+          "Borrower ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "label_field": [
+          "field",
+          "Borrower",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      "isMultiSelect": false
+    },
+    {
+      "id": "collection-detail-status",
+      "name": "Detail only · Status",
+      "slug": "collection_detail_status",
+      "type": "string/=",
+      "sectionId": "string",
+      "values_query_type": "list",
+      "values_source_type": "static-list",
+      "values_source_config": {
+        "values": [
+          "Overdue",
+          "Not Paid",
+          "Partially Paid",
+          "Fully Paid"
+        ]
+      },
+      "isMultiSelect": true
+    }
+  ],
+  "layout": [
+    {
+      "id": 628,
+      "card_id": null,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 0,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Collection Monitor · Bangkok today"
+          }
+        }
+      }
+    },
+    {
+      "id": 629,
+      "card_id": null,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 1,
+      "size_x": 12,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Received = receipts today · Left includes older dues. Refresh every minute using the clock. Detail filters do not hide people above."
+          }
+        }
+      }
+    },
+    {
+      "id": 630,
+      "card_id": 250,
+      "dashboard_tab_id": 19,
+      "col": 12,
+      "row": 1,
+      "size_x": 12,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 631,
+      "card_id": 236,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 4,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 632,
+      "card_id": 237,
+      "dashboard_tab_id": 19,
+      "col": 6,
+      "row": 4,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 633,
+      "card_id": 238,
+      "dashboard_tab_id": 19,
+      "col": 12,
+      "row": 4,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 634,
+      "card_id": 239,
+      "dashboard_tab_id": 19,
+      "col": 18,
+      "row": 4,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 635,
+      "card_id": 240,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 6,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 636,
+      "card_id": 241,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 8,
+      "size_x": 6,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?borrower={{Borrower ID}}&tab=10-9-%C2%B7-borrower-insight"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 637,
+      "card_id": 242,
+      "dashboard_tab_id": 19,
+      "col": 6,
+      "row": 6,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 638,
+      "card_id": 243,
+      "dashboard_tab_id": 19,
+      "col": 6,
+      "row": 8,
+      "size_x": 6,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?borrower={{Borrower ID}}&tab=10-9-%C2%B7-borrower-insight"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 639,
+      "card_id": 244,
+      "dashboard_tab_id": 19,
+      "col": 12,
+      "row": 6,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 640,
+      "card_id": 245,
+      "dashboard_tab_id": 19,
+      "col": 12,
+      "row": 8,
+      "size_x": 6,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?borrower={{Borrower ID}}&tab=10-9-%C2%B7-borrower-insight"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 641,
+      "card_id": 246,
+      "dashboard_tab_id": 19,
+      "col": 18,
+      "row": 6,
+      "size_x": 6,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 642,
+      "card_id": 247,
+      "dashboard_tab_id": 19,
+      "col": 18,
+      "row": 8,
+      "size_x": 6,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?borrower={{Borrower ID}}&tab=10-9-%C2%B7-borrower-insight"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 643,
+      "card_id": null,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 17,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Zero people = empty group. A payment today can still leave a borrower Overdue. People can move groups after refresh."
+          }
+        }
+      }
+    },
+    {
+      "id": 644,
+      "card_id": null,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 19,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "heading",
+          "visualization_settings": {
+            "text": "Collection detail · filters apply here only"
+          }
+        }
+      }
+    },
+    {
+      "id": 645,
+      "card_id": 248,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 20,
+      "size_x": 24,
+      "size_y": 10,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "collection-detail-borrower",
+          "card_id": 248,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ]
+        },
+        {
+          "parameter_id": "collection-detail-status",
+          "card_id": 248,
+          "target": [
+            "dimension",
+            [
+              "field",
+              "Daily Collection Status",
+              {
+                "base-type": "type/Text"
+              }
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?borrower={{Borrower ID}}&tab=10-9-%C2%B7-borrower-insight"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 646,
+      "card_id": 249,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 30,
+      "size_x": 18,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 647,
+      "card_id": 251,
+      "dashboard_tab_id": 19,
+      "col": 18,
+      "row": 30,
+      "size_x": 6,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {}
+    },
+    {
+      "id": 648,
+      "card_id": null,
+      "dashboard_tab_id": 19,
+      "col": 0,
+      "row": 34,
+      "size_x": 24,
+      "size_y": 2,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Amounts are baht. Queried at is the helper query time; errors remain visible per card. AppSheet payments appear after sync and refresh."
+          }
+        }
+      }
+    }
+  ]
+}

@@ -79,3 +79,7 @@ Income presentation: cash waterfall 189 is recoverably archived. `Verify-IncomeS
 ### Number-card hover ranges
 
 `Remove-ScalarHoverRanges.mjs` removed broad decorative `scalar.segments` from 63 active scalar questions after private metadata backup. Metabase uses those ranges as hover legends as well as conditional number colors. Number cards therefore use its default color; charts retain useful data-point tooltips, and Cashflow table conditional cell colors are separate. `Build-ModelPages.mjs`, `Build-RemainingPages.mjs`, `Build-IncomePage.mjs`, the three generated question inventories and `Install-CashflowPage.mjs` omit the ranges so they are not reintroduced. Recovery and exact IDs: `scalar-hover-cleanup.json` and private `scalar-hover-before`.
+
+## 8R Collection Monitor — R025 review
+
+`CollectionMonitor.mjs` creates the additive tab 19 from existing models without editing the original collection page or database. Its `--prepare` captures private rollback and preflights queries; `--install` adds the isolated page; `--refine` preserves original placements and changes only owned review questions/layout/parameters. Do not replay against later owner changes without rebaselining. `Verify-CollectionMonitor.mjs` checks source parity, preserved definitions, detail-only mappings and empty/status/date cases; financial values stay private. [Implementation, refresh link and limits](../../outputs/r025-20260924/README.md). R025 remains Open for review; original tab 9 is retained.

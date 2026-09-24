@@ -47,14 +47,14 @@
     "position": 4
     "entity_id": "Rt-KpcwfxjGRTvoTHNOda"
     "created_at": "2026-09-23T19:06:46.29572Z"
-    "updated_at": "2026-09-24T10:13:51.691449Z"
+    "updated_at": "2026-09-24T10:42:03.352479Z"
   - "id": 6
     "dashboard_id": 3
     "name": "6 · Borrowers"
     "position": 5
     "entity_id": "8lcXD4OYDrJgkEqOmjKW0"
     "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-23T18:17:39.510824Z"
+    "updated_at": "2026-09-24T10:42:03.352479Z"
   - "id": 8
     "dashboard_id": 3
     "name": "7 · Risks"
@@ -69,27 +69,34 @@
     "entity_id": "WsLzHCqqajzfGVpou2Nyq"
     "created_at": "2026-09-22T12:32:45.925957Z"
     "updated_at": "2026-09-24T10:13:51.691449Z"
+  - "id": 19
+    "dashboard_id": 3
+    "name": "8R · Collection Monitor"
+    "position": 8
+    "entity_id": "HTvmH4G_pettfrl6shBpy"
+    "created_at": "2026-09-24T11:35:18.286275Z"
+    "updated_at": "2026-09-24T11:35:18.286275Z"
   - "id": 10
     "dashboard_id": 3
     "name": "9 · Borrower Insight"
-    "position": 8
+    "position": 9
     "entity_id": "jVJL2DkBQTXKfzw0h0kP6"
     "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-24T10:13:51.691449Z"
+    "updated_at": "2026-09-24T11:35:18.286275Z"
   - "id": 11
     "dashboard_id": 3
     "name": "10 · Forecast & Partners"
-    "position": 9
+    "position": 10
     "entity_id": "HpX0Vj4mHUGAPeopmzU_l"
     "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-24T10:13:51.691449Z"
+    "updated_at": "2026-09-24T11:35:18.286275Z"
   - "id": 17
     "dashboard_id": 3
     "name": "Tab 11"
-    "position": 10
+    "position": 11
     "entity_id": "ekTtfQu8cvMG2Ys54NoPc"
     "created_at": "2026-09-23T17:25:33.780214Z"
-    "updated_at": "2026-09-24T10:13:51.691449Z"
+    "updated_at": "2026-09-24T11:35:18.286275Z"
   "parameters":
   - "slug": "borrower"
     "values_query_type": "list"
@@ -173,6 +180,38 @@
     "type": "date/all-options"
     "sectionId": "date"
     "default": "past30days"
+  - "slug": "collection_detail_borrower"
+    "values_query_type": "list"
+    "name": "Detail only · Borrower"
+    "isMultiSelect": false
+    "type": "string/="
+    "sectionId": "string"
+    "values_source_type": "card"
+    "id": "collection-detail-borrower"
+    "values_source_config":
+      "card_id": 77
+      "value_field":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "label_field":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+  - "slug": "collection_detail_status"
+    "values_query_type": "list"
+    "name": "Detail only · Status"
+    "isMultiSelect": true
+    "type": "string/="
+    "sectionId": "string"
+    "values_source_type": "static-list"
+    "id": "collection-detail-status"
+    "values_source_config":
+      "values":
+      - "Overdue"
+      - "Not Paid"
+      - "Partially Paid"
+      - "Fully Paid"
   "cash_pages":
     "layout":
     - "id": -1
@@ -3940,6 +3979,40 @@
       "borrowers_display_name": "6 · Borrowers"
       "borrowers_position": 5
       "order_evidence": "outputs/r024-20260924/README.md"
+  "collection_monitor":
+    "tab_id": 19
+    "display_name": "8R · Collection Monitor"
+    "status": "Additive review; original tab 9 retained"
+    "source_models":
+    - 69
+    - 71
+    - 73
+    - 77
+    - 162
+    "question_ids":
+      "people": 236
+      "receipts": 237
+      "remaining": 238
+      "completion": 239
+      "overdue-count": 240
+      "overdue-list": 241
+      "unpaid-count": 242
+      "unpaid-list": 243
+      "partial-count": 244
+      "partial-list": 245
+      "paid-count": 246
+      "paid-list": 247
+      "detail": 248
+      "today-charges": 249
+      "freshness": 250
+      "unclassified": 251
+    "parameters":
+    - "collection-detail-borrower"
+    - "collection-detail-status"
+    "specification": "outputs/r025-20260924/plan.json"
+    "evidence": "outputs/r025-20260924/README.md"
+    "refresh": "Native viewer option: 60 seconds; active-tab clock observed"
+    "database_changes": false
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -3954,18 +4027,22 @@
     "reason": "Tab 9 category labels and daily income/expense comparison"
     "state": "value"
   "/content/tabs":
-    "reference": "outputs/r024-20260924/README.md"
-    "reason": "Swap canonical Performance and Borrowers display order"
+    "reference": "outputs/r025-20260924/README.md"
+    "reason": "R025 additive collection monitor, original collection preserved"
     "state": "value"
   "/content/performance_review":
     "reference": "outputs/r024-20260924/README.md"
     "reason": "Swap canonical Performance and Borrowers display order"
     "state": "value"
   "/content/parameters":
-    "reference": "outputs/r023-20260924/README.md"
-    "reason": "Canonical Performance replacement accepted by owner"
+    "reference": "outputs/r025-20260924/README.md"
+    "reason": "R025 additive collection monitor, original collection preserved"
     "state": "value"
   "/content/unaffected_pages":
     "reference": "outputs/r023-20260924/README.md"
     "reason": "Canonical Performance replacement accepted by owner"
+    "state": "value"
+  "/content/collection_monitor":
+    "reference": "outputs/r025-20260924/README.md"
+    "reason": "R025 additive collection monitor, original collection preserved"
     "state": "value"

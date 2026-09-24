@@ -220,3 +220,7 @@ Use isolated synthetic query fixtures for edge cases and read-only live reconcil
 - [Current solution ownership](../../Documents/Solution_Design.md), [release tracker](../../Documents/Release_Tracker.md), [Metabase tooling guide](../../scripts/metabase/README.md).
 
 Design validation completed: live reference layout inspection; current Metabase GUI and metadata inspection; maintained status/amount SQL review; native-capability documentation review; Markdown/link checks. Implementation, refresh measurements, borrower transitions and owner visual acceptance remain for execution.
+
+## Implementation follow-up
+
+The owner subsequently authorized implementation. [R025 implementation and verification](../r025-20260924/README.md) records tab 19, native presentation refinements and actual test limits. The original collection tab remains unchanged; this document remains the design baseline.

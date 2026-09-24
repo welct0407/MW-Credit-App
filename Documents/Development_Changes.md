@@ -1,5 +1,9 @@
 # Open development differences
 
+## R025 — Collection Monitor review
+
+Dashboard 3 now includes **8R · Collection Monitor** (tab 19), directly after original **8 · Daily Collection** (9). **12 tabs / 210 placements**; all 189 original placements preserved. Sixteen isolated query-builder questions provide four colored status lanes, summary/freshness cards and separately filtered detail. Shared models, source/permissions, database/AppSheet and jobs unchanged. R025 remains Open for owner review; original tab retained and final cutover deferred. [Implementation and limitations](../outputs/r025-20260924/README.md).
+
 R016 established ten canonical pages, 129 visual placements, 117 distinct questions, 15 active models / 228 fields and four snippets. Original tabs 2/9/10 are replaced by Cash Position (14), Income Statement (16) and Cashflow Statement (15), now ordered as pages 2/3/4, with later tabs shifted back. Fourteen unused questions and seven models are recoverably archived after dependency checks. DEV/PROD are V39; AppSheet and financial rows are unchanged. [canonical cash statements](../outputs/r016-20260922/statement-cleanup/README.md).
 
 Current production baseline is R015; final R016 owner acceptance and migration-key retirement remain pending.

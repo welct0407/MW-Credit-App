@@ -1,0 +1,46 @@
+{
+  "release": "R025",
+  "status": "Open — additive review implemented; owner acceptance/cutover pending",
+  "scope": "8R Collection Monitor only",
+  "authorization": "Owner: ok, go ahead with implementation of 8R",
+  "baselineCommit": "f4b8ffd86a73667b0d30c429a7b6d85da6151a5b",
+  "metabase": {
+    "dashboard": 3,
+    "reviewTab": 19,
+    "originalTab": 9,
+    "questions": {
+      "people": 236,
+      "receipts": 237,
+      "remaining": 238,
+      "completion": 239,
+      "overdue-count": 240,
+      "overdue-list": 241,
+      "unpaid-count": 242,
+      "unpaid-list": 243,
+      "partial-count": 244,
+      "partial-list": 245,
+      "paid-count": 246,
+      "paid-list": 247,
+      "detail": 248,
+      "today-charges": 249,
+      "freshness": 250,
+      "unclassified": 251
+    },
+    "originalPlacements": 189,
+    "finalPlacements": 210
+  },
+  "unchanged": [
+    "PostgreSQL schema/data",
+    "AppSheet apps",
+    "Source models",
+    "Permissions",
+    "Scheduled jobs",
+    "Notifications"
+  ],
+  "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r025-collection-monitor",
+  "verification": "outputs/r025-20260924/verification.json",
+  "finalCutover": false,
+  "scopeFrozen": false,
+  "nextNumberAllocated": false,
+  "finalReleaseTag": null
+}
