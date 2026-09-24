@@ -1,17 +1,17 @@
 # R017 promotion checklist
 
-Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Release_Workflow.md); exceptions: [Recovery](../../Documents/Release_Recovery_Runbook.md).
 
 ## Continue here
 
 - Scope: capital-yield chart on 6R; existing deployed R016 reporting dependencies. AppSheet/SQL unchanged.
-- Release scope / freeze timestamp / successor handoff: Open until authorized promotion starts; then record P13 evidence and update the tracker's current development release.
-- Manifest / change log / test evidence: Pending
-- DEV readiness / owner acceptance: Pending
+- Release scope frozen at P13; tested commit/timestamp in manifest.json, successor R018 Open.
+- Manifest / change log / test evidence: manifest.json, ../../Change Logs/CHANGE_NOTES_R017_2026-09-24.md, verification.json and browser-verification.json.
+- Readiness: 12 preflight and 23 installed checks pass. Owner conditional authorization satisfied; no DEV runtime edits.
 - Production authorization: owner explicitly requested adding the chart subject to filter/operational checks. No RC.
-- DEV / RC / PROD-before / PROD-after / rollback / SQL versions: in linked manifest; Pending
-- Implementation commit / Flyway manifest / final tag: in linked manifest; Pending
-- Completed: 12 preflight checks and private rollback capture. Next: report publication, actual dashboard/UI checks, docs/tag.
+- SQL/AppSheet unchanged; no RC. Exact report before-images and scoped rollback described in README.md.
+- Implementation commit pinned in manifest.json; no Flyway change; final tag R017.
+- Complete: installed query and dashboard mappings, 23 checks, Chrome desktop/390px, dictionary/core docs. Final publication/tag R017.
 - Documentation impact: tracker, inventory, development differences, solution design, Metabase dashboard dictionary; README.md and manifest.json.
 
 ## Execution rules
@@ -32,19 +32,19 @@ Execute applicable rows in order; one result/evidence link per coherent check. S
 | P22 | C SQL | SQL changes / DB writes | Verify restorable DB backup, schema drift and history; then validate/migrate/validate with the pinned manifest and existing runner. Record target/schema checks and before/after SQL versions. Complete compatible SQL before final RC PROD validation. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
 | P25 | D RC | App Upgrade | Rebind/reconcile every RC table/view and auxiliary source to PROD host/database/object. Save exact mappings once. No DEV source remains. Keep RC contained before PROD binding. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
 | P18 | D RC | App Upgrade | Capture the existing PROD logo setting/appearance; apply the corresponding PROD theme/branding/logo and companion links. If needed restore the correct logo from resources/ in durable PROD/shared storage, independent of RC lifetime. Keep shared recipients on PROD contact data; confirm Login Email prerequisites. Restore only documented legacy DEV overrides. Verify these substitutions once. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
-| P28 | D RC | External asset / access changes | Provision/check only affected templates, files, grants, endpoints and integrations outside App Upgrade. Link existing evidence for unchanged assets. | Pending | See README.md and verification.json. |
+| P28 | D RC | External asset / access changes | Provision/check only affected templates, files, grants, endpoints and integrations outside App Upgrade. Link existing evidence for unchanged assets. | Done | Report-only release; 23 checks, desktop/390px, dictionary/core docs and final evidence/tag R017. See README.md, manifest.json and verification.json. |
 | P29 | D RC | App Upgrade | Check copied guard coverage and this RC’s exact name exclusion; retain canonical DEV/PROD literals and intended bot states/schedules. Reuse runtime proof; no repeated diagnostic app or wait for every daily job. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
 | P30 | D RC | App Upgrade | One RC validation pass: save/reload, editor data validation, zero issues, open/sync and representative changed screens. Resolve unexpected generated changes only. Complete initial Deployment Check and deploy new RC; reuse DEV business tests. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
 | P33 | E Upgrade | App Upgrade | Freeze final deployed RC identity/version and mapping evidence. Confirm authorization covers that revision. Immediately before each upgrade, confirm unchanged PROD baseline and frozen RC version; drift/fixes require a new integrated RC. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
 | P37 | E Upgrade | Each included app | App Upgrade the existing PROD ID from the frozen RC’s full internal name in planned order. Record source, target and before/after versions. Confirm success before dependent steps; never hand-recreate settings in PROD. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
 | P39 | F Validate | Always; mappings if upgraded | One PROD pass: verify version/Deployed state, sources/substitutions, PROD-allowed/RC-excluded guards, both editors clear and both apps open/sync with changed entry points. Visually verify each upgraded logo loads and matches its pre-promotion appearance; use resources/ originals if restoration is needed and recheck the affected logo. Check recipients only if changed. Reuse DEV tests; no repeat Deployment Check. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
-| P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | Pending | See README.md and verification.json. |
+| P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | Done | Report-only release; 23 checks, desktop/390px, dictionary/core docs and final evidence/tag R017. See README.md, manifest.json and verification.json. |
 | P38 | F Validate | Paused jobs / cutover steps | Complete approved external cutover steps and resume temporary pauses. Keep integrity triggers and one active scheduler per job/environment. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
-| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Pending | See README.md and verification.json. |
-| P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Pending | See README.md and verification.json. |
+| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Done | Report-only release; 23 checks, desktop/390px, dictionary/core docs and final evidence/tag R017. See README.md, manifest.json and verification.json. |
+| P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Done | Report-only release; 23 checks, desktop/390px, dictionary/core docs and final evidence/tag R017. See README.md, manifest.json and verification.json. |
 | P49 | G Close | RC exists | After all upgrades and required PROD validation pass, automatically delete the recorded RC apps for this promotion, including rejected/superseded attempts; no further owner confirmation. Delete definitions only, preserving DEV/PROD, shared data/files/logos and recovery evidence. Verify deletion and update manifest/log/inventory/checklist before P48. Keep failed/incomplete promotion RCs contained; report cleanup failures as pending. No DEV refresh. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
-| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | Pending | See README.md and verification.json. |
-| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | Pending | See README.md and verification.json. |
+| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | Done | Report-only release; 23 checks, desktop/390px, dictionary/core docs and final evidence/tag R017. See README.md, manifest.json and verification.json. |
+| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | Done | Report-only release; 23 checks, desktop/390px, dictionary/core docs and final evidence/tag R017. See README.md, manifest.json and verification.json. |
 | P51 | X Exception | Failure / drift / required gap only | Stop affected dependent steps, record actual partial state and follow only the matching recovery branch. Preserve later writes/work; no blind replay or manual PROD fallback. Ask only for missing authority/material decisions. Reconcile resulting status and documents. | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
 
 ## Documentation impact and closure
@@ -55,14 +55,17 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
-| [Development Changes](../../../Documents/Development_Changes.md) | N/A | Report-only addition; no SQL, AppSheet, RC, financial writes or routing changes. |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | R017 capital-yield addition; question 232, 203 placements, source/apps unchanged. |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | R017 capital-yield addition; question 232, 203 placements, source/apps unchanged. |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | R017 capital-yield addition; question 232, 203 placements, source/apps unchanged. |
+
+| Metabase dashboard dictionary | Updated | Exact question 232, layout and formula/filter contract; guarded update and validation passed. |
+| Solution Design | Updated | Existing snapshot capital-yield provider reused. |
 
 ## Close
 
-- Outcome / limitations / rollback: Pending
-- Final evidence commit / Rnnn tag / remote verification: Pending
-- RC cleanup / verified deleted IDs and evidence: Pending or justified N/A
+- Outcome: Released — report-only. Original formula (including denominator <= 0 returning zero) retained. Remove new placement, restore weekly-card width, archive question 232 to roll back.
+- Final evidence: tagged R017 and published to configured upstream; verify branch/tag object at publication.
+- RC cleanup: N/A, no RC/app changes.
 
 Released requires applicable activities, documentation, RC cleanup and publication complete. If only documents/publication remain, repair them without redeploying. Record final outcome in the manifest/tracker before the final evidence commit and verify publication afterward; do not create self-referential commit hashes.

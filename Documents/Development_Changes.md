@@ -4,6 +4,10 @@ R016 established ten canonical pages, 129 visual placements, 117 distinct questi
 
 Current production baseline is R015; final R016 owner acceptance and migration-key retirement remain pending.
 
+## R017 — Capital yield on 6R
+
+R017 capital-yield addition, 24 September: **Daily capital yield · snapshots** (question 232) is now on 6R beside weekly average loan size. Existing model 74 formula and Performance period filter are reused; completed days only, percent format, missing snapshots blank. Dashboard 3 has 203 placements. Existing questions, database/AppSheet, permissions and refresh jobs are unchanged. [Verified implementation](../outputs/r017-20260924/README.md).
+
 ## R016 — Metabase reporting migration
 
 **Performance review, 24 September:** implemented separate tab **6R · Performance** (18), now immediately after original Performance by owner arrangement. Daily question 222 and new cumulative 230 use Metabase helper 229 for strict seven-day averages before the display-date filter; readiness 231 complements unchanged snapshot status 228. Original Performance (7) is preserved. No DB objects/SQL, snapshot engine, AppSheet or financial-data change. [Saved definitions, 41 checks, browser evidence and rollback](../outputs/r016-20260922/performance-redesign/ROLLING_IMPLEMENTATION.md). R016 is Frozen for promotion; R017 is the sole Open release for subsequent work.
