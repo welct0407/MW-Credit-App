@@ -7,6 +7,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Which release to use for new development / status | [Current development release](Release_Tracker.md#current-development-release) and tracker history |
 | Open DEV work | [Development Changes](Development_Changes.md) |
 | Current identities/settings | [Environment Inventory](Environment_Inventory.md) |
+| Service login account / browser profile | [Service account and browser mapping](Service_Account_Browser_Mapping.md) |
 | Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |
 | Model explanations | [Model Overview](AppSheet_Data_Model_Overview.md) |
 | Exact model/configuration values across ecosystem systems | [Data Dictionary](Data%20Dictionary/README.md) |

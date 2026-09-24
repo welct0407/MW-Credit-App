@@ -1,0 +1,8 @@
+{
+  "services": 17,
+  "extraRows": 5,
+  "accounts": "All blank for owner input",
+  "verification": "Saved XLSX values, all formula references, routing constants, cached blank states, freeze pane and visual preview",
+  "authoring": "Bundled XlsxWriter fallback: @oai/artifact-tool absent from bundled node_modules",
+  "recalculation": "Automatic Excel calculation enabled; no native Excel/LibreOffice calculation engine available here"
+}
