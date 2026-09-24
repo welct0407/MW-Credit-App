@@ -86,6 +86,7 @@ if(process.argv.includes('--prepare')){
  console.log('Private dashboard/model rollback captured; all 12 queries passed unfiltered preflight.');
 }
 if(process.argv.includes('--install')){
+ if(fs.existsSync(new URL('../../outputs/r016-20260922/performance-redesign/rolling-state.json',import.meta.url)))throw Error('6R has the rolling-average enhancement. Do not replay the legacy page layout; use PerformanceRolling.mjs and its saved plan.');
  await assertSource();const before=JSON.parse(fs.readFileSync(backup+'/dashboard.json'));
  let state;try{state=read('performance-redesign/state.json');}catch{state={cards:{},baseline_commit:'52a8bd44cfade2ec43c54ccb39889b1037b3329c',backup};}
  let d=await api('GET','dashboard/3');assert.deepEqual(shape(d.dashcards.filter(c=>c.dashboard_tab_id!==state.tab)),shape(before.dashcards));

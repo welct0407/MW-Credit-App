@@ -1,0 +1,28 @@
+{
+  "at": "2026-09-24T04:53:04.923Z",
+  "mode": "preflight",
+  "checks": [
+    "Report timezone is Bangkok",
+    "Calendar grain has unique consecutive dates",
+    "7-day average · daily reconciles independently across all dates",
+    "7-day average · cumulative reconciles independently across all dates",
+    "Source model has one snapshot per date",
+    "Outer-filter invariance 2026-09-01..2026-09-01",
+    "Outer-filter invariance 2026-09-01..2026-09-30",
+    "Outer-filter invariance 2026-08-26..2026-09-01",
+    "Outer-filter invariance 2026-08-01..2026-09-23",
+    "Outer-filter invariance 2099-01-01..2099-01-31",
+    "Outer-filter invariance 2000-01-01..2000-01-31",
+    "Synthetic first six MA rows are null",
+    "Known day seven: daily MA 40, cumulative 280, cumulative MA 120",
+    "Known day eight: daily MA 50, cumulative 360, cumulative MA 170",
+    "Missing date propagates null then daily MA recovers",
+    "Cumulative remains null after missing input",
+    "Zero and negative values remain signed",
+    "Old correction affects exactly seven daily MA dates",
+    "Old correction propagates through cumulative"
+  ],
+  "count": 19,
+  "financial_values_published": false,
+  "database_writes": false
+}
