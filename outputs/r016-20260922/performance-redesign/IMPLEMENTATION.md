@@ -1,5 +1,7 @@
 # Performance Review — implemented parallel page
 
+Current refinement: [Metabase seven-day averages](ROLLING_IMPLEMENTATION.md) supersedes daily question 222 and the affected tab layout below. Owner renamed/moved tab 18 to **6R · Performance** after original Performance.
+
 24 September 2026 · R016 · Owner review pending.
 
 [Open 6R · Performance Review](https://reports.mw-credit.com/dashboard/3?tab=18-6r-%C2%B7-performance-review). Dashboard 3, tab ID **18**, appended after the owner's Tab 11. The original **6 · Performance** (tab ID 7), its questions, filters and placements remain unchanged. The owner will decide whether to replace it later.

@@ -1,8 +1,8 @@
-# Seven-day averages for Performance — design only
+# Seven-day averages for Performance — approved design
 
-24 September 2026 · Revised design: Metabase query-builder rolling averages · R016 remains Open.
+24 September 2026 · Revised design: Metabase query-builder rolling averages. Implemented under R016; see [saved implementation and refinements](ROLLING_IMPLEMENTATION.md).
 
-**Latest owner instruction: update the design only.** The proposed database view and the later suggestion of handwritten Metabase SQL are superseded. This revision specifies Metabase graphical query-builder expressions over existing sources. No implementation is performed or requested in this turn.
+**Status update:** the owner subsequently authorized implementation. The design below records the approved approach; its future-tense implementation notes are historical. The [implementation record](ROLLING_IMPLEMENTATION.md) owns final IDs, checks, refinements and limitations. The earlier database-view and handwritten-SQL proposals remain superseded.
 
 ## Recommendation
 

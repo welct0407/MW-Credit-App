@@ -1,0 +1,25 @@
+{
+  "release": "R016",
+  "revision": "Final presentation correction within frozen scope",
+  "preflight_commit": "43ecd33",
+  "handoff_commit": "a76bda2",
+  "files": [
+    {
+      "path": "scripts/metabase/PerformanceRolling.mjs",
+      "sha256": "4a23098700bc5fbbc1fe00ee3898580911b91de873e6d3c48d51c27912b7b702"
+    },
+    {
+      "path": "scripts/metabase/Verify-PerformanceRolling.mjs",
+      "sha256": "73e44e262d61c426747d7bde9438ace28f7bbc7869f9f2ae2d2efc0c5150a470"
+    },
+    {
+      "path": "outputs/r016-20260922/performance-redesign/rolling-plan.json",
+      "sha256": "7a9c26c3c91f4b8fdec00ecf1ce8c9ecb98d692eba600685cd287227a74d0be8"
+    },
+    {
+      "path": "outputs/r016-20260922/performance-redesign/rolling-verification.json",
+      "sha256": "d89311e2f5e941029294c44c56c9c9226933d81aaa05c672c88f9be0dc493424"
+    }
+  ],
+  "database_changes": false
+}

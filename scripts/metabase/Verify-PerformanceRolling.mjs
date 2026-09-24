@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {api,assertSource,write,read} from './ReportingApi.mjs';
-import {backup,rolling,coverage,guarded,outer,execute,f,named,query} from './PerformanceRolling.mjs';
+import {backup,rolling,coverage,guarded,outer,execute,f,chartSettings} from './PerformanceRolling.mjs';
 const checks=[];
 const check=(name,ok=true)=>{assert.ok(ok,name);checks.push(name);};
 const near=(a,b)=>a===null||b===null?a===b:Math.abs(Number(a)-Number(b))<1e-7;
@@ -53,6 +53,11 @@ if(process.argv.includes('--installed')){
  for(const p of before.dashcards.filter(c=>c.card_id&&c.card_id!==222)){
   const n=d.dashcards.find(x=>x.id===p.id);assert.deepEqual(n.card.dataset_query,p.card.dataset_query);assert.deepEqual(n.card.visualization_settings,p.card.visualization_settings);
  }check('All pre-existing questions other than 222 unchanged');
+ for(const [id,cumulative] of [[222,false],[state.cumulative,true]]){const c=await api('GET','card/'+id);assert.deepEqual(c.visualization_settings,chartSettings(cumulative));check('Saved series styling, axis and null settings '+id);}
+ const readiness=d.dashcards.find(x=>x.card_id===state.readiness);
+ for(const [value,expected] of [['2026-09-01~2026-09-30',[23,23,23]],['2026-08-01~2026-08-07',[7,1,1]],['2026-09-24',[0,0,0]]]){
+  const r=await api('POST',`dashboard/3/dashcard/${readiness.id}/card/${state.readiness}/query`,{parameters:[{id:'review-performance',type:'date/all-options',value}]});assert.equal(r.status,'completed');assert.deepEqual(r.data.rows[0].slice(1),expected);check('Readiness counts '+value);
+ }
  for(const [key,indices] of [['daily',[0,1,2]],['cumulative',[0,3,4]]]){
   const id=key==='daily'?222:state.cumulative,p=d.dashcards.find(x=>x.card_id===id&&x.dashboard_tab_id===18);
   for(const value of ['2026-09-01','2026-09-01~2026-09-30','2026-08-26~2026-09-01','2026-09-24','2099-01-01',null]){

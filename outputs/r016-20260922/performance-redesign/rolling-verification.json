@@ -1,6 +1,6 @@
 {
-  "at": "2026-09-24T04:53:04.923Z",
-  "mode": "preflight",
+  "at": "2026-09-24T05:01:32.583Z",
+  "mode": "installed",
   "checks": [
     "Report timezone is Bangkok",
     "Calendar grain has unique consecutive dates",
@@ -20,9 +20,31 @@
     "Cumulative remains null after missing input",
     "Zero and negative values remain signed",
     "Old correction affects exactly seven daily MA dates",
-    "Old correction propagates through cumulative"
+    "Old correction propagates through cumulative",
+    "All other placements preserved",
+    "Owner tab order/name and all dashboard parameters preserved",
+    "Permissions unchanged",
+    "Existing source model unchanged",
+    "All pre-existing questions other than 222 unchanged",
+    "Saved series styling, axis and null settings 222",
+    "Saved series styling, axis and null settings 230",
+    "Readiness counts 2026-09-01~2026-09-30",
+    "Readiness counts 2026-08-01~2026-08-07",
+    "Readiness counts 2026-09-24",
+    "daily installed dashboard filter 2026-09-01",
+    "daily installed dashboard filter 2026-09-01~2026-09-30",
+    "daily installed dashboard filter 2026-08-26~2026-09-01",
+    "daily installed dashboard filter 2026-09-24",
+    "daily installed dashboard filter 2099-01-01",
+    "daily installed dashboard filter cleared",
+    "cumulative installed dashboard filter 2026-09-01",
+    "cumulative installed dashboard filter 2026-09-01~2026-09-30",
+    "cumulative installed dashboard filter 2026-08-26~2026-09-01",
+    "cumulative installed dashboard filter 2026-09-24",
+    "cumulative installed dashboard filter 2099-01-01",
+    "cumulative installed dashboard filter cleared"
   ],
-  "count": 19,
+  "count": 41,
   "financial_values_published": false,
   "database_writes": false
 }

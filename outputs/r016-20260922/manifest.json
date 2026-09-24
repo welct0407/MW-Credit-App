@@ -2,24 +2,27 @@
   "reservation_commit": "af677e4",
   "sql": "scripts/metabase/reporting-pages-1-2-grants.sql",
   "dashboard": {
-    "visuals": 129,
+    "visuals": 144,
     "collection": 5,
     "id": 3,
     "tabs": [
       4,
       14,
+      16,
+      15,
       6,
       7,
+      18,
       8,
       9,
       10,
       11,
-      16,
-      15
+      17
     ],
-    "questions": 117,
+    "questions": 131,
     "source": 2,
-    "heading_and_note_cards": 52
+    "heading_and_note_cards": 58,
+    "placements": 202
   },
   "checklist": "promotion-checklist.md",
   "remaining": [
@@ -27,7 +30,8 @@
     "Borrower daily balance history unavailable in existing source; no new schema authorized",
     "Lisa personal Google sign-in remains unconfirmed",
     "Migration-key revocation and final R016 acceptance/closure",
-    "Owner review of completed 2R snapshot design"
+    "Owner review of completed 2R snapshot design",
+    "Owner decision on original Performance replacement/retirement"
   ],
   "appsheet": {
     "olap": "unchanged",
@@ -59,7 +63,7 @@
     "v38_migration_sha256": "0a18535118706be2a2b19a3e69c7bb96d7904252ff7d309e1f7d47311f16f756",
     "v39_migration_sha256": "5047669deccff394983ccb8a3b0f644fef3c398c3d2e89ccd1ee2752354c8730"
   },
-  "status": "canonical-cash-pages-complete-owner-review-pending",
+  "status": "frozen-for-promotion-6r-rolling-complete-owner-closure-pending",
   "release": "R016",
   "tests": "query-reconciliation.json",
   "final_tag": null,
@@ -119,15 +123,15 @@
   "cash_review": {
     "tabs": [
       {
-        "name": "2R \u00b7 Cash Position",
+        "name": "2R · Cash Position",
         "id": 14
       },
       {
-        "name": "10R \u00b7 Cashflow Statement",
+        "name": "10R · Cashflow Statement",
         "id": 15
       },
       {
-        "name": "9R \u00b7 Income Statement",
+        "name": "9R · Income Statement",
         "id": 16
       }
     ],
@@ -197,5 +201,27 @@
     "models": 15,
     "model_fields": 228,
     "sql_promotion": "statement-cleanup/sql-promotion.json"
+  },
+  "scope_freeze": {
+    "at": "2026-09-24T04:55:21.126Z",
+    "package_commit": "43ecd33",
+    "handoff_commit": "a76bda2",
+    "evidence": "performance-redesign/SCOPE_FREEZE.md",
+    "next_open_release": "R017"
+  },
+  "performance_rolling": {
+    "status": "implemented-and-verified",
+    "tab": 18,
+    "questions": {
+      "helper": 229,
+      "daily": 222,
+      "cumulative": 230,
+      "readiness": 231
+    },
+    "package": "performance-redesign/rolling-package.json",
+    "verification": "performance-redesign/rolling-verification.json",
+    "browser": "performance-redesign/rolling-browser-verification.json",
+    "contract": "performance-redesign/ROLLING_IMPLEMENTATION.md",
+    "database_changes": false
   }
 }
