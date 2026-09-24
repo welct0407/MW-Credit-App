@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R024 | Future development; deployed reporting dependencies | Open — no feature scope allocated | 2026-09-24T10:13:47.382Z: opened at R023 promotion start | [Handoff](../outputs/r023-20260924/manifest.json) |
-| R023 | Canonical Performance replacement | Frozen for promotion | 2026-09-24T10:13:47.382Z: pinned 7ea641d328ce750318ba5bf25ed2a72a6275fead | [Evidence](../outputs/r023-20260924/README.md) |
+| R023 | Canonical Performance replacement | Released — report-only | 2026-09-24: tab18 promoted, tab7 removed; 4 checks and Chrome verified | [Evidence](../outputs/r023-20260924/README.md) · tag R023 |
 | R022 | Selective Performance trend labels | Released — report-only formatting | 2026-09-24: eight charts set to Some; 9 saved-state checks and Chrome visual verification | [Evidence](../outputs/r022-20260924/README.md) · tag R022 |
 | R021 | Net Principal Deployed and Loan-Cohort Return summary cards | Released — report-only | 2026-09-24: questions 234/235; 8 installed checks and Chrome visual verification passed | [Evidence](../outputs/r021-20260924/README.md) · tag R021 |
 | R020 | Compact 6R loan-return chart layout | Released — report-only layout | 2026-09-24: half-width chart grouped beside EOD; saved-state and Chrome visual checks passed | [Evidence](../outputs/r020-20260924/README.md) · tag R020 |

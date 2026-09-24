@@ -1,6 +1,6 @@
 {
   "release": "R023",
-  "status": "Frozen for promotion",
+  "status": "Released — report-only",
   "scope": "Replace old Performance tab7 with canonical tab18",
   "frozen_at": "2026-09-24T10:13:47.382Z",
   "tested_commit": "7ea641d328ce750318ba5bf25ed2a72a6275fead",
@@ -9,5 +9,6 @@
   "rollback": "Private r023-performance/dashboard.json",
   "apps": "Unchanged",
   "database": "Unchanged",
-  "tag": "R023"
+  "tag": "R023",
+  "verification": "verification.json; browser-verification.json"
 }
