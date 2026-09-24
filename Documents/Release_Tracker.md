@@ -4,19 +4,20 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R026 — Open** |
-| Next number, not yet open or usable | **R027 — opens only when R026 is frozen at promotion start** |
-| Current release evidence | R026 is open for new development. R025 Collection replacement is released. [Implementation](../outputs/r025-20260924/README.md) |
+| **Use this release for new development** | **R027 — Open** |
+| Next number, not yet open or usable | **R028 — opens only when R027 is frozen at promotion start** |
+| Current release evidence | R027 is open for development; paused borrower payment-health work transfers here. R026 is frozen for scoped dictionary-fix promotion. [Checklist](../outputs/r026-dictionary-fixes/promotion-checklist.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
-Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-average promotion; it is now Frozen for promotion and R026 is now the sole Open release after the subsequent authorized report promotions. Its earlier staged PROD/report deliveries retain their actual history; this policy update does not retroactively declare a scope freeze or authorize promotion. Recorded completed PROD baseline remains **R015**; R016's partial deliveries are documented in its evidence. See [numbering policy](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026) and [freeze handoff](Release_Workflow.md#release-scope-freeze-and-number-handoff).
+Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-average promotion; it is now Frozen for promotion and R027 is now the sole Open release after the subsequent authorized report promotions. Its earlier staged PROD/report deliveries retain their actual history; this policy update does not retroactively declare a scope freeze or authorize promotion. Recorded completed PROD baseline remains **R015**; R016's partial deliveries are documented in its evidence. See [numbering policy](../AGENTS.md#project-release-tracking--owner-rule-16-september-2026) and [freeze handoff](Release_Workflow.md#release-scope-freeze-and-number-handoff).
 
 ## Release history and status
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R026 | Table locale alignment, environment-safe export template and unused pg_cron retirement | Open | 2026-09-24: owner-requested dictionary findings follow-up; implementation in progress | [Log](../Change%20Logs/CHANGE_NOTES_R026_2026-09-24.md) |
+| R027 | Borrower payment health and reliability; other new development | Open | 2026-09-24: unapplied V41 and unimplemented app scope transferred at R026 freeze; owner-paused | [Prior development record](../Change%20Logs/CHANGE_NOTES_R026_2026-09-24.md) |
+| R026 | Table locale alignment, environment-safe export template and unused pg_cron retirement | Frozen for promotion | 2026-09-24T14:03:59.883143+00:00: V40-only commit 8a76733; DEV OLTP 1.000075 / OLAP 1.000031; V41 excluded | [Checklist](../outputs/r026-dictionary-fixes/promotion-checklist.md) · [Log](../Change%20Logs/CHANGE_NOTES_R026_2026-09-24.md) |
 | R025 | Canonical Collection Monitor replacement | Released — report-only | 2026-09-24: canonical tab19; old tab9 removed; 6 cutover checks and Chrome passed; tag R025 | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
 | R024 | Performance and Borrowers tab order | Released — report-only | 2026-09-24: tab18 fifth, tab6 sixth; saved-state and Chrome checks passed | [Evidence](../outputs/r024-20260924/README.md) · tag R024 |
 | R023 | Canonical Performance replacement | Released — report-only | 2026-09-24: tab18 promoted, tab7 removed; 4 checks and Chrome verified | [Evidence](../outputs/r023-20260924/README.md) · tag R023 |
