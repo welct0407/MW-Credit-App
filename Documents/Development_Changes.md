@@ -1,8 +1,8 @@
 # Open development differences
 
-## R027 — borrower payment health, in development
+## R027 — SQL/report delivered; AppSheet scope removed
 
-DEV SQL V41 adds five read-only payment-health/matrix views; PROD remains V40. Existing operational and legacy analytics providers are unchanged. The signed-ledger model uses 45/15/15/25 reliability weights, independent matrix axes and explicit default-history Data review. DEV OLTP read-only summary/drill-down configuration is in progress; no production app/report change is authorized. [Design](../outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md) · [Development log](../Change%20Logs/CHANGE_NOTES_R027_2026-09-24.md).
+DEV and PROD V41 now share payment-health and independent BCG providers. Metabase review tab 31 is delivered alongside the original Borrowers tab, pending owner review before any cutover. There is no remaining R027 AppSheet feature: two bindings/view/generated references were removed in DEV OLTP 1.000085. Dormant SQL adapters remain for possible future OLTP work. Prior R026 DEV OLAP issues remain separately owned. R028 is the sole Open development release. [Evidence](../outputs/r027-payment-health/README.md).
 
 ## R026 owner-directed closure — 24 September 2026
 

@@ -1,14 +1,8 @@
 # Solution design rules
 
-## R027 DEV-only shared payment health
+## R027 shared payment health and Borrowers review
 
-Charge and borrower health are governed in PostgreSQL and exposed through read-only OLTP adapters. Current overdue status is independent of historical reliability and history confidence; a zero arrear is not proof of high reliability. The independent BCG provider supports later portfolio reporting. OLTP presentation is still in development; no Risks/BCG report cutover or production deployment has occurred. [Implementation and detailed contract](../outputs/r027-payment-health/README.md).
-
-R024 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings are unchanged. [Evidence](../outputs/r024-20260924/README.md).
-
-R023 current Performance: owner accepted 6R as the replacement. Tab18 is now **6 · Performance**, sixth in order; old tab7 and its 18 placements are removed. The unused performance-date filter is removed, while Performance period remains. Dashboard3 has **11 tabs / 189 placements**. Saved questions retained, including shared question56. All retained chart definitions/layouts and other tab order preserved. [Evidence](../outputs/r023-20260924/README.md).
-
-Read the affected section when designing or changing app workflows, the model or reporting. [AGENTS.md](../AGENTS.md) contains standing execution rules. This document describes ownership and design constraints, not live versions; use the environment inventory and affected model records for actual configuration.
+PostgreSQL owns charge and borrower health. Current overdue status, historical reliability and history confidence are independent concepts. Metabase review tab 31 uses the new providers; original Borrowers and Risks remain unchanged for comparison and later cutover. The borrower payment-health summary is delivered in Metabase. OLTP integration is explicitly future scope; this task's DEV AppSheet detour was removed. [Detailed design and delivered report](../outputs/r027-payment-health/README.md).
 
 ## Scope
 

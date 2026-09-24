@@ -1,121 +1,404 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_dev",
-    "kind": "relation",
-    "name": "public.oltp_charge_payment_health_v1",
-    "scope": "development:R027"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r027-payment-health/sql-definitions.json"
-  },
-  "content": {
-    "release": "R027",
-    "production_present": false,
-    "migration": "V41__borrower_payment_health.sql",
-    "definition": " SELECT charge_id AS \"Row ID\",\n    charge_id AS \"Ref Charge\",\n    loan_id AS \"Ref Loans\",\n    borrower_id AS \"Ref Borrower\",\n    due_date AS \"Due Date\",\n    principal_remaining_current AS \"Unpaid Principal\",\n    interest_remaining_current AS \"Unpaid Interest\",\n    overdue_amount AS \"Overdue Amount\",\n    current_days_overdue AS \"Days Overdue\",\n    is_overdue AS \"Is Overdue\",\n    data_quality_status AS \"Data Quality Status\",\n    reporting_date AS \"Reporting Date\",\n    calculated_at AS \"Calculated At\",\n    method_version AS \"Method Version\"\n   FROM reporting_charge_payment_health_v1;",
-    "columns": {
-      "Row ID": {
-        "column_name": "Row ID",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 1
-      },
-      "Ref Charge": {
-        "column_name": "Ref Charge",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 2
-      },
-      "Ref Loans": {
-        "column_name": "Ref Loans",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 3
-      },
-      "Ref Borrower": {
-        "column_name": "Ref Borrower",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 4
-      },
-      "Due Date": {
-        "column_name": "Due Date",
-        "data_type": "date",
-        "udt_name": "date",
-        "is_nullable": "YES",
-        "ordinal_position": 5
-      },
-      "Unpaid Principal": {
-        "column_name": "Unpaid Principal",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 6
-      },
-      "Unpaid Interest": {
-        "column_name": "Unpaid Interest",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 7
-      },
-      "Overdue Amount": {
-        "column_name": "Overdue Amount",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 8
-      },
-      "Days Overdue": {
-        "column_name": "Days Overdue",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 9
-      },
-      "Is Overdue": {
-        "column_name": "Is Overdue",
-        "data_type": "boolean",
-        "udt_name": "bool",
-        "is_nullable": "YES",
-        "ordinal_position": 10
-      },
-      "Data Quality Status": {
-        "column_name": "Data Quality Status",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 11
-      },
-      "Reporting Date": {
-        "column_name": "Reporting Date",
-        "data_type": "date",
-        "udt_name": "date",
-        "is_nullable": "YES",
-        "ordinal_position": 12
-      },
-      "Calculated At": {
-        "column_name": "Calculated At",
-        "data_type": "timestamp with time zone",
-        "udt_name": "timestamptz",
-        "is_nullable": "YES",
-        "ordinal_position": 13
-      },
-      "Method Version": {
-        "column_name": "Method Version",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 14
-      }
-    },
-    "behavior_reference": "outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md"
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.oltp_charge_payment_health_v1"
+  "scope": "development:R027"
+"verification":
+  "status": "documented"
+  "source": "outputs/r027-payment-health/sql-definitions.json"
+"content":
+  "release": "R027"
+  "production_present": true
+  "migration": "V41__borrower_payment_health.sql"
+  "definition":
+    "schema": "public"
+    "name": "oltp_charge_payment_health_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": null
+    "comment": null
+    "view_definition": |2-
+       SELECT charge_id AS "Row ID",
+          charge_id AS "Ref Charge",
+          loan_id AS "Ref Loans",
+          borrower_id AS "Ref Borrower",
+          due_date AS "Due Date",
+          principal_remaining_current AS "Unpaid Principal",
+          interest_remaining_current AS "Unpaid Interest",
+          overdue_amount AS "Overdue Amount",
+          current_days_overdue AS "Days Overdue",
+          is_overdue AS "Is Overdue",
+          data_quality_status AS "Data Quality Status",
+          reporting_date AS "Reporting Date",
+          calculated_at AS "Calculated At",
+          method_version AS "Method Version"
+         FROM reporting_charge_payment_health_v1;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Charge":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Ref Charge"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Loans":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Ref Loans"
+      "ordinal": 3
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Borrower":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Ref Borrower"
+      "ordinal": 4
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Due Date":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Due Date"
+      "ordinal": 5
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Unpaid Principal":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Unpaid Principal"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Unpaid Interest":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Unpaid Interest"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Overdue Amount":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Overdue Amount"
+      "ordinal": 8
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Days Overdue":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Days Overdue"
+      "ordinal": 9
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Is Overdue":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Is Overdue"
+      "ordinal": 10
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Data Quality Status":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Data Quality Status"
+      "ordinal": 11
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Reporting Date":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Reporting Date"
+      "ordinal": 12
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Calculated At":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Calculated At"
+      "ordinal": 13
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Method Version":
+      "schema": "public"
+      "relation": "oltp_charge_payment_health_v1"
+      "name": "Method Version"
+      "ordinal": 14
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "behavior_reference": "outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md"
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "borrower_id"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "calculated_at"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "charge_id"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "current_days_overdue"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "data_quality_status"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "due_date"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "interest_remaining_current"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "is_overdue"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "loan_id"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "method_version"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "overdue_amount"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "principal_remaining_current"
+  - "schema": "public"
+    "relation": "oltp_charge_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_charge_payment_health_v1"
+    "referenced_column": "reporting_date"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/columns":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/constraints":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/indexes":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/triggers":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/policies":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/dependencies":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/production_present":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"

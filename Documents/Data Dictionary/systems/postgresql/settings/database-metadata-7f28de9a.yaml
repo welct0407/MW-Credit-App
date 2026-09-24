@@ -570,6 +570,13 @@
       "script": "V40__retire_unused_pg_cron.sql"
       "checksum": 1219040821
       "success": true
+    - "installed_rank": 41
+      "version": "41"
+      "description": "borrower payment health"
+      "type": "SQL"
+      "script": "V41__borrower_payment_health.sql"
+      "checksum": 2010702005
+      "success": true
     "foreign_tables": []
     "aggregates": []
     "jobs": []
@@ -578,4 +585,8 @@
   "/content/sections":
     "reference": "outputs/r026-dictionary-fixes/database-settings-observations.json"
     "reason": "V40 verified catalog readback; exact remaining settings and DEV differences."
+    "state": "value"
+  "/content/sections/flyway":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
     "state": "value"

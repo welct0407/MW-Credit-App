@@ -1,352 +1,1196 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_dev",
-    "kind": "relation",
-    "name": "public.oltp_borrower_payment_health_v1",
-    "scope": "development:R027"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r027-payment-health/sql-definitions.json"
-  },
-  "content": {
-    "release": "R027",
-    "production_present": false,
-    "migration": "V41__borrower_payment_health.sql",
-    "definition": " SELECT borrower_id AS \"Row ID\",\n    borrower_id AS \"Ref Borrower\",\n    has_active_loan AS \"Has Active Loan\",\n    hidden_flag AS \"Hidden Flag\",\n    overdue_principal AS \"Overdue Principal\",\n    overdue_interest AS \"Overdue Interest\",\n    overdue_amount AS \"Overdue Amount\",\n    overdue_charge_count AS \"Overdue Charge Count\",\n    oldest_overdue_date AS \"Oldest Overdue Date\",\n    oldest_unpaid_days AS \"Oldest Unpaid Days\",\n    recent_obligation_count AS \"Recent Obligation Count\",\n    recent_on_time_count AS \"Recent On Time Count\",\n    recent_late_count AS \"Recent Late Count\",\n    recent_on_time_rate AS \"Recent On Time Rate\",\n    older_obligation_count AS \"Older Obligation Count\",\n    older_on_time_count AS \"Older On Time Count\",\n    older_on_time_rate AS \"Older On Time Rate\",\n    severity_obligation_count AS \"Severity Obligation Count\",\n    first_matured_due_date AS \"First Matured Due Date\",\n    distinct_matured_due_dates AS \"Distinct Matured Due Dates\",\n    history_span_days AS \"History Span Days\",\n    recent_score AS \"Recent Score\",\n    older_score AS \"Older Score\",\n    delay_score AS \"Delay Score\",\n    current_score AS \"Current Score\",\n    recent_effective_weight AS \"Recent Effective Weight\",\n    older_effective_weight AS \"Older Effective Weight\",\n    delay_effective_weight AS \"Delay Effective Weight\",\n    current_effective_weight AS \"Current Effective Weight\",\n    raw_score AS \"Raw Score\",\n    reliability_score AS \"Reliability Score\",\n    reliability_band AS \"Reliability Band\",\n    rating_status AS \"Rating Status\",\n    confidence AS \"Confidence\",\n    severe_risk_guard AS \"Severe Risk Guard\",\n    score_cap_applied AS \"Score Cap Applied\",\n    active_default AS \"Active Default\",\n    recent_default AS \"Recent Default\",\n    default_count AS \"Default Count\",\n    recorded_default_loss AS \"Recorded Default Loss\",\n    current_health_status AS \"Current Health Status\",\n    primary_reason_code AS \"Primary Reason Code\",\n    reason_text AS \"Reason\",\n    data_quality_status AS \"Data Quality Status\",\n    reporting_date AS \"Reporting Date\",\n    calculated_at AS \"Calculated At\",\n    method_version AS \"Method Version\"\n   FROM reporting_borrower_payment_health_v1;",
-    "columns": {
-      "Row ID": {
-        "column_name": "Row ID",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 1
-      },
-      "Ref Borrower": {
-        "column_name": "Ref Borrower",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 2
-      },
-      "Has Active Loan": {
-        "column_name": "Has Active Loan",
-        "data_type": "boolean",
-        "udt_name": "bool",
-        "is_nullable": "YES",
-        "ordinal_position": 3
-      },
-      "Hidden Flag": {
-        "column_name": "Hidden Flag",
-        "data_type": "boolean",
-        "udt_name": "bool",
-        "is_nullable": "YES",
-        "ordinal_position": 4
-      },
-      "Overdue Principal": {
-        "column_name": "Overdue Principal",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 5
-      },
-      "Overdue Interest": {
-        "column_name": "Overdue Interest",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 6
-      },
-      "Overdue Amount": {
-        "column_name": "Overdue Amount",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 7
-      },
-      "Overdue Charge Count": {
-        "column_name": "Overdue Charge Count",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 8
-      },
-      "Oldest Overdue Date": {
-        "column_name": "Oldest Overdue Date",
-        "data_type": "date",
-        "udt_name": "date",
-        "is_nullable": "YES",
-        "ordinal_position": 9
-      },
-      "Oldest Unpaid Days": {
-        "column_name": "Oldest Unpaid Days",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 10
-      },
-      "Recent Obligation Count": {
-        "column_name": "Recent Obligation Count",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 11
-      },
-      "Recent On Time Count": {
-        "column_name": "Recent On Time Count",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 12
-      },
-      "Recent Late Count": {
-        "column_name": "Recent Late Count",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 13
-      },
-      "Recent On Time Rate": {
-        "column_name": "Recent On Time Rate",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 14
-      },
-      "Older Obligation Count": {
-        "column_name": "Older Obligation Count",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 15
-      },
-      "Older On Time Count": {
-        "column_name": "Older On Time Count",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 16
-      },
-      "Older On Time Rate": {
-        "column_name": "Older On Time Rate",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 17
-      },
-      "Severity Obligation Count": {
-        "column_name": "Severity Obligation Count",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 18
-      },
-      "First Matured Due Date": {
-        "column_name": "First Matured Due Date",
-        "data_type": "date",
-        "udt_name": "date",
-        "is_nullable": "YES",
-        "ordinal_position": 19
-      },
-      "Distinct Matured Due Dates": {
-        "column_name": "Distinct Matured Due Dates",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 20
-      },
-      "History Span Days": {
-        "column_name": "History Span Days",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 21
-      },
-      "Recent Score": {
-        "column_name": "Recent Score",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 22
-      },
-      "Older Score": {
-        "column_name": "Older Score",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 23
-      },
-      "Delay Score": {
-        "column_name": "Delay Score",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 24
-      },
-      "Current Score": {
-        "column_name": "Current Score",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 25
-      },
-      "Recent Effective Weight": {
-        "column_name": "Recent Effective Weight",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 26
-      },
-      "Older Effective Weight": {
-        "column_name": "Older Effective Weight",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 27
-      },
-      "Delay Effective Weight": {
-        "column_name": "Delay Effective Weight",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 28
-      },
-      "Current Effective Weight": {
-        "column_name": "Current Effective Weight",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 29
-      },
-      "Raw Score": {
-        "column_name": "Raw Score",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 30
-      },
-      "Reliability Score": {
-        "column_name": "Reliability Score",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 31
-      },
-      "Reliability Band": {
-        "column_name": "Reliability Band",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 32
-      },
-      "Rating Status": {
-        "column_name": "Rating Status",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 33
-      },
-      "Confidence": {
-        "column_name": "Confidence",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 34
-      },
-      "Severe Risk Guard": {
-        "column_name": "Severe Risk Guard",
-        "data_type": "boolean",
-        "udt_name": "bool",
-        "is_nullable": "YES",
-        "ordinal_position": 35
-      },
-      "Score Cap Applied": {
-        "column_name": "Score Cap Applied",
-        "data_type": "boolean",
-        "udt_name": "bool",
-        "is_nullable": "YES",
-        "ordinal_position": 36
-      },
-      "Active Default": {
-        "column_name": "Active Default",
-        "data_type": "boolean",
-        "udt_name": "bool",
-        "is_nullable": "YES",
-        "ordinal_position": 37
-      },
-      "Recent Default": {
-        "column_name": "Recent Default",
-        "data_type": "boolean",
-        "udt_name": "bool",
-        "is_nullable": "YES",
-        "ordinal_position": 38
-      },
-      "Default Count": {
-        "column_name": "Default Count",
-        "data_type": "integer",
-        "udt_name": "int4",
-        "is_nullable": "YES",
-        "ordinal_position": 39
-      },
-      "Recorded Default Loss": {
-        "column_name": "Recorded Default Loss",
-        "data_type": "numeric",
-        "udt_name": "numeric",
-        "is_nullable": "YES",
-        "ordinal_position": 40
-      },
-      "Current Health Status": {
-        "column_name": "Current Health Status",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 41
-      },
-      "Primary Reason Code": {
-        "column_name": "Primary Reason Code",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 42
-      },
-      "Reason": {
-        "column_name": "Reason",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 43
-      },
-      "Data Quality Status": {
-        "column_name": "Data Quality Status",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 44
-      },
-      "Reporting Date": {
-        "column_name": "Reporting Date",
-        "data_type": "date",
-        "udt_name": "date",
-        "is_nullable": "YES",
-        "ordinal_position": 45
-      },
-      "Calculated At": {
-        "column_name": "Calculated At",
-        "data_type": "timestamp with time zone",
-        "udt_name": "timestamptz",
-        "is_nullable": "YES",
-        "ordinal_position": 46
-      },
-      "Method Version": {
-        "column_name": "Method Version",
-        "data_type": "text",
-        "udt_name": "text",
-        "is_nullable": "YES",
-        "ordinal_position": 47
-      }
-    },
-    "behavior_reference": "outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md"
-  }
-}
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.oltp_borrower_payment_health_v1"
+  "scope": "development:R027"
+"verification":
+  "status": "documented"
+  "source": "outputs/r027-payment-health/sql-definitions.json"
+"content":
+  "release": "R027"
+  "production_present": true
+  "migration": "V41__borrower_payment_health.sql"
+  "definition":
+    "schema": "public"
+    "name": "oltp_borrower_payment_health_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": null
+    "comment": null
+    "view_definition": |2-
+       SELECT borrower_id AS "Row ID",
+          borrower_id AS "Ref Borrower",
+          has_active_loan AS "Has Active Loan",
+          hidden_flag AS "Hidden Flag",
+          overdue_principal AS "Overdue Principal",
+          overdue_interest AS "Overdue Interest",
+          overdue_amount AS "Overdue Amount",
+          overdue_charge_count AS "Overdue Charge Count",
+          oldest_overdue_date AS "Oldest Overdue Date",
+          oldest_unpaid_days AS "Oldest Unpaid Days",
+          recent_obligation_count AS "Recent Obligation Count",
+          recent_on_time_count AS "Recent On Time Count",
+          recent_late_count AS "Recent Late Count",
+          recent_on_time_rate AS "Recent On Time Rate",
+          older_obligation_count AS "Older Obligation Count",
+          older_on_time_count AS "Older On Time Count",
+          older_on_time_rate AS "Older On Time Rate",
+          severity_obligation_count AS "Severity Obligation Count",
+          first_matured_due_date AS "First Matured Due Date",
+          distinct_matured_due_dates AS "Distinct Matured Due Dates",
+          history_span_days AS "History Span Days",
+          recent_score AS "Recent Score",
+          older_score AS "Older Score",
+          delay_score AS "Delay Score",
+          current_score AS "Current Score",
+          recent_effective_weight AS "Recent Effective Weight",
+          older_effective_weight AS "Older Effective Weight",
+          delay_effective_weight AS "Delay Effective Weight",
+          current_effective_weight AS "Current Effective Weight",
+          raw_score AS "Raw Score",
+          reliability_score AS "Reliability Score",
+          reliability_band AS "Reliability Band",
+          rating_status AS "Rating Status",
+          confidence AS "Confidence",
+          severe_risk_guard AS "Severe Risk Guard",
+          score_cap_applied AS "Score Cap Applied",
+          active_default AS "Active Default",
+          recent_default AS "Recent Default",
+          default_count AS "Default Count",
+          recorded_default_loss AS "Recorded Default Loss",
+          current_health_status AS "Current Health Status",
+          primary_reason_code AS "Primary Reason Code",
+          reason_text AS "Reason",
+          data_quality_status AS "Data Quality Status",
+          reporting_date AS "Reporting Date",
+          calculated_at AS "Calculated At",
+          method_version AS "Method Version"
+         FROM reporting_borrower_payment_health_v1;
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns":
+    "Row ID":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Row ID"
+      "ordinal": 1
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Ref Borrower":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Ref Borrower"
+      "ordinal": 2
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Has Active Loan":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Has Active Loan"
+      "ordinal": 3
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Hidden Flag":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Hidden Flag"
+      "ordinal": 4
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Overdue Principal":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Overdue Principal"
+      "ordinal": 5
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Overdue Interest":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Overdue Interest"
+      "ordinal": 6
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Overdue Amount":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Overdue Amount"
+      "ordinal": 7
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Overdue Charge Count":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Overdue Charge Count"
+      "ordinal": 8
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Oldest Overdue Date":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Oldest Overdue Date"
+      "ordinal": 9
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Oldest Unpaid Days":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Oldest Unpaid Days"
+      "ordinal": 10
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recent Obligation Count":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Recent Obligation Count"
+      "ordinal": 11
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recent On Time Count":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Recent On Time Count"
+      "ordinal": 12
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recent Late Count":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Recent Late Count"
+      "ordinal": 13
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recent On Time Rate":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Recent On Time Rate"
+      "ordinal": 14
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Older Obligation Count":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Older Obligation Count"
+      "ordinal": 15
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Older On Time Count":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Older On Time Count"
+      "ordinal": 16
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Older On Time Rate":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Older On Time Rate"
+      "ordinal": 17
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Severity Obligation Count":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Severity Obligation Count"
+      "ordinal": 18
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "First Matured Due Date":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "First Matured Due Date"
+      "ordinal": 19
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Distinct Matured Due Dates":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Distinct Matured Due Dates"
+      "ordinal": 20
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "History Span Days":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "History Span Days"
+      "ordinal": 21
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recent Score":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Recent Score"
+      "ordinal": 22
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Older Score":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Older Score"
+      "ordinal": 23
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Delay Score":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Delay Score"
+      "ordinal": 24
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Current Score":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Current Score"
+      "ordinal": 25
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recent Effective Weight":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Recent Effective Weight"
+      "ordinal": 26
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Older Effective Weight":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Older Effective Weight"
+      "ordinal": 27
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Delay Effective Weight":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Delay Effective Weight"
+      "ordinal": 28
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Current Effective Weight":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Current Effective Weight"
+      "ordinal": 29
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Raw Score":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Raw Score"
+      "ordinal": 30
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Reliability Score":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Reliability Score"
+      "ordinal": 31
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Reliability Band":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Reliability Band"
+      "ordinal": 32
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Rating Status":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Rating Status"
+      "ordinal": 33
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Confidence":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Confidence"
+      "ordinal": 34
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Severe Risk Guard":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Severe Risk Guard"
+      "ordinal": 35
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Score Cap Applied":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Score Cap Applied"
+      "ordinal": 36
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Active Default":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Active Default"
+      "ordinal": 37
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recent Default":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Recent Default"
+      "ordinal": 38
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Default Count":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Default Count"
+      "ordinal": 39
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Recorded Default Loss":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Recorded Default Loss"
+      "ordinal": 40
+      "data_type": "numeric"
+      "type_schema": "pg_catalog"
+      "type_name": "numeric"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "m"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Current Health Status":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Current Health Status"
+      "ordinal": 41
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Primary Reason Code":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Primary Reason Code"
+      "ordinal": 42
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Reason":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Reason"
+      "ordinal": 43
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Data Quality Status":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Data Quality Status"
+      "ordinal": 44
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+    "Reporting Date":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Reporting Date"
+      "ordinal": 45
+      "data_type": "date"
+      "type_schema": "pg_catalog"
+      "type_name": "date"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Calculated At":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Calculated At"
+      "ordinal": 46
+      "data_type": "timestamp with time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamptz"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": null
+    "Method Version":
+      "schema": "public"
+      "relation": "oltp_borrower_payment_health_v1"
+      "name": "Method Version"
+      "ordinal": 47
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": null
+  "behavior_reference": "outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md"
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "active_default"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "borrower_id"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "calculated_at"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "confidence"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "current_effective_weight"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "current_health_status"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "current_score"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "data_quality_status"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "default_count"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "delay_effective_weight"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "delay_score"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "distinct_matured_due_dates"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "first_matured_due_date"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "has_active_loan"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "hidden_flag"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "history_span_days"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "method_version"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "older_effective_weight"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "older_obligation_count"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "older_on_time_count"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "older_on_time_rate"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "older_score"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "oldest_overdue_date"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "oldest_unpaid_days"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "overdue_amount"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "overdue_charge_count"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "overdue_interest"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "overdue_principal"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "primary_reason_code"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "rating_status"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "raw_score"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "reason_text"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "recent_default"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "recent_effective_weight"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "recent_late_count"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "recent_obligation_count"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "recent_on_time_count"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "recent_on_time_rate"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "recent_score"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "recorded_default_loss"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "reliability_band"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "reliability_score"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "reporting_date"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "score_cap_applied"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "severe_risk_guard"
+  - "schema": "public"
+    "relation": "oltp_borrower_payment_health_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_borrower_payment_health_v1"
+    "referenced_column": "severity_obligation_count"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/columns":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/constraints":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/indexes":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/triggers":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/policies":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/dependencies":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"
+  "/content/production_present":
+    "reference": "outputs/r027-payment-health/README.md"
+    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "state": "value"

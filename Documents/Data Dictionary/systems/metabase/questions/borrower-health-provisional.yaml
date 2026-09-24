@@ -1,0 +1,35 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Provisional · active / 255",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "provisional",
+    "id": 255,
+    "name": "Provisional · active",
+    "display": "scalar",
+    "collection_id": 5,
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT count(*) AS \"Provisional\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE h.confidence='Provisional'"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "scalar.field": "Provisional"
+    },
+    "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Reliability components & effective weights · active borrowers / 268",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "components",
+    "id": 268,
+    "name": "Reliability components & effective weights · active borrowers",
+    "display": "table",
+    "collection_id": 5,
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT b.\"Description\" AS \"Borrower\",h.rating_status AS \"Status\",h.reliability_score AS \"Final /100\",h.raw_score AS \"Raw /100\",h.recent_score AS \"Recent /100\",h.recent_effective_weight AS \"Recent weight\",h.older_score AS \"Older /100\",h.older_effective_weight AS \"Older weight\",h.delay_score AS \"Delay /100\",h.delay_effective_weight AS \"Delay weight\",h.current_score AS \"Current /100\",h.current_effective_weight AS \"Current weight\",h.score_cap_applied AS \"Cap applied\",h.recent_on_time_count AS \"Recent on time\",h.recent_obligation_count AS \"Recent observations\",h.history_span_days AS \"History days\",h.confidence AS \"Confidence\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id ORDER BY h.reliability_score ASC NULLS FIRST,h.borrower_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "column_settings": {
+        "[\"name\",\"Older weight\"]": {
+          "number_style": "percent",
+          "decimals": 1
+        },
+        "[\"name\",\"Delay /100\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Delay weight\"]": {
+          "number_style": "percent",
+          "decimals": 1
+        },
+        "[\"name\",\"Current weight\"]": {
+          "number_style": "percent",
+          "decimals": 1
+        },
+        "[\"name\",\"Recent weight\"]": {
+          "number_style": "percent",
+          "decimals": 1
+        },
+        "[\"name\",\"Older /100\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Recent /100\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Current /100\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Final /100\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Raw /100\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    },
+    "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Unavailable ratings & default context · all borrowers / 269",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "review",
+    "id": 269,
+    "name": "Unavailable ratings & default context · all borrowers",
+    "display": "table",
+    "collection_id": 5,
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT b.\"Description\" AS \"Borrower\",h.has_active_loan AS \"Active loan\",h.rating_status AS \"Status\",h.data_quality_status AS \"Data quality\",h.default_count AS \"Default count\",h.recorded_default_loss AS \"Recorded loss ฿\",h.overdue_amount AS \"Overdue ฿\",h.reason_text AS \"Reason\" FROM public.reporting_borrower_payment_health_v1 h JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=h.borrower_id WHERE h.rating_status<>'Rated' ORDER BY h.borrower_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "column_settings": {
+        "[\"name\",\"Overdue ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Interest 30d ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Recorded loss ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    },
+    "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
+  }
+}

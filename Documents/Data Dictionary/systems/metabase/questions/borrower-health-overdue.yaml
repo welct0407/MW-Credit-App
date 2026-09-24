@@ -1,0 +1,43 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Overdue ฿ · all borrowers / 254",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "overdue",
+    "id": 254,
+    "name": "Overdue ฿ · all borrowers",
+    "display": "scalar",
+    "collection_id": 5,
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT CASE WHEN bool_and(overdue_amount IS NOT NULL) THEN sum(overdue_amount) END AS \"Overdue ฿\" FROM public.reporting_borrower_payment_health_v1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "scalar.field": "Overdue ฿",
+      "column_settings": {
+        "[\"name\",\"Overdue ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    },
+    "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
+  }
+}

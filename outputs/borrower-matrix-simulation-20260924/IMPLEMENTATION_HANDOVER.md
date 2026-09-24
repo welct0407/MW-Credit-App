@@ -1,5 +1,7 @@
 # Borrower reliability, matrix and payment health — implementation design
 
+> **Owner scope correction, 24 September 2026:** implementation is database and Metabase only. The payment-health summary is delivered in the new Metabase Borrower Health Review tab. Section 6's AppSheet UI is deferred future scope, not an active implementation requirement. DEV AppSheet additions were removed. [Delivered implementation and evidence](../r027-payment-health/README.md).
+
 24 September 2026. **Design for owner review; no implementation or deployment authorization is implied.** This is the detailed handover accompanying the [methodology and simulation results](README.md). It includes the owner-requested borrower payment-health summary and its future OLTP integration. Proposed object/field names below are implementation targets, not existing objects verified in production.
 
 ## 1. Outcome and scope

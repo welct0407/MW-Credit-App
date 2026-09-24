@@ -30237,6 +30237,176 @@
       ]
     },
     {
+      "file": "systems/metabase/questions/borrower-health-active.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Active borrowers / 253",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-components.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Reliability components & effective weights · active borrowers / 268",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-cow-count.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Cash Cow · borrowers / 258",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-cow.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Cash Cow · active borrowers / 259",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-dog-count.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Dog · borrowers / 262",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-dog.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Dog · active borrowers / 263",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-freshness.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Queried at · Bangkok / 257",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-health.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Borrower payment health · all borrowers / 267",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-overdue.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Overdue ฿ · all borrowers / 254",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-provisional.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Provisional · active / 255",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-question-count.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Question Mark · borrowers / 264",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-question.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Question Mark · active borrowers / 265",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-review.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Unavailable ratings & default context · all borrowers / 269",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-scatter.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Reliability vs contribution · active borrowers / 266",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-star-count.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Star · borrowers / 260",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-star.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Star · active borrowers / 261",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-unclassified.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Unclassified · active / 256",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/snippets/live-cashflow-period.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -33387,6 +33557,272 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/oltp-borrower-payment-health-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.oltp_borrower_payment_health_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "Has Active Loan",
+          "pointer": "/content/columns/Has Active Loan"
+        },
+        {
+          "subject": "Hidden Flag",
+          "pointer": "/content/columns/Hidden Flag"
+        },
+        {
+          "subject": "Overdue Principal",
+          "pointer": "/content/columns/Overdue Principal"
+        },
+        {
+          "subject": "Overdue Interest",
+          "pointer": "/content/columns/Overdue Interest"
+        },
+        {
+          "subject": "Overdue Amount",
+          "pointer": "/content/columns/Overdue Amount"
+        },
+        {
+          "subject": "Overdue Charge Count",
+          "pointer": "/content/columns/Overdue Charge Count"
+        },
+        {
+          "subject": "Oldest Overdue Date",
+          "pointer": "/content/columns/Oldest Overdue Date"
+        },
+        {
+          "subject": "Oldest Unpaid Days",
+          "pointer": "/content/columns/Oldest Unpaid Days"
+        },
+        {
+          "subject": "Recent Obligation Count",
+          "pointer": "/content/columns/Recent Obligation Count"
+        },
+        {
+          "subject": "Recent On Time Count",
+          "pointer": "/content/columns/Recent On Time Count"
+        },
+        {
+          "subject": "Recent Late Count",
+          "pointer": "/content/columns/Recent Late Count"
+        },
+        {
+          "subject": "Recent On Time Rate",
+          "pointer": "/content/columns/Recent On Time Rate"
+        },
+        {
+          "subject": "Older Obligation Count",
+          "pointer": "/content/columns/Older Obligation Count"
+        },
+        {
+          "subject": "Older On Time Count",
+          "pointer": "/content/columns/Older On Time Count"
+        },
+        {
+          "subject": "Older On Time Rate",
+          "pointer": "/content/columns/Older On Time Rate"
+        },
+        {
+          "subject": "Severity Obligation Count",
+          "pointer": "/content/columns/Severity Obligation Count"
+        },
+        {
+          "subject": "First Matured Due Date",
+          "pointer": "/content/columns/First Matured Due Date"
+        },
+        {
+          "subject": "Distinct Matured Due Dates",
+          "pointer": "/content/columns/Distinct Matured Due Dates"
+        },
+        {
+          "subject": "History Span Days",
+          "pointer": "/content/columns/History Span Days"
+        },
+        {
+          "subject": "Recent Score",
+          "pointer": "/content/columns/Recent Score"
+        },
+        {
+          "subject": "Older Score",
+          "pointer": "/content/columns/Older Score"
+        },
+        {
+          "subject": "Delay Score",
+          "pointer": "/content/columns/Delay Score"
+        },
+        {
+          "subject": "Current Score",
+          "pointer": "/content/columns/Current Score"
+        },
+        {
+          "subject": "Recent Effective Weight",
+          "pointer": "/content/columns/Recent Effective Weight"
+        },
+        {
+          "subject": "Older Effective Weight",
+          "pointer": "/content/columns/Older Effective Weight"
+        },
+        {
+          "subject": "Delay Effective Weight",
+          "pointer": "/content/columns/Delay Effective Weight"
+        },
+        {
+          "subject": "Current Effective Weight",
+          "pointer": "/content/columns/Current Effective Weight"
+        },
+        {
+          "subject": "Raw Score",
+          "pointer": "/content/columns/Raw Score"
+        },
+        {
+          "subject": "Reliability Score",
+          "pointer": "/content/columns/Reliability Score"
+        },
+        {
+          "subject": "Reliability Band",
+          "pointer": "/content/columns/Reliability Band"
+        },
+        {
+          "subject": "Rating Status",
+          "pointer": "/content/columns/Rating Status"
+        },
+        {
+          "subject": "Confidence",
+          "pointer": "/content/columns/Confidence"
+        },
+        {
+          "subject": "Severe Risk Guard",
+          "pointer": "/content/columns/Severe Risk Guard"
+        },
+        {
+          "subject": "Score Cap Applied",
+          "pointer": "/content/columns/Score Cap Applied"
+        },
+        {
+          "subject": "Active Default",
+          "pointer": "/content/columns/Active Default"
+        },
+        {
+          "subject": "Recent Default",
+          "pointer": "/content/columns/Recent Default"
+        },
+        {
+          "subject": "Default Count",
+          "pointer": "/content/columns/Default Count"
+        },
+        {
+          "subject": "Recorded Default Loss",
+          "pointer": "/content/columns/Recorded Default Loss"
+        },
+        {
+          "subject": "Current Health Status",
+          "pointer": "/content/columns/Current Health Status"
+        },
+        {
+          "subject": "Primary Reason Code",
+          "pointer": "/content/columns/Primary Reason Code"
+        },
+        {
+          "subject": "Reason",
+          "pointer": "/content/columns/Reason"
+        },
+        {
+          "subject": "Data Quality Status",
+          "pointer": "/content/columns/Data Quality Status"
+        },
+        {
+          "subject": "Reporting Date",
+          "pointer": "/content/columns/Reporting Date"
+        },
+        {
+          "subject": "Calculated At",
+          "pointer": "/content/columns/Calculated At"
+        },
+        {
+          "subject": "Method Version",
+          "pointer": "/content/columns/Method Version"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/oltp-charge-payment-health-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.oltp_charge_payment_health_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "Ref Charge",
+          "pointer": "/content/columns/Ref Charge"
+        },
+        {
+          "subject": "Ref Loans",
+          "pointer": "/content/columns/Ref Loans"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "Due Date",
+          "pointer": "/content/columns/Due Date"
+        },
+        {
+          "subject": "Unpaid Principal",
+          "pointer": "/content/columns/Unpaid Principal"
+        },
+        {
+          "subject": "Unpaid Interest",
+          "pointer": "/content/columns/Unpaid Interest"
+        },
+        {
+          "subject": "Overdue Amount",
+          "pointer": "/content/columns/Overdue Amount"
+        },
+        {
+          "subject": "Days Overdue",
+          "pointer": "/content/columns/Days Overdue"
+        },
+        {
+          "subject": "Is Overdue",
+          "pointer": "/content/columns/Is Overdue"
+        },
+        {
+          "subject": "Data Quality Status",
+          "pointer": "/content/columns/Data Quality Status"
+        },
+        {
+          "subject": "Reporting Date",
+          "pointer": "/content/columns/Reporting Date"
+        },
+        {
+          "subject": "Calculated At",
+          "pointer": "/content/columns/Calculated At"
+        },
+        {
+          "subject": "Method Version",
+          "pointer": "/content/columns/Method Version"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/partners.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -35925,6 +36361,272 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/reporting-borrower-matrix-v2.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_borrower_matrix_v2",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "contribution_30d",
+          "pointer": "/content/columns/contribution_30d"
+        },
+        {
+          "subject": "active_borrower_count",
+          "pointer": "/content/columns/active_borrower_count"
+        },
+        {
+          "subject": "portfolio_contribution_30d",
+          "pointer": "/content/columns/portfolio_contribution_30d"
+        },
+        {
+          "subject": "contribution_share",
+          "pointer": "/content/columns/contribution_share"
+        },
+        {
+          "subject": "equal_share",
+          "pointer": "/content/columns/equal_share"
+        },
+        {
+          "subject": "relative_contribution",
+          "pointer": "/content/columns/relative_contribution"
+        },
+        {
+          "subject": "reliability_score",
+          "pointer": "/content/columns/reliability_score"
+        },
+        {
+          "subject": "confidence",
+          "pointer": "/content/columns/confidence"
+        },
+        {
+          "subject": "quadrant",
+          "pointer": "/content/columns/quadrant"
+        },
+        {
+          "subject": "classification_reason",
+          "pointer": "/content/columns/classification_reason"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "method_version",
+          "pointer": "/content/columns/method_version"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-borrower-payment-health-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_borrower_payment_health_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "has_active_loan",
+          "pointer": "/content/columns/has_active_loan"
+        },
+        {
+          "subject": "hidden_flag",
+          "pointer": "/content/columns/hidden_flag"
+        },
+        {
+          "subject": "overdue_principal",
+          "pointer": "/content/columns/overdue_principal"
+        },
+        {
+          "subject": "overdue_interest",
+          "pointer": "/content/columns/overdue_interest"
+        },
+        {
+          "subject": "overdue_amount",
+          "pointer": "/content/columns/overdue_amount"
+        },
+        {
+          "subject": "overdue_charge_count",
+          "pointer": "/content/columns/overdue_charge_count"
+        },
+        {
+          "subject": "oldest_overdue_date",
+          "pointer": "/content/columns/oldest_overdue_date"
+        },
+        {
+          "subject": "oldest_unpaid_days",
+          "pointer": "/content/columns/oldest_unpaid_days"
+        },
+        {
+          "subject": "recent_obligation_count",
+          "pointer": "/content/columns/recent_obligation_count"
+        },
+        {
+          "subject": "recent_on_time_count",
+          "pointer": "/content/columns/recent_on_time_count"
+        },
+        {
+          "subject": "recent_late_count",
+          "pointer": "/content/columns/recent_late_count"
+        },
+        {
+          "subject": "recent_on_time_rate",
+          "pointer": "/content/columns/recent_on_time_rate"
+        },
+        {
+          "subject": "older_obligation_count",
+          "pointer": "/content/columns/older_obligation_count"
+        },
+        {
+          "subject": "older_on_time_count",
+          "pointer": "/content/columns/older_on_time_count"
+        },
+        {
+          "subject": "older_on_time_rate",
+          "pointer": "/content/columns/older_on_time_rate"
+        },
+        {
+          "subject": "severity_obligation_count",
+          "pointer": "/content/columns/severity_obligation_count"
+        },
+        {
+          "subject": "first_matured_due_date",
+          "pointer": "/content/columns/first_matured_due_date"
+        },
+        {
+          "subject": "distinct_matured_due_dates",
+          "pointer": "/content/columns/distinct_matured_due_dates"
+        },
+        {
+          "subject": "history_span_days",
+          "pointer": "/content/columns/history_span_days"
+        },
+        {
+          "subject": "recent_score",
+          "pointer": "/content/columns/recent_score"
+        },
+        {
+          "subject": "older_score",
+          "pointer": "/content/columns/older_score"
+        },
+        {
+          "subject": "delay_score",
+          "pointer": "/content/columns/delay_score"
+        },
+        {
+          "subject": "current_score",
+          "pointer": "/content/columns/current_score"
+        },
+        {
+          "subject": "recent_effective_weight",
+          "pointer": "/content/columns/recent_effective_weight"
+        },
+        {
+          "subject": "older_effective_weight",
+          "pointer": "/content/columns/older_effective_weight"
+        },
+        {
+          "subject": "delay_effective_weight",
+          "pointer": "/content/columns/delay_effective_weight"
+        },
+        {
+          "subject": "current_effective_weight",
+          "pointer": "/content/columns/current_effective_weight"
+        },
+        {
+          "subject": "raw_score",
+          "pointer": "/content/columns/raw_score"
+        },
+        {
+          "subject": "reliability_score",
+          "pointer": "/content/columns/reliability_score"
+        },
+        {
+          "subject": "reliability_band",
+          "pointer": "/content/columns/reliability_band"
+        },
+        {
+          "subject": "rating_status",
+          "pointer": "/content/columns/rating_status"
+        },
+        {
+          "subject": "confidence",
+          "pointer": "/content/columns/confidence"
+        },
+        {
+          "subject": "severe_risk_guard",
+          "pointer": "/content/columns/severe_risk_guard"
+        },
+        {
+          "subject": "score_cap_applied",
+          "pointer": "/content/columns/score_cap_applied"
+        },
+        {
+          "subject": "active_default",
+          "pointer": "/content/columns/active_default"
+        },
+        {
+          "subject": "recent_default",
+          "pointer": "/content/columns/recent_default"
+        },
+        {
+          "subject": "default_count",
+          "pointer": "/content/columns/default_count"
+        },
+        {
+          "subject": "recorded_default_loss",
+          "pointer": "/content/columns/recorded_default_loss"
+        },
+        {
+          "subject": "current_health_status",
+          "pointer": "/content/columns/current_health_status"
+        },
+        {
+          "subject": "primary_reason_code",
+          "pointer": "/content/columns/primary_reason_code"
+        },
+        {
+          "subject": "reason_text",
+          "pointer": "/content/columns/reason_text"
+        },
+        {
+          "subject": "data_quality_status",
+          "pointer": "/content/columns/data_quality_status"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "method_version",
+          "pointer": "/content/columns/method_version"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/reporting-cash-account-snapshot.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -36012,6 +36714,113 @@
         {
           "subject": "Freshness Basis",
           "pointer": "/content/columns/Freshness Basis"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-charge-payment-health-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_charge_payment_health_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "charge_id",
+          "pointer": "/content/columns/charge_id"
+        },
+        {
+          "subject": "loan_id",
+          "pointer": "/content/columns/loan_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "due_date",
+          "pointer": "/content/columns/due_date"
+        },
+        {
+          "subject": "principal_due",
+          "pointer": "/content/columns/principal_due"
+        },
+        {
+          "subject": "interest_due",
+          "pointer": "/content/columns/interest_due"
+        },
+        {
+          "subject": "history_eligible",
+          "pointer": "/content/columns/history_eligible"
+        },
+        {
+          "subject": "exclusion_reason",
+          "pointer": "/content/columns/exclusion_reason"
+        },
+        {
+          "subject": "data_quality_status",
+          "pointer": "/content/columns/data_quality_status"
+        },
+        {
+          "subject": "principal_paid_current",
+          "pointer": "/content/columns/principal_paid_current"
+        },
+        {
+          "subject": "interest_paid_current",
+          "pointer": "/content/columns/interest_paid_current"
+        },
+        {
+          "subject": "principal_remaining_current",
+          "pointer": "/content/columns/principal_remaining_current"
+        },
+        {
+          "subject": "interest_remaining_current",
+          "pointer": "/content/columns/interest_remaining_current"
+        },
+        {
+          "subject": "remaining_current",
+          "pointer": "/content/columns/remaining_current"
+        },
+        {
+          "subject": "is_overdue",
+          "pointer": "/content/columns/is_overdue"
+        },
+        {
+          "subject": "overdue_amount",
+          "pointer": "/content/columns/overdue_amount"
+        },
+        {
+          "subject": "current_days_overdue",
+          "pointer": "/content/columns/current_days_overdue"
+        },
+        {
+          "subject": "on_time",
+          "pointer": "/content/columns/on_time"
+        },
+        {
+          "subject": "final_settlement_date",
+          "pointer": "/content/columns/final_settlement_date"
+        },
+        {
+          "subject": "historical_delay_days",
+          "pointer": "/content/columns/historical_delay_days"
+        },
+        {
+          "subject": "delay_grade",
+          "pointer": "/content/columns/delay_grade"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "method_version",
+          "pointer": "/content/columns/method_version"
         }
       ]
     },

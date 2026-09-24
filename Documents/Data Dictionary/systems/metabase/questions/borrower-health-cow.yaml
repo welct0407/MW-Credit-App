@@ -1,0 +1,85 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Cash Cow · active borrowers / 259",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "cow",
+    "id": 259,
+    "name": "Cash Cow · active borrowers",
+    "display": "table",
+    "collection_id": 5,
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Cash Cow' ORDER BY m.contribution_30d DESC,m.borrower_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.column_formatting": [
+        {
+          "columns": [
+            "Score"
+          ],
+          "type": "single",
+          "operator": ">=",
+          "value": 0,
+          "color": "#E0F2ED",
+          "highlight_row": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Overdue ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Interest 30d ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Recorded loss ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Score\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Value ×\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    },
+    "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
+  }
+}

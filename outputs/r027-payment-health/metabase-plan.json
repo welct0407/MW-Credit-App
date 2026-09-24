@@ -19,7 +19,7 @@
     },
     {
       "key": "overdue",
-      "name": "Overdue balance · all borrowers",
+      "name": "Overdue ฿ · all borrowers",
       "display": "scalar",
       "dataset_query": {
         "database": 2,
@@ -44,7 +44,7 @@
     },
     {
       "key": "provisional",
-      "name": "Provisional · active borrowers",
+      "name": "Provisional · active",
       "display": "scalar",
       "dataset_query": {
         "database": 2,
@@ -61,7 +61,7 @@
     },
     {
       "key": "unclassified",
-      "name": "Unclassified · active borrowers",
+      "name": "Unclassified · active",
       "display": "scalar",
       "dataset_query": {
         "database": 2,
@@ -78,44 +78,18 @@
     },
     {
       "key": "freshness",
-      "name": "Reporting context",
-      "display": "table",
+      "name": "Queried at · Bangkok",
+      "display": "scalar",
       "dataset_query": {
         "database": 2,
         "type": "native",
         "native": {
-          "query": "SELECT public.olap_reporting_date() AS \"Bangkok date\",to_char(statement_timestamp() AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI:SS') AS \"Queried at · Bangkok\",'payment-health-v1' AS \"Method\"",
+          "query": "SELECT to_char(statement_timestamp() AT TIME ZONE 'Asia/Bangkok','DD Mon HH24:MI') AS \"Queried at · Bangkok\"",
           "template-tags": {}
         }
       },
       "visualization_settings": {
-        "table.pivot": false,
-        "column_settings": {
-          "[\"name\",\"Overdue ฿\"]": {
-            "number_style": "decimal",
-            "decimals": 2,
-            "number_separators": ".,",
-            "compact": false
-          },
-          "[\"name\",\"Principal ฿\"]": {
-            "number_style": "decimal",
-            "decimals": 2,
-            "number_separators": ".,",
-            "compact": false
-          },
-          "[\"name\",\"Interest 30d ฿\"]": {
-            "number_style": "decimal",
-            "decimals": 2,
-            "number_separators": ".,",
-            "compact": false
-          },
-          "[\"name\",\"Recorded loss ฿\"]": {
-            "number_style": "decimal",
-            "decimals": 2,
-            "number_separators": ".,",
-            "compact": false
-          }
-        }
+        "scalar.field": "Queried at · Bangkok"
       },
       "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
     },
@@ -147,26 +121,62 @@
         "database": 2,
         "type": "native",
         "native": {
-          "query": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Reliability /100\",m.relative_contribution AS \"Contribution ×\",m.confidence AS \"Confidence\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Cash Cow' ORDER BY m.contribution_30d DESC,m.borrower_id",
+          "query": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Cash Cow' ORDER BY m.contribution_30d DESC,m.borrower_id",
           "template-tags": {}
         }
       },
       "visualization_settings": {
         "table.pivot": false,
         "column_settings": {
-          "[\"name\",\"Reliability /100\"]": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Score\"]": {
             "number_style": "decimal",
             "decimals": 1,
             "number_separators": ".,",
             "compact": false
           },
-          "[\"name\",\"Contribution ×\"]": {
+          "[\"name\",\"Value ×\"]": {
             "number_style": "decimal",
-            "decimals": 1,
+            "decimals": 2,
             "number_separators": ".,",
             "compact": false
           }
-        }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Score"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#E0F2ED",
+            "highlight_row": true
+          }
+        ]
       },
       "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
     },
@@ -198,26 +208,62 @@
         "database": 2,
         "type": "native",
         "native": {
-          "query": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Reliability /100\",m.relative_contribution AS \"Contribution ×\",m.confidence AS \"Confidence\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Star' ORDER BY m.contribution_30d DESC,m.borrower_id",
+          "query": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Star' ORDER BY m.contribution_30d DESC,m.borrower_id",
           "template-tags": {}
         }
       },
       "visualization_settings": {
         "table.pivot": false,
         "column_settings": {
-          "[\"name\",\"Reliability /100\"]": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Score\"]": {
             "number_style": "decimal",
             "decimals": 1,
             "number_separators": ".,",
             "compact": false
           },
-          "[\"name\",\"Contribution ×\"]": {
+          "[\"name\",\"Value ×\"]": {
             "number_style": "decimal",
-            "decimals": 1,
+            "decimals": 2,
             "number_separators": ".,",
             "compact": false
           }
-        }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Score"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#E4EFFA",
+            "highlight_row": true
+          }
+        ]
       },
       "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
     },
@@ -249,26 +295,62 @@
         "database": 2,
         "type": "native",
         "native": {
-          "query": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Reliability /100\",m.relative_contribution AS \"Contribution ×\",m.confidence AS \"Confidence\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Dog' ORDER BY m.contribution_30d DESC,m.borrower_id",
+          "query": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Dog' ORDER BY m.contribution_30d DESC,m.borrower_id",
           "template-tags": {}
         }
       },
       "visualization_settings": {
         "table.pivot": false,
         "column_settings": {
-          "[\"name\",\"Reliability /100\"]": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Score\"]": {
             "number_style": "decimal",
             "decimals": 1,
             "number_separators": ".,",
             "compact": false
           },
-          "[\"name\",\"Contribution ×\"]": {
+          "[\"name\",\"Value ×\"]": {
             "number_style": "decimal",
-            "decimals": 1,
+            "decimals": 2,
             "number_separators": ".,",
             "compact": false
           }
-        }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Score"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#FBE7E5",
+            "highlight_row": true
+          }
+        ]
       },
       "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
     },
@@ -300,26 +382,62 @@
         "database": 2,
         "type": "native",
         "native": {
-          "query": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Reliability /100\",m.relative_contribution AS \"Contribution ×\",m.confidence AS \"Confidence\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Question Mark' ORDER BY m.contribution_30d DESC,m.borrower_id",
+          "query": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Question Mark' ORDER BY m.contribution_30d DESC,m.borrower_id",
           "template-tags": {}
         }
       },
       "visualization_settings": {
         "table.pivot": false,
         "column_settings": {
-          "[\"name\",\"Reliability /100\"]": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Score\"]": {
             "number_style": "decimal",
             "decimals": 1,
             "number_separators": ".,",
             "compact": false
           },
-          "[\"name\",\"Contribution ×\"]": {
+          "[\"name\",\"Value ×\"]": {
             "number_style": "decimal",
-            "decimals": 1,
+            "decimals": 2,
             "number_separators": ".,",
             "compact": false
           }
-        }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Score"
+            ],
+            "type": "single",
+            "operator": ">=",
+            "value": 0,
+            "color": "#FFF2D6",
+            "highlight_row": true
+          }
+        ]
       },
       "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
     },
@@ -386,13 +504,79 @@
       "visualization_settings": {
         "table.pivot": false,
         "column_settings": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest 30d ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 2,
+            "number_separators": ".,",
+            "compact": false
+          },
           "[\"name\",\"Reliability /100\"]": {
             "number_style": "decimal",
             "decimals": 1,
             "number_separators": ".,",
             "compact": false
           }
-        }
+        },
+        "table.column_formatting": [
+          {
+            "columns": [
+              "Current health"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Default flagged",
+            "color": "#FBE7E5",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Oldest days"
+            ],
+            "type": "single",
+            "operator": ">",
+            "value": 7,
+            "color": "#FBE7E5",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Current health"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Overdue",
+            "color": "#FFF2D6",
+            "highlight_row": true
+          },
+          {
+            "columns": [
+              "Rating status"
+            ],
+            "type": "single",
+            "operator": "=",
+            "value": "Data review",
+            "color": "#ECEFF1",
+            "highlight_row": true
+          }
+        ]
       },
       "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
     },
@@ -511,5 +695,5 @@
       "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
     }
   ],
-  "scope": "New review tab only; no existing-tab cutover"
+  "scope": "Delivered parallel review tab 31; no existing-tab cutover"
 }

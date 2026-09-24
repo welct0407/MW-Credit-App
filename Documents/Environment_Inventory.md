@@ -1,8 +1,8 @@
 # Environment inventory
 
-## R027 DEV checkpoint
+## R027 SQL/report delivery — 24 September 2026
 
-DEV SQL is V41 (verified 24 September 2026); PROD remains V40 for this feature. DEV OLTP has two new read-only payment-health sources; configuration and final version capture are incomplete. The R026 version paragraph below is a prior checkpoint for affected DEV facts. No PROD app change is made by R027. [Evidence and remaining work](../outputs/r027-payment-health/README.md).
+DEV and PROD SQL are V41. PROD apps unchanged: OLTP 3.000246 / OLAP 1.100198, both editors clear in read-only checks. DEV OLTP 1.000085 removes this task's AppSheet additions and is clear; DEV OLAP remains the prior R026 state. Metabase dashboard 3 has the new review tab 31 (questions 253–269), 12 tabs / 207 placements; original report preserved; backup dashboard 4. Existing reporting reader has SELECT-only access to three new reporting views. [Exact evidence](../outputs/r027-payment-health/README.md).
 
 ## R026 owner-directed closure — 24 September 2026
 

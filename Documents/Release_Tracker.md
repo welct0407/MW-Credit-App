@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R028 — Open** |
 | Next number, not yet open or usable | **R029 — opens only when R028 is frozen at promotion start** |
-| Current release evidence | R027 frozen for additive SQL/Metabase delivery; R028 is the sole Open release. AppSheet additions removed. [Checklist](../outputs/r027-payment-health/promotion-checklist.md) |
+| Current release evidence | R027 SQL/Metabase delivery verified; R028 is the sole Open release. Original Borrowers tab retained; AppSheet additions removed. [Checklist](../outputs/r027-payment-health/promotion-checklist.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R028 | New development after R027 capture | Open | Sole development release. | Current development release above |
-| R027 | Payment-health SQL and parallel Borrower Health Review; delivered GCP currency formatting | Frozen for promotion | 2026-09-24T23:26:05.388567+07:00; V41 and 17 report queries tested. PROD apps unchanged; DEV additions removed at 1.000085. | [Package](../outputs/r027-payment-health/frozen-package.json) |
+| R027 | Payment-health SQL and parallel Borrower Health Review; delivered GCP currency formatting | Released — SQL/report; review tab retained | DEV/PROD V41; tab 31 and questions 253–269; original report preserved. No App Upgrade. | [Evidence](../outputs/r027-payment-health/README.md) · tag R027 |
 | R026 | Table locale alignment, export retirement and unused pg_cron retirement | Closed at owner direction — partial deployment | V40 and template retirement verified; OLAP 1.100198 applied, OLTP unchanged. Further app work stopped; final checks incomplete. R027 remains Open. | [Closure](../outputs/r026-dictionary-fixes/closure.md) · [Log](../Change%20Logs/CHANGE_NOTES_R026_2026-09-24.md) |
 | R025 | Canonical Collection Monitor replacement | Released — report-only | 2026-09-24: canonical tab19; old tab9 removed; 6 cutover checks and Chrome passed; tag R025 | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
 | R024 | Performance and Borrowers tab order | Released — report-only | 2026-09-24: tab18 fifth, tab6 sixth; saved-state and Chrome checks passed | [Evidence](../outputs/r024-20260924/README.md) · tag R024 |

@@ -1,8 +1,8 @@
 # PostgreSQL development with Flyway
 
-## R027 borrower payment health — DEV only
+## R027 borrower payment health — DEV and PROD
 
-DEV V41 is applied and validated; PROD remains V40. Five additive views provide charge/borrower health, independent BCG classification and read-only OLTP adapters. Existing providers remain unchanged. Full SQL CI, fixed-snapshot parity and ten DEV checks passed. V41 is immutable; check current reservations before assigning any later migration. AppSheet implementation remains incomplete. [Evidence](../outputs/r027-payment-health/README.md).
+V41 is applied and validated in both environments. Five additive views provide charge/borrower health, independent BCG classification and dormant read-only OLTP adapters. The three reporting views have SELECT-only grants for the existing Metabase reader. New review tab 31 consumes them; existing providers and AppSheet bindings are unchanged. Full SQL CI, snapshot parity, production checks and 17 report queries passed. V41 is immutable. [Package, recovery and evidence](../outputs/r027-payment-health/README.md).
 
 ## R026 unused scheduler retirement — 24 September 2026
 

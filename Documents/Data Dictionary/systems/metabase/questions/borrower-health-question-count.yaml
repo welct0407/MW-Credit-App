@@ -1,0 +1,38 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Question Mark · borrowers / 264",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "question-count",
+    "id": 264,
+    "name": "Question Mark · borrowers",
+    "display": "scalar",
+    "collection_id": 5,
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT count(*) AS \"Borrowers\" FROM public.reporting_borrower_matrix_v2 WHERE quadrant='Question Mark'"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "scalar.field": "Borrowers",
+      "graph.colors": [
+        "#D4AD60"
+      ]
+    },
+    "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
+  }
+}
