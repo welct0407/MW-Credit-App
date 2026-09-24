@@ -4,6 +4,8 @@
 
 **Later design revision, 24 September:** the owner identified both seven-day trend averages as important. The [seven-day averages design](SEVEN_DAY_TRENDS_DESIGN.md) proposes enhancing the daily chart and restoring a cumulative chart to 6R, superseding this document's recommendation to omit cumulative results. That enhancement is **design only**, not implemented or authorized for implementation in that task.
 
+**Latest approach revision:** use Metabase query-builder `Offset` expressions over existing snapshots, with supporting saved questions and the display filter applied after calculation. The earlier new-DB-view proposal is superseded. No new DB object, grant, handwritten SQL or live implementation is included in this design-only revision.
+
 Date: 24 September 2026 (Asia/Bangkok). Status: **proposed design, not implemented**.
 
 The owner requested a review/design and will use another model to implement it. This task made read-only Metabase API inspections and read-only source queries, and created documentation only. It did not change any dashboard, question, model, database object, data, permission or schedule. Starting repository commit: `308bd93a80cf31bd0ce801b0fa6adfd051f22d85`; clean tree. Continue R016 rather than reserving a new release just for this design.
