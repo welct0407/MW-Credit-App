@@ -1,0 +1,191 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "relation",
+    "name": "public.reporting_charge_payment_health_v1",
+    "scope": "development:R027"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/sql-definitions.json"
+  },
+  "content": {
+    "release": "R027",
+    "production_present": false,
+    "migration": "V41__borrower_payment_health.sql",
+    "definition": " WITH ctx AS (\n         SELECT olap_reporting_date() AS d,\n            statement_timestamp() AS t\n        ), daily AS (\n         SELECT r.\"Ref Charges\" AS id,\n            r.\"Payment Date\" AS effective_day,\n            sum(r.\"Principal Paid\"::numeric) AS p,\n            sum(r.\"Interest Paid\"::numeric) AS i\n           FROM \"Repayments\" r\n             CROSS JOIN ctx\n          WHERE r.\"Payment Date\" < ctx.d\n          GROUP BY r.\"Ref Charges\", r.\"Payment Date\"\n        ), running AS (\n         SELECT daily.id,\n            daily.effective_day,\n            daily.p,\n            daily.i,\n            sum(daily.p) OVER (PARTITION BY daily.id ORDER BY daily.effective_day) AS cp,\n            sum(daily.i) OVER (PARTITION BY daily.id ORDER BY daily.effective_day) AS ci\n           FROM daily\n        ), covered AS (\n         SELECT r.id,\n            r.effective_day,\n            r.p,\n            r.i,\n            r.cp,\n            r.ci,\n            r.cp >= (c.\"Principal Due\"::numeric - 0.005) AND r.ci >= (c.\"Interest Due\"::numeric - 0.005) AS full_paid\n           FROM running r\n             JOIN \"Charges\" c ON c.\"Row ID\" = r.id\n        ), last_gap AS (\n         SELECT covered.id,\n            max(covered.effective_day) FILTER (WHERE NOT covered.full_paid) AS last_uncovered\n           FROM covered\n          GROUP BY covered.id\n        ), timing AS (\n         SELECT c.id,\n            min(c.effective_day) FILTER (WHERE c.full_paid AND (g.last_uncovered IS NULL OR c.effective_day > g.last_uncovered)) AS settled\n           FROM covered c\n             JOIN last_gap g USING (id)\n          GROUP BY c.id\n        ), payments AS (\n         SELECT r.\"Ref Charges\" AS id,\n            COALESCE(sum(r.\"Principal Paid\"::numeric) FILTER (WHERE r.\"Payment Date\" <= ctx.d), 0::numeric) AS p,\n            COALESCE(sum(r.\"Interest Paid\"::numeric) FILTER (WHERE r.\"Payment Date\" <= ctx.d), 0::numeric) AS i,\n            COALESCE(sum(r.\"Principal Paid\"::numeric) FILTER (WHERE r.\"Payment Date\" <= c.\"Charge Date\" AND r.\"Payment Date\" < ctx.d), 0::numeric) AS on_p,\n            COALESCE(sum(r.\"Interest Paid\"::numeric) FILTER (WHERE r.\"Payment Date\" <= c.\"Charge Date\" AND r.\"Payment Date\" < ctx.d), 0::numeric) AS on_i,\n            bool_or(r.\"Payment Date\" IS NULL OR r.\"Principal Paid\" IS NULL OR r.\"Interest Paid\" IS NULL OR r.\"Ref Loans\" IS DISTINCT FROM c.\"Ref Loans\") AS invalid\n           FROM \"Repayments\" r\n             JOIN \"Charges\" c ON c.\"Row ID\" = r.\"Ref Charges\"\n             CROSS JOIN ctx\n          GROUP BY r.\"Ref Charges\"\n        ), base AS (\n         SELECT c.\"Row ID\" AS charge_id,\n            c.\"Ref Loans\" AS loan_id,\n            l.\"Ref Borrowers\" AS borrower_id,\n            c.\"Charge Date\" AS due_date,\n            c.\"Principal Due\"::numeric AS principal_due,\n            c.\"Interest Due\"::numeric AS interest_due,\n            COALESCE(p.p, 0::numeric) AS principal_paid_current,\n            COALESCE(p.i, 0::numeric) AS interest_paid_current,\n            GREATEST(c.\"Principal Due\"::numeric - COALESCE(p.p, 0::numeric), 0::numeric) AS principal_remaining_current,\n            GREATEST(c.\"Interest Due\"::numeric - COALESCE(p.i, 0::numeric), 0::numeric) AS interest_remaining_current,\n            c.\"Charge Date\" < ctx.d AND c.\"Principal Due\"::numeric >= 0::numeric AND c.\"Interest Due\"::numeric >= 0::numeric AND (c.\"Principal Due\"::numeric + c.\"Interest Due\"::numeric) > 0::numeric AS eligible,\n            COALESCE(p.on_p, 0::numeric) >= (c.\"Principal Due\"::numeric - 0.005) AND COALESCE(p.on_i, 0::numeric) >= (c.\"Interest Due\"::numeric - 0.005) AS on_time_covered,\n            tm.settled,\n            GREATEST(COALESCE(tm.settled, ctx.d) - c.\"Charge Date\", 0) AS late,\n                CASE\n                    WHEN c.\"Charge Date\" IS NULL OR c.\"Principal Due\" IS NULL OR c.\"Interest Due\" IS NULL OR l.\"Row ID\" IS NULL OR b.\"Row ID\" IS NULL OR COALESCE(p.invalid, false) OR (c.\"Principal Due\"::numeric < 0::numeric OR c.\"Interest Due\"::numeric < 0::numeric) AND NOT COALESCE(l.\"Defaulted\", false) THEN 'Invalid source'::text\n                    ELSE 'OK'::text\n                END AS data_quality_status,\n            COALESCE(l.\"Defaulted\", false) AS defaulted,\n            ctx.d AS reporting_date,\n            ctx.t AS calculated_at\n           FROM \"Charges\" c\n             LEFT JOIN \"Loans\" l ON l.\"Row ID\" = c.\"Ref Loans\"\n             LEFT JOIN \"Borrowers\" b ON b.\"Row ID\" = l.\"Ref Borrowers\"\n             LEFT JOIN payments p ON p.id = c.\"Row ID\"\n             LEFT JOIN timing tm ON tm.id = c.\"Row ID\"\n             CROSS JOIN ctx\n        ), facts AS (\n         SELECT base.charge_id,\n            base.loan_id,\n            base.borrower_id,\n            base.due_date,\n            base.principal_due,\n            base.interest_due,\n            base.principal_paid_current,\n            base.interest_paid_current,\n            base.principal_remaining_current,\n            base.interest_remaining_current,\n            base.eligible,\n            base.on_time_covered,\n            base.settled,\n            base.late,\n            base.data_quality_status,\n            base.defaulted,\n            base.reporting_date,\n            base.calculated_at,\n            COALESCE(base.eligible, false) AND base.data_quality_status = 'OK'::text AS history_eligible,\n            base.principal_remaining_current + base.interest_remaining_current AS remaining_current,\n                CASE\n                    WHEN base.data_quality_status <> 'OK'::text THEN 'Invalid source'::text\n                    WHEN base.principal_due < 0::numeric OR base.interest_due < 0::numeric THEN 'Default accounting'::text\n                    WHEN (base.principal_due + base.interest_due) = 0::numeric THEN 'Zero obligation'::text\n                    WHEN base.due_date >= base.reporting_date THEN 'Not matured'::text\n                    ELSE NULL::text\n                END AS exclusion_reason\n           FROM base\n        ), overdue AS (\n         SELECT facts.charge_id,\n            facts.loan_id,\n            facts.borrower_id,\n            facts.due_date,\n            facts.principal_due,\n            facts.interest_due,\n            facts.principal_paid_current,\n            facts.interest_paid_current,\n            facts.principal_remaining_current,\n            facts.interest_remaining_current,\n            facts.eligible,\n            facts.on_time_covered,\n            facts.settled,\n            facts.late,\n            facts.data_quality_status,\n            facts.defaulted,\n            facts.reporting_date,\n            facts.calculated_at,\n            facts.history_eligible,\n            facts.remaining_current,\n            facts.exclusion_reason,\n            facts.history_eligible AND facts.remaining_current > 0.005 AS is_overdue\n           FROM facts\n        )\n SELECT charge_id,\n    loan_id,\n    borrower_id,\n    due_date,\n    principal_due,\n    interest_due,\n    history_eligible,\n    exclusion_reason,\n    data_quality_status,\n    principal_paid_current,\n    interest_paid_current,\n        CASE\n            WHEN data_quality_status = 'OK'::text THEN principal_remaining_current\n            ELSE NULL::numeric\n        END AS principal_remaining_current,\n        CASE\n            WHEN data_quality_status = 'OK'::text THEN interest_remaining_current\n            ELSE NULL::numeric\n        END AS interest_remaining_current,\n        CASE\n            WHEN data_quality_status = 'OK'::text THEN remaining_current\n            ELSE NULL::numeric\n        END AS remaining_current,\n    is_overdue,\n        CASE\n            WHEN data_quality_status <> 'OK'::text THEN NULL::numeric\n            WHEN is_overdue THEN remaining_current\n            ELSE 0::numeric\n        END AS overdue_amount,\n        CASE\n            WHEN is_overdue THEN reporting_date - due_date\n            ELSE NULL::integer\n        END AS current_days_overdue,\n        CASE\n            WHEN history_eligible THEN on_time_covered\n            ELSE NULL::boolean\n        END AS on_time,\n        CASE\n            WHEN history_eligible THEN settled\n            ELSE NULL::date\n        END AS final_settlement_date,\n        CASE\n            WHEN history_eligible THEN late\n            ELSE NULL::integer\n        END AS historical_delay_days,\n        CASE\n            WHEN history_eligible THEN\n            CASE\n                WHEN late = 0 THEN 100\n                WHEN late = 1 THEN 90\n                WHEN late <= 3 THEN 70\n                WHEN late <= 7 THEN 40\n                ELSE 10\n            END\n            ELSE NULL::integer\n        END AS delay_grade,\n    reporting_date,\n    calculated_at,\n    'payment-health-v1'::text AS method_version\n   FROM overdue;",
+    "columns": {
+      "charge_id": {
+        "column_name": "charge_id",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 1
+      },
+      "loan_id": {
+        "column_name": "loan_id",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 2
+      },
+      "borrower_id": {
+        "column_name": "borrower_id",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 3
+      },
+      "due_date": {
+        "column_name": "due_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 4
+      },
+      "principal_due": {
+        "column_name": "principal_due",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 5
+      },
+      "interest_due": {
+        "column_name": "interest_due",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 6
+      },
+      "history_eligible": {
+        "column_name": "history_eligible",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 7
+      },
+      "exclusion_reason": {
+        "column_name": "exclusion_reason",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 8
+      },
+      "data_quality_status": {
+        "column_name": "data_quality_status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 9
+      },
+      "principal_paid_current": {
+        "column_name": "principal_paid_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 10
+      },
+      "interest_paid_current": {
+        "column_name": "interest_paid_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 11
+      },
+      "principal_remaining_current": {
+        "column_name": "principal_remaining_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 12
+      },
+      "interest_remaining_current": {
+        "column_name": "interest_remaining_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 13
+      },
+      "remaining_current": {
+        "column_name": "remaining_current",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 14
+      },
+      "is_overdue": {
+        "column_name": "is_overdue",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 15
+      },
+      "overdue_amount": {
+        "column_name": "overdue_amount",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 16
+      },
+      "current_days_overdue": {
+        "column_name": "current_days_overdue",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 17
+      },
+      "on_time": {
+        "column_name": "on_time",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 18
+      },
+      "final_settlement_date": {
+        "column_name": "final_settlement_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 19
+      },
+      "historical_delay_days": {
+        "column_name": "historical_delay_days",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 20
+      },
+      "delay_grade": {
+        "column_name": "delay_grade",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 21
+      },
+      "reporting_date": {
+        "column_name": "reporting_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 22
+      },
+      "calculated_at": {
+        "column_name": "calculated_at",
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "is_nullable": "YES",
+        "ordinal_position": 23
+      },
+      "method_version": {
+        "column_name": "method_version",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 24
+      }
+    },
+    "behavior_reference": "outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md"
+  }
+}

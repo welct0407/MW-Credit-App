@@ -1,5 +1,9 @@
 # Open development differences
 
+## R027 — borrower payment health, in development
+
+DEV SQL V41 adds five read-only payment-health/matrix views; PROD remains V40. Existing operational and legacy analytics providers are unchanged. The signed-ledger model uses 45/15/15/25 reliability weights, independent matrix axes and explicit default-history Data review. DEV OLTP read-only summary/drill-down configuration is in progress; no production app/report change is authorized. [Design](../outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md) · [Development log](../Change%20Logs/CHANGE_NOTES_R027_2026-09-24.md).
+
 ## R026 owner-directed closure — 24 September 2026
 
 **Current R026 state supersedes earlier checkpoints below:** DEV/PROD SQL V40; PROD OLAP 1.100198 with copied RC1 display name/folder and incomplete final verification; PROD OLTP unchanged 3.000246. DEV OLAP 1.000033 has regenerated Daily Analytics and four generated slice warnings at last observation; DEV OLTP 1.000075. Export template is in Trash; bots disabled. Shared pg_cron instance flag remains on. Owner instructed keeping apps as-is; no further R026 edits or RC cleanup. R027 remains Open and R026 places no hold on development. [Exact closure and retained candidates](../outputs/r026-dictionary-fixes/closure.md).

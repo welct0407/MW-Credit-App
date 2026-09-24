@@ -1,0 +1,128 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "relation",
+    "name": "public.reporting_borrower_matrix_v2",
+    "scope": "development:R027"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/sql-definitions.json"
+  },
+  "content": {
+    "release": "R027",
+    "production_present": false,
+    "migration": "V41__borrower_payment_health.sql",
+    "definition": " WITH income AS (\n         SELECT l.\"Ref Borrowers\" AS borrower_id,\n            sum(r.\"Interest Paid\"::numeric) AS contribution\n           FROM \"Repayments\" r\n             JOIN \"Loans\" l ON l.\"Row ID\" = r.\"Ref Loans\"\n          WHERE r.\"Payment Date\" >= (olap_reporting_date() - 30) AND r.\"Payment Date\" < olap_reporting_date()\n          GROUP BY l.\"Ref Borrowers\"\n        ), cohort AS (\n         SELECT h.borrower_id,\n            h.has_active_loan,\n            h.hidden_flag,\n            h.overdue_principal,\n            h.overdue_interest,\n            h.overdue_amount,\n            h.overdue_charge_count,\n            h.oldest_overdue_date,\n            h.oldest_unpaid_days,\n            h.recent_obligation_count,\n            h.recent_on_time_count,\n            h.recent_late_count,\n            h.recent_on_time_rate,\n            h.older_obligation_count,\n            h.older_on_time_count,\n            h.older_on_time_rate,\n            h.severity_obligation_count,\n            h.first_matured_due_date,\n            h.distinct_matured_due_dates,\n            h.history_span_days,\n            h.recent_score,\n            h.older_score,\n            h.delay_score,\n            h.current_score,\n            h.recent_effective_weight,\n            h.older_effective_weight,\n            h.delay_effective_weight,\n            h.current_effective_weight,\n            h.raw_score,\n            h.reliability_score,\n            h.reliability_band,\n            h.rating_status,\n            h.confidence,\n            h.severe_risk_guard,\n            h.score_cap_applied,\n            h.active_default,\n            h.recent_default,\n            h.default_count,\n            h.recorded_default_loss,\n            h.current_health_status,\n            h.primary_reason_code,\n            h.reason_text,\n            h.data_quality_status,\n            h.reporting_date,\n            h.calculated_at,\n            h.method_version,\n            COALESCE(i.contribution, 0::numeric) AS contribution_30d,\n            b.\"Total Outstanding Principal\" AS outstanding_principal\n           FROM reporting_borrower_payment_health_v1 h\n             JOIN \"Borrowers\" b ON b.\"Row ID\" = h.borrower_id\n             LEFT JOIN income i USING (borrower_id)\n          WHERE h.has_active_loan\n        ), totals AS (\n         SELECT cohort.borrower_id,\n            cohort.has_active_loan,\n            cohort.hidden_flag,\n            cohort.overdue_principal,\n            cohort.overdue_interest,\n            cohort.overdue_amount,\n            cohort.overdue_charge_count,\n            cohort.oldest_overdue_date,\n            cohort.oldest_unpaid_days,\n            cohort.recent_obligation_count,\n            cohort.recent_on_time_count,\n            cohort.recent_late_count,\n            cohort.recent_on_time_rate,\n            cohort.older_obligation_count,\n            cohort.older_on_time_count,\n            cohort.older_on_time_rate,\n            cohort.severity_obligation_count,\n            cohort.first_matured_due_date,\n            cohort.distinct_matured_due_dates,\n            cohort.history_span_days,\n            cohort.recent_score,\n            cohort.older_score,\n            cohort.delay_score,\n            cohort.current_score,\n            cohort.recent_effective_weight,\n            cohort.older_effective_weight,\n            cohort.delay_effective_weight,\n            cohort.current_effective_weight,\n            cohort.raw_score,\n            cohort.reliability_score,\n            cohort.reliability_band,\n            cohort.rating_status,\n            cohort.confidence,\n            cohort.severe_risk_guard,\n            cohort.score_cap_applied,\n            cohort.active_default,\n            cohort.recent_default,\n            cohort.default_count,\n            cohort.recorded_default_loss,\n            cohort.current_health_status,\n            cohort.primary_reason_code,\n            cohort.reason_text,\n            cohort.data_quality_status,\n            cohort.reporting_date,\n            cohort.calculated_at,\n            cohort.method_version,\n            cohort.contribution_30d,\n            cohort.outstanding_principal,\n            count(*) OVER ()::integer AS active_borrower_count,\n            sum(cohort.contribution_30d) OVER () AS portfolio_contribution_30d\n           FROM cohort\n        ), axes AS (\n         SELECT totals.borrower_id,\n            totals.has_active_loan,\n            totals.hidden_flag,\n            totals.overdue_principal,\n            totals.overdue_interest,\n            totals.overdue_amount,\n            totals.overdue_charge_count,\n            totals.oldest_overdue_date,\n            totals.oldest_unpaid_days,\n            totals.recent_obligation_count,\n            totals.recent_on_time_count,\n            totals.recent_late_count,\n            totals.recent_on_time_rate,\n            totals.older_obligation_count,\n            totals.older_on_time_count,\n            totals.older_on_time_rate,\n            totals.severity_obligation_count,\n            totals.first_matured_due_date,\n            totals.distinct_matured_due_dates,\n            totals.history_span_days,\n            totals.recent_score,\n            totals.older_score,\n            totals.delay_score,\n            totals.current_score,\n            totals.recent_effective_weight,\n            totals.older_effective_weight,\n            totals.delay_effective_weight,\n            totals.current_effective_weight,\n            totals.raw_score,\n            totals.reliability_score,\n            totals.reliability_band,\n            totals.rating_status,\n            totals.confidence,\n            totals.severe_risk_guard,\n            totals.score_cap_applied,\n            totals.active_default,\n            totals.recent_default,\n            totals.default_count,\n            totals.recorded_default_loss,\n            totals.current_health_status,\n            totals.primary_reason_code,\n            totals.reason_text,\n            totals.data_quality_status,\n            totals.reporting_date,\n            totals.calculated_at,\n            totals.method_version,\n            totals.contribution_30d,\n            totals.outstanding_principal,\n            totals.active_borrower_count,\n            totals.portfolio_contribution_30d,\n            1.0 / totals.active_borrower_count::numeric AS equal_share,\n                CASE\n                    WHEN totals.portfolio_contribution_30d > 0::numeric THEN totals.contribution_30d / totals.portfolio_contribution_30d\n                    ELSE NULL::numeric\n                END AS contribution_share,\n                CASE\n                    WHEN totals.portfolio_contribution_30d > 0::numeric THEN totals.contribution_30d / totals.portfolio_contribution_30d * totals.active_borrower_count::numeric\n                    ELSE NULL::numeric\n                END AS relative_contribution\n           FROM totals\n        )\n SELECT borrower_id,\n    contribution_30d,\n    active_borrower_count,\n    portfolio_contribution_30d,\n    contribution_share,\n    equal_share,\n    relative_contribution,\n    reliability_score,\n    confidence,\n        CASE\n            WHEN portfolio_contribution_30d <= 0::numeric OR rating_status <> 'Rated'::text THEN 'Unclassified'::text\n            WHEN relative_contribution >= 1::numeric AND reliability_score >= 80::numeric THEN 'Star'::text\n            WHEN reliability_score >= 80::numeric THEN 'Cash Cow'::text\n            WHEN relative_contribution >= 1::numeric THEN 'Question Mark'::text\n            ELSE 'Dog'::text\n        END AS quadrant,\n        CASE\n            WHEN portfolio_contribution_30d <= 0::numeric THEN 'Portfolio contribution is not positive'::text\n            WHEN rating_status <> 'Rated'::text THEN reason_text\n            ELSE 'Contribution boundary 1x; reliability boundary 80'::text\n        END AS classification_reason,\n    outstanding_principal,\n    reporting_date,\n    calculated_at,\n    method_version\n   FROM axes;",
+    "columns": {
+      "borrower_id": {
+        "column_name": "borrower_id",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 1
+      },
+      "contribution_30d": {
+        "column_name": "contribution_30d",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 2
+      },
+      "active_borrower_count": {
+        "column_name": "active_borrower_count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 3
+      },
+      "portfolio_contribution_30d": {
+        "column_name": "portfolio_contribution_30d",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 4
+      },
+      "contribution_share": {
+        "column_name": "contribution_share",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 5
+      },
+      "equal_share": {
+        "column_name": "equal_share",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 6
+      },
+      "relative_contribution": {
+        "column_name": "relative_contribution",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 7
+      },
+      "reliability_score": {
+        "column_name": "reliability_score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 8
+      },
+      "confidence": {
+        "column_name": "confidence",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 9
+      },
+      "quadrant": {
+        "column_name": "quadrant",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 10
+      },
+      "classification_reason": {
+        "column_name": "classification_reason",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 11
+      },
+      "outstanding_principal": {
+        "column_name": "outstanding_principal",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 12
+      },
+      "reporting_date": {
+        "column_name": "reporting_date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 13
+      },
+      "calculated_at": {
+        "column_name": "calculated_at",
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "is_nullable": "YES",
+        "ordinal_position": 14
+      },
+      "method_version": {
+        "column_name": "method_version",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 15
+      }
+    },
+    "behavior_reference": "outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md"
+  }
+}

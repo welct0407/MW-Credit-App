@@ -1,5 +1,9 @@
 # Environment inventory
 
+## R027 DEV checkpoint
+
+DEV SQL is V41 (verified 24 September 2026); PROD remains V40 for this feature. DEV OLTP has two new read-only payment-health sources; configuration and final version capture are incomplete. The R026 version paragraph below is a prior checkpoint for affected DEV facts. No PROD app change is made by R027. [Evidence and remaining work](../outputs/r027-payment-health/README.md).
+
 ## R026 owner-directed closure — 24 September 2026
 
 **Current R026 state supersedes earlier checkpoints below:** DEV/PROD SQL V40; PROD OLAP 1.100198 with copied RC1 display name/folder and incomplete final verification; PROD OLTP unchanged 3.000246. DEV OLAP 1.000033 has regenerated Daily Analytics and four generated slice warnings at last observation; DEV OLTP 1.000075. Export template is in Trash; bots disabled. Shared pg_cron instance flag remains on. Owner instructed keeping apps as-is; no further R026 edits or RC cleanup. R027 remains Open and R026 places no hold on development. [Exact closure and retained candidates](../outputs/r026-dictionary-fixes/closure.md).

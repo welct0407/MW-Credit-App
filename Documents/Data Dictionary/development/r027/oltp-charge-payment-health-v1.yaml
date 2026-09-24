@@ -1,0 +1,121 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "relation",
+    "name": "public.oltp_charge_payment_health_v1",
+    "scope": "development:R027"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/sql-definitions.json"
+  },
+  "content": {
+    "release": "R027",
+    "production_present": false,
+    "migration": "V41__borrower_payment_health.sql",
+    "definition": " SELECT charge_id AS \"Row ID\",\n    charge_id AS \"Ref Charge\",\n    loan_id AS \"Ref Loans\",\n    borrower_id AS \"Ref Borrower\",\n    due_date AS \"Due Date\",\n    principal_remaining_current AS \"Unpaid Principal\",\n    interest_remaining_current AS \"Unpaid Interest\",\n    overdue_amount AS \"Overdue Amount\",\n    current_days_overdue AS \"Days Overdue\",\n    is_overdue AS \"Is Overdue\",\n    data_quality_status AS \"Data Quality Status\",\n    reporting_date AS \"Reporting Date\",\n    calculated_at AS \"Calculated At\",\n    method_version AS \"Method Version\"\n   FROM reporting_charge_payment_health_v1;",
+    "columns": {
+      "Row ID": {
+        "column_name": "Row ID",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 1
+      },
+      "Ref Charge": {
+        "column_name": "Ref Charge",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 2
+      },
+      "Ref Loans": {
+        "column_name": "Ref Loans",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 3
+      },
+      "Ref Borrower": {
+        "column_name": "Ref Borrower",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 4
+      },
+      "Due Date": {
+        "column_name": "Due Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 5
+      },
+      "Unpaid Principal": {
+        "column_name": "Unpaid Principal",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 6
+      },
+      "Unpaid Interest": {
+        "column_name": "Unpaid Interest",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 7
+      },
+      "Overdue Amount": {
+        "column_name": "Overdue Amount",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 8
+      },
+      "Days Overdue": {
+        "column_name": "Days Overdue",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 9
+      },
+      "Is Overdue": {
+        "column_name": "Is Overdue",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 10
+      },
+      "Data Quality Status": {
+        "column_name": "Data Quality Status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 11
+      },
+      "Reporting Date": {
+        "column_name": "Reporting Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 12
+      },
+      "Calculated At": {
+        "column_name": "Calculated At",
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "is_nullable": "YES",
+        "ordinal_position": 13
+      },
+      "Method Version": {
+        "column_name": "Method Version",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 14
+      }
+    },
+    "behavior_reference": "outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md"
+  }
+}

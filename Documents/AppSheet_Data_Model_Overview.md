@@ -1,5 +1,9 @@
 # Production model overview
 
+## R027 DEV-only payment-health foundation
+
+PostgreSQL computes signed-ledger charge coverage, borrower overdue balances, historical payment reliability and independent BCG axes. OLTP consumes two read-only adapters with stable borrower/charge keys and existing Refs, avoiding historical aggregation in app expressions. The compact borrower summary and drill-down UI are still being implemented. Default-altered history suppresses the rating while preserving debt/default context. Existing production and legacy report providers remain unchanged. [Detailed design and checkpoint](../outputs/r027-payment-health/README.md).
+
 This document explains architecture and business behavior. Exact columns, expressions, types, permissions, Refs and SQL metadata belong in the [data dictionary](Data%20Dictionary/README.md); current versions/identities belong in [Environment Inventory](Environment_Inventory.md). Recorded production baseline: R015. Changes since that baseline are listed in [Development Changes](Development_Changes.md).
 
 ## Architecture and ownership

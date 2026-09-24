@@ -1,5 +1,9 @@
 # Solution design rules
 
+## R027 DEV-only shared payment health
+
+Charge and borrower health are governed in PostgreSQL and exposed through read-only OLTP adapters. Current overdue status is independent of historical reliability and history confidence; a zero arrear is not proof of high reliability. The independent BCG provider supports later portfolio reporting. OLTP presentation is still in development; no Risks/BCG report cutover or production deployment has occurred. [Implementation and detailed contract](../outputs/r027-payment-health/README.md).
+
 R024 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings are unchanged. [Evidence](../outputs/r024-20260924/README.md).
 
 R023 current Performance: owner accepted 6R as the replacement. Tab18 is now **6 · Performance**, sixth in order; old tab7 and its 18 placements are removed. The unused performance-date filter is removed, while Performance period remains. Dashboard3 has **11 tabs / 189 placements**. Saved questions retained, including shared question56. All retained chart definitions/layouts and other tab order preserved. [Evidence](../outputs/r023-20260924/README.md).

@@ -1,0 +1,352 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "relation",
+    "name": "public.oltp_borrower_payment_health_v1",
+    "scope": "development:R027"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r027-payment-health/sql-definitions.json"
+  },
+  "content": {
+    "release": "R027",
+    "production_present": false,
+    "migration": "V41__borrower_payment_health.sql",
+    "definition": " SELECT borrower_id AS \"Row ID\",\n    borrower_id AS \"Ref Borrower\",\n    has_active_loan AS \"Has Active Loan\",\n    hidden_flag AS \"Hidden Flag\",\n    overdue_principal AS \"Overdue Principal\",\n    overdue_interest AS \"Overdue Interest\",\n    overdue_amount AS \"Overdue Amount\",\n    overdue_charge_count AS \"Overdue Charge Count\",\n    oldest_overdue_date AS \"Oldest Overdue Date\",\n    oldest_unpaid_days AS \"Oldest Unpaid Days\",\n    recent_obligation_count AS \"Recent Obligation Count\",\n    recent_on_time_count AS \"Recent On Time Count\",\n    recent_late_count AS \"Recent Late Count\",\n    recent_on_time_rate AS \"Recent On Time Rate\",\n    older_obligation_count AS \"Older Obligation Count\",\n    older_on_time_count AS \"Older On Time Count\",\n    older_on_time_rate AS \"Older On Time Rate\",\n    severity_obligation_count AS \"Severity Obligation Count\",\n    first_matured_due_date AS \"First Matured Due Date\",\n    distinct_matured_due_dates AS \"Distinct Matured Due Dates\",\n    history_span_days AS \"History Span Days\",\n    recent_score AS \"Recent Score\",\n    older_score AS \"Older Score\",\n    delay_score AS \"Delay Score\",\n    current_score AS \"Current Score\",\n    recent_effective_weight AS \"Recent Effective Weight\",\n    older_effective_weight AS \"Older Effective Weight\",\n    delay_effective_weight AS \"Delay Effective Weight\",\n    current_effective_weight AS \"Current Effective Weight\",\n    raw_score AS \"Raw Score\",\n    reliability_score AS \"Reliability Score\",\n    reliability_band AS \"Reliability Band\",\n    rating_status AS \"Rating Status\",\n    confidence AS \"Confidence\",\n    severe_risk_guard AS \"Severe Risk Guard\",\n    score_cap_applied AS \"Score Cap Applied\",\n    active_default AS \"Active Default\",\n    recent_default AS \"Recent Default\",\n    default_count AS \"Default Count\",\n    recorded_default_loss AS \"Recorded Default Loss\",\n    current_health_status AS \"Current Health Status\",\n    primary_reason_code AS \"Primary Reason Code\",\n    reason_text AS \"Reason\",\n    data_quality_status AS \"Data Quality Status\",\n    reporting_date AS \"Reporting Date\",\n    calculated_at AS \"Calculated At\",\n    method_version AS \"Method Version\"\n   FROM reporting_borrower_payment_health_v1;",
+    "columns": {
+      "Row ID": {
+        "column_name": "Row ID",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 1
+      },
+      "Ref Borrower": {
+        "column_name": "Ref Borrower",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 2
+      },
+      "Has Active Loan": {
+        "column_name": "Has Active Loan",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 3
+      },
+      "Hidden Flag": {
+        "column_name": "Hidden Flag",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 4
+      },
+      "Overdue Principal": {
+        "column_name": "Overdue Principal",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 5
+      },
+      "Overdue Interest": {
+        "column_name": "Overdue Interest",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 6
+      },
+      "Overdue Amount": {
+        "column_name": "Overdue Amount",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 7
+      },
+      "Overdue Charge Count": {
+        "column_name": "Overdue Charge Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 8
+      },
+      "Oldest Overdue Date": {
+        "column_name": "Oldest Overdue Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 9
+      },
+      "Oldest Unpaid Days": {
+        "column_name": "Oldest Unpaid Days",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 10
+      },
+      "Recent Obligation Count": {
+        "column_name": "Recent Obligation Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 11
+      },
+      "Recent On Time Count": {
+        "column_name": "Recent On Time Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 12
+      },
+      "Recent Late Count": {
+        "column_name": "Recent Late Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 13
+      },
+      "Recent On Time Rate": {
+        "column_name": "Recent On Time Rate",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 14
+      },
+      "Older Obligation Count": {
+        "column_name": "Older Obligation Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 15
+      },
+      "Older On Time Count": {
+        "column_name": "Older On Time Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 16
+      },
+      "Older On Time Rate": {
+        "column_name": "Older On Time Rate",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 17
+      },
+      "Severity Obligation Count": {
+        "column_name": "Severity Obligation Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 18
+      },
+      "First Matured Due Date": {
+        "column_name": "First Matured Due Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 19
+      },
+      "Distinct Matured Due Dates": {
+        "column_name": "Distinct Matured Due Dates",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 20
+      },
+      "History Span Days": {
+        "column_name": "History Span Days",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 21
+      },
+      "Recent Score": {
+        "column_name": "Recent Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 22
+      },
+      "Older Score": {
+        "column_name": "Older Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 23
+      },
+      "Delay Score": {
+        "column_name": "Delay Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 24
+      },
+      "Current Score": {
+        "column_name": "Current Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 25
+      },
+      "Recent Effective Weight": {
+        "column_name": "Recent Effective Weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 26
+      },
+      "Older Effective Weight": {
+        "column_name": "Older Effective Weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 27
+      },
+      "Delay Effective Weight": {
+        "column_name": "Delay Effective Weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 28
+      },
+      "Current Effective Weight": {
+        "column_name": "Current Effective Weight",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 29
+      },
+      "Raw Score": {
+        "column_name": "Raw Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 30
+      },
+      "Reliability Score": {
+        "column_name": "Reliability Score",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 31
+      },
+      "Reliability Band": {
+        "column_name": "Reliability Band",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 32
+      },
+      "Rating Status": {
+        "column_name": "Rating Status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 33
+      },
+      "Confidence": {
+        "column_name": "Confidence",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 34
+      },
+      "Severe Risk Guard": {
+        "column_name": "Severe Risk Guard",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 35
+      },
+      "Score Cap Applied": {
+        "column_name": "Score Cap Applied",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 36
+      },
+      "Active Default": {
+        "column_name": "Active Default",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 37
+      },
+      "Recent Default": {
+        "column_name": "Recent Default",
+        "data_type": "boolean",
+        "udt_name": "bool",
+        "is_nullable": "YES",
+        "ordinal_position": 38
+      },
+      "Default Count": {
+        "column_name": "Default Count",
+        "data_type": "integer",
+        "udt_name": "int4",
+        "is_nullable": "YES",
+        "ordinal_position": 39
+      },
+      "Recorded Default Loss": {
+        "column_name": "Recorded Default Loss",
+        "data_type": "numeric",
+        "udt_name": "numeric",
+        "is_nullable": "YES",
+        "ordinal_position": 40
+      },
+      "Current Health Status": {
+        "column_name": "Current Health Status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 41
+      },
+      "Primary Reason Code": {
+        "column_name": "Primary Reason Code",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 42
+      },
+      "Reason": {
+        "column_name": "Reason",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 43
+      },
+      "Data Quality Status": {
+        "column_name": "Data Quality Status",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 44
+      },
+      "Reporting Date": {
+        "column_name": "Reporting Date",
+        "data_type": "date",
+        "udt_name": "date",
+        "is_nullable": "YES",
+        "ordinal_position": 45
+      },
+      "Calculated At": {
+        "column_name": "Calculated At",
+        "data_type": "timestamp with time zone",
+        "udt_name": "timestamptz",
+        "is_nullable": "YES",
+        "ordinal_position": 46
+      },
+      "Method Version": {
+        "column_name": "Method Version",
+        "data_type": "text",
+        "udt_name": "text",
+        "is_nullable": "YES",
+        "ordinal_position": 47
+      }
+    },
+    "behavior_reference": "outputs/borrower-matrix-simulation-20260924/IMPLEMENTATION_HANDOVER.md"
+  }
+}

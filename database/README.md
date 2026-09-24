@@ -1,5 +1,9 @@
 # PostgreSQL development with Flyway
 
+## R027 borrower payment health — DEV only
+
+DEV V41 is applied and validated; PROD remains V40. Five additive views provide charge/borrower health, independent BCG classification and read-only OLTP adapters. Existing providers remain unchanged. Full SQL CI, fixed-snapshot parity and ten DEV checks passed. V41 is immutable; check current reservations before assigning any later migration. AppSheet implementation remains incomplete. [Evidence](../outputs/r027-payment-health/README.md).
+
 ## R026 unused scheduler retirement — 24 September 2026
 
 DEV/PROD V40 are applied and validated from clean pin `8a76733761bb666dd96a08aa45282c1cde2c01a6`. V40 removed PROD pg_cron and its sole disabled job with an exact metadata guard and RESTRICT; DEV already omitted the extension. All non-cron business catalog sections remain identical. AppSheet remains the scheduler. Earlier instructions below to reactivate a pg_cron job are historical: recovery now requires a separately reviewed higher migration, never overlapping schedulers. The shared Cloud SQL flag remains on pending restart coordination. [Verification](../outputs/r026-dictionary-fixes/database-verification.json) · [backup](../outputs/r026-dictionary-fixes/backup.json).

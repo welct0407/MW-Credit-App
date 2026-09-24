@@ -1,0 +1,17 @@
+{
+  "release": "R027",
+  "status": "DEV SQL verified; app implementation incomplete",
+  "production_authorized": false,
+  "migration": {
+    "file": "database/migrations/V41__borrower_payment_health.sql",
+    "sha256": "ba279e88630d2be886d61a4bbcddeeaee478b7a6c35275403e855373b388962e",
+    "dev_applied": true,
+    "prod_applied": false,
+    "hash_scope": "Git-staged file bytes"
+  },
+  "app_rollback": {
+    "oltp": "1.000075",
+    "olap": "1.000033"
+  },
+  "app_final_versions": null
+}
