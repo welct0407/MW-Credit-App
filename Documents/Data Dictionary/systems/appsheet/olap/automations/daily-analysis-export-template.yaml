@@ -691,6 +691,12 @@
     - "address": "G2"
       "type": "s"
       "value": "<<[Ref Charges]>><<End>>"
+  "lifecycle":
+    "status": "retired"
+    "drive_state": "trashed"
+    "date": "2026-09-24"
+    "bot_state": "disabled in DEV and PROD; do not enable against retired template"
+    "retained_definition_purpose": "last captured recovery reference, not an active export asset"
 "evidence":
   "/content/source_modified_utc":
     "reference": "outputs/r026-dictionary-fixes/template/verification.json"
@@ -707,4 +713,8 @@
   "/content/sheets":
     "reference": "outputs/r026-dictionary-fixes/template/verification.json"
     "reason": "Verified in-place Drive update and downloaded candidate hash; export remains disabled."
+    "state": "value"
+  "/content/lifecycle":
+    "reference": "outputs/r026-dictionary-fixes/template/retirement.json"
+    "reason": "Owner retired export; exact Drive file ID verified in Trash. Retained cells are recovery evidence only."
     "state": "value"

@@ -1,5 +1,9 @@
 # PostgreSQL development with Flyway
 
+## R026 unused scheduler retirement — 24 September 2026
+
+DEV/PROD V40 are applied and validated from clean pin `8a76733761bb666dd96a08aa45282c1cde2c01a6`. V40 removed PROD pg_cron and its sole disabled job with an exact metadata guard and RESTRICT; DEV already omitted the extension. All non-cron business catalog sections remain identical. AppSheet remains the scheduler. Earlier instructions below to reactivate a pg_cron job are historical: recovery now requires a separately reviewed higher migration, never overlapping schedulers. The shared Cloud SQL flag remains on pending restart coordination. [Verification](../outputs/r026-dictionary-fixes/database-verification.json) · [backup](../outputs/r026-dictionary-fixes/backup.json).
+
 ## R016 focused live statements — 23 September 2026
 
 DEV/PROD V39 are deployed from tested commit `311fa9986287a9f4ab234aafcd24c1df0219330f`. V38/V39 add read-only providers for canonical Income/Cashflow reporting; no existing app source, financial record or snapshot engine changes. Full period/detail parity and migration CI pass. V38/V39 are immutable; next version is V40 or higher. [Contract, checks and rollback](../outputs/r016-20260922/statement-cleanup/README.md). Earlier checkpoints below are dated evidence.

@@ -12,11 +12,6 @@
 "content":
   "sections":
     "extensions":
-    - "name": "pg_cron"
-      "version": "1.6.7"
-      "schema": "pg_catalog"
-      "owner": "postgres"
-      "relocatable": false
     - "name": "plpgsql"
       "version": "1.0"
       "schema": "pg_catalog"
@@ -74,8 +69,6 @@
       "dependency_type": "a"
     - "role": "mw_reviewer_dml"
       "dependency_type": "a"
-    - "role": "postgres"
-      "dependency_type": "i"
     - "role": "postgres"
       "dependency_type": "o"
     "relevant_roles":
@@ -570,16 +563,19 @@
       "script": "V39__statement_transfer_label_encoding.sql"
       "checksum": 490963578
       "success": true
+    - "installed_rank": 40
+      "version": "40"
+      "description": "retire unused pg cron"
+      "type": "SQL"
+      "script": "V40__retire_unused_pg_cron.sql"
+      "checksum": 1219040821
+      "success": true
     "foreign_tables": []
     "aggregates": []
-    "jobs":
-    - "jobid": 1
-      "jobname": "loan-daily-charges"
-      "schedule": "5 0 * * *"
-      "command": "SELECT public.generate_due_charges((statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date);"
-      "nodename": "localhost"
-      "nodeport": 5432
-      "database": "loan_manager_prod"
-      "username": "postgres"
-      "active": false
+    "jobs": []
     "unattached_constraints": []
+"evidence":
+  "/content/sections":
+    "reference": "outputs/r026-dictionary-fixes/database-settings-observations.json"
+    "reason": "V40 verified catalog readback; exact remaining settings and DEV differences."
+    "state": "value"

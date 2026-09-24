@@ -33,3 +33,21 @@ Full CI is not passing yet: the new synthetic default fixture must satisfy the e
 ## Scope freeze and handoff
 
 2026-09-24T14:03:59.883143+00:00: promotion starts for the dictionary-fix scope at pinned commit `8a76733761bb666dd96a08aa45282c1cde2c01a6`. DEV V40 validated and private manifest pinned. R026 Frozen; R027 becomes the sole Open release, R028 next. Unapplied V41/payment-health development transfers to R027; original record above preserved. Both DEV apps remain unchanged and paused until RC capture. Shared template correction occurred before this formal handoff; this sequencing deviation is recorded in P51.
+
+## Owner revision — export retirement
+
+Owner no longer needs the export and requested its removal from Google Drive. Exact shared template ID was moved to Trash and verified there; no permanent deletion or export execution. The earlier correction is retained as dated evidence but superseded. Disabled app definitions remain; retirement is an external-asset correction within the existing export scope.
+
+PROD V40 applied successfully at 14:07 UTC from the clean pinned checkout; subsequent Flyway validate passed (41 entries including baseline). Catalog comparison verifies all non-cron business definitions unchanged, zero jobs, one fewer extension and only cron-owned objects removed. Instance flag remains on pending restart coordination.
+
+## Saved candidate checkpoint and authentication interruption
+
+Both RC1 definitions were copied with data and file-data copying OFF. All 19 OLAP and 18 OLTP sources were rebound to PROD database-2, then explicitly reset to en-US because source selection clears Data locale. Each source/locale pair was read back before saving. Production branding, durable logos, companion links and API Enable were restored in the candidates. No keys were generated. Final guard/diagnostic checks, initial deployment and App Upgrade remain pending; no PROD app mutation occurred.
+
+The browser session expired. An incorrect personal Google account was selected and its AppSheet Drive/Sheets consent approved; that account displayed FREE with no apps and was signed out. No app membership or license assignment was changed; billing impact is unverified, and the Google consent has not been revoked. The owner prohibits personal-account access. Further work uses only the Workspace project identity. Workspace sign-in now requires the owner to enter their password directly; no password was requested in chat. Preserve saved candidates while access is restored.
+
+Current dictionary updates remove 24 retired cron canonical/DEV-overlay files and record the export lifecycle. SQL verification and recovery evidence are linked in the release checklist. These are a checked partial checkpoint, not release completion. Unrelated V41/payment-health files remain excluded.
+
+## Owner-directed closure
+
+Owner instructed keeping apps as-is and wrapping up R026. Further app changes, upgrade attempts, RC cleanup and instance restart stopped. R026 closed with partial deployment, not Released. PROD OLAP 1.100198 was applied with RC1 display name/folder; PROD OLTP unchanged. DEV OLAP regenerated to 1.000033 with generated slice warnings still observed. Corrected RC2 definitions retained, not promoted. Exact actual state, recovery and dictionary limitations: [closure](../outputs/r026-dictionary-fixes/closure.md). R027 remains Open and R026 imposes no development hold. Original task files remain preserved.

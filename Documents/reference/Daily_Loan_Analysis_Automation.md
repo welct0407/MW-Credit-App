@@ -1,6 +1,8 @@
-# Daily Loan Analysis Automation — dormant feature reference
+# Daily Loan Analysis Automation — retired feature reference
 
-Consult only when changing this feature/dependencies or resuming the pilot. No recurring release check is required. The dated contract below is preserved; activation must reconcile its old Calendar/source and scheduler assumptions.
+**Retired by owner on 24 September 2026.** Shared Drive template `1g4xHHsTVvRR5ek4u3DslZAb_UerH05E5` was moved to Trash and its exact ID verified there. Both export bots remain disabled; retained definitions reference a retired asset and must not be enabled. The earlier same-day identity correction is superseded by retirement. [Removal evidence](../../outputs/r026-dictionary-fixes/template/retirement.json).
+
+Consult only when changing this feature/dependencies or explicitly restoring it. No recurring release check is required. The dated contract below is preserved; activation must reconcile its old Calendar/source and scheduler assumptions.
 
 **Historical status reviewed — 15 September 2026:** this document is the pilot contract. Production OLAP is **1.100046**, with PostgreSQL business tables and a Google Sheets Calendar. Current versions/sources are in [Environment Inventory](../Environment_Inventory.md). The current editor confirms **Daily Loan Analysis Export is disabled** in production and development OLAP. Codex scheduler state and export delivery/acceptance have not been freshly verified. Do not treat this contract as evidence that the pilot is running successfully. No bot or scheduled task was changed here.
 

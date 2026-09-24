@@ -1,5 +1,15 @@
 # Open development differences
 
+## R026 owner-directed closure — 24 September 2026
+
+**Current R026 state supersedes earlier checkpoints below:** DEV/PROD SQL V40; PROD OLAP 1.100198 with copied RC1 display name/folder and incomplete final verification; PROD OLTP unchanged 3.000246. DEV OLAP 1.000033 has regenerated Daily Analytics and four generated slice warnings at last observation; DEV OLTP 1.000075. Export template is in Trash; bots disabled. Shared pg_cron instance flag remains on. Owner instructed keeping apps as-is; no further R026 edits or RC cleanup. R027 remains Open and R026 places no hold on development. [Exact closure and retained candidates](../outputs/r026-dictionary-fixes/closure.md).
+
+## Earlier R026 checkpoint — superseded by closure above
+
+V40 is applied and validated in DEV and PROD. The unused pg_cron extension and disabled job are removed; non-cron business definitions are unchanged. The shared Cloud SQL pg_cron flag remains on pending restart coordination. The owner retired Daily Loan Analysis export: its exact shared template was verified in Drive Trash, and both export bots remain disabled. [Database evidence](../outputs/r026-dictionary-fixes/database-verification.json) · [Template retirement](../outputs/r026-dictionary-fixes/template/retirement.json).
+
+All 37 candidate table locales are explicitly en-US after PROD source rebinding. Candidate validation and App Upgrade remain pending; PROD locale values have not yet changed. R026 remains Frozen; R027 is the sole Open release. The paused V41/payment-health work belongs to R027 and is excluded from this promotion.
+
 ## R025 — Canonical Collection Monitor
 
 Owner accepted 8R and authorized replacement. Tab19 is now **8 · Collection Monitor** in eighth position; old tab9 and its 26 placements are removed. Dashboard3 has **11 tabs / 184 placements**. All remaining placements, saved questions, filters and source definitions preserved. Top row: receipts, remaining, people fully paid, today-charge paid %. No DB/AppSheet/permissions/jobs changes. R025 Released; R026 Open. [Evidence](../outputs/r025-20260924/cutover-verification.json).

@@ -1,5 +1,9 @@
 # Environment inventory
 
+## R026 owner-directed closure — 24 September 2026
+
+**Current R026 state supersedes earlier checkpoints below:** DEV/PROD SQL V40; PROD OLAP 1.100198 with copied RC1 display name/folder and incomplete final verification; PROD OLTP unchanged 3.000246. DEV OLAP 1.000033 has regenerated Daily Analytics and four generated slice warnings at last observation; DEV OLTP 1.000075. Export template is in Trash; bots disabled. Shared pg_cron instance flag remains on. Owner instructed keeping apps as-is; no further R026 edits or RC cleanup. R027 remains Open and R026 places no hold on development. [Exact closure and retained candidates](../outputs/r026-dictionary-fixes/closure.md).
+
 ## R025 — Canonical Collection Monitor
 
 Owner accepted 8R and authorized replacement. Tab19 is now **8 · Collection Monitor** in eighth position; old tab9 and its 26 placements are removed. Dashboard3 has **11 tabs / 184 placements**. All remaining placements, saved questions, filters and source definitions preserved. Top row: receipts, remaining, people fully paid, today-charge paid %. No DB/AppSheet/permissions/jobs changes. R025 Released; R026 Open. [Evidence](../outputs/r025-20260924/cutover-verification.json).
@@ -75,7 +79,7 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
 | Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
-| Flyway | V39; validation passed 24 September | V39; validation passed 24 September | [Current metadata and validation](../outputs/dictionary-reconciliation-20260924/README.md). V37 snapshots and V38–V39 statement providers are retained; DEV intentionally omits `pg_cron`. No migration was run during the dictionary audit. |
+| Flyway | V40; validation passed 24 September | V40; validation passed 24 September | [R026 verification](../outputs/r026-dictionary-fixes/database-verification.json). Unused PROD pg_cron removed; all non-cron business definitions retained. DEV already omitted the extension. |
 
 The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. After the consolidated DEV database and natural scheduler run were verified, the owner authorized deletion of former instance `appsheet-pg-dev-20260915`. Cloud SQL completed deletion on 20 September 2026, released public IP `34.158.38.171`, and retained no backups or final backup for that instance. The verified private former-DEV logical dump remains outside Git as recovery evidence.
 
@@ -85,7 +89,7 @@ The on-demand Cloud SQL backup at **2026-09-20 19:32 Bangkok** completed before 
 
 R011 production checkpoint: PROD V29 / OLTP 3.000240 / OLAP 1.100189 are Deployed with zero editor issues. Production now includes the borrower note and form/localization changes, optional Cash Accounts alternative number, and the R012-originated Cash Ledger Recent detail under the single R011 release. `Cash Position` visibly showed 24-hour movement time, resolved borrower/payer and operational references on current rows. Both canonical guards allow only the matching DEV/PROD internal names and exclude RCs. See the [production report](../outputs/r011-20260920/production/REPORT.md), [source mapping](../outputs/r011-20260920/production/source-mapping-validation.json) and [Cash Ledger evidence](../outputs/r011-20260920/cash-ledger-recent/test-results.md).
 
-AppSheet owns daily-charge and hourly-analytics scheduling; duplicate pg_cron financial jobs are paused. Intended enabled/retired states and RC guards follow the accepted release evidence. Daily Loan Analysis is a [dormant reference](reference/Daily_Loan_Analysis_Automation.md), not an active promotion dependency unless affected.
+AppSheet owns daily-charge and hourly-analytics scheduling. R026 V40 removed the unused pg_cron extension and sole disabled job on 24 September; the shared instance flag remains on pending restart coordination. This supersedes the historical 20 September extension state above. Intended enabled/retired states and RC guards follow the accepted release evidence. Daily Loan Analysis is [retired](reference/Daily_Loan_Analysis_Automation.md): owner requested template removal, exact Drive file ID verified in Trash, both bots remain disabled.
 
 The last recorded common sync settings were caching/delta/Quick Sync/delayed sync Off, sync on start/automatic updates On (15 September). They are dated evidence, not a newly verified configuration. Full bot/settings history is archived; inspect only changed routes/settings or concrete problems.
 

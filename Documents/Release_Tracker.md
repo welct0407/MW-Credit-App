@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R027 — Open** |
 | Next number, not yet open or usable | **R028 — opens only when R027 is frozen at promotion start** |
-| Current release evidence | R027 is open for development; paused borrower payment-health work transfers here. R026 is frozen for scoped dictionary-fix promotion. [Checklist](../outputs/r026-dictionary-fixes/promotion-checklist.md) |
+| Current release evidence | R027 is open for development; paused borrower payment-health work transfers here. R026 is closed at owner direction with partial deployment; no R026 development hold remains. [Checklist](../outputs/r026-dictionary-fixes/promotion-checklist.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R027 | Borrower payment health and reliability; other new development | Open | 2026-09-24: unapplied V41 and unimplemented app scope transferred at R026 freeze; owner-paused | [Prior development record](../Change%20Logs/CHANGE_NOTES_R026_2026-09-24.md) |
-| R026 | Table locale alignment, environment-safe export template and unused pg_cron retirement | Frozen for promotion | 2026-09-24T14:03:59.883143+00:00: V40-only commit 8a76733; DEV OLTP 1.000075 / OLAP 1.000031; V41 excluded | [Checklist](../outputs/r026-dictionary-fixes/promotion-checklist.md) · [Log](../Change%20Logs/CHANGE_NOTES_R026_2026-09-24.md) |
+| R026 | Table locale alignment, export retirement and unused pg_cron retirement | Closed at owner direction — partial deployment | V40 and template retirement verified; OLAP 1.100198 applied, OLTP unchanged. Further app work stopped; final checks incomplete. R027 remains Open. | [Closure](../outputs/r026-dictionary-fixes/closure.md) · [Log](../Change%20Logs/CHANGE_NOTES_R026_2026-09-24.md) |
 | R025 | Canonical Collection Monitor replacement | Released — report-only | 2026-09-24: canonical tab19; old tab9 removed; 6 cutover checks and Chrome passed; tag R025 | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
 | R024 | Performance and Borrowers tab order | Released — report-only | 2026-09-24: tab18 fifth, tab6 sixth; saved-state and Chrome checks passed | [Evidence](../outputs/r024-20260924/README.md) · tag R024 |
 | R023 | Canonical Performance replacement | Released — report-only | 2026-09-24: tab18 promoted, tab7 removed; 4 checks and Chrome verified | [Evidence](../outputs/r023-20260924/README.md) · tag R023 |

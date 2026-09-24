@@ -1,5 +1,7 @@
 # Ecosystem data dictionary
 
+**R026 partial-state notice, 24 September:** database pg_cron retirement and export lifecycle are updated. App records from the earlier audit have not been fully reconciled after the partial OLAP upgrade and DEV Daily Analytics regeneration. Use the [owner-directed closure](../../outputs/r026-dictionary-fixes/closure.md) for actual versions, remaining locale/schema differences and verification limits; do not treat older app records as current verified truth for those affected properties.
+
 This folder is the maintained home for exact model and configuration documentation across the loan ecosystem. Start with the relevant system and object; do not read the complete dictionary for an ordinary change.
 
 **Original migration, 23 September 2026:** all 16,496 nonempty data rows from the 14-sheet Excel dictionary were migrated into 185 text documents. Values, labels, source order and dated evidence were preserved. Imported objects are `imported-unreconciled`: the owner explicitly deferred live AppSheet inspection and reconciliation. A path under `recorded-production` describes the source sheet's label, not freshly verified production truth. Base definitions and release supplements can disagree.

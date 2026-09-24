@@ -2523,26 +2523,6 @@
       "lookup": []
     },
     {
-      "file": "development/postgresql/environment/loan_manager_prod-relation-cron-job-df417b35.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "relation",
-      "name": "cron.job",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "development/postgresql/environment/loan_manager_prod-relation-cron-job-run-details-a8ed5796.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "relation",
-      "name": "cron.job_run_details",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
       "file": "development/postgresql/environment/loan_manager_prod-relation-public-borrowers-5c652141.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -3103,76 +3083,6 @@
       "lookup": []
     },
     {
-      "file": "development/postgresql/environment/loan_manager_prod-routine-cron-alter-job-job-id-bigint-schedule-text-command-text-database-text-username-text-active-bool-ba8b1279.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.alter_job(job_id bigint, schedule text, command text, database text, username text, active boolean)",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "development/postgresql/environment/loan_manager_prod-routine-cron-job-cache-invalidate-327b7655.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.job_cache_invalidate()",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "development/postgresql/environment/loan_manager_prod-routine-cron-schedule-in-database-job-name-text-schedule-text-command-text-database-text-username-text--fa1d777a.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.schedule_in_database(job_name text, schedule text, command text, database text, username text, active boolean)",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "development/postgresql/environment/loan_manager_prod-routine-cron-schedule-job-name-text-schedule-text-command-text-29bcf1e1.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.schedule(job_name text, schedule text, command text)",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "development/postgresql/environment/loan_manager_prod-routine-cron-schedule-schedule-text-command-text-ea218975.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.schedule(schedule text, command text)",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "development/postgresql/environment/loan_manager_prod-routine-cron-unschedule-job-id-bigint-df4fa511.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.unschedule(job_id bigint)",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "development/postgresql/environment/loan_manager_prod-routine-cron-unschedule-job-name-text-6a81e5da.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.unschedule(job_name text)",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
       "file": "development/postgresql/environment/loan_manager_prod-routine-public-analytics-history-start-9ba03c5d.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -3203,41 +3113,11 @@
       "lookup": []
     },
     {
-      "file": "development/postgresql/environment/loan_manager_prod-schema-cron-c374eea5.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "schema",
-      "name": "cron",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
       "file": "development/postgresql/environment/loan_manager_prod-schema-public-efa1f375.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
       "kind": "schema",
       "name": "public",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "development/postgresql/environment/loan_manager_prod-sequence-cron-jobid-seq-6b01a6b4.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "sequence",
-      "name": "cron.jobid_seq",
-      "scope": "development:observed",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "development/postgresql/environment/loan_manager_prod-sequence-cron-runid-seq-7f9ac0e3.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "sequence",
-      "name": "cron.runid_seq",
       "scope": "development:observed",
       "status": "documented",
       "lookup": []
@@ -32072,152 +31952,6 @@
       ]
     },
     {
-      "file": "systems/postgresql/relations/cron-job-df417b35.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "relation",
-      "name": "cron.job",
-      "scope": "production",
-      "status": "documented",
-      "lookup": [
-        {
-          "subject": "jobid",
-          "pointer": "/content/columns/jobid"
-        },
-        {
-          "subject": "schedule",
-          "pointer": "/content/columns/schedule"
-        },
-        {
-          "subject": "command",
-          "pointer": "/content/columns/command"
-        },
-        {
-          "subject": "nodename",
-          "pointer": "/content/columns/nodename"
-        },
-        {
-          "subject": "nodeport",
-          "pointer": "/content/columns/nodeport"
-        },
-        {
-          "subject": "database",
-          "pointer": "/content/columns/database"
-        },
-        {
-          "subject": "username",
-          "pointer": "/content/columns/username"
-        },
-        {
-          "subject": "active",
-          "pointer": "/content/columns/active"
-        },
-        {
-          "subject": "jobname",
-          "pointer": "/content/columns/jobname"
-        },
-        {
-          "subject": "job_active_not_null",
-          "pointer": "/content/constraints/job_active_not_null"
-        },
-        {
-          "subject": "job_command_not_null",
-          "pointer": "/content/constraints/job_command_not_null"
-        },
-        {
-          "subject": "job_database_not_null",
-          "pointer": "/content/constraints/job_database_not_null"
-        },
-        {
-          "subject": "job_jobid_not_null",
-          "pointer": "/content/constraints/job_jobid_not_null"
-        },
-        {
-          "subject": "job_nodename_not_null",
-          "pointer": "/content/constraints/job_nodename_not_null"
-        },
-        {
-          "subject": "job_nodeport_not_null",
-          "pointer": "/content/constraints/job_nodeport_not_null"
-        },
-        {
-          "subject": "job_pkey",
-          "pointer": "/content/constraints/job_pkey"
-        },
-        {
-          "subject": "job_schedule_not_null",
-          "pointer": "/content/constraints/job_schedule_not_null"
-        },
-        {
-          "subject": "job_username_not_null",
-          "pointer": "/content/constraints/job_username_not_null"
-        },
-        {
-          "subject": "jobname_username_uniq",
-          "pointer": "/content/constraints/jobname_username_uniq"
-        }
-      ]
-    },
-    {
-      "file": "systems/postgresql/relations/cron-job-run-details-a8ed5796.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "relation",
-      "name": "cron.job_run_details",
-      "scope": "production",
-      "status": "documented",
-      "lookup": [
-        {
-          "subject": "jobid",
-          "pointer": "/content/columns/jobid"
-        },
-        {
-          "subject": "runid",
-          "pointer": "/content/columns/runid"
-        },
-        {
-          "subject": "job_pid",
-          "pointer": "/content/columns/job_pid"
-        },
-        {
-          "subject": "database",
-          "pointer": "/content/columns/database"
-        },
-        {
-          "subject": "username",
-          "pointer": "/content/columns/username"
-        },
-        {
-          "subject": "command",
-          "pointer": "/content/columns/command"
-        },
-        {
-          "subject": "status",
-          "pointer": "/content/columns/status"
-        },
-        {
-          "subject": "return_message",
-          "pointer": "/content/columns/return_message"
-        },
-        {
-          "subject": "start_time",
-          "pointer": "/content/columns/start_time"
-        },
-        {
-          "subject": "end_time",
-          "pointer": "/content/columns/end_time"
-        },
-        {
-          "subject": "job_run_details_pkey",
-          "pointer": "/content/constraints/job_run_details_pkey"
-        },
-        {
-          "subject": "job_run_details_runid_not_null",
-          "pointer": "/content/constraints/job_run_details_runid_not_null"
-        }
-      ]
-    },
-    {
       "file": "systems/postgresql/relations/daily-analytics.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -36132,76 +35866,6 @@
       "lookup": []
     },
     {
-      "file": "systems/postgresql/routines/cron-alter-job-job-id-bigint-schedule-text-command-text-database-text-username-text-active-bool-ba8b1279.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.alter_job(job_id bigint, schedule text, command text, database text, username text, active boolean)",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "systems/postgresql/routines/cron-job-cache-invalidate-327b7655.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.job_cache_invalidate()",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "systems/postgresql/routines/cron-schedule-in-database-job-name-text-schedule-text-command-text-database-text-username-text--fa1d777a.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.schedule_in_database(job_name text, schedule text, command text, database text, username text, active boolean)",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "systems/postgresql/routines/cron-schedule-job-name-text-schedule-text-command-text-29bcf1e1.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.schedule(job_name text, schedule text, command text)",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "systems/postgresql/routines/cron-schedule-schedule-text-command-text-ea218975.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.schedule(schedule text, command text)",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "systems/postgresql/routines/cron-unschedule-job-id-bigint-df4fa511.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.unschedule(job_id bigint)",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "systems/postgresql/routines/cron-unschedule-job-name-text-6a81e5da.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "routine",
-      "name": "cron.unschedule(job_name text)",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
       "file": "systems/postgresql/routines/public-analytics-history-start-9ba03c5d.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -36972,16 +36636,6 @@
       "lookup": []
     },
     {
-      "file": "systems/postgresql/schemas/cron-c374eea5.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "schema",
-      "name": "cron",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
       "file": "systems/postgresql/schemas/public-efa1f375.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -36997,26 +36651,6 @@
       "component": "loan_manager_prod",
       "kind": "sequence",
       "name": "agent_audit.row_changes_change_id_seq",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "systems/postgresql/sequences/cron-jobid-seq-6b01a6b4.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "sequence",
-      "name": "cron.jobid_seq",
-      "scope": "production",
-      "status": "documented",
-      "lookup": []
-    },
-    {
-      "file": "systems/postgresql/sequences/cron-runid-seq-7f9ac0e3.yaml",
-      "system": "postgresql",
-      "component": "loan_manager_prod",
-      "kind": "sequence",
-      "name": "cron.runid_seq",
       "scope": "production",
       "status": "documented",
       "lookup": []

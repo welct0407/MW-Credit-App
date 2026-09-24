@@ -1,0 +1,149 @@
+{
+  "removed_live_objects": [
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\relations\\cron-job-df417b35.yaml",
+      "sha256": "cab7bd2fa797030f1eaed0cbc3cbc4b4caabd2ebd4b2f9ff1011fa0d7f5beea3",
+      "kind": "relation",
+      "name": "cron.job"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\relations\\cron-job-run-details-a8ed5796.yaml",
+      "sha256": "94e3e433ce31bfcf9b581c3c6a2fa11f71d1bd6ac0a3169fbb09cf289f4f44c5",
+      "kind": "relation",
+      "name": "cron.job_run_details"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\routines\\cron-alter-job-job-id-bigint-schedule-text-command-text-database-text-username-text-active-bool-ba8b1279.yaml",
+      "sha256": "c853188fa7a63a43d6eac4a7f86f64a10a98c0ce032916f50db3643583f880bf",
+      "kind": "routine",
+      "name": "cron.alter_job(job_id bigint, schedule text, command text, database text, username text, active boolean)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\routines\\cron-job-cache-invalidate-327b7655.yaml",
+      "sha256": "0ed9214098728146562ac7b69c05fbdcc5ff5696004288b3f12eb0b71badfd9b",
+      "kind": "routine",
+      "name": "cron.job_cache_invalidate()"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\routines\\cron-schedule-in-database-job-name-text-schedule-text-command-text-database-text-username-text--fa1d777a.yaml",
+      "sha256": "6a63d16516e622b0b23d8b94bc645431543298927e6f55d87f3055f42b64d62a",
+      "kind": "routine",
+      "name": "cron.schedule_in_database(job_name text, schedule text, command text, database text, username text, active boolean)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\routines\\cron-schedule-job-name-text-schedule-text-command-text-29bcf1e1.yaml",
+      "sha256": "93a628a7354a19a96e32bfe8cc8dd8c2083fe1e3f5129ae3e491eb780c2d2862",
+      "kind": "routine",
+      "name": "cron.schedule(job_name text, schedule text, command text)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\routines\\cron-schedule-schedule-text-command-text-ea218975.yaml",
+      "sha256": "a36637041204457f9283e24f43d3135bb3c43207e5788ab3b2d8a3d914e0a807",
+      "kind": "routine",
+      "name": "cron.schedule(schedule text, command text)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\routines\\cron-unschedule-job-id-bigint-df4fa511.yaml",
+      "sha256": "560bc75cfc599fcbc2984a542c236c6896cde57bd391b7bd3c7e46c3370b86ae",
+      "kind": "routine",
+      "name": "cron.unschedule(job_id bigint)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\routines\\cron-unschedule-job-name-text-6a81e5da.yaml",
+      "sha256": "e81820c24c300d440e605ae79f42a4fb86ef4d275bf059a517c7514c1b9cfed4",
+      "kind": "routine",
+      "name": "cron.unschedule(job_name text)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\schemas\\cron-c374eea5.yaml",
+      "sha256": "f136aa11c3cc0307c4e18f2bf4c2bc38e06cf2dcbea0a3ddcc20c463a0ade758",
+      "kind": "schema",
+      "name": "cron"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\sequences\\cron-jobid-seq-6b01a6b4.yaml",
+      "sha256": "2e2b08e44c7fa189121e1a11d10f42296fec38bfc7b180051c7b074bc72b3394",
+      "kind": "sequence",
+      "name": "cron.jobid_seq"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\systems\\postgresql\\sequences\\cron-runid-seq-7f9ac0e3.yaml",
+      "sha256": "cd28f9ac93d34dd8ba8e131d5a62e9f03e64305dfe8a67ba563b175a816034b7",
+      "kind": "sequence",
+      "name": "cron.runid_seq"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-relation-cron-job-df417b35.yaml",
+      "sha256": "0e3eb6fc0762789365ae0054c42f7cf08457ce70587a57cff882d6fd37d82244",
+      "kind": "relation",
+      "name": "cron.job"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-relation-cron-job-run-details-a8ed5796.yaml",
+      "sha256": "a1e5c7865cf2dc0e9033641d03bfeb24decaf376b141c37190b161e78a5b6639",
+      "kind": "relation",
+      "name": "cron.job_run_details"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-routine-cron-alter-job-job-id-bigint-schedule-text-command-text-database-text-username-text-active-bool-ba8b1279.yaml",
+      "sha256": "0cd1d31d7f1c1afc44a4e39c7c90623cda3fc72b483ad6d16ab6fe04c396d2b7",
+      "kind": "routine",
+      "name": "cron.alter_job(job_id bigint, schedule text, command text, database text, username text, active boolean)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-routine-cron-job-cache-invalidate-327b7655.yaml",
+      "sha256": "73dfca4d3c7e8e16d25c550aca04a448af1fd579ddded8c54d9bed4b6fa28718",
+      "kind": "routine",
+      "name": "cron.job_cache_invalidate()"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-routine-cron-schedule-in-database-job-name-text-schedule-text-command-text-database-text-username-text--fa1d777a.yaml",
+      "sha256": "31ae464d96920b8e56f6c5b3e1b6379fa2f5985446d9859738c08abcb828cfbb",
+      "kind": "routine",
+      "name": "cron.schedule_in_database(job_name text, schedule text, command text, database text, username text, active boolean)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-routine-cron-schedule-job-name-text-schedule-text-command-text-29bcf1e1.yaml",
+      "sha256": "a877250f24add1a29365cb75b3be2a2f435bc7c7b6b5777cbd217595cc5e2aac",
+      "kind": "routine",
+      "name": "cron.schedule(job_name text, schedule text, command text)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-routine-cron-schedule-schedule-text-command-text-ea218975.yaml",
+      "sha256": "a638edcc927007998a67b3eaa4c3f4c68ccd8f4e47a44f7ff657105c1c8fdf7f",
+      "kind": "routine",
+      "name": "cron.schedule(schedule text, command text)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-routine-cron-unschedule-job-id-bigint-df4fa511.yaml",
+      "sha256": "ea961352beace2f282b17495526f465b71307a3ff750b299bf75e5c0caae127f",
+      "kind": "routine",
+      "name": "cron.unschedule(job_id bigint)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-routine-cron-unschedule-job-name-text-6a81e5da.yaml",
+      "sha256": "14c88b1bb4853c8bf9f1393a8207150dde440d17e2e997f52c9f6215fd4e882d",
+      "kind": "routine",
+      "name": "cron.unschedule(job_name text)"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-schema-cron-c374eea5.yaml",
+      "sha256": "aad839bf6cf48214f1d3fc2d7a1daed40d2e8d29e4c79270004e19b75326d2cc",
+      "kind": "schema",
+      "name": "cron"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-sequence-cron-jobid-seq-6b01a6b4.yaml",
+      "sha256": "a61f90fc3418f10104605475d73bc1aa52274fdfa2faba9c0b4fdb6ab9ce1939",
+      "kind": "sequence",
+      "name": "cron.jobid_seq"
+    },
+    {
+      "path": "Documents\\Data Dictionary\\development\\postgresql\\environment\\loan_manager_prod-sequence-cron-runid-seq-7f9ac0e3.yaml",
+      "sha256": "ada8085107d461b5934eac8076b5c1f64e0eb21552ae53007eef48711a0e1574",
+      "kind": "sequence",
+      "name": "cron.runid_seq"
+    }
+  ],
+  "reason": "V40 removed pg_cron and owned catalog objects. Original definitions remain in immutable prior audit evidence and Git history."
+}
