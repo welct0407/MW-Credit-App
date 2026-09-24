@@ -3772,6 +3772,327 @@
       ]
     },
     {
+      "file": "development/r028/reporting-borrower-matrix-v3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.reporting_borrower_matrix_v3",
+      "scope": "development:R028",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "contribution_30d",
+          "pointer": "/content/columns/contribution_30d"
+        },
+        {
+          "subject": "active_borrower_count",
+          "pointer": "/content/columns/active_borrower_count"
+        },
+        {
+          "subject": "portfolio_contribution_30d",
+          "pointer": "/content/columns/portfolio_contribution_30d"
+        },
+        {
+          "subject": "contribution_share",
+          "pointer": "/content/columns/contribution_share"
+        },
+        {
+          "subject": "equal_share",
+          "pointer": "/content/columns/equal_share"
+        },
+        {
+          "subject": "relative_contribution",
+          "pointer": "/content/columns/relative_contribution"
+        },
+        {
+          "subject": "reliability_score",
+          "pointer": "/content/columns/reliability_score"
+        },
+        {
+          "subject": "confidence",
+          "pointer": "/content/columns/confidence"
+        },
+        {
+          "subject": "quadrant",
+          "pointer": "/content/columns/quadrant"
+        },
+        {
+          "subject": "classification_reason",
+          "pointer": "/content/columns/classification_reason"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "method_version",
+          "pointer": "/content/columns/method_version"
+        },
+        {
+          "subject": "payment_only_quadrant",
+          "pointer": "/content/columns/payment_only_quadrant"
+        },
+        {
+          "subject": "arrangement_status",
+          "pointer": "/content/columns/arrangement_status"
+        },
+        {
+          "subject": "arrangement_gate",
+          "pointer": "/content/columns/arrangement_gate"
+        },
+        {
+          "subject": "modified_schedule_loan_count",
+          "pointer": "/content/columns/modified_schedule_loan_count"
+        },
+        {
+          "subject": "interest_coverage_30d",
+          "pointer": "/content/columns/interest_coverage_30d"
+        },
+        {
+          "subject": "interest_date_coverage_30d",
+          "pointer": "/content/columns/interest_date_coverage_30d"
+        },
+        {
+          "subject": "category_adjusted",
+          "pointer": "/content/columns/category_adjusted"
+        }
+      ]
+    },
+    {
+      "file": "development/r028/reporting-borrower-schedule-health-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.reporting_borrower_schedule_health_v1",
+      "scope": "development:R028",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "active_loan_count",
+          "pointer": "/content/columns/active_loan_count"
+        },
+        {
+          "subject": "modified_schedule_loan_count",
+          "pointer": "/content/columns/modified_schedule_loan_count"
+        },
+        {
+          "subject": "unsupported_or_invalid_loan_count",
+          "pointer": "/content/columns/unsupported_or_invalid_loan_count"
+        },
+        {
+          "subject": "assessed_loan_count",
+          "pointer": "/content/columns/assessed_loan_count"
+        },
+        {
+          "subject": "expected_interest_30d",
+          "pointer": "/content/columns/expected_interest_30d"
+        },
+        {
+          "subject": "recorded_interest_30d",
+          "pointer": "/content/columns/recorded_interest_30d"
+        },
+        {
+          "subject": "recorded_principal_30d",
+          "pointer": "/content/columns/recorded_principal_30d"
+        },
+        {
+          "subject": "interest_coverage_30d",
+          "pointer": "/content/columns/interest_coverage_30d"
+        },
+        {
+          "subject": "interest_date_coverage_30d",
+          "pointer": "/content/columns/interest_date_coverage_30d"
+        },
+        {
+          "subject": "arrangement_gate",
+          "pointer": "/content/columns/arrangement_gate"
+        },
+        {
+          "subject": "arrangement_status",
+          "pointer": "/content/columns/arrangement_status"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "method_version",
+          "pointer": "/content/columns/method_version"
+        }
+      ]
+    },
+    {
+      "file": "development/r028/reporting-loan-schedule-health-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.reporting_loan_schedule_health_v1",
+      "scope": "development:R028",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "loan_id",
+          "pointer": "/content/columns/loan_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "loan_type",
+          "pointer": "/content/columns/loan_type"
+        },
+        {
+          "subject": "start_date",
+          "pointer": "/content/columns/start_date"
+        },
+        {
+          "subject": "anchor_date",
+          "pointer": "/content/columns/anchor_date"
+        },
+        {
+          "subject": "payment_interval",
+          "pointer": "/content/columns/payment_interval"
+        },
+        {
+          "subject": "daily_interest",
+          "pointer": "/content/columns/daily_interest"
+        },
+        {
+          "subject": "transfer_fee",
+          "pointer": "/content/columns/transfer_fee"
+        },
+        {
+          "subject": "auto_charge_enabled",
+          "pointer": "/content/columns/auto_charge_enabled"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "defaulted",
+          "pointer": "/content/columns/defaulted"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "setup_status",
+          "pointer": "/content/columns/setup_status"
+        },
+        {
+          "subject": "comparison_start",
+          "pointer": "/content/columns/comparison_start"
+        },
+        {
+          "subject": "accrual_baseline",
+          "pointer": "/content/columns/accrual_baseline"
+        },
+        {
+          "subject": "observation_days",
+          "pointer": "/content/columns/observation_days"
+        },
+        {
+          "subject": "expected_interest_30d",
+          "pointer": "/content/columns/expected_interest_30d"
+        },
+        {
+          "subject": "recorded_interest_30d",
+          "pointer": "/content/columns/recorded_interest_30d"
+        },
+        {
+          "subject": "recorded_principal_30d",
+          "pointer": "/content/columns/recorded_principal_30d"
+        },
+        {
+          "subject": "expected_due_dates_30d",
+          "pointer": "/content/columns/expected_due_dates_30d"
+        },
+        {
+          "subject": "recorded_interest_dates_30d",
+          "pointer": "/content/columns/recorded_interest_dates_30d"
+        },
+        {
+          "subject": "last_recorded_due_date",
+          "pointer": "/content/columns/last_recorded_due_date"
+        },
+        {
+          "subject": "next_plan_due_date",
+          "pointer": "/content/columns/next_plan_due_date"
+        },
+        {
+          "subject": "next_plan_interest",
+          "pointer": "/content/columns/next_plan_interest"
+        },
+        {
+          "subject": "next_plan_principal",
+          "pointer": "/content/columns/next_plan_principal"
+        },
+        {
+          "subject": "comparison_status",
+          "pointer": "/content/columns/comparison_status"
+        },
+        {
+          "subject": "interest_coverage_30d",
+          "pointer": "/content/columns/interest_coverage_30d"
+        },
+        {
+          "subject": "interest_date_coverage_30d",
+          "pointer": "/content/columns/interest_date_coverage_30d"
+        },
+        {
+          "subject": "assessment_eligible",
+          "pointer": "/content/columns/assessment_eligible"
+        },
+        {
+          "subject": "schedule_departure",
+          "pointer": "/content/columns/schedule_departure"
+        },
+        {
+          "subject": "modified_schedule",
+          "pointer": "/content/columns/modified_schedule"
+        },
+        {
+          "subject": "arrangement_status",
+          "pointer": "/content/columns/arrangement_status"
+        },
+        {
+          "subject": "schedule_reason",
+          "pointer": "/content/columns/schedule_reason"
+        },
+        {
+          "subject": "schedule_method_version",
+          "pointer": "/content/columns/schedule_method_version"
+        }
+      ]
+    },
+    {
       "file": "imports/excel-20260923/dev-differences/database.yaml",
       "system": "workbook-evidence",
       "component": "excel-20260923/dev-differences",
@@ -30317,6 +30638,16 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/borrower-health-modified.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Modified plans / 270",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/borrower-health-overdue.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -30371,7 +30702,27 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "Reliability vs contribution · active borrowers / 266",
+      "name": "Payment behaviour vs contribution · automatic categories / 266",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-schedule-loans.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Modified schedules · loan and next-plan detail / 272",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-schedules.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Automatic schedule assessment · active borrowers / 271",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -36432,6 +36783,105 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/reporting-borrower-matrix-v3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_borrower_matrix_v3",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "contribution_30d",
+          "pointer": "/content/columns/contribution_30d"
+        },
+        {
+          "subject": "active_borrower_count",
+          "pointer": "/content/columns/active_borrower_count"
+        },
+        {
+          "subject": "portfolio_contribution_30d",
+          "pointer": "/content/columns/portfolio_contribution_30d"
+        },
+        {
+          "subject": "contribution_share",
+          "pointer": "/content/columns/contribution_share"
+        },
+        {
+          "subject": "equal_share",
+          "pointer": "/content/columns/equal_share"
+        },
+        {
+          "subject": "relative_contribution",
+          "pointer": "/content/columns/relative_contribution"
+        },
+        {
+          "subject": "reliability_score",
+          "pointer": "/content/columns/reliability_score"
+        },
+        {
+          "subject": "confidence",
+          "pointer": "/content/columns/confidence"
+        },
+        {
+          "subject": "quadrant",
+          "pointer": "/content/columns/quadrant"
+        },
+        {
+          "subject": "classification_reason",
+          "pointer": "/content/columns/classification_reason"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "method_version",
+          "pointer": "/content/columns/method_version"
+        },
+        {
+          "subject": "payment_only_quadrant",
+          "pointer": "/content/columns/payment_only_quadrant"
+        },
+        {
+          "subject": "arrangement_status",
+          "pointer": "/content/columns/arrangement_status"
+        },
+        {
+          "subject": "arrangement_gate",
+          "pointer": "/content/columns/arrangement_gate"
+        },
+        {
+          "subject": "modified_schedule_loan_count",
+          "pointer": "/content/columns/modified_schedule_loan_count"
+        },
+        {
+          "subject": "interest_coverage_30d",
+          "pointer": "/content/columns/interest_coverage_30d"
+        },
+        {
+          "subject": "interest_date_coverage_30d",
+          "pointer": "/content/columns/interest_date_coverage_30d"
+        },
+        {
+          "subject": "category_adjusted",
+          "pointer": "/content/columns/category_adjusted"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/reporting-borrower-payment-health-v1.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -36611,6 +37061,77 @@
         {
           "subject": "data_quality_status",
           "pointer": "/content/columns/data_quality_status"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "method_version",
+          "pointer": "/content/columns/method_version"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-borrower-schedule-health-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_borrower_schedule_health_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "active_loan_count",
+          "pointer": "/content/columns/active_loan_count"
+        },
+        {
+          "subject": "modified_schedule_loan_count",
+          "pointer": "/content/columns/modified_schedule_loan_count"
+        },
+        {
+          "subject": "unsupported_or_invalid_loan_count",
+          "pointer": "/content/columns/unsupported_or_invalid_loan_count"
+        },
+        {
+          "subject": "assessed_loan_count",
+          "pointer": "/content/columns/assessed_loan_count"
+        },
+        {
+          "subject": "expected_interest_30d",
+          "pointer": "/content/columns/expected_interest_30d"
+        },
+        {
+          "subject": "recorded_interest_30d",
+          "pointer": "/content/columns/recorded_interest_30d"
+        },
+        {
+          "subject": "recorded_principal_30d",
+          "pointer": "/content/columns/recorded_principal_30d"
+        },
+        {
+          "subject": "interest_coverage_30d",
+          "pointer": "/content/columns/interest_coverage_30d"
+        },
+        {
+          "subject": "interest_date_coverage_30d",
+          "pointer": "/content/columns/interest_date_coverage_30d"
+        },
+        {
+          "subject": "arrangement_gate",
+          "pointer": "/content/columns/arrangement_gate"
+        },
+        {
+          "subject": "arrangement_status",
+          "pointer": "/content/columns/arrangement_status"
         },
         {
           "subject": "reporting_date",
@@ -36968,6 +37489,157 @@
         {
           "subject": "Freshness Basis",
           "pointer": "/content/columns/Freshness Basis"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-loan-schedule-health-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_loan_schedule_health_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "loan_id",
+          "pointer": "/content/columns/loan_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "loan_type",
+          "pointer": "/content/columns/loan_type"
+        },
+        {
+          "subject": "start_date",
+          "pointer": "/content/columns/start_date"
+        },
+        {
+          "subject": "anchor_date",
+          "pointer": "/content/columns/anchor_date"
+        },
+        {
+          "subject": "payment_interval",
+          "pointer": "/content/columns/payment_interval"
+        },
+        {
+          "subject": "daily_interest",
+          "pointer": "/content/columns/daily_interest"
+        },
+        {
+          "subject": "transfer_fee",
+          "pointer": "/content/columns/transfer_fee"
+        },
+        {
+          "subject": "auto_charge_enabled",
+          "pointer": "/content/columns/auto_charge_enabled"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "defaulted",
+          "pointer": "/content/columns/defaulted"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "setup_status",
+          "pointer": "/content/columns/setup_status"
+        },
+        {
+          "subject": "comparison_start",
+          "pointer": "/content/columns/comparison_start"
+        },
+        {
+          "subject": "accrual_baseline",
+          "pointer": "/content/columns/accrual_baseline"
+        },
+        {
+          "subject": "observation_days",
+          "pointer": "/content/columns/observation_days"
+        },
+        {
+          "subject": "expected_interest_30d",
+          "pointer": "/content/columns/expected_interest_30d"
+        },
+        {
+          "subject": "recorded_interest_30d",
+          "pointer": "/content/columns/recorded_interest_30d"
+        },
+        {
+          "subject": "recorded_principal_30d",
+          "pointer": "/content/columns/recorded_principal_30d"
+        },
+        {
+          "subject": "expected_due_dates_30d",
+          "pointer": "/content/columns/expected_due_dates_30d"
+        },
+        {
+          "subject": "recorded_interest_dates_30d",
+          "pointer": "/content/columns/recorded_interest_dates_30d"
+        },
+        {
+          "subject": "last_recorded_due_date",
+          "pointer": "/content/columns/last_recorded_due_date"
+        },
+        {
+          "subject": "next_plan_due_date",
+          "pointer": "/content/columns/next_plan_due_date"
+        },
+        {
+          "subject": "next_plan_interest",
+          "pointer": "/content/columns/next_plan_interest"
+        },
+        {
+          "subject": "next_plan_principal",
+          "pointer": "/content/columns/next_plan_principal"
+        },
+        {
+          "subject": "comparison_status",
+          "pointer": "/content/columns/comparison_status"
+        },
+        {
+          "subject": "interest_coverage_30d",
+          "pointer": "/content/columns/interest_coverage_30d"
+        },
+        {
+          "subject": "interest_date_coverage_30d",
+          "pointer": "/content/columns/interest_date_coverage_30d"
+        },
+        {
+          "subject": "assessment_eligible",
+          "pointer": "/content/columns/assessment_eligible"
+        },
+        {
+          "subject": "schedule_departure",
+          "pointer": "/content/columns/schedule_departure"
+        },
+        {
+          "subject": "modified_schedule",
+          "pointer": "/content/columns/modified_schedule"
+        },
+        {
+          "subject": "arrangement_status",
+          "pointer": "/content/columns/arrangement_status"
+        },
+        {
+          "subject": "schedule_reason",
+          "pointer": "/content/columns/schedule_reason"
+        },
+        {
+          "subject": "schedule_method_version",
+          "pointer": "/content/columns/schedule_method_version"
         }
       ]
     },

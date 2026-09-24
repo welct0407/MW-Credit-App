@@ -1,0 +1,66 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Automatic schedule assessment · active borrowers / 271",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "schedules",
+    "id": 271,
+    "name": "Automatic schedule assessment · active borrowers",
+    "description": "R028 automatic schedule assessment. Counterfactual current setup, not extra debt. No manual inputs. Current completed-day window; unsupported sources explicitly unassessed.",
+    "display": "table",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT b.\"Description\" AS \"Borrower\",s.arrangement_status AS \"Schedule\",s.modified_schedule_loan_count AS \"Restricted loans\",s.active_loan_count AS \"Active loans\",s.expected_interest_30d AS \"Expected interest ฿\",s.recorded_interest_30d AS \"Recorded interest ฿\",s.interest_coverage_30d AS \"Interest coverage\",s.interest_date_coverage_30d AS \"Date coverage\",m.payment_only_quadrant AS \"Payment-only category\",m.quadrant AS \"Category\" FROM public.reporting_borrower_schedule_health_v1 s JOIN public.reporting_borrower_matrix_v3 m USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=s.borrower_id ORDER BY s.arrangement_gate DESC,b.\"Description\""
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.column_formatting": [
+        {
+          "columns": [
+            "Restricted loans"
+          ],
+          "type": "single",
+          "operator": ">",
+          "value": 0,
+          "color": "#FFF2D6",
+          "highlight_row": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Expected interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Recorded interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,"
+        },
+        "[\"name\",\"Interest coverage\"]": {
+          "number_style": "percent",
+          "decimals": 1
+        },
+        "[\"name\",\"Date coverage\"]": {
+          "number_style": "percent",
+          "decimals": 1
+        }
+      }
+    }
+  }
+}

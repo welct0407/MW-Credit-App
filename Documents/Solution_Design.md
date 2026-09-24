@@ -1,5 +1,9 @@
 # Solution design rules
 
+## R028 automatic schedule-aware categories
+
+The shared SQL matrix V3 retains the measured payment score and adds an automatic schedule restriction: an active daily-interest loan with auto-charge disabled, >=7 observed days and >=2 expected dates, and <80% of expected interest amount OR interest-bearing charge dates prevents Star/Cash Cow. Any affected active loan restricts its borrower; contribution selects Question Mark versus Dog. No manual labels or approval queue. The 30 completed-day comparison respects later schedule anchors; amounts are not extra debt. The report labels modified schedules separately from payment compliance, including on the scatter plot. [Exact rule and delivery](../outputs/r028-schedule-health/README.md).
+
 ## R027 shared payment health and Borrowers review
 
 PostgreSQL owns charge and borrower health. Current overdue status, historical reliability and history confidence are independent concepts. Metabase review tab 31 uses the new providers; original Borrowers and Risks remain unchanged for comparison and later cutover. The borrower payment-health summary is delivered in Metabase. OLTP integration is explicitly future scope; this task's DEV AppSheet detour was removed. [Detailed design and delivered report](../outputs/r027-payment-health/README.md).

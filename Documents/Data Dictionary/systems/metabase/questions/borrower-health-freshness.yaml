@@ -9,14 +9,14 @@
   },
   "verification": {
     "status": "documented",
-    "source": "outputs/r027-payment-health/saved-question-definitions.json"
+    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
   },
   "content": {
     "key": "freshness",
     "id": 257,
     "name": "Queried at · Bangkok",
+    "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual confirmations.",
     "display": "scalar",
-    "collection_id": 5,
     "dataset_query": {
       "stages": [
         {
@@ -29,7 +29,6 @@
     },
     "visualization_settings": {
       "scalar.field": "Queried at · Bangkok"
-    },
-    "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
+    }
   }
 }

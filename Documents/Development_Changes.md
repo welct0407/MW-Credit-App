@@ -1,5 +1,9 @@
 # Open development differences
 
+## R028 — automatic SQL/report categories delivered
+
+DEV and PROD share V42. Borrower Health Review tab31 now uses matrix V3 plus automatic schedule assessment; no manual intervention or borrower override list. Three new views are additive and both AppSheet definitions/bindings are unchanged. Original Borrowers/Risks remain intact. No remaining R028 development-only feature; R029 is the sole Open release. Prior R026 app issues remain separately owned. [Evidence](../outputs/r028-schedule-health/README.md).
+
 ## R027 — SQL/report delivered; AppSheet scope removed
 
 DEV and PROD V41 now share payment-health and independent BCG providers. Metabase review tab 31 is delivered alongside the original Borrowers tab, pending owner review before any cutover. There is no remaining R027 AppSheet feature: two bindings/view/generated references were removed in DEV OLTP 1.000085. Dormant SQL adapters remain for possible future OLTP work. Prior R026 DEV OLAP issues remain separately owned. R028 is the sole Open development release. [Evidence](../outputs/r027-payment-health/README.md).

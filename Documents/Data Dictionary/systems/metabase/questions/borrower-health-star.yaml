@@ -9,19 +9,19 @@
   },
   "verification": {
     "status": "documented",
-    "source": "outputs/r027-payment-health/saved-question-definitions.json"
+    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
   },
   "content": {
     "key": "star",
     "id": 261,
     "name": "Star · active borrowers",
+    "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual confirmations.",
     "display": "table",
-    "collection_id": 5,
     "dataset_query": {
       "stages": [
         {
           "lib/type": "mbql.stage/native",
-          "native": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v2 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Star' ORDER BY m.contribution_30d DESC,m.borrower_id"
+          "native": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",m.arrangement_status AS \"Schedule\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Star' ORDER BY m.contribution_30d DESC,m.borrower_id"
         }
       ],
       "lib/type": "mbql/query",
@@ -79,7 +79,6 @@
           "compact": false
         }
       }
-    },
-    "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
+    }
   }
 }

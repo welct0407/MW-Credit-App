@@ -713,7 +713,7 @@
     },
     {
       "key": "modified",
-      "name": "Modified schedule · active borrowers",
+      "name": "Modified plans",
       "display": "scalar",
       "dataset_query": {
         "database": 2,

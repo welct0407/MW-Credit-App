@@ -9,19 +9,19 @@
   },
   "verification": {
     "status": "documented",
-    "source": "outputs/r027-payment-health/saved-question-definitions.json"
+    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
   },
   "content": {
     "key": "health",
     "id": 267,
     "name": "Borrower payment health · all borrowers",
+    "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual confirmations.",
     "display": "table",
-    "collection_id": 5,
     "dataset_query": {
       "stages": [
         {
           "lib/type": "mbql.stage/native",
-          "native": "SELECT b.\"Description\" AS \"Borrower\",h.has_active_loan AS \"Active loan\",h.current_health_status AS \"Current health\",h.overdue_amount AS \"Overdue ฿\",h.overdue_charge_count AS \"Overdue charges\",h.oldest_unpaid_days AS \"Oldest days\",h.rating_status AS \"Rating status\",h.reliability_score AS \"Reliability /100\",h.confidence AS \"Confidence\",coalesce(m.quadrant,'Outside active cohort') AS \"Category\",h.reason_text AS \"Reason\" FROM public.reporting_borrower_payment_health_v1 h JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=h.borrower_id LEFT JOIN public.reporting_borrower_matrix_v2 m USING(borrower_id) ORDER BY h.overdue_amount DESC NULLS FIRST,h.oldest_unpaid_days DESC NULLS LAST,h.borrower_id"
+          "native": "SELECT b.\"Description\" AS \"Borrower\",h.has_active_loan AS \"Active loan\",h.current_health_status AS \"Current health\",h.overdue_amount AS \"Overdue ฿\",h.overdue_charge_count AS \"Overdue charges\",h.oldest_unpaid_days AS \"Oldest days\",h.rating_status AS \"Rating status\",h.reliability_score AS \"Reliability /100\",h.confidence AS \"Confidence\",coalesce(m.quadrant,'Outside active cohort') AS \"Category\",coalesce(m.arrangement_status,'Outside active cohort') AS \"Schedule\",m.classification_reason AS \"Category reason\",h.reason_text AS \"Payment reason\" FROM public.reporting_borrower_payment_health_v1 h JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=h.borrower_id LEFT JOIN public.reporting_borrower_matrix_v3 m USING(borrower_id) ORDER BY h.overdue_amount DESC NULLS FIRST,h.oldest_unpaid_days DESC NULLS LAST,h.borrower_id"
         }
       ],
       "lib/type": "mbql/query",
@@ -103,7 +103,6 @@
           "compact": false
         }
       }
-    },
-    "description": "R027 parallel Borrowers review. Shared payment-health-v1 SQL, current Bangkok reporting date; existing Borrowers and Risks unchanged. Descriptive management categories, not lending eligibility."
+    }
   }
 }

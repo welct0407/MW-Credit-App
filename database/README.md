@@ -1,5 +1,9 @@
 # PostgreSQL development with Flyway
 
+## R028 automatic schedule categories — DEV and PROD
+
+V42 adds three read-only reporting views; no new table, operational column or financial backfill. Matrix V3 retains payment scores and automatically restricts upper categories for sufficiently observed auto-off loans with interest amount or charge-date coverage below 80%. No manual confirmation workflow. V2 remains unchanged. Full CI, independent DEV/PROD parity, restored production rehearsal and all 20 Metabase queries passed. V42 is immutable. [Rule, package and recovery](../outputs/r028-schedule-health/README.md).
+
 ## R027 borrower payment health — DEV and PROD
 
 V41 is applied and validated in both environments. Five additive views provide charge/borrower health, independent BCG classification and dormant read-only OLTP adapters. The three reporting views have SELECT-only grants for the existing Metabase reader. New review tab 31 consumes them; existing providers and AppSheet bindings are unchanged. Full SQL CI, snapshot parity, production checks and 17 report queries passed. V41 is immutable. [Package, recovery and evidence](../outputs/r027-payment-health/README.md).

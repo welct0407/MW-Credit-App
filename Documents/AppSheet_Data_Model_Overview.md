@@ -1,5 +1,9 @@
 # Production model overview
 
+## R028 reporting-only automatic schedule assessment
+
+Three additional PostgreSQL views compare normal current loan setup with recorded charge amounts/frequency and derive schedule-aware borrower categories automatically. No AppSheet binding, operational column or financial data changes. Existing payment-health scores remain measured payment compliance; a separate modified-schedule rule restricts upper categories in matrix V3. V2 remains available for comparison. [Rule, boundaries and evidence](../outputs/r028-schedule-health/README.md).
+
 ## R027 shared payment-health foundation
 
 DEV and PROD PostgreSQL compute signed-ledger charge coverage, borrower overdue balances, historical reliability and independent BCG axes. Metabase tab 31 consumes the new providers for review while legacy tabs remain unchanged. Default-altered history suppresses ratings while preserving debt/default context. Two read-only SQL adapters are available for future OLTP integration, but no AppSheet binding or UI is enabled. [Contract and evidence](../outputs/r027-payment-health/README.md).

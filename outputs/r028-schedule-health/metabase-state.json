@@ -16,7 +16,10 @@
     "scatter": 266,
     "health": 267,
     "components": 268,
-    "review": 269
+    "review": 269,
+    "modified": 270,
+    "schedules": 271,
+    "schedule-loans": 272
   },
   "backupDashboard": 5,
   "tab": 31

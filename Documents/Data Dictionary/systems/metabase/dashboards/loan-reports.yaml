@@ -4027,8 +4027,11 @@
       "evidence": "outputs/r025-20260924/cutover-verification.json"
   "borrower_health_review":
     "tab_id": 31
-    "release": "R027"
-    "source": "payment-health-v1"
+    "release": "R028"
+    "sources":
+    - "payment-health-v1"
+    - "schedule-health-v1"
+    - "borrower-matrix-v3"
     "questions":
       "active": 253
       "overdue": 254
@@ -4047,10 +4050,14 @@
       "health": 267
       "components": 268
       "review": 269
+      "modified": 270
+      "schedules": 271
+      "schedule-loans": 272
     "original_borrowers_tab_id": 6
     "original_retained": true
-    "definition_reference": "outputs/r027-payment-health/metabase-saved.json"
-    "filters": "Current cohort and health; existing dashboard filters do not apply"
+    "definition_reference": "outputs/r028-schedule-health/metabase-saved.json"
+    "filters": "Current cohort/health; existing dashboard filters do not apply"
+    "automatic_rule": "Auto-off and interest amount OR interest-date coverage <80%, >=7 days and >=2 dates; no manual intervention"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4085,6 +4092,6 @@
     "reason": "Owner-authorized canonical Collection replacement"
     "state": "value"
   "/content/borrower_health_review":
-    "reference": "outputs/r027-payment-health/README.md"
-    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "reference": "outputs/r028-schedule-health/README.md"
+    "reason": "R028 automatic SQL categories and saved review-tab definitions"
     "state": "value"

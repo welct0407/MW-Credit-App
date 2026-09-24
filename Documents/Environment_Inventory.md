@@ -1,5 +1,9 @@
 # Environment inventory
 
+## R028 — verified SQL/report state, 25 September 2026
+
+DEV `loan_manager_dev` and PROD `loan_manager_prod` on `appsheet-pg-prod-20260914 / 34.21.174.215` are V42. Three new automatic schedule/category views are installed; existing financial/source objects and both AppSheet definitions/bindings remain unchanged. The existing `metabase_borrower_reader` role has SELECT-only access to the three named new views. Dashboard3/tab31 uses them; report backup dashboard5 and private question/layout definitions preserve rollback. [Migration, grants and checks](../outputs/r028-schedule-health/README.md). No RC apps or operational writes.
+
 ## R027 SQL/report delivery — 24 September 2026
 
 DEV and PROD SQL are V41. PROD apps unchanged: OLTP 3.000246 / OLAP 1.100198, both editors clear in read-only checks. DEV OLTP 1.000085 removes this task's AppSheet additions and is clear; DEV OLAP remains the prior R026 state. Metabase dashboard 3 has the new review tab 31 (questions 253–269), 12 tabs / 207 placements; original report preserved; backup dashboard 4. Existing reporting reader has SELECT-only access to three new reporting views. [Exact evidence](../outputs/r027-payment-health/README.md).
