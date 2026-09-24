@@ -1,6 +1,6 @@
 {
   "release": "R018",
-  "status": "Frozen for promotion",
+  "status": "Released — report-only",
   "freeze_at": "2026-09-24T05:43:50.882Z",
   "tested_commit": "2424111b12d07a6746db74d54613f8ec6bdea60f",
   "scope": "Separate weekly Loan Return chart on 6R with 100% reference",
@@ -11,5 +11,11 @@
   "database": "unchanged; recorded V39, no migration",
   "checks": "verification.json",
   "rollback": "README.md",
-  "final_tag": null
+  "final_tag": "R018",
+  "card": 233,
+  "placement": 624,
+  "dashboard_placements": 204,
+  "browser": "browser-verification.json",
+  "plan": "plan.json",
+  "prior_release_note": "R016 wider acceptance remains separate; deployed reporting dependencies verified"
 }

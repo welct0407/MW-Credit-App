@@ -4,6 +4,10 @@ R016 established ten canonical pages, 129 visual placements, 117 distinct questi
 
 Current production baseline is R015; final R016 owner acceptance and migration-key retirement remain pending.
 
+## R018 — Weekly Loan Return on 6R
+
+24 September current reporting checkpoint: 6R retains **Daily capital yield · snapshots** (232) and adds **Weekly loan return · snapshots** (233). Loan Return is selected-week gross interest ÷ principal issued, with a 100% reference, Monday weeks and completed Bangkok dates. Partial weeks use selected days; missing inputs/zero denominator stay blank. It is a period ratio, not a loan-cohort return. Dashboard 3 has 204 placements. Existing question/source definitions, database/AppSheet, permissions and refresh jobs are unchanged. [R018 verification](../outputs/r018-20260924/README.md) · [Capital-yield contract](../outputs/r017-20260924/README.md).
+
 ## R017 — Capital yield on 6R
 
 R017 capital-yield addition, 24 September: **Daily capital yield · snapshots** (question 232) is now on 6R beside weekly average loan size. Existing model 74 formula and Performance period filter are reused; completed days only, percent format, missing snapshots blank. Dashboard 3 has 203 placements. Existing questions, database/AppSheet, permissions and refresh jobs are unchanged. [Verified implementation](../outputs/r017-20260924/README.md).
