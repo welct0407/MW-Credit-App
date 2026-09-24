@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R025 | Future development; deployed reporting dependencies | Open — no feature scope allocated | 2026-09-24T10:41:36.862Z: opened at R024 promotion start | [Handoff](../outputs/r024-20260924/manifest.json) |
-| R024 | Performance and Borrowers tab order | Frozen for promotion | 2026-09-24T10:41:36.862Z: pinned d2e9dbb1109fec40079ea8f28a4746ceef71e3a5 | [Evidence](../outputs/r024-20260924/README.md) |
+| R024 | Performance and Borrowers tab order | Released — report-only | 2026-09-24: tab18 fifth, tab6 sixth; saved-state and Chrome checks passed | [Evidence](../outputs/r024-20260924/README.md) · tag R024 |
 | R023 | Canonical Performance replacement | Released — report-only | 2026-09-24: tab18 promoted, tab7 removed; 4 checks and Chrome verified | [Evidence](../outputs/r023-20260924/README.md) · tag R023 |
 | R022 | Selective Performance trend labels | Released — report-only formatting | 2026-09-24: eight charts set to Some; 9 saved-state checks and Chrome visual verification | [Evidence](../outputs/r022-20260924/README.md) · tag R022 |
 | R021 | Net Principal Deployed and Loan-Cohort Return summary cards | Released — report-only | 2026-09-24: questions 234/235; 8 installed checks and Chrome visual verification passed | [Evidence](../outputs/r021-20260924/README.md) · tag R021 |

@@ -24,10 +24,12 @@ const tabShape = ts => ts.map(({id, name, position}) => ({id, name, position})).
 if (process.argv.includes('--publish-tabs')) {
   await assertSource();
   const live = await api('GET', 'dashboard/3');
-  assert.deepEqual(tabShape(live.tabs), tabShape(before.tabs));
+  const namesSwappedInOldOrder = before.tabs.map(t => ({...t, ...(t.id === 6 ? {name: '6 · Borrowers'} : t.id === 18 ? {name: '5 · Performance'} : {})}));
+  assert.ok(JSON.stringify(tabShape(live.tabs)) === JSON.stringify(tabShape(before.tabs)) || JSON.stringify(tabShape(live.tabs)) === JSON.stringify(tabShape(namesSwappedInOldOrder)), 'Unexpected tab drift');
   assert.deepEqual(cardShape(live.dashcards), cardShape(before.dashcards));
   assert.deepEqual(live.parameters, before.parameters);
-  await api('PUT', 'dashboard/3/cards', {tabs, cards: live.dashcards});
+  // Metabase derives tab positions from array order, ignoring submitted position values.
+  await api('PUT', 'dashboard/3/cards', {tabs: sorted, cards: live.dashcards});
 }
 if (process.argv.includes('--verify-tabs')) {
   const live = await api('GET', 'dashboard/3');

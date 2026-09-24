@@ -1,5 +1,7 @@
 # Solution design rules
 
+R024 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings are unchanged. [Evidence](../outputs/r024-20260924/README.md).
+
 R023 current Performance: owner accepted 6R as the replacement. Tab18 is now **6 · Performance**, sixth in order; old tab7 and its 18 placements are removed. The unused performance-date filter is removed, while Performance period remains. Dashboard3 has **11 tabs / 189 placements**. Saved questions retained, including shared question56. All retained chart definitions/layouts and other tab order preserved. [Evidence](../outputs/r023-20260924/README.md).
 
 Read the affected section when designing or changing app workflows, the model or reporting. [AGENTS.md](../AGENTS.md) contains standing execution rules. This document describes ownership and design constraints, not live versions; use the environment inventory and affected model records for actual configuration.

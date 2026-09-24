@@ -41,20 +41,20 @@
     "entity_id": "qs0JYiZxE-Poqyh_4pyKv"
     "created_at": "2026-09-23T08:00:42.687717Z"
     "updated_at": "2026-09-23T18:17:39.510824Z"
-  - "id": 6
-    "dashboard_id": 3
-    "name": "5 · Borrowers"
-    "position": 4
-    "entity_id": "8lcXD4OYDrJgkEqOmjKW0"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-23T18:17:39.510824Z"
   - "id": 18
     "dashboard_id": 3
-    "name": "6 · Performance"
-    "position": 5
+    "name": "5 · Performance"
+    "position": 4
     "entity_id": "Rt-KpcwfxjGRTvoTHNOda"
     "created_at": "2026-09-23T19:06:46.29572Z"
     "updated_at": "2026-09-24T10:13:51.691449Z"
+  - "id": 6
+    "dashboard_id": 3
+    "name": "6 · Borrowers"
+    "position": 5
+    "entity_id": "8lcXD4OYDrJgkEqOmjKW0"
+    "created_at": "2026-09-22T12:32:45.925957Z"
+    "updated_at": "2026-09-23T18:17:39.510824Z"
   - "id": 8
     "dashboard_id": 3
     "name": "7 · Risks"
@@ -1810,7 +1810,7 @@
     \ tab order retained. Individual unrelated question definitions remain outside this scoped dictionary reconciliation."
   "performance_review":
     "tab_id": 18
-    "status": "Owner accepted and promoted to canonical 6 · Performance (tab18), replacing retired tab7 on 24 September 2026"
+    "status": "Owner accepted and promoted to canonical 5 · Performance (tab18); 6 · Borrowers (tab6) follows it as of R024"
     "source_policy": "Live selected-period lending/interest summaries and loan-cohort return; completed-day snapshots for\
       \ the other trends/detail. Original Performance unchanged."
     "source_models":
@@ -3934,6 +3934,12 @@
       "removed_filter": "performance-date"
       "saved_questions": "Retained; no question deletion"
       "evidence": "outputs/r023-20260924/README.md"
+      "display_name": "5 · Performance"
+      "position": 4
+      "borrowers_tab_id": 6
+      "borrowers_display_name": "6 · Borrowers"
+      "borrowers_position": 5
+      "order_evidence": "outputs/r024-20260924/README.md"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -3948,12 +3954,12 @@
     "reason": "Tab 9 category labels and daily income/expense comparison"
     "state": "value"
   "/content/tabs":
-    "reference": "outputs/r023-20260924/README.md"
-    "reason": "Canonical Performance replacement accepted by owner"
+    "reference": "outputs/r024-20260924/README.md"
+    "reason": "Swap canonical Performance and Borrowers display order"
     "state": "value"
   "/content/performance_review":
-    "reference": "outputs/r023-20260924/README.md"
-    "reason": "Canonical Performance replacement accepted by owner"
+    "reference": "outputs/r024-20260924/README.md"
+    "reason": "Swap canonical Performance and Borrowers display order"
     "state": "value"
   "/content/parameters":
     "reference": "outputs/r023-20260924/README.md"

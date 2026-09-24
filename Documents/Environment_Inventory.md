@@ -1,5 +1,7 @@
 # Environment inventory
 
+R024 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings are unchanged. [Evidence](../outputs/r024-20260924/README.md).
+
 R023 current Performance: owner accepted 6R as the replacement. Tab18 is now **6 · Performance**, sixth in order; old tab7 and its 18 placements are removed. The unused performance-date filter is removed, while Performance period remains. Dashboard3 has **11 tabs / 189 placements**. Saved questions retained, including shared question56. All retained chart definitions/layouts and other tab order preserved. [Evidence](../outputs/r023-20260924/README.md).
 
 R016 current checkpoint: DEV/PROD V39; canonical cash reporting is deployed. The V37 snapshot engine and existing hourly bot are unchanged. [Statement contract](../outputs/r016-20260922/statement-cleanup/README.md).

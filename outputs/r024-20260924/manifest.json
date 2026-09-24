@@ -1,6 +1,6 @@
 {
   "release": "R024",
-  "status": "Frozen for promotion",
+  "status": "Released — report-only",
   "scope": "Swap Performance and Borrowers tab names and positions",
   "frozen_at": "2026-09-24T10:41:36.862Z",
   "tested_commit": "d2e9dbb1109fec40079ea8f28a4746ceef71e3a5",
@@ -9,5 +9,7 @@
   "rollback": "Private r024-tab-order/dashboard.json",
   "apps": "Unchanged",
   "database": "Unchanged",
-  "tag": "R024"
+  "tag": "R024",
+  "verification": "verification.json; browser-verification.json",
+  "publication_correction": "Metabase assigned positions from submitted array order. First save changed labels; second sorted save corrected order and passed verification."
 }
