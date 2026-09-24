@@ -1,6 +1,12 @@
-# R025 — 8R Collection Monitor review tab
+# R025 — Collection Monitor
 
-Status: **Implemented for owner review; R025 remains Open. Original tab retained.**
+Status: **Released. Owner accepted 8R; it now replaces the old Collection tab as 8 · Collection Monitor.**
+
+Current dashboard: **11 tabs / 184 placements**. Tab19 remains the same accepted monitor, in eighth position. Old tab9 and its 26 placements are removed; saved questions and all remaining cards/filters are preserved. Six cutover checks and Chrome verification passed. [Cutover evidence](cutover-verification.json). R026 is now Open.
+
+Rollback: use the private `pre-cutover-dashboard.json` identified in [freeze.json](freeze.json) to recreate the old tab and remap its captured placements to its new tab ID if needed; restore the monitor’s review name/order. Preserve later work. No DB rollback required.
+
+The sections below retain the implementation/review history; the release status above supersedes their pre-cutover status.
 
 Open [8R with one-minute refresh and fullscreen controls](https://reports.mw-credit.com/dashboard/3?tab=19#refresh=60&fullscreen), or [8R in the normal dashboard](https://reports.mw-credit.com/dashboard/3?tab=19).
 

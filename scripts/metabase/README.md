@@ -83,3 +83,5 @@ Income presentation: cash waterfall 189 is recoverably archived. `Verify-IncomeS
 ## 8R Collection Monitor — R025 review
 
 `CollectionMonitor.mjs` creates the additive tab 19 from existing models without editing the original collection page or database. Its `--prepare` captures private rollback and preflights queries; `--install` adds the isolated page; `--refine` preserves original placements and changes only owned review questions/layout/parameters. Do not replay against later owner changes without rebaselining. `Verify-CollectionMonitor.mjs` checks source parity, preserved definitions, detail-only mappings and empty/status/date cases; financial values stay private. [Implementation, refresh link and limits](../../outputs/r025-20260924/README.md). R025 remains Open for review; original tab 9 is retained.
+
+R025 canonical cutover: `PromoteCollectionTab.mjs` uses the private pre-cutover snapshot and explicit publish/verify flags; do not replay against later dashboard edits. Tab19 is now 8 · Collection Monitor; tab9 removed. [Evidence](../../outputs/r025-20260924/cutover-verification.json).

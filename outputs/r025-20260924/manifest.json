@@ -1,7 +1,7 @@
 {
   "release": "R025",
-  "status": "Open \u00e2\u20ac\u201d additive review implemented; owner acceptance/cutover pending",
-  "scope": "8R Collection Monitor only",
+  "status": "Released — canonical Collection Monitor",
+  "scope": "Collection Monitor implementation, top-row refinement and canonical replacement",
   "authorization": "Owner: ok, go ahead with implementation of 8R",
   "baselineCommit": "f4b8ffd86a73667b0d30c429a7b6d85da6151a5b",
   "metabase": {
@@ -28,7 +28,9 @@
       "today-charge-paid": 252
     },
     "originalPlacements": 189,
-    "finalPlacements": 210
+    "finalPlacements": 184,
+    "canonicalTab": 19,
+    "removedTab": 9
   },
   "unchanged": [
     "PostgreSQL schema/data",
@@ -40,9 +42,12 @@
   ],
   "backup": "C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r025-collection-monitor",
   "verification": "outputs/r025-20260924/verification.json",
-  "finalCutover": false,
-  "scopeFrozen": false,
-  "nextNumberAllocated": false,
-  "finalReleaseTag": null,
-  "topRowRefinement": "outputs/r025-20260924/top-card-refinement.json"
+  "finalCutover": true,
+  "scopeFrozen": true,
+  "nextNumberAllocated": true,
+  "finalReleaseTag": "R025",
+  "topRowRefinement": "outputs/r025-20260924/top-card-refinement.json",
+  "cutoverAuthorization": "Owner: it looks good. confirm to tab 8R, and replace tab 8 with 8R.",
+  "freeze": "outputs/r025-20260924/freeze.json",
+  "cutoverVerification": "outputs/r025-20260924/cutover-verification.json"
 }

@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R026 — Open** |
 | Next number, not yet open or usable | **R027 — opens only when R026 is frozen at promotion start** |
-| Current release evidence | R026 is open for new development. R025 is frozen for the authorized Collection replacement. [Implementation](../outputs/r025-20260924/README.md) |
+| Current release evidence | R026 is open for new development. R025 Collection replacement is released. [Implementation](../outputs/r025-20260924/README.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R026 | New development | Open | 2026-09-24: opened at R025 promotion start | — |
-| R025 | Canonical Collection Monitor replacement | Frozen — promotion started | 2026-09-24: tab19; initial 38 checks plus 6 top-row refinement checks; today-charge paid % promoted to top row | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
+| R025 | Canonical Collection Monitor replacement | Released — report-only | 2026-09-24: canonical tab19; old tab9 removed; 6 cutover checks and Chrome passed; tag R025 | [Implementation](../outputs/r025-20260924/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R025_2026-09-24.md) |
 | R024 | Performance and Borrowers tab order | Released — report-only | 2026-09-24: tab18 fifth, tab6 sixth; saved-state and Chrome checks passed | [Evidence](../outputs/r024-20260924/README.md) · tag R024 |
 | R023 | Canonical Performance replacement | Released — report-only | 2026-09-24: tab18 promoted, tab7 removed; 4 checks and Chrome verified | [Evidence](../outputs/r023-20260924/README.md) · tag R023 |
 | R022 | Selective Performance trend labels | Released — report-only formatting | 2026-09-24: eight charts set to Some; 9 saved-state checks and Chrome visual verification | [Evidence](../outputs/r022-20260924/README.md) · tag R022 |

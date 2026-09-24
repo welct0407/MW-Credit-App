@@ -34,3 +34,9 @@ No final cutover, successor-number allocation, release freeze or release tag. Ke
 ## Owner top-row refinement — 24 September 2026
 
 Replaced the People on board placement with question 252 (Today’s charges · paid %), ordered 237 / 238 / 239 / 252. Preserved question 236 for recovery and retained the lower today-charge breakdown. Updated the maintained layout/specification, plan, dictionary and implementation notes. Six targeted API checks passed; formula matches question 249. Private dashboard snapshot captured before writes at baseline 487cada. No DB/source/filter changes. R025 remains Open; no cutover. Visual acceptance remains with owner. Evidence: `outputs/r025-20260924/top-card-refinement.json`.
+
+## Authorized canonical replacement — 24 September 2026
+
+Owner accepted 8R and requested replacing tab8. Scope frozen at the timestamp in outputs/r025-20260924/freeze.json, pinned to 3a5c93e; handoff published in b2e3efe, opening R026. Backed up the actual dashboard before cutover. Renamed tab19 to 8 · Collection Monitor and removed tab9 with 26 placements. All remaining placements, filters, question definitions and old saved questions preserved. Six cutover checks passed; Chrome reload confirms canonical tab and summary order. An initial verifier compared server update timestamps; corrected it to compare tab identity/name/order and reran verification without repeating publication. No runtime defect or DB/AppSheet change.
+
+Updated dictionary, core records, manifest, README and single checklist. Recovery uses the private pre-cutover snapshot to recreate old tab/placements without overwriting later work. R025 Released, final tag R025; R026 Open. Native monitoring limitations in README remain.

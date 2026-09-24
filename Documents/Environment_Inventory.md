@@ -1,8 +1,8 @@
 # Environment inventory
 
-## R025 — Collection Monitor review
+## R025 — Canonical Collection Monitor
 
-Dashboard 3 now includes **8R · Collection Monitor** (tab 19), directly after original **8 · Daily Collection** (9). **12 tabs / 210 placements**; all 189 original placements preserved. Seventeen isolated questions are retained (sixteen displayed); the top row now ends with today’s charges paid %. They provide four colored status lanes, summary/freshness cards and separately filtered detail. Shared models, source/permissions, database/AppSheet and jobs unchanged. R025 remains Open for owner review; original tab retained and final cutover deferred. [Implementation and limitations](../outputs/r025-20260924/README.md).
+Owner accepted 8R and authorized replacement. Tab19 is now **8 · Collection Monitor** in eighth position; old tab9 and its 26 placements are removed. Dashboard3 has **11 tabs / 184 placements**. All remaining placements, saved questions, filters and source definitions preserved. Top row: receipts, remaining, people fully paid, today-charge paid %. No DB/AppSheet/permissions/jobs changes. R025 Released; R026 Open. [Evidence](../outputs/r025-20260924/cutover-verification.json).
 
 R024 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings are unchanged. [Evidence](../outputs/r024-20260924/README.md).
 

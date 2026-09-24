@@ -224,3 +224,5 @@ Design validation completed: live reference layout inspection; current Metabase 
 ## Implementation follow-up
 
 The owner subsequently authorized implementation. [R025 implementation and verification](../r025-20260924/README.md) records tab 19, native presentation refinements and actual test limits. The original collection tab remains unchanged; this document remains the design baseline.
+
+Owner accepted and promoted the monitor on 24 September 2026: tab19 now **8 · Collection Monitor**, replacing old tab9. [Cutover evidence](../r025-20260924/cutover-verification.json).
