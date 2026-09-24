@@ -2,6 +2,8 @@
 
 **Implementation update, 24 September:** the owner subsequently authorized a **new parallel review page**, preserving the original Performance page. This design is retained as the proposal; its replacement/removal instructions are superseded for the current implementation. See [implemented page, exact scope and verification](IMPLEMENTATION.md).
 
+**Later design revision, 24 September:** the owner identified both seven-day trend averages as important. The [seven-day averages design](SEVEN_DAY_TRENDS_DESIGN.md) proposes enhancing the daily chart and restoring a cumulative chart to 6R, superseding this document's recommendation to omit cumulative results. That enhancement is **design only**, not implemented or authorized for implementation in that task.
+
 Date: 24 September 2026 (Asia/Bangkok). Status: **proposed design, not implemented**.
 
 The owner requested a review/design and will use another model to implement it. This task made read-only Metabase API inspections and read-only source queries, and created documentation only. It did not change any dashboard, question, model, database object, data, permission or schedule. Starting repository commit: `308bd93a80cf31bd0ce801b0fa6adfd051f22d85`; clean tree. Continue R016 rather than reserving a new release just for this design.
