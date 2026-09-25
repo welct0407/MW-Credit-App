@@ -2518,6 +2518,37 @@
       ]
     },
     {
+      "file": "development/appsheet/r036/table-business-expenses-labels.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Business Expenses",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Expense Date",
+          "pointer": "/content/columns/Expense Date"
+        },
+        {
+          "subject": "Expense Category",
+          "pointer": "/content/columns/Expense Category"
+        },
+        {
+          "subject": "Amount",
+          "pointer": "/content/columns/Amount"
+        },
+        {
+          "subject": "Payee Name",
+          "pointer": "/content/columns/Payee Name"
+        },
+        {
+          "subject": "Notes",
+          "pointer": "/content/columns/Notes"
+        }
+      ]
+    },
+    {
       "file": "development/appsheet/r036/table-payments-labels.yaml",
       "system": "appsheet",
       "component": "oltp",

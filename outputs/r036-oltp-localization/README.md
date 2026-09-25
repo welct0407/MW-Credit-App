@@ -13,3 +13,17 @@ Saved GUI verification: the logged-in work Partner rendered all five primary ent
 The saved editor was reloaded at 1.000091 and the Payments column expressions were read back. Dictionary validation passed with 1,226 documents and zero errors. The existing three recorded dictionary limitations were unchanged.
 
 Rollback: restore DEV OLTP saved version 1.000090 if this presentation batch needs to be reverted; this does not undo other R036 SQL/app work or later changes. Before-version repository commit: `74912733825a441283071f44a7b347d979b38566`. No schema, data, notification, route or OLAP change in this batch. Reconcile any unrecorded 1.000087–1.000090 DEV definition edits before final R036 RC capture. Production promotion requires separate owner authorization and the integrated R036 checklist.
+
+## Business Expenses Detail and Form labels
+
+On 25 September, DEV OLTP saved **1.000091 → 1.000092** for a further R036 refinement. Five previously English-only Business Expenses column Display names became fixed Thai / English strings, following `ผู้จ่ายเงิน / Paid By`:
+
+| Column | Saved display name |
+| --- | --- |
+| Expense Date | `วันที่ค่าใช้จ่าย / Expense Date` |
+| Expense Category | `ประเภทค่าใช้จ่าย / Expense Category` |
+| Amount | `จำนวนเงิน / Amount` |
+| Payee Name | `ชื่อผู้รับเงิน / Payee Name` |
+| Notes | `หมายเหตุ / Notes` |
+
+The existing bilingual Related Borrower, Related Loan, Paid By and Paid From Account labels were retained. No Partner-profile formula is used for these five labels. The saved editor was reloaded at 1.000092, and the current app GUI showed the new labels in `Business Expenses_Detail` and the unsaved `Business Expenses_Form`. The form was cancelled. OLTP diagnostics reported **No issues found**; the app remained Deployed. Dictionary validation passed with 1,227 documents, zero errors and the same three recorded limitations. OLAP and PROD were unchanged. The exact DEV deltas are in `Documents/Data Dictionary/development/appsheet/r036/table-business-expenses-labels.yaml`. Rollback for this refinement is saved DEV OLTP 1.000091; no DB or financial write occurred.
