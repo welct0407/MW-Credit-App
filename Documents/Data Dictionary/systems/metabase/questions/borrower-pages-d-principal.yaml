@@ -38,14 +38,22 @@
         "number_separators": ".,"
         "compact": false
   "result_metadata":
-  - "name": "Current principal ฿"
-    "database_type": "numeric"
-    "base_type": "type/Decimal"
-    "display_name": "Current principal ฿"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Current principal ฿"
+    "lib/original-name": "Current principal ฿"
+    "name": "Current principal ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Current principal ฿"
+    "source": "native"
     "field_ref":
     - "field"
     - "Current principal ฿"
     - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Current principal ฿"
+    "display_name": "Current principal ฿"
+    "base_type": "type/Decimal"
 "evidence":
   "/content/result_metadata":
     "reference": "outputs/r035-borrower-pages/README.md"

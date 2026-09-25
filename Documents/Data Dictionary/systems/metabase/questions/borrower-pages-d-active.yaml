@@ -38,14 +38,22 @@
         "number_separators": ".,"
         "compact": false
   "result_metadata":
-  - "name": "Active loans"
-    "database_type": "int8"
-    "base_type": "type/BigInteger"
-    "display_name": "Active loans"
+  - "database_type": "int8"
+    "semantic_type": null
+    "lib/deduplicated-name": "Active loans"
+    "lib/original-name": "Active loans"
+    "name": "Active loans"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Active loans"
+    "source": "native"
     "field_ref":
     - "field"
     - "Active loans"
     - "base-type": "type/BigInteger"
+    "effective_type": "type/BigInteger"
+    "lib/desired-column-alias": "Active loans"
+    "display_name": "Active loans"
+    "base_type": "type/BigInteger"
 "evidence":
   "/content/result_metadata":
     "reference": "outputs/r035-borrower-pages/README.md"

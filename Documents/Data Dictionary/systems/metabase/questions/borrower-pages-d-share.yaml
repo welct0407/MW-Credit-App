@@ -39,15 +39,22 @@
         "number_separators": ".,"
         "compact": false
   "result_metadata":
-  - "name": "Portfolio share"
-    "database_type": "numeric"
-    "base_type": "type/Decimal"
-    "display_name": "Portfolio share"
+  - "database_type": "numeric"
     "semantic_type": "type/Share"
+    "lib/deduplicated-name": "Portfolio share"
+    "lib/original-name": "Portfolio share"
+    "name": "Portfolio share"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Portfolio share"
+    "source": "native"
     "field_ref":
     - "field"
     - "Portfolio share"
     - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Portfolio share"
+    "display_name": "Portfolio share"
+    "base_type": "type/Decimal"
 "evidence":
   "/content/result_metadata":
     "reference": "outputs/r035-borrower-pages/README.md"
