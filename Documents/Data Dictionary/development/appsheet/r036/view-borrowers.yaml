@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "appsheet",
+    "component": "oltp",
+    "kind": "view",
+    "name": "Borrowers",
+    "scope": "development:R036"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r036-oltp-localization/README.md",
+    "coverage": "Saved OLTP DEV editor 1.000091 and current GUI readback"
+  },
+  "content": {
+    "release": "R036",
+    "target": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "before_version": "1.000090",
+    "after_version": "1.000091",
+    "property": "Display name",
+    "source_property": "editor.fields[label=Display name].controls[0].value",
+    "before": {
+      "state": "value",
+      "value": "ผู้กู้"
+    },
+    "after": {
+      "state": "value",
+      "value": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ผู้กู้\", \"Borrowers\")"
+    },
+    "unchanged": "View name, position, source, type, icon, visibility and behavior"
+  }
+}

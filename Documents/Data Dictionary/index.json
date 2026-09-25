@@ -2503,6 +2503,169 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/r036/table-borrowers-labels.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Borrowers",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Todays Collection Charges",
+          "pointer": "/content/columns/Todays Collection Charges"
+        }
+      ]
+    },
+    {
+      "file": "development/appsheet/r036/table-payments-labels.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Payments",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Payment Date",
+          "pointer": "/content/columns/Payment Date"
+        },
+        {
+          "subject": "Status",
+          "pointer": "/content/columns/Status"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "Amount Received",
+          "pointer": "/content/columns/Amount Received"
+        },
+        {
+          "subject": "Payment Method",
+          "pointer": "/content/columns/Payment Method"
+        },
+        {
+          "subject": "Allocation Method",
+          "pointer": "/content/columns/Allocation Method"
+        },
+        {
+          "subject": "Bank Reference",
+          "pointer": "/content/columns/Bank Reference"
+        },
+        {
+          "subject": "Notes",
+          "pointer": "/content/columns/Notes"
+        },
+        {
+          "subject": "Ref Received By Cash Holder",
+          "pointer": "/content/columns/Ref Received By Cash Holder"
+        },
+        {
+          "subject": "Ref Received By Cash Account",
+          "pointer": "/content/columns/Ref Received By Cash Account"
+        },
+        {
+          "subject": "Related Repayments",
+          "pointer": "/content/columns/Related Repayments"
+        },
+        {
+          "subject": "Visible Allocations",
+          "pointer": "/content/columns/Visible Allocations"
+        },
+        {
+          "subject": "Related Loans",
+          "pointer": "/content/columns/Related Loans"
+        }
+      ]
+    },
+    {
+      "file": "development/appsheet/r036/table-statistics-labels.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Statistics",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Total Cash Pool",
+          "pointer": "/content/columns/Total Cash Pool"
+        }
+      ]
+    },
+    {
+      "file": "development/appsheet/r036/view-borrowers.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Borrowers",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r036/view-business-expenses.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Business Expenses",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r036/view-collection.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Collection",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r036/view-dashboard.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Dashboard",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r036/view-loans.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Loans",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r036/view-payments.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Payments",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r036/view-reporting-app-shortcut.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Reporting App Shortcut",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/environment/loan_manager_prod-relation-agent-audit-commits-5541f3ed.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",

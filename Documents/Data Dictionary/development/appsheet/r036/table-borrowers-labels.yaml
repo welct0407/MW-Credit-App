@@ -1,0 +1,34 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "appsheet",
+    "component": "oltp",
+    "kind": "table",
+    "name": "Borrowers",
+    "scope": "development:R036"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r036-oltp-localization/README.md",
+    "coverage": "Saved OLTP DEV editor 1.000091 and current GUI readback"
+  },
+  "content": {
+    "release": "R036",
+    "target": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "before_version": "1.000090",
+    "after_version": "1.000091",
+    "source_property": "editor column Display name",
+    "columns": {
+      "Todays Collection Charges": {
+        "before": {
+          "state": "absent"
+        },
+        "after": {
+          "state": "value",
+          "value": "\"รายการเรียกเก็บวันนี้ / Today's Collection Charges\""
+        }
+      }
+    },
+    "unchanged": "Column type, formula, source, visibility, editability and relationship"
+  }
+}

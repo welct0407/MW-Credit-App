@@ -49,6 +49,20 @@
         }
       }
     ],
-    "unchanged": "Physical binding, App formula, required/show conditions, type and other columns; OLAP remains read-only"
+    "unchanged": "Physical binding, App formula, required/show conditions, type and other columns; OLAP remains read-only",
+    "localization": {
+      "before_version": "1.000090",
+      "after_version": "1.000091",
+      "column": "Related Charges",
+      "property": "Display name",
+      "before": {
+        "state": "absent"
+      },
+      "after": {
+        "state": "value",
+        "value": "\"รายการเรียกเก็บที่เกี่ยวข้อง / Related Charges\""
+      },
+      "other_properties": "unchanged"
+    }
   }
 }
