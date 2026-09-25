@@ -1,0 +1,42 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_prod",
+    "kind": "routine",
+    "name": "public.apply_principal_daily_interest(p \"Loans\", previous \"Loans\")",
+    "scope": "development:R036"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r036-principal-interest/development-routines.json",
+    "coverage": "Exact live DEV pg_get_functiondef after V45; PROD remains V44"
+  },
+  "content": {
+    "release": "R036",
+    "target": {
+      "instance": "appsheet-pg-prod-20260914",
+      "host": "34.21.174.215",
+      "database": "loan_manager_dev"
+    },
+    "production_identity": {
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.apply_principal_daily_interest(p \"Loans\", previous \"Loans\")",
+      "scope": "production"
+    },
+    "changes": [
+      {
+        "pointer": "/definition/definition",
+        "before": {
+          "state": "absent"
+        },
+        "after": {
+          "state": "value",
+          "value": "CREATE OR REPLACE FUNCTION public.apply_principal_daily_interest(p \"Loans\", previous \"Loans\")\n RETURNS \"Loans\"\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE basis numeric[]; old_basis numeric[]; candidate numeric; n bigint;\n source text; previous_balance numeric;\n principal_changed boolean; note text;\nBEGIN\n IF p.\"Loan Type\" IS DISTINCT FROM 'ดอกเบี้ยรายวัน' THEN RETURN p; END IF;\n principal_changed:=previous.\"Row ID\" IS NOT NULL AND\n  p.\"Total Principal Received\" IS DISTINCT FROM previous.\"Total Principal Received\";\n old_basis:=public.daily_interest_basis(previous.\"Loan Arrangement\");\n basis:=public.daily_interest_basis(p.\"Loan Arrangement\");\n IF old_basis IS NOT NULL THEN\n  -- A stale app save must not remove/rebase the rate or restore an old daily amount.\n  IF basis IS NOT NULL AND basis IS DISTINCT FROM old_basis THEN\n   RAISE EXCEPTION 'Original daily interest basis cannot be changed by a loan edit';\n  END IF;\n  basis:=old_basis;\n ELSIF previous.\"Row ID\" IS NOT NULL AND NOT principal_changed THEN\n  -- Existing loans are untouched until a future posted principal change.\n  RETURN p;\n END IF;\n\n IF basis IS NULL THEN\n  IF previous.\"Row ID\" IS NULL THEN\n   IF p.\"Principal Amount\"::numeric<=0 OR p.\"Current Daily Interest\"::numeric<=0\n    OR p.\"Principal Amount\" IS NULL OR p.\"Current Daily Interest\" IS NULL THEN RETURN p; END IF;\n   basis:=ARRAY[p.\"Current Daily Interest\"::numeric,p.\"Principal Amount\"::numeric];\n   source:='Initial loan entry';\n  ELSE\n   -- Owner-approved reconstruction: the first-day charge contains daily interest\n   -- plus the recorded transfer fee. Require one positive, zero-principal charge.\n   SELECT count(*),min(c.\"Interest Due\"::numeric-coalesce(previous.\"Transfer Fee\"::numeric,0))\n    INTO n,candidate FROM public.\"Charges\" c\n    WHERE c.\"Ref Loans\"=p.\"Row ID\" AND c.\"Charge Date\"=previous.\"Loan Date\"\n     AND coalesce(c.\"Principal Due\"::numeric,0)=0;\n   IF n=1 AND candidate>0 AND previous.\"Principal Amount\"::numeric>0 THEN\n    basis:=ARRAY[candidate,previous.\"Principal Amount\"::numeric];\n    source:='Original first-day charge less recorded transfer fee';\n   ELSE\n    -- A first-day charge may be absent when automatic generation was off.\n    -- Retain the rate implied by the amount and principal immediately before\n    -- this principal change; never divide by the already reduced balance.\n    previous_balance:=previous.\"Outstanding Principal\";\n    IF previous_balance>0 AND previous.\"Current Daily Interest\"::numeric>0 THEN\n     basis:=ARRAY[previous.\"Current Daily Interest\"::numeric,previous_balance];\n     source:='Daily amount / outstanding principal immediately before automatic adjustment';\n    ELSIF coalesce(previous.\"Current Daily Interest\"::numeric,0)=0 THEN\n     -- Existing zero/blank-interest setups have no positive rate to preserve.\n     RETURN p;\n    ELSE\n     RAISE EXCEPTION 'Cannot establish daily interest basis; review original charges and loan arrangement';\n    END IF;\n   END IF;\n  END IF;\n END IF;\n\n IF public.daily_interest_basis(p.\"Loan Arrangement\") IS NULL THEN\n  note:=public.daily_interest_basis_note(basis);\n  p.\"Loan Arrangement\":=coalesce(p.\"Loan Arrangement\",'')\n   ||CASE WHEN coalesce(p.\"Loan Arrangement\",'')='' THEN '' ELSE E'\\n' END||note\n   ||CASE WHEN source IS NULL THEN '' ELSE ' Basis: '||source||'.' END;\n END IF;\n -- Preserve the original input at its original balance; adjusted amounts use\n -- whole baht, matching the existing payment engine and AppSheet price display.\n p.\"Current Daily Interest\":=(CASE WHEN p.\"Outstanding Principal\"=basis[2] THEN basis[1]\n  ELSE round(basis[1]*greatest(0,p.\"Outstanding Principal\")/basis[2],0) END)::money;\n RETURN p;\nEND $function$\n"
+        }
+      }
+    ]
+  }
+}

@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R036 — Open** |
 | Next number, not yet open or usable | **R037 — opens only when R036 is frozen at promotion start** |
-| Current release evidence | R036 includes live Collection Monitor color and order alignment; remains Open. [Evidence](../outputs/r036-collection-status-colors/README.md) |
+| Current release evidence | R036 includes live Collection Monitor color/order alignment and automatic daily-interest reduction after principal repayment (DEV V45 / OLTP 1.000086 verified; PROD unchanged). Remains Open. [Monitor evidence](../outputs/r036-collection-status-colors/README.md) · [Interest implementation](../outputs/r036-principal-interest/README.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R036 | Collection Monitor status colors and order; subsequent development remains Open | Open | 2026-09-25: status lanes/selector reordered Not Paid → Partially Paid → Overdue → Fully Paid; colors retained | [Evidence](../outputs/r036-collection-status-colors/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R036_COLLECTION_STATUS_COLORS_2026-09-25.md) |
+| R036 | Collection Monitor status colors/order; automatic daily interest after principal repayment | Open | 2026-09-25: Monitor alignment saved; interest fix verified in DEV V45 / OLTP1.000086, OLAP1.000033 unchanged, both editors clear; PROD V44 unchanged; acceptance/promotion pending | [Monitor evidence](../outputs/r036-collection-status-colors/README.md) · [Monitor log](../Change%20Logs/CHANGE_NOTES_R036_COLLECTION_STATUS_COLORS_2026-09-25.md) · [Interest implementation](../outputs/r036-principal-interest/README.md) · [Interest log](../Change%20Logs/CHANGE_NOTES_R036_PRINCIPAL_INTEREST_2026-09-25.md) |
 | R035 | Metabase monitoring and additive borrower pages | Released — SQL/report and monitoring | DEV/PROD44; new Portfolio104 / Detail105, original tabs preserved; data and desktop/mobile checks passed. Apps unchanged; tag R035. | [Evidence](../outputs/r035-borrower-pages/README.md) · [Release log](../Change%20Logs/CHANGE_NOTES_R035_2026-09-25.md) |
 | R034 | Chart above category tables; whole-baht amounts | Released | Live layout and amount formatting verified; tag R034. | [Evidence](../outputs/r034-matrix-order/README.md) |
 | R033 | Accepted custom matrix; remove native plot | Released | Native plot removed; iframe/detail table verified; tag R033. | [Evidence](../outputs/r033-matrix-cutover/README.md) |

@@ -1,5 +1,9 @@
 # PostgreSQL development with Flyway
 
+## R036 automatic daily interest — DEV only
+
+V45 is applied/validated and immutable in DEV; PROD remains V44. Existing Loan Arrangement text retains the original ratio and `vc_loan_row()` recalculates current/expected daily interest after signed principal changes. No new columns/tables or backlog UPDATE. Full CI and current OLTP/OLAP GUI tests pass. DEV OLTP1.000086 adds zero validation/editability; OLAP unchanged. [Contract, tests, backup proof and recovery](../outputs/r036-principal-interest/README.md). Acceptance/promotion of the complete Open R036 release remains pending.
+
 ## R035 borrower page providers — DEV and PROD
 
 V44 adds three read-only views and the stable invoker function `reporting_borrower_period_v1(date,date,text)`. Identity, independent loan/receipt grain, signed corrections, population scope and Bangkok period rules are governed in SQL. Both environments validated; production pin `d691d66`, restored snapshot rehearsal and affected-schema parity passed. No operational table/column, AppSheet binding, trigger or financial-row change. V44 is immutable; subsequent SQL changes require a higher migration. [Package, tests and recovery](../outputs/r035-borrower-pages/README.md).

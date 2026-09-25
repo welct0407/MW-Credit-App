@@ -2493,6 +2493,16 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/r036/loans.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Loans",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/environment/loan_manager_prod-relation-agent-audit-commits-5541f3ed.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -3129,6 +3139,46 @@
       "kind": "settings",
       "name": "Database metadata",
       "scope": "development:observed",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r036/apply_principal_daily_interest.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.apply_principal_daily_interest(p \"Loans\", previous \"Loans\")",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r036/daily_interest_basis.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.daily_interest_basis(p_arrangement text)",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r036/daily_interest_basis_note.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.daily_interest_basis_note(p_basis numeric[])",
+      "scope": "development:R036",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r036/vc_loan_row.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.vc_loan_row()",
+      "scope": "development:R036",
       "status": "documented",
       "lookup": []
     },

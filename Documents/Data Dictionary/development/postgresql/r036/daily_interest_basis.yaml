@@ -1,0 +1,42 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_prod",
+    "kind": "routine",
+    "name": "public.daily_interest_basis(p_arrangement text)",
+    "scope": "development:R036"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r036-principal-interest/development-routines.json",
+    "coverage": "Exact live DEV pg_get_functiondef after V45; PROD remains V44"
+  },
+  "content": {
+    "release": "R036",
+    "target": {
+      "instance": "appsheet-pg-prod-20260914",
+      "host": "34.21.174.215",
+      "database": "loan_manager_dev"
+    },
+    "production_identity": {
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.daily_interest_basis(p_arrangement text)",
+      "scope": "production"
+    },
+    "changes": [
+      {
+        "pointer": "/definition/definition",
+        "before": {
+          "state": "absent"
+        },
+        "after": {
+          "state": "value",
+          "value": "CREATE OR REPLACE FUNCTION public.daily_interest_basis(p_arrangement text)\n RETURNS numeric[]\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nDECLARE m text[]; matches integer:=0; result numeric[];\nBEGIN\n FOR m IN SELECT regexp_matches(coalesce(p_arrangement,''),\n  '\\[Original daily interest: ([0-9]+(?:\\.[0-9]+)?) baht/day on ([0-9]+(?:\\.[0-9]+)?) baht principal\\]','g')\n LOOP\n  matches:=matches+1; result:=ARRAY[m[1]::numeric,m[2]::numeric];\n END LOOP;\n IF matches>1 OR (matches=1 AND (result[1]<=0 OR result[2]<=0)) THEN\n  RAISE EXCEPTION 'Daily interest basis is invalid; review the loan arrangement';\n END IF;\n IF matches=0 AND strpos(coalesce(p_arrangement,''),'[Original daily interest:')>0 THEN\n  RAISE EXCEPTION 'Daily interest basis is malformed; review the loan arrangement';\n END IF;\n RETURN result;\nEND $function$\n"
+        }
+      }
+    ]
+  }
+}

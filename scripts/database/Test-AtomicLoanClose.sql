@@ -18,10 +18,9 @@ INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date"
 VALUES('AC7-CAPITAL','AC7-PARTNER',current_date,'Contribution',5000::money);
 -- Seed with auto false so fixture setup does not create first-day receipts.
 INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled","Current Daily Interest")
-SELECT 'CI-LISA','AC7-'||n,'AC7-B',current_date-5,100::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,10::money
+SELECT 'CI-LISA','AC7-'||n,'AC7-B',current_date-5,100::money,'ยังไม่ปิดยอด','ดอกเบี้ยรายวัน',false,(CASE WHEN n='FRACTION' THEN 0.1 ELSE 10 END)::money
 FROM unnest(ARRAY['NONE','OLD','PART','PAID','SAME','FUTURE','ROLLBACK','DUP','STALE','WRONG','FRACTION']) n;
 UPDATE "Loans" SET "Loan Date"=current_date WHERE "Row ID"='AC7-SAME';
-UPDATE "Loans" SET "Current Daily Interest"=0.1::money WHERE "Row ID"='AC7-FRACTION';
 INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES
 ('AC7-OLD-C','AC7-OLD',current_date-1,0::money,20::money),
 ('AC7-PART-C','AC7-PART',current_date,100::money,20::money),

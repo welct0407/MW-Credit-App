@@ -1,5 +1,11 @@
 # Production model overview
 
+## R036 daily-interest adjustment — DEV only
+
+DEV V45 retains the original daily-interest ratio as a readable note in existing Loans.Loan Arrangement text; no new column/table. New daily-interest loans capture their starting amount/principal. Existing loans initialize on a future principal change using the first-day charge less recorded transfer fee, or prior current amount/outstanding ratio when first-day evidence is unavailable. No bulk backlog correction. PostgreSQL updates Current Daily Interest, Expected Daily Interest Amount and borrower rollups after authoritative signed repayments. Adjusted amounts round to whole baht and reach zero on payoff; the exact ratio survives rounding/reversals. Posted charges stay unchanged; uncharged intervals retain the owner's current-rate convention. Fixed-interest/installment behavior is unchanged.
+
+DEV OLTP accepts calculated zero and makes the daily amount read-only once the note exists; ordinary arrangement text stays editable. DEV OLAP/current-interest reporting providers read the same amount. PROD remains V44. [Exact contract, inference limits and tests](../outputs/r036-principal-interest/README.md).
+
 ## R028 reporting-only automatic schedule assessment
 
 Three additional PostgreSQL views compare normal current loan setup with recorded charge amounts/frequency and derive schedule-aware borrower categories automatically. No AppSheet binding, operational column or financial data changes. Existing payment-health scores remain measured payment compliance; a separate modified-schedule rule restricts upper categories in matrix V3. V2 remains available for comparison. [Rule, boundaries and evidence](../outputs/r028-schedule-health/README.md).

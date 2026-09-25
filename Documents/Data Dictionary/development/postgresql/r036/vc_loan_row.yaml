@@ -1,0 +1,43 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_prod",
+    "kind": "routine",
+    "name": "public.vc_loan_row()",
+    "scope": "development:R036"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r036-principal-interest/development-routines.json",
+    "coverage": "Exact live DEV pg_get_functiondef after V45; PROD remains V44"
+  },
+  "content": {
+    "release": "R036",
+    "target": {
+      "instance": "appsheet-pg-prod-20260914",
+      "host": "34.21.174.215",
+      "database": "loan_manager_dev"
+    },
+    "production_identity": {
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.vc_loan_row()",
+      "scope": "production"
+    },
+    "changes": [
+      {
+        "pointer": "/definition/definition",
+        "before": {
+          "state": "value",
+          "value": "CREATE OR REPLACE FUNCTION public.vc_loan_row()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nBEGIN\n SELECT coalesce(sum(\"Interest Paid\"::numeric),0),coalesce(sum(\"Principal Paid\"::numeric),0),\n  coalesce(sum(coalesce(\"Principal Paid\"::numeric,0)+coalesce(\"Interest Paid\"::numeric,0)),0)\n INTO NEW.\"Total Interest Received\",NEW.\"Total Principal Received\",NEW.\"Total Amount Received\"\n FROM public.\"Repayments\" WHERE \"Ref Loans\"=NEW.\"Row ID\";\n NEW.\"Outstanding Principal\":=coalesce(NEW.\"Principal Amount\"::numeric,0)-NEW.\"Total Principal Received\";\n RETURN NEW;\nEND $function$\n"
+        },
+        "after": {
+          "state": "value",
+          "value": "CREATE OR REPLACE FUNCTION public.vc_loan_row()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\nBEGIN\n SELECT coalesce(sum(\"Interest Paid\"::numeric),0),coalesce(sum(\"Principal Paid\"::numeric),0),\n  coalesce(sum(coalesce(\"Principal Paid\"::numeric,0)+coalesce(\"Interest Paid\"::numeric,0)),0)\n INTO NEW.\"Total Interest Received\",NEW.\"Total Principal Received\",NEW.\"Total Amount Received\"\n FROM public.\"Repayments\" WHERE \"Ref Loans\"=NEW.\"Row ID\";\n NEW.\"Outstanding Principal\":=coalesce(NEW.\"Principal Amount\"::numeric,0)-NEW.\"Total Principal Received\";\n NEW:=public.apply_principal_daily_interest(NEW,CASE WHEN TG_OP='UPDATE' THEN OLD ELSE NULL::public.\"Loans\" END);\n -- zz_vc_daily_interest precedes this trigger. Refresh its result after adjusting\n -- principal/daily amount so downstream borrower rollups read the same state.\n NEW.\"Expected Daily Interest Amount\":=public.vc_daily_interest(NEW);\n RETURN NEW;\nEND $function$\n"
+        }
+      }
+    ]
+  }
+}

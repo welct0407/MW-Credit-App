@@ -39,6 +39,8 @@ SELECT pg_temp.sh_assert(NOT EXISTS(SELECT 1 FROM reporting_borrower_matrix_v3 n
 SELECT pg_temp.sh_assert((SELECT count(*)=count(DISTINCT borrower_id) FROM reporting_borrower_schedule_health_v1),'unique borrower grain');
 UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='SH-L-B';
 SELECT pg_temp.sh_assert((SELECT NOT arrangement_gate AND quadrant='Cash Cow' FROM reporting_borrower_matrix_v3 WHERE borrower_id='SH-B'),'automatic re-evaluation without review records');
-UPDATE "Loans" SET "Current Daily Interest"=0::money WHERE "Row ID"='SH-L-C';
+-- Current Daily Interest is now derived once an original basis is recorded.
+-- An invalid interval still exercises the same source-review guard.
+UPDATE "Loans" SET "Interest Payment Interval"=0 WHERE "Row ID"='SH-L-C';
 SELECT pg_temp.sh_assert((SELECT comparison_status='Source review' AND NOT modified_schedule AND interest_coverage_30d IS NULL FROM reporting_loan_schedule_health_v1 WHERE loan_id='SH-L-C'),'invalid setup withheld');
 ROLLBACK;
