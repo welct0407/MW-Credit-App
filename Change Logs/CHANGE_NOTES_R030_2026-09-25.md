@@ -21,3 +21,7 @@ No real-session forwarding or public HTTPS iframe test was performed. Browser fr
 Starting commit `4c8481e9734eed60da15aea81b6bda36de877c7a`; unrelated untracked work preserved. Rollback is a Git revert of these scoped files. No SQL, AppSheet, Metabase definitions, production VM files/services, firewall, DNS or tunnel settings were changed. No private data or credentials are included. The Debian proof was executed from stdin and left no installed service.
 
 Validation complete; fallback selected and documented; no custom chart deployed. R030 remains Open. This checkpoint is not AppSheet release readiness or production promotion.
+
+## Owner-authorized implementation — same release
+
+Owner requested necessary VM/DB/Metabase setup and a custom comparison chart in the existing tab, explicitly excluding Apps. This supersedes the earlier owner-only placement proposal; dashboard 3 remains shared with report partners and the bearer key will be available to its authorized readers. Prepared dedicated service/identity, fixed read-only SQL query, role/grant provisioning, secret authentication, SVG labels/tooltip and deployment/recovery documentation. Nine backend tests and synthetic browser desktop/mobile checks passed. Fresh PROD dump restored with all 26 fingerprints matching; Metabase recovery dashboard 7 saved. No schema migration is needed. Live deployment not yet applied at this candidate checkpoint.
