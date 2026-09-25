@@ -155,6 +155,26 @@ class CycleTests(unittest.TestCase):
         self.run_cycle();self.add_payment.assert_not_called()
         self.assertEqual(self.j.db.execute("SELECT state FROM partner_reviews WHERE job_id='new-job'").fetchone()[0],'STALE')
 
+    def test_auto_repeated_amount_with_different_reference_posts_once(self):
+        from mw_integration_agent.payment_match import check
+        self.validated_job();self.enable_auto();self.check.side_effect=check
+        r=self.proposal['receipt']
+        earlier={'status':'Posted','borrower':'b','amount':r['amount'],'date':r['date'],
+                 'account':'a','reference':'OTHERREF','minute':r['date']+' '+r['time']}
+        with patch('mw_integration_agent.payment_match.read_query',return_value=[earlier]):
+            self.run_cycle();self.run_cycle()
+        self.assertEqual(self.add_payment.call_count,1)
+
+    def test_auto_same_reference_never_posts_again(self):
+        from mw_integration_agent.payment_match import check
+        self.validated_job();self.enable_auto();self.check.side_effect=check
+        r=self.proposal['receipt']
+        earlier={'status':'Posted','borrower':'b','amount':r['amount'],'date':r['date'],
+                 'account':'a','reference':r['reference'],'minute':None}
+        with patch('mw_integration_agent.payment_match.read_query',return_value=[earlier]):
+            self.run_cycle();self.run_cycle()
+        self.add_payment.assert_not_called()
+
     def test_auto_no_conversion_of_old_pending_review(self):
         self.enable_auto()
         self.j.db.execute("UPDATE partner_reviews SET state='PENDING'");self.j.db.commit()
