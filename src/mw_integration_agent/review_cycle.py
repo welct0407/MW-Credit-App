@@ -149,9 +149,18 @@ def cycle(config,journal,identity_reader):
                     subject='ผลการตรวจสอบ' if thai else 'Receipt review result'
                     body=subject+'\n'+(proposal['borrower'].get('name_th' if thai else 'name_en') or proposal['borrower']['id'])+'\n'+proposal['receipt']['amount']+' THB\n'+words[review['state']][int(thai)]
                 notices.reserve('review-result:'+review['id']+':'+review['state'],p,subject,body)
+        from .receipt_hold import queue_holds,event_key
+        if config.get('receipt_hold_notice_cutoff'):
+            queue_holds(config,journal,notices,masters(config),identity_reader)
         for notice in notices.due():
-            if not notice['event_key'].startswith(('review:','review-result:')):continue
+            if not notice['event_key'].startswith(('review:','review-result:','receipt-held:')):continue
             live=masters(config)
+            if notice['event_key'].startswith('receipt-held:'):
+                held=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(notice['event_key'].split(':')[1],)).fetchone()
+                if (notice['partner_id'] not in live.get('reviewer_ids',[]) or not held or
+                    held['status']!='REVIEW' or event_key(held)!=notice['event_key']):
+                    with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='HOLD_RESOLVED_OR_REVIEWER_REMOVED' WHERE id=?",(notice['id'],))
+                    continue
             if notice['event_key'].startswith('review-result:') and notice['event_key'].endswith(':POSTED'):
                 if not any(p['id']==notice['partner_id'] and p['enabled'] is True for p in live['partners']):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))

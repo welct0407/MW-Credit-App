@@ -175,6 +175,57 @@ class CycleTests(unittest.TestCase):
             self.run_cycle();self.run_cycle()
         self.add_payment.assert_not_called()
 
+    def held_job(self):
+        self.validated_job()
+        self.config['receipt_hold_notice_cutoff']='2026-01-01T00:00:00+00:00'
+        self.j.db.execute("UPDATE receipt_jobs SET status='REVIEW',detail='POSSIBLE_EXISTING_PAYMENT_REVIEW'")
+        self.j.db.commit()
+
+    def hold_notices(self):
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:return [dict(r) for r in notices.db.execute("SELECT * FROM partner_notices WHERE event_key LIKE 'receipt-held:%'")]
+        finally:notices.close()
+
+    def test_held_receipt_notifies_only_reviewer_once_and_never_posts(self):
+        self.held_job();self.masters.return_value['partners'].append(dict(self.p,id='other'))
+        self.run_cycle();self.run_cycle()
+        rows=self.hold_notices();self.assertEqual(len(rows),1)
+        self.assertEqual(rows[0]['partner_id'],'p');self.assertIn('bank reference',rows[0]['body'])
+        self.assertIn('cannot post',rows[0]['body']);self.add_payment.assert_not_called()
+        self.assertIsNone(self.j.db.execute("SELECT 1 FROM partner_reviews WHERE job_id='new-job'").fetchone())
+        from mw_integration_agent.partner_notice import display_notice
+        self.assertTrue(display_notice(rows[0])[0].startswith('⚠️'))
+
+    def test_old_hold_not_replayed_and_missing_reviewer_waits(self):
+        self.held_job();self.config['receipt_hold_notice_cutoff']='2099-01-01T00:00:00+00:00'
+        self.run_cycle();self.assertEqual(self.hold_notices(),[])
+        self.config['receipt_hold_notice_cutoff']='2026-01-01T00:00:00+00:00'
+        self.masters.return_value['reviewer_ids']=[]
+        self.run_cycle();self.assertEqual(self.hold_notices(),[])
+        self.masters.return_value['reviewer_ids']=['p']
+        self.run_cycle();self.assertEqual(len(self.hold_notices()),1)
+
+    def test_removed_reviewer_cannot_receive_queued_hold(self):
+        self.held_job();self.run_cycle();self.dispatch.reset_mock()
+        self.masters.return_value['reviewer_ids']=[]
+        self.run_cycle();self.dispatch.assert_not_called()
+        self.assertEqual(self.hold_notices()[0]['ig_status'],'REVIEW')
+
+    def test_resolved_hold_suppresses_queued_alert(self):
+        self.held_job();self.run_cycle();self.dispatch.reset_mock()
+        self.j.db.execute("UPDATE receipt_jobs SET status='DUPLICATE'");self.j.db.commit()
+        self.run_cycle();self.dispatch.assert_not_called()
+        self.assertEqual(self.hold_notices()[0]['ig_status'],'REVIEW')
+
+    def test_unverified_identity_and_unreadable_extraction_still_alert_reviewer(self):
+        self.held_job();self.p['language']='ไทย'
+        self.j.db.execute("UPDATE receipt_jobs SET result=?,detail='AMOUNT_UNREADABLE'",(json.dumps({'extraction':{'amount':None}}),));self.j.db.commit()
+        from mw_integration_agent.config import ConfigurationError
+        with patch('mw_integration_agent.receipt_hold.receipt_borrower',side_effect=ConfigurationError('unavailable')):
+            self.run_cycle()
+        row=self.hold_notices()[0];self.assertIn('อ่านจำนวนเงิน',row['body']);self.assertIn('ไม่ทราบ',row['body'])
+        self.assertLess(len(row['body']),1000);self.add_payment.assert_not_called()
+
     def test_auto_no_conversion_of_old_pending_review(self):
         self.enable_auto()
         self.j.db.execute("UPDATE partner_reviews SET state='PENDING'");self.j.db.commit()

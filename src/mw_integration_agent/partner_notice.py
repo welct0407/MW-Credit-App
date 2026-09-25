@@ -18,6 +18,7 @@ def display_notice(item):
     event=item['event_key']
     icon=''
     if event.startswith('review:'):icon='❓'
+    elif event.startswith('receipt-held:'):icon='⚠️'
     elif event.startswith('review-result:'):
         icon={'POSTED':'✅','REJECTED':'❌','MANUAL_REQUIRED':'📝',
               'STALE':'⚠️','EXPIRED':'⌛','UNKNOWN':'⚠️'}.get(event.rsplit(':',1)[-1],'')

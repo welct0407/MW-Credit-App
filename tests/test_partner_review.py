@@ -22,6 +22,9 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(self.decide(notice=dict(self.notice,ig_status='UNKNOWN')),'NOT_CORRELATED')
     def test_any_other_direct_reply_rejects(self):
         self.assertEqual(self.decide(dict(self.event,text='maybe approve later')),'REJECTED')
+    def test_held_receipt_alert_cannot_authorize_posting(self):
+        self.assertEqual(self.decide(notice=dict(self.notice,event_key='receipt-held:job:reason')),'NOT_CORRELATED')
+        self.assertEqual(self.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'PENDING')
     def test_current_partner_required(self):
         self.p['enabled']=False;self.assertEqual(self.decide(),'UNAUTHORIZED')
     def test_expired_and_no_reply(self):
