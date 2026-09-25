@@ -1,5 +1,7 @@
 # Open development differences
 
+R032 (25 September): custom matrix animal icons updated in the existing Debian chart.js only; cow head and seated dog visually verified. Runtime, SQL V43, Apps, Metabase placement and credentials unchanged. R033 is the sole Open release. [Evidence](../outputs/r032-matrix-icons/README.md).
+
 ## R031 matrix presentation — 25 September 2026
 
 Custom chart now uses grey category symbols and local borrower-name labels without connector lines; dots remain radius5.5. Only three static Debian assets changed. SQL V43, API/authentication, Metabase iframe1501/native274, AppSheet and existing routes are unchanged. Verified23 labels on desktop/mobile; R032 is the sole Open release. [Evidence](../outputs/r031-matrix-labels/README.md).
