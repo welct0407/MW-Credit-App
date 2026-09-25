@@ -39,9 +39,20 @@ function draw(){
   const paths={
    Star:'M32 3L40 23L62 24L45 38L51 60L32 47L13 60L19 38L2 24L24 23Z',
    'Question Mark':'M32 4C15 4 3 15 3 29C3 43 15 54 32 54L48 61L46 50C55 46 61 38 61 29C61 15 49 4 32 4Z',
-   'Cash Cow':'M8 22H39L45 14L49 8L52 15L60 18V30L51 33L47 46V59H41V44H22V59H16V43L11 37L7 27L3 38L0 36L3 22Z',
-   Dog:'M8 35L25 29L33 18L35 7L42 14L50 13L54 21L63 26L61 32L48 35L46 57H39L36 41L30 45L29 57H21L20 44L13 46L10 57H3L5 43L1 30L5 28Z'};
+   'Cash Cow':'M19 16Q10 13 12 3Q19 5 22 12H42Q45 5 52 3Q54 13 45 16L59 15Q64 28 48 29L46 46Q44 59 32 59Q20 59 18 46L16 29Q0 28 5 15Z',
+   Dog:'M29 30Q22 19 28 10Q32 3 41 5Q49 6 51 14L61 18Q63 25 51 28L44 29L43 51Q53 51 53 58H20Q7 58 4 48Q1 38 8 33Q7 46 17 47Q16 38 29 30Z'};
   icon.append(el('path',{d:paths[s.name]}));
+  if(s.name==='Cash Cow'){
+   icon.append(el('path',{d:'M21 20Q31 15 31 25Q30 32 23 31Z M40 19Q46 21 43 27L38 25Z',fill:s.fill}));
+   icon.append(el('ellipse',{cx:32,cy:46,rx:15,ry:10,fill:s.fill}));
+   for(const cx of [24,40])icon.append(el('circle',{cx,cy:33,r:2,fill:s.fill}));
+   for(const cx of [26,38])icon.append(el('ellipse',{cx,cy:46,rx:2,ry:3}));
+  }
+  if(s.name==='Dog'){
+   icon.append(el('path',{d:'M32 11Q25 17 29 29Q35 32 37 22L38 12Z',fill:s.fill}));
+   icon.append(el('circle',{cx:45,cy:14,r:1.8,fill:s.fill}));
+   icon.append(el('path',{d:'M37 34V53H43',fill:'none',stroke:s.fill,'stroke-width':2.5,'stroke-linecap':'round'}));
+  }
   if(s.name==='Question Mark')icon.append(el('text',{x:32,y:36,'text-anchor':'middle',class:'question-symbol'},'?'));
   svg.append(icon);
 
