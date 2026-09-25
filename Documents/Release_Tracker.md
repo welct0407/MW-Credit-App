@@ -4,9 +4,9 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R031 — Open** |
-| Next number, not yet open or usable | **R032 — opens only when R031 is frozen at promotion start** |
-| Current release evidence | R030 frozen at 2026-09-25T04:50:43.236549+00:00; package `07efaac` independently captured. R031 is the sole Open release. [Checklist](../outputs/r030-custom-matrix/promotion-checklist.md) |
+| **Use this release for new development** | **R032 — Open** |
+| Next number, not yet open or usable | **R033 — opens only when R032 is frozen at promotion start** |
+| Current release evidence | R031 frozen 2026-09-25T05:34:02.780910+00:00; pinned package `adba25c`; R032 sole Open release. |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R031 | New development after R030 capture | Open | Sole development release; R030 independently captured. | Current development release above |
+| R032 | Subsequent development | Open | Sole development release after R031 capture. | Current development release above |
+| R031 | Grey quadrant icons and nearby borrower names | Frozen — deploying | Pin `adba25c`; static chart files only. | [Evidence](../outputs/r031-matrix-labels/README.md) |
 | R030 | Custom matrix: Debian service, DB reader and comparison iframe | Released — custom comparison chart | 2026-09-25: iframe1501 verified, original274 retained; apps unchanged, SQL schema V43; tag R030. | [Evidence](../outputs/r030-custom-matrix/README.md) |
 | R029 | Equal-quadrant borrower matrix | Released — SQL/report only | 25 September; V43 pin `de0a72a`, questions274/275; desktop/mobile geometry and parity verified. Apps unchanged; tag R029. | [Evidence](../outputs/r029-bcg-matrix/README.md) |
 | R028 | Automatic schedule-aware SQL categories and Borrower Health Review | Released — SQL/report only | 25 September 2026; PROD V42, 20 report queries and visual check passed; tag `R028`. Apps unchanged. | [Evidence](../outputs/r028-schedule-health/README.md) |

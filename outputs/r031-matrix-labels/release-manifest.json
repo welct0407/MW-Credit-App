@@ -1,6 +1,6 @@
 {
   "release": "R031",
-  "status": "Candidate tested; deployment authorized",
+  "status": "Frozen; deploying",
   "apps": "Unchanged",
   "sql": "V43 unchanged; no DB writes",
   "metabase": "Existing iframe1501 and original274 unchanged",
@@ -11,5 +11,7 @@
     "scripts/metabase/chart_service/chart.css": "5f38cfbf04bca95237bc29d96110baa6db9586cab1b52a444be7b81f15aca8b8",
     "scripts/metabase/chart_service/index.html": "fafb4a8a58ac3b1fb787d80e3629f2b1bb2558801a5b3e38dd9ac0623fbf33db"
   },
-  "verification": "Syntax check and synthetic browser preview; live checks follow deployment"
+  "verification": "Syntax check and synthetic browser preview; live checks follow deployment",
+  "implementation_commit": "adba25c306a7bbf2a26d1aa7c7af00b195e5e727",
+  "frozen_at": "2026-09-25T05:34:02.780910+00:00"
 }
