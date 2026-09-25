@@ -1041,7 +1041,7 @@
       "rules":
         "Column name": "Borrower Name TE"
         "Visible?": "ALWAYS"
-        "Display name": "=ชื่อผู้กู้"
+        "Display name": "=\"ชื่อผู้กู้ / Borrower\""
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
@@ -1377,6 +1377,7 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=\"รายการเรียกเก็บวันนี้ / Today's Collection Charges\""
     "Todays Amount Due":
       "inventory":
         "App": "OLTP"
@@ -1709,7 +1710,7 @@
       "rules":
         "Column name": "Borrower Reference TE"
         "Visible?": "ALWAYS"
-        "Display name": "=\"Borrower Name TE\""
+        "Display name": "=\"ชื่อผู้กู้ / Borrower\""
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -2288,3 +2289,8 @@
         - text: A user-understandable path to the table data
         - combobox "Select an option":
           - option "- select a source -"
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r036-production/production-verification.json"
+    "reason": "R036 promoted OLTP3.000249 from frozen RC1.000007; scoped AppDoc parity and current GUI verified"
+    "state": "value"

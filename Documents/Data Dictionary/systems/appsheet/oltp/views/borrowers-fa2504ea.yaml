@@ -358,10 +358,12 @@
       - "selected": null
         "tag": "INPUT"
         "type": "text"
-        "value": "ผู้กู้"
+        "value": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = \"\
+          ไทย\", \"ผู้กู้\", \"Borrowers\")"
       "label": "Display name"
-      "text": "Display nameThe name shown for this view in the app. Leave this empty to just use the view name. Or give it\
-        \ a text value (double-quoted) or a formula​titlescience"
+      "text": |-
+        Display name
+        IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL())))) = "ไทย", "ผู้กู้", "Borrowers")
     - "choices": []
       "controls":
       - "selected": null
@@ -406,3 +408,8 @@
       "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
         \ app"
     "generated_source_group": null
+"evidence":
+  "/content/editor":
+    "reference": "outputs/r036-production/production-verification.json"
+    "reason": "R036 promoted OLTP3.000249 from frozen RC1.000007; scoped AppDoc parity and current GUI verified"
+    "state": "value"

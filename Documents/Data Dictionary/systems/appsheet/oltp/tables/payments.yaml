@@ -145,6 +145,8 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"สถานะ\", \"Status\"), \"Status\")"
     "Ref Borrower":
       "inventory":
         "App": "OLTP"
@@ -186,6 +188,8 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ผู้กู้\", \"Borrower\"), \"Ref Borrower\")"
       "relationship":
         "ReferencedTableName": "Borrowers"
         "ReferencedRootTableName": "Borrowers"
@@ -236,6 +240,8 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ยอดรับชำระ\", \"Amount Received\"), \"Amount Received\")"
     "Payment Method":
       "inventory":
         "App": "OLTP"
@@ -274,6 +280,8 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"วิธีรับชำระ\", \"Payment Method\"), \"Payment Method\")"
     "Allocation Method":
       "inventory":
         "App": "OLTP"
@@ -312,6 +320,9 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"วิธีจัดสรร\", \"Allocation Method\"), \"Allocation Method\"\
+          )"
     "Bank Reference":
       "inventory":
         "App": "OLTP"
@@ -346,6 +357,9 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"เลขอ้างอิงธนาคาร\", \"Bank Reference\"), \"Bank Reference\"\
+          )"
     "Notes":
       "inventory":
         "App": "OLTP"
@@ -388,6 +402,8 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"หมายเหตุ\", \"Notes\"), \"Notes\")"
     "Created By":
       "inventory":
         "App": "OLTP"
@@ -456,6 +472,8 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"วันที่รับชำระ\", \"Payment Date\"), \"Payment Date\")"
     "Created At":
       "inventory":
         "App": "OLTP"
@@ -701,7 +719,9 @@
       "rules":
         "Column name": "Ref Received By Cash Holder"
         "Visible?": "ALWAYS"
-        "Display name": "=\"ผู้รับเงิน / Received By\""
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ผู้รับเงิน\", \"Received By\"), \"ผู้รับเงิน / Received By\"\
+          )"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -753,7 +773,9 @@
         "Visible?": "ALWAYS"
         "Description": "=IF(IN([Row ID], Payments[Row ID]), \"รับเข้าบัญชี / Received Into — append the correction reason\
           \ to Notes\", \"รับเข้าบัญชี / Received Into\")"
-        "Display name": "=\"รับเข้าบัญชี / Received Into\""
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รับเข้าบัญชี\", \"Received Into\"), \"รับเข้าบัญชี / Received\
+          \ Into\")"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -881,6 +903,8 @@
         "Scannable": "No"
         "NFC Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รายการชำระคืน\", \"Repayments\"), \"Related Repayments\")"
     "Eligible Charges":
       "inventory":
         "App": "OLTP"
@@ -1042,7 +1066,9 @@
       "rules":
         "Column name": "Visible Allocations"
         "Visible?": "ALWAYS"
-        "Display name": "=\"รายการจัดสรร / Allocations\""
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รายการจัดสรร\", \"Allocations\"), \"รายการจัดสรร / Allocations\"\
+          )"
         "Type": "List"
         "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payment Allocations\\\
           \",\\\"ReferencedRootTableName\\\":\\\"Payment Allocations\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
@@ -1113,6 +1139,9 @@
         "Scannable": "No"
         "NFC Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"สินเชื่อที่เกี่ยวข้อง\", \"Related Loans\"), \"Related Loans\"\
+          )"
     "Payment Month":
       "inventory":
         "App": "OLTP"
@@ -1572,3 +1601,8 @@
         - text: A user-understandable path to the table data
         - combobox "Select an option":
           - option "- select a source -"
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r036-production/production-verification.json"
+    "reason": "R036 promoted OLTP3.000249 from frozen RC1.000007; scoped AppDoc parity and current GUI verified"
+    "state": "value"

@@ -1,5 +1,7 @@
 # R036 — OLTP localization refinements
 
+Production update, 26 September 2026: R036 applied SQL V45 and OLTP3.000249; OLAP1.100202 unchanged. Both editors clear, read-only GUI checks passed, temporary RC deleted. [Promotion record](../outputs/r036-production/promotion-checklist.md). The development checkpoints below are dated history; their prior pending/Open status is superseded.
+
 Date: 25 September 2026. Status: **DEV implemented and verified; owner acceptance / production promotion pending. R036 remains Open.**
 
 Purpose and scope: add missing Thai display names to Dashboard Total Cash Pool, borrower Today's Collection Charges and Loans_Detail Related Charges; make seven primary/menu navigation views and thirteen Payments_Detail field labels follow the logged-in Partner's language preference, using the existing Cash Statement identity/language pattern. Cash Statement itself is unchanged. Exact expressions and English/Thai labels are documented in the DEV AppSheet dictionary objects and [implementation evidence](../outputs/r036-oltp-localization/README.md).

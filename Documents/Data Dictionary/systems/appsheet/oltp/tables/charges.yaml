@@ -786,7 +786,7 @@
         "Column name": "Related Repayments"
         "Visible?": "ALWAYS"
         "Description": "Repayments entries that reference this entry in the Ref Charges column"
-        "Display name": "=รายการชำระเงิน"
+        "Display name": "=\"รายการชำระเงิน / Related Replayments\""
         "Type": "List"
         "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Repayments\\\
           \",\\\"ReferencedRootTableName\\\":\\\"Repayments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
@@ -892,6 +892,7 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=\"สถานะการชำระเงิน / Payment Status\""
     "Days Outstanding":
       "inventory":
         "App": "OLTP"
@@ -1071,7 +1072,7 @@
       "rules":
         "Column name": "Borrower Reference TE"
         "Visible?": "ALWAYS"
-        "Display name": "=\"Borrower Name TE\""
+        "Display name": "=\"ชื่อผู้กู้ / Borrower\""
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -1551,3 +1552,8 @@
         - text: A user-understandable path to the table data
         - combobox "Select an option":
           - option "- select a source -"
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r036-production/production-verification.json"
+    "reason": "R036 promoted OLTP3.000249 from frozen RC1.000007; scoped AppDoc parity and current GUI verified"
+    "state": "value"

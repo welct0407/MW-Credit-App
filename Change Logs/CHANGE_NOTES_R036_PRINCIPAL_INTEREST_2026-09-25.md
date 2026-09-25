@@ -1,5 +1,7 @@
 # R036 — automatic daily interest after principal repayment
 
+Production update, 26 September 2026: R036 applied SQL V45 and OLTP3.000249; OLAP1.100202 unchanged. Both editors clear, read-only GUI checks passed, temporary RC deleted. [Promotion record](../outputs/r036-production/promotion-checklist.md). The development checkpoints below are dated history; their prior pending/Open status is superseded.
+
 Date: 25 September 2026. Status: **DEV implemented and verified; owner acceptance / production promotion pending. R036 remains Open.**
 
 Daily-interest loans preserve their original ratio in existing Loan Arrangement text and recalculate Current Daily Interest from remaining signed principal. No new table/column or backlog update. The owner selected this text field, historical-rate inference for existing loans on future principal changes, and the existing manual-update convention for uncharged interest. Posted charges/receipts remain unchanged. Fixed-interest/installment rules are preserved.

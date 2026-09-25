@@ -455,10 +455,11 @@
         "Display name": "=\"ดอกเบี้ยต่อวันปัจจุบัน / Current Daily Interest\""
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=OR(\\n\
-          \  [Loan Type] <> \\\"ดอกเบี้ยรายวัน\\\",\\n  [Current Daily Interest] > 0\\n)\",\"Error_Message_If_Invalid\":null,\"\
-          Show_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\"\",\"Required_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\"\",\"\
-          Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=OR([Loan\
+          \ Type] <> \\\"ดอกเบี้ยรายวัน\\\", [Current Daily Interest] > 0, AND([Current Daily Interest] = 0, CONTAINS([Loan\
+          \ Arrangement], \\\"[Original daily interest:\\\")))\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=[Loan Type]\
+          \ = \\\"ดอกเบี้ยรายวัน\\\"\",\"Required_If\":\"=[Loan Type] = \\\"ดอกเบี้ยรายวัน\\\"\",\"Editable_If\":\"=NOT(CONTAINS([Loan\
+          \ Arrangement], \\\"[Original daily interest:\\\"))\",\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -1352,6 +1353,7 @@
         "Scannable": "No"
         "NFC Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=\"รายการเรียกเก็บที่เกี่ยวข้อง / Related Charges\""
     "Loan Key":
       "inventory":
         "App": "OLTP"
@@ -2580,3 +2582,8 @@
         - text: A user-understandable path to the table data
         - combobox "Select an option":
           - option "- select a source -"
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r036-production/production-verification.json"
+    "reason": "R036 promoted OLTP3.000249 from frozen RC1.000007; scoped AppDoc parity and current GUI verified"
+    "state": "value"

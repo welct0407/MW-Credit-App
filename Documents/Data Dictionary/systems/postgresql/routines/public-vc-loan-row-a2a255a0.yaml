@@ -29,6 +29,10 @@
        INTO NEW."Total Interest Received",NEW."Total Principal Received",NEW."Total Amount Received"
        FROM public."Repayments" WHERE "Ref Loans"=NEW."Row ID";
        NEW."Outstanding Principal":=coalesce(NEW."Principal Amount"::numeric,0)-NEW."Total Principal Received";
+       NEW:=public.apply_principal_daily_interest(NEW,CASE WHEN TG_OP='UPDATE' THEN OLD ELSE NULL::public."Loans" END);
+       -- zz_vc_daily_interest precedes this trigger. Refresh its result after adjusting
+       -- principal/daily amount so downstream borrower rollups read the same state.
+       NEW."Expected Daily Interest Amount":=public.vc_daily_interest(NEW);
        RETURN NEW;
       END $function$
     "owner": "postgres"
@@ -45,3 +49,8 @@
     "acl": null
     "comment": null
     "extension": null
+"evidence":
+  "/content/definition/definition":
+    "reference": "outputs/r036-production/production-routines.json"
+    "reason": "V45 applied and validated in PROD; exact live catalog readback"
+    "state": "value"

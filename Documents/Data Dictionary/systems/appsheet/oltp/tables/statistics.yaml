@@ -1283,6 +1283,7 @@
         "Searchable": "No"
         "Scannable": "No"
         "Sensitive data": "No"
+        "Display name": "=\"กองเงินสดทั้งหมด / Total Cash Pool\""
   "editor":
     "fields":
     - "choices": []
@@ -1685,3 +1686,8 @@
         - text: A user-understandable path to the table data
         - combobox "Select an option":
           - option "- select a source -"
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r036-production/production-verification.json"
+    "reason": "R036 promoted OLTP3.000249 from frozen RC1.000007; scoped AppDoc parity and current GUI verified"
+    "state": "value"

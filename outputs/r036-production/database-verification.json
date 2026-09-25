@@ -1,0 +1,28 @@
+{
+  "database": "loan_manager_prod",
+  "host": "34.21.174.215",
+  "instance": "appsheet-pg-prod-20260914",
+  "backup": {
+    "id": "1790354541920",
+    "status": "SUCCESSFUL",
+    "endTime": "2026-09-25T16:44:13.742Z"
+  },
+  "preMigrationValidate": "Only V45 pending; no applied migration checksum errors. Migrate validates applied history.",
+  "migration": {
+    "before": "44",
+    "after": "45",
+    "count": 1,
+    "success": true,
+    "timestamp": "2026-09-25T23:46:49.3559484+07:00"
+  },
+  "schemaDrift": {
+    "before": "Only three added V45 helpers and vc_loan_row change; pg_dump ordering/session metadata ignored",
+    "after": "PROD and pinned DEV object blocks identical",
+    "objectCount": 378
+  },
+  "privateSchemas": [
+    "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\flyway\\production-schema-20260925-233828.sql",
+    "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\flyway\\development-schema-20260925-233828.sql",
+    "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\flyway\\production-schema-20260925-234812.sql"
+  ]
+}

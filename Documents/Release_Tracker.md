@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R037 — Open** |
 | Next number, not yet open or usable | **R038 — opens only when R037 is frozen at promotion start** |
-| Current release evidence | R037 is Open with no scope assigned. R036 is Frozen for authorized SQL V45 and OLTP-only promotion. Shared DEV edits held until independent RC capture. [R036 checklist](../outputs/r036-production/promotion-checklist.md) |
+| Current release evidence | R037 is Open with no scope assigned. R036 is Released: SQL V45 and OLTP3.000249; OLAP1.100202 unchanged. [R036 checklist](../outputs/r036-production/promotion-checklist.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,8 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R037 | New development | Open | Opened at R036 authorized promotion handoff; shared DEV hold until R036 RC capture. | Scope not yet assigned |
-| R036 | Collection Monitor alignment; automatic daily interest; OLTP bilingual labels and Payments table refinements | Frozen — promotion in progress | 2026-09-25T16:44:38.462005+00:00: SQL pin 4a848fa; DEV OLTP1.000092; OLAP1.000033 unchanged. Owner authorized production. Intervening saves reconciled. | [Checklist](../outputs/r036-production/promotion-checklist.md) · [Manifest](../outputs/r036-production/release-manifest.json) |
+| R037 | New development | Open | Opened at R036 authorized promotion handoff; R036 capture complete; shared DEV available. | Scope not yet assigned |
+| R036 | Automatic daily interest; OLTP bilingual labels and Payments presentation; delivered Collection Monitor alignment | Released | SQL V45; OLTP3.000249; OLAP1.100202 unchanged; both editors clear; RC deleted; tag R036. | [Checklist](../outputs/r036-production/promotion-checklist.md) · [Manifest](../outputs/r036-production/release-manifest.json) |
 | R035 | Metabase monitoring and additive borrower pages | Released — SQL/report and monitoring | DEV/PROD44; new Portfolio104 / Detail105, original tabs preserved; data and desktop/mobile checks passed. Apps unchanged; tag R035. | [Evidence](../outputs/r035-borrower-pages/README.md) · [Release log](../Change%20Logs/CHANGE_NOTES_R035_2026-09-25.md) |
 | R034 | Chart above category tables; whole-baht amounts | Released | Live layout and amount formatting verified; tag R034. | [Evidence](../outputs/r034-matrix-order/README.md) |
 | R033 | Accepted custom matrix; remove native plot | Released | Native plot removed; iframe/detail table verified; tag R033. | [Evidence](../outputs/r033-matrix-cutover/README.md) |

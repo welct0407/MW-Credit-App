@@ -1,5 +1,7 @@
 # R036 — automatic daily interest after principal repayment
 
+Production update, 26 September 2026: R036 applied SQL V45 and OLTP3.000249; OLAP1.100202 unchanged. Both editors clear, read-only GUI checks passed, temporary RC deleted. [Promotion record](../r036-production/promotion-checklist.md). The development checkpoints below are dated history; their prior pending/Open status is superseded.
+
 Implemented and verified in DEV on 25 September 2026. R036 remains Open; owner acceptance and production promotion are pending. PROD remains V44 and its apps are unchanged.
 
 ## Behavior
