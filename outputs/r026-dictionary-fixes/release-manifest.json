@@ -87,8 +87,8 @@
   "productionAfter": {
     "olap": {
       "id": "e74dd368-654f-44d7-bccf-83cf361d1cdb",
-      "version": "1.100198",
-      "displayName": "MW-OLAP-R026-RC1",
+      "version": "1.100201",
+      "displayName": "Loan Business Insights",
       "verification": "Editor clear; final production checks incomplete"
     },
     "oltp": {
@@ -103,5 +103,6 @@
     "scope": "Four R026 RC definitions only",
     "evidence": "outputs/r026-dictionary-fixes/rc-cleanup.json",
     "verified": true
-  }
+  },
+  "productionNameCorrection": "outputs/r026-dictionary-fixes/prod-name-correction.json"
 }

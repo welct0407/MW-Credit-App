@@ -32,3 +32,7 @@ PROD app rollback baselines: OLAP 1.100195, OLTP 3.000246. No rollback was perfo
 The earlier mistaken personal-account OAuth consent was acknowledged and the account signed out. No app membership or license assignment was changed; billing impact remains unverified and that consent was not revoked. The subsequent work used the existing Workspace Chrome profile. No further personal-account grant occurred.
 
 Checks: dictionary validation 1128 documents, zero structural errors; git diff whitespace check passed. Existing SQL CI and 11 guarded-retirement tests are reused. No final release tag is created: repository publication records partial closure, not completed production validation.
+
+## Owner-requested PROD name correction — 25 September 2026
+
+PROD OLAP Short Name was corrected directly to **Loan Business Insights**, saved version **1.100201**, under explicit owner instruction. UUID/internal name unchanged; no App Upgrade. Initial saves 1.100199/1.100200 did not persist the name; committing Settings > Information > Short Name with Enter before Save completed the correction. Editor reports No issues found. The current default folder was observed as `/appsheet/data/LoanBusinessInsights-975338008` and was not edited; this readback supersedes the earlier unverified folder concern. Earlier versions above remain dated release evidence. Other incomplete R026 verification remains unchanged. [Exact correction evidence](prod-name-correction.json).
