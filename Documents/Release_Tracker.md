@@ -4,9 +4,9 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R033 — Open** |
-| Next number, not yet open or usable | **R034 — opens only when R033 is frozen at promotion start** |
-| Current release evidence | R032 frozen 2026-09-25T08:07:31.604642+00:00; pin `a82f753`; R033 sole Open release. |
+| **Use this release for new development** | **R034 — Open** |
+| Next number, not yet open or usable | **R035 — opens only when R034 is frozen at promotion start** |
+| Current release evidence | R033 frozen 2026-09-25T08:44:11.450874+00:00; pin `dd6fbc9`; R034 sole Open release. |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R033 | Subsequent development | Open | Sole development release after R032 capture. | Current development release above |
+| R034 | Subsequent development | Open | Sole development release after R033 capture. | Current development release above |
+| R033 | Accepted custom matrix; remove native plot | Frozen — deploying | Pin `dd6fbc9`; report layout only. | [Evidence](../outputs/r033-matrix-cutover/README.md) |
 | R032 | Distinct cow and dog matrix icons | Released | Live visual verification passed; one static asset; tag R032. | [Evidence](../outputs/r032-matrix-icons/README.md) |
 | R031 | Grey quadrant icons and nearby borrower names | Released | Desktop/mobile verified; static files only; tag R031. | [Evidence](../outputs/r031-matrix-labels/README.md) |
 | R030 | Custom matrix: Debian service, DB reader and comparison iframe | Released — custom comparison chart | 2026-09-25: iframe1501 verified, original274 retained; apps unchanged, SQL schema V43; tag R030. | [Evidence](../outputs/r030-custom-matrix/README.md) |

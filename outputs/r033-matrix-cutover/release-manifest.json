@@ -1,0 +1,14 @@
+{
+  "release": "R033",
+  "status": "Frozen; deploying",
+  "implementation_commit": "dd6fbc9b3c0f93f430a472962e5c5ccb244daea2",
+  "frozen_at": "2026-09-25T08:44:11.450874+00:00",
+  "script_sha256": "ce077f9378757881030c3938c9f11f7a019fa2929e7fa137926906d57f22a756",
+  "backup_dashboard": 8,
+  "dashboard": 3,
+  "tab": 31,
+  "apps": "Unchanged",
+  "sql": "V43 unchanged",
+  "service": "Unchanged",
+  "authorization": "Owner accepted iframe and requested old plot removal"
+}
