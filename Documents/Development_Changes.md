@@ -1,5 +1,9 @@
 # Open development differences
 
+## R029 delivered — SQL/report only
+
+V43 equal-quadrant coordinates and the review-tab native matrix are deployed in DEV/PROD/report respectively. Accepted R028 scores/categories unchanged. R030 is the sole Open development release. Existing R026 AppSheet differences remain owner-deferred and were not changed by this package. [Evidence](../outputs/r029-bcg-matrix/README.md).
+
 ## R028 — automatic SQL/report categories delivered
 
 DEV and PROD share V42. Borrower Health Review tab31 now uses matrix V3 plus automatic schedule assessment; no manual intervention or borrower override list. Three new views are additive and both AppSheet definitions/bindings are unchanged. Original Borrowers/Risks remain intact. No remaining R028 development-only feature; R029 is the sole Open release. Prior R026 app issues remain separately owned. [Evidence](../outputs/r028-schedule-health/README.md).

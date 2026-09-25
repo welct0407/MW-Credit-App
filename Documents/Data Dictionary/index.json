@@ -4093,6 +4093,137 @@
       ]
     },
     {
+      "file": "development/r029/reporting-borrower-matrix-plot-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.reporting_borrower_matrix_plot_v1",
+      "scope": "development:R029",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "contribution_30d",
+          "pointer": "/content/columns/contribution_30d"
+        },
+        {
+          "subject": "active_borrower_count",
+          "pointer": "/content/columns/active_borrower_count"
+        },
+        {
+          "subject": "portfolio_contribution_30d",
+          "pointer": "/content/columns/portfolio_contribution_30d"
+        },
+        {
+          "subject": "contribution_share",
+          "pointer": "/content/columns/contribution_share"
+        },
+        {
+          "subject": "equal_share",
+          "pointer": "/content/columns/equal_share"
+        },
+        {
+          "subject": "relative_contribution",
+          "pointer": "/content/columns/relative_contribution"
+        },
+        {
+          "subject": "reliability_score",
+          "pointer": "/content/columns/reliability_score"
+        },
+        {
+          "subject": "confidence",
+          "pointer": "/content/columns/confidence"
+        },
+        {
+          "subject": "quadrant",
+          "pointer": "/content/columns/quadrant"
+        },
+        {
+          "subject": "classification_reason",
+          "pointer": "/content/columns/classification_reason"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "method_version",
+          "pointer": "/content/columns/method_version"
+        },
+        {
+          "subject": "payment_only_quadrant",
+          "pointer": "/content/columns/payment_only_quadrant"
+        },
+        {
+          "subject": "arrangement_status",
+          "pointer": "/content/columns/arrangement_status"
+        },
+        {
+          "subject": "arrangement_gate",
+          "pointer": "/content/columns/arrangement_gate"
+        },
+        {
+          "subject": "modified_schedule_loan_count",
+          "pointer": "/content/columns/modified_schedule_loan_count"
+        },
+        {
+          "subject": "interest_coverage_30d",
+          "pointer": "/content/columns/interest_coverage_30d"
+        },
+        {
+          "subject": "interest_date_coverage_30d",
+          "pointer": "/content/columns/interest_date_coverage_30d"
+        },
+        {
+          "subject": "category_adjusted",
+          "pointer": "/content/columns/category_adjusted"
+        },
+        {
+          "subject": "plot_status",
+          "pointer": "/content/columns/plot_status"
+        },
+        {
+          "subject": "matrix_x",
+          "pointer": "/content/columns/matrix_x"
+        },
+        {
+          "subject": "matrix_y",
+          "pointer": "/content/columns/matrix_y"
+        },
+        {
+          "subject": "plot_x",
+          "pointer": "/content/columns/plot_x"
+        },
+        {
+          "subject": "plot_y",
+          "pointer": "/content/columns/plot_y"
+        },
+        {
+          "subject": "position_basis",
+          "pointer": "/content/columns/position_basis"
+        },
+        {
+          "subject": "contribution_clipped",
+          "pointer": "/content/columns/contribution_clipped"
+        },
+        {
+          "subject": "plot_method_version",
+          "pointer": "/content/columns/plot_method_version"
+        }
+      ]
+    },
+    {
       "file": "imports/excel-20260923/dev-differences/database.yaml",
       "system": "workbook-evidence",
       "component": "excel-20260923/dev-differences",
@@ -30638,6 +30769,26 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/borrower-health-matrix-details.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Matrix borrowers · scores, schedule and contribution / 275",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-health-matrix.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Borrower portfolio matrix / 274",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/borrower-health-modified.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -36708,6 +36859,137 @@
         {
           "subject": "vc_repayment_changed",
           "pointer": "/content/constraints/vc_repayment_changed"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-borrower-matrix-plot-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_borrower_matrix_plot_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "contribution_30d",
+          "pointer": "/content/columns/contribution_30d"
+        },
+        {
+          "subject": "active_borrower_count",
+          "pointer": "/content/columns/active_borrower_count"
+        },
+        {
+          "subject": "portfolio_contribution_30d",
+          "pointer": "/content/columns/portfolio_contribution_30d"
+        },
+        {
+          "subject": "contribution_share",
+          "pointer": "/content/columns/contribution_share"
+        },
+        {
+          "subject": "equal_share",
+          "pointer": "/content/columns/equal_share"
+        },
+        {
+          "subject": "relative_contribution",
+          "pointer": "/content/columns/relative_contribution"
+        },
+        {
+          "subject": "reliability_score",
+          "pointer": "/content/columns/reliability_score"
+        },
+        {
+          "subject": "confidence",
+          "pointer": "/content/columns/confidence"
+        },
+        {
+          "subject": "quadrant",
+          "pointer": "/content/columns/quadrant"
+        },
+        {
+          "subject": "classification_reason",
+          "pointer": "/content/columns/classification_reason"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "method_version",
+          "pointer": "/content/columns/method_version"
+        },
+        {
+          "subject": "payment_only_quadrant",
+          "pointer": "/content/columns/payment_only_quadrant"
+        },
+        {
+          "subject": "arrangement_status",
+          "pointer": "/content/columns/arrangement_status"
+        },
+        {
+          "subject": "arrangement_gate",
+          "pointer": "/content/columns/arrangement_gate"
+        },
+        {
+          "subject": "modified_schedule_loan_count",
+          "pointer": "/content/columns/modified_schedule_loan_count"
+        },
+        {
+          "subject": "interest_coverage_30d",
+          "pointer": "/content/columns/interest_coverage_30d"
+        },
+        {
+          "subject": "interest_date_coverage_30d",
+          "pointer": "/content/columns/interest_date_coverage_30d"
+        },
+        {
+          "subject": "category_adjusted",
+          "pointer": "/content/columns/category_adjusted"
+        },
+        {
+          "subject": "plot_status",
+          "pointer": "/content/columns/plot_status"
+        },
+        {
+          "subject": "matrix_x",
+          "pointer": "/content/columns/matrix_x"
+        },
+        {
+          "subject": "matrix_y",
+          "pointer": "/content/columns/matrix_y"
+        },
+        {
+          "subject": "plot_x",
+          "pointer": "/content/columns/plot_x"
+        },
+        {
+          "subject": "plot_y",
+          "pointer": "/content/columns/plot_y"
+        },
+        {
+          "subject": "position_basis",
+          "pointer": "/content/columns/position_basis"
+        },
+        {
+          "subject": "contribution_clipped",
+          "pointer": "/content/columns/contribution_clipped"
+        },
+        {
+          "subject": "plot_method_version",
+          "pointer": "/content/columns/plot_method_version"
         }
       ]
     },

@@ -1,5 +1,9 @@
 # PostgreSQL development with Flyway
 
+## R029 matrix display coordinates — DEV and PROD
+
+V43 adds `reporting_borrower_matrix_plot_v1` over unchanged V3. One row per borrower; original fields retained; normalized coordinates, plotting status and placement basis added. No operational columns, AppSheet sources or financial writes. DEV/PROD43 validated from pin `de0a72a`; restore rehearsal,186 synthetic cases and independent source/coordinate parity passed. [Package and recovery](../outputs/r029-bcg-matrix/README.md).
+
 ## R028 automatic schedule categories — DEV and PROD
 
 V42 adds three read-only reporting views; no new table, operational column or financial backfill. Matrix V3 retains payment scores and automatically restricts upper categories for sufficiently observed auto-off loans with interest amount or charge-date coverage below 80%. No manual confirmation workflow. V2 remains unchanged. Full CI, independent DEV/PROD parity, restored production rehearsal and all 20 Metabase queries passed. V42 is immutable. [Rule, package and recovery](../outputs/r028-schedule-health/README.md).

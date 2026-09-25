@@ -584,6 +584,13 @@
       "script": "V42__automatic_schedule_categories.sql"
       "checksum": -278060685
       "success": true
+    - "installed_rank": 43
+      "version": "43"
+      "description": "borrower matrix display coordinates"
+      "type": "SQL"
+      "script": "V43__borrower_matrix_display_coordinates.sql"
+      "checksum": -2146160064
+      "success": true
     "foreign_tables": []
     "aggregates": []
     "jobs": []
@@ -594,6 +601,6 @@
     "reason": "V40 verified catalog readback; exact remaining settings and DEV differences."
     "state": "value"
   "/content/sections/flyway":
-    "reference": "outputs/r028-schedule-health/README.md"
-    "reason": "R028 automatic SQL categories and saved review-tab definitions"
+    "reference": "outputs/r029-bcg-matrix/README.md"
+    "reason": "R029 display-only SQL coordinates and saved review-tab definitions"
     "state": "value"

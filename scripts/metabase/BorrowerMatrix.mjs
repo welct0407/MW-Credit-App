@@ -52,8 +52,8 @@ SELECT x AS "Display X",star AS "Star",question AS "Question Mark",cow AS "Cash 
 export const settings={
  'graph.dimensions':['Display X'],'graph.metrics':metrics,'graph.x_axis.scale':'linear',
  'graph.y_axis.auto_range':false,'graph.y_axis.min':0,'graph.y_axis.max':100,'graph.y_axis.auto_split':false,
- 'graph.show_legend':false,'graph.show_values':false,'graph.x_axis.axis_enabled':false,'graph.y_axis.axis_enabled':false,
- 'graph.x_axis.labels_enabled':true,'graph.x_axis.title_text':'Stronger payment health  ←  |  →  Lower / modified health',
+ 'graph.show_values':false,'graph.x_axis.axis_enabled':false,'graph.y_axis.axis_enabled':false,
+ 'graph.x_axis.labels_enabled':true,'graph.x_axis.title_text':'Stronger ← Health → Lower / modified',
  'graph.y_axis.labels_enabled':true,'graph.y_axis.title_text':'Higher contribution ↑ · midpoint 1×',
  'graph.tooltip_type':'default','graph.tooltip_columns':tooltip.map(n=>JSON.stringify(['name',n])),
  'line.marker_enabled':true,'line.missing':'none',
@@ -62,7 +62,7 @@ export const settings={
  'column_settings':Object.fromEntries(['Payment score /100','Contribution ×','Interest 30d ฿','Principal ฿'].map(n=>[JSON.stringify(['name',n]),{number_style:'decimal',decimals:n==='Contribution ×'?2:1,number_separators:'.,',compact:false}]))
 };
 const query=sql=>({database:2,type:'native',native:{query:sql,'template-tags':{}}});
-export const specs=[{key:'matrix',name:'Borrower portfolio matrix · equal quadrants',display:'line',dataset_query:query(plotSQL),visualization_settings:settings,
+export const specs=[{key:'matrix',name:'Borrower portfolio matrix',display:'line',dataset_query:query(plotSQL),visualization_settings:settings,
  description:'R029: display-only normalized positions. Stars top-left; Question Marks top-right; Cash Cows bottom-left; Dogs bottom-right. Raw payment score/category unchanged. Modified schedules at right-center. Null guards isolate dots; four explicit guide rows draw boundaries and fix extent; neither counts as borrowers.'},
  {key:'matrix-details',name:'Matrix borrowers · scores, schedule and contribution',display:'table',dataset_query:query(`SELECT b."Description" AS "Borrower",p.quadrant AS "Category",p.reliability_score AS "Payment score /100",p.arrangement_status AS "Schedule",p.relative_contribution AS "Contribution ×",p.contribution_30d AS "Interest 30d ฿",p.outstanding_principal AS "Principal ฿",p.confidence AS "History",p.plot_status AS "Plot status",p.position_basis AS "Position basis",p.classification_reason AS "Category reason",p.reporting_date AS "As of" FROM ${source} p JOIN public.olap_borrowers_analytics b ON b."Row ID"=p.borrower_id ORDER BY CASE p.quadrant WHEN 'Star' THEN 1 WHEN 'Question Mark' THEN 2 WHEN 'Cash Cow' THEN 3 WHEN 'Dog' THEN 4 ELSE 5 END,b."Description",p.borrower_id`),visualization_settings:{'table.pivot':false,'column_settings':settings.column_settings},description:'Every active borrower, including unclassified/invalid plot inputs. Raw values, not display coordinates. Accessible companion for overlapping points and touch screens.'}];
 save('metabase-plan',{specs});
@@ -105,14 +105,15 @@ if(process.argv.includes('--publish')){
  const positions={260:[0,9],261:[0,11],264:[12,9],265:[12,11],258:[0,19],259:[0,21],262:[12,19],263:[12,21]};
  for(const c of cards.filter(c=>c.dashboard_tab_id===31)){
   if(positions[c.card_id])[c.col,c.row]=positions[c.card_id];
-  if(c.row>=40)c.row+=24;
-  if(c.card_id===266){c.card_id=state.cards.matrix;c.size_y=24;c.row=31;delete c.card;}
+  if(c.row>=40)c.row+=22;
+  if(c.card_id===266){c.card_id=state.cards.matrix;c.size_y=16;c.size_x=18;c.col=3;c.row=33;delete c.card;}
   if(c.id===848)c.visualization_settings.virtual_card.display='text';
  }
- const note=cards.find(c=>c.id===848);note.visualization_settings.virtual_card.visualization_settings.text='## Borrower portfolio matrix\n**TOP LEFT · STAR**　　　　　　　　　**TOP RIGHT · QUESTION MARK**';
+ const note=cards.find(c=>c.id===848);note.visualization_settings.virtual_card.visualization_settings.text='## Borrower portfolio matrix\nPayment health × interest contribution · automatic categories';
  const addText=(id,row,h,text)=>({id,card_id:null,dashboard_tab_id:31,col:0,row,size_x:24,size_y:h,series:[],parameter_mappings:[],visualization_settings:{virtual_card:{display:'text',visualization_settings:{text}}}});
- cards.push(addText(-2901,55,3,'**BOTTOM LEFT · CASH COW**　　　　　　　　　**BOTTOM RIGHT · DOG**\n\nPositions are normalized for equal quadrants. Categories and payment scores are unchanged. Modified schedules occupy the right half automatically. Use the borrower list below for exact values and overlapping points.'));
- cards.push({id:-2902,card_id:state.cards['matrix-details'],dashboard_tab_id:31,col:0,row:58,size_x:24,size_y:6,series:[],parameter_mappings:[],visualization_settings:{}});
+ cards.push(addText(-2901,51,3,'Positions are normalized for equal quadrants. Categories and payment scores are unchanged. Modified schedules occupy the right half automatically. Use the borrower list below for exact values and overlapping points.'));
+ cards.push({id:-2902,card_id:state.cards['matrix-details'],dashboard_tab_id:31,col:0,row:54,size_x:24,size_y:8,series:[],parameter_mappings:[],visualization_settings:{}});
+ for(const [id,col,row,text] of [[-2911,3,31,'### ★ STAR · top left\nHigh contribution · stronger health'],[-2912,12,31,'### ? QUESTION MARK · top right\nHigh contribution · lower health'],[-2913,3,49,'### CASH COW · bottom left\nLow contribution · stronger health'],[-2914,12,49,'### DOG · bottom right\nLow contribution · lower health']]){const c=addText(id,row,2,text);c.col=col;c.size_x=9;cards.push(c);}
  await api('PUT','dashboard/3/cards',{tabs:d.tabs,cards});
  const after=await api('GET','dashboard/3');assert.deepEqual(shape(after.dashcards.filter(c=>c.dashboard_tab_id!==31)),shape(before.dashcards.filter(c=>c.dashboard_tab_id!==31)));
  assert.deepEqual(after.parameters,before.parameters);assert.deepEqual(after.tabs,before.tabs);

@@ -1,0 +1,60 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Matrix borrowers · scores, schedule and contribution / 275",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r029-bcg-matrix/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "matrix-details",
+    "id": 275,
+    "name": "Matrix borrowers · scores, schedule and contribution",
+    "description": "Every active borrower, including unclassified/invalid plot inputs. Raw values, not display coordinates. Accessible companion for overlapping points and touch screens.",
+    "display": "table",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT b.\"Description\" AS \"Borrower\",p.quadrant AS \"Category\",p.reliability_score AS \"Payment score /100\",p.arrangement_status AS \"Schedule\",p.relative_contribution AS \"Contribution ×\",p.contribution_30d AS \"Interest 30d ฿\",p.outstanding_principal AS \"Principal ฿\",p.confidence AS \"History\",p.plot_status AS \"Plot status\",p.position_basis AS \"Position basis\",p.classification_reason AS \"Category reason\",p.reporting_date AS \"As of\" FROM public.reporting_borrower_matrix_plot_v1 p JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=p.borrower_id ORDER BY CASE p.quadrant WHEN 'Star' THEN 1 WHEN 'Question Mark' THEN 2 WHEN 'Cash Cow' THEN 3 WHEN 'Dog' THEN 4 ELSE 5 END,b.\"Description\",p.borrower_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "column_settings": {
+        "[\"name\",\"Payment score /100\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Contribution ×\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Interest 30d ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

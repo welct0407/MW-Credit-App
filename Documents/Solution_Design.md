@@ -1,5 +1,9 @@
 # Solution design rules
 
+## R029 equal-quadrant borrower matrix
+
+The accepted V3 categories and payment scores remain authoritative. `reporting_borrower_matrix_plot_v1` adds display-only coordinates: stronger health left, contribution>=1× above, with both boundaries centered. Modified schedules use a categorical right-half position, not a reduced payment score. Native Metabase point/reference series render four equal regions; the complete companion list exposes original metrics. The display scale is not a credit probability or new rating. [Exact implementation and limits](../outputs/r029-bcg-matrix/README.md).
+
 ## R028 automatic schedule-aware categories
 
 The shared SQL matrix V3 retains the measured payment score and adds an automatic schedule restriction: an active daily-interest loan with auto-charge disabled, >=7 observed days and >=2 expected dates, and <80% of expected interest amount OR interest-bearing charge dates prevents Star/Cash Cow. Any affected active loan restricts its borrower; contribution selects Question Mark versus Dog. No manual labels or approval queue. The 30 completed-day comparison respects later schedule anchors; amounts are not extra debt. The report labels modified schedules separately from payment compliance, including on the scatter plot. [Exact rule and delivery](../outputs/r028-schedule-health/README.md).

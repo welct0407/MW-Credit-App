@@ -1,0 +1,141 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Borrower portfolio matrix / 274",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r029-bcg-matrix/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "matrix",
+    "id": 274,
+    "name": "Borrower portfolio matrix",
+    "description": "R029: display-only normalized positions. Stars top-left; Question Marks top-right; Cash Cows bottom-left; Dogs bottom-right. Raw payment score/category unchanged. Modified schedules at right-center. Null guards isolate dots; four explicit guide rows draw boundaries and fix extent; neither counts as borrowers.",
+    "display": "line",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "WITH points AS (\n SELECT p.*,b.\"Description\" borrower_name,\n  round(plot_x,3) + .0001*row_number() OVER(PARTITION BY round(plot_x,3) ORDER BY borrower_id)\n   /(count(*) OVER(PARTITION BY round(plot_x,3))+1) render_x,\n  .000025/(count(*) OVER(PARTITION BY round(plot_x,3))+1) gap\n FROM public.reporting_borrower_matrix_plot_v1 p JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=p.borrower_id\n WHERE plot_status='Plotted'\n), drawable AS (\n SELECT render_x+g*gap x,\n  CASE WHEN g=0 AND quadrant='Star' THEN plot_y END star,\n  CASE WHEN g=0 AND quadrant='Question Mark' THEN plot_y END question,\n  CASE WHEN g=0 AND quadrant='Cash Cow' THEN plot_y END cow,\n  CASE WHEN g=0 AND quadrant='Dog' THEN plot_y END dog,\n  NULL::numeric health_line,NULL::numeric contribution_line,\n  CASE WHEN g=0 THEN borrower_name END borrower,\n  CASE WHEN g=0 THEN quadrant END category,\n  CASE WHEN g=0 THEN reliability_score END score,\n  CASE WHEN g=0 THEN arrangement_status END schedule,\n  CASE WHEN g=0 THEN relative_contribution END contribution,\n  CASE WHEN g=0 THEN contribution_30d END interest,\n  CASE WHEN g=0 THEN outstanding_principal END principal,\n  CASE WHEN g=0 THEN confidence END history,\n  CASE WHEN g=0 THEN position_basis END basis,\n  CASE WHEN g=0 THEN reporting_date END as_of\n FROM points CROSS JOIN (VALUES(-1),(0),(1)) guards(g)\n UNION ALL\n SELECT x,NULL,NULL,NULL,NULL,h,v,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL\n FROM (VALUES(0::numeric,NULL::numeric,50::numeric),(100,NULL,50),\n   (49.999999,0,NULL),(50.000001,100,NULL)) guides(x,h,v)\n)\nSELECT x AS \"Display X\",star AS \"Star\",question AS \"Question Mark\",cow AS \"Cash Cow\",dog AS \"Dog\",\n health_line AS \"Health boundary\",contribution_line AS \"Contribution boundary\",\n borrower AS \"Borrower\",category AS \"Category\",score AS \"Payment score /100\",schedule AS \"Schedule\",\n contribution AS \"Contribution ×\",interest AS \"Interest 30d ฿\",principal AS \"Principal ฿\",\n history AS \"History\",basis AS \"Position basis\",as_of AS \"As of\" FROM drawable ORDER BY x"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "line.missing": "none",
+      "line.marker_enabled": true,
+      "graph.y_axis.title_text": "Higher contribution ↑ · midpoint 1×",
+      "graph.show_values": false,
+      "graph.x_axis.labels_enabled": true,
+      "graph.y_axis.max": 100,
+      "graph.x_axis.axis_enabled": false,
+      "graph.x_axis.title_text": "Stronger ← Health → Lower / modified",
+      "graph.tooltip_type": "default",
+      "graph.y_axis.labels_enabled": true,
+      "graph.y_axis.auto_split": false,
+      "graph.metrics": [
+        "Star",
+        "Question Mark",
+        "Cash Cow",
+        "Dog",
+        "Health boundary",
+        "Contribution boundary"
+      ],
+      "graph.y_axis.axis_enabled": false,
+      "graph.tooltip_columns": [
+        "[\"name\",\"Borrower\"]",
+        "[\"name\",\"Category\"]",
+        "[\"name\",\"Payment score /100\"]",
+        "[\"name\",\"Schedule\"]",
+        "[\"name\",\"Contribution ×\"]",
+        "[\"name\",\"Interest 30d ฿\"]",
+        "[\"name\",\"Principal ฿\"]",
+        "[\"name\",\"History\"]",
+        "[\"name\",\"Position basis\"]",
+        "[\"name\",\"As of\"]"
+      ],
+      "column_settings": {
+        "[\"name\",\"Payment score /100\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Contribution ×\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Interest 30d ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        }
+      },
+      "series_settings": {
+        "Star": {
+          "color": "#287A51",
+          "line.marker_enabled": true,
+          "line.missing": "none",
+          "line.size": "M",
+          "axis": "left"
+        },
+        "Question Mark": {
+          "color": "#AE7917",
+          "line.marker_enabled": true,
+          "line.missing": "none",
+          "line.size": "M",
+          "axis": "left"
+        },
+        "Cash Cow": {
+          "color": "#3672AD",
+          "line.marker_enabled": true,
+          "line.missing": "none",
+          "line.size": "M",
+          "axis": "left"
+        },
+        "Dog": {
+          "color": "#A65161",
+          "line.marker_enabled": true,
+          "line.missing": "none",
+          "line.size": "M",
+          "axis": "left"
+        },
+        "Health boundary": {
+          "color": "#8492A6",
+          "line.marker_enabled": false,
+          "line.missing": "interpolate",
+          "line.size": "S",
+          "axis": "left"
+        },
+        "Contribution boundary": {
+          "color": "#8492A6",
+          "line.marker_enabled": false,
+          "line.missing": "interpolate",
+          "line.size": "S",
+          "axis": "left"
+        }
+      },
+      "graph.y_axis.auto_range": false,
+      "graph.x_axis.scale": "linear",
+      "graph.dimensions": [
+        "Display X"
+      ],
+      "graph.y_axis.min": 0
+    }
+  }
+}

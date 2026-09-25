@@ -2,7 +2,7 @@
   "specs": [
     {
       "key": "matrix",
-      "name": "Borrower portfolio matrix · equal quadrants",
+      "name": "Borrower portfolio matrix",
       "display": "line",
       "dataset_query": {
         "database": 2,
@@ -29,12 +29,11 @@
         "graph.y_axis.min": 0,
         "graph.y_axis.max": 100,
         "graph.y_axis.auto_split": false,
-        "graph.show_legend": false,
         "graph.show_values": false,
         "graph.x_axis.axis_enabled": false,
         "graph.y_axis.axis_enabled": false,
         "graph.x_axis.labels_enabled": true,
-        "graph.x_axis.title_text": "Stronger payment health  ←  |  →  Lower / modified health",
+        "graph.x_axis.title_text": "Stronger ← Health → Lower / modified",
         "graph.y_axis.labels_enabled": true,
         "graph.y_axis.title_text": "Higher contribution ↑ · midpoint 1×",
         "graph.tooltip_type": "default",

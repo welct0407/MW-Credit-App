@@ -1,5 +1,9 @@
 # Environment inventory
 
+## R029 display-only borrower matrix — 25 September 2026
+
+DEV and PROD on the existing `appsheet-pg-prod-20260914` / `34.21.174.215` instance are V43 (`loan_manager_dev` / `loan_manager_prod`). One additive read-only display view and SELECT-only access for the existing Metabase reader. Dashboard3/tab31 uses matrix274 and details275; backup dashboard6, original scatter266 retained. Both AppSheet apps, bindings, versions and jobs unchanged. [Verification](../outputs/r029-bcg-matrix/README.md).
+
 ## R028 — verified SQL/report state, 25 September 2026
 
 DEV `loan_manager_dev` and PROD `loan_manager_prod` on `appsheet-pg-prod-20260914 / 34.21.174.215` are V42. Three new automatic schedule/category views are installed; existing financial/source objects and both AppSheet definitions/bindings remain unchanged. The existing `metabase_borrower_reader` role has SELECT-only access to the three named new views. Dashboard3/tab31 uses them; report backup dashboard5 and private question/layout definitions preserve rollback. [Migration, grants and checks](../outputs/r028-schedule-health/README.md). No RC apps or operational writes.
