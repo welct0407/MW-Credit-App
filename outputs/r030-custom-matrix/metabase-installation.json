@@ -1,0 +1,24 @@
+{
+  "dashboard": 3,
+  "tab": 31,
+  "iframePlacement": 1501,
+  "placement": {
+    "row": 54,
+    "col": 0,
+    "width": 24,
+    "height": 22
+  },
+  "originalQuestion": 274,
+  "originalQuestionUnchanged": true,
+  "originalPlacementsRetained": true,
+  "otherTabsUnchanged": true,
+  "filtersUnchanged": true,
+  "offset": {
+    "fromRow": 54,
+    "rows": 22
+  },
+  "rows": 23,
+  "iframeHost": "charts.mw-credit.com",
+  "privateKeySha256": "6de12dc6ca5e5102295ff37f7f7eb11e21e4111a7fa4d5c26d176f7a83239633",
+  "secretPublished": false
+}

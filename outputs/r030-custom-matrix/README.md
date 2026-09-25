@@ -6,7 +6,7 @@ Owner authorized Debian hosting, necessary database access and insertion of a se
 
 ## Implementation
 
-`scripts/metabase/chart_service/` contains a dedicated Python WSGI service and dependency-free SVG chart. Gunicorn binds only to `127.0.0.1:8011` on `vm-mw-credit-agent`; a dedicated `mwcharts` service account and systemd resource limits isolate it from the integration agent. A reviewed Cloudflare HTTPS route will publish `charts.mw-credit.com` without opening an inbound application port. Metabase and the public website retain their current routes.
+`scripts/metabase/chart_service/` contains a dedicated Python WSGI service and dependency-free SVG chart. Gunicorn binds only to `127.0.0.1:8011` on `vm-mw-credit-agent`; a dedicated `mwcharts` service account and systemd resource limits isolate it from the integration agent. The verified Cloudflare HTTPS route publishes `charts.mw-credit.com` without opening an inbound application port. Metabase and the public website retain their current routes.
 
 The API executes only `query.sql` against existing V43 `reporting_borrower_matrix_plot_v1` and the two borrower identity columns in `olap_borrowers_analytics`. New login `mw_chart_reader` has SELECT on those providers, two connections maximum, read-only default transactions, and a 12-second statement timeout. Role/grants are infrastructure prerequisites outside Flyway, consistent with database/README.md; no schema migration, financial write or category recalculation is introduced. Existing SQL remains V43.
 
@@ -26,7 +26,9 @@ The app authenticates every data request using a 256-bit random bearer secret, s
 
 Prepared candidate: nine backend tests passed; JavaScript syntax passed. Synthetic browser preview verified 23 named dots, four equal rectangles, large-name/single-category tooltip and mobile rendering. Latest bounded production backup was restored into a disposable local database: all 26 table fingerprints matched. Dashboard recovery copy 7 and complete pre-change metadata are captured privately.
 
-Deployment and final real-data/browser evidence are pending. See the single promotion checklist and release manifest as they are completed.
+Deployed and verified on 25 September 2026. Placement1501 renders 23 named borrowers: 4 Stars, 8 Cash Cows, 5 Question Marks and 6 Dogs. Every returned field matches the same SQL query through Metabase source2. Browser checks verified four equal quadrants, 25px name heading, one category, search, names toggle and refresh. Missing/wrong keys return401; valid key returns200. Deployed source hashes match pin07efaac; chart, proxy and tunnel services are active. See [final verification](final-verification.json), [installation](metabase-installation.json), [manifest](release-manifest.json) and [single checklist](promotion-checklist.md).
+
+On mobile Metabase gives iframe cards a shorter viewport, so the chart scrolls inside the card. The chart itself still has four equal quadrants and all23 labels. Desktop is the recommended monitoring view.
 
 ## Rollback
 

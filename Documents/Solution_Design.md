@@ -1,5 +1,10 @@
 # Solution design rules
 
+## Custom borrower matrix extension — R030
+
+Metabase dashboard3/tab31 now includes an independent Debian-hosted comparison visual beside the retained native matrix. SQL V43 remains the authority for categories and coordinates; the chart joins borrower names through a dedicated read-only role. Four equal quadrants, connected name labels and a name-first/single-category tooltip improve identification without changing the model. A shared bearer secret protects the fixed-query endpoint; dashboard readers are its intended audience. No OLTP/OLAP AppSheet fields, workflows or app versions change. [R030 evidence](../outputs/r030-custom-matrix/README.md) describes refresh, access, mobile scrolling and rollback.
+
+
 ## R029 equal-quadrant borrower matrix
 
 The accepted V3 categories and payment scores remain authoritative. `reporting_borrower_matrix_plot_v1` adds display-only coordinates: stronger health left, contribution>=1× above, with both boundaries centered. Modified schedules use a categorical right-half position, not a reduced payment score. Native Metabase point/reference series render four equal regions; the complete companion list exposes original metrics. The display scale is not a credit probability or new rating. [Exact implementation and limits](../outputs/r029-bcg-matrix/README.md).

@@ -1,8 +1,13 @@
 # Open development differences
 
+## R030 custom matrix — deployed 25 September 2026
+
+The separate comparison chart, service, chart reader role and HTTPS route are deployed. No R030 AppSheet changes or remaining deployment differences; owner comparison/review remains available alongside native chart274. R031 is the sole Open development release. Prior R026 differences remain separately deferred. [R030 evidence](../outputs/r030-custom-matrix/README.md).
+
+
 ## R029 delivered — SQL/report only
 
-V43 equal-quadrant coordinates and the review-tab native matrix are deployed in DEV/PROD/report respectively. Accepted R028 scores/categories unchanged. R030 is the sole Open development release. Existing R026 AppSheet differences remain owner-deferred and were not changed by this package. [Evidence](../outputs/r029-bcg-matrix/README.md).
+V43 equal-quadrant coordinates and the review-tab native matrix are deployed in DEV/PROD/report respectively. Accepted R028 scores/categories unchanged. R030 was the Open release at that checkpoint; current development is R031. Existing R026 AppSheet differences remain owner-deferred and were not changed by this package. [Evidence](../outputs/r029-bcg-matrix/README.md).
 
 ## R028 — automatic SQL/report categories delivered
 

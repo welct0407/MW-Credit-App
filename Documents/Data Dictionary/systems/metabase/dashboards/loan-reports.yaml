@@ -4027,7 +4027,7 @@
       "evidence": "outputs/r025-20260924/cutover-verification.json"
   "borrower_health_review":
     "tab_id": 31
-    "release": "R029"
+    "release": "R030"
     "sources":
     - "payment-health-v1"
     - "schedule-health-v1"
@@ -4063,6 +4063,23 @@
     "retained_original_scatter_id": 266
     "matrix_display": "Native isolated category points and reference lines; centered equal quadrants. Display coordinates\
       \ only; V3 ratings/categories unchanged."
+    "custom_matrix":
+      "placement_id": 1501
+      "display": "iframe"
+      "host": "https://charts.mw-credit.com"
+      "fragment": "key=<private bearer secret; intentionally excluded>"
+      "row": 54
+      "col": 0
+      "size_x": 24
+      "size_y": 22
+      "later_tab_rows_shifted_by": 22
+      "original_question_retained": 274
+      "refresh_seconds": 60
+      "source": "public.reporting_borrower_matrix_plot_v1"
+      "authentication": "Bearer shared secret; accessible to authorized readers of dashboard 3"
+      "dashboard_filters_inherited": false
+      "service": "mw-report-charts.service"
+      "reference": "outputs/r030-custom-matrix/README.md"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4097,6 +4114,6 @@
     "reason": "Owner-authorized canonical Collection replacement"
     "state": "value"
   "/content/borrower_health_review":
-    "reference": "outputs/r029-bcg-matrix/README.md"
-    "reason": "R029 display-only SQL coordinates and saved review-tab definitions"
+    "reference": "outputs/r030-custom-matrix/final-verification.json"
+    "reason": "R030 verified additive custom matrix; secret excluded"
     "state": "value"

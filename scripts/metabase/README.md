@@ -1,3 +1,7 @@
+# Custom borrower matrix — R030
+
+The deployed comparison visual is maintained in `chart_service/`. Read the [operating contract, deployment evidence and rollback](../../outputs/r030-custom-matrix/README.md) before changing it. `provision_role.py`, `install.sh` and `Install-Metabase.mjs` are guarded one-time deployment helpers, not replayable update commands. Secrets and full iframe metadata stay outside Git.
+
 # Canonical cash pages — current entry point
 
 Use `StatementCleanup.mjs` for pages 9/10 and `--refine` for scoped presentation changes. It retains Cash Position page 2 and all unrelated tabs. Original pages 2/9/10 and their historical installers are retired; the relevant installers now fail before live writes. `Retire-StatementObjects.mjs` checks dashboard/filter/card/snippet/alert/subscription dependencies before recoverable archival. `Verify-StatementCleanup.mjs` checks actual report mappings; `Finalize-StatementCleanup.mjs` verifies retained models and access. [Contract and rollback](../../outputs/r016-20260922/statement-cleanup/README.md). Earlier installer descriptions below are historical checkpoints, not instructions to recreate retired pages.

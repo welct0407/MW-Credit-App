@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R031 | New development after R030 capture | Open | Sole development release; R030 independently captured. | Current development release above |
-| R030 | Custom matrix: Debian service, DB reader and comparison iframe | Frozen — deployment starting | 2026-09-25T04:50:43.236549+00:00; pin `07efaac`; apps unchanged, SQL schema V43. | [Evidence](../outputs/r030-custom-matrix/README.md) |
+| R030 | Custom matrix: Debian service, DB reader and comparison iframe | Released — custom comparison chart | 2026-09-25: iframe1501 verified, original274 retained; apps unchanged, SQL schema V43; tag R030. | [Evidence](../outputs/r030-custom-matrix/README.md) |
 | R029 | Equal-quadrant borrower matrix | Released — SQL/report only | 25 September; V43 pin `de0a72a`, questions274/275; desktop/mobile geometry and parity verified. Apps unchanged; tag R029. | [Evidence](../outputs/r029-bcg-matrix/README.md) |
 | R028 | Automatic schedule-aware SQL categories and Borrower Health Review | Released — SQL/report only | 25 September 2026; PROD V42, 20 report queries and visual check passed; tag `R028`. Apps unchanged. | [Evidence](../outputs/r028-schedule-health/README.md) |
 | R027 | Payment-health SQL and parallel Borrower Health Review; delivered GCP currency formatting | Released — SQL/report; review tab retained | DEV/PROD V41; tab 31 and questions 253–269; original report preserved. No App Upgrade. | [Evidence](../outputs/r027-payment-health/README.md) · tag R027 |

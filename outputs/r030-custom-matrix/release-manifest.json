@@ -1,6 +1,6 @@
 {
   "release": "R030",
-  "status": "Frozen; deployment starting",
+  "status": "Released",
   "frozen_at": "2026-09-25T04:50:43.236549+00:00",
   "implementation_commit": "07efaacc9f39a83a8490f3e9d9abdfba2d09bdd0",
   "files": {
@@ -29,5 +29,13 @@
   "host": "vm-mw-credit-agent",
   "url": "https://charts.mw-credit.com",
   "secret_in_repository": false,
-  "authorization": "Owner requested VM/DB/Metabase implementation and existing-tab comparison; shared-secret fallback authorized."
+  "authorization": "Owner requested VM/DB/Metabase implementation and existing-tab comparison; shared-secret fallback authorized.",
+  "placement_id": 1501,
+  "final_tag": "R030",
+  "verification": "final-verification.json",
+  "rollback": "README.md#rollback",
+  "rc_apps": [],
+  "publication": "Final evidence commit identified by annotated tag R030",
+  "deployment_helper": "scripts/metabase/chart_service/Install-Metabase.mjs",
+  "deployment_helper_sha256": "adbf09629891121b861920dabfb4aed4b5ca9ed23a0d8bcd730b8694bb89e8e5"
 }
