@@ -34,34 +34,48 @@ function draw(){
  for(const s of specs){
   const x=x0+s.col*qw,y=y0+s.row*qh, group=plotted.filter(r=>r.category===s.name);
   svg.append(el('rect',{x,y,width:qw,height:qh,rx:7,fill:s.fill,class:'quadrant','data-quadrant':s.name}));
-  svg.append(el('text',{x:x+14,y:y+23,fill:s.color,class:'quadrant-title'},s.title+' · '+group.length));
-  if(w>570)svg.append(el('text',{x:x+14,y:y+40,class:'quadrant-subtitle'},s.sub));
+  // Quiet category symbols sit behind the data, not in a header collision zone.
+  const icon=el('g',{class:'category-icon',transform:`translate(${x+qw/2-26} ${y+qh/2-26}) scale(.81)`,'aria-label':s.name});
+  const paths={
+   Star:'M32 3L40 23L62 24L45 38L51 60L32 47L13 60L19 38L2 24L24 23Z',
+   'Question Mark':'M32 4C15 4 3 15 3 29C3 43 15 54 32 54L48 61L46 50C55 46 61 38 61 29C61 15 49 4 32 4Z',
+   'Cash Cow':'M8 22H39L45 14L49 8L52 15L60 18V30L51 33L47 46V59H41V44H22V59H16V43L11 37L7 27L3 38L0 36L3 22Z',
+   Dog:'M8 35L25 29L33 18L35 7L42 14L50 13L54 21L63 26L61 32L48 35L46 57H39L36 41L30 45L29 57H21L20 44L13 46L10 57H3L5 43L1 30L5 28Z'};
+  icon.append(el('path',{d:paths[s.name]}));
+  if(s.name==='Question Mark')icon.append(el('text',{x:32,y:36,'text-anchor':'middle',class:'question-symbol'},'?'));
+  svg.append(icon);
+
  }
  svg.append(el('path',{d:`M${x0+qw} ${y0}V${y0+ph} M${x0} ${y0+qh}H${x0+pw}`,class:'boundary'}));
- // Pack text independently in each quadrant. Dots keep exact SQL coordinates.
- // Sorted label rails guarantee a readable list even when borrower dots coincide.
- for(const s of specs){
-  const x=x0+s.col*qw,y=y0+s.row*qh;
-  const group=plotted.filter(r=>r.category===s.name).map(r=>({...r,px:x0+r.plot_x/100*pw,py:y0+(100-r.plot_y)/100*ph})).sort((a,b)=>a.py-b.py||a.borrower_id.localeCompare(b.borrower_id));
-  const font=w<=600?10:12, labelHeight=font+10, top=y+(w>570?62:46),bottom=y+qh-15;
-  const available=bottom-top, spacing=Math.min(labelHeight+7,available/Math.max(1,group.length-1));
-  const positions=group.map((r,i)=>Math.max(top+i*spacing,Math.min(bottom-(group.length-1-i)*spacing,r.py)));
-  for(let i=1;i<positions.length;i++)positions[i]=Math.max(positions[i],positions[i-1]+spacing);
-  group.forEach((r,i)=>{
-   const g=el('g',{class:'borrower'+(match&&!r.name.toLocaleLowerCase().includes(match)?' dim':''),tabindex:0,role:'button','aria-label':r.name+', '+r.category,'data-borrower':r.borrower_id});
-   const maxText=Math.max(45,qw*.46), fullWidth=r.name.length*font*.62+18, width=Math.min(maxText,fullWidth),lx=r.px<=x+qw/2?x+qw-width-12:x+12,ly=positions[i];
-   if(showNames){
-    g.append(el('path',{d:`M${r.px} ${r.py}L${r.px<lx?lx-5:lx+width+5} ${ly}`,stroke:s.color,class:'leader'}));
-    g.append(el('rect',{x:lx,y:ly-labelHeight/2,width,height:labelHeight,rx:5,stroke:s.color,class:'label-bg'}));
-    const maxChars=Math.max(4,Math.floor((width-14)/(font*.62))),name=r.name.length>maxChars?r.name.slice(0,maxChars-1)+'…':r.name;
-    g.append(el('text',{x:lx+8,y:ly,fill:s.color,class:'name'},name));
+ // Keep each name next to its exact dot. Try above/below before a small local shift.
+ const boxes=[],points=plotted.map(r=>({...r,px:x0+r.plot_x/100*pw,py:y0+(100-r.plot_y)/100*ph}));
+ const font=w<=600?10:12;
+ const intersects=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+ const legend=$('legend');legend.replaceChildren();
+ for(const s of specs){const item=document.createElement('span');item.style.color=s.color;item.textContent=s.name+' · '+plotted.filter(r=>r.category===s.name).length;legend.append(item);}
+ for(const r of points.slice().sort((a,b)=>a.py-b.py||a.borrower_id.localeCompare(b.borrower_id))){
+  const s=specs.find(s=>s.name===r.category),g=el('g',{class:'borrower'+(match&&!r.name.toLocaleLowerCase().includes(match)?' dim':''),tabindex:0,role:'button','aria-label':r.name+', '+r.category,'data-borrower':r.borrower_id});
+  if(showNames){
+   const maxChars=w<=600?13:24,name=r.name.length>maxChars?r.name.slice(0,maxChars-1)+'…':r.name;
+   const width=name.length*font*.64+6,height=font+4;
+   let best=null;
+   for(const dy of [-17,17,-31,31,-45,45])for(const dx of [0,-16,16]){
+    const cx=Math.max(x0+width/2+2,Math.min(x0+pw-width/2-2,r.px+dx)),cy=r.py+dy;
+    const box={x:cx-width/2,y:cy-height/2,w:width,h:height};
+    const clipped=box.y<y0+s.row*qh+2||box.y+height>y0+(s.row+1)*qh-2;
+    const overlaps=boxes.filter(b=>intersects(box,b)).length;
+    const hits=points.filter(p=>intersects(box,{x:p.px-7,y:p.py-7,w:14,h:14})).length;
+    const score=(clipped?100000:0)+overlaps*10000+hits*1000+Math.abs(dy)+Math.abs(dx)*2;
+    if(!best||score<best.score)best={...box,cx,cy,score};
    }
-   g.append(el('circle',{cx:r.px,cy:r.py,r:5.5,fill:s.color,class:'dot'}));
-   g.addEventListener('mouseenter',()=>show(r,g));g.addEventListener('mouseleave',()=>{if(document.activeElement!==g)hide();});
-   g.addEventListener('focus',()=>show(r,g));g.addEventListener('blur',hide);
-   g.addEventListener('click',()=>show(r,g));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(r,g);}if(e.key==='Escape'){hide();g.blur();}});
-   svg.append(g);
-  });
+   boxes.push(best);
+   g.append(el('text',{x:best.cx,y:best.cy,fill:s.color,class:'name','text-anchor':'middle'},name));
+  }
+  g.append(el('circle',{cx:r.px,cy:r.py,r:5.5,fill:s.color,class:'dot'}));
+  g.addEventListener('mouseenter',()=>show(r,g));g.addEventListener('mouseleave',()=>{if(document.activeElement!==g)hide();});
+  g.addEventListener('focus',()=>show(r,g));g.addEventListener('blur',hide);
+  g.addEventListener('click',()=>show(r,g));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(r,g);}if(e.key==='Escape'){hide();g.blur();}});
+  svg.append(g);
  }
  const excluded=rows.filter(r=>!plotted.some(p=>p.borrower_id===r.borrower_id));$('unplotted').hidden=!excluded.length;
  $('unplotted').querySelector('summary').textContent=`Not plotted (${excluded.length})`;

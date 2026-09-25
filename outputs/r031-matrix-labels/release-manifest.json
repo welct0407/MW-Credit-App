@@ -1,0 +1,15 @@
+{
+  "release": "R031",
+  "status": "Candidate tested; deployment authorized",
+  "apps": "Unchanged",
+  "sql": "V43 unchanged; no DB writes",
+  "metabase": "Existing iframe1501 and original274 unchanged",
+  "source_baseline": "a876a53",
+  "rollback": "/opt/mw-report-charts/recovery-r031/ (three static files; verified against R030 hashes)",
+  "files": {
+    "scripts/metabase/chart_service/chart.js": "abbb46db750336ff53c239d944d9f37e44815db85aebca94e386250436d19988",
+    "scripts/metabase/chart_service/chart.css": "5f38cfbf04bca95237bc29d96110baa6db9586cab1b52a444be7b81f15aca8b8",
+    "scripts/metabase/chart_service/index.html": "fafb4a8a58ac3b1fb787d80e3629f2b1bb2558801a5b3e38dd9ac0623fbf33db"
+  },
+  "verification": "Syntax check and synthetic browser preview; live checks follow deployment"
+}
