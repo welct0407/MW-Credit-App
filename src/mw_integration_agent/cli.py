@@ -111,8 +111,9 @@ def execute(args) -> int:
             return 0
         if args.command=='conversation-poll':
             from .conversation_poll import run
-            print(json.dumps(run(args.config,args.catalogue,args.date)))
-            return 0
+            result=run(args.config,args.catalogue,args.date)
+            print(json.dumps(result))
+            return 2 if result.get('failed_conversations') else 0
         if args.command=='receipt-prepare':
             from .receipt_prepare import prepare
             print(json.dumps(prepare(args.config,args.catalogue,args.borrower_id,args.date,args.message_id)))

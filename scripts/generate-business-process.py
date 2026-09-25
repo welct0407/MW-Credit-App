@@ -142,11 +142,11 @@ for key,title,service,detail in [
 pages.append(('poll','Conversation API polling','LIVE',[
  'Five-minute timer → single polling worker',
  'Official conversations API; current AI-enabled borrower participants',
- 'Read recent messages back to saved cutoff with five-minute overlap',
- 'History complete and participant / attachment data usable?',
- 'Reserve new message IDs and shared receipt image jobs',
+ 'Discover new groups; read message pages to cutoff or exhaustion',
+ 'Boundary reached or history exhausted; participant / attachment data usable?',
+ 'Reserve borrower / verified Lisa-forwarded images; preserve sender and group',
  'Commit conversation checkpoint; existing receipt worker continues'],
- 'API only; no browser automation.\nObserved three-participant conversations are readable through expanded list fields.\nDirect group-history endpoint failed.\nMore than 100 unseen messages → stop; no cursor advance.\nOther senders / text / non-images → ignore.\nFresh activation cutoff; no historical replay.\nPolled records never refresh signed IG reply windows.\nNo group send or payment write.',
+ 'Official API only; no browser automation.\nDiscover current/new groups every scan.\nNested cursors via conversation-list fields.\nEmpty terminal page completes new groups.\nMaximum ten message pages per group.\nFailed group: preserve cursor; others continue.\nFive-minute overlap; shared receipt deduplication.\nLisa forwards: exactly three matched members.\nExisting cutoff and reviewer rules stay active.\nNo group send; polled events cannot approve.',
  'conversation_poll.py · receipt_journal.py · receipt_run.py\nmw-conversation-poll.timer · docs/CONVERSATION_POLL.md'))
 
 pages.append(('review','Partner receipt review','LIVE',[
@@ -209,7 +209,7 @@ box(r,'scope','Owner review baseline · 22 September 2026\nPersistent Partner co
 decisions={
  'codex':(1,'New signed message from\none enabled Partner?','Receipt-review reply → existing coordinator\nUnknown / revoked sender → no conversation'),
  'review':(3,'Linked reply approves\nthis exact proposal?','Reject other direct replies\nUnlinked / unauthorized → no decision'),
- 'poll':(3,'History complete and\nnew-message boundary reached?','Stop and report gap\nDo not advance this checkpoint'),
+ 'poll':(3,'Boundary reached or\nhistory exhausted?','Hold this group; preserve checkpoint\nContinue other groups; retry next scan'),
  'ingress':(2,'Valid signature and\nexpected account?','Reject request; do not create a job'),
  'receipts':(4,'Receipt passes all\nvalidation rules?','Invalid → REVIEW\nNonreceipt / disabled borrower → ignore\nDuplicate → no second processing'),
  'posting':(3,'Approved ordinary payment\nand fresh checks pass?','Stop; no payment Add\nClosure / overpayment → manual'),
