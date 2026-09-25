@@ -10,7 +10,7 @@ from .state import connect
 from .receipt_hold import event_key
 
 
-def assess(jobs,reviews,notices,now):
+def assess(jobs,reviews,notices,now,hold_replies=()):
     jobs={r['id']:r for r in jobs};reviews={r['id']:r for r in reviews}
     by_job={r['job_id']:r for r in reviews.values()}
     by_event={}
@@ -35,6 +35,13 @@ def assess(jobs,reviews,notices,now):
             event='review-result:'+review['id']+':'+state
             if age>300 and not by_event.get(event):counts['failed_notifications']+=1
     # Account for individual failed Partner results even when another Partner received one.
+    from .hold_reply import result_key
+    for reply in hold_replies:
+        job=jobs.get(reply['review_id'].split(':')[1])
+        if not job or now-job['created_at']<=300:continue
+        items=by_event.get(result_key(reply['message_id']),[])
+        counts['failed_notifications']+=1 if not items else sum(
+            n['ig_status']!='ACCEPTED' and n['email_status']!='SENT' and n.get('detail')!='PARTNER_DISABLED' for n in items)
     for event,items in by_event.items():
         if not event.startswith('review-result:'):continue
         _,rid,state=event.split(':',2);review=reviews.get(rid)
@@ -59,7 +66,8 @@ def inspect(config,now=None):
     with ExitStack() as resources:
         db=connect(root/'receipt-processing.db',config,readonly=True);resources.callback(db.close)
         notices=connect(root/'partner-notices.db',config,readonly=True);resources.callback(notices.close)
-        jobs=[dict(r) for r in db.execute("SELECT id,status,detail,created_at FROM receipt_jobs WHERE status IN ('PENDING','VALIDATED','REVIEW','REVIEW_REQUESTED')")]
+        jobs=[dict(r) for r in db.execute("SELECT id,status,detail,created_at FROM receipt_jobs WHERE status IN ('PENDING','VALIDATED','REVIEW','REVIEW_REQUESTED','REJECTED')")]
         reviews=[dict(r) for r in db.execute("SELECT id,job_id,state,created_at FROM partner_reviews WHERE state<>'SUPERSEDED'")]
-        sent=[dict(r) for r in notices.execute("SELECT event_key,ig_status,email_status,detail FROM partner_notices WHERE (event_key LIKE 'review:%' OR event_key LIKE 'review-result:%' OR event_key LIKE 'receipt-held:%')")]
-        return assess(jobs,reviews,sent,now)
+        replies=[dict(r) for r in db.execute("SELECT message_id,review_id,outcome FROM partner_review_replies WHERE review_id LIKE 'receipt-held:%' AND outcome IN ('HOLD_REJECTED','HOLD_NOT_ACTIVE','HOLD_REJECT_REQUIRED','HOLD_HAS_REVIEW')")]
+        sent=[dict(r) for r in notices.execute("SELECT event_key,ig_status,email_status,detail FROM partner_notices WHERE (event_key LIKE 'review:%' OR event_key LIKE 'review-result:%' OR event_key LIKE 'receipt-held:%' OR event_key LIKE 'hold-reply-result:%')")]
+        return assess(jobs,reviews,sent,now,replies)

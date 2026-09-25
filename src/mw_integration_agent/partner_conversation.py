@@ -134,19 +134,9 @@ def authenticate(config, sender, rows=None, identity_reader=conversation_identit
 
 
 def is_receipt_reply(root, event, config=None):
-    if not event.get('reply_to'):
-        return False
-    path = root / 'partner-notices.db'
-    if not state_enabled(config) and not path.exists():
-        return False
-    db = state_connect(path,config,readonly=True)
-    try:
-        # Every direct reply to a receipt proposal belongs solely to the review
-        # coordinator, including unauthorized, rejected and expired replies.
-        return db.execute("SELECT 1 FROM partner_notices WHERE message_id=? AND event_key LIKE 'review:%'",
-                          (event['reply_to'],)).fetchone() is not None
-    finally:
-        db.close()
+    # Owner policy: all direct replies belong to review handling, even when
+    # the original notification is unknown, stale or already decided.
+    return bool(event.get('reply_to'))
 
 
 def execute(event, partner, store, get_config, session_factory=CodexConversation,

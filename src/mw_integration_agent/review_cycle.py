@@ -92,8 +92,22 @@ def cycle(config,journal,identity_reader):
         for event in events:
             with isolated(failures,'reply'):
                 event=dict(event)
-                notice=notices.db.execute("SELECT * FROM partner_notices WHERE message_id=? AND event_key LIKE 'review:%'",(event['reply_to'],)).fetchone()
+                notice=notices.db.execute("SELECT * FROM partner_notices WHERE message_id=? AND (event_key LIKE 'review:%' OR event_key LIKE 'receipt-held:%')",(event['reply_to'],)).fetchone()
                 if not notice:continue
+                if notice['event_key'].startswith('receipt-held:'):
+                    from .hold_reply import decide,queue_result,result_key
+                    hold_cutoff=config.get('receipt_hold_reply_cutoff')
+                    if not hold_cutoff:continue
+                    hold_cutoff=datetime.fromisoformat(hold_cutoff).timestamp()
+                    if event['event_timestamp']<hold_cutoff or event['captured_at']<hold_cutoff:continue
+                    # Retry interrupted acknowledgement preparation independently
+                    # of the already committed, idempotent dismissal.
+                    if notices.db.execute('SELECT 1 FROM partner_notices WHERE event_key=?',(result_key(event['message_id']),)).fetchone():continue
+                    live=masters(config)
+                    identity=identity_reader(config,event['sender_id'])
+                    outcome=decide(db,config,event,dict(notice),live['partners'],identity,live.get('reviewer_ids',[]))
+                    queue_result(notices,event,dict(notice),live['partners'],outcome)
+                    continue
                 if db.execute('SELECT 1 FROM partner_review_replies WHERE message_id=?',(event['message_id'],)).fetchone():continue
                 live=masters(config)
                 try:identity=identity_reader(config,event['sender_id'])
@@ -181,8 +195,12 @@ def cycle(config,journal,identity_reader):
             queue_holds(config,journal,notices,masters(config),identity_reader,failures)
         for notice in notices.due():
             with isolated(failures,'delivery'):
-                if not notice['event_key'].startswith(('review:','review-result:','receipt-held:')):continue
+                if not notice['event_key'].startswith(('review:','review-result:','receipt-held:','hold-reply-result:')):continue
                 live=masters(config)
+                if notice['event_key'].startswith('hold-reply-result:') and not any(
+                    p['id']==notice['partner_id'] and p['enabled'] is True and p['id'] in live.get('reviewer_ids',[]) for p in live['partners']):
+                    with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))
+                    continue
                 if notice['event_key'].startswith('receipt-held:'):
                     held=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(notice['event_key'].split(':')[1],)).fetchone()
                     if (notice['partner_id'] not in live.get('reviewer_ids',[]) or not held or

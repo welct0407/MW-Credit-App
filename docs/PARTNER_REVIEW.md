@@ -47,4 +47,19 @@ Independent groups, proposals, replies, executions and recipients continue after
 
 Persist extraction attempts before external work, allow three attempts, reuse successful extraction on retries, and refresh failed extraction only through explicit reconsideration. One image per cycle keeps decisions/notices from waiting behind ten model calls. Interrupted POSTING and failed readback become UNKNOWN, notify reconciliation and never repeat Add. IG-first/email-backup delivery remains idempotent.
 
-Read-only `receipt_health.inspect` exposes queue, review, posting and notification health. See [monitoring handover](MONITORING_IMPLEMENTATION_HANDOVER.md); Grafana implementation is separate and remains pending.
+Read-only `receipt_health.inspect` exposes queue, review, posting and notification health. See [monitoring handover](MONITORING_IMPLEMENTATION_HANDOVER.md); Grafana implementation is live; the handover links its verified completion.
+
+
+## Rejecting held receipts — revision 22
+
+Owner instruction, 25 September: direct replies are review actions, never general conversation. A new signed reply to an accepted `receipt-held:` notification is bound to that exact message, recipient and unchanged job/reason. Fresh unique Partner identity, enabled integration and AI Reviewer role are mandatory, using the same authorization checks as proposals.
+
+Reply **Reject** to remove a hold from the active queue. Accepted exact words after trimming/case-folding: `reject`, `rejected`, `no`, `ignore`, `drop`, `ปฏิเสธ`, `ไม่อนุมัติ`. Other text, including approval words, leaves it held and returns the explicit rejection instructions. Ordinary proposal approval words and behavior are unchanged. A missing/unknown reply reference makes no decision and never falls through to Codex. There is no model interpretation of these decisions.
+
+The job transitions only REVIEW → REJECTED; preserve original hold reason, extraction/history and existing deduplication keys. Existing proposal/posting states PENDING/APPROVED/POSTING/POSTED/UNKNOWN prevent dismissal through a hold message. Resolved/changed holds cannot be altered with an old notification. No Payments API, financial write, schema change or physical deletion. Existing reconsideration rejects terminal REJECTED jobs.
+
+The existing reply journal stores the namespaced hold event, inbound message ID and outcome atomically with the queue transition. The durable `hold-reply-result:` outbox sends acknowledgement only to the deciding reviewer in their current preferred language, IG first/email backup. A restart after the decision but before reserving its notice reconstructs the same notice without repeating the decision. Unknown delivery is never retried. Failed/missing acknowledgements contribute to existing `failed_notifications` monitoring (age threshold uses the original receipt creation time, like other receipt notice health).
+
+Activation uses `receipt_hold_reply_cutoff` (timezone required), established by the reviewed updater. Only replies with both event and capture time after this cutoff may dismiss a hold. Existing accepted hold notifications remain usable: reply Reject again after deployment. Replies already handled by the general assistant are not replayed. All direct replies are excluded from general conversations even if unmatched. Standalone text keeps existing conversation behavior.
+
+Rollback restores revision21 code/config/catalogue, retaining current journals. Never restore old journals to undo a dismissal or resend notices. Remove the cutoff to disable hold dismissal while retaining revision22's exclusive direct-reply routing.

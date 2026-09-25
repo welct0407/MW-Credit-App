@@ -2,7 +2,7 @@
 
 Resumed by the owner on 22 September 2026 at 02:17 Bangkok after the temporary 02:07 pause. The timer is enabled and both conversation switches are true. History and journals are preserved. A fresh ingress cutoff excludes paused-period messages; prior accepted replies are not resent. Initially activated on Debian at 01:23 Bangkok. Owner requested persistent conversations and Codex-selected general operational API edits. Runtime deployment and checks are recorded in the [change log](../Change%20Logs/CHANGE_NOTES_PARTNER_CONVERSATIONS_2026-09-22.md).
 
-Signed ingress → post-cutoff text → fresh Partner authentication → once-only turn → persistent Codex App Server thread → host data tools → durable localized reply → Instagram, or complete email fallback.
+Signed ingress → standalone post-cutoff text (no reply_to) → fresh Partner authentication → once-only turn → persistent Codex App Server thread → host data tools → durable localized reply → Instagram, or complete email fallback.
 
 Threads bind the business Instagram account, immutable Partner key and actual sender ID. Each has a private Codex home under `state/partner-conversations/<binding>/`; a symlink references the existing service sign-in without importing Windows credentials/history. Only service model, reasoning effort and tier settings are inherited. Tools, plugins, shell, browser and owner rules are not inherited. Dynamic tools use the installed experimental App Server protocol; after CLI upgrades rerun `scripts/verify-partner-conversation.py` before resuming the timer. [Official App Server protocol](https://developers.openai.com/codex/app-server).
 
@@ -36,3 +36,6 @@ Inspect timer/service status and sanitized CLI cycle output; detailed messages a
 Automated synthetic tests cover isolation, auth revocation, unknown outcomes, stale values, duplicate calls, tool boundaries, receipt-reply precedence and fresh observations. A real two-process synthetic Codex test checks thread continuity without production data or sending. Live data reads may verify fields/counts without printing records. Do not create financial records merely for testing.
 
 From an enabled Partner account: ask a current borrower question, then a follow-up omitting the name. Compare with the app. For an operational edit, request an intended real change and check the owning app and affected related records. Restart recovery, failed delivery and unavailable API workflows must remain explicit. Owner acceptance requires actual partner interaction; a synthetic smoke test is not that acceptance.
+
+
+25 September owner routing rule (revision22): **every direct reply is review-only**, including replies to hold notifications, unknown messages and already-decided requests. Such messages never enter the model or its tools; unmatched references make no change. General conversation requires a standalone message. See [held receipt rejection](PARTNER_REVIEW.md#rejecting-held-receipts--revision-22).

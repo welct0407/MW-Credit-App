@@ -49,6 +49,8 @@ def held_text(job,borrower,language,accounts):
     else:
         subject='Receipt held — reviewer attention needed'
         body=f'{subject}\nBorrower: {clean(name)}\nCaptured: {captured} (Bangkok)\nRead from image (unverified): {clean(receipt.get("amount"))} baht · {clean(receipt.get("date"))} {clean(str(receipt.get("time") or "")[:5])}\nAccount: {clean(account)}\nReason: {reason}\nNo payment posted. Check the receipt against the app records. Replying approve to this alert cannot post a payment or bypass validation.'
+    body+= ('\nหากต้องการนำออกจากคิว ให้ตอบกลับข้อความนี้ว่า Reject หรือ ปฏิเสธ' if thai else
+            '\nTo remove it from the queue, use Reply on this message and send Reject.')
     return subject,body
 
 

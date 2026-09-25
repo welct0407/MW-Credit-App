@@ -8,6 +8,24 @@ from .receipt_rules import username
 APPROVE={'yes','approve','approved','อนุมัติ'}
 
 
+def authorize_reply(event,notice,partners,identity,reviewer_ids):
+    """Fresh exact recipient/identity/role authorization shared by review actions."""
+    if not notice or notice['ig_status']!='ACCEPTED' or not event.get('reply_to'):
+        return 'NOT_CORRELATED'
+    if event['reply_to']!=notice['message_id'] or event['sender_id']!=notice.get('recipient_id'):
+        return 'NOT_CORRELATED'
+    partner=[p for p in partners if p['id']==notice['partner_id']]
+    if len(partner)!=1:return 'UNAUTHORIZED'
+    p=partner[0]
+    if p['id'] not in reviewer_ids:return 'NOT_REVIEWER'
+    if p['enabled'] is not True or p['language'] not in ('English','ไทย'):return 'UNAUTHORIZED'
+    if json.loads(notice['partner'])!=p:return 'PARTNER_CHANGED'
+    name=username(p['username'])
+    if sum(username(x['username'])==name for x in partners)!=1:return 'UNAUTHORIZED'
+    if identity.get('id')!=event['sender_id'] or username(identity.get('username'))!=name:return 'UNAUTHORIZED'
+    return None
+
+
 class ReviewStore:
     def __init__(self,db):
         self.db=db
@@ -35,22 +53,11 @@ class ReviewStore:
 
     def decide(self,event,notice,partners,identity,now=None,*,reviewer_ids=()):
         now=time.time() if now is None else now
-        # Correlation requires our confirmed outbound message and its exact recipient.
-        if not notice or notice['ig_status']!='ACCEPTED' or not event.get('reply_to'):
-            return 'NOT_CORRELATED'
-        if event['reply_to']!=notice['message_id'] or event['sender_id']!=notice.get('recipient_id'):
-            return 'NOT_CORRELATED'
+        denied=authorize_reply(event,notice,partners,identity,reviewer_ids)
+        if denied:return denied
         key=notice['event_key'].removeprefix('review:')
         if notice['event_key']!='review:'+key:return 'NOT_CORRELATED'
-        partner=[p for p in partners if p['id']==notice['partner_id']]
-        if len(partner)!=1:return 'UNAUTHORIZED'
-        p=partner[0]
-        if p['id'] not in reviewer_ids:return 'NOT_REVIEWER'
-        if p['enabled'] is not True or p['language'] not in ('English','ไทย'):return 'UNAUTHORIZED'
-        if json.loads(notice['partner'])!=p:return 'PARTNER_CHANGED'
-        name=username(p['username'])
-        if sum(username(x['username'])==name for x in partners)!=1:return 'UNAUTHORIZED'
-        if identity.get('id')!=event['sender_id'] or username(identity.get('username'))!=name:return 'UNAUTHORIZED'
+        p=next(p for p in partners if p['id']==notice['partner_id'])
         with self.db:
             old=self.db.execute('SELECT outcome FROM partner_review_replies WHERE message_id=?',(event['message_id'],)).fetchone()
             if old:return old[0]

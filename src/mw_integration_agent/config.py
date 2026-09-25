@@ -120,7 +120,7 @@ def validate_config(config: dict[str, Any]) -> None:
             raise ConfigurationError('conversation_poll_cutoff must include timezone') from exc
     if type(config.get('receipt_summary_enabled', False)) is not bool:
         raise ConfigurationError('receipt_summary_enabled must be boolean')
-    for notice_cutoff in ('partner_notice_cutoff','receipt_hold_notice_cutoff'):
+    for notice_cutoff in ('partner_notice_cutoff','receipt_hold_notice_cutoff','receipt_hold_reply_cutoff'):
         if config.get(notice_cutoff):
             from datetime import datetime
             try:

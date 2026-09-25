@@ -13,3 +13,5 @@ The visual style follows MW-Partner-Operations: blue rounded process boxes, yell
 Owner correction, 21 September: all Partner notifications start with Instagram and use email only as fallback. Receipt success requires verified payment readback and must not send to the borrower/group. The parameterized `receipt-prepare` command shares extraction and validation with the webhook worker; no person-specific scripts are maintained. New ordinary payments post automatically; overpayments require reviewer approval; loan closures stay manual. See PARTNER_REVIEW.md.
 
 25 September: receipt/polling/automatic-payment pages reflect bounded attempts, item isolation, held-receipt alerts and UNKNOWN reconciliation. Existing PNGs are historical snapshots. Monitoring implementation is delegated through MONITORING_IMPLEMENTATION_HANDOVER.md.
+
+25 September revision22: receipt validation, review and conversation pages now show direct-reply hold rejection and exclusive review ownership of every direct reply. History/deduplication retained, acknowledgement to deciding reviewer, no posting. PNG snapshots remain historical; use the editable diagram for current logic.

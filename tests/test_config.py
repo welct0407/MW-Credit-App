@@ -39,9 +39,10 @@ class ConfigurationTests(unittest.TestCase):
             with self.subTest(flag=flag),self.assertRaises(ConfigurationError):validate_config(config)
 
     def test_hold_notice_cutoff_requires_timezone(self):
-        for value in ('2026-09-25T12:00:00','invalid'):
-            config=load_json(ROOT/'config.example.json');config['receipt_hold_notice_cutoff']=value
-            with self.assertRaises(ConfigurationError):validate_config(config)
+        for field in ('receipt_hold_notice_cutoff','receipt_hold_reply_cutoff'):
+            for value in ('2026-09-25T12:00:00','invalid'):
+                config=load_json(ROOT/'config.example.json');config[field]=value
+                with self.assertRaises(ConfigurationError):validate_config(config)
 
 
 if __name__ == "__main__":

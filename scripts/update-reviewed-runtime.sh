@@ -55,6 +55,9 @@ p=Path('/etc/mw-integration-agent/config.json');c=json.loads(p.read_text())
 # New notification route starts now; no historical receipt or delivery replay.
 c.setdefault('partner_notice_cutoff',datetime.now(timezone.utc).isoformat())
 c.setdefault('receipt_hold_notice_cutoff',datetime.now(timezone.utc).isoformat())
+# New direct-reply dismissal policy applies to new replies, including replies
+# to previously delivered hold notices. Never reinterpret historical replies.
+c.setdefault('receipt_hold_reply_cutoff',datetime.now(timezone.utc).isoformat())
 p.write_text(json.dumps(c,indent=2)+'\n')
 PY
 sudo -u mwagent /opt/mw-integration-agent/.venv/bin/mw-integration-agent check --config /etc/mw-integration-agent/config.json --catalogue /etc/mw-integration-agent/service-catalogue.json

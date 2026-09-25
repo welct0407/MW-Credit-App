@@ -295,7 +295,8 @@ class Conversations(unittest.TestCase):
             notices.db.execute('UPDATE partner_notices SET message_id=? WHERE id=?', ('receipt-message', key))
         notices.close()
         self.assertTrue(is_receipt_reply(self.root, dict(self.event, reply_to='receipt-message')))
-        self.assertFalse(is_receipt_reply(self.root, dict(self.event, reply_to='other')))
+        self.assertTrue(is_receipt_reply(self.root, dict(self.event, reply_to='other')))
+        self.assertFalse(is_receipt_reply(self.root, dict(self.event, reply_to='')))
 
     def test_configuration_requires_cutoff_dependencies_and_separate_write_control(self):
         config = load_json(Path(__file__).resolve().parents[1] / 'config.example.json')
@@ -312,6 +313,7 @@ class Conversations(unittest.TestCase):
         ingress.capture('synthetic-batch',[
             {'message_id':'old','sender_id':'999','timestamp':now-20,'text':'old'},
             {'message_id':'new','sender_id':'999','timestamp':now-1,'text':'new'},
+            {'message_id':'unmatched','sender_id':'999','timestamp':now-1,'text':'reject','reply_to':'unknown-outbound'},
             {'message_id':'review','sender_id':'999','timestamp':now-1,'text':'Approve','reply_to':'receipt-message'},
             {'message_id':'borrower','sender_id':'777','timestamp':now-1,'text':'unsupported borrower'},
         ])
@@ -336,7 +338,7 @@ class Conversations(unittest.TestCase):
         db=ConversationStore(self.root/'partner-conversations.db')
         states={r['message_id']:r['status'] for r in db.db.execute('SELECT * FROM turns')}
         db.close()
-        self.assertEqual(states,{'new':'QUEUED','review':'IGNORED','borrower':'IGNORED'})
+        self.assertEqual(states,{'new':'QUEUED','review':'IGNORED','unmatched':'IGNORED','borrower':'IGNORED'})
         outbox=NoticeJournal(self.root/'conversation-notices.db')
         self.assertEqual(len(outbox.due()),1)
         outbox.close()
