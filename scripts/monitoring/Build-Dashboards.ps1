@@ -247,7 +247,7 @@ $cost=New-Dashboard 'mw-resource-cost' 'MW Resources · Cost' 'now/M' '1h'
 Add-Text $cost 1 'Cloud spending' '**Azure USD · GCP SGD · Railway USD** | Azure/GCP: selected dates. Railway: current billing cycle. Costs are delayed and provisional. Refresh hourly; frequent manual refreshes can reach provider limits.' 0 3
 Add-Row $cost 10 'Azure · VM, disks, network, monitoring and backup' 3
 $azureRaw=Add-Chart $cost 101 'Azure · daily resource detail (USD)' @((New-AzureCostQuery 'rg-mwcredit'),(New-AzureCostQuery 'rg-backup')) 'currencyUSD' 0 15 24 9 'table' 'Actual cost for rg-mwcredit and rg-backup. Includes retained disks, VM-related services and backup. Source cost data is not a final invoice.'
-$azureRaw.transformations=@(@{id='merge';options=@{}},@{id='organize';options=@{indexByName=@{Date=0;Resource=1;Cost=2;Currency=3}}})
+$azureRaw.transformations=@(@{id='merge';options=@{}},@{id='organize';options=@{indexByName=@{Date=0;Resource=1;Cost=2;Currency=3}}},@{id='sortBy';options=@{sort=@(@{field='Date';desc=$true})}})
 $azureStat=Add-Chart $cost 102 'Azure · selected-range cost' (Shared-Query 101) 'currencyUSD' 0 4 8 4 'stat'
 $azureStat.transformations=@(@{id='merge';options=@{}},(Group-Transform @('Currency') @('Cost')))
 $azureDaily=Add-Chart $cost 103 'Azure · daily cost' (Shared-Query 101) 'currencyUSD' 8 4 16 11
@@ -266,22 +266,43 @@ ELSE
 END IF;
 '@
 $gcpQ=New-InfinityQuery 'mw-gcp-monitoring' 'https://bigquery.googleapis.com/bigquery/v2/projects/clever-oasis-508610-n7/queries' 'if (.jobComplete != true) then error("Billing query is still running; refresh later") elif .pageToken then error("Billing result truncated; shorten time range") else .rows[]? | {Date:(if .f[0].v == null then null else ((.f[0].v|tonumber)*1000) end),Gross:(.f[1].v|if .==null then null else tonumber end),Credits:(.f[2].v|if .==null then null else tonumber end),Net:(.f[3].v|if .==null then null else tonumber end),Service:.f[4].v,Resource:.f[5].v,Currency:.f[6].v} end' @((Column 'Date' 'timestamp_epoch'),(Column 'Gross'),(Column 'Credits'),(Column 'Net'),(Column 'Service' 'string'),(Column 'Resource' 'string'),(Column 'Currency' 'string')) 'table' @{query=$gcpSql;useLegacySql=$false;location='US';timeoutMs=20000;maxResults=10000;maximumBytesBilled='100000000';useQueryCache=$true}
-$gcpRaw=Add-Chart $cost 201 'GCP · daily resource detail' $gcpQ 'prefix:S$' 0 32 24 9 'table' 'Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Singapore. Restricted to the AppSheet project; query capped at 100 MB billed.'
-$gcpRaw.transformations=@(@{id='organize';options=@{indexByName=@{Service=0;Date=1;Gross=2;Credits=3;Net=4;Currency=5;Resource=6}}})
+$gcpRaw=Add-Chart $cost 201 'GCP · daily resource detail' $gcpQ 'prefix:S$' 0 43 24 9 'table' 'Dedicated detailed export, newest Singapore date first. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Restricted to the AppSheet project; query capped at 100 MB billed.'
+$gcpRaw.transformations=@(@{id='organize';options=@{indexByName=@{Service=0;Date=1;Gross=2;Credits=3;Net=4;Currency=5;Resource=6}}},@{id='sortBy';options=@{sort=@(@{field='Date';desc=$true})}})
 $gcpGross=Add-Chart $cost 202 'GCP · before credits (SGD)' (Shared-Query 201) 'prefix:S$' 0 25 8 4 'stat'
 $gcpGross.transformations=@((NonNull-Transform 'Gross'),(Group-Transform @('Currency') @('Gross')))
 $gcpCredits=Add-Chart $cost 203 'GCP · credits (SGD)' (Shared-Query 201) 'prefix:S$' 8 25 8 4 'stat'
 $gcpCredits.transformations=@((NonNull-Transform 'Credits'),(Group-Transform @('Currency') @('Credits')))
 $gcpNet=Add-Chart $cost 204 'GCP · net cost (SGD)' (Shared-Query 201) 'prefix:S$' 16 25 8 4 'stat'
 $gcpNet.transformations=@((NonNull-Transform 'Net'),(Group-Transform @('Currency') @('Net')))
-Add-Text $cost 205 'GCP export status' 'Export enabled **22 September 2026**. Before the first delivery, totals show **No data**, not zero. Once Google delivers records, this page loads them automatically. **Net = gross + credits.**' 29 3
-Add-Row $cost 30 'Railway · workspace usage · current billing cycle' 41
+Add-Text $cost 205 'GCP export status' 'Detailed billing export active since **22 September 2026**. Charges can be fully offset by credits, leaving **zero net cost** while gross usage continues. Recent exported days can arrive late. **Net = gross + credits.**' 29 3
+$gcpDaily=Add-Chart $cost 206 'GCP · daily cost and credits (SGD)' (Shared-Query 201) 'prefix:S$' 8 32 16 11 'timeseries' 'Daily gross charges, negative credits and net cost by Singapore usage date. Credits can offset the full gross amount. The chart follows the selected range; recent exported billing may be delayed.'
+$gcpDaily.fieldConfig.defaults.decimals=2
+$gcpDaily.fieldConfig.defaults.color=@{mode='palette-classic'}
+$gcpDaily.transformations=@((NonNull-Transform 'Net'),(Group-Transform @('Date') @('Gross','Credits','Net')),@{id='sortBy';options=@{sort=@(@{field='Date'})}})
+$gcpResources=Add-Chart $cost 207 'GCP · by resource (SGD)' (Shared-Query 201) 'prefix:S$' 0 32 8 11 'table' 'Selected-range net cost by service and reported resource. Unallocated / service-level rows reflect source attribution gaps; credits are included.'
+$gcpResources.transformations=@((NonNull-Transform 'Net'),(Group-Transform @('Service','Resource') @('Net')),@{id='sortBy';options=@{sort=@(@{field='Net (sum)';desc=$true})}},@{id='organize';options=@{indexByName=@{Resource=0;Service=1;'Net (sum)'=2};renameByName=@{'Net (sum)'='Net'}}})
+Add-Row $cost 30 'Railway · workspace usage · current billing cycle' 52
 $railQuery='{ workspace(workspaceId:"39dfde08-39a7-4ebf-a9ad-a7701d65fc55") {name plan customer {currentUsage billingPeriod{start end}}} }'
 $railQ=New-InfinityQuery 'mw-railway-monitoring' 'https://backboard.railway.com/graphql/v2' 'if .errors then error(.errors|tostring) else .data.workspace | {Workspace:.name,Plan:.plan,UsageUSD:.customer.currentUsage,BillingStart:.customer.billingPeriod.start,BillingEnd:.customer.billingPeriod.end,Currency:"USD"} end' @((Column 'Workspace' 'string'),(Column 'Plan' 'string'),(Column 'UsageUSD'),(Column 'BillingStart' 'timestamp'),(Column 'BillingEnd' 'timestamp'),(Column 'Currency' 'string')) 'table' @{query=$railQuery}
-$null=Add-Chart $cost 301 'Railway · billing period and accrued usage' $railQ 'currencyUSD' 8 42 16 7 'table'
-$railStat=Add-Chart $cost 302 'Railway · accrued resource usage' (Shared-Query 301) 'currencyUSD' 0 42 8 4 'stat'
+$null=Add-Chart $cost 301 'Railway · billing period and accrued usage' $railQ 'currencyUSD' 8 53 16 4 'table'
+$railStat=Add-Chart $cost 302 'Railway · accrued resource usage' (Shared-Query 301) 'currencyUSD' 0 53 8 4 'stat'
 $railStat.transformations=@(@{id='filterFieldsByName';options=@{include=@{names=@('UsageUSD')}}})
-Add-Text $cost 303 'How to read Railway cost' 'Accrued resource usage is reported by Railway in **USD for its current billing cycle**, independently of the date picker above. It is not the final bill: plan fees, included usage, credits and adjustments are handled on the provider invoice. [Open Railway usage](https://railway.com/workspace/usage).' 49 3
+Add-Text $cost 303 'How to read Railway cost' 'The **accrued USD** total is the official current-cycle amount. The resource breakdown below is an estimate from billed usage units and published rates; its hourly-sampled daily chart estimates CPU, RAM and volume only for the selected dates within the current cycle. These estimates can differ from the official total. Plan fees, included usage and credits remain on the provider invoice. [Open Railway usage](https://railway.com/workspace/usage).' 57 5
+$railUsageQuery='query { usage(workspaceId:"39dfde08-39a7-4ebf-a9ad-a7701d65fc55",measurements:[CPU_USAGE,MEMORY_USAGE_GB,DISK_USAGE_GB,NETWORK_TX_GB],groupBy:[SERVICE_ID]) {measurement value tags{serviceId}} }'
+$railResourceQ=New-InfinityQuery 'mw-railway-monitoring' 'https://backboard.railway.com/graphql/v2' (Get-Content "$PSScriptRoot/railway-resource-cost.jq" -Raw) @((Column 'Resource' 'string'),(Column 'Cost'),(Column 'Currency' 'string')) 'table' @{query=$railUsageQuery}
+$railResources=Add-Chart $cost 304 'Railway · by resource (USD est.)' $railResourceQ 'currencyUSD' 0 62 8 11 'table' 'Current billing-cycle service breakdown estimated from Railway usage units and published CPU/RAM/volume/egress rates verified 25 September 2026. The official accrued total above is authoritative. Unknown or removed service IDs remain visible, not silently dropped.'
+$railResources.transformations=@(@{id='sortBy';options=@{sort=@(@{field='Cost';desc=$true})}},@{id='organize';options=@{excludeByName=@{Currency=$true};indexByName=@{Resource=0;Cost=1};renameByName=@{Cost='Estimated cost'}}})
+$railDailyQuery=@'
+query {
+  workspace(workspaceId:"39dfde08-39a7-4ebf-a9ad-a7701d65fc55") { customer { billingPeriod { start } } }
+  services:metrics(workspaceId:"39dfde08-39a7-4ebf-a9ad-a7701d65fc55",startDate:"${__timeFrom:date:iso}",endDate:"${__timeTo:date:iso}",measurements:[CPU_USAGE,MEMORY_USAGE_GB],groupBy:[SERVICE_ID],sampleRateSeconds:3600,averagingWindowSeconds:3600) {measurement values{ts value}}
+  volumes:metrics(workspaceId:"39dfde08-39a7-4ebf-a9ad-a7701d65fc55",startDate:"${__timeFrom:date:iso}",endDate:"${__timeTo:date:iso}",measurements:[DISK_USAGE_GB],groupBy:[VOLUME_ID],sampleRateSeconds:3600,averagingWindowSeconds:3600) {measurement values{ts value}}
+}
+'@
+$railDailyQ=New-InfinityQuery 'mw-railway-monitoring' 'https://backboard.railway.com/graphql/v2' (Get-Content "$PSScriptRoot/railway-daily-estimate.jq" -Raw) @((Column 'Time' 'timestamp_epoch'),(Column 'Estimated USD' 'number' 'EstimatedUSD')) 'timeseries' @{query=$railDailyQuery}
+$railDaily=Add-Chart $cost 305 'Railway · estimated daily compute + volume (USD)' $railDailyQ 'currencyUSD' 8 62 16 11 'timeseries' 'Hourly Railway samples multiplied by published CPU/RAM/volume rates and grouped by Singapore date. Only selected dates within the current billing cycle are shown. Egress, credits, plan fees and unsampled intervals are excluded; this is an estimate, not an invoice or the official accrued total.'
+$railDaily.fieldConfig.defaults.decimals=2
+$railDaily.fieldConfig.defaults.color=@{mode='fixed';fixedColor='#B877D9'}
 # One stacked SGD bar. Source summaries share a category, retaining null GCP costs.
 $sgdQueries=@()
 foreach($entry in @(@('rg-mwcredit','Azure compute USD'),@('rg-backup','Azure backup USD'))){

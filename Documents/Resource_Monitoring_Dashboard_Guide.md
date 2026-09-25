@@ -202,7 +202,7 @@ Scope is provider ActualCost for **rg-mwcredit and rg-backup** in the configured
 | 102 | Azure · selected-range cost | Sum of returned resource costs over the selected period, in USD. Includes eligible disks/network/monitoring/backup records, not only VM compute. |
 | 103 | Azure · daily cost | Total by provider date. Use it to locate changes in daily spending; labels use whole dollars, while monetary summaries retain cents. |
 | 104 | Azure · cost by resource (USD) | Selected-period totals grouped by returned resource name, sorted highest first. Identifies cost contributors. The query extracts the last segment of the resource ID; identically named resources can combine. |
-| 101 | Azure · daily resource detail (USD) | Source table: Date, Resource, Cost and Currency. Supplies the other Azure cost visuals and lets you trace their totals to daily rows. It is not a final invoice. |
+| 101 | Azure · daily resource detail (USD) | Source table: Date, Resource, Cost and Currency, **newest date first**. Supplies the other Azure cost visuals and lets you trace their totals to daily rows. It is not a final invoice. |
 
 ### GCP
 
@@ -215,10 +215,12 @@ The three GCP totals and detail-table monetary values display **S$** with two de
 | 202 | GCP · before credits (SGD) | Gross usage cost before the credits included in the export. |
 | 203 | GCP · credits (SGD) | Sum of exported credits, normally negative. This is not a remaining free-credit balance or available budget. |
 | 204 | GCP · net cost (SGD) | Gross plus credits. Example: SGD 20 gross and SGD −5 credits gives SGD 15 net. |
-| 205 | GCP export status | **Static explanatory text**, not a live exporter-health probe. Records the 22 September enablement date and explains initial No data. It must not be interpreted as proof that a delivery has just succeeded. |
-| 201 | GCP · daily resource detail | Service, date, gross, credits, net, currency and resource detail. Missing resource attribution appears as Unallocated / service-level. Supplies the three totals above. |
+| 205 | GCP export status | **Static explanatory text**, not a live exporter-health probe. Records the 22 September enablement date and explains that charges may be fully offset by credits and recent days may arrive late. It is not proof of a fresh delivery. |
+| 207 | GCP · by resource (SGD) | Selected-range **net cost** grouped by service and exported resource, largest first. Resource names can be Unallocated / service-level when the export has no resource attribution. Fully credited rows can show S$0.00 despite positive gross usage. |
+| 206 | GCP · daily cost and credits (SGD) | Three S$ series by Singapore usage date: gross charges, normally negative credits, and net = gross + credits. Showing all three makes credited usage visible even when net is zero; monetary axis/hover retain cents. Recent export data can lag. |
+| 201 | GCP · daily resource detail | Service, date, gross, credits, net, currency and resource detail, **newest date first**. Missing resource attribution appears as Unallocated / service-level. Supplies the other GCP visuals. |
 
-At the 22 September setup verification, export was enabled and permissions were verified, but the first table had not arrived. That is dated evidence, not a fresh status claim by this guide. The dashboard discovers the export table automatically. Before delivery, it shows Awaiting first billing export / No data rather than zero. If records exist but data still fails, inspect the panel error. The query rejects incomplete/truncated results and has a 100 MB billed-query cap; a shorter range may be necessary. Exported costs are not a final reconciled invoice.
+At the 22 September setup verification, export was enabled and permissions were verified, but the first table had not arrived. Records had arrived by 25 September. The dashboard discovers the export table automatically. Before delivery, it shows Awaiting first billing export / No data rather than zero. If records exist but data still fails, inspect the panel error. The query rejects incomplete/truncated results and has a 100 MB billed-query cap; a shorter range may be necessary. Exported costs are not a final reconciled invoice.
 
 ### Railway
 
@@ -229,6 +231,10 @@ Cost scope is **the workspace**, potentially broader than the Metabase/Postgres 
 | 302 | Railway · accrued resource usage | Workspace `customer.currentUsage` in USD for the current billing cycle. It is not the final payable bill. |
 | 301 | Railway · billing period and accrued usage | Workspace, plan, usage USD, billing start/end and currency. Use the period dates to understand what the number covers. |
 | 303 | How to read Railway cost | Explains cycle-based usage versus invoice treatment of plan fees, included usage, credits and adjustments; links to Railway usage. |
+| 304 | Railway · by resource (USD est.) | Current-cycle **estimate** grouped by service, highest first, from Railway usage units. CPU vCPU-minutes × $0.0004632, RAM GB-minutes × $0.0002316, volume GB-minutes × $0.0000036 and egress GB × $0.05. Removed/unknown services remain visible; unassigned volumes are separate. This may differ from the accrued usage card and the final invoice. |
+| 305 | Railway · estimated daily compute + volume (USD) | Selected dates within the **current billing cycle**, grouped by Singapore date. Each hourly CPU/RAM/volume sample is multiplied by its published per-second rate and 3,600 seconds, then summed for that day. Shows cents. It omits egress, plan fees, included usage, credits and unsampled intervals, so it is an estimate rather than a billing ledger. |
+
+Railway's API supplies a current-cycle usage breakdown by service, but no daily cost ledger for this workspace. The daily chart is calculated from hourly metrics and does **not** reconcile to `customer.currentUsage`; retain the official accrued total above it for reference. Railway rates were checked against [published pricing](https://docs.railway.com/pricing/plans) on 25 September 2026 and must be revisited if Railway changes pricing. Azure and GCP retain their provider-native daily costs; the three sections therefore have similar resource/daily visuals but different accounting precision.
 
 ## Maintaining this guide
 
@@ -236,7 +242,7 @@ Cost scope is **the workspace**, potentially broader than the Metabase/Postgres 
 
 For each added, removed, renamed, regrouped or materially reformatted visual, update its entry and panel ID. For metric/probe changes, update scope, formula, units, freshness, state mapping and limitations. Update verified fixed limits and their verification dates after relevant resource changes. Keep live-limit behavior distinct from fixed snapshots, static instructions distinct from live status, and dated observations distinct from current verification.
 
-Compare coverage against the maintained definitions: currently **44 Performance visual panels plus 4 detail headers**, and **19 Cost visual panels plus 3 section headers**. Update these counts when the design changes. Preserve the operating reference as the authority for credentials/deployment/recovery rather than copying secrets or setup procedures here. Record changes and relevant checks in the existing monitoring change log, and publish intended documentation alongside the dashboard definition changes.
+Compare coverage against the maintained definitions: currently **58 Performance visual panels plus 5 detail headers**, and **23 Cost visual panels plus 3 section headers**. Update these counts when the design changes. Preserve the operating reference as the authority for credentials/deployment/recovery rather than copying secrets or setup procedures here. Record changes and relevant checks in the existing monitoring change log, and publish intended documentation alongside the dashboard definition changes.
 
 Sources for this guide: [dashboard builder](../scripts/monitoring/Build-Dashboards.ps1), [query helpers](../scripts/monitoring/Query.Helpers.ps1), [Debian health checks](../scripts/monitoring/debian-health.py), [saved dashboard definitions](../outputs/resource-monitoring-20260922/) and the [operating reference](Resource_Monitoring.md). This documentation update did not change or re-audit live services.
 

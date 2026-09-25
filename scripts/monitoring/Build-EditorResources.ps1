@@ -1,8 +1,13 @@
 # Convert maintained classic JSON into the current Grafana v2 editor envelope.
 # Baselines are copied from the authenticated UI, never from hidden browser state.
+param(
+    [ValidateSet('performance','cost')][string[]]$Pages=@('performance','cost'),
+    [string]$CostBaselinePath
+)
 . "$PSScriptRoot/Monitoring.Common.ps1"
-foreach($page in @('performance','cost')) {
-    $resource=Get-Content (Join-Path $MonitoringPrivate "$page-before-refinement-v2.json") -Raw|ConvertFrom-Json -AsHashtable
+foreach($page in $Pages) {
+    $baseline=if($page -eq 'cost' -and $CostBaselinePath){$CostBaselinePath}else{Join-Path $MonitoringPrivate "$page-before-refinement-v2.json"}
+    $resource=Get-Content -LiteralPath $baseline -Raw|ConvertFrom-Json -AsHashtable
     $d=Get-Content "outputs/resource-monitoring-20260922/$page-dashboard.json" -Raw|ConvertFrom-Json -AsHashtable
     $elements=@{};$rows=[Collections.Generic.List[object]]::new()
     $row=@{kind='RowsLayoutRow';spec=@{collapse=$false;hideHeader=$true;title='';layout=@{kind='GridLayout';spec=@{items=[Collections.Generic.List[object]]::new()}}}}

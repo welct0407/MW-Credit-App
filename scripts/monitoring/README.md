@@ -30,6 +30,12 @@ Rollback: restore the private pre-availability dashboard resource, disable/stop 
 
 For authenticated browser updates without a new API token, use Grafana's **Edit → Code** JSON resource editor. Capture its entire JSON to the private `performance-before-refinement-v2.json` / `cost-before-refinement-v2.json` baseline files before editing. `Build-EditorResources.ps1` converts the maintained classic dashboard JSON into that current v2 envelope and preserves the baseline's annotations/preferences. Apply the generated `*-editor-resource.json`, save with a change note, then verify the saved UI. These JSON resources contain dashboard definitions only, no credentials. Both formats are included for recovery; do not import both as separate dashboards.
 
+### Cost detail layout (25–26 September 2026)
+
+`Build-Dashboards.ps1` contains the Azure/GCP newest-first detail sorts, GCP resource and gross/credits/net daily panels, and Railway estimated resource/daily panels. Railway selectors are `railway-resource-cost.jq` and `railway-daily-estimate.jq`; they use published rates rather than a daily provider cost ledger. Test the selectors with `node scripts/monitoring/test_cost_detail.cjs <path-to-jq>` before publication. The private live rollback point is `cost-before-20260925-detail-layout-v2.json` in the resource-monitoring credential directory.
+
+For this saved dashboard, run `Build-EditorResources.ps1 -Pages cost -CostBaselinePath <private-live-backup>`, then `Patch-CostDetailResource.ps1 -LiveBaselinePath <private-live-backup>`. The latter copies only the affected Cost panel definitions and GCP/Railway row layout into the preserved live resource. Review `cost-editor-resource.json` before pasting it into Grafana Edit → Code. If a later task changes the live dashboard, first capture a fresh v2 backup and reconcile that change; do not replay the dated resource blindly.
+
 ## Initial provisioning (already completed)
 
 ### OpenAI incident details (24 September 2026)
