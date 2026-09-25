@@ -4,9 +4,9 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R032 — Open** |
-| Next number, not yet open or usable | **R033 — opens only when R032 is frozen at promotion start** |
-| Current release evidence | R031 frozen 2026-09-25T05:34:02.780910+00:00; pinned package `adba25c`; R032 sole Open release. |
+| **Use this release for new development** | **R033 — Open** |
+| Next number, not yet open or usable | **R034 — opens only when R033 is frozen at promotion start** |
+| Current release evidence | R032 frozen 2026-09-25T08:07:31.604642+00:00; pin `a82f753`; R033 sole Open release. |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R032 | Subsequent development | Open | Sole development release after R031 capture. | Current development release above |
+| R033 | Subsequent development | Open | Sole development release after R032 capture. | Current development release above |
+| R032 | Distinct cow and dog matrix icons | Frozen — deploying | Pin `a82f753`; one static asset. | [Evidence](../outputs/r032-matrix-icons/README.md) |
 | R031 | Grey quadrant icons and nearby borrower names | Released | Desktop/mobile verified; static files only; tag R031. | [Evidence](../outputs/r031-matrix-labels/README.md) |
 | R030 | Custom matrix: Debian service, DB reader and comparison iframe | Released — custom comparison chart | 2026-09-25: iframe1501 verified, original274 retained; apps unchanged, SQL schema V43; tag R030. | [Evidence](../outputs/r030-custom-matrix/README.md) |
 | R029 | Equal-quadrant borrower matrix | Released — SQL/report only | 25 September; V43 pin `de0a72a`, questions274/275; desktop/mobile geometry and parity verified. Apps unchanged; tag R029. | [Evidence](../outputs/r029-bcg-matrix/README.md) |
