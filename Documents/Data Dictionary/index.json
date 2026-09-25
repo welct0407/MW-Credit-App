@@ -4224,6 +4224,209 @@
       ]
     },
     {
+      "file": "development/r035/relations/reporting-borrower-activity-daily-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "scope": "development:R035",
+      "kind": "relation",
+      "name": "public.reporting_borrower_activity_daily_v1",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "activity_date",
+          "pointer": "/content/columns/activity_date"
+        },
+        {
+          "subject": "principal_issued",
+          "pointer": "/content/columns/principal_issued"
+        },
+        {
+          "subject": "principal_returned",
+          "pointer": "/content/columns/principal_returned"
+        },
+        {
+          "subject": "interest_received",
+          "pointer": "/content/columns/interest_received"
+        },
+        {
+          "subject": "loans_issued",
+          "pointer": "/content/columns/loans_issued"
+        },
+        {
+          "subject": "first_loans",
+          "pointer": "/content/columns/first_loans"
+        },
+        {
+          "subject": "repeat_loans",
+          "pointer": "/content/columns/repeat_loans"
+        },
+        {
+          "subject": "unclassified_loans",
+          "pointer": "/content/columns/unclassified_loans"
+        },
+        {
+          "subject": "invalid_events",
+          "pointer": "/content/columns/invalid_events"
+        }
+      ]
+    },
+    {
+      "file": "development/r035/relations/reporting-borrower-directory-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "scope": "development:R035",
+      "kind": "relation",
+      "name": "public.reporting_borrower_directory_v1",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "borrower_name",
+          "pointer": "/content/columns/borrower_name"
+        },
+        {
+          "subject": "borrower_label",
+          "pointer": "/content/columns/borrower_label"
+        },
+        {
+          "subject": "hidden_flag",
+          "pointer": "/content/columns/hidden_flag"
+        },
+        {
+          "subject": "loan_count",
+          "pointer": "/content/columns/loan_count"
+        },
+        {
+          "subject": "active_loans",
+          "pointer": "/content/columns/active_loans"
+        },
+        {
+          "subject": "has_active_loan",
+          "pointer": "/content/columns/has_active_loan"
+        },
+        {
+          "subject": "first_loan_date",
+          "pointer": "/content/columns/first_loan_date"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "last_payment_date",
+          "pointer": "/content/columns/last_payment_date"
+        },
+        {
+          "subject": "lifetime_interest",
+          "pointer": "/content/columns/lifetime_interest"
+        },
+        {
+          "subject": "invalid_fact_count",
+          "pointer": "/content/columns/invalid_fact_count"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        }
+      ]
+    },
+    {
+      "file": "development/r035/relations/reporting-borrower-loan-facts-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "scope": "development:R035",
+      "kind": "relation",
+      "name": "public.reporting_borrower_loan_facts_v1",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "loan_id",
+          "pointer": "/content/columns/loan_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "loan_date",
+          "pointer": "/content/columns/loan_date"
+        },
+        {
+          "subject": "close_date",
+          "pointer": "/content/columns/close_date"
+        },
+        {
+          "subject": "due_date",
+          "pointer": "/content/columns/due_date"
+        },
+        {
+          "subject": "original_principal",
+          "pointer": "/content/columns/original_principal"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "principal_received",
+          "pointer": "/content/columns/principal_received"
+        },
+        {
+          "subject": "interest_received",
+          "pointer": "/content/columns/interest_received"
+        },
+        {
+          "subject": "is_active",
+          "pointer": "/content/columns/is_active"
+        },
+        {
+          "subject": "loan_status",
+          "pointer": "/content/columns/loan_status"
+        },
+        {
+          "subject": "loan_type",
+          "pointer": "/content/columns/loan_type"
+        },
+        {
+          "subject": "daily_interest",
+          "pointer": "/content/columns/daily_interest"
+        },
+        {
+          "subject": "defaulted",
+          "pointer": "/content/columns/defaulted"
+        },
+        {
+          "subject": "default_loss",
+          "pointer": "/content/columns/default_loss"
+        },
+        {
+          "subject": "borrowing_type",
+          "pointer": "/content/columns/borrowing_type"
+        }
+      ]
+    },
+    {
+      "file": "development/r035/routines/reporting-borrower-period-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "scope": "development:R035",
+      "kind": "routine",
+      "name": "public.reporting_borrower_period_v1(p_start date, p_end date, p_population text)",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "imports/excel-20260923/dev-differences/database.yaml",
       "system": "workbook-evidence",
       "component": "excel-20260923/dev-differences",
@@ -29123,6 +29326,16 @@
       ]
     },
     {
+      "file": "systems/metabase/models/borrower-pages-picker.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Borrower pages · picker / 277",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/models/borrower-performance.yaml",
       "system": "metabase",
       "component": "recorded-instance",
@@ -30904,6 +31117,326 @@
       "component": "reports.mw-credit.com",
       "kind": "question",
       "name": "Unclassified · active / 256",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-active-loans.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Active loans & recorded next plan / 303",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-active.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Active loans / 292",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-health.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Current health · governed rolling window / 295",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-identity.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Selected borrower · current position / 290",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-interest-trend.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest received over time / 302",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-interest.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest received ฿ / 296",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-issued-count.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Loans issued / 299",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-issued.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal issued ฿ / 297",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-loan-history.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Loan history · lifetime / 305",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-obligations.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Obligation evidence · selected due dates / 307",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-overdue-list.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "All current overdue obligations · any due date / 308",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-overdue.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Overdue ฿ / 293",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-payments.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Repayment allocations · selected payment dates / 306",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-principal-trend.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal issued and returned / 301",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-principal.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Current principal ฿ / 291",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-returned.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal returned ฿ / 298",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-scenario.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Additional lending · hypothetical only / 309",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-share.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Portfolio share / 294",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-status.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Activity dates & lifetime context / 300",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-d-timing.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Obligations by due month · selected dates / 304",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-active.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Active borrowers / 278",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-capital.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Current principal by borrower / 285",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-comparison.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Borrower comparison · click a name for Detail / 289",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-contribution.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Period interest by borrower / 286",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-first-repeat.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "First and repeat loans · weekly / 288",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-interest.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest received ฿ / 281",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-issued-count.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Loans issued / 283",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-issued.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal issued ฿ / 282",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-loans.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Active loans / 279",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-principal.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal outstanding ฿ / 280",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-status.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Period, population & source / 284",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-pages-p-trend.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest received over time · top 5 + Others / 287",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -36873,6 +37406,199 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/reporting-borrower-activity-daily-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "scope": "production",
+      "kind": "relation",
+      "name": "public.reporting_borrower_activity_daily_v1",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "activity_date",
+          "pointer": "/content/columns/activity_date"
+        },
+        {
+          "subject": "principal_issued",
+          "pointer": "/content/columns/principal_issued"
+        },
+        {
+          "subject": "principal_returned",
+          "pointer": "/content/columns/principal_returned"
+        },
+        {
+          "subject": "interest_received",
+          "pointer": "/content/columns/interest_received"
+        },
+        {
+          "subject": "loans_issued",
+          "pointer": "/content/columns/loans_issued"
+        },
+        {
+          "subject": "first_loans",
+          "pointer": "/content/columns/first_loans"
+        },
+        {
+          "subject": "repeat_loans",
+          "pointer": "/content/columns/repeat_loans"
+        },
+        {
+          "subject": "unclassified_loans",
+          "pointer": "/content/columns/unclassified_loans"
+        },
+        {
+          "subject": "invalid_events",
+          "pointer": "/content/columns/invalid_events"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-borrower-directory-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "scope": "production",
+      "kind": "relation",
+      "name": "public.reporting_borrower_directory_v1",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "borrower_name",
+          "pointer": "/content/columns/borrower_name"
+        },
+        {
+          "subject": "borrower_label",
+          "pointer": "/content/columns/borrower_label"
+        },
+        {
+          "subject": "hidden_flag",
+          "pointer": "/content/columns/hidden_flag"
+        },
+        {
+          "subject": "loan_count",
+          "pointer": "/content/columns/loan_count"
+        },
+        {
+          "subject": "active_loans",
+          "pointer": "/content/columns/active_loans"
+        },
+        {
+          "subject": "has_active_loan",
+          "pointer": "/content/columns/has_active_loan"
+        },
+        {
+          "subject": "first_loan_date",
+          "pointer": "/content/columns/first_loan_date"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "last_payment_date",
+          "pointer": "/content/columns/last_payment_date"
+        },
+        {
+          "subject": "lifetime_interest",
+          "pointer": "/content/columns/lifetime_interest"
+        },
+        {
+          "subject": "invalid_fact_count",
+          "pointer": "/content/columns/invalid_fact_count"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-borrower-loan-facts-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "scope": "production",
+      "kind": "relation",
+      "name": "public.reporting_borrower_loan_facts_v1",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "loan_id",
+          "pointer": "/content/columns/loan_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "loan_date",
+          "pointer": "/content/columns/loan_date"
+        },
+        {
+          "subject": "close_date",
+          "pointer": "/content/columns/close_date"
+        },
+        {
+          "subject": "due_date",
+          "pointer": "/content/columns/due_date"
+        },
+        {
+          "subject": "original_principal",
+          "pointer": "/content/columns/original_principal"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "principal_received",
+          "pointer": "/content/columns/principal_received"
+        },
+        {
+          "subject": "interest_received",
+          "pointer": "/content/columns/interest_received"
+        },
+        {
+          "subject": "is_active",
+          "pointer": "/content/columns/is_active"
+        },
+        {
+          "subject": "loan_status",
+          "pointer": "/content/columns/loan_status"
+        },
+        {
+          "subject": "loan_type",
+          "pointer": "/content/columns/loan_type"
+        },
+        {
+          "subject": "daily_interest",
+          "pointer": "/content/columns/daily_interest"
+        },
+        {
+          "subject": "defaulted",
+          "pointer": "/content/columns/defaulted"
+        },
+        {
+          "subject": "default_loss",
+          "pointer": "/content/columns/default_loss"
+        },
+        {
+          "subject": "borrowing_type",
+          "pointer": "/content/columns/borrowing_type"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/reporting-borrower-matrix-plot-v1.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -39024,6 +39750,16 @@
       "kind": "routine",
       "name": "public.vc_repayment_changed()",
       "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/reporting-borrower-period-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "scope": "production",
+      "kind": "routine",
+      "name": "public.reporting_borrower_period_v1(p_start date, p_end date, p_population text)",
       "status": "documented",
       "lookup": []
     },

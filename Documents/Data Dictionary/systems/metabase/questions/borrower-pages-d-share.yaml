@@ -1,0 +1,59 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Portfolio share / 294"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-share"
+  "id": 294
+  "name": "Portfolio share"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "scalar"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "display-name": "Borrower"
+        "id": "bp-borrower"
+        "name": "borrower_id"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1\
+        \ WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT c.outstanding_principal/(SELECT CASE WHEN\
+        \ bool_and(outstanding_principal IS NOT NULL) AND sum(outstanding_principal)>0 THEN sum(outstanding_principal) END\
+        \ FROM public.reporting_borrower_directory_v1 WHERE loan_count>0) AS \"Portfolio share\" FROM chosen c  "
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.field": "Portfolio share"
+    "column_settings":
+      "[\"name\",\"Portfolio share\"]":
+        "number_style": "percent"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+  "result_metadata":
+  - "name": "Portfolio share"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Portfolio share"
+    "semantic_type": "type/Share"
+    "field_ref":
+    - "field"
+    - "Portfolio share"
+    - "base-type": "type/Decimal"
+"evidence":
+  "/content/result_metadata":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"

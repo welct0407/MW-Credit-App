@@ -1,0 +1,156 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Obligations by due month · selected dates / 304",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "d-timing",
+    "id": 304,
+    "name": "Obligations by due month · selected dates",
+    "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes.",
+    "display": "bar",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "date/all-options",
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "d4e890b8-b98e-4fce-adf5-4448a7fd95f0",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.\"Date\""
+            },
+            {
+              "display-name": "Borrower",
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "type": "text"
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT date_trunc('month',h.due_date)::date AS \"Due month\",count(*) FILTER(WHERE h.history_eligible AND h.on_time) AS \"On time\",count(*) FILTER(WHERE h.history_eligible AND NOT h.on_time) AS \"Not on time\",count(*) FILTER(WHERE NOT h.history_eligible OR h.on_time IS NULL) AS \"Excluded / unavailable\" FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND h.due_date BETWEEN b.starts AND b.ends GROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "graph.show_values": false,
+      "graph.show_legend": true,
+      "graph.missing": "none",
+      "graph.y_axis.auto_split": false,
+      "graph.metrics": [
+        "On time",
+        "Not on time",
+        "Excluded / unavailable"
+      ],
+      "graph.label_value_formatting": "compact",
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60",
+        "#9CA3AF"
+      ],
+      "graph.show_dots": false,
+      "column_settings": {
+        "[\"name\",\"On time\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Not on time\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Excluded / unavailable\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      },
+      "graph.dimensions": [
+        "Due month"
+      ],
+      "stackable.stack_type": "stacked"
+    },
+    "result_metadata": [
+      {
+        "name": "Due month",
+        "database_type": "date",
+        "base_type": "type/Date",
+        "display_name": "Due month",
+        "field_ref": [
+          "field",
+          "Due month",
+          {
+            "base-type": "type/Date"
+          }
+        ]
+      },
+      {
+        "name": "On time",
+        "database_type": "int8",
+        "base_type": "type/BigInteger",
+        "display_name": "On time",
+        "field_ref": [
+          "field",
+          "On time",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ]
+      },
+      {
+        "name": "Not on time",
+        "database_type": "int8",
+        "base_type": "type/BigInteger",
+        "display_name": "Not on time",
+        "field_ref": [
+          "field",
+          "Not on time",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ]
+      },
+      {
+        "name": "Excluded / unavailable",
+        "database_type": "int8",
+        "base_type": "type/BigInteger",
+        "display_name": "Excluded / unavailable",
+        "field_ref": [
+          "field",
+          "Excluded / unavailable",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ]
+      }
+    ]
+  }
+}

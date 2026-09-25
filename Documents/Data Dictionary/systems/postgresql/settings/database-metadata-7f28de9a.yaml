@@ -591,6 +591,13 @@
       "script": "V43__borrower_matrix_display_coordinates.sql"
       "checksum": -2146160064
       "success": true
+    - "installed_rank": 44
+      "version": "44"
+      "description": "borrower portfolio detail reporting"
+      "type": "SQL"
+      "script": "V44__borrower_portfolio_detail_reporting.sql"
+      "checksum": 1039437163
+      "success": true
     "foreign_tables": []
     "aggregates": []
     "jobs": []
@@ -601,6 +608,6 @@
     "reason": "V40 verified catalog readback; exact remaining settings and DEV differences."
     "state": "value"
   "/content/sections/flyway":
-    "reference": "outputs/r029-bcg-matrix/README.md"
-    "reason": "R029 display-only SQL coordinates and saved review-tab definitions"
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
     "state": "value"

@@ -97,6 +97,20 @@
     "entity_id": "ekTtfQu8cvMG2Ys54NoPc"
     "created_at": "2026-09-23T17:25:33.780214Z"
     "updated_at": "2026-09-24T16:28:03.768309Z"
+  - "id": 104
+    "dashboard_id": 3
+    "name": "Borrower Portfolio · New"
+    "position": 12
+    "entity_id": "axmyErpiqSJVut7iwChk0"
+    "created_at": "2026-09-25T10:04:37.03364Z"
+    "updated_at": "2026-09-25T10:04:37.03364Z"
+  - "id": 105
+    "dashboard_id": 3
+    "name": "Borrower Detail · New"
+    "position": 13
+    "entity_id": "hLWPca6nwYbuJ6O6YvfUx"
+    "created_at": "2026-09-25T10:04:37.03364Z"
+    "updated_at": "2026-09-25T10:04:37.03364Z"
   "parameters":
   - "slug": "borrower"
     "values_query_type": "list"
@@ -212,6 +226,59 @@
       - "Not Paid"
       - "Partially Paid"
       - "Fully Paid"
+  - "slug": "bp_population"
+    "values_query_type": "list"
+    "default":
+    - "All with loan history"
+    "name": "Borrower population"
+    "isMultiSelect": false
+    "type": "string/="
+    "sectionId": "string"
+    "values_source_type": "static-list"
+    "id": "bp-population"
+    "values_source_config":
+      "values":
+      - "All with loan history"
+      - "Currently active"
+      - "Currently inactive"
+  - "id": "bp-period"
+    "name": "Portfolio activity dates"
+    "slug": "bp_activity"
+    "type": "date/all-options"
+    "sectionId": "date"
+    "default": "past30days"
+  - "id": "bd-period"
+    "name": "Detail activity dates"
+    "slug": "bd_activity"
+    "type": "date/all-options"
+    "sectionId": "date"
+    "default": "past30days"
+  - "slug": "bd_borrower"
+    "values_query_type": "list"
+    "name": "Select borrower"
+    "isMultiSelect": false
+    "type": "string/="
+    "sectionId": "string"
+    "values_source_type": "card"
+    "id": "bd-borrower"
+    "values_source_config":
+      "card_id": 277
+      "value_field":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "label_field":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+  - "id": "bd-amount"
+    "name": "Scenario · additional principal"
+    "slug": "bd_amount"
+    "type": "number/="
+    "sectionId": "number"
+    "default":
+    - 0
+    "isMultiSelect": false
   "cash_pages":
     "layout":
     - "id": -1
@@ -4121,6 +4188,56 @@
         - 272
         - 275
         "reference": "outputs/r034-matrix-order/verification.json"
+  "borrower_pages":
+    "release": "R035"
+    "tabs":
+      "portfolio": 104
+      "detail": 105
+    "questions":
+      "picker": 277
+      "p-active": 278
+      "p-loans": 279
+      "p-principal": 280
+      "p-interest": 281
+      "p-issued": 282
+      "p-issued-count": 283
+      "p-status": 284
+      "p-capital": 285
+      "p-contribution": 286
+      "p-trend": 287
+      "p-first-repeat": 288
+      "p-comparison": 289
+      "d-identity": 290
+      "d-principal": 291
+      "d-active": 292
+      "d-overdue": 293
+      "d-share": 294
+      "d-health": 295
+      "d-interest": 296
+      "d-issued": 297
+      "d-returned": 298
+      "d-issued-count": 299
+      "d-status": 300
+      "d-principal-trend": 301
+      "d-interest-trend": 302
+      "d-active-loans": 303
+      "d-timing": 304
+      "d-loan-history": 305
+      "d-payments": 306
+      "d-obligations": 307
+      "d-overdue-list": 308
+      "d-scenario": 309
+    "definition_reference": "outputs/r035-borrower-pages/metabase-saved.json"
+    "preserved_original_tabs": true
+    "filter_contract": "Separate activity dates; current and lifetime positions ignore dates; one borrower required; empty\
+      \ selection returns no financial totals"
+    "sources":
+    - "reporting_borrower_loan_facts_v1"
+    - "reporting_borrower_directory_v1"
+    - "reporting_borrower_activity_daily_v1"
+    - "reporting_borrower_period_v1"
+    "health": "Existing V41/V42 unchanged"
+    "rollback_dashboard": 10
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4135,16 +4252,16 @@
     "reason": "Tab 9 category labels and daily income/expense comparison"
     "state": "value"
   "/content/tabs":
-    "reference": "outputs/r027-payment-health/README.md"
-    "reason": "R027 verified shared SQL and parallel Metabase review; AppSheet detour removed"
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
     "state": "value"
   "/content/performance_review":
     "reference": "outputs/r024-20260924/README.md"
     "reason": "Swap canonical Performance and Borrowers display order"
     "state": "value"
   "/content/parameters":
-    "reference": "outputs/r025-20260924/README.md"
-    "reason": "R025 additive collection monitor, original collection preserved"
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
     "state": "value"
   "/content/unaffected_pages":
     "reference": "outputs/r023-20260924/README.md"
@@ -4161,4 +4278,8 @@
   "/content/borrower_health_review/custom_matrix":
     "reference": "outputs/r031-matrix-labels/verification.json"
     "reason": "R031 static chart presentation verified"
+    "state": "value"
+  "/content/borrower_pages":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
     "state": "value"

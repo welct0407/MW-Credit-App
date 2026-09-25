@@ -1,0 +1,286 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "All current overdue obligations · any due date / 308"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-overdue-list"
+  "id": 308
+  "name": "All current overdue obligations · any due date"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "table"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "display-name": "Borrower"
+        "id": "bp-borrower"
+        "name": "borrower_id"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
+        ) SELECT h.due_date AS "Due date",h.loan_id AS "Loan ID",h.charge_id AS "Charge ID",h.principal_due AS "Principal due ฿",h.interest_due AS "Interest due ฿",h.principal_remaining_current AS "Principal remaining ฿",h.interest_remaining_current AS "Interest remaining ฿",h.current_days_overdue AS "Days overdue",CASE WHEN NOT h.history_eligible THEN 'Excluded' WHEN h.on_time THEN 'On time' ELSE 'Not on time' END AS "Historical timing",coalesce(h.exclusion_reason,h.data_quality_status) AS "Evidence status" FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) WHERE h.is_overdue ORDER BY h.due_date,h.charge_id
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Due date"
+      "fieldRef":
+      - "field"
+      - "Due date"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Loan ID"
+      "fieldRef":
+      - "field"
+      - "Loan ID"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Charge ID"
+      "fieldRef":
+      - "field"
+      - "Charge ID"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Principal due ฿"
+      "fieldRef":
+      - "field"
+      - "Principal due ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Interest due ฿"
+      "fieldRef":
+      - "field"
+      - "Interest due ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Principal remaining ฿"
+      "fieldRef":
+      - "field"
+      - "Principal remaining ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Interest remaining ฿"
+      "fieldRef":
+      - "field"
+      - "Interest remaining ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Days overdue"
+      "fieldRef":
+      - "field"
+      - "Days overdue"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Historical timing"
+      "fieldRef":
+      - "field"
+      - "Historical timing"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Evidence status"
+      "fieldRef":
+      - "field"
+      - "Evidence status"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    "column_settings":
+      "[\"name\",\"Principal due ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Interest due ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal remaining ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Interest remaining ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Days overdue\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "result_metadata":
+  - "database_type": "date"
+    "semantic_type": null
+    "lib/deduplicated-name": "Due date"
+    "lib/original-name": "Due date"
+    "name": "Due date"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Due date"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Due date"
+    - "base-type": "type/Date"
+    "effective_type": "type/Date"
+    "lib/desired-column-alias": "Due date"
+    "display_name": "Due date"
+    "base_type": "type/Date"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Loan ID"
+    "lib/original-name": "Loan ID"
+    "name": "Loan ID"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Loan ID"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Loan ID"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Loan ID"
+    "display_name": "Loan ID"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Charge ID"
+    "lib/original-name": "Charge ID"
+    "name": "Charge ID"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Charge ID"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Charge ID"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Charge ID"
+    "display_name": "Charge ID"
+    "base_type": "type/Text"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Principal due ฿"
+    "lib/original-name": "Principal due ฿"
+    "name": "Principal due ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Principal due ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Principal due ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Principal due ฿"
+    "display_name": "Principal due ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Interest due ฿"
+    "lib/original-name": "Interest due ฿"
+    "name": "Interest due ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Interest due ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Interest due ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Interest due ฿"
+    "display_name": "Interest due ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Principal remaining ฿"
+    "lib/original-name": "Principal remaining ฿"
+    "name": "Principal remaining ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Principal remaining ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Principal remaining ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Principal remaining ฿"
+    "display_name": "Principal remaining ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Interest remaining ฿"
+    "lib/original-name": "Interest remaining ฿"
+    "name": "Interest remaining ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Interest remaining ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Interest remaining ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Interest remaining ฿"
+    "display_name": "Interest remaining ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "int4"
+    "semantic_type": null
+    "lib/deduplicated-name": "Days overdue"
+    "lib/original-name": "Days overdue"
+    "name": "Days overdue"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Days overdue"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Days overdue"
+    - "base-type": "type/Integer"
+    "effective_type": "type/Integer"
+    "lib/desired-column-alias": "Days overdue"
+    "display_name": "Days overdue"
+    "base_type": "type/Integer"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Historical timing"
+    "lib/original-name": "Historical timing"
+    "name": "Historical timing"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Historical timing"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Historical timing"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Historical timing"
+    "display_name": "Historical timing"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Evidence status"
+    "lib/original-name": "Evidence status"
+    "name": "Evidence status"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Evidence status"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Evidence status"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Evidence status"
+    "display_name": "Evidence status"
+    "base_type": "type/Text"
+"evidence":
+  "/content/result_metadata":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"

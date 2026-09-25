@@ -1,0 +1,333 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Current health · governed rolling window / 295"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-health"
+  "id": 295
+  "name": "Current health · governed rolling window"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "table"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "display-name": "Borrower"
+        "id": "bp-borrower"
+        "name": "borrower_id"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS MATERIALIZED (SELECT borrower_id,has_active_loan FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
+        ), selected_health AS MATERIALIZED (SELECT borrower_id,current_health_status,rating_status,reliability_score,confidence,reason_text,overdue_principal,overdue_interest,oldest_unpaid_days,calculated_at FROM public.reporting_borrower_payment_health_v1 WHERE borrower_id=(SELECT borrower_id FROM chosen)), selected_matrix AS MATERIALIZED (SELECT borrower_id,quadrant,classification_reason,arrangement_status FROM public.reporting_borrower_matrix_v3 WHERE borrower_id=(SELECT borrower_id FROM chosen)) SELECT h.current_health_status AS "Current health",h.rating_status AS "Rating status",h.reliability_score AS "Payment score /100",h.confidence AS "Confidence",coalesce(m.quadrant,'Outside active cohort') AS "Category",coalesce(m.arrangement_status,CASE WHEN c.has_active_loan THEN 'Unavailable' ELSE 'No active loan' END) AS "Schedule",h.reason_text AS "Payment reason",m.classification_reason AS "Category reason",h.overdue_principal AS "Overdue principal ฿",h.overdue_interest AS "Overdue interest ฿",h.oldest_unpaid_days AS "Oldest overdue days",to_char(h.calculated_at AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI') AS "Queried at" FROM chosen c LEFT JOIN selected_health h USING(borrower_id) LEFT JOIN selected_matrix m USING(borrower_id)
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.columns":
+    - "name": "Current health"
+      "fieldRef":
+      - "field"
+      - "Current health"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Rating status"
+      "fieldRef":
+      - "field"
+      - "Rating status"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Payment score /100"
+      "fieldRef":
+      - "field"
+      - "Payment score /100"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Confidence"
+      "fieldRef":
+      - "field"
+      - "Confidence"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Category"
+      "fieldRef":
+      - "field"
+      - "Category"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Schedule"
+      "fieldRef":
+      - "field"
+      - "Schedule"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Payment reason"
+      "fieldRef":
+      - "field"
+      - "Payment reason"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Category reason"
+      "fieldRef":
+      - "field"
+      - "Category reason"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Overdue principal ฿"
+      "fieldRef":
+      - "field"
+      - "Overdue principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Overdue interest ฿"
+      "fieldRef":
+      - "field"
+      - "Overdue interest ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Oldest overdue days"
+      "fieldRef":
+      - "field"
+      - "Oldest overdue days"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Queried at"
+      "fieldRef":
+      - "field"
+      - "Queried at"
+      - "base-type": "type/Text"
+      "enabled": true
+    "column_settings":
+      "[\"name\",\"Payment score /100\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Overdue principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Overdue interest ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Oldest overdue days\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "result_metadata":
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Current health"
+    "lib/original-name": "Current health"
+    "name": "Current health"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Current health"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Current health"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Current health"
+    "display_name": "Current health"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Rating status"
+    "lib/original-name": "Rating status"
+    "name": "Rating status"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Rating status"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Rating status"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Rating status"
+    "display_name": "Rating status"
+    "base_type": "type/Text"
+  - "database_type": "numeric"
+    "semantic_type": "type/Score"
+    "lib/deduplicated-name": "Payment score /100"
+    "lib/original-name": "Payment score /100"
+    "name": "Payment score /100"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Payment score /100"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Payment score /100"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Payment score /100"
+    "display_name": "Payment score /100"
+    "base_type": "type/Decimal"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Confidence"
+    "lib/original-name": "Confidence"
+    "name": "Confidence"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Confidence"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Confidence"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Confidence"
+    "display_name": "Confidence"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Category"
+    "lib/original-name": "Category"
+    "name": "Category"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Category"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Category"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Category"
+    "display_name": "Category"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Schedule"
+    "lib/original-name": "Schedule"
+    "name": "Schedule"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Schedule"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Schedule"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Schedule"
+    "display_name": "Schedule"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Payment reason"
+    "lib/original-name": "Payment reason"
+    "name": "Payment reason"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Payment reason"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Payment reason"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Payment reason"
+    "display_name": "Payment reason"
+    "base_type": "type/Text"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Category reason"
+    "lib/original-name": "Category reason"
+    "name": "Category reason"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Category reason"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Category reason"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Category reason"
+    "display_name": "Category reason"
+    "base_type": "type/Text"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Overdue principal ฿"
+    "lib/original-name": "Overdue principal ฿"
+    "name": "Overdue principal ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Overdue principal ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Overdue principal ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Overdue principal ฿"
+    "display_name": "Overdue principal ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Overdue interest ฿"
+    "lib/original-name": "Overdue interest ฿"
+    "name": "Overdue interest ฿"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Overdue interest ฿"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Overdue interest ฿"
+    - "base-type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Overdue interest ฿"
+    "display_name": "Overdue interest ฿"
+    "base_type": "type/Decimal"
+  - "database_type": "int4"
+    "semantic_type": null
+    "lib/deduplicated-name": "Oldest overdue days"
+    "lib/original-name": "Oldest overdue days"
+    "name": "Oldest overdue days"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Oldest overdue days"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Oldest overdue days"
+    - "base-type": "type/Integer"
+    "effective_type": "type/Integer"
+    "lib/desired-column-alias": "Oldest overdue days"
+    "display_name": "Oldest overdue days"
+    "base_type": "type/Integer"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Queried at"
+    "lib/original-name": "Queried at"
+    "name": "Queried at"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Queried at"
+    "source": "native"
+    "field_ref":
+    - "field"
+    - "Queried at"
+    - "base-type": "type/Text"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Queried at"
+    "display_name": "Queried at"
+    "base_type": "type/Text"
+"evidence":
+  "/content/result_metadata":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"

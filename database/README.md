@@ -1,5 +1,9 @@
 # PostgreSQL development with Flyway
 
+## R035 borrower page providers — DEV and PROD
+
+V44 adds three read-only views and the stable invoker function `reporting_borrower_period_v1(date,date,text)`. Identity, independent loan/receipt grain, signed corrections, population scope and Bangkok period rules are governed in SQL. Both environments validated; production pin `d691d66`, restored snapshot rehearsal and affected-schema parity passed. No operational table/column, AppSheet binding, trigger or financial-row change. V44 is immutable; subsequent SQL changes require a higher migration. [Package, tests and recovery](../outputs/r035-borrower-pages/README.md).
+
 ## R029 matrix display coordinates — DEV and PROD
 
 V43 adds `reporting_borrower_matrix_plot_v1` over unchanged V3. One row per borrower; original fields retained; normalized coordinates, plotting status and placement basis added. No operational columns, AppSheet sources or financial writes. DEV/PROD43 validated from pin `de0a72a`; restore rehearsal,186 synthetic cases and independent source/coordinate parity passed. [Package and recovery](../outputs/r029-bcg-matrix/README.md).

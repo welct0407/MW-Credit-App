@@ -1,3 +1,7 @@
+# Additive borrower pages — R035
+
+`BorrowerPages.mjs` owns only new Portfolio104 / Detail105 and their 33 saved questions/model. `--plan` emits definitions; `--prepare` refuses to replace the private baseline; `--publish` installs additively; `--refine` updates only this batch's cards/layout; `--capture` records sanitized saved metadata. Do not replay creation against a different baseline. `Verify-BorrowerPages.mjs` checks actual dashboard parameter mappings, empty selection, reconciliation and preserved original objects. [Contract and rollback](../../outputs/r035-borrower-pages/README.md).
+
 # Borrower Health Review layout and whole-baht display — R034
 
 `Reorder-And-Format-BorrowerReview.mjs` is a guarded one-time installer with `--verify` readback. [Deployment, verification and rollback](../../outputs/r034-matrix-order/README.md). Do not replay it after installation.

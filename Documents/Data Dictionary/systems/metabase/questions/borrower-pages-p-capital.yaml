@@ -1,0 +1,113 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Current principal by borrower / 285",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "p-capital",
+    "id": 285,
+    "name": "Current principal by borrower",
+    "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes.",
+    "display": "row",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "type": "text",
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "default": "All with loan history"
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH clock AS (SELECT public.olap_reporting_date() today), cohort AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE loan_count>0 AND ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND has_active_loan OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT has_active_loan)), ranked AS (SELECT *,row_number() OVER(ORDER BY outstanding_principal DESC NULLS LAST,borrower_id) rank FROM cohort), groups AS (SELECT CASE WHEN rank<=10 THEN borrower_id END id,CASE WHEN rank<=10 THEN borrower_label ELSE 'Others' END label,CASE WHEN bool_and(outstanding_principal IS NOT NULL) THEN sum(outstanding_principal) END amount,min(rank) rank FROM ranked GROUP BY 1,2)\n SELECT label AS \"Borrower\",amount AS \"Amount ฿\",id AS \"Borrower ID\" FROM groups ORDER BY rank"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "graph.show_values": true,
+      "graph.show_legend": false,
+      "graph.missing": "none",
+      "graph.y_axis.auto_split": false,
+      "graph.metrics": [
+        "Amount ฿"
+      ],
+      "graph.label_value_formatting": "compact",
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#24435A",
+        "#D4AD60",
+        "#9CA3AF"
+      ],
+      "graph.show_dots": false,
+      "column_settings": {
+        "[\"name\",\"Amount ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      },
+      "graph.dimensions": [
+        "Borrower"
+      ],
+      "stackable.stack_type": null
+    },
+    "result_metadata": [
+      {
+        "name": "Borrower",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Borrower",
+        "field_ref": [
+          "field",
+          "Borrower",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      {
+        "name": "Amount ฿",
+        "database_type": "numeric",
+        "base_type": "type/Decimal",
+        "display_name": "Amount ฿",
+        "field_ref": [
+          "field",
+          "Amount ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ]
+      },
+      {
+        "name": "Borrower ID",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Borrower ID",
+        "field_ref": [
+          "field",
+          "Borrower ID",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    ]
+  }
+}

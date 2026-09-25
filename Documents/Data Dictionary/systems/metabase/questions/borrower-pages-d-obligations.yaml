@@ -1,0 +1,336 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Obligation evidence · selected due dates / 307",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+  },
+  "content": {
+    "key": "d-obligations",
+    "id": 307,
+    "name": "Obligation evidence · selected due dates",
+    "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes.",
+    "display": "table",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "date/all-options",
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "2c0d46dd-7ff8-479a-863d-f731383344bb",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.\"Date\""
+            },
+            {
+              "display-name": "Borrower",
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "type": "text"
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT h.due_date AS \"Due date\",h.loan_id AS \"Loan ID\",h.charge_id AS \"Charge ID\",h.principal_due AS \"Principal due ฿\",h.interest_due AS \"Interest due ฿\",h.principal_remaining_current AS \"Principal remaining ฿\",h.interest_remaining_current AS \"Interest remaining ฿\",h.current_days_overdue AS \"Days overdue\",CASE WHEN NOT h.history_eligible THEN 'Excluded' WHEN h.on_time THEN 'On time' ELSE 'Not on time' END AS \"Historical timing\",coalesce(h.exclusion_reason,h.data_quality_status) AS \"Evidence status\" FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND h.due_date BETWEEN b.starts AND b.ends ORDER BY h.due_date DESC,h.charge_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Due date",
+          "fieldRef": [
+            "field",
+            "Due date",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Loan ID",
+          "fieldRef": [
+            "field",
+            "Loan ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Charge ID",
+          "fieldRef": [
+            "field",
+            "Charge ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Principal due ฿",
+          "fieldRef": [
+            "field",
+            "Principal due ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Interest due ฿",
+          "fieldRef": [
+            "field",
+            "Interest due ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Principal remaining ฿",
+          "fieldRef": [
+            "field",
+            "Principal remaining ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Interest remaining ฿",
+          "fieldRef": [
+            "field",
+            "Interest remaining ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Days overdue",
+          "fieldRef": [
+            "field",
+            "Days overdue",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Historical timing",
+          "fieldRef": [
+            "field",
+            "Historical timing",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Evidence status",
+          "fieldRef": [
+            "field",
+            "Evidence status",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Principal due ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Interest due ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal remaining ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Interest remaining ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Days overdue\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    },
+    "result_metadata": [
+      {
+        "name": "Due date",
+        "database_type": "date",
+        "base_type": "type/Date",
+        "display_name": "Due date",
+        "field_ref": [
+          "field",
+          "Due date",
+          {
+            "base-type": "type/Date"
+          }
+        ]
+      },
+      {
+        "name": "Loan ID",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Loan ID",
+        "field_ref": [
+          "field",
+          "Loan ID",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      {
+        "name": "Charge ID",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Charge ID",
+        "field_ref": [
+          "field",
+          "Charge ID",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      {
+        "name": "Principal due ฿",
+        "database_type": "numeric",
+        "base_type": "type/Decimal",
+        "display_name": "Principal due ฿",
+        "field_ref": [
+          "field",
+          "Principal due ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ]
+      },
+      {
+        "name": "Interest due ฿",
+        "database_type": "numeric",
+        "base_type": "type/Decimal",
+        "display_name": "Interest due ฿",
+        "field_ref": [
+          "field",
+          "Interest due ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ]
+      },
+      {
+        "name": "Principal remaining ฿",
+        "database_type": "numeric",
+        "base_type": "type/Decimal",
+        "display_name": "Principal remaining ฿",
+        "field_ref": [
+          "field",
+          "Principal remaining ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ]
+      },
+      {
+        "name": "Interest remaining ฿",
+        "database_type": "numeric",
+        "base_type": "type/Decimal",
+        "display_name": "Interest remaining ฿",
+        "field_ref": [
+          "field",
+          "Interest remaining ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ]
+      },
+      {
+        "name": "Days overdue",
+        "database_type": "int4",
+        "base_type": "type/Integer",
+        "display_name": "Days overdue",
+        "field_ref": [
+          "field",
+          "Days overdue",
+          {
+            "base-type": "type/Integer"
+          }
+        ]
+      },
+      {
+        "name": "Historical timing",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Historical timing",
+        "field_ref": [
+          "field",
+          "Historical timing",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      },
+      {
+        "name": "Evidence status",
+        "database_type": "text",
+        "base_type": "type/Text",
+        "display_name": "Evidence status",
+        "field_ref": [
+          "field",
+          "Evidence status",
+          {
+            "base-type": "type/Text"
+          }
+        ]
+      }
+    ]
+  }
+}

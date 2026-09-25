@@ -1,0 +1,57 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Active loans / 292"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r035-borrower-pages/saved-question-definitions.json"
+"content":
+  "key": "d-active"
+  "id": 292
+  "name": "Active loans"
+  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
+    \ receipts. No AppSheet/financial writes."
+  "display": "scalar"
+  "type": "question"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "display-name": "Borrower"
+        "id": "bp-borrower"
+        "name": "borrower_id"
+        "type": "text"
+      "lib/type": "mbql.stage/native"
+      "native": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1\
+        \ WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT c.active_loans AS \"Active loans\" FROM\
+        \ chosen c  "
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "scalar.field": "Active loans"
+    "column_settings":
+      "[\"name\",\"Active loans\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+  "result_metadata":
+  - "name": "Active loans"
+    "database_type": "int8"
+    "base_type": "type/BigInteger"
+    "display_name": "Active loans"
+    "field_ref":
+    - "field"
+    - "Active loans"
+    - "base-type": "type/BigInteger"
+"evidence":
+  "/content/result_metadata":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r035-borrower-pages/README.md"
+    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"

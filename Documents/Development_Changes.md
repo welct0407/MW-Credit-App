@@ -1,5 +1,7 @@
 # Open development differences
 
+R035 borrower pages (25 September): V44 applied and validated in DEV and PROD; new Portfolio104 and Detail105 added to Metabase dashboard3. No remaining R035 SQL/AppSheet deployment difference; browser/documentation closure is recorded in the [single checklist](../outputs/r035-borrower-pages/promotion-checklist.md). Existing pages and V41/V42 health definitions remain unchanged. R036 is the sole Open release. Prior R026 app limitations remain separately recorded.
+
 R034 (25 September): accepted matrix moved above its category tables, with whole-baht amount presentation on the review tab. No remaining R034 DEV/AppSheet difference; SQL V43 and chart API unchanged. R035 sole Open release. [Evidence](../outputs/r034-matrix-order/README.md).
 
 R033 (25 September): owner accepted the custom matrix. Dashboard3/tab31 now shows iframe1501 at row31; old plot849 and labels1280–1283 removed. Saved question274 retained for recovery; method note and details retained, later rows shifted upward20. Apps, SQL and service unchanged. Recovery dashboard8. R034 sole Open release. [Evidence](../outputs/r033-matrix-cutover/README.md).

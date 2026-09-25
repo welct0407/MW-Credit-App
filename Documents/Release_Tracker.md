@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R036 | Subsequent development | Open | Sole development release after R035 independent SQL capture. | R035 handoff below |
-| R035 | Metabase monitoring and additive borrower pages | Frozen for promotion | 2026-09-25T10:03:32.6572445Z; SQL V44 pin `d691d66`; monitoring already published, borrower tabs pending. | [Release log](../Change%20Logs/CHANGE_NOTES_R035_2026-09-25.md) |
+| R035 | Metabase monitoring and additive borrower pages | Released — SQL/report and monitoring | DEV/PROD44; new Portfolio104 / Detail105, original tabs preserved; data and desktop/mobile checks passed. Apps unchanged; tag R035. | [Evidence](../outputs/r035-borrower-pages/README.md) · [Release log](../Change%20Logs/CHANGE_NOTES_R035_2026-09-25.md) |
 | R034 | Chart above category tables; whole-baht amounts | Released | Live layout and amount formatting verified; tag R034. | [Evidence](../outputs/r034-matrix-order/README.md) |
 | R033 | Accepted custom matrix; remove native plot | Released | Native plot removed; iframe/detail table verified; tag R033. | [Evidence](../outputs/r033-matrix-cutover/README.md) |
 | R032 | Distinct cow and dog matrix icons | Released | Live visual verification passed; one static asset; tag R032. | [Evidence](../outputs/r032-matrix-icons/README.md) |
