@@ -9,12 +9,13 @@ from psycopg import sql
 parser=argparse.ArgumentParser()
 parser.add_argument('--environment',choices=['development','production'],required=True)
 parser.add_argument('--release',default='r027-payment-health')
-parser.add_argument('--baseline',type=int,choices=[39,40,41],default=None)
-parser.add_argument('--candidate',choices=['reporting_borrower_payment_health_v1','reporting_borrower_matrix_v3'],default='reporting_borrower_payment_health_v1')
+parser.add_argument('--baseline',type=int,choices=[39,40,41,42],default=None)
+parser.add_argument('--candidate',choices=['reporting_borrower_payment_health_v1','reporting_borrower_matrix_v3','reporting_borrower_matrix_plot_v1'],default='reporting_borrower_payment_health_v1')
 parser.add_argument('--rehearse-schedule',action='store_true')
+parser.add_argument('--rehearse-matrix',action='store_true')
 args=parser.parse_args()
 repo=Path(__file__).resolve().parents[2]
-assert args.release in ('r027-payment-health','r028-schedule-health')
+assert args.release in ('r027-payment-health','r028-schedule-health','r029-bcg-matrix')
 private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project')/args.release
 private.mkdir(parents=True,exist_ok=True)
 out=repo/'outputs'/args.release;out.mkdir(parents=True,exist_ok=True)
@@ -76,10 +77,24 @@ try:
             rehearsal['migration_sha256']=hashlib.sha256(migration.read_bytes()).hexdigest()
             (out/'production-rehearsal.json').write_text(json.dumps(rehearsal,indent=2)+'\n')
             c.rollback() # private restore only, candidate DDL rolled back
+        if args.rehearse_matrix:
+            assert args.release=='r029-bcg-matrix' and version==42
+            c.execute("SET LOCAL timezone='UTC'")
+            migration=repo/'database/migrations/V43__borrower_matrix_display_coordinates.sql'
+            c.execute(migration.read_text(encoding='utf-8'))
+            sys.path.insert(0,str(repo/'scripts/analysis'))
+            from verify_matrix_plot import verify,synthetic
+            rehearsal=verify(c)
+            rehearsal['synthetic']=synthetic(c)
+            assert fingerprint(c)==baseline,'Matrix rehearsal changed source rows'
+            rehearsal['financial_fingerprints_unchanged']=True
+            rehearsal['migration_sha256']=hashlib.sha256(migration.read_bytes()).hexdigest()
+            (out/(args.environment+'-rehearsal.json')).write_text(json.dumps(rehearsal,indent=2)+'\n')
+            c.rollback()
     evidence={'environment':args.environment,'database':expected,'instance':target['instance'],'at':stamp,
       'backup_file':str(dump),'backup_sha256':hashlib.sha256(dump.read_bytes()).hexdigest(),
       'baseline_version':version,'table_count':len(baseline),'restore_fingerprints_match':True,
-      'candidate_already_present':False,'candidate_rehearsed':args.rehearse_schedule,
+      'candidate_already_present':False,'candidate_rehearsed':args.rehearse_schedule or args.rehearse_matrix,
       'scope':'public, assessment_lab, agent_audit; instance roles/settings/cron remain external',
       'financial_values_published':False}
     (out/(args.environment+'-backup.json')).write_text(json.dumps(evidence,indent=2)+'\n')

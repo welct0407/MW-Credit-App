@@ -1,0 +1,22 @@
+{
+  "borrowers": 23,
+  "categories": {
+    "Cash Cow": 8,
+    "Dog": 6,
+    "Star": 4,
+    "Question Mark": 5
+  },
+  "plotted": 23,
+  "unclassified": 0,
+  "modified": 4,
+  "source_field_mismatches": 0,
+  "coordinate_mismatches": 0,
+  "elapsed_ms": 420.03,
+  "synthetic": {
+    "cases": 186,
+    "invalid_inputs": 9,
+    "coordinate_mismatches": 0
+  },
+  "financial_fingerprints_unchanged": true,
+  "migration_sha256": "b12f4a71dbfafb5e43aad8e72eeaed418467159cadda4ac328739ffb8e1225fb"
+}
