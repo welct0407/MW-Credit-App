@@ -4,9 +4,9 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R035 — Open** |
-| Next number, not yet open or usable | **R036 — opens only when R035 is frozen at promotion start** |
-| Current release evidence | R034 frozen 2026-09-25T09:08:43.317708+00:00; pin `c9b2b98`; R035 sole Open release. [Checklist](../outputs/r034-matrix-order/promotion-checklist.md) |
+| **Use this release for new development** | **R036 — Open** |
+| Next number, not yet open or usable | **R037 — opens only when R036 is frozen at promotion start** |
+| Current release evidence | R035 frozen 2026-09-25T10:03:32.6572445Z; pin `d691d66`; R036 sole Open release. [Checklist](../outputs/r035-borrower-pages/promotion-checklist.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R035 | Metabase monitoring group; subsequent development | Open | Four health lights published in Performance rows 3/4; sole development release after R034 capture. | [Release log](../Change%20Logs/CHANGE_NOTES_R035_2026-09-25.md) |
+| R036 | Subsequent development | Open | Sole development release after R035 independent SQL capture. | R035 handoff below |
+| R035 | Metabase monitoring and additive borrower pages | Frozen for promotion | 2026-09-25T10:03:32.6572445Z; SQL V44 pin `d691d66`; monitoring already published, borrower tabs pending. | [Release log](../Change%20Logs/CHANGE_NOTES_R035_2026-09-25.md) |
 | R034 | Chart above category tables; whole-baht amounts | Released | Live layout and amount formatting verified; tag R034. | [Evidence](../outputs/r034-matrix-order/README.md) |
 | R033 | Accepted custom matrix; remove native plot | Released | Native plot removed; iframe/detail table verified; tag R033. | [Evidence](../outputs/r033-matrix-cutover/README.md) |
 | R032 | Distinct cow and dog matrix icons | Released | Live visual verification passed; one static asset; tag R032. | [Evidence](../outputs/r032-matrix-icons/README.md) |
