@@ -100,12 +100,13 @@ def scan(config,api,master,journal,now=None,day=None):
             counts['conversations']+=1
             try:
                 added,images,eligible=capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,day)
-            except ConfigurationError as exc:
+            except Exception as exc:
                 # Keep this group's cursor/jobs unchanged while other groups continue.
                 counts['failed_conversations']+=1
                 if len(counts['errors'])<20:
-                    counts['errors'].append({'conversation_key':hashlib.sha256(str(conversation.get('id','')).encode()).hexdigest()[:16],
-                                             'error':str(exc)})
+                    cid=conversation.get('id','') if isinstance(conversation,dict) else ''
+                    counts['errors'].append({'conversation_key':hashlib.sha256(str(cid).encode()).hexdigest()[:16],
+                                             'error':str(exc) if isinstance(exc,ConfigurationError) else 'POLL_CONVERSATION_UNAVAILABLE'})
                 continue
             counts['eligible_conversations']+=int(eligible)
             counts['new_messages']+=added;counts['image_jobs']+=images

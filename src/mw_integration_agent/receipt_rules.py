@@ -72,6 +72,7 @@ def validate_receipt(value, accounts, today=None):
     clock=value.get('time')
     if (not isinstance(clock,str) or not re.fullmatch(r'(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?',clock)):
         raise ReceiptInvalid('RECEIPT_TIME_UNREADABLE')
+    clock=clock[:5]
     receipt_timestamp=f'{receipt_date.isoformat()}T{clock}+07:00'
     try:
         if not isinstance(value['amount'], str) or not re.fullmatch(r'\d{1,12}(?:\.\d{1,2})?',value['amount']):

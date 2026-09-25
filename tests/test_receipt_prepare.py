@@ -11,7 +11,7 @@ from mw_integration_agent.config import ConfigurationError
 class PrepareTests(unittest.TestCase):
     def setUp(self):
         payment_check=patch('mw_integration_agent.receipt_prepare.check_existing_payment')
-        payment_check.start();self.addCleanup(payment_check.stop)
+        self.payment_check=payment_check.start();self.addCleanup(payment_check.stop)
     def test_shared_rules_parameterized_and_no_effects(self):
         today=datetime.now(BANGKOK).date().isoformat()
         borrower={'id':'borrower-A','username':'borrower','enabled':True,'name_en':'Test'}
@@ -34,5 +34,5 @@ class PrepareTests(unittest.TestCase):
             self.assertTrue(Path(result['candidate']).exists())
             self.assertEqual(prepare('config','catalogue','borrower-A',today)['job_id'],result['job_id'])
             with self.assertRaises(ConfigurationError):prepare('config','catalogue','other',today)
-            master['posted_references']=['TESTREF123']
+            self.payment_check.side_effect=ConfigurationError('PAYMENT_ALREADY_RECORDED')
             with self.assertRaises(ConfigurationError):prepare('config','catalogue','borrower-A',today)

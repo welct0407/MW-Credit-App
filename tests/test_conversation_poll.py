@@ -41,6 +41,11 @@ class PollTests(unittest.TestCase):
     def test_disabled_borrower_not_scanned(self):
         self.master['borrowers'][0]['enabled']=False
         self.assertEqual(scan(self.c,self.api([self.message()]),self.master,self.j,self.now)['eligible_conversations'],0)
+    def test_malformed_conversation_does_not_block_other_group(self):
+        api=self.api([self.message()]);api.request.return_value['data'].insert(0,None)
+        result=scan(self.c,api,self.master,self.j,self.now)
+        self.assertEqual((result['failed_conversations'],result['image_jobs']),(1,1))
+        self.assertEqual(result['errors'][0]['error'],'POLL_CONVERSATION_UNAVAILABLE')
     def test_today_backfill_preserves_cursor_and_dedupes(self):
         api=self.api([self.message()])
         scan(self.c,api,self.master,self.j,self.now)

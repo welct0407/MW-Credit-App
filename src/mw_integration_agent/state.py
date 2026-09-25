@@ -41,7 +41,8 @@ def parameters(config, role='worker'):
         raise ConfigurationError('UNAPPROVED_STATE_ROLE')
     return dict(host=config['agent_database_host'], port=5432, dbname='mw_agent', user=user,
         password=load_secret(config, 'agent_database_' + role + '_password_file'), connect_timeout=10,
-        autocommit=True, application_name='mw-agent-state-' + role)
+        autocommit=True, application_name='mw-agent-state-' + role,
+        options='-c statement_timeout=30000 -c lock_timeout=5000')
 
 
 class Pool:

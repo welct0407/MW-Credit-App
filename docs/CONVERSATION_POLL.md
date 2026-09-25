@@ -19,3 +19,5 @@ For an explicitly owner-requested same-day group backfill, use `conversation-pol
 ## Lisa forwards — 22 September 2026
 
 `receipt_forwarding_enabled` applies only after its new `receipt_forwarding_cutoff`. The sender must match the configured `receipt_forwarder_partner_id` through current Partner Instagram username. The group must have exactly three distinct IDs/usernames: that Partner, the authenticated account matching `receipt_group_account_username` (tttlll8709), and one unique AI Collection Enabled borrower. The real sender is preserved; the poll provenance is marked FORWARDED. `receipt_identity.py` re-reads that exact group through the working conversation-list API before extraction and again before posting. Changed/missing/ambiguous membership blocks processing. No inferred borrower based on an image name or caption. Historical ignored messages remain ignored; no backfill is implied.
+
+Unexpected/malformed conversation failures preserve that group checkpoint and do not stop other groups. Partial scans exit nonzero for existing service monitoring; outer directory/authentication failures fail the cycle instead of claiming a complete scan.

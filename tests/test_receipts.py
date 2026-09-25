@@ -170,11 +170,43 @@ class ReceiptJournalTests(unittest.TestCase):
 
     def test_existing_payment_reference_and_disabled_borrower(self):
         self.add();m=master();m['posted_references']=[receipt()['reference']]
+        self.payment_check.side_effect=ReceiptInvalid('PAYMENT_ALREADY_RECORDED')
         self.process(m=m);self.assertEqual(self.j.emails(),[])
         self.add('m2');m=master();m['borrowers'][0]['enabled']=False
         def forbidden(_): raise AssertionError('must not download')
         process(self.j.pending()[0],self.j,{},m,fetch=forbidden,identity_reader=profile)
         self.assertEqual(self.j.emails(),[])
+
+    def test_existing_unposted_reference_is_held_not_silently_discarded(self):
+        self.add();m=master();m['posted_references']=[receipt()['reference']]
+        self.payment_check.side_effect=ReceiptInvalid('POSSIBLE_EXISTING_PAYMENT_REVIEW')
+        self.process(m=m)
+        self.assertEqual(self.j.db.execute('SELECT status FROM receipt_jobs').fetchone()[0],'REVIEW')
+
+    def test_unexpected_extraction_error_is_bounded_and_attempt_survives_crash(self):
+        self.add()
+        for attempt in range(1,4):
+            job=dict(self.j.db.execute('SELECT * FROM receipt_jobs').fetchone())
+            def bad(*_):raise RuntimeError('private provider body')
+            process(job,self.j,{},master(),fetch=lambda _:(b'image','digest'),extractor=bad,identity_reader=profile)
+            row=self.j.db.execute('SELECT attempts,status,detail FROM receipt_jobs').fetchone()
+            self.assertEqual(row['attempts'],attempt);self.assertNotIn('private',row['detail'])
+        self.assertEqual(row['status'],'REVIEW')
+        self.add('crash')
+        job=self.j.pending()[0]
+        def crash(*_):raise KeyboardInterrupt()
+        with self.assertRaises(KeyboardInterrupt):
+            process(job,self.j,{},master(),fetch=lambda _:(b'image','digest'),extractor=crash,identity_reader=profile)
+        self.assertEqual(self.j.db.execute('SELECT attempts FROM receipt_jobs WHERE id=?',(job['id'],)).fetchone()[0],1)
+
+    def test_saved_extraction_reused_after_transient_database_failure(self):
+        self.add();self.payment_check.side_effect=[ConfigurationError('unavailable'),None]
+        extractor=unittest.mock.Mock(return_value=receipt())
+        for _ in range(2):
+            job=dict(self.j.db.execute('SELECT * FROM receipt_jobs').fetchone())
+            process(job,self.j,{},master(),fetch=lambda _:(b'image','digest'),extractor=extractor,identity_reader=profile)
+        self.assertEqual(extractor.call_count,1)
+        self.assertEqual(self.j.db.execute('SELECT status FROM receipt_jobs').fetchone()[0],'VALIDATED')
 
     def test_unknown_outcome_survives_restart_no_retry(self):
         self.add();self.process();email=self.j.emails()[0]

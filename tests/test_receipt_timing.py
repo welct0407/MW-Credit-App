@@ -15,19 +15,19 @@ class ReceiptTimingTests(unittest.TestCase):
         return validate_receipt(value,[{'id':'a','active':True,'number':'1234567890',
                                       'alternative':'','label':'Test'}],date(2026,9,21))
 
-    def test_exact_seconds_map_to_existing_payment_fields(self):
+    def test_receipt_time_is_normalized_to_owner_selected_minute_precision(self):
         v=self.value();r=self.validate(v)
-        self.assertEqual(r['timestamp'],'2026-09-20T18:23:12+07:00')
-        self.assertEqual(r['payment_fields'],{'Payment Date':'2026-09-20','Created At':'2026-09-20 18:23:12'})
+        self.assertEqual(r['timestamp'],'2026-09-20T18:23+07:00')
+        self.assertEqual(r['payment_fields'],{'Payment Date':'2026-09-20','Created At':'2026-09-20 18:23'})
         _,body=summary(r,{'id':'b','name_en':'Test'},['English'])
         self.assertIn('18:23 (UTC+07:00)',body)
         self.assertNotIn('18:23:12',body)
 
-    def test_no_invented_seconds_and_fraction_preserved(self):
+    def test_seconds_and_fractions_do_not_change_payment_minute(self):
         for clock in ['00:01','23:59:59.123']:
             v=self.value();v.update(time=clock)
             r=self.validate(v)
-            self.assertEqual(r['timestamp'],'2026-09-20T'+clock+'+07:00')
+            self.assertEqual(r['timestamp'],'2026-09-20T'+clock[:5]+'+07:00')
 
     def test_missing_invalid_time_is_review_not_processing_clock(self):
         for clock in ('','24:00','18:60','18:23:60','18:23:12Z',None):

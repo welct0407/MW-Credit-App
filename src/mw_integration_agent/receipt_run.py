@@ -72,6 +72,11 @@ def conversation_identity(config,sender,api=None):
 
 
 def process(job,journal,config,master,fetch=download,extractor=extract,identity_reader=conversation_identity):
+    # Persist the attempt before external work so repeated crashes cannot retry forever.
+    attempt=job['attempts']+1
+    if attempt>3:
+        journal.mark(job['id'],'REVIEW','RECEIPT_RETRY_LIMIT');return
+    journal.retry(job['id'],attempt,'RECEIPT_PROCESSING_STARTED',terminal=False)
     try:
         borrower=receipt_borrower(config,job,journal,master,identity_reader)
         if job['image'] is None:
@@ -80,13 +85,13 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
             job.update(image=data,image_hash=digest)
         if journal.duplicate(job['image_hash']):
             journal.mark(job['id'],'DUPLICATE','RECEIPT_ALREADY_PROCESSED'); return
-        value=extractor(config,job['image'])
+        saved=json.loads(job.get('result') or '{}')
+        value=saved.get('extraction') or extractor(config,job['image'])
         provenance={k:v for k,v in json.loads(job.get('result') or '{}').items() if k=='forwarded_borrower_id'}
         with journal.db:
-            journal.db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps({'extraction':value,**provenance}),job['id']))
+            journal.db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps({'extraction':value,'borrower':borrower,**provenance}),job['id']))
         receipt=validate_receipt(value,master['accounts'])
-        if receipt['reference'] in master.get('posted_references',[]):
-            journal.mark(job['id'],'DUPLICATE','REFERENCE_ALREADY_IN_PAYMENTS'); return
+        # The fresh reference check distinguishes posted matches from conflicting/error rows.
         check_existing_payment(config,receipt,borrower)
         journal.accept(job,{'receipt':receipt,'borrower':borrower,**provenance},[])
     except ReceiptInvalid as exc:
@@ -94,9 +99,9 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
             journal.mark(job['id'],'DUPLICATE',str(exc));return
         ignored=str(exc) in ('NOT_PAYMENT_RECEIPT','BORROWER_NOT_UNIQUELY_ENABLED')
         journal.mark(job['id'],'IGNORED' if ignored else 'REVIEW',str(exc))
-    except ConfigurationError:
+    except Exception:
         # Fixed safe error codes only; do not persist provider responses or signed URLs in detail.
-        journal.retry(job['id'],job['attempts']+1,'RECEIPT_PROCESSING_UNAVAILABLE')
+        journal.retry(job['id'],attempt,'RECEIPT_PROCESSING_UNAVAILABLE')
 
 
 def dispatch(email,journal,config,master,sender=None,identity_reader=conversation_identity):
@@ -142,7 +147,8 @@ def run(config_path,catalogue_path):
                 journal.ingest(ingress,datetime.fromisoformat(config['receipt_activation_cutoff']).timestamp())
             finally:
                 ingress.close()
-            for job in journal.pending():
+            # A slow image must not delay approvals/notices behind ten model calls.
+            for job in journal.pending()[:1]:
                 config=controls(config_path,catalogue_path)
                 process(job,journal,config,masters(config))
             from .partner_notice import NoticeJournal,receipt_notice

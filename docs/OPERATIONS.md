@@ -98,7 +98,7 @@ The owner-authorized [API-only conversation reader](CONVERSATION_POLL.md) runs e
 
 ## Partner receipt review
 
-See [Partner review](PARTNER_REVIEW.md). Scoped ordinary receipt execution requires a linked Partner approval; potential loan closes and overpayments remain manual-only. This supersedes earlier statements that all financial writes are unavailable. General commands and direct SQL writes remain disabled.
+See [Partner review](PARTNER_REVIEW.md). New ordinary receipts post automatically under the configured owner policy. New overpayments require linked reviewer approval for full-amount Lump Sum; potential closures remain manual. This supersedes earlier statements that all financial writes are unavailable. General commands and direct SQL writes remain disabled.
 
 
 ## Reviewer-only corrections and DML — 22 September 2026
@@ -112,3 +112,5 @@ Owner-authorized infrastructure monitoring now runs separately from the business
 The collector reads timer results/cadence, local webhook and Cloudflare connection health, Tailscale node state, read-only database connectivity, existing bounded AppSheet probes and local Codex login readiness. It invokes no business cycle and sends no test message/model prompt. It exports numeric health only through the existing VM identity to GCP Monitoring; stale reports become UNKNOWN in Grafana. Public webhook checks run independently in Google Cloud. Azure VM-01 is not a monitoring dependency. Tailscale is node health, not external peer reachability.
 
 For rollback, disable/stop only `mw-resource-health.timer` and its service, then remove only its dedicated script/units after preserving evidence. Do not stop the existing business timers or restore application journals. See the linked monitoring change record in the AppSheet repository for dashboard/uptime-check rollback and verification.
+
+Revision 21 provides read-only queue health in `receipt_health.py`. The [monitoring handover](MONITORING_IMPLEMENTATION_HANDOVER.md) covers the proposed Payment processing group and collector patch. Worker deployment does not activate the monitoring changes.

@@ -196,14 +196,57 @@ class CycleTests(unittest.TestCase):
         from mw_integration_agent.partner_notice import display_notice
         self.assertTrue(display_notice(rows[0])[0].startswith('⚠️'))
 
-    def test_old_hold_not_replayed_and_missing_reviewer_waits(self):
+    def test_unresolved_old_hold_is_surfaced_without_replaying_and_missing_reviewer_waits(self):
         self.held_job();self.config['receipt_hold_notice_cutoff']='2099-01-01T00:00:00+00:00'
-        self.run_cycle();self.assertEqual(self.hold_notices(),[])
-        self.config['receipt_hold_notice_cutoff']='2026-01-01T00:00:00+00:00'
         self.masters.return_value['reviewer_ids']=[]
         self.run_cycle();self.assertEqual(self.hold_notices(),[])
         self.masters.return_value['reviewer_ids']=['p']
         self.run_cycle();self.assertEqual(len(self.hold_notices()),1)
+        self.add_payment.assert_not_called()
+
+    def test_readback_outage_keeps_unknown_and_still_queues_reconciliation_notice(self):
+        self.readback.side_effect=RuntimeError('private response')
+        result=self.run_cycle();self.run_cycle()
+        self.assertEqual(self.add_payment.call_count,1)
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'UNKNOWN')
+        self.assertTrue(result['failures'])
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        try:self.assertEqual(notices.db.execute("SELECT count(*) FROM partner_notices WHERE event_key LIKE 'review-result:%:UNKNOWN'").fetchone()[0],1)
+        finally:notices.close()
+
+    def test_malformed_job_does_not_block_other_automatic_payment(self):
+        self.validated_job();self.enable_auto()
+        self.j.db.execute("INSERT INTO receipt_jobs(id,message_id,sender_id,url,status,created_at,result) VALUES ('bad','bad','123','','VALIDATED',9999999999,'not-json')");self.j.db.commit()
+        result=self.run_cycle()
+        self.assertEqual(self.add_payment.call_count,1);self.assertTrue(result['failures'])
+        self.assertEqual(self.j.db.execute("SELECT status FROM receipt_jobs WHERE id='bad'").fetchone()[0],'REVIEW')
+
+    def test_interrupted_reservation_with_changed_facts_becomes_stale(self):
+        self.j.db.execute("UPDATE receipt_jobs SET status='VALIDATED',created_at=9999999999,result=?",(json.dumps({'receipt':self.proposal['receipt'],'borrower':self.b}),))
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING'");self.j.db.commit()
+        self.plan.return_value=dict(self.proposal,facts={'changed':True})
+        self.run_cycle();self.add_payment.assert_not_called()
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'STALE')
+        self.assertEqual(self.j.db.execute('SELECT status FROM receipt_jobs').fetchone()[0],'REVIEW_REQUESTED')
+
+    def test_partial_cycle_failure_has_nonzero_service_exit(self):
+        from mw_integration_agent.cli import build_parser,execute
+        args=build_parser().parse_args(['receipt-cycle','--config','unused','--catalogue','unused'])
+        with patch('mw_integration_agent.receipt_run.run',return_value={'failures':[{'stage':'delivery'}]}),patch('builtins.print'):
+            self.assertEqual(execute(args),2)
+
+    def test_broken_saved_payload_and_identity_outage_still_alert(self):
+        self.held_job()
+        self.j.db.execute("UPDATE receipt_jobs SET result='not-json'");self.j.db.commit()
+        with patch('mw_integration_agent.receipt_hold.receipt_borrower',side_effect=RuntimeError('unavailable')):
+            self.run_cycle()
+        self.assertEqual(len(self.hold_notices()),1);self.add_payment.assert_not_called()
+
+    def test_notice_failure_does_not_block_other_partner(self):
+        self.masters.return_value['partners'].append(dict(self.p,id='other',username='other'))
+        self.dispatch.side_effect=[RuntimeError('unavailable'),None]
+        result=self.run_cycle()
+        self.assertEqual(self.dispatch.call_count,2);self.assertTrue(result['failures'])
 
     def test_removed_reviewer_cannot_receive_queued_hold(self):
         self.held_job();self.run_cycle();self.dispatch.reset_mock()

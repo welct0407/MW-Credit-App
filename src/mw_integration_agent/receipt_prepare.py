@@ -51,7 +51,6 @@ def prepare(config_path,catalogue_path,borrower_id,day,message_id=None):
     if not url:raise ConfigurationError('NO_RECEIPT_IMAGE')
     image,digest=download(url)
     raw=extract(config,image);receipt=validate_receipt(raw,master['accounts'])
-    if receipt['reference'] in master['posted_references']:raise ConfigurationError('REFERENCE_ALREADY_IN_PAYMENTS')
     check_existing_payment(config,receipt,borrower)
     key=hashlib.sha256((message['id']+':0').encode()).hexdigest()
     candidate={'job_id':key,'source':'owner-selected-instagram-history','message_id':message['id'],

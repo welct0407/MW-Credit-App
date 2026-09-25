@@ -65,7 +65,7 @@ def build_parser() -> argparse.ArgumentParser:
     retry = sub.add_parser("retry-cash-statement-email", help="retry definitely unsent fallback email")
     retry.add_argument("--config", required=True)
     retry.add_argument("--catalogue", required=True)
-    receipt=sub.add_parser('receipt-cycle',help='validate new borrower receipts and deliver IG-first Partner notices; no payments')
+    receipt=sub.add_parser('receipt-cycle',help='process receipts under the configured payment/review policy and deliver Partner notices')
     receipt.add_argument('--config',required=True)
     receipt.add_argument('--catalogue',required=True)
     prepare=sub.add_parser('receipt-prepare',help='prepare one explicitly selected borrower receipt; no payment or notification')
@@ -120,8 +120,9 @@ def execute(args) -> int:
             return 0
         if args.command=='receipt-cycle':
             from .receipt_run import run
-            print(json.dumps(run(args.config,args.catalogue)))
-            return 0
+            result=run(args.config,args.catalogue)
+            print(json.dumps(result))
+            return 2 if result.get('failures') else 0
         if args.command == "cash-statement":
             from .statement_run import run
             if args.send and args.scheduled:

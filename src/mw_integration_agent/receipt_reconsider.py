@@ -46,6 +46,9 @@ def run(config_path,catalogue_path,job_id):
                 db.execute('INSERT INTO receipt_reconsiderations(job_id,created_at,previous) VALUES (?,?,?)',(job_id,time.time(),json.dumps(previous)))
                 if review:
                     db.execute("UPDATE partner_reviews SET state='SUPERSEDED',job_id=? WHERE id=?",(job_id+':superseded:'+review['id'],review['id']))
+                if 'receipt' not in result:
+                    result.pop('extraction',None)
+                    db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps(result),job_id))
                 db.execute('''UPDATE receipt_jobs SET status=?,url=?,attempts=0,retry_after=0,
                     detail='OWNER_REQUESTED_RECONSIDERATION' WHERE id=?''',('VALIDATED' if 'receipt' in result else 'PENDING',url or '',job_id))
             return {'status':'RECONSIDERATION_QUEUED','prior_review_superseded':bool(review)}

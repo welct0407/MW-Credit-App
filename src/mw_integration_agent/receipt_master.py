@@ -11,8 +11,6 @@ def masters(config):
       'accounts',(SELECT coalesce(json_agg(t),'[]'::json) FROM (
         SELECT "Row ID" id,"Account Label" label,"Active" active,
         "Account Number" number,"Alternative Account Number" alternative FROM public."Cash Accounts") t),
-      'posted_references',(SELECT coalesce(json_agg(DISTINCT upper(regexp_replace("Bank Reference",'[[:space:]-]','','g'))),'[]'::json)
-        FROM public."Payments" WHERE nullif(trim("Bank Reference"),'') IS NOT NULL),
       'reviewer_ids',(SELECT coalesce(json_agg("Row ID"),'[]'::json)
         FROM public."Partners" WHERE "AI Reviewer" IS TRUE),
       'partners',(SELECT coalesce(json_agg(t),'[]'::json) FROM (

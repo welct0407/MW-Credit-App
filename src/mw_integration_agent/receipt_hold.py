@@ -14,8 +14,11 @@ def event_key(job):
 def held_text(job,borrower,language,accounts):
     thai=language=='ไทย'
     def clean(value):return ' '.join(str(value or '').split())[:100] or ('ไม่ทราบ' if thai else 'unavailable')
-    result=json.loads(job['result'] or '{}')
+    try:result=json.loads(job['result'] or '{}')
+    except (ValueError,TypeError):result={}
+    if not isinstance(result,dict):result={}
     receipt=result.get('receipt') or result.get('extraction') or {}
+    if not isinstance(receipt,dict):receipt={}
     account=receipt.get('account_label')
     if not account:
         try:account=match_account(receipt.get('recipient_numbers') or [],accounts)['label']
@@ -32,6 +35,8 @@ def held_text(job,borrower,language,accounts):
       'RECIPIENT_UNREADABLE':('The receiving account could not be read.','อ่านบัญชีรับเงินไม่ได้'),
       'TRANSFER_NOT_CONFIRMED':('The image does not confirm a successful transfer.','ภาพไม่ยืนยันว่าโอนเงินสำเร็จ'),
       'RECEIPT_PROCESSING_UNAVAILABLE':('Receipt extraction remained unavailable after retries.','ระบบอ่านสลิปไม่สำเร็จหลังลองซ้ำ'),
+      'RECEIPT_RETRY_LIMIT':('Receipt processing could not finish after three attempts.','ระบบประมวลผลสลิปไม่สำเร็จหลังลองสามครั้ง'),
+      'RECEIPT_PROPOSAL_UNAVAILABLE':('The payment proposal could not be prepared. Please check the receipt and app records.','ระบบเตรียมรายการชำระเงินไม่ได้ กรุณาตรวจสอบสลิปและรายการในแอป'),
       'BALANCES_REQUIRE_RECONCILIATION':('The loan balances need reconciliation.','ยอดคงเหลือของสัญญาต้องตรวจสอบ'),
       'LOAN_CLOSE_AMBIGUOUS':('The amount matches more than one possible loan payoff.','ยอดเงินตรงกับยอดปิดมากกว่าหนึ่งสัญญา'),
     }
@@ -47,17 +52,23 @@ def held_text(job,borrower,language,accounts):
     return subject,body
 
 
-def queue_holds(config,journal,notices,live,identity_reader):
+def queue_holds(config,journal,notices,live,identity_reader,failures=None):
+    from .review_cycle import isolated
+    failures=[] if failures is None else failures
     cutoff=config.get('receipt_hold_notice_cutoff')
     if not cutoff:return
     reviewers=[p for p in live['partners'] if p['id'] in live.get('reviewer_ids',[])]
     if not reviewers:return
-    for job in journal.db.execute("SELECT * FROM receipt_jobs WHERE status='REVIEW' AND created_at>=?",(datetime.fromisoformat(cutoff).timestamp(),)).fetchall():
-        job=dict(job);event=event_key(job)
-        pending=[p for p in reviewers if not notices.db.execute('SELECT 1 FROM partner_notices WHERE event_key=? AND partner_id=?',(event,p['id'])).fetchone()]
-        if not pending:continue
-        try:borrower=receipt_borrower(config,job,journal,live,identity_reader)
-        except ConfigurationError:borrower=None
-        for partner in pending:
-            subject,body=held_text(job,borrower,partner['language'],live['accounts'])
-            notices.reserve(event,partner,subject,body)
+    # Owner requested an end-to-end audit: surface existing unresolved holds too,
+    # without reopening or posting them. The switch still controls alert activation.
+    for job in journal.db.execute("SELECT * FROM receipt_jobs WHERE status='REVIEW'").fetchall():
+        with isolated(failures,'hold-alert'):
+            job=dict(job);event=event_key(job)
+            pending=[p for p in reviewers if not notices.db.execute('SELECT 1 FROM partner_notices WHERE event_key=? AND partner_id=?',(event,p['id'])).fetchone()]
+            if not pending:continue
+            try:borrower=receipt_borrower(config,job,journal,live,identity_reader)
+            except Exception:borrower=None
+            for partner in pending:
+                with isolated(failures,'hold-recipient'):
+                    subject,body=held_text(job,borrower,partner['language'],live['accounts'])
+                    notices.reserve(event,partner,subject,body)

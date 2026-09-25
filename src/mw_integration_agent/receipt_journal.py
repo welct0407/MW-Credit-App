@@ -76,11 +76,11 @@ class ReceiptJournal:
             self.db.execute('UPDATE receipt_jobs SET status=?,detail=?,image=NULL,url=\'\' WHERE id=?',
                             (status,detail,key))
 
-    def retry(self,key,attempt,detail):
+    def retry(self,key,attempt,detail,terminal=True):
         with self.db:
             self.db.execute('UPDATE receipt_jobs SET attempts=?,retry_after=?,detail=? WHERE id=?',
                             (attempt,time.time()+300,detail,key))
-        if attempt>=3:
+        if terminal and attempt>=3:
             self.mark(key,'REVIEW',detail)
 
     def image(self,key,data,digest):
