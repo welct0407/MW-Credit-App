@@ -239,6 +239,8 @@ foreach($p in @($perf.panels|Where-Object id -in @(54,55))){
  $polling.transformations=@(@{id='rowsToFields';options=@{mappings=@(@{fieldName='Details';handlerKey='field.name'},@{fieldName='Status';handlerKey='field.value'})}})
  $polling.fieldConfig.defaults.links=@(@{title='${__field.name}';url='/d/mw-resource-performance';targetBlank=$false})
  $polling.description='Instagram group-chat scan. Hover for last scan completion and observed worker state in Singapore time. Runs five minutes after completion; downstream Receipts is a separate worker. Timing updates about every two minutes; Unknown after six minutes without telemetry.'
+ . "$PSScriptRoot/Update-MetabasePanels.ps1" -FunctionsOnly
+ Update-MetabaseLayout $perf
  $perf.panels=@($perf.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 
 $cost=New-Dashboard 'mw-resource-cost' 'MW Resources · Cost' 'now/M' '1h'

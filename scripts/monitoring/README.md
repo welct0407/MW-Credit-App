@@ -48,3 +48,7 @@ Detailed GCP billing export and the Railway workspace token were configured in t
 
 ### IG polling timing hover
 `worker-timing.jq` formats same-sample numeric worker timing values in SGT, rejects pagination and returns Unknown after six minutes. `Update-PollingTimingPanel.ps1` patches only panel 63 in maintained classic/V2 resources. Start live edits from a fresh Code export and transfer only panel 63 to preserve owner layout/preferences. The builder includes the same query/transformation. Validate collector logic with `test_debian_health.py`; test fresh/stale/missing timing responses with official jq. No workload timer changes or business-job invocation are needed.
+
+### Metabase health group
+
+`metabase_probes.py` uses liveness/readiness, a fixed saved SELECT 1 canary, and the public chart shell/protected API guard. It is deployed next to `debian-health.py`; the latter requires the module. Key storage is external and restricted; see the operating reference for IDs and rollback. `Initialize-MetabaseProbe.ps1` is a guarded one-time helper, not a deployment step. `Update-MetabasePanels.ps1` patches only new panel definitions and availability-grid positions in maintained classic/V2 JSON; the builder calls its layout function too. For live publication preserve the full fresh UI definition and apply the same scoped patch. Run `test_metabase_probes.py` plus collector tests; test `metabase-probe.jq` for fresh/stale/missing samples. No alert rules or workload schedules are changed.

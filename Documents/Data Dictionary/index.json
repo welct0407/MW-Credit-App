@@ -30909,6 +30909,16 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/reporting-connection-health.yaml",
+      "scope": "production",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "name": "Reporting connection health / 276",
+      "kind": "question",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/snippets/live-cashflow-period.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",

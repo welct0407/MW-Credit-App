@@ -1,6 +1,6 @@
 # Resource monitoring dashboard — visual guide
 
-Last updated: **24 September 2026**. Covers the maintained Performance and Cost definitions, including compact status tiles and OpenAI incident hover details. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
+Last updated: **25 September 2026**. Covers the maintained Performance and Cost definitions, including compact status tiles and OpenAI incident hover details. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
 
 - [Open Performance](https://monitor.mw-credit.com/d/mw-resource-performance)
 - [Open Cost](https://monitor.mw-credit.com/d/mw-resource-cost)
@@ -45,8 +45,10 @@ Panel IDs below are maintenance references, unique **within each page**. Names r
 | 71 | APPS & OPENAI | Groups the two AppSheet API probes and two published OpenAI service checks. |
 | 72 | AGENT WORKFLOWS | Groups scheduled business-worker health on Debian. |
 | 73 | DATA & RUNTIME | Groups SQL connections, database access, audit relay and local Codex readiness. |
+| 74 | METABASE · PLATFORM | Platform and application database, right side of row 3. |
+| 75 | METABASE · REPORTING | Reporting connection and custom Charts service, right side of row 4. |
 
-These five labels are vertically centered in slim strips. The values in the 16 small status/data tiles are horizontally centered beneath their labels. Component icons are Unicode pictograms, not official vendor logos. The four expandable detail headers identify Azure VM-01 (ID 10), the GCP Debian VM (20), shared Cloud SQL (30), and Railway production (40); they organize charts and do not report health themselves.
+These seven labels are vertically centered in slim strips. The values in the 20 small status/data tiles are horizontally centered beneath their labels. Component icons are Unicode pictograms, not official vendor logos. The four expandable detail headers identify Azure VM-01 (ID 10), the GCP Debian VM (20), shared Cloud SQL (30), and Railway production (40); they organize charts and do not report health themselves.
 
 ## Performance — CPU and RAM overview
 
@@ -238,3 +240,18 @@ Sources for this guide: [dashboard builder](../scripts/monitoring/Build-Dashboar
 ### IG polling completion hover (24 September 2026)
 
 Panel 63 uses the numeric worker timing metric for its native mouse hover while retaining the centered label and traffic light. Last scan completion is the process exit time (including scans with no new images or failed runs); check the light for health. It is not the downstream Receipts worker completion or proof that a payment was posted. The separate Receipts worker keeps its existing 20-second interval. The scanner uses five minutes after completion, not fixed wall-clock five-minute slots. No next-run time is promised while a scan is running. Times are SGT; observation and normal dashboard refresh can lag the worker. Missing, mismatched or stale timing fields show Unavailable rather than an invented timestamp. Clicking the light opens Performance.
+
+## Metabase traffic lights — panels 80–83
+
+Twenty tiles fit into the existing two availability rows (ten per row). The four original groups each occupy eight grid columns with four compact tiles; Metabase occupies the rightmost eight columns across both rows, two wider tiles per row. Heights, centered traffic lights and CPU/RAM/detail sections stay unchanged.
+
+| ID | Tile | Exact check | Limits and caveats |
+|---|---|---|---|
+| 80 | Platform | HTTPS `reports.mw-credit.com/livez`, HTTP 200 and JSON status ok. | Metabase liveness and public route. Does not check browser rendering or a user's session. |
+| 81 | App DB | HTTPS `/readyz`, HTTP 200 and JSON status ok. | Metabase readiness includes the Railway application database connection. Also depends on platform/route availability; not an isolated PostgreSQL host probe. |
+| 82 | Reporting DB | Uncached saved question 276 runs `SELECT 1 AS healthy` through Metabase source 2. | Confirms the configured Metabase → proxy → reporting database connection. Accepts HTTP 200/202 only with completed status and exactly `[[1]]`; does not certify every report's grants or business calculations. |
+| 83 | Charts | HTTPS `charts.mw-credit.com` returns the expected chart shell; unauthenticated `/api/matrix` returns 401. | Confirms route/service and authentication guard. Does not retrieve borrower data, check the authenticated chart query, or certify browser rendering. Actual hostname is plural `charts`. |
+
+Checks run concurrently from Debian about every two minutes. Green means the expected result within five seconds; amber means a passing probe took longer than five seconds; red means a failed/unexpected response or network timeout. Five seconds is an operational warning, not a provider limit. Probe credentials/rate failures (401/403/429) and unexpected probe errors are Unknown. Missing telemetry or telemetry older than six minutes is also Unknown. HTTP 202 for a completed Metabase query is normal. Hover shows the check, result category, HTTP code, duration and observed time in Singapore. Clicking opens the respective service.
+
+These four new tiles are dashboard monitoring only; the existing eight alert rules and 16 tile alert conditions remain unchanged. A Debian outage makes these probes Unknown even if Metabase remains available.

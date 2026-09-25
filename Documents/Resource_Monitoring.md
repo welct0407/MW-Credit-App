@@ -15,7 +15,7 @@ The overview has four rows: CPU cards, matching RAM cards, connectivity/provider
 
 ## Availability rows
 
-The 16 overview tiles are arranged in four visibly labeled groups across two rows:
+The 20 overview tiles are arranged across two rows: the four original groups plus Metabase in the rightmost third of both rows (Platform and Reporting subheadings):
 
 - **Connectivity:** public webhook, Cloudflare tunnel, Tailscale node, local ingress.
 - **Apps & OpenAI:** production OLTP/OLAP API probes, published ChatGPT/Codex status.
@@ -109,3 +109,11 @@ Rollback removes the two new dashboards and three dedicated data sources, revoke
 
 ### IG polling timing telemetry
 The read-only Debian collector also exports `custom.googleapis.com/mw_resource_monitoring/worker_timing`, component `polling`, with numeric fields `status`, `running`, and `last_completion` (Unix epoch seconds; zero means unavailable). This is separate from the unchanged health metric used by alerts. Completion is reconstructed from systemd monotonic exit time and current epoch within the current boot. The existing VM writer identity and Grafana monitoring reader are reused. No timer or workload configuration changed. The performance tile joins only values observed in the same sample; timing is not added to alert labels.
+
+## Metabase probe group — 25 September 2026
+
+The existing Debian collector imports `metabase_probes.py` and exports the separate numeric metric `custom.googleapis.com/mw_resource_monitoring/metabase_probe`. Stable labels are component (`metabase_platform`, `metabase_appdb`, `metabase_reporting`, `metabase_charts`) and field (`status`, `http_code`, `duration_ms`); no secrets, response bodies or business rows enter telemetry. Four bounded probes run concurrently with 15-second per-request timeouts. HTTP redirects are rejected; the monitor identifies itself as `MW-Resource-Monitor/1.0`.
+
+A dedicated Metabase non-admin key (ID4), group6 Resource monitoring, and collection9 isolate the fixed health question276. Group6 has read access only to collection9 and no new source query-creation permissions. Existing All Users source visibility is inherited; other report collections are not granted. The key was verified non-admin and denied access to report274 (403). Existing keys, collections, source permissions and public-sharing setting are unchanged. No admin key was deployed to Debian. Private key/recovery state lives in the existing resource-monitoring credential directory; Debian key is `/etc/mw-resource-monitoring/metabase-probe-key.txt`, root:mwagent 0640. Revoke/rotate API key4 and update only this file for credential maintenance. Retained source initialization helper refuses existing state and must not be replayed.
+
+Rollback: restore pre-Metabase collector `/opt/mw-resource-monitoring/debian-health.before-metabase-20260925.py`, then restore dashboard group geometry/remove only panels74–75 and80–83 using the recorded prior revision. Archive question276/collection9 and revoke key4 only if removing the monitoring feature. Do not restore the application database or change report definitions. Existing alert queries exclude the new metric; no new push rules were installed.

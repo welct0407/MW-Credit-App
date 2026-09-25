@@ -147,6 +147,8 @@ def main():
                      '--app', app, '--config', CONFIG, '--catalogue', '/etc/mw-integration-agent/service-catalogue.json'], 70)
             return 1 if p.returncode == 0 and json.loads(p.stdout).get('authenticated') is True else 0
         check(app, probe)
+    from metabase_probes import collect
+    metabase = collect()
     timestamp = dt.datetime.now(dt.timezone.utc).isoformat()
     meta = {'Metadata-Flavor': 'Google'}
     instance = fetch('http://metadata.google.internal/computeMetadata/v1/instance/id', meta).strip()
@@ -160,6 +162,12 @@ def main():
         series.append({'metric': {'type': WORKER_METRIC, 'labels': {'component': 'polling', 'field': field}},
                        'resource': series[0]['resource'], 'metricKind': 'GAUGE', 'valueType': 'INT64',
                        'points': [{'interval': {'endTime': timestamp}, 'value': {'int64Value': str(value)}}]})
+    for component, fields in metabase.items():
+        for field, value in fields.items():
+            series.append({'metric': {'type': 'custom.googleapis.com/mw_resource_monitoring/metabase_probe',
+                           'labels': {'component': component, 'field': field}},
+                           'resource': series[0]['resource'], 'metricKind': 'GAUGE', 'valueType': 'INT64',
+                           'points': [{'interval': {'endTime': timestamp}, 'value': {'int64Value': str(value)}}]})
     req = urllib.request.Request(f'https://monitoring.googleapis.com/v3/projects/{PROJECT}/timeSeries',
           data=json.dumps({'timeSeries': series}).encode(), method='POST',
           headers={'Authorization': 'Bearer '+token, 'Content-Type': 'application/json'})

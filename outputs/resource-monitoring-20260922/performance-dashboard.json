@@ -931,10 +931,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 1,
+        "w": 8,
         "y": 9,
         "x": 0,
-        "w": 12
+        "h": 1
       },
       "type": "stat",
       "targets": [
@@ -1001,10 +1001,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 1,
+        "w": 8,
         "y": 9,
-        "x": 12,
-        "w": 12
+        "x": 8,
+        "h": 1
       },
       "type": "stat",
       "targets": [
@@ -1071,10 +1071,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 10,
         "x": 0,
-        "w": 3
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -1205,10 +1205,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 10,
-        "x": 3,
-        "w": 3
+        "x": 2,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -1339,10 +1339,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 10,
-        "x": 6,
-        "w": 3
+        "x": 4,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -1473,10 +1473,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 10,
-        "x": 9,
-        "w": 3
+        "x": 6,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -1607,10 +1607,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 10,
-        "x": 12,
-        "w": 3
+        "x": 8,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -1741,10 +1741,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 10,
-        "x": 15,
-        "w": 3
+        "x": 10,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -1875,10 +1875,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 10,
-        "x": 18,
-        "w": 3
+        "x": 12,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -2038,10 +2038,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 10,
-        "x": 21,
-        "w": 3
+        "x": 14,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -2201,10 +2201,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 1,
+        "w": 8,
         "y": 13,
         "x": 0,
-        "w": 12
+        "h": 1
       },
       "type": "stat",
       "targets": [
@@ -2271,10 +2271,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 1,
+        "w": 8,
         "y": 13,
-        "x": 12,
-        "w": 12
+        "x": 8,
+        "h": 1
       },
       "type": "stat",
       "targets": [
@@ -2341,10 +2341,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 14,
         "x": 0,
-        "w": 3
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -2475,10 +2475,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 14,
-        "x": 3,
-        "w": 3
+        "x": 2,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -2609,10 +2609,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 14,
-        "x": 6,
-        "w": 3
+        "x": 4,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -2767,10 +2767,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 14,
-        "x": 9,
-        "w": 3
+        "x": 6,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -2901,10 +2901,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 14,
-        "x": 12,
-        "w": 3
+        "x": 8,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -3016,10 +3016,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 14,
-        "x": 15,
-        "w": 3
+        "x": 10,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -3150,10 +3150,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 14,
-        "x": 18,
-        "w": 3
+        "x": 12,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -3284,10 +3284,10 @@
     {
       "title": "",
       "gridPos": {
-        "h": 3,
+        "w": 2,
         "y": 14,
-        "x": 21,
-        "w": 3
+        "x": 14,
+        "h": 3
       },
       "type": "stat",
       "targets": [
@@ -5512,6 +5512,778 @@
             "mode": "palette-classic"
           },
           "noValue": "No data"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "title": "",
+      "gridPos": {
+        "w": 4,
+        "y": 10,
+        "x": 16,
+        "h": 3
+      },
+      "type": "stat",
+      "targets": [
+        {
+          "parser": "jq-backend",
+          "columns": [
+            {
+              "type": "string",
+              "text": "Details",
+              "selector": "details"
+            },
+            {
+              "type": "number",
+              "text": "Status",
+              "selector": "status"
+            }
+          ],
+          "format": "table",
+          "hide": false,
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_platform%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "type": "json",
+          "url_options": {
+            "method": "GET"
+          },
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "source": "url",
+          "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"▦ Platform — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase liveness /livez; reports.mw-credit.com responds.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "orientation": "vertical",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "textMode": "value_and_name",
+        "text": {
+          "valueSize": 36,
+          "titleSize": 12
+        },
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom",
+          "displayMode": "table"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "justifyMode": "center"
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "mw-gcp-monitoring"
+      },
+      "id": 80,
+      "description": "Metabase liveness /livez; reports.mw-credit.com responds. Healthy within 5s, Degraded above 5s; Unknown after six minutes without telemetry.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "fillOpacity": 12,
+            "axisBorderShow": false,
+            "lineInterpolation": "smooth",
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "🔴"
+                },
+                "3": {
+                  "color": "blue",
+                  "text": "🔵"
+                },
+                "2": {
+                  "color": "orange",
+                  "text": "🟠"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "🟢"
+                },
+                "4": {
+                  "color": "gray",
+                  "text": "⚪"
+                }
+              }
+            }
+          ],
+          "decimals": 2,
+          "thresholds": {
+            "steps": [
+              {
+                "value": null,
+                "color": "gray"
+              }
+            ],
+            "mode": "absolute"
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "▦ Platform",
+          "noValue": "⚪",
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "${__field.name}",
+              "url": "https://reports.mw-credit.com"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "Details",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "Status",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "",
+      "gridPos": {
+        "w": 4,
+        "y": 10,
+        "x": 20,
+        "h": 3
+      },
+      "type": "stat",
+      "targets": [
+        {
+          "parser": "jq-backend",
+          "columns": [
+            {
+              "type": "string",
+              "text": "Details",
+              "selector": "details"
+            },
+            {
+              "type": "number",
+              "text": "Status",
+              "selector": "status"
+            }
+          ],
+          "format": "table",
+          "hide": false,
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_appdb%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "type": "json",
+          "url_options": {
+            "method": "GET"
+          },
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "source": "url",
+          "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🗄 App DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase readiness /readyz includes its application database connection.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "orientation": "vertical",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "textMode": "value_and_name",
+        "text": {
+          "valueSize": 36,
+          "titleSize": 12
+        },
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom",
+          "displayMode": "table"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "justifyMode": "center"
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "mw-gcp-monitoring"
+      },
+      "id": 81,
+      "description": "Metabase readiness /readyz includes its application database connection. Healthy within 5s, Degraded above 5s; Unknown after six minutes without telemetry.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "fillOpacity": 12,
+            "axisBorderShow": false,
+            "lineInterpolation": "smooth",
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "🔴"
+                },
+                "3": {
+                  "color": "blue",
+                  "text": "🔵"
+                },
+                "2": {
+                  "color": "orange",
+                  "text": "🟠"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "🟢"
+                },
+                "4": {
+                  "color": "gray",
+                  "text": "⚪"
+                }
+              }
+            }
+          ],
+          "decimals": 2,
+          "thresholds": {
+            "steps": [
+              {
+                "value": null,
+                "color": "gray"
+              }
+            ],
+            "mode": "absolute"
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "🗄 App DB",
+          "noValue": "⚪",
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "${__field.name}",
+              "url": "https://reports.mw-credit.com"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "Details",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "Status",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "",
+      "gridPos": {
+        "w": 4,
+        "y": 14,
+        "x": 16,
+        "h": 3
+      },
+      "type": "stat",
+      "targets": [
+        {
+          "parser": "jq-backend",
+          "columns": [
+            {
+              "type": "string",
+              "text": "Details",
+              "selector": "details"
+            },
+            {
+              "type": "number",
+              "text": "Status",
+              "selector": "status"
+            }
+          ],
+          "format": "table",
+          "hide": false,
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_reporting%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "type": "json",
+          "url_options": {
+            "method": "GET"
+          },
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "source": "url",
+          "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛢 Reporting DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nUncached saved SELECT 1 through Metabase source 2; no business rows.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "orientation": "vertical",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "textMode": "value_and_name",
+        "text": {
+          "valueSize": 36,
+          "titleSize": 12
+        },
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom",
+          "displayMode": "table"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "justifyMode": "center"
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "mw-gcp-monitoring"
+      },
+      "id": 82,
+      "description": "Uncached saved SELECT 1 through Metabase source 2; no business rows. Healthy within 5s, Degraded above 5s; Unknown after six minutes without telemetry.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "fillOpacity": 12,
+            "axisBorderShow": false,
+            "lineInterpolation": "smooth",
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "🔴"
+                },
+                "3": {
+                  "color": "blue",
+                  "text": "🔵"
+                },
+                "2": {
+                  "color": "orange",
+                  "text": "🟠"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "🟢"
+                },
+                "4": {
+                  "color": "gray",
+                  "text": "⚪"
+                }
+              }
+            }
+          ],
+          "decimals": 2,
+          "thresholds": {
+            "steps": [
+              {
+                "value": null,
+                "color": "gray"
+              }
+            ],
+            "mode": "absolute"
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "🛢 Reporting DB",
+          "noValue": "⚪",
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "${__field.name}",
+              "url": "https://reports.mw-credit.com"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "Details",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "Status",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "",
+      "gridPos": {
+        "w": 4,
+        "y": 14,
+        "x": 20,
+        "h": 3
+      },
+      "type": "stat",
+      "targets": [
+        {
+          "parser": "jq-backend",
+          "columns": [
+            {
+              "type": "string",
+              "text": "Details",
+              "selector": "details"
+            },
+            {
+              "type": "number",
+              "text": "Status",
+              "selector": "status"
+            }
+          ],
+          "format": "table",
+          "hide": false,
+          "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_charts%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+          "type": "json",
+          "url_options": {
+            "method": "GET"
+          },
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "mw-gcp-monitoring"
+          },
+          "source": "url",
+          "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"📊 Charts — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\ncharts.mw-credit.com shell and protected API response; no private data or rendering check.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "orientation": "vertical",
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "textMode": "value_and_name",
+        "text": {
+          "valueSize": 36,
+          "titleSize": 12
+        },
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "placement": "bottom",
+          "displayMode": "table"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "justifyMode": "center"
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "mw-gcp-monitoring"
+      },
+      "id": 83,
+      "description": "charts.mw-credit.com shell and protected API response; no private data or rendering check. Healthy within 5s, Degraded above 5s; Unknown after six minutes without telemetry.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "fillOpacity": 12,
+            "axisBorderShow": false,
+            "lineInterpolation": "smooth",
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "spanNulls": false,
+            "showPoints": "never"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "🔴"
+                },
+                "3": {
+                  "color": "blue",
+                  "text": "🔵"
+                },
+                "2": {
+                  "color": "orange",
+                  "text": "🟠"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "🟢"
+                },
+                "4": {
+                  "color": "gray",
+                  "text": "⚪"
+                }
+              }
+            }
+          ],
+          "decimals": 2,
+          "thresholds": {
+            "steps": [
+              {
+                "value": null,
+                "color": "gray"
+              }
+            ],
+            "mode": "absolute"
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "displayName": "📊 Charts",
+          "noValue": "⚪",
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "${__field.name}",
+              "url": "https://charts.mw-credit.com"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "transformations": [
+        {
+          "id": "rowsToFields",
+          "options": {
+            "mappings": [
+              {
+                "fieldName": "Details",
+                "handlerKey": "field.name"
+              },
+              {
+                "fieldName": "Status",
+                "handlerKey": "field.value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "",
+      "gridPos": {
+        "w": 8,
+        "y": 9,
+        "x": 16,
+        "h": 1
+      },
+      "type": "stat",
+      "targets": [
+        {
+          "parser": "jq-backend",
+          "refId": "A",
+          "type": "json",
+          "source": "inline",
+          "url": "",
+          "data": "[{\"label\":\"METABASE · PLATFORM\"}]",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "cfz10a9eaokjkd"
+          },
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": ".[]",
+          "format": "table",
+          "columns": [
+            {
+              "text": "Label",
+              "selector": "label",
+              "type": "string"
+            }
+          ],
+          "hide": false
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "orientation": "horizontal",
+        "textMode": "value",
+        "text": {
+          "valueSize": 14
+        },
+        "justifyMode": "left",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        }
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "cfz10a9eaokjkd"
+      },
+      "id": 74,
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "METABASE · PLATFORM",
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "title": "",
+      "gridPos": {
+        "w": 8,
+        "y": 13,
+        "x": 16,
+        "h": 1
+      },
+      "type": "stat",
+      "targets": [
+        {
+          "parser": "jq-backend",
+          "refId": "A",
+          "type": "json",
+          "source": "inline",
+          "url": "",
+          "data": "[{\"label\":\"METABASE · REPORTING\"}]",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "cfz10a9eaokjkd"
+          },
+          "url_options": {
+            "method": "GET"
+          },
+          "root_selector": ".[]",
+          "format": "table",
+          "columns": [
+            {
+              "text": "Label",
+              "selector": "label",
+              "type": "string"
+            }
+          ],
+          "hide": false
+        }
+      ],
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "orientation": "horizontal",
+        "textMode": "value",
+        "text": {
+          "valueSize": 14
+        },
+        "justifyMode": "left",
+        "wideLayout": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        }
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "cfz10a9eaokjkd"
+      },
+      "id": 75,
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "METABASE · REPORTING",
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          }
         },
         "overrides": []
       }
