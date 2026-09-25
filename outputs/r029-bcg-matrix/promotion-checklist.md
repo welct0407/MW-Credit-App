@@ -5,12 +5,12 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 ## Continue here
 
 - Scope: V43 additive display view and Metabase review-tab matrix. Both AppSheet apps Unchanged; no RC.
-- Release scope / freeze timestamp / successor handoff: Open until authorized promotion starts; then record P13 evidence and update the tracker's current development release.
+- Release scope / freeze timestamp / successor handoff: Frozen 2026-09-25T03:41:20.2908300Z; clean V43 pin de0a72a captured; R030 opened in same published handoff.
 - Change log: ../../Change Logs/CHANGE_NOTES_R029_2026-09-25.md. README links migration-chain, backup/restore, synthetic and live parity checks.
 - DEV SQL passes independent coordinate/source parity; native synthetic renderer verified. Existing R026 app issues remain owner-deferred outside this reporting-only scope.
 - Owner: “implement this change (SQL DB and/or Metabase). i expect this wouldn’t touch the Apps.” 25 September. No AppSheet changes.
 - DEV / RC / PROD-before / PROD-after / rollback / SQL versions: in linked manifest; Pending
-- Implementation commit / Flyway manifest / final tag: in linked manifest; Pending
+- Implementation commit de0a72a; flyway-manifest.json captured; final tag pending closure.
 - Completed / next / blockers: Pending
 - Documentation impact: Pending — list affected paths or None with a scope-based reason; add their closure rows below.
 

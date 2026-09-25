@@ -4,9 +4,9 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R029 — Open** |
-| Next number, not yet open or usable | **R030 — opens only when R029 is frozen at promotion start** |
-| Current release evidence | R028 SQL/report released: V42 and automatic categories verified; evidence tag R028. R029 is the sole Open development release. [Checklist](../outputs/r028-schedule-health/promotion-checklist.md) |
+| **Use this release for new development** | **R030 — Open** |
+| Next number, not yet open or usable | **R031 — opens only when R030 is frozen at promotion start** |
+| Current release evidence | R029 frozen at 2026-09-25T03:41:20.2908300Z; independent V43 pin `de0a72a` captured for authorized SQL/report promotion. R030 is the sole Open development release. [Checklist](../outputs/r029-bcg-matrix/promotion-checklist.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R029 | Equal-quadrant borrower matrix | Open | DEV V43 tested; native Metabase renderer proved. Apps unchanged. | [Evidence](../outputs/r029-bcg-matrix/README.md) |
+| R030 | New development after R029 capture | Open | Sole development release; R029 package independently captured. | Current development release above |
+| R029 | Equal-quadrant borrower matrix | Frozen — SQL/report promotion | 2026-09-25T03:41:20.2908300Z; V43 pin `de0a72a`. Apps unchanged. | [Evidence](../outputs/r029-bcg-matrix/README.md) |
 | R028 | Automatic schedule-aware SQL categories and Borrower Health Review | Released — SQL/report only | 25 September 2026; PROD V42, 20 report queries and visual check passed; tag `R028`. Apps unchanged. | [Evidence](../outputs/r028-schedule-health/README.md) |
 | R027 | Payment-health SQL and parallel Borrower Health Review; delivered GCP currency formatting | Released — SQL/report; review tab retained | DEV/PROD V41; tab 31 and questions 253–269; original report preserved. No App Upgrade. | [Evidence](../outputs/r027-payment-health/README.md) · tag R027 |
 | R026 | Table locale alignment, export retirement and unused pg_cron retirement | Closed at owner direction — partial deployment | V40 and template retirement verified; OLAP 1.100198 applied, OLTP unchanged. Further app work stopped; final checks incomplete. R027 remains Open. | [Closure](../outputs/r026-dictionary-fixes/closure.md) · [Log](../Change%20Logs/CHANGE_NOTES_R026_2026-09-24.md) |

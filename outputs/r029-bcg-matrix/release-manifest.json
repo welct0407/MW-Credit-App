@@ -1,0 +1,31 @@
+{
+  "release": "R029",
+  "status": "Frozen \u2014 SQL/report promotion",
+  "frozen_at": "2026-09-25T03:41:20.2908300Z",
+  "implementation_commit": "de0a72a45e64051b5c816c5bce66522c4a33e4ea",
+  "pin": "C:/GitHub/r029-pin",
+  "sql": {
+    "before": 42,
+    "target": 43,
+    "manifest": "flyway-manifest.json"
+  },
+  "apps": {
+    "OLTP": "Unchanged",
+    "OLAP": "Unchanged"
+  },
+  "metabase": {
+    "dashboard": 3,
+    "tab": 31,
+    "old_scatter": 266,
+    "backup": 6
+  },
+  "authority": "Owner 25 September: implement this change SQL DB and/or Metabase; expects no Apps touched",
+  "backup": "production-backup.json",
+  "tests": [
+    "migration-chain.txt",
+    "development-verification.json",
+    "production-rehearsal.json",
+    "dependency-preflight.json",
+    "development-query-checks.json"
+  ]
+}
