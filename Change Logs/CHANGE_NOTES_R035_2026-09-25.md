@@ -1,4 +1,4 @@
-# R035 — Metabase monitoring group
+# R035 — Metabase monitoring group and borrower pages
 
 ## Scope / status
 
@@ -40,3 +40,9 @@ Rollback the alert refinement by pausing/deleting only `ffzb4act1o0zka`; the lig
 Ongoing limitations: Debian probe dependency; Charts tests shell and authentication guard only; reporting SELECT1 tests connection rather than every report. Missing or stale telemetry does not create a new page, so rule/collector health should be checked when tiles show Unknown. Credential recovery folder exists outside Git but independent backup coverage was not audited.
 
 Dictionary closure: saved question276 and its monitoring access/canary contract recorded in the Metabase question namespace; navigation index regenerated. All 1,170 dictionary documents passed structural validation with zero errors.
+
+## Additive borrower pages — implementation in progress
+
+Owner approved implementing the designed Borrower Portfolio and Borrower Detail as new tabs. Existing tabs and AppSheet remain unchanged. V44 adds three reporting views and one period function; no operational schema or financial-row changes. It is applied in DEV and immutable. Full SQL CI, 17 focused synthetic assertions, 18 independent reconciliations and 33 compiled queries passed. A restored production snapshot passed the same checks and 26 table fingerprints.
+
+Metabase recovery dashboard 10 and a private exact baseline precede publication. Starting commit was `0aa3b25`; later monitoring work `e81d296` is preserved. [Implementation, tests and rollback](../outputs/r035-borrower-pages/README.md). Production V44, new tabs, browser checks and exact dictionary closure remain pending; R035 is still Open at this checkpoint.

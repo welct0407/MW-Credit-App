@@ -1,0 +1,2657 @@
+{
+  "specs": [
+    {
+      "key": "picker",
+      "page": "helper",
+      "name": "Borrower pages · picker",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "SELECT borrower_id AS \"Borrower ID\",borrower_label AS \"Borrower\" FROM public.reporting_borrower_directory_v1 ORDER BY borrower_label,borrower_id",
+          "template-tags": {}
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {}
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-active",
+      "page": "portfolio",
+      "name": "Active borrowers",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), cohort AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE loan_count>0 AND ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND has_active_loan OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT has_active_loan)) SELECT count(*) FILTER(WHERE has_active_loan) AS \"Active borrowers\" FROM cohort",
+          "template-tags": {
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Active borrowers",
+        "column_settings": {
+          "[\"name\",\"Active borrowers\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-loans",
+      "page": "portfolio",
+      "name": "Active loans",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), cohort AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE loan_count>0 AND ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND has_active_loan OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT has_active_loan)) SELECT coalesce(sum(active_loans),0) AS \"Active loans\" FROM cohort",
+          "template-tags": {
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Active loans",
+        "column_settings": {
+          "[\"name\",\"Active loans\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-principal",
+      "page": "portfolio",
+      "name": "Principal outstanding ฿",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), cohort AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE loan_count>0 AND ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND has_active_loan OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT has_active_loan)) SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(outstanding_principal IS NOT NULL) THEN sum(outstanding_principal) END AS \"Principal outstanding ฿\" FROM cohort",
+          "template-tags": {
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Principal outstanding ฿",
+        "column_settings": {
+          "[\"name\",\"Principal outstanding ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-interest",
+      "page": "portfolio",
+      "name": "Interest received ฿",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid) SELECT CASE WHEN (SELECT valid FROM bounds) THEN CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END END AS \"Interest received ฿\" FROM cohort",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Interest received ฿",
+        "column_settings": {
+          "[\"name\",\"Interest received ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-issued",
+      "page": "portfolio",
+      "name": "Principal issued ฿",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid) SELECT CASE WHEN (SELECT valid FROM bounds) THEN CASE WHEN count(*)=0 THEN 0 WHEN bool_and(principal_issued IS NOT NULL) THEN sum(principal_issued) END END AS \"Principal issued ฿\" FROM cohort",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Principal issued ฿",
+        "column_settings": {
+          "[\"name\",\"Principal issued ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-issued-count",
+      "page": "portfolio",
+      "name": "Loans issued",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid) SELECT CASE WHEN (SELECT valid FROM bounds) THEN CASE WHEN count(*)=0 THEN 0 WHEN bool_and(loans_issued IS NOT NULL) THEN sum(loans_issued) END END AS \"Loans issued\" FROM cohort",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Loans issued",
+        "column_settings": {
+          "[\"name\",\"Loans issued\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-status",
+      "page": "portfolio",
+      "name": "Period, population & source",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid) SELECT (SELECT starts::text||' → '||ends::text FROM bounds) AS \"Activity dates\",[[{{population}} --]] 'All with loan history'\n AS \"Population\",(SELECT today FROM clock) AS \"Current as of\",to_char(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI') AS \"Queried at\",\n CASE WHEN NOT (SELECT valid FROM bounds) THEN 'Choose one continuous range ending today or earlier' WHEN EXISTS(SELECT 1 FROM public.reporting_borrower_activity_daily_v1 WHERE borrower_id IS NULL OR invalid_events>0) OR EXISTS(SELECT 1 FROM cohort WHERE invalid_fact_count>0) THEN 'Incomplete source facts · inspect data' WHEN (SELECT ends FROM bounds)=(SELECT today FROM clock) THEN 'Today provisional · live on refresh' ELSE 'Live on refresh · completed activity dates' END AS \"Status\"",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {},
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-capital",
+      "page": "portfolio",
+      "name": "Current principal by borrower",
+      "display": "row",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), cohort AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE loan_count>0 AND ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND has_active_loan OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT has_active_loan)), ranked AS (SELECT *,row_number() OVER(ORDER BY outstanding_principal DESC NULLS LAST,borrower_id) rank FROM cohort), groups AS (SELECT CASE WHEN rank<=10 THEN borrower_id END id,CASE WHEN rank<=10 THEN borrower_label ELSE 'Others' END label,CASE WHEN bool_and(outstanding_principal IS NOT NULL) THEN sum(outstanding_principal) END amount,min(rank) rank FROM ranked GROUP BY 1,2)\n SELECT label AS \"Borrower\",amount AS \"Amount ฿\",id AS \"Borrower ID\" FROM groups ORDER BY rank",
+          "template-tags": {
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Borrower"
+        ],
+        "graph.metrics": [
+          "Amount ฿"
+        ],
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#24435A",
+          "#D4AD60",
+          "#9CA3AF"
+        ],
+        "graph.show_legend": false,
+        "graph.show_values": true,
+        "graph.show_dots": false,
+        "graph.y_axis.auto_split": false,
+        "graph.label_value_formatting": "compact",
+        "graph.missing": "none",
+        "stackable.stack_type": null,
+        "column_settings": {
+          "[\"name\",\"Amount ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-contribution",
+      "page": "portfolio",
+      "name": "Period interest by borrower",
+      "display": "row",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid), ranked AS (SELECT *,interest_rank rank FROM cohort), groups AS (SELECT CASE WHEN rank<=10 THEN borrower_id END id,CASE WHEN rank<=10 THEN borrower_label ELSE 'Others' END label,CASE WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END amount,min(rank) rank FROM ranked GROUP BY 1,2)\n SELECT label AS \"Borrower\",amount AS \"Amount ฿\",id AS \"Borrower ID\" FROM groups ORDER BY rank",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Borrower"
+        ],
+        "graph.metrics": [
+          "Amount ฿"
+        ],
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#24435A",
+          "#D4AD60",
+          "#9CA3AF"
+        ],
+        "graph.show_legend": false,
+        "graph.show_values": true,
+        "graph.show_dots": false,
+        "graph.y_axis.auto_split": false,
+        "graph.label_value_formatting": "compact",
+        "graph.missing": "none",
+        "stackable.stack_type": null,
+        "column_settings": {
+          "[\"name\",\"Amount ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-trend",
+      "page": "portfolio",
+      "name": "Interest received over time · top 5 + Others",
+      "display": "line",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid), series AS (SELECT borrower_id,CASE WHEN interest_rank<=5 THEN borrower_label ELSE 'Others' END label FROM cohort), grid AS (SELECT s.borrower_id,s.label,d.\"Date\" FROM series s CROSS JOIN selected d CROSS JOIN bounds b WHERE b.valid)\n SELECT CASE WHEN b.days<=60 THEN g.\"Date\" ELSE date_trunc('week',g.\"Date\")::date END AS \"Date\",g.label AS \"Borrower\",\n CASE WHEN bool_and(a.activity_date IS NULL OR a.interest_received IS NOT NULL) THEN sum(coalesce(a.interest_received,0)) END AS \"Interest ฿\"\n FROM grid g CROSS JOIN bounds b LEFT JOIN public.reporting_borrower_activity_daily_v1 a ON a.borrower_id=g.borrower_id AND a.activity_date=g.\"Date\" GROUP BY 1,2 ORDER BY 1,2",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Date",
+          "Borrower"
+        ],
+        "graph.metrics": [
+          "Interest ฿"
+        ],
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#24435A",
+          "#D4AD60",
+          "#9CA3AF"
+        ],
+        "graph.show_legend": true,
+        "graph.show_values": false,
+        "graph.show_dots": false,
+        "graph.y_axis.auto_split": false,
+        "graph.label_value_formatting": "compact",
+        "graph.missing": "none",
+        "stackable.stack_type": null,
+        "column_settings": {
+          "[\"name\",\"Interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-first-repeat",
+      "page": "portfolio",
+      "name": "First and repeat loans · weekly",
+      "display": "bar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid) SELECT date_trunc('week',a.activity_date)::date AS \"Week\",sum(a.first_loans) AS \"First loans\",sum(a.repeat_loans) AS \"Repeat loans\",sum(a.unclassified_loans) AS \"Unavailable classification\",sum(a.principal_issued) AS \"Principal issued ฿\",count(DISTINCT a.borrower_id) FILTER(WHERE a.loans_issued>0) AS \"Borrowers\"\n FROM public.reporting_borrower_activity_daily_v1 a JOIN cohort c USING(borrower_id) CROSS JOIN bounds b WHERE a.activity_date BETWEEN b.starts AND b.ends AND a.loans_issued>0 GROUP BY 1 ORDER BY 1",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Week"
+        ],
+        "graph.metrics": [
+          "First loans",
+          "Repeat loans",
+          "Unavailable classification"
+        ],
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#24435A",
+          "#D4AD60",
+          "#9CA3AF"
+        ],
+        "graph.show_legend": true,
+        "graph.show_values": false,
+        "graph.show_dots": false,
+        "graph.y_axis.auto_split": false,
+        "graph.label_value_formatting": "compact",
+        "graph.missing": "none",
+        "stackable.stack_type": "stacked",
+        "column_settings": {
+          "[\"name\",\"First loans\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Repeat loans\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Unavailable classification\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "p-comparison",
+      "page": "portfolio",
+      "name": "Borrower comparison · click a name for Detail",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid) SELECT c.borrower_label AS \"Borrower\",c.active_loans AS \"Active loans\",c.outstanding_principal AS \"Principal ฿\",c.principal_share AS \"Principal share\",c.interest_received AS \"Interest ฿\",c.principal_issued AS \"Principal issued ฿\",c.loans_issued AS \"Loans issued\",coalesce(h.current_health_status,'Unavailable') AS \"Current health\",c.principal_returned AS \"Principal returned ฿\",c.loan_count AS \"Lifetime loans\",c.last_payment_date AS \"Last payment\",c.borrower_id AS \"Borrower ID\",b.starts AS \"Period start\",b.ends AS \"Period end\" FROM cohort c LEFT JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) CROSS JOIN bounds b ORDER BY c.principal_rank",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "population": {
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "type": "text",
+              "default": "All with loan history"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Borrower",
+            "fieldRef": [
+              "field",
+              "Borrower",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Active loans",
+            "fieldRef": [
+              "field",
+              "Active loans",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal ฿",
+            "fieldRef": [
+              "field",
+              "Principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal share",
+            "fieldRef": [
+              "field",
+              "Principal share",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest ฿",
+            "fieldRef": [
+              "field",
+              "Interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal issued ฿",
+            "fieldRef": [
+              "field",
+              "Principal issued ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loans issued",
+            "fieldRef": [
+              "field",
+              "Loans issued",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Current health",
+            "fieldRef": [
+              "field",
+              "Current health",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal returned ฿",
+            "fieldRef": [
+              "field",
+              "Principal returned ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Lifetime loans",
+            "fieldRef": [
+              "field",
+              "Lifetime loans",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Last payment",
+            "fieldRef": [
+              "field",
+              "Last payment",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Borrower ID",
+            "fieldRef": [
+              "field",
+              "Borrower ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          },
+          {
+            "name": "Period start",
+            "fieldRef": [
+              "field",
+              "Period start",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          },
+          {
+            "name": "Period end",
+            "fieldRef": [
+              "field",
+              "Period end",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": false
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Active loans\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal share\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal issued ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Loans issued\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal returned ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Lifetime loans\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-identity",
+      "page": "detail",
+      "name": "Selected borrower · current position",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT borrower_label AS \"Borrower\",borrower_id AS \"Borrower ID\",CASE WHEN has_active_loan THEN 'Active' ELSE 'Inactive' END AS \"Status\",CASE WHEN hidden_flag THEN 'Hidden in operational app' ELSE 'Visible' END AS \"Operational visibility\",first_loan_date AS \"First loan\",reporting_date AS \"As of\" FROM chosen",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {},
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-principal",
+      "page": "detail",
+      "name": "Current principal ฿",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT c.outstanding_principal AS \"Current principal ฿\" FROM chosen c LEFT JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id)",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Current principal ฿",
+        "column_settings": {
+          "[\"name\",\"Current principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-active",
+      "page": "detail",
+      "name": "Active loans",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT c.active_loans AS \"Active loans\" FROM chosen c LEFT JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id)",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Active loans",
+        "column_settings": {
+          "[\"name\",\"Active loans\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-overdue",
+      "page": "detail",
+      "name": "Overdue ฿",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT h.overdue_amount AS \"Overdue ฿\" FROM chosen c LEFT JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id)",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Overdue ฿",
+        "column_settings": {
+          "[\"name\",\"Overdue ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-share",
+      "page": "detail",
+      "name": "Portfolio share",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT c.outstanding_principal/(SELECT CASE WHEN bool_and(outstanding_principal IS NOT NULL) AND sum(outstanding_principal)>0 THEN sum(outstanding_principal) END FROM public.reporting_borrower_directory_v1 WHERE loan_count>0) AS \"Portfolio share\" FROM chosen c LEFT JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id)",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Portfolio share",
+        "column_settings": {
+          "[\"name\",\"Portfolio share\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-health",
+      "page": "detail",
+      "name": "Current health · governed rolling window",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT h.current_health_status AS \"Current health\",h.rating_status AS \"Rating status\",h.reliability_score AS \"Payment score /100\",h.confidence AS \"Confidence\",coalesce(m.quadrant,'Outside active cohort') AS \"Category\",coalesce(s.arrangement_status,'Unavailable') AS \"Schedule\",h.reason_text AS \"Payment reason\",m.classification_reason AS \"Category reason\",h.overdue_principal AS \"Overdue principal ฿\",h.overdue_interest AS \"Overdue interest ฿\",h.oldest_unpaid_days AS \"Oldest overdue days\",to_char(h.calculated_at AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI') AS \"Queried at\" FROM chosen c LEFT JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) LEFT JOIN public.reporting_borrower_matrix_v3 m USING(borrower_id) LEFT JOIN public.reporting_borrower_schedule_health_v1 s USING(borrower_id)",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Current health",
+            "fieldRef": [
+              "field",
+              "Current health",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Rating status",
+            "fieldRef": [
+              "field",
+              "Rating status",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Payment score /100",
+            "fieldRef": [
+              "field",
+              "Payment score /100",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Confidence",
+            "fieldRef": [
+              "field",
+              "Confidence",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Category",
+            "fieldRef": [
+              "field",
+              "Category",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "fieldRef": [
+              "field",
+              "Schedule",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Payment reason",
+            "fieldRef": [
+              "field",
+              "Payment reason",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Category reason",
+            "fieldRef": [
+              "field",
+              "Category reason",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue principal ฿",
+            "fieldRef": [
+              "field",
+              "Overdue principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Overdue interest ฿",
+            "fieldRef": [
+              "field",
+              "Overdue interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Oldest overdue days",
+            "fieldRef": [
+              "field",
+              "Oldest overdue days",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Queried at",
+            "fieldRef": [
+              "field",
+              "Queried at",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Payment score /100\"]": {
+            "number_style": "decimal",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Overdue principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Overdue interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Oldest overdue days\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-interest",
+      "page": "detail",
+      "name": "Interest received ฿",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END FROM activity) AS \"Interest received ฿\" FROM chosen CROSS JOIN bounds WHERE bounds.valid",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Interest received ฿",
+        "column_settings": {
+          "[\"name\",\"Interest received ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-issued",
+      "page": "detail",
+      "name": "Principal issued ฿",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(principal_issued IS NOT NULL) THEN sum(principal_issued) END FROM activity) AS \"Principal issued ฿\" FROM chosen CROSS JOIN bounds WHERE bounds.valid",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Principal issued ฿",
+        "column_settings": {
+          "[\"name\",\"Principal issued ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-returned",
+      "page": "detail",
+      "name": "Principal returned ฿",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(principal_returned IS NOT NULL) THEN sum(principal_returned) END FROM activity) AS \"Principal returned ฿\" FROM chosen CROSS JOIN bounds WHERE bounds.valid",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Principal returned ฿",
+        "column_settings": {
+          "[\"name\",\"Principal returned ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-issued-count",
+      "page": "detail",
+      "name": "Loans issued",
+      "display": "scalar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(loans_issued IS NOT NULL) THEN sum(loans_issued) END FROM activity) AS \"Loans issued\" FROM chosen CROSS JOIN bounds WHERE bounds.valid",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Loans issued",
+        "column_settings": {
+          "[\"name\",\"Loans issued\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-status",
+      "page": "detail",
+      "name": "Activity dates & lifetime context",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT b.starts::text||' → '||b.ends::text AS \"Activity dates\",CASE WHEN NOT b.valid THEN 'Choose one continuous range ending today or earlier' WHEN c.invalid_fact_count>0 THEN 'Incomplete source facts' WHEN b.ends=(SELECT today FROM clock) THEN 'Today provisional · live on refresh' ELSE 'Live on refresh' END AS \"Status\",c.lifetime_interest AS \"Lifetime interest ฿\",c.loan_count AS \"Lifetime loans\",h.default_count AS \"Recorded defaults\",h.recorded_default_loss AS \"Recorded loss ฿\",to_char(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bangkok','YYYY-MM-DD HH24:MI') AS \"Queried at\" FROM chosen c CROSS JOIN bounds b LEFT JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id)",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Activity dates",
+            "fieldRef": [
+              "field",
+              "Activity dates",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Status",
+            "fieldRef": [
+              "field",
+              "Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Lifetime interest ฿",
+            "fieldRef": [
+              "field",
+              "Lifetime interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Lifetime loans",
+            "fieldRef": [
+              "field",
+              "Lifetime loans",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded defaults",
+            "fieldRef": [
+              "field",
+              "Recorded defaults",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded loss ฿",
+            "fieldRef": [
+              "field",
+              "Recorded loss ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Queried at",
+            "fieldRef": [
+              "field",
+              "Queried at",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Lifetime interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Lifetime loans\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-principal-trend",
+      "page": "detail",
+      "name": "Principal issued and returned",
+      "display": "line",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT CASE WHEN b.days<=60 THEN d.\"Date\" ELSE date_trunc('week',d.\"Date\")::date END AS \"Date\",CASE WHEN bool_and(a.activity_date IS NULL OR a.principal_issued IS NOT NULL) THEN sum(coalesce(a.principal_issued,0)) END AS \"Principal issued ฿\",CASE WHEN bool_and(a.activity_date IS NULL OR a.principal_returned IS NOT NULL) THEN sum(coalesce(a.principal_returned,0)) END AS \"Principal returned ฿\"\n FROM selected d CROSS JOIN chosen c CROSS JOIN bounds b LEFT JOIN activity a ON a.activity_date=d.\"Date\" WHERE b.valid GROUP BY 1 ORDER BY 1",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Date"
+        ],
+        "graph.metrics": [
+          "Principal issued ฿",
+          "Principal returned ฿"
+        ],
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#24435A",
+          "#D4AD60",
+          "#9CA3AF"
+        ],
+        "graph.show_legend": true,
+        "graph.show_values": false,
+        "graph.show_dots": false,
+        "graph.y_axis.auto_split": false,
+        "graph.label_value_formatting": "compact",
+        "graph.missing": "none",
+        "stackable.stack_type": null,
+        "column_settings": {
+          "[\"name\",\"Principal issued ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal returned ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-interest-trend",
+      "page": "detail",
+      "name": "Interest received over time",
+      "display": "line",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT CASE WHEN b.days<=60 THEN d.\"Date\" ELSE date_trunc('week',d.\"Date\")::date END AS \"Date\",CASE WHEN bool_and(a.activity_date IS NULL OR a.interest_received IS NOT NULL) THEN sum(coalesce(a.interest_received,0)) END AS \"Interest ฿\"\n FROM selected d CROSS JOIN chosen c CROSS JOIN bounds b LEFT JOIN activity a ON a.activity_date=d.\"Date\" WHERE b.valid GROUP BY 1 ORDER BY 1",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Date"
+        ],
+        "graph.metrics": [
+          "Interest ฿"
+        ],
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#24435A",
+          "#D4AD60",
+          "#9CA3AF"
+        ],
+        "graph.show_legend": false,
+        "graph.show_values": false,
+        "graph.show_dots": false,
+        "graph.y_axis.auto_split": false,
+        "graph.label_value_formatting": "compact",
+        "graph.missing": "none",
+        "stackable.stack_type": null,
+        "column_settings": {
+          "[\"name\",\"Interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-active-loans",
+      "page": "detail",
+      "name": "Active loans & recorded next plan",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT l.loan_id AS \"Loan ID\",l.loan_date AS \"Loan date\",l.loan_type AS \"Loan type\",l.original_principal AS \"Original principal ฿\",l.outstanding_principal AS \"Current principal ฿\",l.due_date AS \"Due date\",l.daily_interest AS \"Daily interest ฿\",s.schedule_reason AS \"Schedule\",s.next_plan_due_date AS \"Next plan due\",s.next_plan_principal AS \"Next principal ฿\",s.next_plan_interest AS \"Next interest ฿\" FROM chosen c JOIN public.reporting_borrower_loan_facts_v1 l USING(borrower_id) LEFT JOIN public.reporting_loan_schedule_health_v1 s USING(loan_id) WHERE l.is_active ORDER BY l.loan_date DESC,l.loan_id",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Loan ID",
+            "fieldRef": [
+              "field",
+              "Loan ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan date",
+            "fieldRef": [
+              "field",
+              "Loan date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan type",
+            "fieldRef": [
+              "field",
+              "Loan type",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Original principal ฿",
+            "fieldRef": [
+              "field",
+              "Original principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Current principal ฿",
+            "fieldRef": [
+              "field",
+              "Current principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Due date",
+            "fieldRef": [
+              "field",
+              "Due date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Daily interest ฿",
+            "fieldRef": [
+              "field",
+              "Daily interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Schedule",
+            "fieldRef": [
+              "field",
+              "Schedule",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Next plan due",
+            "fieldRef": [
+              "field",
+              "Next plan due",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Next principal ฿",
+            "fieldRef": [
+              "field",
+              "Next principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Next interest ฿",
+            "fieldRef": [
+              "field",
+              "Next interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Original principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Current principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Daily interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Next principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Next interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-timing",
+      "page": "detail",
+      "name": "Obligations by due month · selected dates",
+      "display": "bar",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT date_trunc('month',h.due_date)::date AS \"Due month\",count(*) FILTER(WHERE h.history_eligible AND h.on_time) AS \"On time\",count(*) FILTER(WHERE h.history_eligible AND NOT h.on_time) AS \"Not on time\",count(*) FILTER(WHERE NOT h.history_eligible OR h.on_time IS NULL) AS \"Excluded / unavailable\" FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND h.due_date BETWEEN b.starts AND b.ends GROUP BY 1 ORDER BY 1",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Due month"
+        ],
+        "graph.metrics": [
+          "On time",
+          "Not on time",
+          "Excluded / unavailable"
+        ],
+        "graph.colors": [
+          "#178F8A",
+          "#7472BE",
+          "#D6816B",
+          "#24435A",
+          "#D4AD60",
+          "#9CA3AF"
+        ],
+        "graph.show_legend": true,
+        "graph.show_values": false,
+        "graph.show_dots": false,
+        "graph.y_axis.auto_split": false,
+        "graph.label_value_formatting": "compact",
+        "graph.missing": "none",
+        "stackable.stack_type": "stacked",
+        "column_settings": {
+          "[\"name\",\"On time\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Not on time\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Excluded / unavailable\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-loan-history",
+      "page": "detail",
+      "name": "Loan history · lifetime",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT l.loan_id AS \"Loan ID\",l.loan_date AS \"Loan date\",l.loan_type AS \"Loan type\",l.loan_status AS \"Status\",l.original_principal AS \"Original principal ฿\",l.outstanding_principal AS \"Current principal ฿\",l.principal_received AS \"Principal received ฿\",l.interest_received AS \"Interest received ฿\",l.close_date AS \"Close date\",l.defaulted AS \"Defaulted\",l.default_loss AS \"Recorded loss ฿\" FROM chosen c JOIN public.reporting_borrower_loan_facts_v1 l USING(borrower_id) ORDER BY l.is_active DESC,l.loan_date DESC,l.loan_id",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Loan ID",
+            "fieldRef": [
+              "field",
+              "Loan ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan date",
+            "fieldRef": [
+              "field",
+              "Loan date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan type",
+            "fieldRef": [
+              "field",
+              "Loan type",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Status",
+            "fieldRef": [
+              "field",
+              "Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Original principal ฿",
+            "fieldRef": [
+              "field",
+              "Original principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Current principal ฿",
+            "fieldRef": [
+              "field",
+              "Current principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal received ฿",
+            "fieldRef": [
+              "field",
+              "Principal received ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest received ฿",
+            "fieldRef": [
+              "field",
+              "Interest received ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Close date",
+            "fieldRef": [
+              "field",
+              "Close date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Defaulted",
+            "fieldRef": [
+              "field",
+              "Defaulted",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Recorded loss ฿",
+            "fieldRef": [
+              "field",
+              "Recorded loss ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Original principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Current principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal received ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest received ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Recorded loss ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-payments",
+      "page": "detail",
+      "name": "Repayment allocations · selected payment dates",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT r.\"Payment Date\" AS \"Payment date\",r.\"Ref Loans\" AS \"Loan ID\",r.\"Row ID\" AS \"Repayment ID\",r.\"Principal Paid\"::numeric AS \"Principal ฿\",r.\"Interest Paid\"::numeric AS \"Interest ฿\" FROM chosen c JOIN public.reporting_borrower_loan_facts_v1 l USING(borrower_id) JOIN public.olap_repayments_analytics r ON r.\"Ref Loans\"=l.loan_id CROSS JOIN bounds b WHERE b.valid AND r.\"Payment Date\" BETWEEN b.starts AND b.ends ORDER BY r.\"Payment Date\" DESC,r.\"Row ID\"",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Payment date",
+            "fieldRef": [
+              "field",
+              "Payment date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan ID",
+            "fieldRef": [
+              "field",
+              "Loan ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Repayment ID",
+            "fieldRef": [
+              "field",
+              "Repayment ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal ฿",
+            "fieldRef": [
+              "field",
+              "Principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest ฿",
+            "fieldRef": [
+              "field",
+              "Interest ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-obligations",
+      "page": "detail",
+      "name": "Obligation evidence · selected due dates",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), activity AS (SELECT a.* FROM public.reporting_borrower_activity_daily_v1 a JOIN chosen c USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND a.activity_date BETWEEN b.starts AND b.ends) SELECT h.due_date AS \"Due date\",h.loan_id AS \"Loan ID\",h.charge_id AS \"Charge ID\",h.principal_due AS \"Principal due ฿\",h.interest_due AS \"Interest due ฿\",h.principal_remaining_current AS \"Principal remaining ฿\",h.interest_remaining_current AS \"Interest remaining ฿\",h.current_days_overdue AS \"Days overdue\",CASE WHEN NOT h.history_eligible THEN 'Excluded' WHEN h.on_time THEN 'On time' ELSE 'Not on time' END AS \"Historical timing\",coalesce(h.exclusion_reason,h.data_quality_status) AS \"Evidence status\" FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) CROSS JOIN bounds b WHERE b.valid AND h.due_date BETWEEN b.starts AND b.ends ORDER BY h.due_date DESC,h.charge_id",
+          "template-tags": {
+            "period": {
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                82,
+                null
+              ],
+              "widget-type": "date/all-options",
+              "alias": "d.\"Date\""
+            },
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Due date",
+            "fieldRef": [
+              "field",
+              "Due date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan ID",
+            "fieldRef": [
+              "field",
+              "Loan ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Charge ID",
+            "fieldRef": [
+              "field",
+              "Charge ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal due ฿",
+            "fieldRef": [
+              "field",
+              "Principal due ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest due ฿",
+            "fieldRef": [
+              "field",
+              "Interest due ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal remaining ฿",
+            "fieldRef": [
+              "field",
+              "Principal remaining ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest remaining ฿",
+            "fieldRef": [
+              "field",
+              "Interest remaining ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Days overdue",
+            "fieldRef": [
+              "field",
+              "Days overdue",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Historical timing",
+            "fieldRef": [
+              "field",
+              "Historical timing",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Evidence status",
+            "fieldRef": [
+              "field",
+              "Evidence status",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Principal due ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest due ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal remaining ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest remaining ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Days overdue\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-overdue-list",
+      "page": "detail",
+      "name": "All current overdue obligations · any due date",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n) SELECT h.due_date AS \"Due date\",h.loan_id AS \"Loan ID\",h.charge_id AS \"Charge ID\",h.principal_due AS \"Principal due ฿\",h.interest_due AS \"Interest due ฿\",h.principal_remaining_current AS \"Principal remaining ฿\",h.interest_remaining_current AS \"Interest remaining ฿\",h.current_days_overdue AS \"Days overdue\",CASE WHEN NOT h.history_eligible THEN 'Excluded' WHEN h.on_time THEN 'On time' ELSE 'Not on time' END AS \"Historical timing\",coalesce(h.exclusion_reason,h.data_quality_status) AS \"Evidence status\" FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) WHERE h.is_overdue ORDER BY h.due_date,h.charge_id",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Due date",
+            "fieldRef": [
+              "field",
+              "Due date",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Loan ID",
+            "fieldRef": [
+              "field",
+              "Loan ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Charge ID",
+            "fieldRef": [
+              "field",
+              "Charge ID",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal due ฿",
+            "fieldRef": [
+              "field",
+              "Principal due ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest due ฿",
+            "fieldRef": [
+              "field",
+              "Interest due ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Principal remaining ฿",
+            "fieldRef": [
+              "field",
+              "Principal remaining ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Interest remaining ฿",
+            "fieldRef": [
+              "field",
+              "Interest remaining ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Days overdue",
+            "fieldRef": [
+              "field",
+              "Days overdue",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Historical timing",
+            "fieldRef": [
+              "field",
+              "Historical timing",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Evidence status",
+            "fieldRef": [
+              "field",
+              "Evidence status",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Principal due ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest due ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Principal remaining ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Interest remaining ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Days overdue\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    },
+    {
+      "key": "d-scenario",
+      "page": "detail",
+      "name": "Additional lending · hypothetical only",
+      "display": "table",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), input AS (SELECT [[{{amount}} --]] 0\n AS amount), total AS (SELECT CASE WHEN bool_and(outstanding_principal IS NOT NULL) THEN sum(outstanding_principal) END principal FROM public.reporting_borrower_directory_v1 WHERE loan_count>0)\n SELECT CASE WHEN i.amount<0 OR i.amount::text IN ('NaN','Infinity','-Infinity') THEN 'Enter a nonnegative finite amount' ELSE 'Scenario only · no loan saved' END AS \"Status\",c.outstanding_principal AS \"Current principal ฿\",CASE WHEN i.amount>=0 AND i.amount::text NOT IN ('NaN','Infinity','-Infinity') THEN c.outstanding_principal+i.amount END AS \"Proposed principal ฿\",CASE WHEN t.principal>0 THEN c.outstanding_principal/t.principal END AS \"Current share\",CASE WHEN i.amount>=0 AND i.amount::text NOT IN ('NaN','Infinity','-Infinity') AND t.principal+i.amount>0 THEN (c.outstanding_principal+i.amount)/(t.principal+i.amount) END AS \"Proposed share\" FROM chosen c CROSS JOIN input i CROSS JOIN total t",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            },
+            "amount": {
+              "id": "bp-amount",
+              "name": "amount",
+              "display-name": "Additional principal",
+              "type": "number",
+              "default": 0
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "table.pivot": false,
+        "table.columns": [
+          {
+            "name": "Status",
+            "fieldRef": [
+              "field",
+              "Status",
+              {
+                "base-type": "type/Text"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Current principal ฿",
+            "fieldRef": [
+              "field",
+              "Current principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Proposed principal ฿",
+            "fieldRef": [
+              "field",
+              "Proposed principal ฿",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Current share",
+            "fieldRef": [
+              "field",
+              "Current share",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          },
+          {
+            "name": "Proposed share",
+            "fieldRef": [
+              "field",
+              "Proposed share",
+              {
+                "base-type": "type/Decimal"
+              }
+            ],
+            "enabled": true
+          }
+        ],
+        "column_settings": {
+          "[\"name\",\"Current principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Proposed principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Current share\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          },
+          "[\"name\",\"Proposed share\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed receipts. No AppSheet/financial writes."
+    }
+  ]
+}
