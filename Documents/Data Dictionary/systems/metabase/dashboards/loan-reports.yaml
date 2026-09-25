@@ -222,9 +222,9 @@
     "id": "collection-detail-status"
     "values_source_config":
       "values":
-      - "Overdue"
       - "Not Paid"
       - "Partially Paid"
+      - "Overdue"
       - "Fully Paid"
   - "slug": "bp_population"
     "values_query_type": "list"
@@ -4093,11 +4093,6 @@
       "questions_retained": true
       "evidence": "outputs/r025-20260924/cutover-verification.json"
     "status_palette":
-      "Overdue":
-        "text": "purple"
-        "heading": "\U0001F7E3"
-        "color": "#6941C6"
-        "row": "#EDE9FE"
       "Not Paid":
         "text": "red"
         "heading": "\U0001F534"
@@ -4108,12 +4103,33 @@
         "heading": "\U0001F7E0"
         "color": "#B54708"
         "row": "#FFF1D6"
+      "Overdue":
+        "text": "purple"
+        "heading": "\U0001F7E3"
+        "color": "#6941C6"
+        "row": "#EDE9FE"
       "Fully Paid":
         "text": "green"
         "heading": "\U0001F7E2"
         "color": "#067647"
         "row": "#ECFDF3"
     "status_palette_evidence": "outputs/r036-collection-status-colors/verification.json"
+    "status_order":
+    - "Not Paid"
+    - "Partially Paid"
+    - "Overdue"
+    - "Fully Paid"
+    "lane_count_cards":
+    - 242
+    - 244
+    - 240
+    - 246
+    "lane_list_cards":
+    - 243
+    - 245
+    - 241
+    - 247
+    "status_order_evidence": "outputs/r036-collection-status-colors/order-verification.json"
   "borrower_health_review":
     "tab_id": 31
     "release": "R034"
@@ -4282,16 +4298,16 @@
     "reason": "Swap canonical Performance and Borrowers display order"
     "state": "value"
   "/content/parameters":
-    "reference": "outputs/r035-borrower-pages/README.md"
-    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "reference": "outputs/r036-collection-status-colors/order-verification.json"
+    "reason": "Owner-requested Collection Monitor status-lane and selector order"
     "state": "value"
   "/content/unaffected_pages":
     "reference": "outputs/r023-20260924/README.md"
     "reason": "Canonical Performance replacement accepted by owner"
     "state": "value"
   "/content/collection_monitor":
-    "reference": "outputs/r036-collection-status-colors/verification.json"
-    "reason": "Align canonical Collection Monitor payment-status presentation with OLTP format rules"
+    "reference": "outputs/r036-collection-status-colors/order-verification.json"
+    "reason": "Owner-requested Collection Monitor status-lane and selector order"
     "state": "value"
   "/content/borrower_health_review":
     "reference": "outputs/r034-matrix-order/verification.json"

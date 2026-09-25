@@ -104,4 +104,6 @@ R025 canonical cutover: `PromoteCollectionTab.mjs` uses the private pre-cutover 
 
 ## R036 Collection Monitor colors
 
-`AlignCollectionStatusColors.mjs --apply --verify` aligns only the four status cues and row highlights in canonical tab 19 with OLTP formatting. It requires the pre-change names/colors and refuses to overwrite its private rollback snapshot. After installation, use `--verify` alone for readback; do not replay `--apply`. [Saved results and recovery](../../outputs/r036-collection-status-colors/README.md).
+`AlignCollectionStatusColors.mjs --apply --verify` aligned the four status cues and row highlights in canonical tab 19 with OLTP formatting. It requires the pre-change names/colors and refuses to overwrite its private rollback snapshot. This is dated color-checkpoint evidence; do not replay `--apply`. [Saved results and recovery](../../outputs/r036-collection-status-colors/README.md).
+
+`ReorderCollectionStatusLanes.mjs --apply --verify` applies the later owner-requested order to existing lane placements, the detail status selector and its color-rule sequence. It snapshots the current dashboard/detail question privately and guards the starting order. After installation, use `--verify` alone; do not replay `--apply`. The earlier color verifier is dated evidence and expects the pre-reorder layout. [Order evidence](../../outputs/r036-collection-status-colors/order-verification.json).

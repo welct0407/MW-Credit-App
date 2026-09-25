@@ -1,6 +1,6 @@
 # Environment inventory
 
-R036 Collection Monitor palette (25 September): dashboard3/tab19 retains its definition and layout; question titles and row highlights now map Not Paid → red, Partially Paid → orange, Overdue → purple, Fully Paid → green, matching OLTP format-rule colors. Questions 240–248 only; queries, permissions, DB, apps and jobs unchanged. [Saved state](../outputs/r036-collection-status-colors/README.md). R036 remains Open.
+R036 Collection Monitor presentation (25 September): dashboard3/tab19 now orders both status rows and the detail selector Not Paid → Partially Paid → Overdue → Fully Paid, colored red → orange → purple → green to match OLTP. Existing placement/question IDs retained; only eight lane columns, the selector's option order and detail color-rule order changed in the follow-up. Queries, other placements, permissions, DB, apps and jobs unchanged. [Saved state](../outputs/r036-collection-status-colors/README.md). R036 remains Open.
 
 R035 borrower pages (25 September): DEV/PROD V44; same instance `appsheet-pg-prod-20260914`, host `34.21.174.215`, databases `loan_manager_dev` / `loan_manager_prod`. Three additive reporting views and a read-only period function serve new dashboard3 tabs104/105. Existing source2 and restricted reporting user retained; SELECT/EXECUTE only on the new providers. Recovery dashboard10. Both AppSheet apps unchanged. R036 is the sole Open development release. [Package and checks](../outputs/r035-borrower-pages/README.md).
 
