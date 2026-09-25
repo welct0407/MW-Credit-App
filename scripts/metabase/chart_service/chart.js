@@ -18,7 +18,7 @@ function show(row,node){
  const title=document.createElement('h2');title.textContent=row.name;tooltip.append(title);
  const spec=specs.find(s=>s.name===row.category), badge=document.createElement('span');badge.className='badge';badge.textContent=row.category;badge.style.color=spec.color;badge.style.background=spec.fill;tooltip.append(badge);
  const dl=document.createElement('dl');
- const fields=[['Payment score',number(row.payment_score)+' / 100'],['Contribution vs equal share',number(row.relative_contribution,2)+'×'],['Interest · last 30 days','฿ '+number(row.contribution_30d,2)],['Outstanding principal','฿ '+number(row.outstanding_principal,2)],['Payment schedule',row.arrangement_status],['History confidence',row.confidence],['Reporting date',row.reporting_date]];
+ const fields=[['Payment score',number(row.payment_score)+' / 100'],['Contribution vs equal share',number(row.relative_contribution,2)+'×'],['Interest · last 30 days','฿ '+number(row.contribution_30d,0)],['Outstanding principal','฿ '+number(row.outstanding_principal,0)],['Payment schedule',row.arrangement_status],['History confidence',row.confidence],['Reporting date',row.reporting_date]];
  for(const [k,v] of fields){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=k;dd.textContent=v??'—';dl.append(dt,dd);}tooltip.append(dl);
  const basis=document.createElement('p');basis.className='basis';basis.textContent=row.position_basis+'. '+row.classification_reason;tooltip.append(basis);tooltip.hidden=false;
  const box=$('plot').getBoundingClientRect(), anchor=node.getBoundingClientRect(), tw=tooltip.offsetWidth,th=tooltip.offsetHeight;
