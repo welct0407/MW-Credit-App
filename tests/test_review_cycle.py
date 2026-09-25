@@ -118,6 +118,25 @@ class CycleTests(unittest.TestCase):
         self.add_payment.side_effect=TimeoutError()
         self.run_cycle();self.run_cycle();self.assertEqual(self.add_payment.call_count,1)
 
+    def test_real_plan_partial_charge_above_small_principal_uses_automatic_executor(self):
+        from mw_integration_agent.review_proposal import plan
+        self.proposal['receipt']['amount']='1500.00'
+        day=self.proposal['receipt']['date']
+        self.facts.return_value={'loans':[
+            {'id':key,'loan_key':key,'status':'ยังไม่ปิดยอด','type':'ดอกเบี้ยรายวัน',
+             'auto':True,'principal':principal,'daily':'100','date':day}
+            for key,principal in [('large','5000'),('small','1000')]],
+            'charges':[{'loan':key,'date':day,'principal':'0','interest':amount}
+                       for key,amount in [('large','2000'),('small','0')]]}
+        self.plan.side_effect=plan
+        self.validated_job();self.enable_auto();self.masters.return_value['reviewer_ids']=[]
+        self.run_cycle();self.run_cycle()
+        self.assertEqual(self.add_payment.call_count,1)
+        self.assertEqual(self.add_payment.call_args.args[2]['action'],'Lump Sum')
+        self.assertTrue(self.add_payment.call_args.args[0]['_receipt_automatic'])
+        row=self.j.db.execute("SELECT state,decision_message FROM partner_reviews WHERE job_id='new-job'").fetchone()
+        self.assertEqual(row['state'],'POSTED');self.assertIsNone(row['decision_message'])
+
     def test_auto_manual_actions_still_request_review(self):
         for action in ('Loan Close','Overpayment review'):
             with self.subTest(action=action):

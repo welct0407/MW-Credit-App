@@ -58,6 +58,49 @@ class ReviewTests(unittest.TestCase):
         self.assertEqual(self.db.execute('SELECT state FROM partner_reviews WHERE id=?',(replacement,)).fetchone()[0],'PENDING')
 
 class PlanTests(unittest.TestCase):
+    def multi_loan_facts(self,large_charge='2400',small_principal='1000',small_charge='0'):
+        loans=[{'id':key,'loan_key':key,'status':'ยังไม่ปิดยอด','type':'ดอกเบี้ยรายวัน',
+                'auto':True,'principal':principal,'daily':'100','date':'2026-09-18'}
+               for key,principal in [('large','5000'),('small',small_principal)]]
+        charges=[{'loan':key,'date':'2026-09-25','principal':'0','interest':amount}
+                 for key,amount in [('large',large_charge),('small',small_charge)]]
+        return {'loans':loans,'charges':charges}
+
+    def propose(self,amount,current):
+        return plan({'amount':amount,'date':'2026-09-25'},{'id':'test-borrower'},current,'2026-09-25')
+
+    def test_partial_and_full_current_charge_above_small_loan_principal_are_ordinary(self):
+        for amount,charge in [('1450','2400'),('1500','2000'),('2400','2400')]:
+            with self.subTest(amount=amount,charge=charge):
+                p=self.propose(amount,self.multi_loan_facts(large_charge=charge))
+                self.assertEqual(p['action'],'Lump Sum');self.assertIsNone(p['loan_id'])
+
+    def test_incidental_exact_or_ambiguous_payoff_does_not_override_current_charge(self):
+        f=self.multi_loan_facts(small_principal='1400',small_charge='100')
+        self.assertEqual(self.propose('1500',f)['action'],'Lump Sum')
+        f['loans'].append(dict(f['loans'][1],id='another',loan_key='another'))
+        f['charges'].append(dict(f['charges'][1],loan='another'))
+        self.assertEqual(self.propose('1500',f)['action'],'Lump Sum')
+        # Outside current charges, ambiguous exact payoffs still fail closed.
+        f['charges'][0]['interest']='0'
+        from mw_integration_agent.receipt_rules import ReceiptInvalid
+        with self.assertRaisesRegex(ReceiptInvalid,'LOAN_CLOSE_AMBIGUOUS'):self.propose('1500',f)
+
+    def test_above_current_charge_without_exact_payoff_requires_overpayment_review(self):
+        p=self.propose('1500',self.multi_loan_facts(large_charge='1200'))
+        self.assertEqual(p['action'],'Overpayment review')
+        self.assertEqual(p['approved_allocation_method'],'Lump Sum')
+
+    def test_future_charge_cannot_make_receipt_ordinary(self):
+        f=self.multi_loan_facts(large_charge='2000',small_charge='100')
+        f['charges'][0]['date']='2026-09-26'
+        self.assertEqual(self.propose('1500',f)['action'],'Overpayment review')
+
+    def test_negative_balance_still_blocks_ordinary_payment(self):
+        from mw_integration_agent.receipt_rules import ReceiptInvalid
+        with self.assertRaisesRegex(ReceiptInvalid,'BALANCES_REQUIRE_RECONCILIATION'):
+            self.propose('1500',self.multi_loan_facts(small_charge='-1'))
+
     def test_overpayment_proposal_promises_full_lump_sum_only_after_approval(self):
         r={'amount':'450.00','date':'2026-09-23','time':'12:10','account_label':'Test'}
         f={'loans':[{'id':'l','loan_key':'Readable loan','status':'ยังไม่ปิดยอด','type':'other','auto':False,'principal':'5000'}],

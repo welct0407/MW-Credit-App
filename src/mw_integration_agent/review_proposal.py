@@ -35,27 +35,29 @@ def plan(receipt,borrower,current,today=None):
     if any(Decimal(c['principal'])<0 or Decimal(c['interest'])<0 for c in current['charges']):
         raise ReceiptInvalid('BALANCES_REQUIRE_RECONCILIATION')
     due=sum((Decimal(c['principal'])+Decimal(c['interest']) for c in current['charges'] if c['date']<=receipt['date']),Decimal(0))
-    closures=[]
-    for loan in current['loans']:
-        if loan['status']!='ยังไม่ปิดยอด' or loan['type']!='ดอกเบี้ยรายวัน' or loan['auto'] is not True:continue
-        charges=[c for c in current['charges'] if c['loan']==loan['id']]
-        if not charges or any(c['date']>today for c in charges):continue
-        existing_today=[c for c in charges if c['date']==today]
-        if len(existing_today)>1:raise ReceiptInvalid('MULTIPLE_TODAY_CHARGES')
-        missing_interest=Decimal(0)
-        if not existing_today:
-            last=max([c['date'] for c in charges]+[loan['date']])
-            missing_interest=Decimal(loan['daily'])*max(0,(date.fromisoformat(today)-date.fromisoformat(last)).days)
-        total=Decimal(loan['principal'])+sum((Decimal(c['interest']) for c in charges),Decimal(0))+missing_interest
-        if total==amount and receipt['date']==today and Decimal(loan['principal'])>0:closures.append(loan['id'])
-    if len(closures)>1:raise ReceiptInvalid('LOAN_CLOSE_AMBIGUOUS')
     dated=[c for c in current['charges'] if c['date']<=receipt['date'] and Decimal(c['principal'])+Decimal(c['interest'])>0]
     latest_day=max((c['date'] for c in dated),default=None)
     current_amount=sum((Decimal(c['principal'])+Decimal(c['interest']) for c in dated if c['date']==latest_day),Decimal(0))
-    potential_close=bool(closures) or any(Decimal(l['principal'])>0 and amount>=Decimal(l['principal']) for l in current['loans'] if l['status']=='ยังไม่ปิดยอด')
-    if potential_close:action='Loan Close';loan_id=closures[0] if closures else None
-    elif amount<=current_amount and amount<=due:action='Lump Sum';loan_id=None
-    else:action='Overpayment review';loan_id=None
+    # A payment covered by current charges is ordinary, even if it happens to
+    # equal a smaller loan's payoff. Principal alone is not a closure signal.
+    if amount<=current_amount and amount<=due:action='Lump Sum';loan_id=None
+    else:
+        closures=[]
+        for loan in current['loans']:
+            if loan['status']!='ยังไม่ปิดยอด' or loan['type']!='ดอกเบี้ยรายวัน' or loan['auto'] is not True:continue
+            charges=[c for c in current['charges'] if c['loan']==loan['id']]
+            if not charges or any(c['date']>today for c in charges):continue
+            existing_today=[c for c in charges if c['date']==today]
+            if len(existing_today)>1:raise ReceiptInvalid('MULTIPLE_TODAY_CHARGES')
+            missing_interest=Decimal(0)
+            if not existing_today:
+                last=max([c['date'] for c in charges]+[loan['date']])
+                missing_interest=Decimal(loan['daily'])*max(0,(date.fromisoformat(today)-date.fromisoformat(last)).days)
+            total=Decimal(loan['principal'])+sum((Decimal(c['interest']) for c in charges),Decimal(0))+missing_interest
+            if total==amount and receipt['date']==today and Decimal(loan['principal'])>0:closures.append(loan['id'])
+        if len(closures)>1:raise ReceiptInvalid('LOAN_CLOSE_AMBIGUOUS')
+        if closures:action='Loan Close';loan_id=closures[0]
+        else:action='Overpayment review';loan_id=None
     relevant={c['loan'] for c in dated}
     loan_keys=[l['loan_key'] for l in current['loans'] if l.get('loan_key') and (l['id']==loan_id if loan_id else l['id'] in relevant)]
     proposal={'receipt':receipt,'borrower':borrower,'action':action,'loan_id':loan_id,'loan_keys':loan_keys,'facts':current,'planned_on':today}

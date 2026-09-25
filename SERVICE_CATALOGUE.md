@@ -2,7 +2,7 @@
 
 Current runtime status, 22 September 2026 at 13:58 Bangkok: the Debian agent uses the separate Cloud SQL `mw_agent` database for all six application journals and append-only audit. Existing conversation bindings, cutoffs and model settings are preserved. Reviewer-only API-first operations include approved exact-key DELETE, with bounded SQL fallback and transaction capture/relay. Ingress and all existing schedules are active; the audit relay runs every 30 seconds.
 
-Revision 18 — daily group discovery, bounded nested message pagination and independent conversation recovery, 25 September 2026. Existing receipt/reviewer policies, PostgreSQL state/audit and Partner conversations are preserved. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
+Revision 19 — ordinary receipt classification checks current unpaid charges before possible loan payoff, 25 September 2026. A payment exceeding one smaller loan's principal alone does not imply closure. Existing review decisions, duplicate checks, PostgreSQL state/audit and Partner conversations are preserved. The machine-readable manifest is authoritative at runtime and is validated by `mw-integration-agent check`.
 
 R014 deployed on 21 September: Partners.AI Reviewer separates payment review authority from Partner notification/IG preferences. Tommy is selected in PROD V32; Lisa is unselected. The installed runtime filters requests, replies and execution by current reviewer membership. All 102 Debian tests and the production master query passed after the coordinated database/app promotion. Existing service enablement and cutoffs are unchanged. A real customer direct-reply event was not forced during deployment.
 
