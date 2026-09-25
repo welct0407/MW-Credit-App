@@ -1,0 +1,17 @@
+{
+  "release": "R034",
+  "status": "Frozen; deploying",
+  "implementation_commit": "c9b2b982a2945e1e7655e6a605f59fb08c127a1e",
+  "frozen_at": "2026-09-25T09:08:43.317708+00:00",
+  "files": {
+    "scripts/metabase/chart_service/chart.js": "03c5e21334081365f772b921cf1fd0dff33a4b55b5b8dceb86485a74be62cc7c",
+    "scripts/metabase/Reorder-And-Format-BorrowerReview.mjs": "98e7bef714f4202965c44ea69c4d019697e366d2455bba5bef48a0627422641e"
+  },
+  "backup_dashboard": 9,
+  "dashboard": 3,
+  "tab": 31,
+  "apps": "Unchanged",
+  "sql": "V43 unchanged",
+  "vm_service": "Static chart.js updated only",
+  "authorization": "Owner requested chart above tables and whole-baht amounts"
+}
