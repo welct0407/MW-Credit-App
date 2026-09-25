@@ -9,7 +9,7 @@
   },
   "verification": {
     "status": "documented",
-    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
+    "source": "outputs/r034-matrix-order/verification.json"
   },
   "content": {
     "key": "question",
@@ -44,25 +44,25 @@
       "column_settings": {
         "[\"name\",\"Overdue ฿\"]": {
           "number_style": "decimal",
-          "decimals": 2,
+          "decimals": 0,
           "number_separators": ".,",
           "compact": false
         },
         "[\"name\",\"Principal ฿\"]": {
           "number_style": "decimal",
-          "decimals": 2,
+          "decimals": 0,
           "number_separators": ".,",
           "compact": false
         },
         "[\"name\",\"Interest 30d ฿\"]": {
           "number_style": "decimal",
-          "decimals": 2,
+          "decimals": 0,
           "number_separators": ".,",
           "compact": false
         },
         "[\"name\",\"Recorded loss ฿\"]": {
           "number_style": "decimal",
-          "decimals": 2,
+          "decimals": 0,
           "number_separators": ".,",
           "compact": false
         },

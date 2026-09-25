@@ -9,7 +9,7 @@
   },
   "verification": {
     "status": "documented",
-    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
+    "source": "outputs/r034-matrix-order/verification.json"
   },
   "content": {
     "key": "overdue",
@@ -32,7 +32,7 @@
       "column_settings": {
         "[\"name\",\"Overdue ฿\"]": {
           "number_style": "decimal",
-          "decimals": 2,
+          "decimals": 0,
           "number_separators": ".,",
           "compact": false
         }

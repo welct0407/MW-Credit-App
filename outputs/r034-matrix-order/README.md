@@ -6,4 +6,4 @@ Place iframe 1501 at row 9 and its explanation at row 31. Move category count/ta
 
 Rollback: recovery dashboard 9, complete private dashboard and ten question metadata baselines under `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r034-matrix-order`, and the previous static chart file in `/opt/mw-report-charts/recovery-r034/chart.js`. Restore only after checking for intervening changes; the private iframe secret must stay outside Git.
 
-Verification pending.
+Deployed and verified on the live dashboard: chart renders 23 borrowers above the category tables. Overdue scalar displays 25,450; category and detailed tables display whole-baht amounts; the chart tooltip shows whole-baht interest and principal. Saved question definitions/readback confirm 34 amount settings at zero decimals across ten cards while score, ratio and coverage formatting and all SQL queries stay unchanged. [Saved configuration check](verification.json), [manifest](release-manifest.json) and [single checklist](promotion-checklist.md). Source and recovery artifacts were captured before writes; tag R034 identifies the final evidence.

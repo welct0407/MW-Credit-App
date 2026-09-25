@@ -16,8 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R035 | Subsequent development | Open | Sole development release after R034 capture. | Current development release above |
-| R034 | Chart above category tables; whole-baht amounts | Frozen — deploying | Pin `c9b2b98`; Metabase layout/format and tooltip only. | [Evidence](../outputs/r034-matrix-order/README.md) |
+| R035 | Metabase monitoring group; subsequent development | Open | Four health lights published in Performance rows 3/4; sole development release after R034 capture. | [Release log](../Change%20Logs/CHANGE_NOTES_R035_2026-09-25.md) |
+| R034 | Chart above category tables; whole-baht amounts | Released | Live layout and amount formatting verified; tag R034. | [Evidence](../outputs/r034-matrix-order/README.md) |
 | R033 | Accepted custom matrix; remove native plot | Released | Native plot removed; iframe/detail table verified; tag R033. | [Evidence](../outputs/r033-matrix-cutover/README.md) |
 | R032 | Distinct cow and dog matrix icons | Released | Live visual verification passed; one static asset; tag R032. | [Evidence](../outputs/r032-matrix-icons/README.md) |
 | R031 | Grey quadrant icons and nearby borrower names | Released | Desktop/mobile verified; static files only; tag R031. | [Evidence](../outputs/r031-matrix-labels/README.md) |

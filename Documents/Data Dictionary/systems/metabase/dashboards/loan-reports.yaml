@@ -4027,7 +4027,7 @@
       "evidence": "outputs/r025-20260924/cutover-verification.json"
   "borrower_health_review":
     "tab_id": 31
-    "release": "R033"
+    "release": "R034"
     "sources":
     - "payment-health-v1"
     - "schedule-health-v1"
@@ -4068,11 +4068,10 @@
       "display": "iframe"
       "host": "https://charts.mw-credit.com"
       "fragment": "key=<private bearer secret; intentionally excluded>"
-      "row": 31
+      "row": 9
       "col": 0
       "size_x": 24
       "size_y": 22
-      "later_tab_rows_shifted_by": 2
       "original_question_retained": 274
       "refresh_seconds": 60
       "source": "public.reporting_borrower_matrix_plot_v1"
@@ -4091,6 +4090,37 @@
       "accepted_as_replacement": true
       "native_plot_displayed": false
       "cutover_reference": "outputs/r033-matrix-cutover/verification.json"
+      "layout":
+        "intro_end_row": 9
+        "chart_row": 9
+        "chart_height": 22
+        "explanation_row": 31
+        "explanation_height": 3
+        "category_count_rows":
+        - 34
+        - 44
+        "category_table_rows":
+        - 36
+        - 46
+        "detail_table_row": 56
+        "redundant_heading_removed": 848
+        "reference": "outputs/r034-matrix-order/verification.json"
+      "financial_display":
+        "amounts": "0 decimal places, whole baht"
+        "scope": "Only ฿ fields in tab 31 saved questions and chart tooltip"
+        "scores_ratios_coverage": "Unchanged"
+        "question_ids":
+        - 254
+        - 259
+        - 261
+        - 263
+        - 265
+        - 267
+        - 269
+        - 271
+        - 272
+        - 275
+        "reference": "outputs/r034-matrix-order/verification.json"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4125,8 +4155,8 @@
     "reason": "Owner-authorized canonical Collection replacement"
     "state": "value"
   "/content/borrower_health_review":
-    "reference": "outputs/r033-matrix-cutover/verification.json"
-    "reason": "Owner accepted iframe; native plot placement and its labels removed"
+    "reference": "outputs/r034-matrix-order/verification.json"
+    "reason": "Owner requested custom chart above category tables and whole-baht financial display"
     "state": "value"
   "/content/borrower_health_review/custom_matrix":
     "reference": "outputs/r031-matrix-labels/verification.json"

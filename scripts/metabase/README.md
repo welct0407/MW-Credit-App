@@ -1,3 +1,7 @@
+# Borrower Health Review layout and whole-baht display — R034
+
+`Reorder-And-Format-BorrowerReview.mjs` is a guarded one-time installer with `--verify` readback. [Deployment, verification and rollback](../../outputs/r034-matrix-order/README.md). Do not replay it after installation.
+
 # Custom borrower matrix — R030
 
 The deployed comparison visual is maintained in `chart_service/`. Read the [operating contract, deployment evidence and rollback](../../outputs/r030-custom-matrix/README.md) before changing it. `provision_role.py`, `install.sh` and `Install-Metabase.mjs` are guarded one-time deployment helpers, not replayable update commands. Secrets and full iframe metadata stay outside Git.

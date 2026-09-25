@@ -9,7 +9,7 @@
   },
   "verification": {
     "status": "documented",
-    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
+    "source": "outputs/r034-matrix-order/verification.json"
   },
   "content": {
     "key": "schedules",
@@ -44,12 +44,12 @@
       "column_settings": {
         "[\"name\",\"Expected interest ฿\"]": {
           "number_style": "decimal",
-          "decimals": 2,
+          "decimals": 0,
           "number_separators": ".,"
         },
         "[\"name\",\"Recorded interest ฿\"]": {
           "number_style": "decimal",
-          "decimals": 2,
+          "decimals": 0,
           "number_separators": ".,"
         },
         "[\"name\",\"Interest coverage\"]": {
