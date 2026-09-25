@@ -1,0 +1,33 @@
+{
+  "release": "R030",
+  "status": "Frozen; deployment starting",
+  "frozen_at": "2026-09-25T04:50:43.236549+00:00",
+  "implementation_commit": "07efaacc9f39a83a8490f3e9d9abdfba2d09bdd0",
+  "files": {
+    "scripts/metabase/chart_service/app.py": "6d7a0be0156eb797054457ca59400e6a2cd799d54786202e5f55581cd83dfd0a",
+    "scripts/metabase/chart_service/backup_database.py": "3346014f1e6f0f428b11621f198c48e2e593e705ed57097654ad9bb58b03cf30",
+    "scripts/metabase/chart_service/chart.css": "7f932f370f746022186407321a73573aa55a83c3e15818cd42c51037ca5b6e67",
+    "scripts/metabase/chart_service/chart.js": "9d826ed1086f7269cc90c9e0d72234f4d7180e19c4b77956f96c9685f0a849be",
+    "scripts/metabase/chart_service/index.html": "0c6e97719947b8ac07e0ef32e25840e1efbbfdfc60c89eecdde8151d6b943dde",
+    "scripts/metabase/chart_service/install.sh": "bfa4286e1e44c0a6f53de09314f5b4619d89c0fdc57f861c3f0857d46558df6f",
+    "scripts/metabase/chart_service/mw-report-charts.service": "16bee060e1e18afbbc3d733e9aab97afc911bddad208e4a5edcdeb02a9eb8684",
+    "scripts/metabase/chart_service/preview.py": "73e1ed48b5d18962fefff6f6cf003ac4e8b40e6ebde74cb7544a7c425b8c20dc",
+    "scripts/metabase/chart_service/provision_role.py": "b906972e05ac676a1698ea674de1ba9ded91e42e21921855dd7b84f2c366857a",
+    "scripts/metabase/chart_service/query.sql": "59b6e7b69bc677347eb48c9738ff2b2f30d883b7e1b0b1796c750ee96acbf5e2",
+    "scripts/metabase/chart_service/requirements.txt": "f782f014d578415946811f960512ae6edeb16f06f92e567d946e4d573fc0b174",
+    "scripts/metabase/chart_service/test_app.py": "c1b60a6ac5f3efc4dee628ad599bb93c54f343b258ba49e90106dcec670d57ae"
+  },
+  "database_version_before": 43,
+  "database_version_after": 43,
+  "migrations": [],
+  "database_prerequisite": "mw_chart_reader role and SELECT grants",
+  "apps": "Unchanged; explicitly excluded",
+  "dashboard": 3,
+  "tab": 31,
+  "original_matrix_question": 274,
+  "backup_dashboard": 7,
+  "host": "vm-mw-credit-agent",
+  "url": "https://charts.mw-credit.com",
+  "secret_in_repository": false,
+  "authorization": "Owner requested VM/DB/Metabase implementation and existing-tab comparison; shared-secret fallback authorized."
+}
