@@ -1,5 +1,7 @@
 # Centralized resource monitoring
 
+Receipt monitoring preparation, 25 September: the [implementation handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md) describes the requested end-to-end Payment processing group and worker queue health. A collector patch is prepared in source but not installed; Grafana rules/panels remain unchanged. Follow the handover before deploying it.
+
 For an explanation of every visual on both pages, see the maintained [Dashboard visual guide](Resource_Monitoring_Dashboard_Guide.md). Update that guide with every dashboard change; this document owns operational setup/access/recovery details.
 
 Configured 22 September 2026 in Grafana Cloud stack `olivecrab1199`, using the work account.

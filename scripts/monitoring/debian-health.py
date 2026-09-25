@@ -85,7 +85,16 @@ def main():
         return timer_status(properties(name+'.service'), properties(name+'.timer'), uptime, now, idle, duration)
     check('conversations', lambda: job('mw-partner-conversation', 180, 1260)
           if config.get('partner_conversations_enabled') else 3)
-    check('receipts', lambda: job('mw-receipt-summary', 180, 1260) if config.get('receipt_summary_enabled') else 3)
+    receipt_pipeline = {}
+    def receipts():
+        try:
+            from mw_integration_agent.receipt_health import inspect
+            receipt_pipeline.update(inspect(config))
+        except Exception:
+            # A failed queue inspection is unhealthy, not a silent Unknown tile.
+            receipt_pipeline.update(status=0,inspection_failed=1)
+        return combine([job('mw-receipt-summary',180,600),receipt_pipeline['status']])
+    check('receipts', receipts if config.get('receipt_summary_enabled') else lambda:3)
     polling_timing = {'last_completion': 0, 'running': -1}
     def polling():
         service = properties('mw-conversation-poll.service')
@@ -162,6 +171,12 @@ def main():
         series.append({'metric': {'type': WORKER_METRIC, 'labels': {'component': 'polling', 'field': field}},
                        'resource': series[0]['resource'], 'metricKind': 'GAUGE', 'valueType': 'INT64',
                        'points': [{'interval': {'endTime': timestamp}, 'value': {'int64Value': str(value)}}]})
+    # One low-cardinality numeric snapshot; no borrower/payment identifiers or amounts.
+    for field,value in dict(receipt_pipeline,status=result['receipts']).items():
+        series.append({'metric': {'type':'custom.googleapis.com/mw_resource_monitoring/receipt_pipeline',
+                       'labels':{'field':field}}, 'resource':series[0]['resource'],
+                       'metricKind':'GAUGE','valueType':'INT64',
+                       'points':[{'interval':{'endTime':timestamp},'value':{'int64Value':str(value)}}]})
     for component, fields in metabase.items():
         for field, value in fields.items():
             series.append({'metric': {'type': 'custom.googleapis.com/mw_resource_monitoring/metabase_probe',
@@ -173,7 +188,7 @@ def main():
           headers={'Authorization': 'Bearer '+token, 'Content-Type': 'application/json'})
     with urllib.request.urlopen(req, timeout=20) as response:
         response.read()
-    print(json.dumps({'checkedAt': timestamp, 'health': result, 'exported': True}))
+    print(json.dumps({'checkedAt': timestamp, 'health': result, 'receipt_pipeline':receipt_pipeline,'exported': True}))
 
 
 if __name__ == '__main__':

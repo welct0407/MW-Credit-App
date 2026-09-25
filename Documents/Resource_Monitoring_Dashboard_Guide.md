@@ -1,5 +1,7 @@
 # Resource monitoring dashboard — visual guide
 
+Pending addition: a Payment processing group is specified in the [monitoring handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md). It is not yet configured; the live visuals and alert behavior documented below remain unchanged. Update this guide when that implementation is saved and verified.
+
 Last updated: **25 September 2026**. Covers the maintained Performance and Cost definitions, including compact status tiles and OpenAI incident hover details. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
 
 - [Open Performance](https://monitor.mw-credit.com/d/mw-resource-performance)

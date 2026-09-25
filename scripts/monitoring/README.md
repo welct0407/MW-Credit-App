@@ -1,5 +1,7 @@
 # Resource monitoring tools
 
+Prepared, not deployed (25 September): `debian-health.py` contains receipt queue-health/metric integration for worker revision 21. Implement and verify it using the [receipt monitoring handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md). Live Grafana visuals/rules and the installed collector are unchanged by that preparation.
+
 Use PowerShell 7 from the bundled runtime, with repository root as the current directory. No dependencies are installed in outputs. See [operating reference](../../Documents/Resource_Monitoring.md) for live links, scopes and limitations.
 
 ## Routine dashboard updates
