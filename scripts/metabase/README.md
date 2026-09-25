@@ -101,3 +101,7 @@ R025 canonical cutover: `PromoteCollectionTab.mjs` uses the private pre-cutover 
 ## R027 Borrower Health Review
 
 `BorrowerHealthReview.mjs` owns the parallel tab 31 on dashboard 3. It uses V41's shared SQL views with thin selection/aggregation. `--plan` writes proposed query definitions; `--install` requires the private before-state and creates only missing review objects; `--refine` updates only these questions/placements; `--verify` executes all 17 saved questions and proves original placements/parameters unchanged. Do not replay install after manual changes or cutover; inspect state/evidence first. `Document-PaymentHealth.py` is the scoped catalog/dictionary recorder, not a general full-dictionary reconciler. [Design, method and recovery](../../outputs/r027-payment-health/README.md).
+
+## R036 Collection Monitor colors
+
+`AlignCollectionStatusColors.mjs --apply --verify` aligns only the four status cues and row highlights in canonical tab 19 with OLTP formatting. It requires the pre-change names/colors and refuses to overwrite its private rollback snapshot. After installation, use `--verify` alone for readback; do not replay `--apply`. [Saved results and recovery](../../outputs/r036-collection-status-colors/README.md).

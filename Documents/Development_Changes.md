@@ -1,5 +1,7 @@
 # Open development differences
 
+R036 Collection Monitor: live visual palette now matches OLTP payment-status formatting (Not Paid red, Partially Paid orange, Overdue purple, Fully Paid green). Nine existing question presentations updated; queries and dashboard layout unchanged. No AppSheet or SQL difference. [Evidence](../outputs/r036-collection-status-colors/README.md). R036 remains Open.
+
 R035 borrower pages (25 September): V44 applied and validated in DEV and PROD; new Portfolio104 and Detail105 added to Metabase dashboard3. No remaining R035 SQL/AppSheet deployment difference; browser/documentation closure is recorded in the [single checklist](../outputs/r035-borrower-pages/promotion-checklist.md). Existing pages and V41/V42 health definitions remain unchanged. R036 is the sole Open release. Prior R026 app limitations remain separately recorded.
 
 R034 (25 September): accepted matrix moved above its category tables, with whole-baht amount presentation on the review tab. No remaining R034 DEV/AppSheet difference; SQL V43 and chart API unchanged. R035 sole Open release. [Evidence](../outputs/r034-matrix-order/README.md).

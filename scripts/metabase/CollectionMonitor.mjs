@@ -12,9 +12,9 @@ const E=name=>['expression',name];
 const named=(expr,name)=>['aggregation-options',expr,{name,'display-name':name}];
 const number={number_style:'decimal',decimals:0,number_separators:'.,',compact:false};
 export const lanes=[
- {key:'overdue',status:'Overdue',title:'🚨 Overdue',color:'#B42318',pale:'#FEE4E2'},
- {key:'unpaid',status:'Not Paid',title:'🟠 Not paid',color:'#B54708',pale:'#FFF1D6'},
- {key:'partial',status:'Partially Paid',title:'🔵 Partially paid',color:'#175CD3',pale:'#EAF2FF'},
+ {key:'overdue',status:'Overdue',title:'🟣 Overdue',color:'#6941C6',pale:'#EDE9FE'},
+ {key:'unpaid',status:'Not Paid',title:'🔴 Not paid',color:'#B42318',pale:'#FEE4E2'},
+ {key:'partial',status:'Partially Paid',title:'🟠 Partially paid',color:'#B54708',pale:'#FFF1D6'},
  {key:'paid',status:'Fully Paid',title:'🟢 Fully paid',color:'#067647',pale:'#ECFDF3'}
 ];
 export const parameters=[

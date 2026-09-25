@@ -1,5 +1,7 @@
 # Environment inventory
 
+R036 Collection Monitor palette (25 September): dashboard3/tab19 retains its definition and layout; question titles and row highlights now map Not Paid → red, Partially Paid → orange, Overdue → purple, Fully Paid → green, matching OLTP format-rule colors. Questions 240–248 only; queries, permissions, DB, apps and jobs unchanged. [Saved state](../outputs/r036-collection-status-colors/README.md). R036 remains Open.
+
 R035 borrower pages (25 September): DEV/PROD V44; same instance `appsheet-pg-prod-20260914`, host `34.21.174.215`, databases `loan_manager_dev` / `loan_manager_prod`. Three additive reporting views and a read-only period function serve new dashboard3 tabs104/105. Existing source2 and restricted reporting user retained; SELECT/EXECUTE only on the new providers. Recovery dashboard10. Both AppSheet apps unchanged. R036 is the sole Open development release. [Package and checks](../outputs/r035-borrower-pages/README.md).
 
 R034 (25 September): dashboard 3/tab31 puts iframe1501 at row9, explanation at31, and category tables below at rows34–54. Ten affected saved questions and the chart tooltip display `฿` amounts as whole baht. Scores, ratios, percentages and underlying SQL values are unchanged; Apps unchanged. Recovery dashboard9 and private question baselines are retained. R035 sole Open release. [Evidence](../outputs/r034-matrix-order/README.md).
