@@ -4,7 +4,7 @@
 
 Owner authorized Platform, application database, reporting database and custom chart service lights, fitted into existing Performance rows 3/4. Implemented and published on 25 September 2026; R035 remains Open. Work began while R034 was Open, but its concurrent matrix-only freeze/pin excluded this monitoring work. This delivery is recorded in the current R035; the Grafana save note retains the start-of-work R034 reference. No frozen matrix package is changed.
 
-Twenty tiles now fit in two rows. Original groups occupy left/center thirds; Metabase occupies the right third in two pairs, under Platform/Reporting subheadings. Existing 44 panel definitions are unchanged; six new elements are panels74–75 (headings),80–83 (checks). Only overview group/tile geometry changes. CPU/RAM, detailed charts, Cost, old hover queries, eight alert rules and business schedules are preserved. New tiles do not yet send mobile push.
+Twenty tiles now fit in two rows. Original groups occupy left/center thirds; Metabase occupies the right third in two pairs, under Platform/Reporting subheadings. Existing 44 panel definitions are unchanged; six new elements are panels74–75 (headings),80–83 (checks). Only overview group/tile geometry changes. CPU/RAM, detailed charts, Cost, old hover queries, eight established alert rules and business schedules are preserved. A later same-day refinement added one dedicated rule for the four new tiles.
 
 ## Checks and implementation
 
@@ -16,13 +16,15 @@ Twenty tiles now fit in two rows. Original groups occupy left/center thirds; Met
 
 New metric `custom.googleapis.com/mw_resource_monitoring/metabase_probe` contains only numeric status/code/duration and stable component/field labels. Existing health/worker timing metrics remain unchanged. Maintained collector module, selector, targeted updater, builder, classic/V2 resources, guide and operating reference were updated together.
 
+Alert refinement: Grafana rule `MW | Metabase component unhealthy` (`ffzb4act1o0zka`) evaluates four separately labeled instances (`metabase_platform`, `metabase_appdb`, `metabase_reporting`, `metabase_charts`) in **MW Resource Monitoring Alerts / Performance 2m**. Its 10-minute query reduces to the latest value and alerts above zero after four minutes. Fresh Down (0) or Degraded (2) maps to 1; Healthy, Paused, Unknown, missing and older-than-six-minute samples map to 0. No-data and execution errors KeepLast. Firing/resolved notifications use the established **MW Performance IRM** contact and owner mobile-push route. The canonical jq and sanitized Infinity query are `scripts/monitoring/metabase-alert.jq` and `outputs/resource-monitoring-20260922/metabase-alert-query.json`, built by `scripts/monitoring/Build-MetabaseAlertQuery.ps1`. The operating reference and visual guide were updated with this behavior.
+
 Metabase group6/collection9/key4 are dedicated monitoring objects. Question276 reads no business tables. Key is non-admin, collection9 read-only, no ad hoc native-query permission; other report274 access and ad hoc `SELECT 1` both returned403. No existing source/collection grants or public-sharing setting changed. Key stored outside Git and deployed root:mwagent0640, not in Grafana/browser. Existing administrator setup key was not deployed. One-time initialization script refuses existing state.
 
 ## Rollback and evidence
 
 Starting Git commit `a0e2b97bfc9824f4daa39f7fd65feca62cc21cbb`; unrelated risk and matrix work preserved. Pre-edit live Grafana Code definition retained in editing session; scoped recovery is original availability geometry from that revision/starting committed definition, removing only six new panels. Existing panel definitions compared unchanged in maintained V2 output. Debian rollback `/opt/mw-resource-monitoring/debian-health.before-metabase-20260925.py`, SHA256 `427fe1f9076d9d95392762f7a6a1f547936c741ad33c393da380181124f21584`. Private Metabase collection graph and new object IDs retained with monitoring credentials.
 
-Rollback collector first (old version does not import new module), restore overview layout/remove new panels, revoke key4 and archive monitoring canary/collection if retiring the feature. No business database restore or report rollback required.
+Rollback the alert refinement by pausing/deleting only `ffzb4act1o0zka`; the lights and collector continue. To retire the entire monitoring group, restore the collector first (old version does not import new module), restore overview layout/remove new panels, revoke key4 and archive monitoring canary/collection. No business database restore or report rollback required.
 
 ## Verification
 
@@ -32,8 +34,9 @@ Rollback collector first (old version does not import new module), restore overv
 - Live probes all Healthy: platform105ms, readiness129ms, reporting232ms, charts183ms during bounded validation.
 - Collector systemd Result=success / ExecMainStatus=0; normal subsequent samples observed in Grafana.
 - Live preview verified all four green hover links, current SGT timestamps and both compact rows via screenshots. Dashboard saved and reloaded for persistence verification.
+- Alert selector fixture tests covered fresh Down/Degraded, Unknown and stale samples. Grafana preview returned four Normal instances with value 0. After saving, the first scheduled evaluation displayed four separate Normal instances (Platform, App DB, Reporting, Charts), with the correct contact, 2-minute evaluation, 4-minute pending, and KeepLast settings read back. The established IRM route had previously delivered both an IRM demo and Grafana Alerting test to the owner's phone; no forced Metabase outage or extra test push was sent.
 - Non-admin identity and denial tests verified; no forced service outage, business job, financial write or notification test performed.
 
-Ongoing limitations: Debian probe dependency; Charts tests shell and authentication guard only; reporting SELECT1 tests connection rather than every report; no new push rules. Credential recovery folder exists outside Git but independent backup coverage was not audited.
+Ongoing limitations: Debian probe dependency; Charts tests shell and authentication guard only; reporting SELECT1 tests connection rather than every report. Missing or stale telemetry does not create a new page, so rule/collector health should be checked when tiles show Unknown. Credential recovery folder exists outside Git but independent backup coverage was not audited.
 
 Dictionary closure: saved question276 and its monitoring access/canary contract recorded in the Metabase question namespace; navigation index regenerated. All 1,170 dictionary documents passed structural validation with zero errors.

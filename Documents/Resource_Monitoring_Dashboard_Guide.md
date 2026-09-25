@@ -13,7 +13,7 @@ Performance's large CPU/RAM numbers show the **last available sample in the sele
 
 Availability lights describe current health at refresh time. They are not uptime percentages or incident history. Most depend on Debian telemetry; the external webhook and OpenAI provider checks do not. Historical date ranges can exclude recent Debian samples and produce Unknown; use a range ending at now for operational checks. OpenAI always retrieves the current published status, regardless of the selected historical range.
 
-Percent/count/throughput labels generally use whole numbers. Fractional CPU cores, GB and money retain useful precision. A red reference line marks a documented capacity/configuration limit, not a universal warning threshold. Green CPU/RAM chart styling does not by itself certify healthy operation. Eight active Performance alert rules send mobile push through IRM; two of them evaluate multiple separately labeled tile conditions. Alerts do not alter chart values or add threshold lines.
+Percent/count/throughput labels generally use whole numbers. Fractional CPU cores, GB and money retain useful precision. A red reference line marks a documented capacity/configuration limit, not a universal warning threshold. Green CPU/RAM chart styling does not by itself certify healthy operation. Nine active Performance alert rules send mobile push through IRM; three of them evaluate multiple separately labeled tile conditions. Alerts do not alter chart values or add threshold lines.
 
 ## Performance — alerts linked to visuals
 
@@ -23,6 +23,7 @@ The following rules evaluate every two minutes with a rolling ten-minute query w
 |---|---|---|---|
 | 51 | External webhook DEGRADED or DOWN (at least one fresh region failed) | 10 min | Requires all three regional reports within 12 minutes; stale or missing checks stay Unknown and do not page. |
 | 52, 53, 56, 57, 60–67 | See the Debian component mapping below | 4 min | Each component has its own labeled alert instance; fresh Down or Degraded pages. Paused and Unknown do not. |
+| 80–83 | Metabase platform, application DB, reporting DB and Charts | 4 min | Four separate instances in one rule; fresh Down or Degraded pages. Unknown, missing and stale telemetry do not trigger a new page. |
 | 54, 55 | Published ChatGPT or Codex status DEGRADED or DOWN | 10 min | Separate alert instance per product; a non-operational component or active incident in its current product group pages. Unrecognized/missing source data stays Unknown. |
 | 50, 34 | Cloud SQL backend count above **160** | 10 min | Early warning at 80% of configured 200. The red chart line still marks 200; reserved PostgreSQL slots lower ordinary-client capacity. |
 | 4, 31 | Cloud SQL CPU above **85%** | 10 min | Five-minute mean; 85% is an operational warning, while the chart's 100% line is capacity. |
@@ -254,4 +255,4 @@ Twenty tiles fit into the existing two availability rows (ten per row). The four
 
 Checks run concurrently from Debian about every two minutes. Green means the expected result within five seconds; amber means a passing probe took longer than five seconds; red means a failed/unexpected response or network timeout. Five seconds is an operational warning, not a provider limit. Probe credentials/rate failures (401/403/429) and unexpected probe errors are Unknown. Missing telemetry or telemetry older than six minutes is also Unknown. HTTP 202 for a completed Metabase query is normal. Hover shows the check, result category, HTTP code, duration and observed time in Singapore. Clicking opens the respective service.
 
-These four new tiles are dashboard monitoring only; the existing eight alert rules and 16 tile alert conditions remain unchanged. A Debian outage makes these probes Unknown even if Metabase remains available.
+The four Metabase tiles are covered by one additional alert rule. It evaluates each component separately every two minutes and sends firing/resolved notifications through the existing IRM phone route after a four-minute pending period. Missing/stale telemetry or an Unknown status does not start a new alert. A Debian outage makes these probes Unknown even if Metabase remains available; check rule health if telemetry stops. The established eight alert rules and their 16 tile conditions remain unchanged.
