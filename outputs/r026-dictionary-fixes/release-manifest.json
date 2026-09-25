@@ -37,8 +37,9 @@
       "internalName": "MW-OLAP-R026-RC1-578763613",
       "copyData": false,
       "copyFileData": false,
-      "status": "Deployed; frozen for App Upgrade",
-      "version": "1.000007"
+      "status": "Deleted by explicit owner instruction on 2026-09-25; exact editor URL verified 404 / Home/NotFound",
+      "version": "1.000007",
+      "stateBeforeDeletion": "Deployed; frozen for App Upgrade"
     },
     {
       "role": "oltp",
@@ -46,8 +47,9 @@
       "internalName": "MW-OLTP-R026-RC1-578763613",
       "copyData": false,
       "copyFileData": false,
-      "status": "Deployed; frozen for App Upgrade",
-      "version": "1.000006"
+      "status": "Deleted by explicit owner instruction on 2026-09-25; exact editor URL verified 404 / Home/NotFound",
+      "version": "1.000006",
+      "stateBeforeDeletion": "Deployed; frozen for App Upgrade"
     },
     {
       "role": "olap",
@@ -55,15 +57,17 @@
       "internalName": "MW-OLAP-R026-RC2-578763613",
       "copyData": false,
       "copyFileData": false,
-      "status": "Correction saved; deployment submitted; not promoted; retained"
+      "status": "Deleted by explicit owner instruction on 2026-09-25; exact editor URL verified 404 / Home/NotFound",
+      "stateBeforeDeletion": "Correction saved; deployment submitted; not promoted; retained"
     },
     {
       "role": "oltp",
-      "id": null,
+      "id": "ec9bc31d-5d20-4612-b53c-eb81b2aa55d0",
       "internalName": "MW-OLTP-R026-RC2-578763613",
       "copyData": false,
       "copyFileData": false,
-      "status": "Correction saved; deployment validation unfinished; not promoted; retained"
+      "status": "Deleted by explicit owner instruction on 2026-09-25; exact editor URL verified 404 / Home/NotFound",
+      "stateBeforeDeletion": "Correction saved; deployment validation unfinished; not promoted; retained"
     }
   ],
   "excluded": "Unapplied V41/payment-health scope transferred to R027 at freeze; no live implementation.",
@@ -93,5 +97,11 @@
       "status": "Unchanged"
     }
   },
-  "finalTag": null
+  "finalTag": null,
+  "rcCleanup": {
+    "date": "2026-09-25",
+    "scope": "Four R026 RC definitions only",
+    "evidence": "outputs/r026-dictionary-fixes/rc-cleanup.json",
+    "verified": true
+  }
 }

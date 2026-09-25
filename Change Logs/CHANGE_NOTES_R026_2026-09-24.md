@@ -51,3 +51,12 @@ Current dictionary updates remove 24 retired cron canonical/DEV-overlay files an
 ## Owner-directed closure
 
 Owner instructed keeping apps as-is and wrapping up R026. Further app changes, upgrade attempts, RC cleanup and instance restart stopped. R026 closed with partial deployment, not Released. PROD OLAP 1.100198 was applied with RC1 display name/folder; PROD OLTP unchanged. DEV OLAP regenerated to 1.000033 with generated slice warnings still observed. Corrected RC2 definitions retained, not promoted. Exact actual state, recovery and dictionary limitations: [closure](../outputs/r026-dictionary-fixes/closure.md). R027 remains Open and R026 imposes no development hold. Original task files remain preserved.
+
+
+## Owner-directed RC cleanup — 25 September 2026
+
+Owner explicitly requested deletion of R026 RCs after partial closure. Starting Git commit `8951d5f05165c2e4d36b87720faaf74dfc1b6f78`; unrelated drafts preserved. Deleted only the four OLTP/OLAP RC1/RC2 AppSheet definitions using the verified Workspace Chrome account. Each selected row was matched to its exact UUID/internal name before deletion, including production-looking RC2 names and the misleading RC1 display name on PROD OLAP. Captured the previously missing OLTP RC2 UUID in the manifest.
+
+All four exact working editor URLs now return 404 / Home/NotFound; inventory retains the two DEV and two PROD apps. The remaining RC1-looking row was verified as canonical PROD OLAP and preserved. No database/file/logo deletion, app upgrade, DEV/PROD edit, job execution or access grant occurred. Evidence: [rc-cleanup.json](../outputs/r026-dictionary-fixes/rc-cleanup.json). Updated manifest, closure, continuation, P49, tracker and environment/development records. R026 remains closed with partial deployment; no final release tag or completed-validation claim.
+
+Recovery: paid-account AppSheet definitions can be restored through AppSheet Support up to 32 days after deletion per the linked product help; existing PROD rollback versions and evidence remain unchanged. Validation: exact live deletion checks, JSON parsing and Git whitespace/diff review. No model definitions changed, so dictionary regeneration or business regression tests are not applicable. No cleanup work remains.

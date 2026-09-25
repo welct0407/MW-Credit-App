@@ -4,7 +4,7 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 ## Closed at owner direction
 
-**Do not resume automatically.** Owner requested keeping apps as-is. [Closure](closure.md) supersedes the earlier progress rows below. P37 partially executed for OLAP only; P39 final verification incomplete; P49 RC cleanup not performed under keep-as-is instruction; P48 publishes partial evidence without a Released tag. All remaining pending activities are stopped, not passing. R027 is Open and no R026 development hold remains.
+**Do not resume automatically.** Owner requested keeping apps as-is. [Closure](closure.md) supersedes the earlier progress rows below. P37 partially executed for OLAP only; P39 final verification incomplete; P49 RC cleanup completed 25 September under subsequent explicit owner instruction; P48 publishes partial evidence without a Released tag. All remaining pending activities are stopped, not passing. Consult the current tracker for the Open release; no R026 development hold remains.
 
 ## Earlier execution checkpoint
 
@@ -46,7 +46,7 @@ Execute applicable rows in order; one result/evidence link per coherent check. S
 | P38 | F Validate | Paused jobs / cutover steps | Complete approved external cutover steps and resume temporary pauses. Keep integrity triggers and one active scheduler per job/environment. | Pending | |
 | P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Pending | |
 | P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Pending | |
-| P49 | G Close | RC exists | After all upgrades and required PROD validation pass, automatically delete the recorded RC apps for this promotion, including rejected/superseded attempts; no further owner confirmation. Delete definitions only, preserving DEV/PROD, shared data/files/logos and recovery evidence. Verify deletion and update manifest/log/inventory/checklist before P48. Keep failed/incomplete promotion RCs contained; report cleanup failures as pending. No DEV refresh. | Pending | |
+| P49 | G Close | RC exists | After all upgrades and required PROD validation pass, automatically delete the recorded RC apps for this promotion, including rejected/superseded attempts; no further owner confirmation. Delete definitions only, preserving DEV/PROD, shared data/files/logos and recovery evidence. Verify deletion and update manifest/log/inventory/checklist before P48. Keep failed/incomplete promotion RCs contained; report cleanup failures as pending. No DEV refresh. | Done | Owner explicitly authorized cleanup after partial closure. All four exact RC identities deleted and verified 404; DEV/PROD and shared assets preserved. See rc-cleanup.json. |
 | P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | Pending | |
 | P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | Pending | |
 | P51 | X Exception | Failure / drift / required gap only | Stop affected dependent steps, record actual partial state and follow only the matching recovery branch. Preserve later writes/work; no blind replay or manual PROD fallback. Ask only for missing authority/material decisions. Reconcile resulting status and documents. | In progress | Earlier template correction preceded formal freeze; recorded deviation. Wrong personal-account OAuth consent was approved during session recovery, then signed out; no membership/license assignment changed, billing impact unverified. Owner prohibits further personal-account access. Workspace password handoff pending. |
@@ -67,6 +67,6 @@ Triggers: exact model/formula changes â†’ dictionary; changed behavior/rela
 
 - Outcome / limitations / rollback: Pending
 - Final evidence commit / Rnnn tag / remote verification: Pending
-- RC cleanup / verified deleted IDs and evidence: Pending or justified N/A
+- RC cleanup / verified deleted IDs and evidence: Done — all four IDs in rc-cleanup.json; exact editor URLs returned 404 / Home/NotFound.
 
 Released requires applicable activities, documentation, RC cleanup and publication complete. If only documents/publication remain, repair them without redeploying. Record final outcome in the manifest/tracker before the final evidence commit and verify publication afterward; do not create self-referential commit hashes.

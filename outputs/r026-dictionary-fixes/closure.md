@@ -1,6 +1,6 @@
 # R026 — closed at owner direction, partial deployment
 
-On 24 September 2026 the owner instructed: “keep the app as it is, and wrap up your R026. i have other dev work to do”. This ends further R026 app edits, upgrades, candidate cleanup and instance changes. R027 remains the sole Open release. No development hold remains from R026. This is not a fully verified Released claim.
+On 24 September 2026 the owner instructed: “keep the app as it is, and wrap up your R026. i have other dev work to do”. This ended further R026 app edits, upgrades and instance changes. On 25 September the owner separately authorized deletion of all four R026 RC definitions; that cleanup is complete. R027 was the sole Open release at closure; consult the tracker for current development. No development hold remains from R026. This is not a fully verified Released claim.
 
 ## Applied and verified
 
@@ -10,7 +10,7 @@ On 24 September 2026 the owner instructed: “keep the app as it is, and wrap up
 - PROD OLTP was not upgraded; last observed version remains 3.000246. Its 18 blank table locales were not changed.
 - DEV OLAP Daily Analytics was regenerated against the existing V37 SQL additions, version 1.000031 → 1.000033. Thirteen stored fields were added; all prior RC column properties were verified unchanged and table READ_ONLY retained. Four generated slice-column warnings remained in DEV at last observation. No financial rows were written. DEV OLTP remains 1.000075.
 
-## Retained candidates and unfinished correction
+## Deleted candidates and historical unfinished correction
 
 All copies explicitly used data OFF and file-data OFF. RC1 guards were verified to exclude candidate names; RC2 copied these definitions. No forced business jobs were run.
 
@@ -19,9 +19,9 @@ All copies explicitly used data OFF and file-data OFF. RC1 guards were verified 
 | OLAP RC1 | 2da0b461-a7e3-4e9e-a09c-78149c72e415 / MW-OLAP-R026-RC1-578763613 | Deployed 1.000007; used for partial upgrade |
 | OLTP RC1 | 6129132d-77e8-46ed-8621-be49911b4a66 / MW-OLTP-R026-RC1-578763613 | Deployed 1.000006; never promoted |
 | OLAP RC2 | 6d1ecc2f-7265-410f-987f-8d88cdedfd56 / MW-OLAP-R026-RC2-578763613 | Display name/folder restored, original logo/color retained, API enabled; initial check passed and deployment submitted; final saved version not captured; not promoted |
-| OLTP RC2 | MW-OLTP-R026-RC2-578763613; UUID not captured | Display name/folder restored and API enabled, saved; initial deployment/validation unfinished; not promoted |
+| OLTP RC2 | ec9bc31d-5d20-4612-b53c-eb81b2aa55d0 / MW-OLTP-R026-RC2-578763613 | Display name/folder restored and API enabled, saved; initial deployment/validation unfinished; not promoted |
 
-Candidates are retained under the owner's keep-as-is instruction and incomplete-promotion recovery rule. They are not approved sources for later release. Do not silently resume this promotion or copy these names/folders into PROD. Later development must use the actual versions above and reconcile affected DEV warnings and production branding before any future promotion.
+All four candidate definitions above were deleted on 25 September 2026 under the owner's subsequent explicit instruction. Their exact editor URLs returned 404 / Home/NotFound; only the two DEV and two PROD apps remain in the inventory. Shared data/files/logos were not deleted. [Cleanup evidence](rc-cleanup.json). The table records historical pre-deletion states; candidates are no longer live recovery or promotion sources. Do not silently resume this promotion or copy these names/folders into PROD. Later development must use the actual versions above and reconcile affected DEV warnings and production branding before any future promotion.
 
 ## Documentation, recovery and limits
 
