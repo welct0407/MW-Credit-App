@@ -345,5 +345,7 @@ foreach($entry in @(@(4,'TOTAL · SGD','Total',0,7,'yellow'),@(5,'Azure · SGD',
 }
 $cost.panels=@($cost.panels|Sort-Object {$_.gridPos.y},{$_.gridPos.x})
 Save-MonitoringJson "$out/performance-dashboard.json" $perf
+& node "$PSScriptRoot/payment-dashboard.js" "$out/performance-dashboard.json" "$out/performance-dashboard.json"
+if ($LASTEXITCODE -ne 0) { throw 'Payment monitoring dashboard patch failed' }
 Save-MonitoringJson "$out/cost-dashboard.json" $cost
 Write-Output "Built performance ($($perf.panels.Count) panels) and cost ($($cost.panels.Count) panels)."

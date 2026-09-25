@@ -1,6 +1,6 @@
 # Resource monitoring dashboard — visual guide
 
-Pending addition: a Payment processing group is specified in the [monitoring handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md). It is not yet configured; the live visuals and alert behavior documented below remain unchanged. Update this guide when that implementation is saved and verified.
+The Payment processing group is live below the overview (25 September). It implements the [monitoring handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md); see the stage-by-stage guide below.
 
 Last updated: **25 September 2026**. Covers the maintained Performance and Cost definitions, including compact status tiles and OpenAI incident hover details. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
 
@@ -24,7 +24,7 @@ The following rules evaluate every two minutes with a rolling ten-minute query w
 | Visual IDs | Mobile alert condition | Pending | Interpretation |
 |---|---|---|---|
 | 51 | External webhook DEGRADED or DOWN (at least one fresh region failed) | 10 min | Requires all three regional reports within 12 minutes; stale or missing checks stay Unknown and do not page. |
-| 52, 53, 56, 57, 60–67 | See the Debian component mapping below | 4 min | Each component has its own labeled alert instance; fresh Down or Degraded pages. Paused and Unknown do not. |
+| 52, 53, 56, 57, 60–67 | See the Debian component mapping below | 4 min | Each component has its own alert instance; fresh Down/Degraded pages. Receipts and polling also page for missing, stale or invalid/Unknown telemetry. Fresh intentional Paused does not. |
 | 80–83 | Metabase platform, application DB, reporting DB and Charts | 4 min | Four separate instances in one rule; fresh Down or Degraded pages. Unknown, missing and stale telemetry do not trigger a new page. |
 | 54, 55 | Published ChatGPT or Codex status DEGRADED or DOWN | 10 min | Separate alert instance per product; a non-operational component or active incident in its current product group pages. Unrecognized/missing source data stays Unknown. |
 | 50, 34 | Cloud SQL backend count above **160** | 10 min | Early warning at 80% of configured 200. The red chart line still marks 200; reserved PostgreSQL slots lower ordinary-client capacity. |
@@ -35,7 +35,7 @@ The following rules evaluate every two minutes with a rolling ten-minute query w
 
 The Debian-backed tile-to-component mapping is: 52 Tunnel → `tunnel`; 53 Tailscale → `tailscale_node`; 60 Ingress → `webhook_local`; 56 OLTP → `oltp`; 57 OLAP → `olap`; 61 Converse → `conversations`; 62 Receipts → `receipts`; 63 IG polling → `polling`; 64 Daily jobs → `daily_jobs`; 65 Database → `database`; 66 Audit relay → `audit_relay`; 67 Codex ready → `codex_ready`. Each is evaluated separately, even though one Grafana rule hosts all 12 instances. SQL connections (50) and OpenAI (54–55) and the external webhook (51) complete the 16 tile conditions. The superseded grouped four-component rule was deleted after its replacement was verified.
 
-These values are alert thresholds, not newly configured subscription/resource limits. Azure VM-01 has no uptime push rule because it is intentionally not 24x7. An Unknown light or query error needs investigation but does not itself page. The external webhook, local ingress and other Debian components may all alert during one incident; their separate labels show which checks failed.
+These values are alert thresholds, not newly configured subscription/resource limits. Azure VM-01 has no uptime push rule because it is intentionally not 24x7. Receipts/polling Unknown or stale telemetry pages; the Debian rule also alerts on no-data/query errors. Other rules retain their previous missing-data policy. The external webhook, local ingress and other Debian components may all alert during one incident; their separate labels show which checks failed.
 
 Panel IDs below are maintenance references, unique **within each page**. Names repeat in some detailed sections, so use the page, section and ID together.
 
@@ -109,7 +109,7 @@ These checks inspect timers, last process result and runtime. **An idle one-shot
 | ID | Tile | What is checked | Current overdue/runtime bounds |
 |---|---|---|---|
 | 61 | 🗨 Converse | Partner conversation worker timer and completion/result; disabled conversation flag → Paused. | Last completion within 3 minutes when idle; active run within 21 minutes. |
-| 62 | 🧾 Receipts | Receipt-summary worker timer and completion/result; disabled receipt flag → Paused. | Last completion within 3 minutes when idle; active run within 21 minutes. |
+| 62 | 🧾 Receipts | Receipt timer/result plus read-only queues, reviews, posting and delivery checks; disabled receipt flag → Paused. | Idle completion within 3 minutes; active run within 10 minutes. Queue thresholds below also affect health. |
 | 63 | 📷 IG polling | Instagram group-chat scanner timer/result; hover shows last scan completion, observed Running/Idle and observation time in SGT. Disabled polling flag → Paused. | Runs five minutes after completion plus timer delay. Last completion within 10 minutes when idle; active run within 10 minutes. Timing updates about every two minutes and becomes Unknown after six minutes. |
 | 64 | 📅 Daily jobs | Combined cash-statement and email-retry timers/results; disabled schedule flag → Paused. A failing member cannot be hidden by a healthy member. | Cash statement: 25 hours idle / 1 hour running. Email retry: 10 minutes idle / 10 minutes running. |
 
@@ -257,4 +257,26 @@ Twenty tiles fit into the existing two availability rows (ten per row). The four
 
 Checks run concurrently from Debian about every two minutes. Green means the expected result within five seconds; amber means a passing probe took longer than five seconds; red means a failed/unexpected response or network timeout. Five seconds is an operational warning, not a provider limit. Probe credentials/rate failures (401/403/429) and unexpected probe errors are Unknown. Missing telemetry or telemetry older than six minutes is also Unknown. HTTP 202 for a completed Metabase query is normal. Hover shows the check, result category, HTTP code, duration and observed time in Singapore. Clicking opens the respective service.
 
-The four Metabase tiles are covered by one additional alert rule. It evaluates each component separately every two minutes and sends firing/resolved notifications through the existing IRM phone route after a four-minute pending period. Missing/stale telemetry or an Unknown status does not start a new alert. A Debian outage makes these probes Unknown even if Metabase remains available; check rule health if telemetry stops. The established eight alert rules and their 16 tile conditions remain unchanged.
+The four Metabase tiles are covered by one additional alert rule. It evaluates each component separately every two minutes and sends firing/resolved notifications through the existing IRM phone route after a four-minute pending period. Missing/stale telemetry or an Unknown status does not start a new alert. A Debian outage makes these probes Unknown even if Metabase remains available; check rule health if telemetry stops. The Metabase addition preserved the established eight rules. The subsequent receipt monitoring change below updates the Debian rule without adding another rule.
+
+
+## Payment processing — Instagram to recorded payment
+
+This second group follows the overview and precedes infrastructure charts. Eight panels (101–108; classic row 100) preserve the existing 50 visuals and their relative layout. Data comes from the existing Debian collector every two minutes. The API scan and receipt workflow have separate health indicators; no healthy average hides a failed stage.
+
+| ID | Visual | Measures and interpretation |
+| --- | --- | --- |
+| 101 | 1 · Group scanning | API polling status; hover for last completed scan and running/idle. Times are Singapore time to the minute. Completion includes empty scans and does not prove a payment was posted or that Meta exposed every group message. |
+| 102 | Pipeline health | Receipt workflow: Down/red, Healthy/green, Degraded/orange, Paused/blue, Unknown/gray. Degraded can mean an overdue review while the worker is running normally. |
+| 103 | 2 · Receipt extraction | Images waiting (count), oldest wait (seconds, humanized), stalled work (count). Ordinary queues are blue; stalled work above zero is red. |
+| 104 | 3 · Validation | Ready to route, manual holds, unnotified holds (counts). Notified holds remain visible in blue; unnotified holds above zero are red. Holds require investigation and are not executable approval requests. |
+| 105 | 4 · Reviewer decisions | Awaiting reply and overdue >2h (counts). Normal waiting is blue; overdue above zero is red. Approval must directly reply to the correlated IG request; email cannot approve. |
+| 106 | 5 · Payment posting | Awaiting posting, unconfirmed outcomes, retained POSTED total. Unconfirmed above zero is red: reconcile; do not retry Add. The retained total is neither today's count nor a selected-period sum. |
+| 107 | 6 · Notification failures | Partner results, hold alerts, review requests undelivered over five minutes (counts); zero green, positive red. IG first/email backup. Acceptance does not prove reading; one recipient's success does not mask another's failed result. Counts may overlap other cards. |
+| 108 | Queue length over time | Pending images, manual holds, awaiting review and unconfirmed posting over the selected range. Snapshot gauges, not additive throughput. Gaps exceeding six minutes break lines; no interpolation or zero-fill. History begins at activation on 25 September. |
+
+Queue values must share the newest status sample timestamp. Missing, invalid, mismatched, paused, older-than-six-minute or more-than-two-minute-future samples show **Unavailable**, never a healthy zero. Invalid health shows Unknown. Current cards follow the selected range; a historical range excluding fresh samples is unavailable, as each description explains. Use a range ending now. Provider/query failures display an error rather than fabricated counts.
+
+Stalled work: PENDING/VALIDATED older than ten minutes, REVIEW_REQUESTED without a proposal older than five minutes, or APPROVED older than ten minutes. Missing hold/review/result delivery becomes unhealthy after five minutes. PENDING review older than two hours is overdue. POSTING/UNKNOWN is unhealthy immediately, subject to collection and the alert's four-minute pending period. Ages use existing creation timestamps, not exact time in each sub-stage. Already notified manual holds alone do not degrade health.
+
+The existing Debian rule, evaluated every two minutes with four-minute pending, carries these findings to **MW Performance IRM**. Missing/stale/Unknown receipt or polling telemetry also alerts; no-data and execution errors enter Alerting. Other Debian components retain fresh Down/Degraded checks. Intentional fresh Paused does not page. Monitoring only observes: it never posts, approves, replays or clears business work.

@@ -71,6 +71,26 @@ def combine(values):
     return 1
 
 
+def receipt_snapshot(config, job, inspector=None):
+    if not config.get('receipt_summary_enabled'):
+        return {'status':3}
+    try:
+        if inspector is None:
+            from mw_integration_agent.receipt_health import inspect
+            inspector=inspect
+        values=inspector(config)
+        required=('status','pending_images','validated_receipts','held_receipts','pending_reviews',
+                  'approved_payments','completed_payments','oldest_pending_seconds','stalled_jobs',
+                  'unnotified_holds','unconfirmed_postings','undelivered_reviews','overdue_reviews','failed_notifications')
+        if any(type(values.get(k)) is not int or values[k]<0 for k in required) or values['status'] not in (1,2):
+            raise ValueError('Invalid queue snapshot')
+    except Exception:
+        values={'status':0,'inspection_failed':1}
+    try:values['status']=combine([job('mw-receipt-summary',180,600),values['status']])
+    except Exception:values['status']=0
+    return values
+
+
 def main():
     config = json.loads(Path(CONFIG).read_text())
     result = {'heartbeat': 1}
@@ -85,16 +105,8 @@ def main():
         return timer_status(properties(name+'.service'), properties(name+'.timer'), uptime, now, idle, duration)
     check('conversations', lambda: job('mw-partner-conversation', 180, 1260)
           if config.get('partner_conversations_enabled') else 3)
-    receipt_pipeline = {}
-    def receipts():
-        try:
-            from mw_integration_agent.receipt_health import inspect
-            receipt_pipeline.update(inspect(config))
-        except Exception:
-            # A failed queue inspection is unhealthy, not a silent Unknown tile.
-            receipt_pipeline.update(status=0,inspection_failed=1)
-        return combine([job('mw-receipt-summary',180,600),receipt_pipeline['status']])
-    check('receipts', receipts if config.get('receipt_summary_enabled') else lambda:3)
+    receipt_pipeline=receipt_snapshot(config,job)
+    result['receipts']=receipt_pipeline['status']
     polling_timing = {'last_completion': 0, 'running': -1}
     def polling():
         service = properties('mw-conversation-poll.service')

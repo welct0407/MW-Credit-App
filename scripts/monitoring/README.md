@@ -1,6 +1,6 @@
 # Resource monitoring tools
 
-Prepared, not deployed (25 September): `debian-health.py` contains receipt queue-health/metric integration for worker revision 21. Implement and verify it using the [receipt monitoring handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md). Live Grafana visuals/rules and the installed collector are unchanged by that preparation.
+Live since 25 September: `debian-health.py` exports read-only receipt queue health for worker revision 21. Eight Payment processing panels and the existing Debian IRM alert implement the [receipt monitoring handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md). See [verified deployment evidence](../../outputs/receipt-monitoring-20260925/README.md).
 
 Use PowerShell 7 from the bundled runtime, with repository root as the current directory. No dependencies are installed in outputs. See [operating reference](../../Documents/Resource_Monitoring.md) for live links, scopes and limitations.
 
@@ -56,3 +56,12 @@ Detailed GCP billing export and the Railway workspace token were configured in t
 `metabase_probes.py` uses liveness/readiness, a fixed saved SELECT 1 canary, and the public chart shell/protected API guard. It is deployed next to `debian-health.py`; the latter requires the module. Key storage is external and restricted; see the operating reference for IDs and rollback. `Initialize-MetabaseProbe.ps1` is a guarded one-time helper, not a deployment step. `Update-MetabasePanels.ps1` patches only new panel definitions and availability-grid positions in maintained classic/V2 JSON; the builder calls its layout function too. For live publication preserve the full fresh UI definition and apply the same scoped patch. Run `test_metabase_probes.py` plus collector tests; test `metabase-probe.jq` for fresh/stale/missing samples. No workload schedules are changed.
 
 The four tiles also share one Grafana-managed rule, `MW | Metabase component unhealthy` (`ffzb4act1o0zka`). Its canonical selector is `metabase-alert.jq`; `Build-MetabaseAlertQuery.ps1` writes the sanitized Infinity query to `outputs/resource-monitoring-20260922/metabase-alert-query.json`. The selector emits one stable `component` label and binary `value` per tile. Only fresh Down (0) or Degraded (2) yields 1; Unknown, Paused, missing or older-than-six-minute telemetry yields 0. The rule uses a 10-minute query, Last reduction, threshold above 0, 2-minute evaluation, 4-minute pending period, KeepLast on no-data/error, and direct `MW Performance IRM` contact. Edit the named rule in Grafana to change alert behavior, then update the guide and operating reference. Pause/delete only that rule to remove Metabase push alerts without changing the tiles or collector.
+
+
+## Payment monitoring maintenance
+
+`payment-dashboard.js` patches classic or V2 Performance definitions without changing existing panel contents. `Build-Dashboards.ps1` invokes it using bundled Node. For a scoped edit, pass a fresh exported Performance JSON and output path directly: `node scripts/monitoring/payment-dashboard.js <input.json> <output.json>`. Existing live UI changes must be reconciled before publishing a regenerated baseline. The maintained editor-resource file is the saved live snapshot; the classic file is the reproducible builder format.
+
+`receipt-pipeline.jq` aligns queue fields with fresh status; `receipt-trend.jq` inserts null gaps; `debian-alert.jq` is the existing Debian rule selector. Update the named rule in the UI, not a duplicate rule. The latter's no-data/error policies must remain Alerting, four-minute pending and direct MW Performance IRM contact. Canonical files contain no secrets or borrower data.
+
+Tests: bundled Python `-m unittest discover -s scripts/monitoring -p test_debian_health.py`; `test_receipt_queries.py` requires jq (available on Debian); `node scripts/monitoring/test_payment_dashboard.cjs` checks preservation/idempotence and stage fields. Synthetic fixtures are never sent to live monitoring or business APIs.
