@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R034 | Subsequent development | Open | Sole development release after R033 capture. | Current development release above |
-| R033 | Accepted custom matrix; remove native plot | Frozen — deploying | Pin `dd6fbc9`; report layout only. | [Evidence](../outputs/r033-matrix-cutover/README.md) |
+| R033 | Accepted custom matrix; remove native plot | Released | Native plot removed; iframe/detail table verified; tag R033. | [Evidence](../outputs/r033-matrix-cutover/README.md) |
 | R032 | Distinct cow and dog matrix icons | Released | Live visual verification passed; one static asset; tag R032. | [Evidence](../outputs/r032-matrix-icons/README.md) |
 | R031 | Grey quadrant icons and nearby borrower names | Released | Desktop/mobile verified; static files only; tag R031. | [Evidence](../outputs/r031-matrix-labels/README.md) |
 | R030 | Custom matrix: Debian service, DB reader and comparison iframe | Released — custom comparison chart | 2026-09-25: iframe1501 verified, original274 retained; apps unchanged, SQL schema V43; tag R030. | [Evidence](../outputs/r030-custom-matrix/README.md) |

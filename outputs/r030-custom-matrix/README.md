@@ -1,5 +1,7 @@
 # R030 — custom borrower matrix
 
+**Current placement, R033:** owner accepted the custom chart. The old native plot and its four surrounding text labels are removed from tab31; question274 remains saved for recovery. Iframe1501 is now row31; method note row53 and detail table row56. [Cutover evidence](../r033-matrix-cutover/README.md). The original comparison placement below is the dated R030 deployment.
+
 ## Scope
 
 Owner authorized Debian hosting, necessary database access and insertion of a separate custom visual into existing Metabase dashboard 3, Borrower Health Review tab 31. Apps must remain untouched. This latest instruction supersedes the earlier proposed owner-only placement: dashboard 3 remains readable by Loan Report Partners, and its authorized readers/admins can obtain the shared iframe key. Possession of that key grants the same chart data until rotation. No Google login, paid Metabase feature or new VM is introduced.

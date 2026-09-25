@@ -1,5 +1,7 @@
 # Open development differences
 
+R033 (25 September): owner accepted the custom matrix. Dashboard3/tab31 now shows iframe1501 at row31; old plot849 and labels1280–1283 removed. Saved question274 retained for recovery; method note and details retained, later rows shifted upward20. Apps, SQL and service unchanged. Recovery dashboard8. R034 sole Open release. [Evidence](../outputs/r033-matrix-cutover/README.md).
+
 R032 (25 September): custom matrix animal icons updated in the existing Debian chart.js only; cow head and seated dog visually verified. Runtime, SQL V43, Apps, Metabase placement and credentials unchanged. R033 is the sole Open release. [Evidence](../outputs/r032-matrix-icons/README.md).
 
 ## R031 matrix presentation — 25 September 2026
