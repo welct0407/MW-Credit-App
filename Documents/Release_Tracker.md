@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R030 | New development after R029 capture | Open | Sole development release; R029 package independently captured. | Current development release above |
+| R030 | Custom matrix authentication validation; new development after R029 | Open | Debian synthetic shared-secret proof passed; fallback selected for owner-only chart. No chart deployed or live configuration changed. | [Validation](../outputs/r030-chart-auth-validation/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R030_2026-09-25.md) |
 | R029 | Equal-quadrant borrower matrix | Released — SQL/report only | 25 September; V43 pin `de0a72a`, questions274/275; desktop/mobile geometry and parity verified. Apps unchanged; tag R029. | [Evidence](../outputs/r029-bcg-matrix/README.md) |
 | R028 | Automatic schedule-aware SQL categories and Borrower Health Review | Released — SQL/report only | 25 September 2026; PROD V42, 20 report queries and visual check passed; tag `R028`. Apps unchanged. | [Evidence](../outputs/r028-schedule-health/README.md) |
 | R027 | Payment-health SQL and parallel Borrower Health Review; delivered GCP currency formatting | Released — SQL/report; review tab retained | DEV/PROD V41; tab 31 and questions 253–269; original report preserved. No App Upgrade. | [Evidence](../outputs/r027-payment-health/README.md) · tag R027 |
