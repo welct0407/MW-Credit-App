@@ -1,17 +1,19 @@
 {
   "release": "R031",
-  "status": "Frozen; deploying",
+  "status": "Released",
   "apps": "Unchanged",
   "sql": "V43 unchanged; no DB writes",
   "metabase": "Existing iframe1501 and original274 unchanged",
   "source_baseline": "a876a53",
   "rollback": "/opt/mw-report-charts/recovery-r031/ (three static files; verified against R030 hashes)",
   "files": {
-    "scripts/metabase/chart_service/chart.js": "abbb46db750336ff53c239d944d9f37e44815db85aebca94e386250436d19988",
+    "scripts/metabase/chart_service/chart.js": "07a442541a6a5fc19816497724eee3212b9468d49cb6e9cf52578d734fe03170",
     "scripts/metabase/chart_service/chart.css": "5f38cfbf04bca95237bc29d96110baa6db9586cab1b52a444be7b81f15aca8b8",
     "scripts/metabase/chart_service/index.html": "fafb4a8a58ac3b1fb787d80e3629f2b1bb2558801a5b3e38dd9ac0623fbf33db"
   },
-  "verification": "Syntax check and synthetic browser preview; live checks follow deployment",
+  "verification": "verification.json",
   "implementation_commit": "adba25c306a7bbf2a26d1aa7c7af00b195e5e727",
-  "frozen_at": "2026-09-25T05:34:02.780910+00:00"
+  "frozen_at": "2026-09-25T05:34:02.780910+00:00",
+  "candidate_correction": "Mobile boundary-constrained labels placed first; desktop keeps top-to-bottom order. Final source is pinned by tag R031.",
+  "final_tag": "R031"
 }

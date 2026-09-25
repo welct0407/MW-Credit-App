@@ -16,7 +16,7 @@ The app authenticates every data request using a 256-bit random bearer secret, s
 
 - Four equal-size quadrants on desktop and mobile, classic ordering: Star top-left, Question Mark top-right, Cash Cow bottom-left, Dog bottom-right.
 - Exact existing SQL `plot_x`/`plot_y` positions, no scaffold rows, display-score changes or retuned categories.
-- Names visible by default. Sorted label positions within each quadrant prevent label collisions; leader lines connect labels to exact dots. On narrow screens long labels truncate; hover/focus/tap always exposes the full name.
+- R031 presentation update: muted grey category icons, category totals above the plot, and names directly above/below dots without connector lines. Nearby candidate positions reduce collisions; narrow screens prioritize boundary-constrained points. All dots remain radius5.5. Long names may truncate; the tooltip shows the full name. [Refinement evidence](../r031-matrix-labels/README.md).
 - Tooltip starts with a 25px borrower name (23px mobile), then only that borrower's category badge. Raw payment score, contribution ratio, interest, principal, schedule, history confidence, reporting date and placement explanation follow.
 - Search highlights matching names without moving points or changing category totals. Names toggle and manual refresh; automatic refresh every 60 seconds while visible, plus refresh on returning to the page. Timestamp is explicitly Bangkok.
 - Explicit unplotted list for unavailable/invalid positions. Errors clear previously rendered private data rather than leaving an apparently live chart.

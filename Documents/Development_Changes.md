@@ -1,5 +1,9 @@
 # Open development differences
 
+## R031 matrix presentation — 25 September 2026
+
+Custom chart now uses grey category symbols and local borrower-name labels without connector lines; dots remain radius5.5. Only three static Debian assets changed. SQL V43, API/authentication, Metabase iframe1501/native274, AppSheet and existing routes are unchanged. Verified23 labels on desktop/mobile; R032 is the sole Open release. [Evidence](../outputs/r031-matrix-labels/README.md).
+
 ## R030 custom matrix — deployed 25 September 2026
 
 The separate comparison chart, service, chart reader role and HTTPS route are deployed. No R030 AppSheet changes or remaining deployment differences; owner comparison/review remains available alongside native chart274. R031 is the sole Open development release. Prior R026 differences remain separately deferred. [R030 evidence](../outputs/r030-custom-matrix/README.md).

@@ -2,7 +2,7 @@
 
 ## Custom borrower matrix extension — R030
 
-Metabase dashboard3/tab31 now includes an independent Debian-hosted comparison visual beside the retained native matrix. SQL V43 remains the authority for categories and coordinates; the chart joins borrower names through a dedicated read-only role. Four equal quadrants, connected name labels and a name-first/single-category tooltip improve identification without changing the model. A shared bearer secret protects the fixed-query endpoint; dashboard readers are its intended audience. No OLTP/OLAP AppSheet fields, workflows or app versions change. [R030 evidence](../outputs/r030-custom-matrix/README.md) describes refresh, access, mobile scrolling and rollback.
+Metabase dashboard3/tab31 now includes an independent Debian-hosted comparison visual beside the retained native matrix. SQL V43 remains the authority for categories and coordinates; the chart joins borrower names through a dedicated read-only role. Four equal quadrants with muted category symbols, nearby name labels without connector lines and a name-first/single-category tooltip improve identification without changing the model. A shared bearer secret protects the fixed-query endpoint; dashboard readers are its intended audience. No OLTP/OLAP AppSheet fields, workflows or app versions change. [R030 evidence](../outputs/r030-custom-matrix/README.md) describes refresh, access, mobile scrolling and rollback.
 
 
 ## R029 equal-quadrant borrower matrix

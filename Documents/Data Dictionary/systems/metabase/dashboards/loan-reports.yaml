@@ -4080,6 +4080,14 @@
       "dashboard_filters_inherited": false
       "service": "mw-report-charts.service"
       "reference": "outputs/r030-custom-matrix/README.md"
+      "presentation":
+        "release": "R031"
+        "quadrant_markers": "Muted grey star/question/cow/dog SVG symbols; category totals above plot"
+        "names": "Local above/below labels, no connector lines; small collision-avoidance offsets"
+        "dot_radius": 5.5
+        "variable_size_metric": null
+        "sql_coordinates": "Unchanged"
+        "mobile": "Boundary-constrained names placed first; internal Metabase card scrolling remains"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4116,4 +4124,8 @@
   "/content/borrower_health_review":
     "reference": "outputs/r030-custom-matrix/final-verification.json"
     "reason": "R030 verified additive custom matrix; secret excluded"
+    "state": "value"
+  "/content/borrower_health_review/custom_matrix":
+    "reference": "outputs/r031-matrix-labels/verification.json"
+    "reason": "R031 static chart presentation verified"
     "state": "value"

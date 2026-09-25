@@ -1,5 +1,9 @@
 # Environment inventory
 
+## R031 matrix presentation — 25 September 2026
+
+Custom chart now uses grey category symbols and local borrower-name labels without connector lines; dots remain radius5.5. Only three static Debian assets changed. SQL V43, API/authentication, Metabase iframe1501/native274, AppSheet and existing routes are unchanged. Verified23 labels on desktop/mobile; R032 is the sole Open release. [Evidence](../outputs/r031-matrix-labels/README.md).
+
 ## R030 custom matrix — 25 September 2026
 
 Deployed separate `mw-report-charts.service` on `vm-mw-credit-agent`, loopback `127.0.0.1:8011`, OS identity `mwcharts`; Cloudflare tunnel `f75df9f1-0acf-4e8c-b797-a5fcf85b22f9` publishes `charts.mw-credit.com`. Existing hooks route remains port 8000. Narrow PROD reader `mw_chart_reader` uses the existing local SQL proxy. SQL schema remains V43 in both environments. Metabase dashboard 3/tab31 adds iframe placement1501 at row54, width24/height22; later cards shift22 rows, original matrix274 retained. Shared dashboard readers can access its bearer key. Apps and existing services are unchanged. [R030 evidence](../outputs/r030-custom-matrix/README.md).

@@ -53,7 +53,8 @@ function draw(){
  const intersects=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
  const legend=$('legend');legend.replaceChildren();
  for(const s of specs){const item=document.createElement('span');item.style.color=s.color;item.textContent=s.name+' · '+plotted.filter(r=>r.category===s.name).length;legend.append(item);}
- for(const r of points.slice().sort((a,b)=>a.py-b.py||a.borrower_id.localeCompare(b.borrower_id))){
+ const edgeDistance=r=>{const row=specs.find(s=>s.name===r.category).row;return Math.min(r.py-y0-row*qh,y0+(row+1)*qh-r.py);};
+ for(const r of points.slice().sort((a,b)=>(w<=600?edgeDistance(a)-edgeDistance(b):0)||a.py-b.py||a.borrower_id.localeCompare(b.borrower_id))){
   const s=specs.find(s=>s.name===r.category),g=el('g',{class:'borrower'+(match&&!r.name.toLocaleLowerCase().includes(match)?' dim':''),tabindex:0,role:'button','aria-label':r.name+', '+r.category,'data-borrower':r.borrower_id});
   if(showNames){
    const maxChars=w<=600?13:24,name=r.name.length>maxChars?r.name.slice(0,maxChars-1)+'…':r.name;
