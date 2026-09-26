@@ -4,9 +4,9 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R044 — Open** |
-| Next number, not yet open or usable | **R045 — opens only when R044 is frozen at promotion start** |
-| Current release evidence | R044 Open: Partners tab; DEV V47 and report queries verified, production/report publication pending. [Evidence](../outputs/r044-partners/README.md). |
+| **Use this release for new development** | **R045 — Open** |
+| Next number, not yet open or usable | **R046 — opens only when R045 is frozen at promotion start** |
+| Current release evidence | R045 Open: no scope yet. R044 frozen for authorized Partners promotion; [pinned package](../outputs/r044-partners/frozen-package.json). |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R044 | Additive Partners tab and read-only SQL providers | Open | DEV V47 verified; no AppSheet changes; production/report publication pending | [Evidence](../outputs/r044-partners/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R044_2026-09-26.md) |
+| R045 | Unassigned | Open | Opened at R044 freeze 2026-09-26T16:38:54.763258+00:00 | — |
+| R044 | Additive Partners tab and read-only SQL providers | Frozen for promotion | 2026-09-26T16:38:54.763258+00:00; package 8cbf7f1 / V47; no AppSheet changes | [Evidence](../outputs/r044-partners/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R044_2026-09-26.md) |
 | R043 | Canonical borrower tabs and drill-through | Released | Tabs7/8, name links, saved-state and Chrome verified; recovery20; tag R043 | [Evidence](../outputs/r043-borrower-navigation/README.md) |
 | R042 | Borrower receipts, loan return and interest bars | Released | DEV/PROD V46; Payments317, profit305 and bars302 verified. Tag R042. | [Evidence](../outputs/r042-borrower-payments/README.md) |
 | R041 | Detail bars, loan labels and table order | Released | Seven questions verified; grouped bars, Loan Key labels and charges before repayments. Tag R041. | [Evidence](../outputs/r041-borrower-detail/README.md) |

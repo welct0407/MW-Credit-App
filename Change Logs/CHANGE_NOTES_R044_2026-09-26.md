@@ -22,3 +22,5 @@ Status: DEV implementation verified; PROD migration and report publication pendi
 ## Recovery and remaining work
 
 Restore the scoped Metabase definition baseline/recovery copy after checking intervening edits. Additive SQL views may remain unused on report rollback; do not revert financial data. No RC apps or AppSheet rollback required. Finish exact pinned SQL promotion, report/filter verification, correct-profile browser QA, dictionary/core-document closure and final release publication before marking Released.
+
+Scope frozen at 2026-09-26T16:38:54.763258+00:00 for authorized promotion. Exact tested package `8cbf7f1935fa6570b71a913d931c4efdc52318f2` and Flyway manifest captured in the clean managed r044 worktree. R045 opened as sole development release; shared DEV package is independently pinned.
