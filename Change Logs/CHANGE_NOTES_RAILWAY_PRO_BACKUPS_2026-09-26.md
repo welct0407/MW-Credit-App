@@ -17,3 +17,6 @@ The backed-up PostgreSQL volume contains the Metabase application database: dash
 Previous state: Hobby plan, no volume backup schedule, no backups, PITR off. Schedule settings are reversible in Backups; a future plan downgrade is a separate owner decision. Do not remove the new backup as routine rollback. No business schema or dashboard definition changed.
 
 Evidence: [saved schedule screenshot](../outputs/railway-backups-20260926/backup-schedules.png). Environment inventory updated. Status: configuration complete; first backup available. First scheduled execution and restore drill have not yet been tested.
+
+## Retention revision - same day
+Owner requested a maximum of 30 days. Disabled monthly (89-day) backups. Reopened settings verified daily (6 days) and weekly (27 days) checked and monthly unchecked. Starting revision ee5ba1334432f487360633e80282fe2f465be448. Initial manual backup retained; its menu exposes only Delete backup, with no expiry control. Automatic expiry is unverified; separate cleanup is needed by 26 October to meet the limit for that backup. No backup deleted. Evidence: outputs/railway-backups-20260926/backup-retention-revised.png.

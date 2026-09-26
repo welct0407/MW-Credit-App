@@ -149,4 +149,4 @@ R021 summary row: five cards across on 6R. Net deployed = selected-period princi
 
 R022: all eight 6R Performance trend charts use selective value labels (Show values on data points = on; Values to show = Some/fit). Metabase fits labels to available space; calculations, filters and layout unchanged. [Evidence](../outputs/r022-20260924/README.md).
 
-Railway backup policy (26 September 2026): Metabase application PostgreSQL volume has daily/weekly/monthly snapshots retained 6/27/89 days respectively. Initial 275 MB manual backup is available; PITR remains off. Source business data and runtime secrets are outside this scope. [Configuration and verification](../Change%20Logs/CHANGE_NOTES_RAILWAY_PRO_BACKUPS_2026-09-26.md).
+Railway backup policy (26 September 2026): Metabase application PostgreSQL volume has daily/weekly snapshots retained 6/27 days respectively; monthly backups are disabled under the requested 30-day maximum. Initial 275 MB manual backup is available; PITR remains off. Source business data and runtime secrets are outside this scope. [Configuration and verification](../Change%20Logs/CHANGE_NOTES_RAILWAY_PRO_BACKUPS_2026-09-26.md).
