@@ -9,6 +9,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Current identities/settings | [Environment Inventory](Environment_Inventory.md) |
 | Service login account / browser profile | [Service account and browser mapping](Service_Account_Browser_Mapping.md) |
 | Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |
+| Proposed Debian receipt picture capture and AppSheet viewing | [Receipt storage implementation handover — 27 September 2026](../outputs/receipt-storage-design-20260927/HANDOVER.md) — design only; private GCS archive, agent metadata and lightweight Payment image references |
 | Proposed Borrower Portfolio / Detail pages and implementation handover | [Borrower pages design — 25 September 2026](../outputs/borrower-pages-design-20260925/HANDOVER.md) — design only; pending owner review |
 | Partners tab, actual metrics and implementation handover | [Partners tab design — 26 September 2026](../outputs/partners-tab-design-20260926/HANDOVER.md) — delivered in R044; actual metrics, no forecast content |
 | Forecast & Planning page | [Design summary](../outputs/forecast-planning-design-20260927/README.md) and [implementation handover — 27 September 2026](../outputs/forecast-planning-design-20260927/HANDOVER.md) — delivered in R045; [implementation and verification](../outputs/r045-forecast-planning/IMPLEMENTATION.md) |
