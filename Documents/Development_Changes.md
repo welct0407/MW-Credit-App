@@ -1,5 +1,8 @@
 # Open development differences
 
+R037 (26 September): Metabase dashboard3/Portfolio104 contribution refinement delivered with model310 and questions311-315. Both AppSheet apps, SQLV45, bindings, permissions and runtime unchanged; no remaining DEV feature difference from this report-only work. Recovery dashboard11; [saved definitions and checks](../outputs/r037-borrower-contribution/README.md). R038 is the sole Open release.
+
+
 R036 promoted 25–26 September 2026: PROD SQL **V45**, OLTP **3.000249** from frozen RC1 **1.000007**; OLAP **1.100202** unchanged. Both PROD editors clear and Deployed; OLTP sync, logo, API enablement, guard and changed expense/navigation entry points verified. RC `7a5da6c5-98cc-4fa0-902a-a996f08a641d` deleted with shared data/files preserved. DEV remains OLTP1.000092 / OLAP1.000033 / V45. [Production evidence](../outputs/r036-production/production-verification.json) · [Checklist](../outputs/r036-production/promotion-checklist.md). No remaining R036 feature difference; routine DEV environment bindings/theme/owner-only delivery remain. Prior unrelated release limitations stay separately documented.
 
 R035 borrower pages (25 September): V44 applied and validated in DEV and PROD; new Portfolio104 and Detail105 added to Metabase dashboard3. No remaining R035 SQL/AppSheet deployment difference; browser/documentation closure is recorded in the [single checklist](../outputs/r035-borrower-pages/promotion-checklist.md). Existing pages and V41/V42 health definitions remain unchanged. R036 is the sole Open release. Prior R026 app limitations remain separately recorded.

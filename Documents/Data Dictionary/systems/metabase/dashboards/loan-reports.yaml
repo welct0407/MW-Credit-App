@@ -4265,7 +4265,8 @@
       "d-obligations": 307
       "d-overdue-list": 308
       "d-scenario": 309
-    "definition_reference": "outputs/r035-borrower-pages/metabase-saved.json"
+    "definition_reference": "outputs/r037-borrower-contribution/saved.json (Portfolio); outputs/r035-borrower-pages/metabase-saved.json\
+      \ (unchanged Detail)"
     "preserved_original_tabs": true
     "filter_contract": "Separate activity dates; current and lifetime positions ignore dates; one borrower required; empty\
       \ selection returns no financial totals"
@@ -4276,6 +4277,22 @@
     - "reporting_borrower_period_v1"
     "health": "Existing V41/V42 unchanged"
     "rollback_dashboard": 10
+    "contribution_refinement":
+      "release": "R037"
+      "model": 310
+      "questions":
+      - 311
+      - 312
+      - 313
+      - 314
+      - 315
+      "definition_reference": "outputs/r037-borrower-contribution/saved.json"
+      "contract": "outputs/r037-borrower-contribution/README.md"
+      "replaced_placements_questions":
+      - 285
+      - 286
+      "date_filters": "No activity-date mappings on the five new questions; population applies"
+      "rollback_dashboard": 11
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4318,6 +4335,6 @@
     "reason": "R031 static chart presentation verified"
     "state": "value"
   "/content/borrower_pages":
-    "reference": "outputs/r035-borrower-pages/README.md"
-    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "reference": "outputs/r037-borrower-contribution/saved.json"
+    "reason": "R037 verified Portfolio chart and layout refinement; Detail preserved"
     "state": "value"

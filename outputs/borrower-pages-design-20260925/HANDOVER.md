@@ -1,5 +1,8 @@
 # Borrower Portfolio and Borrower Detail — implementation handover
 
+**26 September refinement:** Portfolio contribution/rate visuals now follow the [R037 lifetime-rate handover](../r037-borrower-contribution/README.md). Original period sections and Detail remain as documented below.
+
+
 Date: 25 September 2026. Owner subsequently approved implementation **as two new tabs**, superseding the original in-place replacement proposal below. R035 implements Portfolio (104) and Detail (105); original tabs 6/10 remain unchanged. [Implementation, verification and recovery](../r035-borrower-pages/README.md). Remaining references to replacing the existing tabs describe the original proposal, not the delivered cutover.
 
 ## 1. Summary and scope

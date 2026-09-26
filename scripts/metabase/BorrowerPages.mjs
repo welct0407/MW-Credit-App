@@ -128,6 +128,9 @@ if(process.argv.includes('--preflight')){
 }
 if(process.argv.includes('--refine')){
  await assertSource();const state=read('metabase-state');
+ const live=await api('GET','dashboard/3');
+ assert(!live.dashcards.some(c=>c.dashboard_tab_id===state.tabs.portfolio&&[311,312,313,314,315].includes(c.card_id)),
+ 'R037 superseded the Portfolio layout. Use BorrowerContributionCharts.mjs for its owned charts; do not replay R035 layout.');
  const keys=process.argv.find(a=>a.startsWith('--keys='))?.slice(7).split(',');
  for(const s of specs.filter(s=>!keys||keys.includes(s.key))){const {key,page,...body}=s;
   if(body.visualization_settings['table.columns']){

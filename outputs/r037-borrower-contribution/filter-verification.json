@@ -1,0 +1,46 @@
+{
+  "checks": [
+    {
+      "key": "principal",
+      "population": "All with loan history",
+      "passed": true
+    },
+    {
+      "key": "profit",
+      "population": "All with loan history",
+      "passed": true
+    },
+    {
+      "key": "rate",
+      "population": "All with loan history",
+      "passed": true
+    },
+    {
+      "key": "coverage",
+      "population": "All with loan history",
+      "passed": true
+    },
+    {
+      "key": "principal",
+      "population": "Currently active",
+      "passed": true
+    },
+    {
+      "key": "profit",
+      "population": "Currently active",
+      "passed": true
+    },
+    {
+      "key": "rate",
+      "population": "Currently active",
+      "passed": true
+    },
+    {
+      "key": "coverage",
+      "population": "Currently active",
+      "passed": true
+    }
+  ],
+  "dateInvarianceBothBars": true,
+  "pieTotalsReconciled": true
+}

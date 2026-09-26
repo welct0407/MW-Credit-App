@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R038 — Open** |
 | Next number, not yet open or usable | **R039 — opens only when R038 is frozen at promotion start** |
-| Current release evidence | R038 is Open with no scope assigned. R037 report publication applied; validation/closure in progress. [R037 evidence](../outputs/r037-borrower-contribution/README.md) |
+| Current release evidence | R038 is Open with no scope assigned. R037 Released: borrower contribution pies and lifetime rate; apps/SQL unchanged. [R037 evidence](../outputs/r037-borrower-contribution/README.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R038 | New development | Open | Opened at R037 report handoff; no shared DEV runtime edits. | Scope not yet assigned |
-| R037 | Borrower contribution pies and overall rates | Frozen | 2026-09-26T03:23:17.115594+00:00; report applied from pin563f222; validation in progress. Handoff recorded late after a failed local encoding assertion. | [Handover](../outputs/r037-borrower-contribution/README.md) |
+| R037 | Borrower contribution pies and overall rates | Released | Model310/questions311-315; lifetime daily rate; desktop/mobile and data/filter checks passed; tag R037. | [Handover](../outputs/r037-borrower-contribution/README.md) |
 | R036 | Automatic daily interest; OLTP bilingual labels and Payments presentation; delivered Collection Monitor alignment | Released | SQL V45; OLTP3.000249; OLAP1.100202 unchanged; both editors clear; RC deleted; tag R036. | [Checklist](../outputs/r036-production/promotion-checklist.md) · [Manifest](../outputs/r036-production/release-manifest.json) |
 | R035 | Metabase monitoring and additive borrower pages | Released — SQL/report and monitoring | DEV/PROD44; new Portfolio104 / Detail105, original tabs preserved; data and desktop/mobile checks passed. Apps unchanged; tag R035. | [Evidence](../outputs/r035-borrower-pages/README.md) · [Release log](../Change%20Logs/CHANGE_NOTES_R035_2026-09-25.md) |
 | R034 | Chart above category tables; whole-baht amounts | Released | Live layout and amount formatting verified; tag R034. | [Evidence](../outputs/r034-matrix-order/README.md) |

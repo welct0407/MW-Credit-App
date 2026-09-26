@@ -1,0 +1,126 @@
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Principal Coverage by Profit · top 20 / 314"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r037-borrower-contribution/saved.json"
+"content":
+  "key": "coverage"
+  "id": 314
+  "name": "Principal Coverage by Profit · top 8"
+  "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate\
+    \ uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context\
+    \ and handover."
+  "type": "question"
+  "display": "row"
+  "dataset_query":
+    "stages":
+    - "template-tags":
+      - "type": "text"
+        "id": "r037-pop"
+        "name": "population"
+        "display-name": "Population"
+        "default": "All with loan history"
+      - "type": "card"
+        "id": "r037-model"
+        "name": "#310"
+        "display-name": "Borrower lifetime economics"
+        "card-id": 310
+      "lib/type": "mbql.stage/native"
+      "native": |-
+        WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'
+        ='All with loan history' OR [[{{population}} --]] 'All with loan history'
+        ='Currently active' AND "Has active loan" OR [[{{population}} --]] 'All with loan history'
+        ='Currently inactive' AND NOT "Has active loan")) SELECT "Borrower","Principal coverage","Borrower ID","Lifetime interest","Principal days","Active loan interest","Principal outstanding" FROM cohort WHERE "Principal coverage" IS NOT NULL ORDER BY "Principal coverage" DESC,"Borrower ID" LIMIT 8
+    "lib/type": "mbql/query"
+    "database": 2
+  "visualization_settings":
+    "graph.show_goal": true
+    "graph.show_values": true
+    "graph.show_legend": false
+    "graph.x_axis.title_enabled": true
+    "graph.goal_label": "100% coverage"
+    "graph.x_axis.title_text": "Interest / current principal · %"
+    "graph.goal_value": 1
+    "graph.metrics":
+    - "Principal coverage"
+    "graph.colors":
+    - "#178F8A"
+    "column_settings":
+      "[\"name\",\"Principal coverage\"]":
+        "number_style": "percent"
+        "decimals": 1
+        "number_separators": ".,"
+    "graph.dimensions":
+    - "Borrower"
+    "stackable.stack_type": null
+  "result_metadata":
+  - "name": "Borrower"
+    "database_type": "text"
+    "base_type": "type/Text"
+    "display_name": "Borrower"
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Principal coverage"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Principal coverage"
+    "field_ref":
+    - "field"
+    - "Principal coverage"
+    - "base-type": "type/Decimal"
+  - "name": "Borrower ID"
+    "database_type": "text"
+    "base_type": "type/Text"
+    "display_name": "Borrower ID"
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+  - "name": "Lifetime interest"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Lifetime interest"
+    "field_ref":
+    - "field"
+    - "Lifetime interest"
+    - "base-type": "type/Decimal"
+  - "name": "Principal days"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Principal days"
+    "field_ref":
+    - "field"
+    - "Principal days"
+    - "base-type": "type/Decimal"
+  - "name": "Active loan interest"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Active loan interest"
+    "field_ref":
+    - "field"
+    - "Active loan interest"
+    - "base-type": "type/Decimal"
+  - "name": "Principal outstanding"
+    "database_type": "numeric"
+    "base_type": "type/Decimal"
+    "display_name": "Principal outstanding"
+    "field_ref":
+    - "field"
+    - "Principal outstanding"
+    - "base-type": "type/Decimal"
+"evidence":
+  "/content/name":
+    "reference": "outputs/r037-borrower-contribution/saved.json"
+    "reason": "R037 final saved chart definitions including responsive ratio safety"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r037-borrower-contribution/saved.json"
+    "reason": "R037 final saved chart definitions including responsive ratio safety"
+    "state": "value"

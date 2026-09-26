@@ -1,0 +1,1580 @@
+{
+  "dashboard": 3,
+  "tab": 104,
+  "questions": [
+    {
+      "key": "model",
+      "id": 310,
+      "name": "Borrower lifetime economics",
+      "description": "R037 shared borrower-grain economics. Lifetime end-of-day exposure through yesterday; signed receipts; current active-loan coverage. No operational writes.",
+      "type": "model",
+      "display": "table",
+      "dataset_query": {
+        "stages": [
+          {
+            "lib/type": "mbql.stage/native",
+            "native": "-- R037. Borrower grain; completed Bangkok days for lifetime yield and rolling interest.\n-- Exposure uses end-of-day principal. Receipt-day reductions apply that day.\nWITH clock AS (SELECT public.olap_reporting_date() today),\nloans AS MATERIALIZED (SELECT * FROM public.reporting_borrower_loan_facts_v1),\npayments AS MATERIALIZED (\n SELECT \"Ref Loans\" loan_id,\"Payment Date\" paid_on,\"Principal Paid\"::numeric principal,\n \"Interest Paid\"::numeric interest FROM public.olap_repayments_analytics\n),\nreceipt_totals AS (\n SELECT l.borrower_id,\n sum(p.interest) FILTER(WHERE p.paid_on<c.today) lifetime_interest,\n sum(p.interest) FILTER(WHERE p.paid_on BETWEEN c.today-30 AND c.today-1) interest_30d,\n sum(p.interest) FILTER(WHERE l.is_active AND p.paid_on<=c.today) active_interest,\n count(*) FILTER(WHERE p.paid_on IS NULL OR p.interest IS NULL OR p.principal IS NULL\n OR p.paid_on<l.loan_date) invalid_receipts\n FROM loans l JOIN payments p USING(loan_id) CROSS JOIN clock c GROUP BY l.borrower_id\n),\n-- A compact event sweep, not a borrower x calendar Cartesian product.\nevents AS (\n SELECT l.loan_id,l.loan_date event_date,0::numeric reduction FROM loans l\n UNION ALL\n SELECT p.loan_id,p.paid_on,sum(p.principal) FROM payments p JOIN loans l USING(loan_id)\n CROSS JOIN clock c WHERE p.paid_on>=l.loan_date AND p.paid_on<c.today\n GROUP BY p.loan_id,p.paid_on\n),\ndaily_events AS (SELECT loan_id,event_date,sum(reduction) reduction FROM events GROUP BY 1,2),\nsegments AS (\n SELECT l.*,e.event_date,\n least(coalesce(lead(e.event_date) OVER(PARTITION BY l.loan_id ORDER BY e.event_date),c.today),\n c.today,coalesce(l.close_date+1,c.today)) segment_end,\n l.original_principal-sum(e.reduction) OVER(PARTITION BY l.loan_id ORDER BY e.event_date) balance\n FROM daily_events e JOIN loans l USING(loan_id) CROSS JOIN clock c\n),\nexposure AS (\n SELECT borrower_id,\n sum(greatest(balance,0)*greatest(segment_end-event_date,0)) principal_days,\n bool_or(loan_date IS NULL OR original_principal IS NULL OR original_principal<0 OR is_active IS NULL\n OR (NOT is_active AND close_date IS NULL) OR coalesce(close_date<loan_date,false)) invalid_loans\n FROM segments GROUP BY borrower_id\n)\nSELECT d.borrower_id AS \"Borrower ID\",d.borrower_label AS \"Borrower\",\n d.has_active_loan AS \"Has active loan\",d.outstanding_principal AS \"Principal outstanding\",\n CASE WHEN coalesce(r.invalid_receipts,0)=0 THEN coalesce(r.interest_30d,0) END AS \"Interest 30D\",\n CASE WHEN coalesce(r.invalid_receipts,0)=0 THEN coalesce(r.lifetime_interest,0) END AS \"Lifetime interest\",\n CASE WHEN NOT e.invalid_loans AND coalesce(r.invalid_receipts,0)=0 THEN e.principal_days END AS \"Principal days\",\n CASE WHEN NOT e.invalid_loans AND coalesce(r.invalid_receipts,0)=0 AND e.principal_days>0\n THEN coalesce(r.lifetime_interest,0)/e.principal_days END AS \"Achieved daily rate\",\n CASE WHEN coalesce(r.invalid_receipts,0)=0 AND d.outstanding_principal>0\n THEN coalesce(r.active_interest,0)/d.outstanding_principal END AS \"Principal coverage\",\n CASE WHEN coalesce(r.invalid_receipts,0)=0 THEN coalesce(r.active_interest,0) END AS \"Active loan interest\",\n CASE WHEN e.invalid_loans OR coalesce(r.invalid_receipts,0)>0 THEN 'Incomplete history'\n WHEN coalesce(e.principal_days,0)<=0 THEN 'No positive completed principal-days' ELSE 'Available' END AS \"Rate status\",\n c.today-1 AS \"Lifetime through\",c.today-30 AS \"30D start\",c.today-1 AS \"30D end\",c.today AS \"Current as of\"\nFROM public.reporting_borrower_directory_v1 d JOIN exposure e ON e.borrower_id=d.borrower_id\nLEFT JOIN receipt_totals r ON r.borrower_id=d.borrower_id CROSS JOIN clock c\nWHERE d.loan_count>0\n"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {},
+      "result_metadata": [
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Borrower ID",
+          "lib/original-name": "Borrower ID",
+          "name": "Borrower ID",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Borrower ID",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Borrower ID",
+          "display_name": "Borrower ID",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Borrower",
+          "lib/original-name": "Borrower",
+          "name": "Borrower",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Borrower",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Borrower",
+          "display_name": "Borrower",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "bool",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Has active loan",
+          "lib/original-name": "Has active loan",
+          "name": "Has active loan",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Has active loan",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Has active loan",
+            {
+              "base-type": "type/Boolean"
+            }
+          ],
+          "effective_type": "type/Boolean",
+          "lib/desired-column-alias": "Has active loan",
+          "display_name": "Has active loan",
+          "base_type": "type/Boolean"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Principal outstanding",
+          "lib/original-name": "Principal outstanding",
+          "name": "Principal outstanding",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Principal outstanding",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Principal outstanding",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Principal outstanding",
+          "display_name": "Principal outstanding",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Interest 30D",
+          "lib/original-name": "Interest 30D",
+          "name": "Interest 30D",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Interest 30D",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Interest 30D",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Interest 30D",
+          "display_name": "Interest 30D",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Lifetime interest",
+          "lib/original-name": "Lifetime interest",
+          "name": "Lifetime interest",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Lifetime interest",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Lifetime interest",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Lifetime interest",
+          "display_name": "Lifetime interest",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Principal days",
+          "lib/original-name": "Principal days",
+          "name": "Principal days",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Principal days",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Principal days",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Principal days",
+          "display_name": "Principal days",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": "type/Share",
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Achieved daily rate",
+          "lib/original-name": "Achieved daily rate",
+          "name": "Achieved daily rate",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Achieved daily rate",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Achieved daily rate",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Achieved daily rate",
+          "display_name": "Achieved daily rate",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Principal coverage",
+          "lib/original-name": "Principal coverage",
+          "name": "Principal coverage",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Principal coverage",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Principal coverage",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Principal coverage",
+          "display_name": "Principal coverage",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "numeric",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Active loan interest",
+          "lib/original-name": "Active loan interest",
+          "name": "Active loan interest",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Active loan interest",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Active loan interest",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "effective_type": "type/Decimal",
+          "lib/desired-column-alias": "Active loan interest",
+          "display_name": "Active loan interest",
+          "base_type": "type/Decimal"
+        },
+        {
+          "database_type": "text",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Rate status",
+          "lib/original-name": "Rate status",
+          "name": "Rate status",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Rate status",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Rate status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "effective_type": "type/Text",
+          "lib/desired-column-alias": "Rate status",
+          "display_name": "Rate status",
+          "base_type": "type/Text"
+        },
+        {
+          "database_type": "date",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Lifetime through",
+          "lib/original-name": "Lifetime through",
+          "name": "Lifetime through",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Lifetime through",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Lifetime through",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "Lifetime through",
+          "display_name": "Lifetime through",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "date",
+          "semantic_type": "type/CreationDate",
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "30D start",
+          "lib/original-name": "30D start",
+          "name": "30D start",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "30D start",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "30D start",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "30D start",
+          "display_name": "30D start",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "date",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "30D end",
+          "lib/original-name": "30D end",
+          "name": "30D end",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "30D end",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "30D end",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "30D end",
+          "display_name": "30D end",
+          "base_type": "type/Date"
+        },
+        {
+          "database_type": "date",
+          "semantic_type": null,
+          "lib/from-model?": true,
+          "lib/deduplicated-name": "Current as of",
+          "lib/original-name": "Current as of",
+          "name": "Current as of",
+          "lib/source": "source/native",
+          "lib/source-column-alias": "Current as of",
+          "source": "native",
+          "field_ref": [
+            "field",
+            "Current as of",
+            {
+              "base-type": "type/Date"
+            }
+          ],
+          "effective_type": "type/Date",
+          "lib/desired-column-alias": "Current as of",
+          "display_name": "Current as of",
+          "base_type": "type/Date"
+        }
+      ]
+    },
+    {
+      "key": "principal",
+      "id": 311,
+      "name": "Borrowers Outstanding Principal Contribution",
+      "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context and handover.",
+      "type": "question",
+      "display": "pie",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "text",
+                "id": "r037-pop",
+                "name": "population",
+                "display-name": "Population",
+                "default": "All with loan history"
+              },
+              {
+                "type": "card",
+                "id": "r037-model",
+                "name": "#310",
+                "display-name": "Borrower lifetime economics",
+                "card-id": 310
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND \"Has active loan\" OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT \"Has active loan\")), ranked AS (SELECT *,row_number() OVER(ORDER BY \"Principal outstanding\" DESC,\"Borrower ID\") rank FROM cohort WHERE \"Principal outstanding\">0 AND NOT EXISTS(SELECT 1 FROM cohort WHERE \"Principal outstanding\" IS NULL OR \"Principal outstanding\"<0)), grouped AS (SELECT CASE WHEN rank<=9 THEN \"Borrower\" ELSE 'Others' END label,CASE WHEN rank<=9 THEN \"Borrower ID\" END id,sum(\"Principal outstanding\") amount,min(rank) rank FROM ranked GROUP BY 1,2) SELECT label AS \"Borrower\",amount AS \"Amount ฿\",id AS \"Borrower ID\" FROM grouped ORDER BY rank"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "pie.slice_threshold": 0,
+        "pie.percent_visibility": "inside",
+        "pie.dimension": "Borrower",
+        "pie.show_labels": false,
+        "graph.colors": [
+          "#3B82F6",
+          "#A855F7",
+          "#D97706",
+          "#14B8A6",
+          "#EC4899",
+          "#6366F1",
+          "#84A348",
+          "#9259A3",
+          "#2A7585",
+          "#C5CBD9"
+        ],
+        "pie.metric": "Amount ฿",
+        "pie.show_legend": true,
+        "pie.decimal_places": 1,
+        "pie.show_total": false,
+        "column_settings": {
+          "[\"name\",\"Amount ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          }
+        },
+        "version": 2
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Borrower",
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Amount ฿",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Amount ฿",
+          "field_ref": [
+            "field",
+            "Amount ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Borrower ID",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Borrower ID",
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "profit",
+      "id": 312,
+      "name": "Borrowers 30 Days Profit Contribution",
+      "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context and handover.",
+      "type": "question",
+      "display": "pie",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "text",
+                "id": "r037-pop",
+                "name": "population",
+                "display-name": "Population",
+                "default": "All with loan history"
+              },
+              {
+                "type": "card",
+                "id": "r037-model",
+                "name": "#310",
+                "display-name": "Borrower lifetime economics",
+                "card-id": 310
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND \"Has active loan\" OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT \"Has active loan\")), ranked AS (SELECT *,row_number() OVER(ORDER BY \"Interest 30D\" DESC,\"Borrower ID\") rank FROM cohort WHERE \"Interest 30D\">0 AND NOT EXISTS(SELECT 1 FROM cohort WHERE \"Interest 30D\" IS NULL)), grouped AS (SELECT CASE WHEN rank<=9 THEN \"Borrower\" ELSE 'Others' END label,CASE WHEN rank<=9 THEN \"Borrower ID\" END id,sum(\"Interest 30D\") amount,min(rank) rank FROM ranked GROUP BY 1,2) SELECT label AS \"Borrower\",amount AS \"Amount ฿\",id AS \"Borrower ID\" FROM grouped ORDER BY rank"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "pie.slice_threshold": 0,
+        "pie.percent_visibility": "inside",
+        "pie.dimension": "Borrower",
+        "pie.show_labels": false,
+        "graph.colors": [
+          "#3B82F6",
+          "#A855F7",
+          "#D97706",
+          "#14B8A6",
+          "#EC4899",
+          "#6366F1",
+          "#84A348",
+          "#9259A3",
+          "#2A7585",
+          "#C5CBD9"
+        ],
+        "pie.metric": "Amount ฿",
+        "pie.show_legend": true,
+        "pie.decimal_places": 1,
+        "pie.show_total": false,
+        "column_settings": {
+          "[\"name\",\"Amount ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,"
+          }
+        },
+        "version": 2
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Borrower",
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Amount ฿",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Amount ฿",
+          "field_ref": [
+            "field",
+            "Amount ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Borrower ID",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Borrower ID",
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "rate",
+      "id": 313,
+      "name": "Lifetime Effective Achieved Daily Interest Rate · top 8",
+      "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context and handover.",
+      "type": "question",
+      "display": "row",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "text",
+                "id": "r037-pop",
+                "name": "population",
+                "display-name": "Population",
+                "default": "All with loan history"
+              },
+              {
+                "type": "card",
+                "id": "r037-model",
+                "name": "#310",
+                "display-name": "Borrower lifetime economics",
+                "card-id": 310
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND \"Has active loan\" OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT \"Has active loan\")) SELECT \"Borrower\",\"Achieved daily rate\",\"Borrower ID\",\"Lifetime interest\",\"Principal days\",\"Active loan interest\",\"Principal outstanding\" FROM cohort WHERE \"Achieved daily rate\" IS NOT NULL ORDER BY \"Achieved daily rate\" DESC,\"Borrower ID\" LIMIT 8"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "graph.show_goal": false,
+        "graph.show_values": true,
+        "graph.show_legend": false,
+        "graph.x_axis.title_enabled": true,
+        "graph.goal_label": "100% coverage",
+        "graph.x_axis.title_text": "Achieved interest · % per day",
+        "graph.goal_value": 1,
+        "graph.metrics": [
+          "Achieved daily rate"
+        ],
+        "graph.colors": [
+          "#7472BE"
+        ],
+        "column_settings": {
+          "[\"name\",\"Achieved daily rate\"]": {
+            "number_style": "percent",
+            "decimals": 3,
+            "number_separators": ".,"
+          }
+        },
+        "graph.dimensions": [
+          "Borrower"
+        ],
+        "stackable.stack_type": null
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Borrower",
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Achieved daily rate",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Achieved daily rate",
+          "semantic_type": "type/Share",
+          "field_ref": [
+            "field",
+            "Achieved daily rate",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Borrower ID",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Borrower ID",
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Lifetime interest",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Lifetime interest",
+          "field_ref": [
+            "field",
+            "Lifetime interest",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Principal days",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Principal days",
+          "field_ref": [
+            "field",
+            "Principal days",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Active loan interest",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Active loan interest",
+          "field_ref": [
+            "field",
+            "Active loan interest",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Principal outstanding",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Principal outstanding",
+          "field_ref": [
+            "field",
+            "Principal outstanding",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "coverage",
+      "id": 314,
+      "name": "Principal Coverage by Profit · top 8",
+      "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context and handover.",
+      "type": "question",
+      "display": "row",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "text",
+                "id": "r037-pop",
+                "name": "population",
+                "display-name": "Population",
+                "default": "All with loan history"
+              },
+              {
+                "type": "card",
+                "id": "r037-model",
+                "name": "#310",
+                "display-name": "Borrower lifetime economics",
+                "card-id": 310
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND \"Has active loan\" OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT \"Has active loan\")) SELECT \"Borrower\",\"Principal coverage\",\"Borrower ID\",\"Lifetime interest\",\"Principal days\",\"Active loan interest\",\"Principal outstanding\" FROM cohort WHERE \"Principal coverage\" IS NOT NULL ORDER BY \"Principal coverage\" DESC,\"Borrower ID\" LIMIT 8"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "graph.show_goal": true,
+        "graph.show_values": true,
+        "graph.show_legend": false,
+        "graph.x_axis.title_enabled": true,
+        "graph.goal_label": "100% coverage",
+        "graph.x_axis.title_text": "Interest / current principal · %",
+        "graph.goal_value": 1,
+        "graph.metrics": [
+          "Principal coverage"
+        ],
+        "graph.colors": [
+          "#178F8A"
+        ],
+        "column_settings": {
+          "[\"name\",\"Principal coverage\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,"
+          }
+        },
+        "graph.dimensions": [
+          "Borrower"
+        ],
+        "stackable.stack_type": null
+      },
+      "result_metadata": [
+        {
+          "name": "Borrower",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Borrower",
+          "field_ref": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Principal coverage",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Principal coverage",
+          "field_ref": [
+            "field",
+            "Principal coverage",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Borrower ID",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Borrower ID",
+          "field_ref": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Lifetime interest",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Lifetime interest",
+          "field_ref": [
+            "field",
+            "Lifetime interest",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Principal days",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Principal days",
+          "field_ref": [
+            "field",
+            "Principal days",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Active loan interest",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Active loan interest",
+          "field_ref": [
+            "field",
+            "Active loan interest",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Principal outstanding",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Principal outstanding",
+          "field_ref": [
+            "field",
+            "Principal outstanding",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "context",
+      "id": 315,
+      "name": "Overall charts · dates and data availability",
+      "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context and handover.",
+      "type": "question",
+      "display": "table",
+      "dataset_query": {
+        "stages": [
+          {
+            "template-tags": [
+              {
+                "type": "text",
+                "id": "r037-pop",
+                "name": "population",
+                "display-name": "Population",
+                "default": "All with loan history"
+              },
+              {
+                "type": "card",
+                "id": "r037-model",
+                "name": "#310",
+                "display-name": "Borrower lifetime economics",
+                "card-id": 310
+              }
+            ],
+            "lib/type": "mbql.stage/native",
+            "native": "WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'\n='All with loan history' OR [[{{population}} --]] 'All with loan history'\n='Currently active' AND \"Has active loan\" OR [[{{population}} --]] 'All with loan history'\n='Currently inactive' AND NOT \"Has active loan\")) SELECT max(\"Lifetime through\") AS \"Lifetime rate through\",max(\"30D start\") AS \"Profit starts\",max(\"30D end\") AS \"Profit ends\",max(\"Current as of\") AS \"Principal as of\",count(*) FILTER(WHERE \"Achieved daily rate\" IS NULL) AS \"Borrowers without daily rate\",count(*) FILTER(WHERE \"Principal coverage\" IS NULL) AS \"Borrowers without coverage\",CASE WHEN count(*) FILTER(WHERE \"Interest 30D\" IS NULL)>0 THEN 'Profit pie unavailable: incomplete receipts' WHEN count(*) FILTER(WHERE \"Interest 30D\">0)=0 THEN 'No positive 30-day interest' ELSE 'Positive borrower contributions only; negative adjustments excluded' END AS \"Profit pie status\",coalesce(sum(\"Interest 30D\") FILTER(WHERE \"Interest 30D\"<0),0) AS \"Excluded negative interest ฿\",CASE WHEN count(*) FILTER(WHERE \"Principal outstanding\"<0 OR \"Principal outstanding\" IS NULL)>0 THEN 'Principal pie unavailable: negative or incomplete balances' ELSE 'Principal pie available' END AS \"Principal pie status\" FROM cohort"
+          }
+        ],
+        "lib/type": "mbql/query",
+        "database": 2
+      },
+      "visualization_settings": {
+        "table.pivot": false
+      },
+      "result_metadata": [
+        {
+          "name": "Lifetime rate through",
+          "database_type": "date",
+          "base_type": "type/Date",
+          "display_name": "Lifetime rate through",
+          "field_ref": [
+            "field",
+            "Lifetime rate through",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        },
+        {
+          "name": "Profit starts",
+          "database_type": "date",
+          "base_type": "type/Date",
+          "display_name": "Profit starts",
+          "semantic_type": "type/CreationDate",
+          "field_ref": [
+            "field",
+            "Profit starts",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        },
+        {
+          "name": "Profit ends",
+          "database_type": "date",
+          "base_type": "type/Date",
+          "display_name": "Profit ends",
+          "field_ref": [
+            "field",
+            "Profit ends",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        },
+        {
+          "name": "Principal as of",
+          "database_type": "date",
+          "base_type": "type/Date",
+          "display_name": "Principal as of",
+          "field_ref": [
+            "field",
+            "Principal as of",
+            {
+              "base-type": "type/Date"
+            }
+          ]
+        },
+        {
+          "name": "Borrowers without daily rate",
+          "database_type": "int8",
+          "base_type": "type/BigInteger",
+          "display_name": "Borrowers without daily rate",
+          "field_ref": [
+            "field",
+            "Borrowers without daily rate",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ]
+        },
+        {
+          "name": "Borrowers without coverage",
+          "database_type": "int8",
+          "base_type": "type/BigInteger",
+          "display_name": "Borrowers without coverage",
+          "field_ref": [
+            "field",
+            "Borrowers without coverage",
+            {
+              "base-type": "type/BigInteger"
+            }
+          ]
+        },
+        {
+          "name": "Profit pie status",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Profit pie status",
+          "field_ref": [
+            "field",
+            "Profit pie status",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        },
+        {
+          "name": "Excluded negative interest ฿",
+          "database_type": "numeric",
+          "base_type": "type/Decimal",
+          "display_name": "Excluded negative interest ฿",
+          "field_ref": [
+            "field",
+            "Excluded negative interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ]
+        },
+        {
+          "name": "Principal pie status",
+          "database_type": "text",
+          "base_type": "type/Text",
+          "display_name": "Principal pie status",
+          "field_ref": [
+            "field",
+            "Principal pie status",
+            {
+              "base-type": "type/Text"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "layout": [
+    {
+      "id": 2145,
+      "card_id": null,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 0,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "## Borrower Portfolio\nCapital, interest contribution and lending activity. Current positions stay current when activity dates change."
+          }
+        }
+      }
+    },
+    {
+      "id": 2146,
+      "card_id": 278,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 3,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-population",
+          "card_id": 278,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2147,
+      "card_id": 279,
+      "dashboard_tab_id": 104,
+      "col": 8,
+      "row": 3,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-population",
+          "card_id": 279,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2148,
+      "card_id": 280,
+      "dashboard_tab_id": 104,
+      "col": 16,
+      "row": 3,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-population",
+          "card_id": 280,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2149,
+      "card_id": null,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 6,
+      "size_x": 24,
+      "size_y": 1,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### Activity · selected Bangkok dates"
+          }
+        }
+      }
+    },
+    {
+      "id": 2150,
+      "card_id": 281,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 7,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-period",
+          "card_id": 281,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bp-population",
+          "card_id": 281,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2151,
+      "card_id": 282,
+      "dashboard_tab_id": 104,
+      "col": 8,
+      "row": 7,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-period",
+          "card_id": 282,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bp-population",
+          "card_id": 282,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2152,
+      "card_id": 283,
+      "dashboard_tab_id": 104,
+      "col": 16,
+      "row": 7,
+      "size_x": 8,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-period",
+          "card_id": 283,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bp-population",
+          "card_id": 283,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2153,
+      "card_id": 284,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 10,
+      "size_x": 24,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-period",
+          "card_id": 284,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bp-population",
+          "card_id": 284,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2156,
+      "card_id": 287,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 44,
+      "size_x": 12,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-period",
+          "card_id": 287,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bp-population",
+          "card_id": 287,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2157,
+      "card_id": 288,
+      "dashboard_tab_id": 104,
+      "col": 12,
+      "row": 44,
+      "size_x": 12,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-period",
+          "card_id": 288,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bp-population",
+          "card_id": 288,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2158,
+      "card_id": null,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 53,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "### Borrower comparison\nClick a name to open the new Detail tab with these activity dates. Shares use the selected population; hidden operational records remain included."
+          }
+        }
+      }
+    },
+    {
+      "id": 2159,
+      "card_id": 289,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 56,
+      "size_x": 24,
+      "size_y": 11,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-period",
+          "card_id": 289,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bp-population",
+          "card_id": 289,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "column_settings": {
+          "[\"name\",\"Borrower\"]": {
+            "click_behavior": {
+              "type": "link",
+              "linkType": "url",
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity={{Period start}}~{{Period end}}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 2160,
+      "card_id": null,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 67,
+      "size_x": 24,
+      "size_y": 3,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "card.background": false,
+        "virtual_card": {
+          "display": "text",
+          "visualization_settings": {
+            "text": "Gross interest is before expenses. Principal returned may relate to older loans. First/repeat uses lifetime loan order. [Borrower Health Review](/dashboard/3?tab=31) owns categories and the matrix. Live query time does not prove payments have synced."
+          }
+        }
+      }
+    },
+    {
+      "id": 2437,
+      "card_id": 311,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 14,
+      "size_x": 12,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-population",
+          "card_id": 311,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2438,
+      "card_id": 312,
+      "dashboard_tab_id": 104,
+      "col": 12,
+      "row": 14,
+      "size_x": 12,
+      "size_y": 9,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-population",
+          "card_id": 312,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2439,
+      "card_id": 313,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 23,
+      "size_x": 12,
+      "size_y": 12,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-population",
+          "card_id": 313,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2440,
+      "card_id": 314,
+      "dashboard_tab_id": 104,
+      "col": 12,
+      "row": 23,
+      "size_x": 12,
+      "size_y": 12,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-population",
+          "card_id": 314,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2441,
+      "card_id": 315,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 35,
+      "size_x": 24,
+      "size_y": 4,
+      "series": [],
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-population",
+          "card_id": 315,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "id": 2442,
+      "card_id": null,
+      "dashboard_tab_id": 104,
+      "col": 0,
+      "row": 39,
+      "size_x": 24,
+      "size_y": 5,
+      "series": [],
+      "parameter_mappings": [],
+      "visualization_settings": {
+        "virtual_card": {
+          "name": null,
+          "display": "text",
+          "visualization_settings": {
+            "text": "**Overall charts ignore Activity dates.** Pies show current principal and positive borrower net interest contributions over the previous 30 completed Bangkok days. Negative borrower totals are excluded from pie shares and shown separately above. Lifetime daily rate = interest received ÷ principal-days outstanding through yesterday; receipt-day principal reductions apply that day. Coverage = interest received on currently active loans ÷ their current outstanding principal. Bars show top 8 eligible borrowers, with no Others aggregation. Unavailable histories are counted above. Gross interest is before expenses."
+          }
+        }
+      }
+    }
+  ]
+}

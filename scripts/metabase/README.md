@@ -1,3 +1,7 @@
+# Borrower contribution refinement — R037
+
+`BorrowerContributionCharts.mjs` owns Portfolio104 questions311-315 and shared model310. See [contract and verification](../../outputs/r037-borrower-contribution/README.md). Its publication mode rejects baseline drift; `--refine` only updates owned questions and methodology spacing. R035 layout replay is guarded after this refinement.
+
 # Additive borrower pages — R035
 
 `BorrowerPages.mjs` owns only new Portfolio104 / Detail105 and their 33 saved questions/model. `--plan` emits definitions; `--prepare` refuses to replace the private baseline; `--publish` installs additively; `--refine` updates only this batch's cards/layout; `--capture` records sanitized saved metadata. Do not replay creation against a different baseline. `Verify-BorrowerPages.mjs` checks actual dashboard parameter mappings, empty selection, reconciliation and preserved original objects. [Contract and rollback](../../outputs/r035-borrower-pages/README.md).

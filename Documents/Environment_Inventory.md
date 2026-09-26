@@ -1,5 +1,8 @@
 # Environment inventory
 
+R037 (26 September): Metabase dashboard3/Portfolio104 contribution refinement delivered with model310 and questions311-315. Both AppSheet apps, SQLV45, bindings, permissions and runtime unchanged; no remaining DEV feature difference from this report-only work. Recovery dashboard11; [saved definitions and checks](../outputs/r037-borrower-contribution/README.md). R038 is the sole Open release.
+
+
 R036 promoted 25–26 September 2026: PROD SQL **V45**, OLTP **3.000249** from frozen RC1 **1.000007**; OLAP **1.100202** unchanged. Both PROD editors clear and Deployed; OLTP sync, logo, API enablement, guard and changed expense/navigation entry points verified. RC `7a5da6c5-98cc-4fa0-902a-a996f08a641d` deleted with shared data/files preserved. DEV remains OLTP1.000092 / OLAP1.000033 / V45. [Production evidence](../outputs/r036-production/production-verification.json) · [Checklist](../outputs/r036-production/promotion-checklist.md).
 
 R035 borrower pages (25 September): DEV/PROD V44; same instance `appsheet-pg-prod-20260914`, host `34.21.174.215`, databases `loan_manager_dev` / `loan_manager_prod`. Three additive reporting views and a read-only period function serve new dashboard3 tabs104/105. Existing source2 and restricted reporting user retained; SELECT/EXECUTE only on the new providers. Recovery dashboard10. Both AppSheet apps unchanged. R036 is the sole Open development release. [Package and checks](../outputs/r035-borrower-pages/README.md).

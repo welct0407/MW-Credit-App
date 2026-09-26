@@ -29326,6 +29326,16 @@
       ]
     },
     {
+      "file": "systems/metabase/models/borrower-contribution-model.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Borrower lifetime economics / 310",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/models/borrower-pages-picker.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -30900,6 +30910,56 @@
           "pointer": "/content/fields/Status"
         }
       ]
+    },
+    {
+      "file": "systems/metabase/questions/borrower-contribution-context.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Overall charts · dates and data availability / 315",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-contribution-coverage.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal Coverage by Profit · top 20 / 314",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-contribution-principal.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Borrowers Outstanding Principal Contribution / 311",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-contribution-profit.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Borrowers 30 Days Profit Contribution / 312",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/borrower-contribution-rate.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Lifetime Effective Achieved Daily Interest Rate · top 20 / 313",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
     },
     {
       "file": "systems/metabase/questions/borrower-health-active.yaml",
