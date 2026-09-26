@@ -1,0 +1,87 @@
+{
+  "dashboard": 3,
+  "tab": 104,
+  "restored": [
+    {
+      "id": -39002,
+      "card_id": 286,
+      "dashboard_tab_id": 104,
+      "row": 23,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 9,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-period",
+          "card_id": 286,
+          "target": [
+            "dimension",
+            [
+              "template-tag",
+              "period"
+            ]
+          ]
+        },
+        {
+          "parameter_id": "bp-population",
+          "card_id": 286,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}"
+        }
+      },
+      "series": []
+    },
+    {
+      "id": -39001,
+      "card_id": 285,
+      "dashboard_tab_id": 104,
+      "row": 23,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 9,
+      "parameter_mappings": [
+        {
+          "parameter_id": "bp-population",
+          "card_id": 285,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "population"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {
+        "click_behavior": {
+          "type": "link",
+          "linkType": "url",
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}"
+        }
+      },
+      "series": []
+    }
+  ],
+  "shiftLaterRows": 9,
+  "pies": [
+    311,
+    312
+  ],
+  "ratios": [
+    313,
+    314
+  ],
+  "queries": "Reused unchanged saved questions285/286. Principal current; interest uses selected activity dates, default previous30 completed Bangkok days."
+}
