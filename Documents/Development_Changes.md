@@ -1,5 +1,8 @@
 # Open development differences
 
+R039 (26 September): Portfolio104 restores saved amount-ranking questions285/286 below pies311/312; ratios313/314 retained. Six charts in three rows; later Portfolio rows shifted9. Query definitions, apps, SQL, runtime and permissions unchanged; no DEV difference. Recovery dashboard13; [evidence](../outputs/r039-restore-borrower-bars/README.md). R040 sole Open.
+
+
 R038 (26 September): Portfolio104 question314 now uses lifetime interest received / total original principal lent, including active and closed loans. Model310 adds three fields; context315 and note aligned. Apps, SQL schema, runtime and permissions unchanged; no DEV deployment difference. Recovery dashboard12; [contract and evidence](../outputs/r038-lifetime-return/README.md). R039 sole Open.
 
 

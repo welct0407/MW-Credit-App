@@ -99,3 +99,5 @@ R021 summary row: five cards across on 6R. Net deployed = selected-period princi
 R022: all eight 6R Performance trend charts use selective value labels (Show values on data points = on; Values to show = Some/fit). Metabase fits labels to available space; calculations, filters and layout unchanged. [Evidence](../outputs/r022-20260924/README.md).
 
 R038 borrower return formula and recovery: [handover](../outputs/r038-lifetime-return/README.md). This supersedes R037 active-loan interest/current-principal coverage; the lifetime achieved daily rate keeps its completed-day exposure basis.
+
+R039 Portfolio layout correction: both original amount-ranking bars285/286 coexist with pies311/312 and lifetime ratio bars313/314. Amount interest follows activity dates; current principal and the other four charts retain their documented date rules. [Current six-chart layout](../outputs/r039-restore-borrower-bars/README.md).

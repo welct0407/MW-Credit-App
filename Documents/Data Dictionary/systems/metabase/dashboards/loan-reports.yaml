@@ -4300,6 +4300,19 @@
       "context": 315
       "definition_reference": "outputs/r038-lifetime-return/saved.json"
       "contract": "outputs/r038-lifetime-return/README.md"
+    "amount_bars_restored":
+      "release": "R039"
+      "restored_questions":
+      - 285
+      - 286
+      "retained_pies":
+      - 311
+      - 312
+      "retained_ratios":
+      - 313
+      - 314
+      "definition_reference": "outputs/r039-restore-borrower-bars/saved.json"
+      "contract": "outputs/r039-restore-borrower-bars/README.md"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4348,4 +4361,8 @@
   "/content/borrower_pages/lifetime_return_refinement":
     "reference": "outputs/r038-lifetime-return/saved.json"
     "reason": "R038 supersedes the R037 coverage metric only"
+    "state": "value"
+  "/content/borrower_pages/amount_bars_restored":
+    "reference": "outputs/r039-restore-borrower-bars/saved.json"
+    "reason": "R039 restores both original amount bars alongside existing pies and ratio charts; no query changes"
     "state": "value"

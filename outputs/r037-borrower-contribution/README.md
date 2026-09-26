@@ -1,5 +1,8 @@
 # Borrower contribution charts — R037 handover
 
+**R039 correction:** Both original amount-ranking bars are restored alongside the two pies and two lifetime ratio charts. [Six-chart layout](../r039-restore-borrower-bars/README.md).
+
+
 **R038 refinement:** The right-hand bar now uses lifetime interest / total original principal lent, including active and closed loans. [Current formula](../r038-lifetime-return/README.md).
 
 
