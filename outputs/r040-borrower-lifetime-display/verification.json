@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "comparisonRows": 30,
+  "rateRows": 8,
+  "oneDecimalBothTableMetrics": true,
+  "lifetimeColumnsMatchModel": true,
+  "lifetimeColumnsDateInvariant": true,
+  "populationMappingPreserved": true,
+  "tableDrillAndOtherPlacementsPreserved": true,
+  "backupDashboard": 14
+}

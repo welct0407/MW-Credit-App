@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R040 | New development | Open | R039 layout candidate captured; shared DEV unchanged. | Scope not yet assigned |
+| R040 | Borrower Portfolio lifetime display | Open | Questions 313/289 saved in Metabase; one-decimal rate and two comparison ratios verified; pending owner review. | [Evidence](../outputs/r040-borrower-lifetime-display/README.md) |
 | R039 | Restore borrower amount bars alongside pies | Released | Six charts coexist; queries/layout/filters/visual check passed; tagR039. | [Evidence](../outputs/r039-restore-borrower-bars/README.md) |
 | R038 | Lifetime interest / total principal lent | Released | Model310/card314/context315; Orgrand160%; data/filter/GUI verified; tag R038. | [Evidence](../outputs/r038-lifetime-return/README.md) |
 | R037 | Borrower contribution pies and overall rates | Released | Model310/questions311-315; lifetime daily rate; desktop/mobile and data/filter checks passed; tag R037. | [Handover](../outputs/r037-borrower-contribution/README.md) |

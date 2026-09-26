@@ -1,5 +1,7 @@
 # Open development differences
 
+R040 (26 September): Portfolio104 saved questions313/289 show the achieved daily rate with one decimal and both lifetime ratios in the bottom comparison table. Model310 and calculations are unchanged; the ratios ignore Activity dates but respect population. Metabase report published and verified; R040 remains Open for owner review. Recovery dashboard14; [evidence](../outputs/r040-borrower-lifetime-display/README.md). No AppSheet, SQL, runtime or permission difference.
+
 R039 (26 September): Portfolio104 restores saved amount-ranking questions285/286 below pies311/312; ratios313/314 retained. Six charts in three rows; later Portfolio rows shifted9. Query definitions, apps, SQL, runtime and permissions unchanged; no DEV difference. Recovery dashboard13; [evidence](../outputs/r039-restore-borrower-bars/README.md). R040 sole Open.
 
 

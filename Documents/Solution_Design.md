@@ -101,3 +101,5 @@ R022: all eight 6R Performance trend charts use selective value labels (Show val
 R038 borrower return formula and recovery: [handover](../outputs/r038-lifetime-return/README.md). This supersedes R037 active-loan interest/current-principal coverage; the lifetime achieved daily rate keeps its completed-day exposure basis.
 
 R039 Portfolio layout correction: both original amount-ranking bars285/286 coexist with pies311/312 and lifetime ratio bars313/314. Amount interest follows activity dates; current principal and the other four charts retain their documented date rules. [Current six-chart layout](../outputs/r039-restore-borrower-bars/README.md).
+
+R040 presents the achieved daily-rate bar to one decimal and adds both lifetime ratios, each as a one-decimal percentage, to the Portfolio comparison table. The added values reuse model310 by borrower ID, retain the R037/R038 formulas and ignore the activity slicer; table membership and other columns retain their selected-period behavior. [Saved display contract](../outputs/r040-borrower-lifetime-display/README.md).
