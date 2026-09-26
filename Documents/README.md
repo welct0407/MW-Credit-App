@@ -11,7 +11,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |
 | Proposed Borrower Portfolio / Detail pages and implementation handover | [Borrower pages design — 25 September 2026](../outputs/borrower-pages-design-20260925/HANDOVER.md) — design only; pending owner review |
 | Partners tab, actual metrics and implementation handover | [Partners tab design — 26 September 2026](../outputs/partners-tab-design-20260926/HANDOVER.md) — delivered in R044; actual metrics, no forecast content |
-| Proposed Forecast & Planning page | [Design summary](../outputs/forecast-planning-design-20260927/README.md) and [implementation handover — 27 September 2026](../outputs/forecast-planning-design-20260927/HANDOVER.md) — proposal only; interest/receipt scenarios and conditional funding plan |
+| Forecast & Planning page | [Design summary](../outputs/forecast-planning-design-20260927/README.md) and [implementation handover — 27 September 2026](../outputs/forecast-planning-design-20260927/HANDOVER.md) — delivered in R045; [implementation and verification](../outputs/r045-forecast-planning/IMPLEMENTATION.md) |
 | Model explanations | [Model Overview](AppSheet_Data_Model_Overview.md) |
 | Exact model/configuration values across ecosystem systems | [Data Dictionary](Data%20Dictionary/README.md) |
 | Instructions for a thorough OLTP/OLAP/PostgreSQL dictionary reconciliation | [Execution prompt](Data_Dictionary_Reconciliation_Prompt.md) |

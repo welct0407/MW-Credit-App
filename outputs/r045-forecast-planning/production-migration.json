@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_prod",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "47",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "forecast planning",
+    "executionTime" : 475,
+    "filepath" : "C:\\Users\\MWCredit\\.codex\\worktrees\\r045-forecast-promotion\\AppSheet-Loan-Project\\database\\migrations\\V48__forecast_planning.sql",
+    "type" : "SQL",
+    "version" : "48"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "48",
+  "timestamp" : "2026-09-27T01:13:28.0487778+07:00",
+  "totalMigrationTime" : 475,
+  "warnings" : [ ]
+}

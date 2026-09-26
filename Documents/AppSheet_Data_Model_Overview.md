@@ -1,5 +1,7 @@
 # Production model overview
 
+R045 adds **13 · Forecast & Planning** (262): read-only current-month actuals, schedule-aware future obligations, explicit collection/arrears scenarios and conditional whole-portfolio funding. Actual interest and principal receipts remain separate; incomplete forecasts and manual-only coverage are disclosed. AppSheet retains operational entry; no financial source data changes. [Delivered contract](../outputs/r045-forecast-planning/IMPLEMENTATION.md).
+
 R044 partner reporting adds six read-only V47 views over existing capital, allocated repayment interest, expenses and settlements. Metabase presents current entitlement and dated activity; OLAP retains all operational partner/settlement editing. No AppSheet table binding or financial calculation changed. [Contract and dependencies](../outputs/r044-partners/README.md).
 
 ## R036 daily-interest adjustment — DEV only

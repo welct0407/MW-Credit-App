@@ -30368,6 +30368,46 @@
       ]
     },
     {
+      "file": "systems/metabase/models/forecast-actuals.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Forecast · actuals source / 345",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/models/forecast-context.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Forecast · context source / 347",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/models/forecast-events.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Forecast · events source / 346",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/models/forecast-loans.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Forecast · loans source / 344",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/models/income-events.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -31577,6 +31617,216 @@
       "component": "reports.mw-credit.com",
       "kind": "question",
       "name": "Payment punctuality summary · selected due dates / 316",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-actual.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest received ฿ / 348",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-bridge.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest outlook bridge / 354",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-cash-bridge.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Month-end cash bridge / 368",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-cash.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Business cash now ฿ / 365",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-closing.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Month-end cash ฿ / 366",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-context.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Forecast scope & assumptions / 353",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-coverage.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Forecast coverage & exceptions / 363",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-detail.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Loan forecast detail / 361",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-drivers.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Borrower forecast contribution / 358",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-funding-context.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Funding plan · inputs and status / 364",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-gap.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Target gap ฿ / 351",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-obligations.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Recorded and simulated obligations / 362",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-principal.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Principal receipts ฿ / 352",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-projected.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Month-end interest ฿ / 350",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-remaining.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Remaining interest ฿ / 349",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-scenarios.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Schedule / Planning / Stress / 355",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-shortfall.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Reserve shortfall ฿ / 367",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-trajectory.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Cumulative interest · actual and projected / 356",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-types.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Interest by loan type / 359",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-watchlist.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Forecast watchlist / 360",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/forecast-weekly.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Upcoming dues · partial weeks / 357",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -38950,6 +39200,317 @@
       ]
     },
     {
+      "file": "systems/postgresql/relations/reporting-forecast-actuals-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_forecast_actuals_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "repayment_id",
+          "pointer": "/content/columns/repayment_id"
+        },
+        {
+          "subject": "loan_id",
+          "pointer": "/content/columns/loan_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "borrower",
+          "pointer": "/content/columns/borrower"
+        },
+        {
+          "subject": "loan_type",
+          "pointer": "/content/columns/loan_type"
+        },
+        {
+          "subject": "payment_date",
+          "pointer": "/content/columns/payment_date"
+        },
+        {
+          "subject": "interest",
+          "pointer": "/content/columns/interest"
+        },
+        {
+          "subject": "principal",
+          "pointer": "/content/columns/principal"
+        },
+        {
+          "subject": "invalid",
+          "pointer": "/content/columns/invalid"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-forecast-context-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_forecast_context_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "calculated_at",
+          "pointer": "/content/columns/calculated_at"
+        },
+        {
+          "subject": "current_cash",
+          "pointer": "/content/columns/current_cash"
+        },
+        {
+          "subject": "cash_status",
+          "pointer": "/content/columns/cash_status"
+        },
+        {
+          "subject": "invalid_receipts",
+          "pointer": "/content/columns/invalid_receipts"
+        },
+        {
+          "subject": "orphan_charges",
+          "pointer": "/content/columns/orphan_charges"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-forecast-events-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_forecast_events_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "loan_id",
+          "pointer": "/content/columns/loan_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "borrower",
+          "pointer": "/content/columns/borrower"
+        },
+        {
+          "subject": "loan_type",
+          "pointer": "/content/columns/loan_type"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "loan_status",
+          "pointer": "/content/columns/loan_status"
+        },
+        {
+          "subject": "defaulted",
+          "pointer": "/content/columns/defaulted"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "month_end",
+          "pointer": "/content/columns/month_end"
+        },
+        {
+          "subject": "due_date",
+          "pointer": "/content/columns/due_date"
+        },
+        {
+          "subject": "origin",
+          "pointer": "/content/columns/origin"
+        },
+        {
+          "subject": "bucket",
+          "pointer": "/content/columns/bucket"
+        },
+        {
+          "subject": "principal",
+          "pointer": "/content/columns/principal"
+        },
+        {
+          "subject": "interest",
+          "pointer": "/content/columns/interest"
+        },
+        {
+          "subject": "eligible",
+          "pointer": "/content/columns/eligible"
+        },
+        {
+          "subject": "issue",
+          "pointer": "/content/columns/issue"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-forecast-inputs-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_forecast_inputs_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "loan_id",
+          "pointer": "/content/columns/loan_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "borrower",
+          "pointer": "/content/columns/borrower"
+        },
+        {
+          "subject": "loan_type",
+          "pointer": "/content/columns/loan_type"
+        },
+        {
+          "subject": "loan_status",
+          "pointer": "/content/columns/loan_status"
+        },
+        {
+          "subject": "defaulted",
+          "pointer": "/content/columns/defaulted"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "month_end",
+          "pointer": "/content/columns/month_end"
+        },
+        {
+          "subject": "loan",
+          "pointer": "/content/columns/loan"
+        },
+        {
+          "subject": "charges",
+          "pointer": "/content/columns/charges"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-forecast-loans-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_forecast_loans_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "loan_id",
+          "pointer": "/content/columns/loan_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "borrower",
+          "pointer": "/content/columns/borrower"
+        },
+        {
+          "subject": "loan_type",
+          "pointer": "/content/columns/loan_type"
+        },
+        {
+          "subject": "loan_status",
+          "pointer": "/content/columns/loan_status"
+        },
+        {
+          "subject": "defaulted",
+          "pointer": "/content/columns/defaulted"
+        },
+        {
+          "subject": "outstanding_principal",
+          "pointer": "/content/columns/outstanding_principal"
+        },
+        {
+          "subject": "reporting_date",
+          "pointer": "/content/columns/reporting_date"
+        },
+        {
+          "subject": "month_end",
+          "pointer": "/content/columns/month_end"
+        },
+        {
+          "subject": "ui",
+          "pointer": "/content/columns/ui"
+        },
+        {
+          "subject": "up",
+          "pointer": "/content/columns/up"
+        },
+        {
+          "subject": "oi",
+          "pointer": "/content/columns/oi"
+        },
+        {
+          "subject": "op",
+          "pointer": "/content/columns/op"
+        },
+        {
+          "subject": "xi",
+          "pointer": "/content/columns/xi"
+        },
+        {
+          "subject": "xp",
+          "pointer": "/content/columns/xp"
+        },
+        {
+          "subject": "recorded_interest",
+          "pointer": "/content/columns/recorded_interest"
+        },
+        {
+          "subject": "simulated_interest",
+          "pointer": "/content/columns/simulated_interest"
+        },
+        {
+          "subject": "actual_interest",
+          "pointer": "/content/columns/actual_interest"
+        },
+        {
+          "subject": "next_due",
+          "pointer": "/content/columns/next_due"
+        },
+        {
+          "subject": "incomplete",
+          "pointer": "/content/columns/incomplete"
+        },
+        {
+          "subject": "issues",
+          "pointer": "/content/columns/issues"
+        },
+        {
+          "subject": "arrangement_status",
+          "pointer": "/content/columns/arrangement_status"
+        }
+      ]
+    },
+    {
       "file": "systems/postgresql/relations/reporting-loan-schedule-health-v1.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -39832,6 +40393,26 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "assessment_lab.stamp_inputs()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/forecast-scenario-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.forecast_scenario_v1(ui numeric, up numeric, oi numeric, op numeric, ci numeric, cp numeric, rr numeric, scenario text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/forecast-schedule-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)",
       "scope": "production",
       "status": "documented",
       "lookup": []

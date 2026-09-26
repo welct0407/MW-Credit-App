@@ -1,5 +1,7 @@
 # Forecast & Planning — implementation handover
 
+Delivered in R045 on 27 September 2026. This document retains the approved design; see the [implementation handover](../r045-forecast-planning/IMPLEMENTATION.md) for actual object IDs, verification, native-layout adaptations and recovery.
+
 Date: 27 September 2026. Status: **Design proposal for owner review; not implemented, live-verified or published to Metabase.**
 
 ## 1. Intended outcome and scope

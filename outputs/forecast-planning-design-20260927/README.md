@@ -1,5 +1,7 @@
 # Forecast & Planning — design summary
 
+Delivered in R045 on 27 September 2026. This document retains the approved design; see the [implementation handover](../r045-forecast-planning/IMPLEMENTATION.md) for actual object IDs, verification, native-layout adaptations and recovery.
+
 27 September 2026 · **Proposed design; no live implementation or dashboard publication.**
 
 Purpose: **How much interest and cash could the existing loan book produce by month-end, what could reduce that outcome, and how much room remains for planned lending?**

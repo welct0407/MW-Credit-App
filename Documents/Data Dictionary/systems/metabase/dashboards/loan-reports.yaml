@@ -97,6 +97,13 @@
     "entity_id": "nfRoHsD0Xec0mJkhknl0y"
     "created_at": "2026-09-26T16:40:06.877891Z"
     "updated_at": "2026-09-26T16:40:06.877891Z"
+  - "id": 262
+    "dashboard_id": 3
+    "name": "13 · Forecast & Planning"
+    "position": 12
+    "entity_id": "UZW-rsZEr0tyRL1owcEtC"
+    "created_at": "2026-09-26T18:14:06.323904Z"
+    "updated_at": "2026-09-26T18:14:06.323904Z"
   "parameters":
   - "id": "overview-trend-period"
     "name": "Portfolio trend period"
@@ -6474,6 +6481,1339 @@
             "text": "Net available is an entitlement after reservations, not cash on hand. Current totals use all recorded\
               \ balances; past activity is restated by corrections. [Cash Position](/dashboard/3?tab=14) shows liquidity.\
               \ Complete settlements in OLAP."
+  "forecast_planning":
+    "release": "R045"
+    "tab": 262
+    "definition_reference": "outputs/r045-forecast-planning/saved.json"
+    "parameters":
+    - "id": "fp-ci"
+      "name": "Interest collected %"
+      "slug": "fp_ci"
+      "type": "number/="
+      "sectionId": "number"
+      "isMultiSelect": false
+      "default":
+      - 100
+    - "id": "fp-cp"
+      "name": "Principal collected %"
+      "slug": "fp_cp"
+      "type": "number/="
+      "sectionId": "number"
+      "isMultiSelect": false
+      "default":
+      - 100
+    - "id": "fp-rr"
+      "name": "Overdue recovered %"
+      "slug": "fp_rr"
+      "type": "number/="
+      "sectionId": "number"
+      "isMultiSelect": false
+      "default":
+      - 0
+    - "id": "fp-scenario"
+      "name": "Forecast scenario"
+      "slug": "fp_scenario"
+      "type": "string/="
+      "sectionId": "string"
+      "isMultiSelect": false
+      "default":
+      - "Planning"
+      "values_query_type": "list"
+      "values_source_type": "static-list"
+      "values_source_config":
+        "values":
+        - "Planning"
+        - "Schedule"
+        - "Stress"
+    - "id": "fp-kind"
+      "name": "Forecast loan type"
+      "slug": "fp_kind"
+      "type": "string/="
+      "sectionId": "string"
+      "isMultiSelect": false
+      "default":
+      - "All"
+      "values_query_type": "list"
+      "values_source_type": "static-list"
+      "values_source_config":
+        "values":
+        - "All"
+        - "Daily Interest"
+        - "Fixed Due Date"
+        - "Daily Installment"
+        - "Unknown"
+    - "id": "fp-target"
+      "name": "Interest target ฿"
+      "slug": "fp_target"
+      "type": "number/="
+      "sectionId": "number"
+      "isMultiSelect": false
+    - "id": "fp-lending"
+      "name": "Plan: new lending ฿"
+      "slug": "fp_lending"
+      "type": "number/="
+      "sectionId": "number"
+      "isMultiSelect": false
+    - "id": "fp-expenses"
+      "name": "Plan: cash expenses ฿"
+      "slug": "fp_expenses"
+      "type": "number/="
+      "sectionId": "number"
+      "isMultiSelect": false
+    - "id": "fp-withdrawals"
+      "name": "Plan: payouts & withdrawals ฿"
+      "slug": "fp_withdrawals"
+      "type": "number/="
+      "sectionId": "number"
+      "isMultiSelect": false
+    - "id": "fp-inflows"
+      "name": "Plan: external inflows ฿"
+      "slug": "fp_inflows"
+      "type": "number/="
+      "sectionId": "number"
+      "isMultiSelect": false
+    - "id": "fp-reserve"
+      "name": "Plan: cash reserve ฿"
+      "slug": "fp_reserve"
+      "type": "number/="
+      "sectionId": "number"
+      "isMultiSelect": false
+    "layout":
+    - "id": 5179
+      "card_id": null
+      "dashboard_tab_id": 262
+      "row": 0
+      "col": 0
+      "size_x": 24
+      "size_y": 3
+      "series": []
+      "parameter_mappings": []
+      "visualization_settings":
+        "card.background": false
+        "virtual_card":
+          "display": "text"
+          "visualization_settings":
+            "text": |-
+              ## Forecast & Planning
+              Current Bangkok month · existing loan book · baht. Gross interest and principal receipts are separate. Forecasts are scenario assumptions, not guaranteed collections.
+    - "id": 5180
+      "card_id": 348
+      "dashboard_tab_id": 262
+      "row": 3
+      "col": 0
+      "size_x": 8
+      "size_y": 4
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 348
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 348
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 348
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 348
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 348
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 348
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5181
+      "card_id": 349
+      "dashboard_tab_id": 262
+      "row": 3
+      "col": 8
+      "size_x": 8
+      "size_y": 4
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 349
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 349
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 349
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 349
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 349
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 349
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5182
+      "card_id": 350
+      "dashboard_tab_id": 262
+      "row": 3
+      "col": 16
+      "size_x": 8
+      "size_y": 4
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 350
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 350
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 350
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 350
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 350
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 350
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5183
+      "card_id": 351
+      "dashboard_tab_id": 262
+      "row": 7
+      "col": 0
+      "size_x": 12
+      "size_y": 4
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 351
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 351
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 351
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 351
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 351
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 351
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5184
+      "card_id": 352
+      "dashboard_tab_id": 262
+      "row": 7
+      "col": 12
+      "size_x": 12
+      "size_y": 4
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 352
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 352
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 352
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 352
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 352
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 352
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5185
+      "card_id": 353
+      "dashboard_tab_id": 262
+      "row": 11
+      "col": 0
+      "size_x": 24
+      "size_y": 5
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 353
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 353
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 353
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 353
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 353
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 353
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5186
+      "card_id": 356
+      "dashboard_tab_id": 262
+      "row": 16
+      "col": 0
+      "size_x": 24
+      "size_y": 10
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 356
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 356
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 356
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 356
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 356
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 356
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5187
+      "card_id": null
+      "dashboard_tab_id": 262
+      "row": 26
+      "col": 0
+      "size_x": 24
+      "size_y": 3
+      "series": []
+      "parameter_mappings": []
+      "visualization_settings":
+        "card.background": false
+        "virtual_card":
+          "display": "text"
+          "visualization_settings":
+            "text": "Today is partial: the projected point adds only today’s unpaid dues. Future points assume collection\
+              \ on due dates; assumed arrears recovery is added at month-end. The initial 100% / 100% / 0% case is an unadjusted\
+              \ schedule, not a prediction."
+    - "id": 5188
+      "card_id": 354
+      "dashboard_tab_id": 262
+      "row": 29
+      "col": 0
+      "size_x": 12
+      "size_y": 8
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 354
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 354
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 354
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 354
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 354
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 354
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5189
+      "card_id": 355
+      "dashboard_tab_id": 262
+      "row": 29
+      "col": 12
+      "size_x": 12
+      "size_y": 8
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 355
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 355
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 355
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 355
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 355
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 355
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5190
+      "card_id": null
+      "dashboard_tab_id": 262
+      "row": 37
+      "col": 0
+      "size_x": 24
+      "size_y": 3
+      "series": []
+      "parameter_mappings": []
+      "visualization_settings":
+        "card.background": false
+        "virtual_card":
+          "display": "text"
+          "visualization_settings":
+            "text": |-
+              ### Upcoming receipts and forecast drivers
+              Stress reduces each Planning collection rate by 20 percentage points (minimum zero) and assumes no arrears recovery. Upcoming dues below are raw scheduled balances, independent of scenario percentages.
+    - "id": 5191
+      "card_id": 357
+      "dashboard_tab_id": 262
+      "row": 40
+      "col": 0
+      "size_x": 24
+      "size_y": 9
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 357
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 357
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 357
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 357
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 357
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 357
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5192
+      "card_id": 358
+      "dashboard_tab_id": 262
+      "row": 49
+      "col": 0
+      "size_x": 12
+      "size_y": 10
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 358
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 358
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 358
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 358
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 358
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 358
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5193
+      "card_id": 359
+      "dashboard_tab_id": 262
+      "row": 49
+      "col": 12
+      "size_x": 12
+      "size_y": 10
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 359
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 359
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 359
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 359
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 359
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 359
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5194
+      "card_id": 360
+      "dashboard_tab_id": 262
+      "row": 59
+      "col": 0
+      "size_x": 24
+      "size_y": 8
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 360
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 360
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 360
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 360
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 360
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 360
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}"
+    - "id": 5195
+      "card_id": 363
+      "dashboard_tab_id": 262
+      "row": 67
+      "col": 0
+      "size_x": 24
+      "size_y": 7
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 363
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 363
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 363
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 363
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 363
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 363
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings": {}
+    - "id": 5196
+      "card_id": null
+      "dashboard_tab_id": 262
+      "row": 74
+      "col": 0
+      "size_x": 24
+      "size_y": 3
+      "series": []
+      "parameter_mappings": []
+      "visualization_settings":
+        "card.background": false
+        "virtual_card":
+          "display": "text"
+          "visualization_settings":
+            "text": |-
+              ### Funding plan · all portfolio
+              Enter each of the five “Plan:” filters, including explicit zeros. Planned movements are after now through month-end. Include intended payouts only once. Loan-type selection does not narrow cash planning.
+    - "id": 5197
+      "card_id": 364
+      "dashboard_tab_id": 262
+      "row": 77
+      "col": 0
+      "size_x": 24
+      "size_y": 6
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      - "parameter_id": "fp-lending"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "lending"
+      - "parameter_id": "fp-expenses"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "expenses"
+      - "parameter_id": "fp-withdrawals"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "withdrawals"
+      - "parameter_id": "fp-inflows"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "inflows"
+      - "parameter_id": "fp-reserve"
+        "card_id": 364
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "reserve"
+      "visualization_settings": {}
+    - "id": 5198
+      "card_id": 365
+      "dashboard_tab_id": 262
+      "row": 83
+      "col": 0
+      "size_x": 8
+      "size_y": 4
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      - "parameter_id": "fp-lending"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "lending"
+      - "parameter_id": "fp-expenses"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "expenses"
+      - "parameter_id": "fp-withdrawals"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "withdrawals"
+      - "parameter_id": "fp-inflows"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "inflows"
+      - "parameter_id": "fp-reserve"
+        "card_id": 365
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "reserve"
+      "visualization_settings": {}
+    - "id": 5199
+      "card_id": 366
+      "dashboard_tab_id": 262
+      "row": 83
+      "col": 8
+      "size_x": 8
+      "size_y": 4
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      - "parameter_id": "fp-lending"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "lending"
+      - "parameter_id": "fp-expenses"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "expenses"
+      - "parameter_id": "fp-withdrawals"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "withdrawals"
+      - "parameter_id": "fp-inflows"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "inflows"
+      - "parameter_id": "fp-reserve"
+        "card_id": 366
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "reserve"
+      "visualization_settings": {}
+    - "id": 5200
+      "card_id": 367
+      "dashboard_tab_id": 262
+      "row": 83
+      "col": 16
+      "size_x": 8
+      "size_y": 4
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      - "parameter_id": "fp-lending"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "lending"
+      - "parameter_id": "fp-expenses"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "expenses"
+      - "parameter_id": "fp-withdrawals"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "withdrawals"
+      - "parameter_id": "fp-inflows"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "inflows"
+      - "parameter_id": "fp-reserve"
+        "card_id": 367
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "reserve"
+      "visualization_settings": {}
+    - "id": 5201
+      "card_id": 368
+      "dashboard_tab_id": 262
+      "row": 87
+      "col": 0
+      "size_x": 24
+      "size_y": 8
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      - "parameter_id": "fp-lending"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "lending"
+      - "parameter_id": "fp-expenses"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "expenses"
+      - "parameter_id": "fp-withdrawals"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "withdrawals"
+      - "parameter_id": "fp-inflows"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "inflows"
+      - "parameter_id": "fp-reserve"
+        "card_id": 368
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "reserve"
+      "visualization_settings": {}
+    - "id": 5202
+      "card_id": null
+      "dashboard_tab_id": 262
+      "row": 95
+      "col": 0
+      "size_x": 24
+      "size_y": 3
+      "series": []
+      "parameter_mappings": []
+      "visualization_settings":
+        "card.background": false
+        "virtual_card":
+          "display": "text"
+          "visualization_settings":
+            "text": "Month-end cash does not establish the lowest cash balance during the month or unrestricted lending capacity.\
+              \ New lending adds an outflow only; no speculative interest is assumed. Partner settlement entry stays in OLAP."
+    - "id": 5203
+      "card_id": 361
+      "dashboard_tab_id": 262
+      "row": 98
+      "col": 0
+      "size_x": 24
+      "size_y": 10
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 361
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 361
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 361
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 361
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 361
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 361
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}"
+    - "id": 5204
+      "card_id": 362
+      "dashboard_tab_id": 262
+      "row": 108
+      "col": 0
+      "size_x": 24
+      "size_y": 10
+      "series": []
+      "parameter_mappings":
+      - "parameter_id": "fp-ci"
+        "card_id": 362
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "ci"
+      - "parameter_id": "fp-cp"
+        "card_id": 362
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "cp"
+      - "parameter_id": "fp-rr"
+        "card_id": 362
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "rr"
+      - "parameter_id": "fp-scenario"
+        "card_id": 362
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "scenario"
+      - "parameter_id": "fp-kind"
+        "card_id": 362
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "kind"
+      - "parameter_id": "fp-target"
+        "card_id": 362
+        "target":
+        - "variable"
+        - - "template-tag"
+          - "target"
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}"
+    - "id": 5205
+      "card_id": null
+      "dashboard_tab_id": 262
+      "row": 118
+      "col": 0
+      "size_x": 24
+      "size_y": 5
+      "series": []
+      "parameter_mappings": []
+      "visualization_settings":
+        "card.background": false
+        "virtual_card":
+          "display": "text"
+          "visualization_settings":
+            "text": |-
+              ### Method
+              Recorded obligations override simulated dates. Automatic schedules follow the existing loan rules; manual schedules use recorded obligations only. Closed/defaulted balances are recovery-only and excluded from forecast receipts. Percentages adjust month-end receipts on one fixed schedule; they do not model delinquency feedback. Incomplete source coverage suppresses headline projections; detail shows known subtotals. No net-profit or forecast-accuracy claim. [Cash Position](/dashboard/3?tab=14) · [Partners](/dashboard/3?tab=249)
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -6488,8 +7828,8 @@
     "reason": "Tab 9 category labels and daily income/expense comparison"
     "state": "value"
   "/content/tabs":
-    "reference": "outputs/r044-partners/README.md"
-    "reason": "R044 saved definitions and V47 live catalog"
+    "reference": "outputs/r045-forecast-planning/README.md"
+    "reason": "R045 saved definitions and V48 live catalog"
     "state": "value"
   "/content/performance_review":
     "reference": "outputs/r024-20260924/README.md"
@@ -6546,4 +7886,8 @@
   "/content/partners":
     "reference": "outputs/r044-partners/README.md"
     "reason": "R044 saved definitions and V47 live catalog"
+    "state": "value"
+  "/content/forecast_planning":
+    "reference": "outputs/r045-forecast-planning/README.md"
+    "reason": "R045 saved definitions and V48 live catalog"
     "state": "value"

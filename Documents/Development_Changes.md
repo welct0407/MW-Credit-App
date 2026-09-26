@@ -1,5 +1,7 @@
 # Open development differences
 
+R045 delivered (27 September 2026): DEV/PROD V48; dashboard3 adds **13 · Forecast & Planning** (tab262), four models344–347 and 21 questions348–368. Existing 12 tabs /247 placements preserved. Recovery dashboard22. No AppSheet, source-record, notification or operational binding change. No remaining R045 DEV/PROD schema difference; R046 is the sole Open release. [Evidence](../outputs/r045-forecast-planning/README.md).
+
 R044 delivered (26 September 2026): DEV/PROD V47; dashboard3 adds **12 · Partners** (tab249), 19 visible questions plus picker324 and six models318–323. All prior11 tabs /223 placements are preserved; total12 tabs /247 placements. Recovery dashboard21. Both AppSheet apps, source records and operational bindings are unchanged. No remaining R044 DEV/PROD schema difference; R045 is the sole Open release. [Evidence](../outputs/r044-partners/README.md).
 
 R043 report/navigation checkpoint (26 September): dashboard3 has11 tabs /223 placements. Canonical Health Review31 is seventh; Detail105 is eighth; original Insight10 and its two exclusive filters are removed. Borrower links use hidden keys; custom matrix static assets updated on vm-mw-credit-agent without restart. Recovery dashboard20 plus private shared-question/static baselines. AppSheet, database V46, credentials, permissions and bindings unchanged; no remaining DEV feature difference. [Evidence](../outputs/r043-borrower-navigation/README.md).

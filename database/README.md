@@ -1,5 +1,7 @@
 # PostgreSQL development with Flyway
 
+R045 V48 is applied and validated in DEV/PROD. Five additive forecast views and two pure invoker functions implement read-only schedule/scenario calculations. No source table/column, operational calculation or AppSheet binding changes. [Contract, tests and recovery](../outputs/r045-forecast-planning/IMPLEMENTATION.md).
+
 ## R036 automatic daily interest — DEV and PROD
 
 V45 is applied and validated in DEV and PROD through R036. Existing Loan Arrangement text retains the original ratio; daily interest adjusts after signed principal changes. No new schema fields or backlog update. PROD OLTP3.000249 includes the form rules and localization; OLAP1.100202 is unchanged. [Production checks and recovery](../outputs/r036-production/production-verification.json) · [Contract](../outputs/r036-principal-interest/README.md).

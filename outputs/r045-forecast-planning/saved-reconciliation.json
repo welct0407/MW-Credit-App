@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "at": "2026-09-26T18:18:46.207Z",
+  "checks": [
+    "Actual + remaining = projection",
+    "Saved interest percentage mapping",
+    "Saved principal percentage mapping",
+    "Stress reduction via saved mapping",
+    "Actual independent of scenario",
+    "Blank target is explicit",
+    "Blank cash plan is explicit",
+    "Top borrowers plus Others reconcile",
+    "Type totals reconcile",
+    "Weekly raw dues = Schedule receipts",
+    "Cumulative projected endpoint reconciles",
+    "Cash bridge excludes MTD double counting (whole-baht cards)",
+    "Funding ignores type filter",
+    "Reserve gap input mapping",
+    "Recovery bridge reconciles"
+  ],
+  "financialValuesPublished": false
+}

@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R046 — Open** |
 | Next number, not yet open or usable | **R047 — opens only when R046 is frozen at promotion start** |
-| Current release evidence | R046 Open: no scope yet. R045 Frozen for authorized promotion; [pinned package](../outputs/r045-forecast-planning/frozen-package.json). |
+| Current release evidence | R046 Open: no scope yet. R045 Released; [pinned package](../outputs/r045-forecast-planning/frozen-package.json). |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R046 | Unassigned | Open | Opened at R045 freeze 2026-09-26T18:13:04.5419789Z | — |
-| R045 | Additive Forecast & Planning tab and read-only SQL providers | Frozen for promotion | Tested V48 package 7837c23 pinned; freeze 2026-09-26T18:13:04.5419789Z; no AppSheet change | [Evidence](../outputs/r045-forecast-planning/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R045_2026-09-27.md) |
+| R045 | Additive Forecast & Planning tab and read-only SQL providers | Released | DEV/PROD V48; tab262 and21 visuals verified; recovery22; no AppSheet change; tag R045 | [Evidence](../outputs/r045-forecast-planning/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R045_2026-09-27.md) |
 | R044 | Additive Partners tab and read-only SQL providers | Released | DEV/PROD V47; Partners249 and19 visuals verified; recovery21; no AppSheet changes; tag R044 | [Evidence](../outputs/r044-partners/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R044_2026-09-26.md) |
 | R043 | Canonical borrower tabs and drill-through | Released | Tabs7/8, name links, saved-state and Chrome verified; recovery20; tag R043 | [Evidence](../outputs/r043-borrower-navigation/README.md) |
 | R042 | Borrower receipts, loan return and interest bars | Released | DEV/PROD V46; Payments317, profit305 and bars302 verified. Tag R042. | [Evidence](../outputs/r042-borrower-payments/README.md) |

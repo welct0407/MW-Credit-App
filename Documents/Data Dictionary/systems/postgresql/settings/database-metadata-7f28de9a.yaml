@@ -619,6 +619,13 @@
       "script": "V47__partner_reporting.sql"
       "checksum": 1378160234
       "success": true
+    - "installed_rank": 48
+      "version": "48"
+      "description": "forecast planning"
+      "type": "SQL"
+      "script": "V48__forecast_planning.sql"
+      "checksum": 690236837
+      "success": true
     "foreign_tables": []
     "aggregates": []
     "jobs": []
@@ -629,6 +636,6 @@
     "reason": "V40 verified catalog readback; exact remaining settings and DEV differences."
     "state": "value"
   "/content/sections/flyway":
-    "reference": "outputs/r044-partners/README.md"
-    "reason": "R044 saved definitions and V47 live catalog"
+    "reference": "outputs/r045-forecast-planning/README.md"
+    "reason": "R045 saved definitions and V48 live catalog"
     "state": "value"
