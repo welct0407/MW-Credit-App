@@ -1,29 +1,29 @@
 {
-  "format": "table",
-  "source": "url",
   "hide": false,
-  "root_selector": "if .nextPageToken then error(\"Metabase probe response truncated\") else\n  [\"metabase_platform\",\"metabase_appdb\",\"metabase_reporting\",\"metabase_charts\"] as $wanted |\n  [.timeSeries[]? | select(.metric.labels.field == \"status\") |\n    {component:.metric.labels.component,point:(.points|sort_by(.interval.endTime)|last)}] as $samples |\n  $wanted[] as $component |\n  ([$samples[]|select(.component == $component)]|first|.point) as $point |\n  {component:$component,value:(\n    if $point == null then 0\n    elif (now-($point.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601)) > 360 then 0\n    else ($point.value.int64Value|tonumber) as $status |\n      if $status == 0 or $status == 2 then 1 else 0 end\n    end)}\nend\n",
   "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+  "columns": [
+    {
+      "text": "component",
+      "selector": "component",
+      "type": "string"
+    },
+    {
+      "text": "value",
+      "selector": "value",
+      "type": "number"
+    }
+  ],
   "datasource": {
     "type": "yesoreyeram-infinity-datasource",
     "uid": "mw-gcp-monitoring"
   },
+  "source": "url",
+  "format": "table",
   "type": "json",
-  "refId": "A",
-  "columns": [
-    {
-      "selector": "component",
-      "type": "string",
-      "text": "component"
-    },
-    {
-      "selector": "value",
-      "type": "number",
-      "text": "value"
-    }
-  ],
   "url_options": {
     "method": "GET"
   },
-  "parser": "jq-backend"
+  "root_selector": "if .nextPageToken then error(\"Metabase probe response truncated\") else\n  [\"metabase_platform\",\"metabase_appdb\",\"metabase_reporting\",\"metabase_charts\",\"metabase_pitr\"] as $wanted |\n  [.timeSeries[]? | select(.metric.labels.field == \"status\") |\n    {component:.metric.labels.component,point:(.points|sort_by(.interval.endTime)|last)}] as $samples |\n  $wanted[] as $component |\n  ([$samples[]|select(.component == $component)]|first|.point) as $point |\n  {component:$component,value:(\n    if $point == null then 0\n    elif (now-($point.interval.endTime|sub(\"[.][0-9]+Z$\";\"Z\")|fromdateiso8601)) > 360 then 0\n    else ($point.value.int64Value|tonumber) as $status |\n      if $status == 0 or $status == 2 then 1 else 0 end\n    end)}\nend\n",
+  "parser": "jq-backend",
+  "refId": "A"
 }

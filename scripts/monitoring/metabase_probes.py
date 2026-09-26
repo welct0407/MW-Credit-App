@@ -59,4 +59,7 @@ def probe(component):
 def collect():
     components = ['metabase_platform', 'metabase_appdb', 'metabase_reporting', 'metabase_charts']
     with ThreadPoolExecutor(max_workers=4) as pool:
-        return dict(zip(components, pool.map(probe, components)))
+        result = dict(zip(components, pool.map(probe, components)))
+    from metabase_pitr import probe as pitr_probe
+    result['metabase_pitr'] = pitr_probe()
+    return result

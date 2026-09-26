@@ -1,5 +1,5 @@
 if .nextPageToken then error("Metabase probe response truncated") else
-  ["metabase_platform","metabase_appdb","metabase_reporting","metabase_charts"] as $wanted |
+  ["metabase_platform","metabase_appdb","metabase_reporting","metabase_charts","metabase_pitr"] as $wanted |
   [.timeSeries[]? | select(.metric.labels.field == "status") |
     {component:.metric.labels.component,point:(.points|sort_by(.interval.endTime)|last)}] as $samples |
   $wanted[] as $component |

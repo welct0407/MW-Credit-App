@@ -7890,7 +7890,7 @@
                             "type": "string"
                           }
                         ],
-                        "data": "[{\"label\":\"METABASE · PLATFORM\"}]",
+                        "data": "[{\"label\":\"METABASE · LIVE\"}]",
                         "format": "table",
                         "parser": "jq-backend",
                         "root_selector": ".[]",
@@ -7955,7 +7955,7 @@
                     "mode": "fixed",
                     "fixedColor": "text"
                   },
-                  "noValue": "METABASE · PLATFORM"
+                  "noValue": "METABASE · LIVE"
                 },
                 "overrides": []
               }
@@ -7992,7 +7992,7 @@
                             "type": "string"
                           }
                         ],
-                        "data": "[{\"label\":\"METABASE · REPORTING\"}]",
+                        "data": "[{\"label\":\"METABASE · RECOVERY\"}]",
                         "format": "table",
                         "parser": "jq-backend",
                         "root_selector": ".[]",
@@ -8057,7 +8057,7 @@
                     "mode": "fixed",
                     "fixedColor": "text"
                   },
-                  "noValue": "METABASE · REPORTING"
+                  "noValue": "METABASE · RECOVERY"
                 },
                 "overrides": []
               }
@@ -8205,27 +8205,27 @@
                         "name": "mw-gcp-monitoring"
                       },
                       "spec": {
+                        "parser": "jq-backend",
+                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"▦ Platform — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase liveness /livez; reports.mw-credit.com responds.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
                         "columns": [
                           {
                             "selector": "details",
-                            "text": "Details",
-                            "type": "string"
+                            "type": "string",
+                            "text": "Details"
                           },
                           {
                             "selector": "status",
-                            "text": "Status",
-                            "type": "number"
+                            "type": "number",
+                            "text": "Status"
                           }
                         ],
                         "format": "table",
-                        "parser": "jq-backend",
-                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"▦ Platform — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase liveness /livez; reports.mw-credit.com responds.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
-                        "source": "url",
-                        "type": "json",
-                        "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_platform%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
                         "url_options": {
                           "method": "GET"
-                        }
+                        },
+                        "type": "json",
+                        "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_platform%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+                        "source": "url"
                       }
                     },
                     "refId": "A",
@@ -8340,9 +8340,9 @@
                   },
                   "links": [
                     {
-                      "targetBlank": true,
                       "title": "${__field.name}",
-                      "url": "https://reports.mw-credit.com"
+                      "url": "https://reports.mw-credit.com",
+                      "targetBlank": true
                     }
                   ],
                   "noValue": "⚪"
@@ -8375,27 +8375,27 @@
                         "name": "mw-gcp-monitoring"
                       },
                       "spec": {
+                        "parser": "jq-backend",
+                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🗄 App DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase readiness /readyz includes its application database connection.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
                         "columns": [
                           {
                             "selector": "details",
-                            "text": "Details",
-                            "type": "string"
+                            "type": "string",
+                            "text": "Details"
                           },
                           {
                             "selector": "status",
-                            "text": "Status",
-                            "type": "number"
+                            "type": "number",
+                            "text": "Status"
                           }
                         ],
                         "format": "table",
-                        "parser": "jq-backend",
-                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🗄 App DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nMetabase readiness /readyz includes its application database connection.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
-                        "source": "url",
-                        "type": "json",
-                        "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_appdb%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
                         "url_options": {
                           "method": "GET"
-                        }
+                        },
+                        "type": "json",
+                        "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_appdb%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+                        "source": "url"
                       }
                     },
                     "refId": "A",
@@ -8510,9 +8510,9 @@
                   },
                   "links": [
                     {
-                      "targetBlank": true,
                       "title": "${__field.name}",
-                      "url": "https://reports.mw-credit.com"
+                      "url": "https://reports.mw-credit.com",
+                      "targetBlank": true
                     }
                   ],
                   "noValue": "⚪"
@@ -8545,27 +8545,27 @@
                         "name": "mw-gcp-monitoring"
                       },
                       "spec": {
+                        "parser": "jq-backend",
+                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛢 Reporting DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nUncached saved SELECT 1 through Metabase source 2; no business rows.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
                         "columns": [
                           {
                             "selector": "details",
-                            "text": "Details",
-                            "type": "string"
+                            "type": "string",
+                            "text": "Details"
                           },
                           {
                             "selector": "status",
-                            "text": "Status",
-                            "type": "number"
+                            "type": "number",
+                            "text": "Status"
                           }
                         ],
                         "format": "table",
-                        "parser": "jq-backend",
-                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛢 Reporting DB — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nUncached saved SELECT 1 through Metabase source 2; no business rows.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
-                        "source": "url",
-                        "type": "json",
-                        "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_reporting%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
                         "url_options": {
                           "method": "GET"
-                        }
+                        },
+                        "type": "json",
+                        "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_reporting%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+                        "source": "url"
                       }
                     },
                     "refId": "A",
@@ -8680,9 +8680,9 @@
                   },
                   "links": [
                     {
-                      "targetBlank": true,
                       "title": "${__field.name}",
-                      "url": "https://reports.mw-credit.com"
+                      "url": "https://reports.mw-credit.com",
+                      "targetBlank": true
                     }
                   ],
                   "noValue": "⚪"
@@ -8715,27 +8715,27 @@
                         "name": "mw-gcp-monitoring"
                       },
                       "spec": {
+                        "parser": "jq-backend",
+                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"📊 Charts — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\ncharts.mw-credit.com shell and protected API response; no private data or rendering check.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
                         "columns": [
                           {
                             "selector": "details",
-                            "text": "Details",
-                            "type": "string"
+                            "type": "string",
+                            "text": "Details"
                           },
                           {
                             "selector": "status",
-                            "text": "Status",
-                            "type": "number"
+                            "type": "number",
+                            "text": "Status"
                           }
                         ],
                         "format": "table",
-                        "parser": "jq-backend",
-                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"Probe response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"📊 Charts — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\ncharts.mw-credit.com shell and protected API response; no private data or rendering check.\"+\n \"\\nResult: \"+(if $fresh then (if $status==1 then \"Expected response confirmed\" elif $status==2 then \"Passed, but slower than 5 seconds\" elif $status==0 then \"Request failed or unexpected response\" else \"Probe could not establish health\" end) else \"Telemetry missing or older than 6 minutes\" end)+\n \"\\nHTTP: \"+(if $fresh then (($v.http_code//0)|tostring) else \"Unavailable\" end)+\n \"\\nProbe duration: \"+(if $fresh then (($v.duration_ms//0)|tostring)+\" ms\" else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nChecked from Debian about every 2 minutes. This is not a browser-render test.\")}\nend\n",
-                        "source": "url",
-                        "type": "json",
-                        "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_charts%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
                         "url_options": {
                           "method": "GET"
-                        }
+                        },
+                        "type": "json",
+                        "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_charts%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+                        "source": "url"
                       }
                     },
                     "refId": "A",
@@ -8850,9 +8850,9 @@
                   },
                   "links": [
                     {
-                      "targetBlank": true,
                       "title": "${__field.name}",
-                      "url": "https://charts.mw-credit.com"
+                      "url": "https://charts.mw-credit.com",
+                      "targetBlank": true
                     }
                   ],
                   "noValue": "⚪"
@@ -8977,6 +8977,522 @@
                     "mode": "palette-classic"
                   },
                   "noValue": "No data"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-84": {
+        "kind": "Panel",
+        "spec": {
+          "id": 84,
+          "title": "",
+          "description": "💾 Daily backup is based on completed Railway snapshots linked to the DAILY schedule. Manual snapshots do not count; listing does not validate restore.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "yesoreyeram-infinity-datasource",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "mw-railway-monitoring"
+                      },
+                      "spec": {
+                        "parser": "jq-backend",
+                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"💾 Daily backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"DAILY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 108000 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 108000 then 1 elif $age <= 129600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"💾 Daily backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n",
+                        "columns": [
+                          {
+                            "selector": "details",
+                            "type": "string",
+                            "text": "Details"
+                          },
+                          {
+                            "selector": "status",
+                            "type": "number",
+                            "text": "Status"
+                          }
+                        ],
+                        "format": "table",
+                        "url_options": {
+                          "method": "POST",
+                          "data": "{\"query\":\"query { volumeInstanceBackupList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { createdAt scheduleId } volumeInstanceBackupScheduleList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { id kind cron createdAt retentionSeconds } }\"}",
+                          "body_type": "raw",
+                          "body_content_type": "application/json"
+                        },
+                        "type": "json",
+                        "url": "https://backboard.railway.com/graphql/v2",
+                        "source": "url"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "rowsToFields",
+                  "spec": {
+                    "options": {
+                      "mappings": [
+                        {
+                          "fieldName": "Details",
+                          "handlerKey": "field.name"
+                        },
+                        {
+                          "fieldName": "Status",
+                          "handlerKey": "field.value"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "13.3.0-35970853322",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom"
+                },
+                "orientation": "vertical",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "text": {
+                  "titleSize": 12,
+                  "valueSize": 36
+                },
+                "textMode": "value_and_name",
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                },
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "displayName": "💾 Daily backup",
+                  "unit": "none",
+                  "decimals": 2,
+                  "mappings": [
+                    {
+                      "type": "value",
+                      "options": {
+                        "0": {
+                          "text": "🔴",
+                          "color": "red"
+                        },
+                        "1": {
+                          "text": "🟢",
+                          "color": "green"
+                        },
+                        "2": {
+                          "text": "🟠",
+                          "color": "orange"
+                        },
+                        "3": {
+                          "text": "🔵",
+                          "color": "blue"
+                        },
+                        "4": {
+                          "text": "⚪",
+                          "color": "gray"
+                        }
+                      }
+                    }
+                  ],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "gray"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "links": [
+                    {
+                      "title": "${__field.name}",
+                      "url": "https://railway.com/project/c8e57452-36dc-41f1-8d00-856b521a96c7",
+                      "targetBlank": true
+                    }
+                  ],
+                  "noValue": "⚪"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-85": {
+        "kind": "Panel",
+        "spec": {
+          "id": 85,
+          "title": "",
+          "description": "🗓 Weekly backup is based on completed Railway snapshots linked to the WEEKLY schedule. Manual snapshots do not count; listing does not validate restore.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "yesoreyeram-infinity-datasource",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "mw-railway-monitoring"
+                      },
+                      "spec": {
+                        "parser": "jq-backend",
+                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: stamp | . + 28800 | strftime(\"%Y-%m-%d %H:%M:%S SGT\");\nif .errors then\n  {status:4,details:\"🗓 Weekly backup — Unknown\\nRailway backup API could not be read. Check the Railway data source.\"}\nelse\n  (.data.volumeInstanceBackupScheduleList // [] | map(select(.kind == \"WEEKLY\")) | first) as $schedule |\n  (.data.volumeInstanceBackupList // [] | map(select(.scheduleId != null and .scheduleId == $schedule.id)) | sort_by(.createdAt) | last) as $backup |\n  (if $schedule == null then 0\n   elif $backup == null then\n     if now - ($schedule.createdAt | stamp) <= 691200 then 4 else 0 end\n   else\n     (now - ($backup.createdAt | stamp)) as $age |\n     if $age <= 691200 then 1 elif $age <= 777600 then 2 else 0 end\n   end) as $status |\n  {status:$status,details:(\"🗓 Weekly backup — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nSchedule: \" + (if $schedule == null then \"missing\" else $schedule.cron + \" UTC\" end) +\n    \"\\nLast scheduled snapshot: \" + (if $backup == null then \"none yet\" else ($backup.createdAt | sgt) end) +\n    \"\\nRetention: \" + (if $schedule == null then \"unavailable\" else (($schedule.retentionSeconds / 86400 | floor | tostring) + \" days\") end) +\n    \"\\n\" + (if $schedule == null then \"The schedule has been removed.\"\n                 elif $backup == null and $status == 4 then \"Waiting for the first scheduled snapshot; manual snapshots do not count.\"\n                 elif $backup == null then \"No scheduled snapshot after the initial grace period.\"\n                 else \"Snapshot age: \" + ((now - ($backup.createdAt | stamp)) / 3600 | floor | tostring) + \" hours.\" end) +\n    \"\\nA listed snapshot is not proof of a successful restore.\")}\nend\n",
+                        "columns": [
+                          {
+                            "selector": "details",
+                            "type": "string",
+                            "text": "Details"
+                          },
+                          {
+                            "selector": "status",
+                            "type": "number",
+                            "text": "Status"
+                          }
+                        ],
+                        "format": "table",
+                        "url_options": {
+                          "method": "POST",
+                          "data": "{\"query\":\"query { volumeInstanceBackupList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { createdAt scheduleId } volumeInstanceBackupScheduleList(volumeInstanceId:\\\"a5acf57b-dc84-4b7d-b787-bbbeb9935f04\\\") { id kind cron createdAt retentionSeconds } }\"}",
+                          "body_type": "raw",
+                          "body_content_type": "application/json"
+                        },
+                        "type": "json",
+                        "url": "https://backboard.railway.com/graphql/v2",
+                        "source": "url"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "rowsToFields",
+                  "spec": {
+                    "options": {
+                      "mappings": [
+                        {
+                          "fieldName": "Details",
+                          "handlerKey": "field.name"
+                        },
+                        {
+                          "fieldName": "Status",
+                          "handlerKey": "field.value"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "13.3.0-35970853322",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom"
+                },
+                "orientation": "vertical",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "text": {
+                  "titleSize": 12,
+                  "valueSize": 36
+                },
+                "textMode": "value_and_name",
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                },
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "displayName": "🗓 Weekly backup",
+                  "unit": "none",
+                  "decimals": 2,
+                  "mappings": [
+                    {
+                      "type": "value",
+                      "options": {
+                        "0": {
+                          "text": "🔴",
+                          "color": "red"
+                        },
+                        "1": {
+                          "text": "🟢",
+                          "color": "green"
+                        },
+                        "2": {
+                          "text": "🟠",
+                          "color": "orange"
+                        },
+                        "3": {
+                          "text": "🔵",
+                          "color": "blue"
+                        },
+                        "4": {
+                          "text": "⚪",
+                          "color": "gray"
+                        }
+                      }
+                    }
+                  ],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "gray"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "links": [
+                    {
+                      "title": "${__field.name}",
+                      "url": "https://railway.com/project/c8e57452-36dc-41f1-8d00-856b521a96c7",
+                      "targetBlank": true
+                    }
+                  ],
+                  "noValue": "⚪"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-86": {
+        "kind": "Panel",
+        "spec": {
+          "id": 86,
+          "title": "",
+          "description": "Railway Postgres PITR: live pgBackRest backup/WAL coverage and archiver health, sampled from Debian. This is not a restore test.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "yesoreyeram-infinity-datasource",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "mw-gcp-monitoring"
+                      },
+                      "spec": {
+                        "parser": "jq-backend",
+                        "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\nif .nextPageToken then error(\"PITR response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field,point:(.points|sort_by(.interval.endTime)|last)}] as $rows |\n ($rows|map(select(.field==\"status\"))|first|.point) as $p |\n ($p != null and (now-($p.interval.endTime|stamp)) <= 360) as $fresh |\n (if $fresh then ($p.value.int64Value|tonumber) else 4 end) as $status |\n ([$rows[]|select(.point.interval.endTime==$p.interval.endTime)|{key:.field,value:(.point.value.int64Value|tonumber)}]|from_entries) as $v |\n {status:$status,details:(\"🛡 PITR archive — \"+([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status]//\"Unknown\")+\n \"\\nRailway Postgres pgBackRest coverage and live WAL archiver.\"+\n \"\\nLatest WAL archive: \"+(if ($v.last_archived//0)>0 then ($v.last_archived+28800|gmtime|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nArchive lag: \"+(if $fresh and ($v.last_archived//0)>0 then (($v.archive_age_seconds//0)/60|floor|tostring)+\" minutes\" else \"Unavailable\" end)+\n \"\\nBackup sets: \"+(if $fresh then (($v.backup_sets//0)|tostring) else \"Unavailable\" end)+\n \"\\nObserved: \"+(if $p!=null then ($p.interval.endTime|stamp|.+28800|strftime(\"%Y-%m-%d %H:%M:%S SGT\")) else \"Unavailable\" end)+\n \"\\nGreen requires an enabled archive, reachable live probe, backup set, WAL coverage and a recent successful archive. This does not validate a restore.\")}\nend\n",
+                        "columns": [
+                          {
+                            "selector": "details",
+                            "type": "string",
+                            "text": "Details"
+                          },
+                          {
+                            "selector": "status",
+                            "type": "number",
+                            "text": "Status"
+                          }
+                        ],
+                        "format": "table",
+                        "url_options": {
+                          "method": "GET"
+                        },
+                        "type": "json",
+                        "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fmetabase_probe%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22metabase_pitr%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
+                        "source": "url"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "rowsToFields",
+                  "spec": {
+                    "options": {
+                      "mappings": [
+                        {
+                          "fieldName": "Details",
+                          "handlerKey": "field.name"
+                        },
+                        {
+                          "fieldName": "Status",
+                          "handlerKey": "field.value"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "13.3.0-35970853322",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom"
+                },
+                "orientation": "vertical",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "text": {
+                  "titleSize": 12,
+                  "valueSize": 36
+                },
+                "textMode": "value_and_name",
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                },
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "displayName": "🛡 PITR archive",
+                  "unit": "none",
+                  "decimals": 2,
+                  "mappings": [
+                    {
+                      "type": "value",
+                      "options": {
+                        "0": {
+                          "text": "🔴",
+                          "color": "red"
+                        },
+                        "1": {
+                          "text": "🟢",
+                          "color": "green"
+                        },
+                        "2": {
+                          "text": "🟠",
+                          "color": "orange"
+                        },
+                        "3": {
+                          "text": "🔵",
+                          "color": "blue"
+                        },
+                        "4": {
+                          "text": "⚪",
+                          "color": "gray"
+                        }
+                      }
+                    }
+                  ],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "gray"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "links": [
+                    {
+                      "title": "${__field.name}",
+                      "url": "https://railway.com/project/c8e57452-36dc-41f1-8d00-856b521a96c7",
+                      "targetBlank": true
+                    }
+                  ],
+                  "noValue": "⚪"
                 },
                 "overrides": []
               }
@@ -9264,7 +9780,7 @@
                       "spec": {
                         "x": 16,
                         "y": 10,
-                        "width": 4,
+                        "width": 2,
                         "height": 3,
                         "element": {
                           "kind": "ElementReference",
@@ -9275,9 +9791,9 @@
                     {
                       "kind": "GridLayoutItem",
                       "spec": {
-                        "x": 20,
+                        "x": 18,
                         "y": 10,
-                        "width": 4,
+                        "width": 2,
                         "height": 3,
                         "element": {
                           "kind": "ElementReference",
@@ -9431,9 +9947,9 @@
                     {
                       "kind": "GridLayoutItem",
                       "spec": {
-                        "x": 16,
-                        "y": 14,
-                        "width": 4,
+                        "x": 20,
+                        "y": 10,
+                        "width": 2,
                         "height": 3,
                         "element": {
                           "kind": "ElementReference",
@@ -9444,15 +9960,54 @@
                     {
                       "kind": "GridLayoutItem",
                       "spec": {
-                        "x": 20,
-                        "y": 14,
-                        "width": 4,
+                        "x": 22,
+                        "y": 10,
+                        "width": 2,
                         "height": 3,
                         "element": {
                           "kind": "ElementReference",
                           "name": "panel-83"
                         }
                       }
+                    },
+                    {
+                      "spec": {
+                        "x": 16,
+                        "y": 14,
+                        "width": 2,
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-84"
+                        },
+                        "height": 3
+                      },
+                      "kind": "GridLayoutItem"
+                    },
+                    {
+                      "spec": {
+                        "x": 18,
+                        "y": 14,
+                        "width": 2,
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-85"
+                        },
+                        "height": 3
+                      },
+                      "kind": "GridLayoutItem"
+                    },
+                    {
+                      "spec": {
+                        "x": 20,
+                        "y": 14,
+                        "width": 2,
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-86"
+                        },
+                        "height": 3
+                      },
+                      "kind": "GridLayoutItem"
                     }
                   ]
                 }
