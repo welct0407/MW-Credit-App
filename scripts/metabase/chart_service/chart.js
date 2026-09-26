@@ -11,6 +11,7 @@ const specs = [
  {name:'Dog',title:'DOG',color:'#A65161',fill:'#FAF0F2',col:1,row:1,sub:'Lower contribution · lower health'}];
 let rows = [], active = null, fetchedAt = null, requestBusy = false, generation = 0;
 const number = (v,d=1) => v == null ? '—' : Number(v).toLocaleString('en-US',{maximumFractionDigits:d});
+const detailUrl = id => 'https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower='+encodeURIComponent(id)+'&bd_activity=past30days';
 function el(tag,attrs={},text){const node=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))node.setAttribute(k,String(v));if(text!=null)node.textContent=text;return node;}
 function hide(){tooltip.hidden=true;active=null;svg.querySelectorAll('.selected').forEach(n=>n.classList.remove('selected'));}
 function show(row,node){
@@ -81,7 +82,9 @@ function draw(){
     if(!best||score<best.score)best={...box,cx,cy,score};
    }
    boxes.push(best);
-   g.append(el('text',{x:best.cx,y:best.cy,fill:s.color,class:'name','text-anchor':'middle'},name));
+   const link=el('a',{href:detailUrl(r.borrower_id),target:'_top','aria-label':'Open '+r.name+' in Borrower Detail'});
+   link.append(el('text',{x:best.cx,y:best.cy,fill:s.color,class:'name','text-anchor':'middle'},name));
+   link.addEventListener('click',e=>e.stopPropagation());link.addEventListener('keydown',e=>e.stopPropagation());g.append(link);
   }
   g.append(el('circle',{cx:r.px,cy:r.py,r:5.5,fill:s.color,class:'dot'}));
   g.addEventListener('mouseenter',()=>show(r,g));g.addEventListener('mouseleave',()=>{if(document.activeElement!==g)hide();});
@@ -91,7 +94,7 @@ function draw(){
  }
  const excluded=rows.filter(r=>!plotted.some(p=>p.borrower_id===r.borrower_id));$('unplotted').hidden=!excluded.length;
  $('unplotted').querySelector('summary').textContent=`Not plotted (${excluded.length})`;
- const list=$('unplotted').querySelector('ul');list.replaceChildren();for(const r of excluded){const li=document.createElement('li');li.textContent=r.name+' — '+r.plot_status;list.append(li);}
+ const list=$('unplotted').querySelector('ul');list.replaceChildren();for(const r of excluded){const li=document.createElement('li'),link=document.createElement('a');link.href=detailUrl(r.borrower_id);link.target='_top';link.textContent=r.name;li.append(link,document.createTextNode(' — '+r.plot_status));list.append(li);}
 }
 async function refresh(){
  if(requestBusy)return;requestBusy=true;$('refresh').disabled=true;const current=++generation;
