@@ -1,6 +1,16 @@
 # GCS configuration for owner review
 
-27 September 2026 — **one bucket drafted in Chrome; not created**.
+27 September 2026 — **created after owner approval; saved configuration verified**.
+
+## Creation result
+
+Owner authorized creation with “go ahead to create the GCS.” Created `gs://mw-payment-receipts-prod-508610-n7` in `clever-oasis-508610-n7`; console creation timestamp: **27 September 2026, 02:44:17 Asia/Bangkok**. The Objects page confirmed an empty bucket and successful creation. The Configuration page confirmed Singapore/Region, Standard, uniform access, public access prevention inherited from organization policy, not public, seven-day soft delete, versioning off, no retention policy, object retention disabled, Google-managed encryption and no lifecycle rules. Hierarchical namespace, cross-bucket replication, CORS and Requester Pays are off; Rapid Cache and IP filtering are not configured. Customer-supplied encryption keys are restricted; Google-managed and Cloud KMS keys are allowed.
+
+No application-specific IAM grants, service accounts/keys, uploads, SQL/app changes or agent activation were performed. Agent and AppSheet access/setup remain future work. Existing inherited IAM was not changed or comprehensively audited. The sections below preserve the reviewed configuration and pre-creation observations, not a claim that creation is still pending.
+
+[Open the created bucket](https://console.cloud.google.com/storage/browser/mw-payment-receipts-prod-508610-n7?project=clever-oasis-508610-n7).
+
+![Created bucket configuration](gcs-created.png)
 
 The proposal is now one private bucket for the existing Debian agent. There is no DEV bucket and no separate AppSheet display bucket. Store an original once and reference that same object from Payment Detail. Only create a same-bucket format conversion if actual AppSheet rendering requires it.
 

@@ -1,6 +1,6 @@
 # Receipt picture capture and storage — implementation handover
 
-Date: 27 September 2026. Status: **design complete; implementation and deployment not performed**.
+Date: 27 September 2026. Status: **design complete; GCS bucket created and verified; receipt capture and AppSheet integration not implemented**.
 
 ## 1. Decision and scope
 
@@ -13,9 +13,9 @@ Current design, simplified after owner questions on 27 September:
 - Put the archive catalogue in the already-established `mw_agent` database, rather than adding an agent-only archive table to `loan_manager_prod`.
 - Use **one private production bucket**, with the Payment referencing the same original object. There is no DEV Debian/agent and no requirement for permanent DEV buckets. Do not copy every receipt for display; create an optional same-bucket derivative only when actual format/rendering compatibility requires it.
 
-The initial separate archive/display and DEV/PROD bucket proposal is superseded. Archive metadata remains outside AppSheet, while the AppSheet storage connection can read the receipt bucket. AppSheet's authenticated row/file access controls must protect user retrieval. [Exact uncreated GCS configuration for review](GCS_REVIEW.md).
+The initial separate archive/display and DEV/PROD bucket proposal is superseded. Archive metadata remains outside AppSheet; the planned AppSheet storage connection will read the receipt bucket. AppSheet's authenticated row/file access controls must protect user retrieval. [Reviewed GCS configuration and verified creation](GCS_REVIEW.md).
 
-The requested work is design/documentation only. All names marked **proposed** below are contracts for implementation, not existing objects or grants. No release number or migration number is reserved. No live VM, bucket, database, app, payment or notification was changed. Schema additions, access grants, application changes and activation need the owner's implementation authorization; production promotion remains separately scoped under repository policy.
+Initial work was design/documentation only. The owner subsequently approved creation of the single empty GCS bucket, now verified. Remaining names marked **proposed** below are implementation contracts, not existing database objects or grants. No release or migration number is reserved. No VM, database, app, payment, notification or application IAM change was made. Schema additions, access grants, application changes and activation remain future work; production promotion remains separately scoped under repository policy.
 
 ### Capture coverage
 
@@ -67,7 +67,7 @@ For new archive-enabled candidates, successfully preserve the original before ex
 
 ### GCS layout — proposed
 
-Use regional Standard storage in `asia-southeast1` with one production bucket. Proposed name is not reserved until successful creation:
+Created regional Standard storage in `asia-southeast1` with one production bucket; the following object prefixes remain proposed and contain no uploaded data:
 
 ```text
 mw-payment-receipts-prod-508610-n7

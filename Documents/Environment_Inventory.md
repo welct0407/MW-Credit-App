@@ -1,5 +1,9 @@
 # Environment inventory
 
+## Receipt object storage — 27 September 2026
+
+Owner-approved empty GCS bucket `gs://mw-payment-receipts-prod-508610-n7` created in `clever-oasis-508610-n7`, `asia-southeast1` (Singapore), Standard. Saved configuration verified: uniform IAM, public access prevented via organization policy, seven-day soft delete, Google-managed encryption, no versioning/retention lock/lifecycle rules. One bucket; no DEV or separate display bucket. Application-specific IAM, agent capture, AppSheet connection and uploads are not configured by this step. [Configuration and creation evidence](../outputs/receipt-storage-design-20260927/GCS_REVIEW.md).
+
 R045 delivered (27 September 2026): DEV/PROD V48; dashboard3 adds **13 · Forecast & Planning** (tab262), four models344–347 and 21 questions348–368. Existing 12 tabs /247 placements preserved. Recovery dashboard22. No AppSheet, source-record, notification or operational binding change. No remaining R045 DEV/PROD schema difference; R046 is the sole Open release. [Evidence](../outputs/r045-forecast-planning/README.md).
 
 R044 delivered (26 September 2026): DEV/PROD V47; dashboard3 adds **12 · Partners** (tab249), 19 visible questions plus picker324 and six models318–323. All prior11 tabs /223 placements are preserved; total12 tabs /247 placements. Recovery dashboard21. Both AppSheet apps, source records and operational bindings are unchanged. No remaining R044 DEV/PROD schema difference; R045 is the sole Open release. [Evidence](../outputs/r044-partners/README.md).
