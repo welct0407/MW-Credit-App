@@ -3464,14 +3464,14 @@
           "url": "https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter=metric.type%20%3D%20%22custom.googleapis.com%2Fmw_resource_monitoring%2Fworker_timing%22%20AND%20resource.labels.instance_id%20%3D%20%228223265527494214160%22%20AND%20metric.labels.component%20%3D%20%22polling%22&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000",
           "parser": "jq-backend",
           "hide": false,
-          "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\");\nif .nextPageToken then error(\"Worker timing response truncated\") else\n [.timeSeries[]? | {field:.metric.labels.field, point:(.points | sort_by(.interval.endTime) | last)}] as $rows |\n ($rows | map(select(.field == \"status\")) | first | .point) as $p |\n ($p != null and (now - ($p.interval.endTime | stamp)) <= 360 and (($p.interval.endTime | stamp) - now) <= 120 and ($p.value.int64Value | tonumber | IN(0,1,2,3,4))) as $fresh |\n (if $fresh then ($p.value.int64Value | tonumber) else 4 end) as $status |\n ([$rows[] | select(.point.interval.endTime == $p.interval.endTime) | {key:.field,value:(.point.value.int64Value | tonumber)}] | from_entries) as $v |\n {status:$status,\n  details:(\"IG polling — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n    \"\\nLast scan completion: \" + (if $fresh and ($v.last_completion // 0) > 0 then ($v.last_completion | sgt) else \"Unavailable\" end) +\n    \"\\nWorker: \" + (if $fresh and $v.running == 1 then \"Running\" elif $fresh and $v.running == 0 then \"Idle\" else \"Not observed\" end) +\n    \"\\nSchedule: 5 minutes after the previous run finishes (plus timer scheduling delay).\" +\n    \"\\nCompletion includes scans with no new images; it does not mean a payment was posted.\" +\n    \"\\nObserved: \" + (if $p != null then ($p.interval.endTime | stamp | sgt) else \"Unavailable\" end) +\n    (if $fresh then \"\\nTiming telemetry updates about every 2 minutes.\" else \"\\nTelemetry missing or older than 6 minutes; refresh for current status.\" end))}\nend\n",
+          "root_selector": "def stamp: sub(\"[.][0-9]+Z$\";\"Z\") | fromdateiso8601;\ndef sgt: . + 28800 | strftime(\"%Y-%m-%d %H:%M SGT\");\nif .nextPageToken then error(\"Worker timing response truncated\") else\n  [.timeSeries[]? | {field:.metric.labels.field, point:(.points | sort_by(.interval.endTime) | last)}] as $rows |\n  ($rows | map(select(.field == \"status\")) | first | .point) as $p |\n  ($p != null and (now - ($p.interval.endTime | stamp)) <= 360 and\n    (($p.interval.endTime | stamp) - now) <= 120 and\n    ($p.value.int64Value | tonumber | IN(0,1,2,3,4))) as $fresh |\n  (if $fresh then ($p.value.int64Value | tonumber) else 4 end) as $status |\n  ([$rows[] | select(.point.interval.endTime == $p.interval.endTime) |\n    {key:.field,value:(.point.value.int64Value | tonumber)}] | from_entries) as $v |\n  [\n    {details:(\"IG polling — \" + ([\"Down\",\"Healthy\",\"Degraded\",\"Paused\",\"Unknown\"][$status] // \"Unknown\") +\n      \"\\nLast scan completion: \" + (if $fresh and ($v.last_completion // 0) > 0 then ($v.last_completion | sgt) else \"Unavailable\" end) +\n      \"\\nWorker: \" + (if $fresh and $v.running == 1 then \"Running\" elif $fresh and $v.running == 0 then \"Idle\" else \"Not observed\" end) +\n      \"\\nSchedule: 5 minutes after the previous run finishes (plus timer scheduling delay).\" +\n      \"\\nCompletion includes scans with no new images; it does not mean a payment was posted.\" +\n      \"\\nObserved: \" + (if $p != null then ($p.interval.endTime | stamp | sgt) else \"Unavailable\" end) +\n      (if $fresh then \"\\nTiming telemetry updates about every 2 minutes.\" else \"\\nTelemetry missing or older than 6 minutes; refresh for current status.\" end)),\n     status:$status},\n    {details:\"Last scan completion\",status:(if $fresh and ($v.last_completion // 0) > 0 then $v.last_completion * 1000 else null end)}\n  ][]\nend\n",
           "source": "url"
         }
       ],
       "options": {
         "colorMode": "value",
         "graphMode": "none",
-        "orientation": "vertical",
+        "orientation": "horizontal",
         "tooltip": {
           "mode": "multi",
           "sort": "desc"
@@ -3496,14 +3496,15 @@
           "fields": "",
           "values": false
         },
-        "justifyMode": "center"
+        "justifyMode": "center",
+        "wideLayout": true
       },
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
         "uid": "mw-gcp-monitoring"
       },
       "id": 101,
-      "description": "Instagram group-chat scan. Hover for last scan completion and observed worker state in Singapore time. Runs five minutes after completion; downstream Receipts is a separate worker. Timing updates about every two minutes; Unknown after six minutes without telemetry.",
+      "description": "Instagram group-chat scan and last completion time in Singapore. The scan runs five minutes after the previous completion; downstream Receipts is a separate worker. Timing updates about every two minutes; missing or stale timing shows Unavailable. Hover the status for worker state and schedule details.",
       "fieldConfig": {
         "defaults": {
           "unit": "none",
@@ -3566,7 +3567,29 @@
             }
           ]
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "scope": "series",
+              "options": "Last scan completion"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Last scan · SGT"
+              },
+              {
+                "id": "unit",
+                "value": "time:DD MMM HH:mm"
+              },
+              {
+                "id": "noValue",
+                "value": "Unavailable"
+              }
+            ]
+          }
+        ]
       },
       "transformations": [
         {

@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const {addPaymentMonitoring}=require('./payment-dashboard.js');
 const root=path.resolve(__dirname,'../..');
-const selectors={snapshot:fs.readFileSync(path.join(__dirname,'receipt-pipeline.jq'),'utf8'),trend:fs.readFileSync(path.join(__dirname,'receipt-trend.jq'),'utf8')};
+const selectors={snapshot:fs.readFileSync(path.join(__dirname,'receipt-pipeline.jq'),'utf8'),trend:fs.readFileSync(path.join(__dirname,'receipt-trend.jq'),'utf8'),groupScanning:fs.readFileSync(path.join(__dirname,'group-scanning.jq'),'utf8')};
 for(const file of ['performance-dashboard.json','performance-editor-resource.json']){
   const input=JSON.parse(fs.readFileSync(path.join(root,'outputs/resource-monitoring-20260922',file),'utf8'));
   const before=JSON.stringify(input),out=addPaymentMonitoring(input,selectors);

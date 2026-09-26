@@ -275,7 +275,7 @@ This second group follows the overview and precedes infrastructure charts. Eight
 
 | ID | Visual | Measures and interpretation |
 | --- | --- | --- |
-| 101 | 1 · Group scanning | API polling status; hover for last completed scan and running/idle. Times are Singapore time to the minute. Completion includes empty scans and does not prove a payment was posted or that Meta exposed every group message. |
+| 101 | 1 · Group scanning | API polling status light and **Last scan · SGT** completion time in the same tile (day, month and 24-hour time). Hover the status for running/idle, schedule and observation details. The time uses the matching fresh worker-timing sample; missing, invalid or older-than-six-minute timing shows **Unavailable**, never an old completion as if current. Completion includes empty scans and does not prove a payment was posted or that Meta exposed every group message. |
 | 102 | Pipeline health | Receipt workflow: Down/red, Healthy/green, Degraded/orange, Paused/blue, Unknown/gray. Degraded can mean an overdue review while the worker is running normally. |
 | 103 | 2 · Receipt extraction | Images waiting (count), oldest wait (seconds, humanized), stalled work (count). Ordinary queues are blue; stalled work above zero is red. |
 | 104 | 3 · Validation | Ready to route, manual holds, unnotified holds (counts). Notified holds remain visible in blue; unnotified holds above zero are red. Holds require investigation and are not executable approval requests. |

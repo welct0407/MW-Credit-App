@@ -16,15 +16,22 @@ function addPaymentMonitoring(input, selectors) {
   const panel=(id,name,qs,description,overrides=[],type='stat')=>({id,title:name,type,description:description+' Current snapshots update about every 2 minutes; missing, mismatched or older-than-6-minute samples show Unavailable. Historical ranges excluding current telemetry do not show current counts.',datasource:{type:ds,uid:'mw-gcp-monitoring'},targets:qs.map((q,i)=>({...q,refId:String.fromCharCode(65+i),datasource:{type:ds,uid:'mw-gcp-monitoring'}})),transformations:[],fieldConfig:{defaults:copy(defaults),overrides},options:copy(options)});
   const q=a=>query('receipt_pipeline','[ '+fields(a)+' ] | map({key:.key,value:.value}) | from_entries',a.map(([key,label])=>col(label,'number',key)));
   const panels=[];
-  // Keep the proven polling query with full last-scan/idle information on hover.
+  // Reuse the polling metric while showing completion time beside the status.
   const scan=copy(source(63));
   const sp=v2?scan.spec:scan;
   sp.id=101;sp.title='1 · Group scanning';
   const sv=v2?sp.vizConfig.spec:sp;
   sv.fieldConfig.defaults.displayName='API polling';sv.options.text={titleSize:13,valueSize:30};
   const sq=v2?sp.data.spec.queries[0].spec.query.spec:sp.targets[0];
-  sq.root_selector=sq.root_selector.replace('%H:%M:%S SGT','%H:%M SGT');
-  sq.root_selector=sq.root_selector.replace('(now - ($p.interval.endTime | stamp)) <= 360','(now - ($p.interval.endTime | stamp)) <= 360 and (($p.interval.endTime | stamp) - now) <= 120 and ($p.value.int64Value | tonumber | IN(0,1,2,3,4))');
+  sq.root_selector=selectors.groupScanning;
+  sv.options.orientation='horizontal';
+  sv.options.wideLayout=true;
+  sv.fieldConfig.overrides=[{matcher:{id:'byName',scope:'series',options:'Last scan completion'},properties:[
+    {id:'displayName',value:'Last scan · SGT'},
+    {id:'unit',value:'time:DD MMM HH:mm'},
+    {id:'noValue',value:'Unavailable'}
+  ]}];
+  sp.description='Instagram group-chat scan and last completion time in Singapore. The scan runs five minutes after the previous completion; downstream Receipts is a separate worker. Timing updates about every two minutes; missing or stale timing shows Unavailable. Hover the status for worker state and schedule details.';
   const healthSelector='[.timeSeries[]?.points[]?]|sort_by(.interval.endTime)|last as $p | (try ($p.interval.endTime|sub("[.][0-9]+Z$";"Z")|fromdateiso8601) catch null) as $t | (try ($p.value.int64Value|tonumber) catch null) as $v | {name:"Receipt workflow",value:(if $t!=null and now-$t<=360 and $t-now<=120 and ($v|IN(0,1,2,3,4)) then $v else 4 end)}';
   const hp=panel(102,'Pipeline health',[query('health',healthSelector,[col('Name','string','name'),col('Value','number','value')],' AND metric.labels.component = "receipts"')],'Service health plus queue/review/posting/delivery health. Degraded may mean overdue reviewer action, not a stopped worker.');
   hp.fieldConfig.defaults.mappings=[{type:'value',options:Object.fromEntries(['Down','Healthy','Degraded','Paused','Unknown'].map((text,i)=>[i,{text,color:['red','green','orange','blue','gray'][i]}]))}];
@@ -64,6 +71,6 @@ if(typeof module!=='undefined')module.exports={addPaymentMonitoring};
 if(typeof require!=='undefined' && require.main===module){
   const fs=require('fs'),path=require('path');
   const [input,output]=process.argv.slice(2);
-  const selectors={snapshot:fs.readFileSync(path.join(__dirname,'receipt-pipeline.jq'),'utf8'),trend:fs.readFileSync(path.join(__dirname,'receipt-trend.jq'),'utf8')};
+  const selectors={snapshot:fs.readFileSync(path.join(__dirname,'receipt-pipeline.jq'),'utf8'),trend:fs.readFileSync(path.join(__dirname,'receipt-trend.jq'),'utf8'),groupScanning:fs.readFileSync(path.join(__dirname,'group-scanning.jq'),'utf8')};
   fs.writeFileSync(output,JSON.stringify(addPaymentMonitoring(JSON.parse(fs.readFileSync(input,'utf8')),selectors),null,2)+'\n');
 }
