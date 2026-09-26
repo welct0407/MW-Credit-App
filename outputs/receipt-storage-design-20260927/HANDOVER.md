@@ -2,6 +2,8 @@
 
 Date: 27 September 2026. Status: **design complete; GCS bucket created and verified; receipt capture and AppSheet integration not implemented**.
 
+AppSheet connectivity follow-up: Enterprise Plus and the native connector are available, but both effective GCP service-account key-creation restrictions are enforced. No store/app changes were saved. See the [connection checkpoint and scoped exception decision](APPSHEET_CONNECTION.md).
+
 ## 1. Decision and scope
 
 Use private Google Cloud Storage (GCS) for receipt pictures, the existing agent PostgreSQL database for archive metadata, and three small physical fields on `public."Payments"` for AppSheet display. Keep the archive out of both AppSheet apps. Show the picture in `Payments_Detail`, with offline content caching disabled and no receipt thumbnails in lists.

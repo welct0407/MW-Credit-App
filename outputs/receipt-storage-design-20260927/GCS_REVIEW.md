@@ -61,3 +61,7 @@ Synthetic checks can use `test/receipt-storage/<run-id>/` with isolated temporar
 ![Unsubmitted single-bucket configuration](gcs-review.png)
 
 [Updated implementation handover](HANDOVER.md).
+
+## AppSheet connection follow-up
+
+The owner subsequently requested connectivity for DEV and PROD. Account prerequisites pass, but both effective service-account key-creation policies prohibit the JSON keys required by AppSheet. No IAM/policy/key/store/app changes were applied. [Prepared configuration, evidence and required scoped exception](APPSHEET_CONNECTION.md).
