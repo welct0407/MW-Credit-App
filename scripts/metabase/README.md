@@ -4,6 +4,8 @@
 
 `AddBorrowerMatrixCategory.mjs` adds the current governed V3 category to comparison question289 and labels inactive borrowers Outside active cohort. It uses a separate fresh private baseline and recovery dashboard15; `--verify` checks source parity, date invariance, population and preserved layout. [Refinement](../../outputs/r040-borrower-lifetime-display/README.md#bcg-matrix-category-refinement).
 
+`PromoteBorrowerPortfolioTab.mjs` replaces original tab6 and empty tab17 with Portfolio104 in sixth position, named `6 · Borrowers`. It retains the old saved questions and every other placement/filter, using a fresh private baseline and recovery dashboard16. [Cutover](../../outputs/r040-borrower-lifetime-display/README.md#borrower-tab-cutover).
+
 # Borrower contribution refinement — R037
 
 `BorrowerContributionCharts.mjs` owns Portfolio104 questions311-315 and shared model310. See [contract and verification](../../outputs/r037-borrower-contribution/README.md). Its publication mode rejects baseline drift; `--refine` only updates owned questions and methodology spacing. R035 layout replay is guarded after this refinement.

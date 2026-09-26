@@ -48,7 +48,7 @@ DEV and PROD SQL are V41. PROD apps unchanged: OLTP 3.000246 / OLAP 1.100198, bo
 
 Owner accepted 8R and authorized replacement. Tab19 is now **8 · Collection Monitor** in eighth position; old tab9 and its 26 placements are removed. Dashboard3 has **11 tabs / 184 placements**. All remaining placements, saved questions, filters and source definitions preserved. Top row: receipts, remaining, people fully paid, today-charge paid %. No DB/AppSheet/permissions/jobs changes. R025 Released; R026 Open. [Evidence](../outputs/r025-20260924/cutover-verification.json).
 
-R024 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings are unchanged. [Evidence](../outputs/r024-20260924/README.md).
+R040 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (former Portfolio tab104), followed by **6R · Borrower Health Review** (tab31). Original Borrowers tab6 and empty Tab 11 ID17 are removed from dashboard3; the 16 saved questions from tab6 remain available. Dashboard3 has 12 tabs / 237 placements. All other cards and filter mappings remain unchanged. [Cutover evidence](../outputs/r040-borrower-lifetime-display/README.md#borrower-tab-cutover). R024's tab6 order is a superseded checkpoint.
 
 R023 current Performance: owner accepted 6R as the replacement. Tab18 is now **6 · Performance**, sixth in order; old tab7 and its 18 placements are removed. The unused performance-date filter is removed, while Performance period remains. Dashboard3 has **11 tabs / 189 placements**. Saved questions retained, including shared question56. All retained chart definitions/layouts and other tab order preserved. [Evidence](../outputs/r023-20260924/README.md).
 

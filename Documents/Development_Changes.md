@@ -1,6 +1,6 @@
 # Open development differences
 
-R040 (26 September): Portfolio104 saved questions313/289 show the achieved daily rate with one decimal, both lifetime ratios and current V3 BCG category in the bottom comparison table. Model310 and calculations are unchanged; ratios and category ignore Activity dates but respect population. Inactive borrowers are outside the matrix cohort. Metabase report published and verified; R040 remains Open for owner review. Recovery dashboards14/15; [evidence](../outputs/r040-borrower-lifetime-display/README.md). No AppSheet, SQL, runtime or permission difference.
+R040 (26 September): Portfolio104 saved questions313/289 show the achieved daily rate with one decimal, both lifetime ratios and current V3 BCG category in the bottom comparison table. Portfolio104 is now sixth as `6 · Borrowers`; original tab6 and empty tab17 were removed, with 21 old placements removed and their saved questions retained. Model310, calculations, all other placements and dashboard parameters are unchanged. Ratios/category ignore Activity dates but respect population; inactive borrowers are outside the matrix cohort. Metabase report published and verified; R040 remains Open for owner review. Recovery dashboards14/15/16; [evidence](../outputs/r040-borrower-lifetime-display/README.md). No AppSheet, SQL, runtime or permission difference.
 
 R039 (26 September): Portfolio104 restores saved amount-ranking questions285/286 below pies311/312; ratios313/314 retained. Six charts in three rows; later Portfolio rows shifted9. Query definitions, apps, SQL, runtime and permissions unchanged; no DEV difference. Recovery dashboard13; [evidence](../outputs/r039-restore-borrower-bars/README.md). R040 sole Open.
 
@@ -119,4 +119,4 @@ R023 current Performance: owner accepted 6R as the replacement. Tab18 is now **6
 
 ## R024 — Performance and Borrowers order (released)
 
-R024 current order: **5 · Performance** (tab18) precedes **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings are unchanged. [Evidence](../outputs/r024-20260924/README.md). Three saved-state checks and Chrome confirmation passed.
+R024 checkpoint order: **5 · Performance** (tab18) preceded the then-current **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings were unchanged at that checkpoint. [Evidence](../outputs/r024-20260924/README.md). R040 replaced tab6 with tab104.
