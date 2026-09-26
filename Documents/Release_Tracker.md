@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R045 — Open** |
 | Next number, not yet open or usable | **R046 — opens only when R045 is frozen at promotion start** |
-| Current release evidence | R045 Open: no scope yet. R044 Partners delivered; [pinned package](../outputs/r044-partners/frozen-package.json). |
+| Current release evidence | R045 Open: additive Forecast & Planning; DEV V48 and 63 report query cases verified. [Evidence](../outputs/r045-forecast-planning/README.md). |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R045 | Unassigned | Open | Opened at R044 freeze 2026-09-26T16:38:54.763258+00:00 | — |
+| R045 | Additive Forecast & Planning tab and read-only SQL providers | Open | DEV V48 verified; authorized promotion pending; no AppSheet change | [Evidence](../outputs/r045-forecast-planning/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R045_2026-09-27.md) |
 | R044 | Additive Partners tab and read-only SQL providers | Released | DEV/PROD V47; Partners249 and19 visuals verified; recovery21; no AppSheet changes; tag R044 | [Evidence](../outputs/r044-partners/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R044_2026-09-26.md) |
 | R043 | Canonical borrower tabs and drill-through | Released | Tabs7/8, name links, saved-state and Chrome verified; recovery20; tag R043 | [Evidence](../outputs/r043-borrower-navigation/README.md) |
 | R042 | Borrower receipts, loan return and interest bars | Released | DEV/PROD V46; Payments317, profit305 and bars302 verified. Tag R042. | [Evidence](../outputs/r042-borrower-payments/README.md) |

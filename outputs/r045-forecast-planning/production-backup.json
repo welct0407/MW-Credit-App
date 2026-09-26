@@ -1,0 +1,15 @@
+{
+  "environment": "production",
+  "database": "loan_manager_prod",
+  "instance": "appsheet-pg-prod-20260914",
+  "at": "20260926T175705Z",
+  "backup_file": "C:\\Users\\MWCredit\\Documents\\ChatGPT\\AppSheet-Loan-Project\\r045-forecast-planning\\production-20260926T175705Z\\before.dump",
+  "backup_sha256": "fda331c8f4c57ead067b2b2f43a01545c30132f22a63c01667b9d86a19d36fe3",
+  "baseline_version": 47,
+  "table_count": 26,
+  "restore_fingerprints_match": true,
+  "candidate_already_present": false,
+  "candidate_rehearsed": false,
+  "scope": "public, assessment_lab, agent_audit; instance roles/settings/cron remain external",
+  "financial_values_published": false
+}
