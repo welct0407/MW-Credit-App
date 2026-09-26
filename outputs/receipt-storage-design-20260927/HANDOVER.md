@@ -8,10 +8,12 @@ Use private Google Cloud Storage (GCS) for receipt pictures, the existing agent 
 
 This follows the owner's [shared Receipt Storage Design conversation](https://chatgpt.com/share/6ab8189b-05dc-83ec-a8d1-0ce238437fa3), read through the public shared page on 27 September. Its main decisions are GCS over Drive, original evidence outside the financial database, lightweight Payment references, and on-demand viewing. This handover adds the concrete Debian integration, failure recovery and access boundaries.
 
-Two refinements are intentional:
+Current design, simplified after owner questions on 27 September:
 
 - Put the archive catalogue in the already-established `mw_agent` database, rather than adding an agent-only archive table to `loan_manager_prod`.
-- Separate original evidence from AppSheet display copies using an archive bucket and a display bucket per environment. This prevents the AppSheet connection from reading rejected, unrelated or unlinked intake pictures. Display copies are reproducible derivatives, not a second authoritative archive.
+- Use **one private production bucket**, with the Payment referencing the same original object. There is no DEV Debian/agent and no requirement for permanent DEV buckets. Do not copy every receipt for display; create an optional same-bucket derivative only when actual format/rendering compatibility requires it.
+
+The initial separate archive/display and DEV/PROD bucket proposal is superseded. Archive metadata remains outside AppSheet, while the AppSheet storage connection can read the receipt bucket. AppSheet's authenticated row/file access controls must protect user retrieval. [Exact uncreated GCS configuration for review](GCS_REVIEW.md).
 
 The requested work is design/documentation only. All names marked **proposed** below are contracts for implementation, not existing objects or grants. No release number or migration number is reserved. No live VM, bucket, database, app, payment or notification was changed. Schema additions, access grants, application changes and activation need the owner's implementation authorization; production promotion remains separately scoped under repository policy.
 
@@ -52,7 +54,7 @@ flowchart TD
     F --> G[Existing guarded Payments posting or verified existing match]
     F --> H[Held / rejected / duplicate / nonreceipt evidence retained]
     G --> I[Verify exact payment and record evidence link]
-    I --> J[Create private PNG display copy]
+    I --> J[Use original object; convert only if necessary]
     J --> K[Metadata-only projection into three Payments fields]
     K --> L[AppSheet Payment Detail retrieves image when displayed]
 ```
@@ -65,33 +67,35 @@ For new archive-enabled candidates, successfully preserve the original before ex
 
 ### GCS layout — proposed
 
-Use regional Standard storage in `asia-southeast1`, with separate DEV and PROD buckets. Resolve globally available names at implementation; examples are placeholders:
+Use regional Standard storage in `asia-southeast1` with one production bucket. Proposed name is not reserved until successful creation:
 
 ```text
-<project>-receipt-archive-<env>
+mw-payment-receipts-prod-508610-n7
   originals/v1/<capture-UTC-year>/<month>/<receipt_id>/<raw_sha256>.<jpg|png|webp>
 
-<project>-receipt-display-<env>
-  payments/v1/<opaque-publication-id>/image.png
+  derivatives/v1/<receipt_id>/<transform-version>/image.png  # only if needed
+  test/receipt-storage/<run-id>/...                          # synthetic fixtures
 ```
 
-Persist the chosen key once; retries do not derive a different date or path. Keys contain no borrower name, account number, amount, message text or expiring Meta URL. `opaque-publication-id` is a stored random identifier generated once for a link revision. AppSheet receives the exact relative display key, never a public URL, signed URL, `gs://` URI or archive-bucket path.
+Persist the chosen key once; retries do not derive a different date or path. Keys contain no borrower name, account number, amount, message text or expiring Meta URL. AppSheet receives the original object's exact relative key, or the optional derivative key if required, never a public URL, signed URL or `gs://` URI.
+
+Synthetic tests use stubbed payment/notification clients and isolated temporary state, never the live job queue. Prefixes organize files but are not access controls. A future DEV AppSheet connection must prove synthetic-only access before real receipts accumulate; do not grant broad production-image access merely to test. If native connector permissions prevent isolation, reconsider a temporary test store at that point, rather than creating a permanent DEV storage environment now.
 
 **Original** means the exact bytes retrieved from the approved Meta attachment endpoint. Instagram may already have transformed the sender's file; do not claim camera-original or bank-original provenance. Compute a separate raw SHA-256 before decoding. Keep the existing normalized pixel hash unchanged for financial duplicate checking. Hash equality is evidence identity, not proof of a settled transfer.
 
-Store immutable original bytes with validated MIME type, byte size, GCS generation, CRC32C and raw SHA-256. Generate the PNG view from the archived original using the existing orientation/RGB normalization; it must remain fully legible and uncropped. Record derivative version, hash and generation. Bound derivative output/memory as well as input size. Do not silently downsample financial text; an oversized derivative enters display review while the original remains safe.
+Store immutable original bytes with validated MIME type, byte size, GCS generation, CRC32C and raw SHA-256. Test the original JPEG/PNG/WEBP's actual AppSheet rendering, orientation and legibility. Use it directly whenever compatible. Only if necessary, generate a fully legible, uncropped PNG derivative in the same bucket using the existing orientation/RGB normalization, and record its version/hash/generation. Bound derivative output/memory as well as input size. Do not silently downsample financial text; a failed conversion enters display review while the original remains safe.
 
 Use create-only uploads with `if_generation_match=0`. After success or uncertain upload, read the exact object and verify generation, size and checksums; on an existing object, compare the expected content hash using verified bytes if necessary. A mismatch is an integrity conflict, never an overwrite. This gives safe storage retries independently of financial idempotency. [GCS preconditions](https://docs.cloud.google.com/storage/docs/request-preconditions).
 
 ### Access
 
-- Both bucket classes: uniform bucket-level access, public access prevention, Google-managed encryption, no public principals. Originals are readable only by the authorized worker and evidence administrators. [Public access prevention](https://docs.cloud.google.com/storage/docs/public-access-prevention).
+- Receipt bucket: uniform bucket-level access, public access prevention, Google-managed encryption, no public principals. Intended readers are the authorized worker, AppSheet connection and evidence administrators, subject to existing inherited project IAM. [Public access prevention](https://docs.cloud.google.com/storage/docs/public-access-prevention).
 - Worker: use Application Default Credentials from the verified attached GCE service account; no downloaded worker key. Grant bucket-scoped create/get and only the additional metadata/list access actually required by tested reconciliation. No delete, overwrite, bucket administration or unrelated storage access. Check that a local ADC file/environment variable does not override the intended identity. [ADC behavior](https://docs.cloud.google.com/docs/authentication/application-default-credentials).
-- AppSheet: a separate dedicated connection identity, restricted to its environment's display bucket; no original-archive access. Google documents a JSON-key connection and a broad Storage Admin example. Treat minimum get/list/bucket-metadata permissions as a DEV compatibility test, not proven support. Record the exact successful grant set; do not silently widen it to project-level administration. If the connector requires writes, constrain them to the display bucket and document the exception. [GCS connector setup](https://support.google.com/appsheet/answer/10106382?hl=en).
+- AppSheet: a dedicated connection identity restricted to the receipt bucket. Google documents a JSON-key connection and a broad Storage Admin example. Test minimum get/list/bucket-metadata permissions using synthetic evidence; do not presume connector support or widen to project-level administration. If additional permissions are actually required, review the concrete requirement before granting them. Keep original-object overwrite/delete unavailable to the application where supported. [GCS connector setup](https://support.google.com/appsheet/answer/10106382?hl=en).
 - Store any AppSheet connection-key export outside Git under the owner's designated private credential root. On Debian, secrets remain under `/etc/mw-integration-agent`; spool under `/var/lib/mw-integration-agent`, mode 0700 with files 0600. Follow existing verified recovery/credential handling; do not delete the only recovery copy as a side effect of setup.
 - Preserve AppSheet sign-in, Payment row security and file/image access protections. Hidden columns and opaque names are not access controls. Verify that one authorized app user cannot obtain another unauthorized Payment's picture by changing a path. Keep generated capability URLs and browser caches private; private buckets alone do not prevent an authorized viewer from saving a displayed image.
 
-Separate buckets protect unlinked originals even if the connector needs broad display-bucket access. They do not claim per-row authorization inside GCS: that boundary must be enforced and tested by AppSheet. If native access cannot meet that test, hold image activation and design an authenticated viewer; do not make files public to resolve a broken image.
+The single-bucket tradeoff is explicit: the trusted AppSheet backend credential can potentially read unlinked originals too. That does not add archive rows to the app or give users bucket browsing, but user retrieval must still be protected by AppSheet and verified against guessed paths. If native access cannot meet that test, resolve the actual access issue before activation; do not make files public to fix a broken image. A second bucket is not an automatic requirement.
 
 ## 5. Proposed data model
 
@@ -127,7 +131,7 @@ Archive states are SOURCE_PENDING → LOCAL_READY → UPLOADING → ARCHIVED. Up
 | `business_environment`, `payment_id` | exact existing Payments Row ID and database environment; no cross-database PostgreSQL FK is possible |
 | `link_reason`, `verified_at`, `verification_digest`, `actor` | created-by-job / verified-existing-reference / owner-correction; evidence of the exact match and authority |
 | `is_primary`, `superseded_at` | one active primary image per Payment; preserve superseded history |
-| `publication_id`, `display_key`, `display_generation`, `display_sha256` | immutable display version; nullable until publication succeeds |
+| `display_key`, `display_generation`, `display_sha256` | original object's key/generation/hash by default; optional derivative values only when conversion is needed |
 | `projection_state`, `attempts`, `next_attempt_at`, `last_error_code` | NONE / PENDING / APPLIED / UNKNOWN / CONFLICT; separate from payment state |
 
 Use a partial unique index on `(business_environment, payment_id)` for active primary links; unique active receipt/payment pairing; foreign keys without cascade deletion. The v1 financial model permits each asset to have at most one active payment association. Several archived attachments may be associated with one Payment, but only one primary is projected into AppSheet. Exact-image duplicates still retain separate source records. Additional images remain available for restricted evidence inspection; showing all of them in AppSheet is a later child-table/UI extension with an explicit metadata-sync cost.
@@ -139,7 +143,7 @@ Cross-database integrity is checked by the projector against the exact Payment, 
 | Proposed column | Database / AppSheet type | Purpose |
 | --- | --- | --- |
 | `IG Receipt ID` | text / Text, hidden from routine UI | Primary archive identifier; **not AppSheet Ref**, since the archive is not loaded |
-| `Receipt Image` | text / Image, read-only | Relative key in the configured display bucket |
+| `Receipt Image` | text / Image, read-only | Relative original-object key in the receipt bucket, or optional required derivative |
 | `Receipt Received At` | timestamp without time zone / DateTime, read-only | First ingress capture converted explicitly to Bangkok wall time for the existing app/API convention |
 
 The archive retains the canonical UTC timestamp. `Receipt Received At` is not transfer time and never changes `Payment Date`, `Created At`, `Processed At`, financial ordering or amounts. Use a deterministic UTC-to-Asia/Bangkok conversion and test midnight boundaries. Match the actual connector convention at implementation; if the inspected live app requires another SQL timestamp mapping, revise and document it before migration.
@@ -156,7 +160,7 @@ The function must pin its search path, validate caller/environment, lock the exa
 
 Inspect affected Payments UPDATE triggers first. A metadata-only update must not recompute postings, send a payment notification or bypass financial immutability. Exercise this in DEV. Extend the existing business transaction audit/outbox for the specific projector role/function so central-DB acknowledgement loss can be reconciled; do not grant that role reviewer DML. Existing broad model discovery must not make evidence fields writable: add them to conversation API/DML protected-field rules and refresh private app metadata after app changes. No permanent worker cross-database superuser credential is needed.
 
-The existing Payments Add remains financially unchanged. Only after its current exact readback succeeds does the projector publish a receipt link. It also supports a uniquely verified already-recorded Payment, without Add or a new success notification. Do not automatically attach ambiguous, unposted, conflicting or historical matches. When a manual Payment already has a primary image, retain the new evidence association without replacing that primary.
+The existing Payments Add remains financially unchanged. Only after its current exact readback succeeds does the projector publish a receipt link to the existing object. It also supports a uniquely verified already-recorded Payment, without Add or a new success notification. Do not automatically attach ambiguous, unposted, conflicting or historical matches. When a manual Payment already has a primary image, retain the new evidence association without replacing that primary.
 
 ## 6. Failure handling and state transitions
 
@@ -167,7 +171,7 @@ Acquire evidence before calling `canonical_image`; the current function discards
 3. Upload/create-only and verify GCS; commit ARCHIVED plus immutable locator/hash. The source URL may then expire without losing evidence. Local spool can be removed only after durable archive confirmation.
 4. Run current normalization/extraction/rules from the verified evidence. Preserve financial duplicate policy and existing extraction attempt count. Archive upload retries have a separate counter and must not exhaust model attempts.
 5. Terminal job cleanup may clear its old transient `image`/`url`, but never asset identity or verified evidence. A cleanup guard refuses removal of the only captured copy. New processing should use private files, not grow PostgreSQL bytea storage.
-6. After verified posting/existing match, reserve link and display publication, then project metadata. Any failed stage resumes independently; it never enters the Payments Add branch again.
+6. After verified posting/existing match, reserve the link and project its original object reference. Convert only when required by a verified format/rendering problem. Any failed stage resumes independently; it never enters the Payments Add branch again.
 
 | Failure / interruption | Required recovery |
 | --- | --- |
@@ -177,7 +181,7 @@ Acquire evidence before calling `canonical_image`; the current function discards
 | Original archived, extraction fails or says nonreceipt | Retain original and classification/failure status; no Payment linkage for nonreceipt. |
 | Duplicate detected before extraction or posting | Original is already captured; retain source occurrence and duplicate relation. Link only on an independently verified exact existing Payment. |
 | Payment Add unknown | Existing deterministic payment-key readback only. Archive survives; no Add retry, no claim of successful payment from an image. |
-| Payment posted, display generation/upload fails | Payment stays posted; retry only the derivative/publication. Original remains accessible to authorized operations. |
+| Payment posted, linking or an optional conversion fails | Payment stays posted; retry only that metadata/conversion step. Original remains accessible to authorized operations. |
 | Business metadata committed, central acknowledgement lost | Mark projection UNKNOWN; compare exact triplet plus transaction audit before acknowledging. No financial or notification replay. |
 | Old/new primary differs or row facts changed | CONFLICT for explicit resolution; do not replace a partner's evidence automatically. |
 | Spool pressure | Proposed initial limits: warn at 70% of configured quota, stop new capture before quota exhaustion; keep durable ingress and retry existing uploads. Never evict unarchived files. Size quota from measured peak intake and outage duration. |
@@ -186,7 +190,7 @@ Storage backoff proposal: 30 seconds rising to 15 minutes, with a bounded per-cy
 
 ## 7. AppSheet experience and sync contract
 
-Both OLTP and OLAP already load Payments. Regenerate only the affected table in both DEV apps, review generated changes, configure the environment's GCS display store, and add the image and received timestamp to `Payments_Detail`. Keep Payment amount, transfer date/time, receiving account and status readable before the evidence. Picture is view-only, full-aspect and tappable for inspection; no capture/upload, quick edit, camera action or automatic cover-image selection. A missing image means evidence is not linked/available, not that the Payment is invalid.
+Both OLTP and OLAP already load Payments. Regenerate only the affected table in both DEV apps, review generated changes, configure a synthetic-only test connection, and add the image and received timestamp to `Payments_Detail`. Production uses the approved receipt-bucket connection. This does not require a DEV agent or permanent DEV bucket. Keep Payment amount, transfer date/time, receiving account and status readable before the evidence. Picture is view-only, full-aspect and tappable for inspection; no capture/upload, quick edit, camera action or automatic cover-image selection. A missing image means evidence is not linked/available, not that the Payment is invalid.
 
 Use explicit column/view configuration so list, deck, inline and related Payments views do not automatically pick the new Image column. Forms retain existing payment entry behavior and hide the service-owned fields. API/DML protections enforce immutability separately from UI settings.
 
@@ -202,7 +206,7 @@ Avoid changing Quick Sync, Delta Sync or security filters to compensate for this
 
 Initially retain archived originals and evidence links indefinitely within this prototype, with no automatic lifecycle deletion, object overwrite or locked retention policy. This is a conservative implementation default, not a legal retention requirement. Keep soft delete enabled with an explicitly recorded duration; proposed minimum is seven days. Decide longer retention/recovery targets from operational needs before activating a purge process. [Soft-delete behavior](https://docs.cloud.google.com/storage/docs/soft-delete).
 
-Worker immutability is enforced by permissions, create-only writes and database guards; it is not protection against a trusted cloud administrator. No irreversible bucket retention lock is proposed. Display copies are rebuildable from verified originals and versioned transform code. Do not copy receipts to Git, ordinary logs, report snapshots or notification attachments.
+Worker immutability is enforced by permissions, create-only writes and database guards; it is not protection against a trusted cloud administrator. No irreversible bucket retention lock is proposed. Any optional display derivative is rebuildable from its verified original and versioned transform code. Do not copy receipts to Git, ordinary logs, report snapshots or notification attachments.
 
 Recovery covers three assets separately: GCS originals, `mw_agent` metadata/audit, and business Payment projections. Cloud SQL PITR and VM snapshots do not back up GCS objects. Test restoring a synthetic deleted original, metadata from a private database restore and its display link; verify exact bytes. Restoring a GCS object can produce a new generation: record a recovery event and the replacement locator, preserving the original recorded generation. Do not restore old operational journals over new payments or sends.
 
@@ -210,7 +214,7 @@ The resolver may use an explicitly authorized recovery locator recorded in appen
 
 Use the existing collector for aggregate metrics: pending capture count/oldest age, missing originals, checksum conflicts, spool usage, failed display publications and unlinked posted Payments. Keep UNKNOWN distinct from zero. Labels/logs contain no borrower, bank reference, image URL or image content. Extend `receipt_health.py` without breaking existing monitoring fields; dashboard changes also require the resource-monitoring visual guide in this repository. No new alert delivery channel is introduced by this design.
 
-Capacity planning uses original bytes plus display bytes, retained failed candidates, operations and download traffic; no current dollar estimate is claimed. Record actual average/maximum sizes after a controlled sample. Keep region and lifecycle decisions explicit; do not move rarely viewed evidence to a class with retrieval/minimum-duration costs without measurement.
+Capacity planning uses original bytes plus any necessary derivative bytes, retained failed candidates, operations and download traffic. Do not budget an automatic second copy of every receipt. Record actual average/maximum sizes after a controlled sample. Keep region and lifecycle decisions explicit; do not move rarely viewed evidence to a class with retrieval/minimum-duration costs without measurement. The bucket review separately records the console's displayed storage rate, not an all-in bill.
 
 ## 9. Implementation map and sequence
 
@@ -221,17 +225,17 @@ Capacity planning uses original bytes plus display bytes, retained failed candid
 | Integration agent: `receipt_journal.py`, `receipt_run.py`, state adapter/migrations | Durable archive identity/work; capture before duplicate/terminal exits; preserve cleanup invariant; short DB transactions. |
 | Integration agent: `receipt_prepare.py`, `receipt_reconsider.py` | Same evidence service; archive-first read on authorized reconsideration; no new payment authority. |
 | Integration agent: `review_cycle.py`, `review_execution.py`, `payment_match.py` | Surface verified exact Payment identity to the evidence linker, including exact existing-reference matches; preserve Add/readback semantics. |
-| Integration agent: proposed `receipt_projection.py`, business grants | Display publication and restricted metadata function call/readback; independent durable retries. |
+| Integration agent: proposed `receipt_projection.py`, business grants | Original-object linkage, optional conversion and restricted metadata function call/readback; independent durable retries. |
 | Integration agent: config/catalogue, conversation field protections, audit, `receipt_health.py`, tests/docs | Default-off archive/projection switches, immutable archive cutoff, fail-closed configuration, protected evidence fields, sanitized telemetry and updated current runtime documentation. |
 | AppSheet repository: business migration, selective dictionary objects, both app definitions | Three fields, restricted audited projector, dependency review, image display and both-app checks. |
 
 1. Recheck actual VM/package/configuration, database instance/database tuples, app IDs, current migration histories, object-store entitlement and affected Payments triggers. Read the current Open release before product development; keep it Open until authorized promotion begins. Record exact dependencies across the two repositories.
 2. Obtain scoped approval for the proposed schema/access/implementation. Record rollback for affected code, consistent central state, business databases and both restorable app versions before mutation. No Looker backup is needed unless a report is actually changed.
-3. Prove the GCS connection in DEV with synthetic evidence: externally uploaded relative image path, minimum identity grants, private access and current phone/browser behavior. Choose and record actual bucket/store names. This resolves the principal integration uncertainty early.
+3. Prove the GCS connection using synthetic objects and isolated execution: externally uploaded original-image paths, minimum identity grants, private access and current phone/browser behavior. DEV AppSheet testing must meet the synthetic-only access rule above. No new DEV VM, agent or permanent bucket is required.
 4. Implement additive central/business migrations, capture service and tests. Use isolated synthetic agent state with a nonproduction database/configuration; the current state adapter hardcodes `mw_agent`, so do not repoint the live worker casually. A test namespace in live production state is not an isolation substitute. Keep existing backend generation and production cutoffs unchanged.
 5. Test crash/failure paths and metadata projection, including absence of posting-trigger/notification effects. Regenerate/configure both DEV apps and reconcile affected workflows. Verify directly affected Metabase question 317/V46 provider remains valid; no report image hosting is in v1. Its previous 'all payment details' wording must be clarified if new evidence fields are deliberately omitted.
 6. Complete selective dictionary/design/runtime documentation and readiness evidence. Both app editors must have zero warnings/errors. AppSheet field protections, API metadata and downstream projections must agree before activation.
-7. On authorized promotion, use the release's single master checklist, exact migration pins, independent PROD-mapped RC copies and App Upgrade into existing PROD apps. Record display-store substitution explicitly; DEV uses only DEV evidence. RC copies never copy receipt data and retain scheduled guards. Follow normal RC deletion/closure rules after successful validation.
+7. On authorized promotion, use the release's single master checklist, exact migration pins, independent PROD-mapped RC copies and App Upgrade into existing PROD apps. Record any test-connection to production-connection substitution explicitly; DEV uses only synthetic evidence. RC copies never copy receipt data and retain scheduled guards. Follow normal RC deletion/closure rules after successful validation.
 8. Deploy reviewed Debian code/config/catalogue with existing recovery procedure. Activate archive and projection for a new explicit cutoff only after schemas, stores and app versions are compatible. Pre-cutoff pending jobs keep their existing financial policy; any archive catch-up is a separately selected archive-only operation. No historical posting or notice replay.
 9. Observe the first naturally arriving authorized receipt: original archived, existing workflow resolves, exact Payment links, both app details load, no extra Add/send. Do not create a production financial transaction just for a test. Until naturally observed, label that specific acceptance pending.
 
@@ -243,7 +247,7 @@ All entries below are **future tests**, not claimed passing results of this desi
 
 | Case | Expected evidence |
 | --- | --- |
-| JPEG/PNG/WEBP receipt; rotation metadata | Original raw hash matches download; view is legible and oriented; pixel duplicate hash remains compatible. |
+| JPEG/PNG/WEBP receipt; rotation metadata | Original raw hash matches download; original renders directly where compatible; conversion occurs only if needed; pixel duplicate hash remains compatible. |
 | Duplicate webhook plus polling occurrence; reordered history | One stable source asset for the same admitted attachment; no identity remap; distinct source occurrences retained when appropriate. |
 | Same pixels/different encoding; same amount/different reference | Archive preserves both raw versions; existing pixel/reference policy remains authoritative; no new amount/date duplicate rule. |
 | Reject, hold, nonreceipt and extraction exhaustion | Picture/metadata retained according to capture status; no unauthorized Payment linkage. |
@@ -254,7 +258,7 @@ All entries below are **future tests**, not claimed passing results of this desi
 | Add timeout or UNKNOWN | Only deterministic readback; storage/projection recovery cannot call Add. |
 | Exact manual-reference match / ambiguous match / existing primary | Link exact verified Posted row only; conflict stays unresolved; existing primary preserved. |
 | Metadata projection retry/concurrent replacement | Identical repeat is a no-op; stale expected triplet conflicts; zero allocations/cash effects/notification changes. |
-| Unauthorized API/DML edits, public object access, cross-row image access | Denied; no evidence-link tampering or original-bucket exposure through AppSheet. |
+| Unauthorized API/DML edits, public object access, cross-row image access | Denied; no evidence-link tampering or unauthorized user image access through AppSheet. |
 | Both app syncs/details/forms/lists and DEV/PROD separation | Three small values sync, archive table absent, no list images/bulk offline caching, correct store, normal forms/sync and zero editor issues. |
 | Receipt captured around UTC/Bangkok midnight | Captured timestamp display is correct; transfer date/time and financial ledger unaffected. |
 | Restore original + central metadata + business projection | Recoverable generation/hash trail; original verified; no journal rollback/replayed effect. |

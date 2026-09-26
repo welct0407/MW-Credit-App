@@ -14,7 +14,7 @@ Owner requested a design based on a shared ChatGPT conversation for capturing/st
 
 Read the supplied shared conversation through the public Edge page after web retrieval timed out. Verified relevant AppSheet/GCS capabilities against current official documentation. Inspected collection ownership instructions, then followed the current environment reference to the canonical `MW-Integration-Agent` repository at `8efd92561f8b0550fb51e7f2993f73cbe7ee6504`.
 
-Current Debian source normalizes media to PNG and clears transient media at terminal processing. The design captures raw retrieved bytes before normalization/cleanup, stores archive metadata in the existing `mw_agent` database, keeps unlinked originals separate from AppSheet display copies, and projects three read-only fields onto Payments only after verified linkage. Storage/projection retry cannot repeat payment posting. Older summary-only/SQLite documentation is identified as dated, not used to override the current catalogue/source.
+Current Debian source normalizes media to PNG and clears transient media at terminal processing. The design captures raw retrieved bytes before normalization/cleanup, stores archive metadata in the existing `mw_agent` database, and projects three read-only fields onto Payments only after verified linkage. The original separate archive/display bucket proposal is superseded by the simplification below. Storage/projection retry cannot repeat payment posting. Older summary-only/SQLite documentation is identified as dated, not used to override the current catalogue/source.
 
 No new tables/columns are implemented or approved by this document. Object names, grants, cutoff, capacity and tests are proposals. Native connector identity permissions/path resolution, actual sync behavior and live runtime acceptance remain implementation checks. No historical receipt replay or unsupported recovery is promised.
 
@@ -25,3 +25,11 @@ Starting Git commit: `23c007105714c6c56b8484968019abd17f7e9a03`, branch `master`
 ## Verification and status
 
 Design complete. Saved handover was reviewed against inspected source anchors; all relative handover links resolve and Markdown code fences balance. Git whitespace checks passed. Publication review is limited to the three intended documentation files. The acceptance matrix is future implementation work, not evidence of executed tests. The final task response records verified commit/push status. Production implementation remains unperformed.
+
+## GCS preparation and simplification — same date
+
+Owner requested GCS configuration for review before creation, then questioned DEV buckets (there is no DEV Debian/agent) and routine separate display copies. Revised the handover to one private production bucket with direct original-object references, optional conversion only if rendering requires it, and synthetic tests without a permanent DEV storage environment.
+
+Added `outputs/receipt-storage-design-20260927/GCS_REVIEW.md` and its `gcs-review.png` screenshot. Prepared `mw-payment-receipts-prod-508610-n7` in the mapped Chrome/Google Cloud account: Singapore, Standard, uniform IAM, public access prevented, explicit seven-day soft delete, Google-managed encryption, no versioning/retention lock/lifecycle deletion. The project initially listed no buckets and enforced private/uniform access through organization policy. Closed the superseded display draft. **No Create action, resource, IAM/key, upload or runtime change occurred.** Creation remains pending the owner's requested review.
+
+Starting commit for this refinement: `92b9d2b21831cd2fe414a3e2b9ca30e52321f5d1`. Rollback is closing the unsaved form and a scoped documentation revert; no cloud-resource rollback is needed. UI values were read back and screenshot captured. Review links/whitespace and publish only this refinement's files; preserve the same unrelated work. New capability/runtime tests remain future implementation work.
