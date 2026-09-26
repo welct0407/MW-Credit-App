@@ -1,60 +1,262 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "metabase",
-    "component": "reports.mw-credit.com",
-    "kind": "question",
-    "name": "Matrix borrowers · scores, schedule and contribution / 275",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r034-matrix-order/verification.json"
-  },
-  "content": {
-    "key": "matrix-details",
-    "id": 275,
-    "name": "Matrix borrowers · scores, schedule and contribution",
-    "description": "Every active borrower, including unclassified/invalid plot inputs. Raw values, not display coordinates. Accessible companion for overlapping points and touch screens.",
-    "display": "table",
-    "dataset_query": {
-      "stages": [
-        {
-          "lib/type": "mbql.stage/native",
-          "native": "SELECT b.\"Description\" AS \"Borrower\",p.quadrant AS \"Category\",p.reliability_score AS \"Payment score /100\",p.arrangement_status AS \"Schedule\",p.relative_contribution AS \"Contribution ×\",p.contribution_30d AS \"Interest 30d ฿\",p.outstanding_principal AS \"Principal ฿\",p.confidence AS \"History\",p.plot_status AS \"Plot status\",p.position_basis AS \"Position basis\",p.classification_reason AS \"Category reason\",p.reporting_date AS \"As of\" FROM public.reporting_borrower_matrix_plot_v1 p JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=p.borrower_id ORDER BY CASE p.quadrant WHEN 'Star' THEN 1 WHEN 'Question Mark' THEN 2 WHEN 'Cash Cow' THEN 3 WHEN 'Dog' THEN 4 ELSE 5 END,b.\"Description\",p.borrower_id"
-        }
-      ],
-      "lib/type": "mbql/query",
-      "database": 2
-    },
-    "visualization_settings": {
-      "table.pivot": false,
-      "column_settings": {
-        "[\"name\",\"Payment score /100\"]": {
-          "number_style": "decimal",
-          "decimals": 1,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Contribution ×\"]": {
-          "number_style": "decimal",
-          "decimals": 2,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Interest 30d ฿\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Principal ฿\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,",
-          "compact": false
-        }
-      }
-    }
-  }
-}
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Matrix borrowers · scores, schedule and contribution / 275"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r034-matrix-order/verification.json"
+"content":
+  "key": "matrix-details"
+  "id": 275
+  "name": "Matrix borrowers · scores, schedule and contribution"
+  "description": "Every active borrower, including unclassified/invalid plot inputs. Raw values, not display coordinates.\
+    \ Accessible companion for overlapping points and touch screens."
+  "display": "table"
+  "dataset_query":
+    "lib/type": "mbql/query"
+    "stages":
+    - "lib/type": "mbql.stage/native"
+      "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",p.quadrant AS \"Category\",p.reliability_score\
+        \ AS \"Payment score /100\",p.arrangement_status AS \"Schedule\",p.relative_contribution AS \"Contribution ×\",p.contribution_30d\
+        \ AS \"Interest 30d ฿\",p.outstanding_principal AS \"Principal ฿\",p.confidence AS \"History\",p.plot_status AS \"\
+        Plot status\",p.position_basis AS \"Position basis\",p.classification_reason AS \"Category reason\",p.reporting_date\
+        \ AS \"As of\" FROM public.reporting_borrower_matrix_plot_v1 p JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"\
+        =p.borrower_id ORDER BY CASE p.quadrant WHEN 'Star' THEN 1 WHEN 'Question Mark' THEN 2 WHEN 'Cash Cow' THEN 3 WHEN\
+        \ 'Dog' THEN 4 ELSE 5 END,b.\"Description\",p.borrower_id"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "column_settings":
+      "[\"name\",\"Payment score /100\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Contribution ×\"]":
+        "number_style": "decimal"
+        "decimals": 2
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Interest 30d ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+    "table.columns":
+    - "name": "Borrower"
+      "fieldRef":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Category"
+      "fieldRef":
+      - "field"
+      - "Category"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Payment score /100"
+      "fieldRef":
+      - "field"
+      - "Payment score /100"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Schedule"
+      "fieldRef":
+      - "field"
+      - "Schedule"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Contribution ×"
+      "fieldRef":
+      - "field"
+      - "Contribution ×"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Interest 30d ฿"
+      "fieldRef":
+      - "field"
+      - "Interest 30d ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Principal ฿"
+      "fieldRef":
+      - "field"
+      - "Principal ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "History"
+      "fieldRef":
+      - "field"
+      - "History"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Plot status"
+      "fieldRef":
+      - "field"
+      - "Plot status"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Position basis"
+      "fieldRef":
+      - "field"
+      - "Position basis"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Category reason"
+      "fieldRef":
+      - "field"
+      - "Category reason"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "As of"
+      "fieldRef":
+      - "field"
+      - "As of"
+      - "base-type": "type/Date"
+      "enabled": true
+    - "name": "Borrower ID"
+      "fieldRef":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "enabled": false
+  "result_metadata":
+  - "name": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+  - "name": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Category"
+    "display_name": "Category"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Category"
+    - "base-type": "type/Text"
+  - "name": "Payment score /100"
+    "display_name": "Payment score /100"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": "type/Score"
+    "field_ref":
+    - "field"
+    - "Payment score /100"
+    - "base-type": "type/Decimal"
+  - "name": "Schedule"
+    "display_name": "Schedule"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Schedule"
+    - "base-type": "type/Text"
+  - "name": "Contribution ×"
+    "display_name": "Contribution ×"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Contribution ×"
+    - "base-type": "type/Decimal"
+  - "name": "Interest 30d ฿"
+    "display_name": "Interest 30d ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Interest 30d ฿"
+    - "base-type": "type/Decimal"
+  - "name": "Principal ฿"
+    "display_name": "Principal ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Principal ฿"
+    - "base-type": "type/Decimal"
+  - "name": "History"
+    "display_name": "History"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "History"
+    - "base-type": "type/Text"
+  - "name": "Plot status"
+    "display_name": "Plot status"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Plot status"
+    - "base-type": "type/Text"
+  - "name": "Position basis"
+    "display_name": "Position basis"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Position basis"
+    - "base-type": "type/Text"
+  - "name": "Category reason"
+    "display_name": "Category reason"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Category reason"
+    - "base-type": "type/Text"
+  - "name": "As of"
+    "display_name": "As of"
+    "base_type": "type/Date"
+    "effective_type": "type/Date"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "As of"
+    - "base-type": "type/Date"
+"evidence":
+  "/content/dataset_query":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/result_metadata":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"

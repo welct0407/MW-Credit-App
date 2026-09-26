@@ -1,84 +1,189 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "metabase",
-    "component": "reports.mw-credit.com",
-    "kind": "question",
-    "name": "Dog · active borrowers / 263",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r034-matrix-order/verification.json"
-  },
-  "content": {
-    "key": "dog",
-    "id": 263,
-    "name": "Dog · active borrowers",
-    "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual confirmations.",
-    "display": "table",
-    "dataset_query": {
-      "stages": [
-        {
-          "lib/type": "mbql.stage/native",
-          "native": "SELECT b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\",m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",m.arrangement_status AS \"Schedule\",h.overdue_amount AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Dog' ORDER BY m.contribution_30d DESC,m.borrower_id"
-        }
-      ],
-      "lib/type": "mbql/query",
-      "database": 2
-    },
-    "visualization_settings": {
-      "table.pivot": false,
-      "table.column_formatting": [
-        {
-          "columns": [
-            "Score"
-          ],
-          "type": "single",
-          "operator": ">=",
-          "value": 0,
-          "color": "#FBE7E5",
-          "highlight_row": true
-        }
-      ],
-      "column_settings": {
-        "[\"name\",\"Overdue ฿\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Principal ฿\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Interest 30d ฿\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Recorded loss ฿\"]": {
-          "number_style": "decimal",
-          "decimals": 0,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Score\"]": {
-          "number_style": "decimal",
-          "decimals": 1,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Value ×\"]": {
-          "number_style": "decimal",
-          "decimals": 2,
-          "number_separators": ".,",
-          "compact": false
-        }
-      }
-    }
-  }
-}
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Dog · active borrowers / 263"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r034-matrix-order/verification.json"
+"content":
+  "key": "dog"
+  "id": 263
+  "name": "Dog · active borrowers"
+  "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date\
+    \ coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual\
+    \ confirmations."
+  "display": "table"
+  "dataset_query":
+    "lib/type": "mbql/query"
+    "stages":
+    - "lib/type": "mbql.stage/native"
+      "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",m.reliability_score AS \"Score\"\
+        ,m.relative_contribution AS \"Value ×\",m.confidence AS \"History\",m.arrangement_status AS \"Schedule\",h.overdue_amount\
+        \ AS \"Overdue ฿\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id)\
+        \ JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id WHERE m.quadrant='Dog' ORDER BY m.contribution_30d\
+        \ DESC,m.borrower_id"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "table.column_formatting":
+    - "columns":
+      - "Score"
+      "type": "single"
+      "operator": ">="
+      "value": 0
+      "color": "#FBE7E5"
+      "highlight_row": true
+    "column_settings":
+      "[\"name\",\"Overdue ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Principal ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Interest 30d ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Recorded loss ฿\"]":
+        "number_style": "decimal"
+        "decimals": 0
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Score\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Value ×\"]":
+        "number_style": "decimal"
+        "decimals": 2
+        "number_separators": ".,"
+        "compact": false
+    "table.columns":
+    - "name": "Borrower"
+      "fieldRef":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Score"
+      "fieldRef":
+      - "field"
+      - "Score"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Value ×"
+      "fieldRef":
+      - "field"
+      - "Value ×"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "History"
+      "fieldRef":
+      - "field"
+      - "History"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Schedule"
+      "fieldRef":
+      - "field"
+      - "Schedule"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Overdue ฿"
+      "fieldRef":
+      - "field"
+      - "Overdue ฿"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Borrower ID"
+      "fieldRef":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "enabled": false
+  "result_metadata":
+  - "name": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+  - "name": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Score"
+    "display_name": "Score"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": "type/Score"
+    "field_ref":
+    - "field"
+    - "Score"
+    - "base-type": "type/Decimal"
+  - "name": "Value ×"
+    "display_name": "Value ×"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Value ×"
+    - "base-type": "type/Decimal"
+  - "name": "History"
+    "display_name": "History"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "History"
+    - "base-type": "type/Text"
+  - "name": "Schedule"
+    "display_name": "Schedule"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Schedule"
+    - "base-type": "type/Text"
+  - "name": "Overdue ฿"
+    "display_name": "Overdue ฿"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Overdue ฿"
+    - "base-type": "type/Decimal"
+"evidence":
+  "/content/dataset_query":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/result_metadata":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"

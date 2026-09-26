@@ -1,6 +1,6 @@
 {
   "release": "R043",
-  "status": "Frozen for authorized publication",
+  "status": "Released",
   "frozenAt": "2026-09-26T15:18:01.214687+00:00",
   "startingCommit": "291da0105df4b698defd10dacd0d4b0f2c2652e7",
   "scope": "Canonical tabs 7/8; retire original Insight; borrower drill-through from 6/7",
@@ -13,5 +13,15 @@
     "scripts/metabase/chart_service/chart.js": "e88f08572651f0b558b59f1fe65f044957dc34f9383dc676feb27514ae6ac233",
     "scripts/metabase/chart_service/index.html": "ae57f5fa18e93f97555c1e6d085e1d8b7f6831985616081227760bbacab43aec",
     "outputs/r043-borrower-navigation/plan.json": "bda863f66c4c01d8ea1ac6feb5016d876b7365b0610d9d61da0182bebc939f80"
-  }
+  },
+  "implementationCommit": "7dd4468",
+  "backupDashboard": 20,
+  "tag": "R043",
+  "validation": "verification.json; browser-verification.json; dictionary validate",
+  "candidateCorrection": "Matrix target _blank + noopener for iframe sandbox; redirect five pre-existing Collection Monitor links from retired tab10",
+  "deployedStaticHashes": {
+    "chartSha256": "884481fb3c9378951c281ba7fe38860a60275bdd9852d05ea605c56afae970a7",
+    "htmlSha256": "ae57f5fa18e93f97555c1e6d085e1d8b7f6831985616081227760bbacab43aec"
+  },
+  "finalNavigationScriptSha256": "9f58dcebfcc09bbf4da3861ba3030667f7e556839d1be50f1af147c7ffc9955e"
 }

@@ -82,7 +82,7 @@ function draw(){
     if(!best||score<best.score)best={...box,cx,cy,score};
    }
    boxes.push(best);
-   const link=el('a',{href:detailUrl(r.borrower_id),target:'_top','aria-label':'Open '+r.name+' in Borrower Detail'});
+   const link=el('a',{href:detailUrl(r.borrower_id),target:'_blank',rel:'noopener','aria-label':'Open '+r.name+' in Borrower Detail'});
    link.append(el('text',{x:best.cx,y:best.cy,fill:s.color,class:'name','text-anchor':'middle'},name));
    link.addEventListener('click',e=>e.stopPropagation());link.addEventListener('keydown',e=>e.stopPropagation());g.append(link);
   }
@@ -94,7 +94,7 @@ function draw(){
  }
  const excluded=rows.filter(r=>!plotted.some(p=>p.borrower_id===r.borrower_id));$('unplotted').hidden=!excluded.length;
  $('unplotted').querySelector('summary').textContent=`Not plotted (${excluded.length})`;
- const list=$('unplotted').querySelector('ul');list.replaceChildren();for(const r of excluded){const li=document.createElement('li'),link=document.createElement('a');link.href=detailUrl(r.borrower_id);link.target='_top';link.textContent=r.name;li.append(link,document.createTextNode(' — '+r.plot_status));list.append(li);}
+ const list=$('unplotted').querySelector('ul');list.replaceChildren();for(const r of excluded){const li=document.createElement('li'),link=document.createElement('a');link.href=detailUrl(r.borrower_id);link.target='_blank';link.rel='noopener';link.textContent=r.name;li.append(link,document.createTextNode(' — '+r.plot_status));list.append(li);}
 }
 async function refresh(){
  if(requestBusy)return;requestBusy=true;$('refresh').disabled=true;const current=++generation;

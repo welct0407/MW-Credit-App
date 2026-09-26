@@ -6,4 +6,8 @@ Changed assets: dashboard3 tabs/layout, ten Health Review questions plus Portfol
 
 Starting commit291da010; unrelated Risks work preserved. Eleven query comparisons passed without changing existing values. Private baseline captured before mutations; dashboard recovery copy and remote static backup precede publication.
 
-Status: R043 frozen at authorized publication start; R044 opened in the same tracker change. Live verification/documentation closure pending.
+Status: R043 frozen at authorized publication start; R044 opened in the same tracker change. Published and verified: 11 tabs /223 placements; recovery dashboard20. Health table, Portfolio comparison with preserved dates, and custom matrix links opened the selected borrower. Initial matrix parent navigation was blocked by the existing sandbox; changed to a new browser tab with noopener and verified. AppSheet/SQL untouched.
+
+Exact report definitions and tab/filter/link configuration updated in the dictionary; Solution Design, original handover, environment and development records aligned. Sanitized evidence published to master with final unique tagR043; private financial screenshots and bearer-bearing rollback stay outside Git.
+
+Retirement dependency scan found five Collection Monitor links targeting old tab10; redirected and visually verified, for23 linked placements total. Static UTF-8 labels preserved during the target correction.

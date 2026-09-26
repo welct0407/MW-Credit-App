@@ -1,5 +1,7 @@
 # Borrower Portfolio and Borrower Detail — implementation handover
 
+**R043 canonical navigation:** Portfolio is tab6 (ID104); Health Review is tab7 (ID31); Detail is tab8 (ID105). Original Insight ID10 is removed. All ten health tables and matrix names link to Detail by hidden borrower key; Portfolio comparison preserves selected dates. Matrix links open a new browser tab within existing sandbox permissions. [Implementation and rollback](../r043-borrower-navigation/README.md). This supersedes the earlier additive-only page status below.
+
 **R039 correction:** Both original amount-ranking bars are restored alongside the two pies and two lifetime ratio charts. [Six-chart layout](../r039-restore-borrower-bars/README.md).
 
 

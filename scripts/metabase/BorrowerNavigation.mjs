@@ -8,6 +8,7 @@ const save=(n,x,dir=out)=>fs.writeFileSync(`${dir}/${n}.json`,JSON.stringify(x,n
 const read=(n,dir=priv)=>JSON.parse(fs.readFileSync(`${dir}/${n}.json`,'utf8'));
 const health=[259,261,263,265,267,268,269,271,272,275];
 const charts=[285,286,287,311,312,313,314];
+const inbound=[640,636,638,645,642];
 const sql=c=>c.dataset_query.stages?.[0]?.native??c.dataset_query.native.query;
 const link={type:'link',linkType:'url',linkTemplate:'https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days'};
 const shape=d=>d.dashcards.map(({id,card_id,dashboard_tab_id,row,col,size_x,size_y,parameter_mappings,visualization_settings,series})=>({id,card_id,dashboard_tab_id,row,col,size_x,size_y,parameter_mappings,visualization_settings,series})).sort((a,b)=>a.id-b.id);
@@ -19,6 +20,7 @@ function layout(d){
  for(const c of cards){
   if(c.dashboard_tab_id===31&&health.includes(c.card_id)){c.visualization_settings.column_settings??={};c.visualization_settings.column_settings['["name","Borrower"]']={...c.visualization_settings.column_settings['["name","Borrower"]'],click_behavior:link};}
   if(c.dashboard_tab_id===104&&charts.includes(c.card_id))c.visualization_settings.click_behavior=link;
+  if(inbound.includes(c.id))c.visualization_settings.column_settings['["name","Borrower"]'].click_behavior=link;
   if(c.id===2158)c.visualization_settings.text='### Borrower comparison\nClick a name to open tab 8 · Borrower Detail with these activity dates. Shares use the selected population; hidden operational records remain included.';
   if(c.id===833)c.visualization_settings.text='## Borrower Health Review\nClick a borrower name in a table or the matrix to open tab 8 · Borrower Detail. Detail activity starts with the previous 30 completed days.';
  }
@@ -55,12 +57,19 @@ if(process.argv.includes('--publish')){
  await api('PUT','dashboard/3',{parameters:next.parameters});
  console.log('Published canonical borrower tabs and links; backup '+backup.id);
 }
+if(process.argv.includes('--repair-inbound')){
+ await assertSource();const {d}=read('before'),live=await api('GET','dashboard/3'),next=layout(d);
+ assert.deepEqual(shape({dashcards:live.dashcards.filter(c=>!inbound.includes(c.id))}),shape({dashcards:next.cards.filter(c=>!inbound.includes(c.id))}));
+ assert.deepEqual(tabs(live.tabs),tabs(next.tabs));assert.deepEqual(live.parameters,next.parameters);
+ for(const id of inbound)assert.deepEqual(shape({dashcards:[live.dashcards.find(c=>c.id===id)]}),shape({dashcards:[d.dashcards.find(c=>c.id===id)]}));
+ save('before-inbound',live,priv);await api('PUT','dashboard/3/cards',{tabs:live.tabs,cards:next.cards});console.log('Five existing Collection Monitor links redirected to canonical Detail');
+}
 if(process.argv.includes('--verify')){
  await assertSource();const {d}=read('before'),next=layout(d),live=await api('GET','dashboard/3');
  assert.deepEqual(tabs(live.tabs),tabs(next.tabs));assert.deepEqual(shape(live),shape({dashcards:next.cards}));assert.deepEqual(live.parameters,next.parameters);
- const questions=[];for(const p of read('plan',out).questions){const c=await api('GET','card/'+p.id);assert.equal(sql(c),sql(p));assert.deepEqual(c.visualization_settings,p.visualization_settings);await query(c.dataset_query);questions.push({...p,dataset_query:c.dataset_query,result_metadata:c.result_metadata});}
+ const questions=[];for(const p of read('plan',out).questions){const c=await api('GET','card/'+p.id);assert.equal(sql(c),sql(p));assert.deepEqual(c.visualization_settings,p.visualization_settings);await query(c.dataset_query);questions.push({...p,dataset_query:c.dataset_query,result_metadata:c.result_metadata?.map(({name,display_name,base_type,effective_type,semantic_type,field_ref})=>({name,display_name,base_type,effective_type,semantic_type,field_ref}))});}
  for(const id of new Set(d.dashcards.filter(c=>c.dashboard_tab_id===10&&c.card_id).map(c=>c.card_id)))assert.equal((await api('GET','card/'+id)).archived,false);
  // Public evidence excludes the credential-bearing iframe and all result rows.
- const linked=live.dashcards.filter(c=>health.includes(c.card_id)&&c.dashboard_tab_id===31||[...charts,289].includes(c.card_id)&&c.dashboard_tab_id===104).map(({id,card_id,dashboard_tab_id,visualization_settings})=>({id,card_id,dashboard_tab_id,visualization_settings}));
+ const linked=live.dashcards.filter(c=>health.includes(c.card_id)&&c.dashboard_tab_id===31||[...charts,289].includes(c.card_id)&&c.dashboard_tab_id===104||inbound.includes(c.id)).map(({id,card_id,dashboard_tab_id,visualization_settings})=>({id,card_id,dashboard_tab_id,visualization_settings}));
  save('saved',{questions,tabs:live.tabs,parameters:live.parameters,links:linked});save('verification',{passed:true,questionsExecuted:questions.length,tabs:live.tabs.length,placements:live.dashcards.length,retiredQuestionsPreserved:true,unaffectedPlacementsPreserved:true,hiddenIds:true,backupDashboard:read('state',out).backupDashboard});console.log('Saved tabs, all links, hidden keys, queries and unaffected placements verified');
 }

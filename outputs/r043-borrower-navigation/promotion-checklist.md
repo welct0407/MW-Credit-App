@@ -4,15 +4,15 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 ## Continue here
 
-- Scope / dependencies / app Upgrade or Unchanged decisions: Pending
-- Release scope / freeze timestamp / successor handoff: Open until authorized promotion starts; then record P13 evidence and update the tracker's current development release.
-- Manifest / change log / test evidence: Pending
-- DEV readiness / owner acceptance: Pending
-- Production authorization / approved RC revision: Pending
-- DEV / RC / PROD-before / PROD-after / rollback / SQL versions: in linked manifest; Pending
-- Implementation commit / Flyway manifest / final tag: in linked manifest; Pending
-- Completed / next / blockers: Pending
-- Documentation impact: Pending — list affected paths or None with a scope-based reason; add their closure rows below.
+- Scope / dependencies / app Upgrade or Unchanged decisions: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- Release scope / freeze timestamp / successor handoff: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- Manifest / change log / test evidence: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- DEV readiness / owner acceptance: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- Production authorization / approved RC revision: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- DEV / RC / PROD-before / PROD-after / rollback / SQL versions: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- Implementation commit / Flyway manifest / final tag: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- Completed / next / blockers: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- Documentation impact: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
 
 ## Execution rules
 
@@ -32,20 +32,20 @@ Execute applicable rows in order; one result/evidence link per coherent check. S
 | P22 | C SQL | SQL changes / DB writes | Verify restorable DB backup, schema drift and history; then validate/migrate/validate with the pinned manifest and existing runner. Record target/schema checks and before/after SQL versions. Complete compatible SQL before final RC PROD validation. | N/A | Report/static navigation only; no SQL, AppSheet, RC, schedule, financial write or permission change. |
 | P25 | D RC | App Upgrade | Rebind/reconcile every RC table/view and auxiliary source to PROD host/database/object. Save exact mappings once. No DEV source remains. Keep RC contained before PROD binding. | N/A | Report/static navigation only; no SQL, AppSheet, RC, schedule, financial write or permission change. |
 | P18 | D RC | App Upgrade | Capture the existing PROD logo setting/appearance; apply the corresponding PROD theme/branding/logo and companion links. If needed restore the correct logo from resources/ in durable PROD/shared storage, independent of RC lifetime. Keep shared recipients on PROD contact data; confirm Login Email prerequisites. Restore only documented legacy DEV overrides. Verify these substitutions once. | N/A | Report/static navigation only; no SQL, AppSheet, RC, schedule, financial write or permission change. |
-| P28 | D RC | External asset / access changes | Provision/check only affected templates, files, grants, endpoints and integrations outside App Upgrade. Link existing evidence for unchanged assets. | Pending | |
+| P28 | D RC | External asset / access changes | Provision/check only affected templates, files, grants, endpoints and integrations outside App Upgrade. Link existing evidence for unchanged assets. | Done | Saved-state/query verification.json, Chrome browser-verification.json, exact dictionary and documentation closure. See README.md. |
 | P29 | D RC | App Upgrade | Check copied guard coverage and this RC’s exact name exclusion; retain canonical DEV/PROD literals and intended bot states/schedules. Reuse runtime proof; no repeated diagnostic app or wait for every daily job. | N/A | Report/static navigation only; no SQL, AppSheet, RC, schedule, financial write or permission change. |
 | P30 | D RC | App Upgrade | One RC validation pass: save/reload, editor data validation, zero issues, open/sync and representative changed screens. Resolve unexpected generated changes only. Complete initial Deployment Check and deploy new RC; reuse DEV business tests. | N/A | Report/static navigation only; no SQL, AppSheet, RC, schedule, financial write or permission change. |
 | P33 | E Upgrade | App Upgrade | Freeze final deployed RC identity/version and mapping evidence. Confirm authorization covers that revision. Immediately before each upgrade, confirm unchanged PROD baseline and frozen RC version; drift/fixes require a new integrated RC. | N/A | Report/static navigation only; no SQL, AppSheet, RC, schedule, financial write or permission change. |
 | P37 | E Upgrade | Each included app | App Upgrade the existing PROD ID from the frozen RC’s full internal name in planned order. Record source, target and before/after versions. Confirm success before dependent steps; never hand-recreate settings in PROD. | N/A | Report/static navigation only; no SQL, AppSheet, RC, schedule, financial write or permission change. |
-| P39 | F Validate | Always; mappings if upgraded | One PROD pass: verify version/Deployed state, sources/substitutions, PROD-allowed/RC-excluded guards, both editors clear and both apps open/sync with changed entry points. Visually verify each upgraded logo loads and matches its pre-promotion appearance; use resources/ originals if restoration is needed and recheck the affected logo. Check recipients only if changed. Reuse DEV tests; no repeat Deployment Check. | Pending | |
-| P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | Pending | |
+| P39 | F Validate | Always; mappings if upgraded | One PROD pass: verify version/Deployed state, sources/substitutions, PROD-allowed/RC-excluded guards, both editors clear and both apps open/sync with changed entry points. Visually verify each upgraded logo loads and matches its pre-promotion appearance; use resources/ originals if restoration is needed and recheck the affected logo. Check recipients only if changed. Reuse DEV tests; no repeat Deployment Check. | Done | Saved-state/query verification.json, Chrome browser-verification.json, exact dictionary and documentation closure. See README.md. |
+| P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | Done | Saved-state/query verification.json, Chrome browser-verification.json, exact dictionary and documentation closure. See README.md. |
 | P38 | F Validate | Paused jobs / cutover steps | Complete approved external cutover steps and resume temporary pauses. Keep integrity triggers and one active scheduler per job/environment. | N/A | Report/static navigation only; no SQL, AppSheet, RC, schedule, financial write or permission change. |
-| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Pending | |
-| P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Pending | |
+| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Done | Saved-state/query verification.json, Chrome browser-verification.json, exact dictionary and documentation closure. See README.md. |
+| P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Done | Saved-state/query verification.json, Chrome browser-verification.json, exact dictionary and documentation closure. See README.md. |
 | P49 | G Close | RC exists | After all upgrades and required PROD validation pass, automatically delete the recorded RC apps for this promotion, including rejected/superseded attempts; no further owner confirmation. Delete definitions only, preserving DEV/PROD, shared data/files/logos and recovery evidence. Verify deletion and update manifest/log/inventory/checklist before P48. Keep failed/incomplete promotion RCs contained; report cleanup failures as pending. No DEV refresh. | N/A | Report/static navigation only; no SQL, AppSheet, RC, schedule, financial write or permission change. |
-| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | Pending | |
-| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | Pending | |
-| P51 | X Exception | Failure / drift / required gap only | Stop affected dependent steps, record actual partial state and follow only the matching recovery branch. Preserve later writes/work; no blind replay or manual PROD fallback. Ask only for missing authority/material decisions. Reconcile resulting status and documents. | Pending | |
+| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | Done | Final sanitized evidence committed/pushed to master and unique annotated R043 tag; remote checked before completion report. |
+| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | Done | Saved-state/query verification.json, Chrome browser-verification.json, exact dictionary and documentation closure. See README.md. |
+| P51 | X Exception | Failure / drift / required gap only | Stop affected dependent steps, record actual partial state and follow only the matching recovery branch. Preserve later writes/work; no blind replay or manual PROD fallback. Ask only for missing authority/material decisions. Reconcile resulting status and documents. | Done | Matrix iframe forbids top navigation: use a new browser tab with noopener; live click passed. No permissions changed. |
 
 ## Documentation impact and closure
 
@@ -55,14 +55,16 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Pending | |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Pending | |
-| [Development Changes](../../../Documents/Development_Changes.md) | Pending | |
+| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | R043 current report/navigation checkpoint and evidence. |
+| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | R043 current report/navigation checkpoint and evidence. |
+| [Development Changes](../../../Documents/Development_Changes.md) | Updated | R043 current report/navigation checkpoint and evidence. |
+| Metabase dictionary | Updated | Eleven questions; current tabs/filters and exact click settings. |
+| Solution Design and borrower handover | Updated | Canonical navigation and matrix new-tab behavior. |
 
 ## Close
 
-- Outcome / limitations / rollback: Pending
-- Final evidence commit / Rnnn tag / remote verification: Pending
-- RC cleanup / verified deleted IDs and evidence: Pending or justified N/A
+- Outcome / limitations / rollback: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- Final evidence commit / Rnnn tag / remote verification: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
+- RC cleanup / verified deleted IDs and evidence: Completed; see README.md, release-manifest.json and verification.json. R043 package7dd4468; R044 sole Open. Apps/SQL unchanged; recovery20; final tagR043.
 
 Released requires applicable activities, documentation, RC cleanup and publication complete. If only documents/publication remain, repair them without redeploying. Record final outcome in the manifest/tracker before the final evidence commit and verify publication afterward; do not create self-referential commit hashes.

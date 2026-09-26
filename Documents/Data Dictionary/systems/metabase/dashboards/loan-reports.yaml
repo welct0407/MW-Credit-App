@@ -48,96 +48,49 @@
     "entity_id": "Rt-KpcwfxjGRTvoTHNOda"
     "created_at": "2026-09-23T19:06:46.29572Z"
     "updated_at": "2026-09-24T10:42:03.352479Z"
-  - "id": 6
+  - "id": 104
     "dashboard_id": 3
     "name": "6 · Borrowers"
     "position": 5
-    "entity_id": "8lcXD4OYDrJgkEqOmjKW0"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-24T10:42:03.352479Z"
+    "entity_id": "axmyErpiqSJVut7iwChk0"
+    "created_at": "2026-09-25T10:04:37.03364Z"
+    "updated_at": "2026-09-26T12:41:15.018539Z"
   - "id": 31
     "dashboard_id": 3
-    "name": "6R · Borrower Health Review"
+    "name": "7 · Borrower Health Review"
     "position": 6
     "entity_id": "KF8iAxuaMJ9i_vvEfnG0Z"
     "created_at": "2026-09-24T16:28:03.768309Z"
-    "updated_at": "2026-09-24T16:28:03.768309Z"
+    "updated_at": "2026-09-26T15:18:44.078815Z"
+  - "id": 105
+    "dashboard_id": 3
+    "name": "8 · Borrower Detail"
+    "position": 7
+    "entity_id": "hLWPca6nwYbuJ6O6YvfUx"
+    "created_at": "2026-09-25T10:04:37.03364Z"
+    "updated_at": "2026-09-26T15:18:44.078815Z"
   - "id": 8
     "dashboard_id": 3
-    "name": "7 · Risks"
-    "position": 7
+    "name": "9 · Risks"
+    "position": 8
     "entity_id": "7cljPwmKjTMUi9DQ431Ah"
     "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-24T16:28:03.768309Z"
+    "updated_at": "2026-09-26T15:18:44.078815Z"
   - "id": 19
     "dashboard_id": 3
-    "name": "8 · Collection Monitor"
-    "position": 8
+    "name": "10 · Collection Monitor"
+    "position": 9
     "entity_id": "HTvmH4G_pettfrl6shBpy"
     "created_at": "2026-09-24T11:35:18.286275Z"
-    "updated_at": "2026-09-24T16:28:03.768309Z"
-  - "id": 10
-    "dashboard_id": 3
-    "name": "9 · Borrower Insight"
-    "position": 9
-    "entity_id": "jVJL2DkBQTXKfzw0h0kP6"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-24T16:28:03.768309Z"
+    "updated_at": "2026-09-26T15:18:44.078815Z"
   - "id": 11
     "dashboard_id": 3
-    "name": "10 · Forecast & Partners"
+    "name": "11 · Forecast & Partners"
     "position": 10
     "entity_id": "HpX0Vj4mHUGAPeopmzU_l"
     "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-24T16:28:03.768309Z"
-  - "id": 17
-    "dashboard_id": 3
-    "name": "Tab 11"
-    "position": 11
-    "entity_id": "ekTtfQu8cvMG2Ys54NoPc"
-    "created_at": "2026-09-23T17:25:33.780214Z"
-    "updated_at": "2026-09-24T16:28:03.768309Z"
-  - "id": 104
-    "dashboard_id": 3
-    "name": "Borrower Portfolio · New"
-    "position": 12
-    "entity_id": "axmyErpiqSJVut7iwChk0"
-    "created_at": "2026-09-25T10:04:37.03364Z"
-    "updated_at": "2026-09-25T10:04:37.03364Z"
-  - "id": 105
-    "dashboard_id": 3
-    "name": "Borrower Detail · New"
-    "position": 13
-    "entity_id": "hLWPca6nwYbuJ6O6YvfUx"
-    "created_at": "2026-09-25T10:04:37.03364Z"
-    "updated_at": "2026-09-25T10:04:37.03364Z"
+    "updated_at": "2026-09-26T15:18:44.078815Z"
   "parameters":
-  - "slug": "borrower"
-    "values_query_type": "list"
-    "name": "Borrower"
-    "isMultiSelect": false
-    "type": "string/="
-    "sectionId": "string"
-    "values_source_type": "card"
-    "id": "insight-borrower"
-    "values_source_config":
-      "card_id": 161
-      "value_field":
-      - "field"
-      - "Borrower ID"
-      - "base-type": "type/Text"
-      "label_field":
-      - "field"
-      - "Borrower"
-      - "base-type": "type/Text"
-  - "id": "proposed-amount"
-    "name": "Proposed loan"
-    "slug": "proposed_amount"
-    "type": "number/="
-    "sectionId": "number"
-    "default":
-    - 0
-    "isMultiSelect": false
   - "id": "overview-trend-period"
     "name": "Portfolio trend period"
     "slug": "overview_trend_period"
@@ -5794,6 +5747,234 @@
             - "borrower_id"
         "visualization_settings": {}
         "series": []
+  "borrower_navigation":
+    "release": "R043"
+    "definition_reference": "outputs/r043-borrower-navigation/saved.json"
+    "retired_tab": 10
+    "retired_parameters":
+    - "insight-borrower"
+    - "proposed-amount"
+    "links":
+    - "id": 638
+      "card_id": 243
+      "dashboard_tab_id": 19
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 645
+      "card_id": 248
+      "dashboard_tab_id": 19
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 642
+      "card_id": 247
+      "dashboard_tab_id": 19
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 640
+      "card_id": 245
+      "dashboard_tab_id": 19
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 636
+      "card_id": 241
+      "dashboard_tab_id": 19
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 854
+      "card_id": 268
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 841
+      "card_id": 259
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 843
+      "card_id": 261
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 847
+      "card_id": 265
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 852
+      "card_id": 269
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 851
+      "card_id": 267
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 845
+      "card_id": 263
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 1065
+      "card_id": 271
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 1066
+      "card_id": 272
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 1279
+      "card_id": 275
+      "dashboard_tab_id": 31
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 2156
+      "card_id": 287
+      "dashboard_tab_id": 104
+      "visualization_settings":
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 2159
+      "card_id": 289
+      "dashboard_tab_id": 104
+      "visualization_settings":
+        "column_settings":
+          "[\"name\",\"Borrower\"]":
+            "click_behavior":
+              "type": "link"
+              "linkType": "url"
+              "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity={{Period\
+                \ start}}~{{Period end}}"
+    - "id": 2439
+      "card_id": 313
+      "dashboard_tab_id": 104
+      "visualization_settings":
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 2438
+      "card_id": 312
+      "dashboard_tab_id": 104
+      "visualization_settings":
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 2437
+      "card_id": 311
+      "dashboard_tab_id": 104
+      "visualization_settings":
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 2440
+      "card_id": 314
+      "dashboard_tab_id": 104
+      "visualization_settings":
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 2955
+      "card_id": 285
+      "dashboard_tab_id": 104
+      "visualization_settings":
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    - "id": 2956
+      "card_id": 286
+      "dashboard_tab_id": 104
+      "visualization_settings":
+        "click_behavior":
+          "type": "link"
+          "linkType": "url"
+          "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity=past30days"
+    "matrix_names": "Open Detail105 in a new browser tab by encoded borrower_id, previous30 completed days; iframe sandbox\
+      \ retained."
+    "recovery_dashboard": 20
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -5808,16 +5989,16 @@
     "reason": "Tab 9 category labels and daily income/expense comparison"
     "state": "value"
   "/content/tabs":
-    "reference": "outputs/r035-borrower-pages/README.md"
-    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
     "state": "value"
   "/content/performance_review":
     "reference": "outputs/r024-20260924/README.md"
     "reason": "Swap canonical Performance and Borrowers display order"
     "state": "value"
   "/content/parameters":
-    "reference": "outputs/r036-collection-status-colors/order-verification.json"
-    "reason": "Owner-requested Collection Monitor status-lane and selector order"
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
     "state": "value"
   "/content/unaffected_pages":
     "reference": "outputs/r023-20260924/README.md"
@@ -5858,4 +6039,8 @@
   "/content/borrower_pages/payment_receipts":
     "reference": "outputs/r042-borrower-payments/README.md"
     "reason": "R042 saved report definitions and V46 live catalog"
+    "state": "value"
+  "/content/borrower_navigation":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
     "state": "value"

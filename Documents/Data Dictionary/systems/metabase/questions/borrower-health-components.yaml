@@ -1,88 +1,361 @@
-{
-  "format": 1,
-  "identity": {
-    "system": "metabase",
-    "component": "reports.mw-credit.com",
-    "kind": "question",
-    "name": "Reliability components & effective weights · active borrowers / 268",
-    "scope": "production"
-  },
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r028-schedule-health/saved-question-definitions.json"
-  },
-  "content": {
-    "key": "components",
-    "id": 268,
-    "name": "Reliability components & effective weights · active borrowers",
-    "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual confirmations.",
-    "display": "table",
-    "dataset_query": {
-      "stages": [
-        {
-          "lib/type": "mbql.stage/native",
-          "native": "SELECT b.\"Description\" AS \"Borrower\",h.rating_status AS \"Status\",h.reliability_score AS \"Final /100\",h.raw_score AS \"Raw /100\",h.recent_score AS \"Recent /100\",h.recent_effective_weight AS \"Recent weight\",h.older_score AS \"Older /100\",h.older_effective_weight AS \"Older weight\",h.delay_score AS \"Delay /100\",h.delay_effective_weight AS \"Delay weight\",h.current_score AS \"Current /100\",h.current_effective_weight AS \"Current weight\",h.score_cap_applied AS \"Cap applied\",h.recent_on_time_count AS \"Recent on time\",h.recent_obligation_count AS \"Recent observations\",h.history_span_days AS \"History days\",h.confidence AS \"Confidence\" FROM public.reporting_borrower_matrix_v3 m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=m.borrower_id ORDER BY h.reliability_score ASC NULLS FIRST,h.borrower_id"
-        }
-      ],
-      "lib/type": "mbql/query",
-      "database": 2
-    },
-    "visualization_settings": {
-      "table.pivot": false,
-      "column_settings": {
-        "[\"name\",\"Older weight\"]": {
-          "number_style": "percent",
-          "decimals": 1
-        },
-        "[\"name\",\"Delay /100\"]": {
-          "number_style": "decimal",
-          "decimals": 1,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Delay weight\"]": {
-          "number_style": "percent",
-          "decimals": 1
-        },
-        "[\"name\",\"Current weight\"]": {
-          "number_style": "percent",
-          "decimals": 1
-        },
-        "[\"name\",\"Recent weight\"]": {
-          "number_style": "percent",
-          "decimals": 1
-        },
-        "[\"name\",\"Older /100\"]": {
-          "number_style": "decimal",
-          "decimals": 1,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Recent /100\"]": {
-          "number_style": "decimal",
-          "decimals": 1,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Current /100\"]": {
-          "number_style": "decimal",
-          "decimals": 1,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Final /100\"]": {
-          "number_style": "decimal",
-          "decimals": 1,
-          "number_separators": ".,",
-          "compact": false
-        },
-        "[\"name\",\"Raw /100\"]": {
-          "number_style": "decimal",
-          "decimals": 1,
-          "number_separators": ".,",
-          "compact": false
-        }
-      }
-    }
-  }
-}
+"format": 1
+"identity":
+  "system": "metabase"
+  "component": "reports.mw-credit.com"
+  "kind": "question"
+  "name": "Reliability components & effective weights · active borrowers / 268"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r028-schedule-health/saved-question-definitions.json"
+"content":
+  "key": "components"
+  "id": 268
+  "name": "Reliability components & effective weights · active borrowers"
+  "description": "R028 automatic schedule categories. Payment score unchanged; auto-off plus <80% interest amount OR charge-date\
+    \ coverage, >=7 observed days and >=2 due dates, restricts upper categories. Current 30 completed Bangkok days; no manual\
+    \ confirmations."
+  "display": "table"
+  "dataset_query":
+    "lib/type": "mbql/query"
+    "stages":
+    - "lib/type": "mbql.stage/native"
+      "native": "SELECT b.\"Row ID\" AS \"Borrower ID\",b.\"Description\" AS \"Borrower\",h.rating_status AS \"Status\",h.reliability_score\
+        \ AS \"Final /100\",h.raw_score AS \"Raw /100\",h.recent_score AS \"Recent /100\",h.recent_effective_weight AS \"\
+        Recent weight\",h.older_score AS \"Older /100\",h.older_effective_weight AS \"Older weight\",h.delay_score AS \"Delay\
+        \ /100\",h.delay_effective_weight AS \"Delay weight\",h.current_score AS \"Current /100\",h.current_effective_weight\
+        \ AS \"Current weight\",h.score_cap_applied AS \"Cap applied\",h.recent_on_time_count AS \"Recent on time\",h.recent_obligation_count\
+        \ AS \"Recent observations\",h.history_span_days AS \"History days\",h.confidence AS \"Confidence\" FROM public.reporting_borrower_matrix_v3\
+        \ m JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) JOIN public.olap_borrowers_analytics b ON\
+        \ b.\"Row ID\"=m.borrower_id ORDER BY h.reliability_score ASC NULLS FIRST,h.borrower_id"
+    "database": 2
+  "visualization_settings":
+    "table.pivot": false
+    "column_settings":
+      "[\"name\",\"Older weight\"]":
+        "number_style": "percent"
+        "decimals": 1
+      "[\"name\",\"Delay /100\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Delay weight\"]":
+        "number_style": "percent"
+        "decimals": 1
+      "[\"name\",\"Current weight\"]":
+        "number_style": "percent"
+        "decimals": 1
+      "[\"name\",\"Recent weight\"]":
+        "number_style": "percent"
+        "decimals": 1
+      "[\"name\",\"Older /100\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Recent /100\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Current /100\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Final /100\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+      "[\"name\",\"Raw /100\"]":
+        "number_style": "decimal"
+        "decimals": 1
+        "number_separators": ".,"
+        "compact": false
+    "table.columns":
+    - "name": "Borrower"
+      "fieldRef":
+      - "field"
+      - "Borrower"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Status"
+      "fieldRef":
+      - "field"
+      - "Status"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Final /100"
+      "fieldRef":
+      - "field"
+      - "Final /100"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Raw /100"
+      "fieldRef":
+      - "field"
+      - "Raw /100"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Recent /100"
+      "fieldRef":
+      - "field"
+      - "Recent /100"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Recent weight"
+      "fieldRef":
+      - "field"
+      - "Recent weight"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Older /100"
+      "fieldRef":
+      - "field"
+      - "Older /100"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Older weight"
+      "fieldRef":
+      - "field"
+      - "Older weight"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Delay /100"
+      "fieldRef":
+      - "field"
+      - "Delay /100"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Delay weight"
+      "fieldRef":
+      - "field"
+      - "Delay weight"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Current /100"
+      "fieldRef":
+      - "field"
+      - "Current /100"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Current weight"
+      "fieldRef":
+      - "field"
+      - "Current weight"
+      - "base-type": "type/Decimal"
+      "enabled": true
+    - "name": "Cap applied"
+      "fieldRef":
+      - "field"
+      - "Cap applied"
+      - "base-type": "type/Boolean"
+      "enabled": true
+    - "name": "Recent on time"
+      "fieldRef":
+      - "field"
+      - "Recent on time"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Recent observations"
+      "fieldRef":
+      - "field"
+      - "Recent observations"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "History days"
+      "fieldRef":
+      - "field"
+      - "History days"
+      - "base-type": "type/Integer"
+      "enabled": true
+    - "name": "Confidence"
+      "fieldRef":
+      - "field"
+      - "Confidence"
+      - "base-type": "type/Text"
+      "enabled": true
+    - "name": "Borrower ID"
+      "fieldRef":
+      - "field"
+      - "Borrower ID"
+      - "base-type": "type/Text"
+      "enabled": false
+  "result_metadata":
+  - "name": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower ID"
+    - "base-type": "type/Text"
+  - "name": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Borrower"
+    - "base-type": "type/Text"
+  - "name": "Status"
+    "display_name": "Status"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": "type/Category"
+    "field_ref":
+    - "field"
+    - "Status"
+    - "base-type": "type/Text"
+  - "name": "Final /100"
+    "display_name": "Final /100"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Final /100"
+    - "base-type": "type/Decimal"
+  - "name": "Raw /100"
+    "display_name": "Raw /100"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Raw /100"
+    - "base-type": "type/Decimal"
+  - "name": "Recent /100"
+    "display_name": "Recent /100"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Recent /100"
+    - "base-type": "type/Decimal"
+  - "name": "Recent weight"
+    "display_name": "Recent weight"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Recent weight"
+    - "base-type": "type/Decimal"
+  - "name": "Older /100"
+    "display_name": "Older /100"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Older /100"
+    - "base-type": "type/Decimal"
+  - "name": "Older weight"
+    "display_name": "Older weight"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Older weight"
+    - "base-type": "type/Decimal"
+  - "name": "Delay /100"
+    "display_name": "Delay /100"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Delay /100"
+    - "base-type": "type/Decimal"
+  - "name": "Delay weight"
+    "display_name": "Delay weight"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Delay weight"
+    - "base-type": "type/Decimal"
+  - "name": "Current /100"
+    "display_name": "Current /100"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Current /100"
+    - "base-type": "type/Decimal"
+  - "name": "Current weight"
+    "display_name": "Current weight"
+    "base_type": "type/Decimal"
+    "effective_type": "type/Decimal"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Current weight"
+    - "base-type": "type/Decimal"
+  - "name": "Cap applied"
+    "display_name": "Cap applied"
+    "base_type": "type/Boolean"
+    "effective_type": "type/Boolean"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Cap applied"
+    - "base-type": "type/Boolean"
+  - "name": "Recent on time"
+    "display_name": "Recent on time"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Recent on time"
+    - "base-type": "type/Integer"
+  - "name": "Recent observations"
+    "display_name": "Recent observations"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Recent observations"
+    - "base-type": "type/Integer"
+  - "name": "History days"
+    "display_name": "History days"
+    "base_type": "type/Integer"
+    "effective_type": "type/Integer"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "History days"
+    - "base-type": "type/Integer"
+  - "name": "Confidence"
+    "display_name": "Confidence"
+    "base_type": "type/Text"
+    "effective_type": "type/Text"
+    "semantic_type": null
+    "field_ref":
+    - "field"
+    - "Confidence"
+    - "base-type": "type/Text"
+"evidence":
+  "/content/dataset_query":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
+  "/content/result_metadata":
+    "reference": "outputs/r043-borrower-navigation/saved.json"
+    "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
+    "state": "value"
