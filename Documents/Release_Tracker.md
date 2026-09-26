@@ -4,9 +4,9 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R041 — Open** |
-| Next number, not yet open or usable | **R042 — opens only when R041 is frozen at promotion start** |
-| Current release evidence | R041 Open: no scope yet. R040 report refinements delivered; [evidence](../outputs/r040-borrower-punctuality/README.md). |
+| **Use this release for new development** | **R042 — Open** |
+| Next number, not yet open or usable | **R043 — opens only when R042 is frozen at promotion start** |
+| Current release evidence | R042 Open: no scope yet. R041 frozen for authorized Detail publication; [package](../outputs/r041-borrower-detail/plan.json). |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R041 | Unassigned | Open | Opened at R040 promotion handoff 2026-09-26T13:32:03.126579+00:00 | — |
+| R042 | Unassigned | Open | Opened at R041 publication handoff 2026-09-26T14:26:26.046234+00:00 | — |
+| R041 | Detail bars, loan labels and table order | Frozen | Owner authorized; definitions preflighted and pinned. | [Evidence](../outputs/r041-borrower-detail/README.md) |
 | R040 | Borrower Portfolio display, tab cutover and Detail punctuality | Released | Portfolio refinements retained; Detail chart304/summary316 saved, reconciled and visually verified. Tag R040. | [Evidence](../outputs/r040-borrower-punctuality/README.md) |
 | R039 | Restore borrower amount bars alongside pies | Released | Six charts coexist; queries/layout/filters/visual check passed; tagR039. | [Evidence](../outputs/r039-restore-borrower-bars/README.md) |
 | R038 | Lifetime interest / total principal lent | Released | Model310/card314/context315; Orgrand160%; data/filter/GUI verified; tag R038. | [Evidence](../outputs/r038-lifetime-return/README.md) |
