@@ -20,3 +20,5 @@ Read-only current source inspection confirms target instance/host/database. Dash
 ## Status
 
 DEV complete; scoped production/report promotion, saved-state checks and documentation closure pending. See [release evidence](../outputs/r045-forecast-planning/README.md). No completion claim or release tag yet.
+
+Scope frozen at 2026-09-26T18:13:04.5419789Z for authorized promotion. Tested commit 7837c23e3577c9cbf8ed3d61b18d32934c4a05fd and Flyway manifest independently captured in the managed promotion checkout. R046 opens as the sole development release; no new R045 scope. No RC required.
