@@ -5,3 +5,5 @@
 Status: implementation and independent data/preflight tests passed; report publication and browser verification pending. Current Open release R037. No AppSheet/SQL schema/data/permissions changes. Original tabs and Detail preserved. Negative recent borrower interest is disclosed separately from positive contribution pie shares.
 
 Changed implementation: BorrowerContributionCharts.mjs, borrower-lifetime-economics.sql, verify_borrower_lifetime.py. Test evidence:30 borrower reconciliations,4 synthetic exposure cases,6 query preflights. Unrelated risk/R026 untracked work preserved. Starting Git400049e.
+
+Publication sequencing deviation: local tracker freeze script failed due to Windows text decoding; the shell continued to report publication. R037/R038 handoff was immediately repaired after publication and recorded honestly in the manifest; no concurrent release scope or app state was overwritten.
