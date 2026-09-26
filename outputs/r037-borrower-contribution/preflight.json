@@ -1,0 +1,32 @@
+[
+  {
+    "key": "model",
+    "rows": 30,
+    "ms": 96
+  },
+  {
+    "key": "principal",
+    "rows": 10,
+    "ms": 102
+  },
+  {
+    "key": "profit",
+    "rows": 10,
+    "ms": 91
+  },
+  {
+    "key": "rate",
+    "rows": 20,
+    "ms": 85
+  },
+  {
+    "key": "coverage",
+    "rows": 20,
+    "ms": 88
+  },
+  {
+    "key": "context",
+    "rows": 1,
+    "ms": 108
+  }
+]
