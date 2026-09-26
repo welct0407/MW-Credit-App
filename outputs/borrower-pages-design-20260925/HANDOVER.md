@@ -1,5 +1,8 @@
 # Borrower Portfolio and Borrower Detail — implementation handover
 
+**R038 refinement:** The right-hand bar now uses lifetime interest / total original principal lent, including active and closed loans. [Current formula](../r038-lifetime-return/README.md).
+
+
 **26 September refinement:** Portfolio contribution/rate visuals now follow the [R037 lifetime-rate handover](../r037-borrower-contribution/README.md). Original period sections and Detail remain as documented below.
 
 

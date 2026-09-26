@@ -1,5 +1,8 @@
 # Open development differences
 
+R038 (26 September): Portfolio104 question314 now uses lifetime interest received / total original principal lent, including active and closed loans. Model310 adds three fields; context315 and note aligned. Apps, SQL schema, runtime and permissions unchanged; no DEV deployment difference. Recovery dashboard12; [contract and evidence](../outputs/r038-lifetime-return/README.md). R039 sole Open.
+
+
 R037 (26 September): Metabase dashboard3/Portfolio104 contribution refinement delivered with model310 and questions311-315. Both AppSheet apps, SQLV45, bindings, permissions and runtime unchanged; no remaining DEV feature difference from this report-only work. Recovery dashboard11; [saved definitions and checks](../outputs/r037-borrower-contribution/README.md). R038 is the sole Open release.
 
 

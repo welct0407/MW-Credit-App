@@ -4293,6 +4293,13 @@
       - 286
       "date_filters": "No activity-date mappings on the five new questions; population applies"
       "rollback_dashboard": 11
+    "lifetime_return_refinement":
+      "release": "R038"
+      "question": 314
+      "model": 310
+      "context": 315
+      "definition_reference": "outputs/r038-lifetime-return/saved.json"
+      "contract": "outputs/r038-lifetime-return/README.md"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4337,4 +4344,8 @@
   "/content/borrower_pages":
     "reference": "outputs/r037-borrower-contribution/saved.json"
     "reason": "R037 verified Portfolio chart and layout refinement; Detail preserved"
+    "state": "value"
+  "/content/borrower_pages/lifetime_return_refinement":
+    "reference": "outputs/r038-lifetime-return/saved.json"
+    "reason": "R038 supersedes the R037 coverage metric only"
     "state": "value"

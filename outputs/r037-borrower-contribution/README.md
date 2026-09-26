@@ -1,5 +1,8 @@
 # Borrower contribution charts — R037 handover
 
+**R038 refinement:** The right-hand bar now uses lifetime interest / total original principal lent, including active and closed loans. [Current formula](../r038-lifetime-return/README.md).
+
+
 Owner selected lifetime achieved daily interest on 26 September 2026. Scope: refine new Portfolio tab104 on Metabase dashboard3. No AppSheet, SQL schema, financial data, permission or runtime change. Detail105 and original tabs retain their definitions.
 
 ## Metric contract

@@ -33,7 +33,7 @@ if(process.argv.includes('--apply-r038')){
 }
 if(process.argv.includes('--verify-r038')){
  const d=await api('GET','dashboard/3');assert.deepEqual(d.tabs,before.dashboard.tabs);assert.deepEqual(d.parameters,before.dashboard.parameters);
- const shape=c=>[c.id,c.card_id,c.row,c.col,c.size_x,c.size_y,c.parameter_mappings];assert.deepEqual(d.dashcards.map(shape),before.dashboard.dashcards.map(shape));
+ const shape=c=>[c.id,c.card_id,c.row,c.col,c.size_x,c.size_y,c.parameter_mappings];assert.deepEqual(d.dashcards.map(shape).sort((a,b)=>a[0]-b[0]),before.dashboard.dashcards.map(shape).sort((a,b)=>a[0]-b[0]));
  const dc=d.dashcards.find(c=>c.card_id===314&&c.dashboard_tab_id===104);assert.deepEqual(dc.parameter_mappings.map(p=>p.parameter_id),['bp-population']);
  const endpoint=`dashboard/3/dashcard/${dc.id}/card/314/query`;
  const a=await api('POST',endpoint,{parameters:[]}),b=await api('POST',endpoint,{parameters:[{id:'bp-period',type:'date/all-options',value:'2026-01-01~2026-01-31'}]});assert.equal(a.status,'completed');assert.equal(b.status,'completed');assert.deepEqual(a.data.rows,b.data.rows);

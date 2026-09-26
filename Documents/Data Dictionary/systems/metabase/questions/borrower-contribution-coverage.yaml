@@ -11,10 +11,10 @@
 "content":
   "key": "coverage"
   "id": 314
-  "name": "Principal Coverage by Profit · top 8"
-  "description": "R037. Overall borrower economics; population filter applies, activity date slicer does not. Lifetime rate\
-    \ uses completed Bangkok days and end-of-day outstanding principal. Gross interest before expenses. See chart context\
-    \ and handover."
+  "name": "Lifetime Interest Return on Principal Lent · top 8"
+  "description": "R038. Lifetime interest return = all signed interest received / total original principal lent, active and\
+    \ closed loans, through current Bangkok date. Repeated lending counts each loan once. Gross interest before expenses/losses.\
+    \ Activity slicer ignored; population applies."
   "type": "question"
   "display": "row"
   "dataset_query":
@@ -35,7 +35,7 @@
         WITH cohort AS (SELECT * FROM {{#310}} m WHERE ([[{{population}} --]] 'All with loan history'
         ='All with loan history' OR [[{{population}} --]] 'All with loan history'
         ='Currently active' AND "Has active loan" OR [[{{population}} --]] 'All with loan history'
-        ='Currently inactive' AND NOT "Has active loan")) SELECT "Borrower","Principal coverage","Borrower ID","Lifetime interest","Principal days","Active loan interest","Principal outstanding" FROM cohort WHERE "Principal coverage" IS NOT NULL ORDER BY "Principal coverage" DESC,"Borrower ID" LIMIT 8
+        ='Currently inactive' AND NOT "Has active loan")) SELECT "Borrower","Lifetime interest return","Borrower ID","Lifetime interest received","Total principal lent" FROM cohort WHERE "Lifetime interest return" IS NOT NULL ORDER BY "Lifetime interest return" DESC,"Borrower ID" LIMIT 8
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
@@ -43,15 +43,15 @@
     "graph.show_values": true
     "graph.show_legend": false
     "graph.x_axis.title_enabled": true
-    "graph.goal_label": "100% coverage"
-    "graph.x_axis.title_text": "Interest / current principal · %"
+    "graph.goal_label": "100% interest earned"
+    "graph.x_axis.title_text": "Lifetime interest / total principal lent · %"
     "graph.goal_value": 1
     "graph.metrics":
-    - "Principal coverage"
+    - "Lifetime interest return"
     "graph.colors":
     - "#178F8A"
     "column_settings":
-      "[\"name\",\"Principal coverage\"]":
+      "[\"name\",\"Lifetime interest return\"]":
         "number_style": "percent"
         "decimals": 1
         "number_separators": ".,"
@@ -59,68 +59,104 @@
     - "Borrower"
     "stackable.stack_type": null
   "result_metadata":
-  - "name": "Borrower"
-    "database_type": "text"
-    "base_type": "type/Text"
-    "display_name": "Borrower"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Borrower"
+    "lib/original-name": "Borrower"
+    "name": "Borrower"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Borrower"
+    "source": "native"
     "field_ref":
     - "field"
     - "Borrower"
     - "base-type": "type/Text"
-  - "name": "Principal coverage"
-    "database_type": "numeric"
-    "base_type": "type/Decimal"
-    "display_name": "Principal coverage"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Borrower"
+    "display_name": "Borrower"
+    "base_type": "type/Text"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Lifetime interest return"
+    "lib/original-name": "Lifetime interest return"
+    "name": "Lifetime interest return"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Lifetime interest return"
+    "source": "native"
     "field_ref":
     - "field"
-    - "Principal coverage"
+    - "Lifetime interest return"
     - "base-type": "type/Decimal"
-  - "name": "Borrower ID"
-    "database_type": "text"
-    "base_type": "type/Text"
-    "display_name": "Borrower ID"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Lifetime interest return"
+    "display_name": "Lifetime interest return"
+    "base_type": "type/Decimal"
+  - "database_type": "text"
+    "semantic_type": null
+    "lib/deduplicated-name": "Borrower ID"
+    "lib/original-name": "Borrower ID"
+    "name": "Borrower ID"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Borrower ID"
+    "source": "native"
     "field_ref":
     - "field"
     - "Borrower ID"
     - "base-type": "type/Text"
-  - "name": "Lifetime interest"
-    "database_type": "numeric"
-    "base_type": "type/Decimal"
-    "display_name": "Lifetime interest"
+    "effective_type": "type/Text"
+    "lib/desired-column-alias": "Borrower ID"
+    "display_name": "Borrower ID"
+    "base_type": "type/Text"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Lifetime interest received"
+    "lib/original-name": "Lifetime interest received"
+    "name": "Lifetime interest received"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Lifetime interest received"
+    "source": "native"
     "field_ref":
     - "field"
-    - "Lifetime interest"
+    - "Lifetime interest received"
     - "base-type": "type/Decimal"
-  - "name": "Principal days"
-    "database_type": "numeric"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Lifetime interest received"
+    "display_name": "Lifetime interest received"
     "base_type": "type/Decimal"
-    "display_name": "Principal days"
+  - "database_type": "numeric"
+    "semantic_type": null
+    "lib/deduplicated-name": "Total principal lent"
+    "lib/original-name": "Total principal lent"
+    "name": "Total principal lent"
+    "lib/source": "source/native"
+    "lib/source-column-alias": "Total principal lent"
+    "source": "native"
     "field_ref":
     - "field"
-    - "Principal days"
+    - "Total principal lent"
     - "base-type": "type/Decimal"
-  - "name": "Active loan interest"
-    "database_type": "numeric"
+    "effective_type": "type/Decimal"
+    "lib/desired-column-alias": "Total principal lent"
+    "display_name": "Total principal lent"
     "base_type": "type/Decimal"
-    "display_name": "Active loan interest"
-    "field_ref":
-    - "field"
-    - "Active loan interest"
-    - "base-type": "type/Decimal"
-  - "name": "Principal outstanding"
-    "database_type": "numeric"
-    "base_type": "type/Decimal"
-    "display_name": "Principal outstanding"
-    "field_ref":
-    - "field"
-    - "Principal outstanding"
-    - "base-type": "type/Decimal"
 "evidence":
   "/content/name":
-    "reference": "outputs/r037-borrower-contribution/saved.json"
-    "reason": "R037 final saved chart definitions including responsive ratio safety"
+    "reference": "outputs/r038-lifetime-return/saved.json"
+    "reason": "R038 lifetime return uses all interest and total original lending; original fields preserved"
     "state": "value"
   "/content/dataset_query":
-    "reference": "outputs/r037-borrower-contribution/saved.json"
-    "reason": "R037 final saved chart definitions including responsive ratio safety"
+    "reference": "outputs/r038-lifetime-return/saved.json"
+    "reason": "R038 lifetime return uses all interest and total original lending; original fields preserved"
+    "state": "value"
+  "/content/description":
+    "reference": "outputs/r038-lifetime-return/saved.json"
+    "reason": "R038 lifetime return uses all interest and total original lending; original fields preserved"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r038-lifetime-return/saved.json"
+    "reason": "R038 lifetime return uses all interest and total original lending; original fields preserved"
+    "state": "value"
+  "/content/result_metadata":
+    "reference": "outputs/r038-lifetime-return/saved.json"
+    "reason": "R038 lifetime return uses all interest and total original lending; original fields preserved"
     "state": "value"
