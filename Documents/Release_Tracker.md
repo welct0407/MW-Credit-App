@@ -4,9 +4,9 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R042 — Open** |
-| Next number, not yet open or usable | **R043 — opens only when R042 is frozen at promotion start** |
-| Current release evidence | R042 Open: no scope yet. R041 Detail refinements delivered; [evidence](../outputs/r041-borrower-detail/README.md). |
+| **Use this release for new development** | **R043 — Open** |
+| Next number, not yet open or usable | **R044 — opens only when R043 is frozen at promotion start** |
+| Current release evidence | R043 Open: no scope yet. R042 frozen for authorized Payments/loan-return publication; [package](../outputs/r042-borrower-payments/plan.json). |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R042 | Unassigned | Open | Opened at R041 publication handoff 2026-09-26T14:26:26.046234+00:00 | — |
+| R043 | Unassigned | Open | Opened at R042 freeze 2026-09-26T14:50:14.099736+00:00 | — |
+| R042 | Borrower receipts, loan return and interest bars | Frozen | DEV V46 / report queries verified; production and report publication authorized. | [Evidence](../outputs/r042-borrower-payments/README.md) |
 | R041 | Detail bars, loan labels and table order | Released | Seven questions verified; grouped bars, Loan Key labels and charges before repayments. Tag R041. | [Evidence](../outputs/r041-borrower-detail/README.md) |
 | R040 | Borrower Portfolio display, tab cutover and Detail punctuality | Released | Portfolio refinements retained; Detail chart304/summary316 saved, reconciled and visually verified. Tag R040. | [Evidence](../outputs/r040-borrower-punctuality/README.md) |
 | R039 | Restore borrower amount bars alongside pies | Released | Six charts coexist; queries/layout/filters/visual check passed; tagR039. | [Evidence](../outputs/r039-restore-borrower-bars/README.md) |
