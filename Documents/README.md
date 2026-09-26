@@ -10,6 +10,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Service login account / browser profile | [Service account and browser mapping](Service_Account_Browser_Mapping.md) |
 | Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |
 | Proposed Borrower Portfolio / Detail pages and implementation handover | [Borrower pages design — 25 September 2026](../outputs/borrower-pages-design-20260925/HANDOVER.md) — design only; pending owner review |
+| Proposed Partners tab, actual metrics and implementation handover | [Partners tab design — 26 September 2026](../outputs/partners-tab-design-20260926/HANDOVER.md) — design only; no forecast content or live changes |
 | Model explanations | [Model Overview](AppSheet_Data_Model_Overview.md) |
 | Exact model/configuration values across ecosystem systems | [Data Dictionary](Data%20Dictionary/README.md) |
 | Instructions for a thorough OLTP/OLAP/PostgreSQL dictionary reconciliation | [Execution prompt](Data_Dictionary_Reconciliation_Prompt.md) |
