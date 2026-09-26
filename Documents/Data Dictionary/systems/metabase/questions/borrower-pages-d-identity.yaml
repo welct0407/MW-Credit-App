@@ -19,14 +19,14 @@
   "dataset_query":
     "stages":
     - "template-tags":
-      - "display-name": "Borrower"
+      - "name": "borrower_id"
+        "display-name": "Borrower"
         "id": "bp-borrower"
-        "name": "borrower_id"
         "type": "text"
       "lib/type": "mbql.stage/native"
       "native": |-
         WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
-        ) SELECT borrower_label AS "Borrower",borrower_id AS "Borrower ID",CASE WHEN has_active_loan THEN 'Active' ELSE 'Inactive' END AS "Status",CASE WHEN hidden_flag THEN 'Hidden in operational app' ELSE 'Visible' END AS "Operational visibility",first_loan_date AS "First loan",reporting_date AS "As of" FROM chosen
+        ) SELECT borrower_label AS "Borrower",CASE WHEN has_active_loan THEN 'Active' ELSE 'Inactive' END AS "Status",CASE WHEN hidden_flag THEN 'Hidden in operational app' ELSE 'Visible' END AS "Operational visibility",first_loan_date AS "First loan",reporting_date AS "As of" FROM chosen
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings": {}
@@ -131,4 +131,8 @@
   "/content/result_metadata":
     "reference": "outputs/r035-borrower-pages/README.md"
     "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r041-borrower-detail/saved.json"
+    "reason": "R041 verified Detail presentation"
     "state": "value"

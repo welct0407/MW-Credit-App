@@ -110,3 +110,6 @@ R040 makes Portfolio tab104 the canonical sixth Metabase tab, named **6 · Borro
 
 
 R040 Detail punctuality now presents on-time, subsequently paid-late and still-overdue obligation counts by due month, plus the on-time rate and denominator above the chart. Existing V41 charge-grain eligibility/timing remains authoritative; excluded observations are counted separately. [Contract](../outputs/r040-borrower-punctuality/README.md).
+
+
+R041 Detail presentation: grouped principal-issued/returned bars; existing OLAP-style Loan Key in loan/charge/repayment tables; internal IDs omitted from displayed results. Selected-date charges precede repayments, with current-overdue table unchanged. [Contract](../outputs/r041-borrower-detail/README.md).

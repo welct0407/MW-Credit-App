@@ -161,3 +161,6 @@ Metabase runtime source (26 September 2026): GitHub welct0407/AppSheet-Loan-Proj
 
 
 R040 Detail tab105: question304 updated to monthly payment punctuality; summary316 added. Dashboard3 now has 238 placements / 12 tabs. Recovery dashboard17 and private pre-change card/layout definitions recorded. Source2, database, AppSheet apps and runtime unchanged. [Evidence](../outputs/r040-borrower-punctuality/README.md).
+
+
+R041 dashboard3/tab105: seven saved question presentation updates; selected-date charges307 and repayments306 exchanged positions. Twelve tabs / 238 placements unchanged. Recovery dashboard18; source2, database, apps and runtime unchanged. [Evidence](../outputs/r041-borrower-detail/README.md).

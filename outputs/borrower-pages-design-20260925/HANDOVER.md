@@ -217,3 +217,6 @@ The owner can review page contents and the all-history default population before
 
 
 R040 D7 implementation supersedes the original two-way timing display: chart304 splits Paid on time / Paid late / Still overdue; summary316 supplies rate, assessed count and exclusions above the monthly chart. Both use selected borrower and due-date range. [Exact definitions and recovery](../r040-borrower-punctuality/README.md).
+
+
+R041 Detail refinement: principal chart301 uses grouped bars; Loan Key display labels replace internal loan IDs, with other displayed internal IDs removed; selected-date charge table307 precedes repayment table306. Current-overdue308 stays above both. [Saved definitions and recovery](../r041-borrower-detail/README.md).

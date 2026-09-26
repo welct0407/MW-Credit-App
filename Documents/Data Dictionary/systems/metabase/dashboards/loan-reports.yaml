@@ -4797,6 +4797,496 @@
             - "borrower_id"
         "visualization_settings": {}
         "series": []
+    "detail_presentation":
+      "release": "R041"
+      "definition_reference": "outputs/r041-borrower-detail/saved.json"
+      "questions":
+      - 290
+      - 301
+      - 303
+      - 305
+      - 306
+      - 307
+      - 308
+      "order": "Current overdue, selected-date charges, selected-date repayments"
+      "display": "OLAP-style Loan Key; no visible internal IDs; grouped principal bars"
+      "layout":
+      - "id": 2161
+        "card_id": null
+        "dashboard_tab_id": 105
+        "row": 0
+        "col": 0
+        "size_x": 24
+        "size_y": 3
+        "parameter_mappings": []
+        "visualization_settings":
+          "card.background": false
+          "virtual_card":
+            "display": "text"
+            "visualization_settings":
+              "text": |-
+                ## Borrower Detail
+                Select one borrower above. Empty selection shows no financial totals. Activity dates affect the period sections only.
+        "series": []
+      - "id": 2162
+        "card_id": 290
+        "dashboard_tab_id": 105
+        "row": 3
+        "col": 0
+        "size_x": 24
+        "size_y": 4
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 290
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2163
+        "card_id": 291
+        "dashboard_tab_id": 105
+        "row": 7
+        "col": 0
+        "size_x": 6
+        "size_y": 3
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 291
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2164
+        "card_id": 292
+        "dashboard_tab_id": 105
+        "row": 7
+        "col": 6
+        "size_x": 6
+        "size_y": 3
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 292
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2165
+        "card_id": 293
+        "dashboard_tab_id": 105
+        "row": 7
+        "col": 12
+        "size_x": 6
+        "size_y": 3
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 293
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2166
+        "card_id": 294
+        "dashboard_tab_id": 105
+        "row": 7
+        "col": 18
+        "size_x": 6
+        "size_y": 3
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 294
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2167
+        "card_id": 295
+        "dashboard_tab_id": 105
+        "row": 10
+        "col": 0
+        "size_x": 24
+        "size_y": 7
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 295
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2168
+        "card_id": null
+        "dashboard_tab_id": 105
+        "row": 17
+        "col": 0
+        "size_x": 24
+        "size_y": 3
+        "parameter_mappings": []
+        "visualization_settings":
+          "card.background": false
+          "virtual_card":
+            "display": "text"
+            "visualization_settings":
+              "text": |-
+                ### Activity · selected Bangkok dates
+                Health uses its own governed rolling window. Due today is not overdue; a payment today can cure debt without erasing historical lateness.
+        "series": []
+      - "id": 2169
+        "card_id": 296
+        "dashboard_tab_id": 105
+        "row": 20
+        "col": 0
+        "size_x": 6
+        "size_y": 3
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 296
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 296
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2170
+        "card_id": 297
+        "dashboard_tab_id": 105
+        "row": 20
+        "col": 6
+        "size_x": 6
+        "size_y": 3
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 297
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 297
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2171
+        "card_id": 298
+        "dashboard_tab_id": 105
+        "row": 20
+        "col": 12
+        "size_x": 6
+        "size_y": 3
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 298
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 298
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2172
+        "card_id": 299
+        "dashboard_tab_id": 105
+        "row": 20
+        "col": 18
+        "size_x": 6
+        "size_y": 3
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 299
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 299
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2173
+        "card_id": 300
+        "dashboard_tab_id": 105
+        "row": 23
+        "col": 0
+        "size_x": 24
+        "size_y": 5
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 300
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 300
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2174
+        "card_id": 301
+        "dashboard_tab_id": 105
+        "row": 28
+        "col": 0
+        "size_x": 12
+        "size_y": 8
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 301
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 301
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2175
+        "card_id": 302
+        "dashboard_tab_id": 105
+        "row": 28
+        "col": 12
+        "size_x": 12
+        "size_y": 8
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 302
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 302
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2176
+        "card_id": 303
+        "dashboard_tab_id": 105
+        "row": 36
+        "col": 0
+        "size_x": 24
+        "size_y": 9
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 303
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2177
+        "card_id": 304
+        "dashboard_tab_id": 105
+        "row": 49
+        "col": 0
+        "size_x": 24
+        "size_y": 8
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 304
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 304
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2178
+        "card_id": 305
+        "dashboard_tab_id": 105
+        "row": 57
+        "col": 0
+        "size_x": 24
+        "size_y": 10
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 305
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2179
+        "card_id": 308
+        "dashboard_tab_id": 105
+        "row": 67
+        "col": 0
+        "size_x": 24
+        "size_y": 9
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 308
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2180
+        "card_id": 306
+        "dashboard_tab_id": 105
+        "row": 86
+        "col": 0
+        "size_x": 24
+        "size_y": 10
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 306
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 306
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2181
+        "card_id": 307
+        "dashboard_tab_id": 105
+        "row": 76
+        "col": 0
+        "size_x": 24
+        "size_y": 10
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 307
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 307
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2182
+        "card_id": null
+        "dashboard_tab_id": 105
+        "row": 96
+        "col": 0
+        "size_x": 24
+        "size_y": 3
+        "parameter_mappings": []
+        "visualization_settings":
+          "card.background": false
+          "virtual_card":
+            "display": "text"
+            "visualization_settings":
+              "text": |-
+                ### Additional lending scenario
+                Hypothetical additional principal only; no loan is saved and no health score changes. Next-plan amounts above are recorded plans, not additional debt.
+        "series": []
+      - "id": 2183
+        "card_id": 309
+        "dashboard_tab_id": 105
+        "row": 99
+        "col": 0
+        "size_x": 24
+        "size_y": 5
+        "parameter_mappings":
+        - "parameter_id": "bd-borrower"
+          "card_id": 309
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        - "parameter_id": "bd-amount"
+          "card_id": 309
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "amount"
+        "visualization_settings": {}
+        "series": []
+      - "id": 2184
+        "card_id": null
+        "dashboard_tab_id": 105
+        "row": 104
+        "col": 0
+        "size_x": 24
+        "size_y": 3
+        "parameter_mappings": []
+        "visualization_settings":
+          "card.background": false
+          "virtual_card":
+            "display": "text"
+            "visualization_settings":
+              "text": "All amounts are baht. Lifetime/current sections ignore activity dates. Allocations are not unique receipts;\
+                \ corrections remain signed. [Borrower Health Review](/dashboard/3?tab=31) explains categories, confidence\
+                \ and automatic schedule restrictions."
+        "series": []
+      - "id": 3968
+        "card_id": 316
+        "dashboard_tab_id": 105
+        "row": 45
+        "col": 0
+        "size_x": 24
+        "size_y": 4
+        "parameter_mappings":
+        - "parameter_id": "bd-period"
+          "card_id": 316
+          "target":
+          - "dimension"
+          - - "template-tag"
+            - "period"
+        - "parameter_id": "bd-borrower"
+          "card_id": 316
+          "target":
+          - "variable"
+          - - "template-tag"
+            - "borrower_id"
+        "visualization_settings": {}
+        "series": []
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -4853,4 +5343,8 @@
   "/content/borrower_pages/punctuality":
     "reference": "outputs/r040-borrower-punctuality/saved.json"
     "reason": "Saved R040 Detail punctuality placement and filters"
+    "state": "value"
+  "/content/borrower_pages/detail_presentation":
+    "reference": "outputs/r041-borrower-detail/saved.json"
+    "reason": "R041 verified Detail presentation"
     "state": "value"

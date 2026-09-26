@@ -19,14 +19,14 @@
   "dataset_query":
     "stages":
     - "template-tags":
-      - "display-name": "Borrower"
+      - "name": "borrower_id"
+        "display-name": "Borrower"
         "id": "bp-borrower"
-        "name": "borrower_id"
         "type": "text"
       "lib/type": "mbql.stage/native"
       "native": |-
         WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
-        ) SELECT h.due_date AS "Due date",h.loan_id AS "Loan ID",h.charge_id AS "Charge ID",h.principal_due AS "Principal due ฿",h.interest_due AS "Interest due ฿",h.principal_remaining_current AS "Principal remaining ฿",h.interest_remaining_current AS "Interest remaining ฿",h.current_days_overdue AS "Days overdue",CASE WHEN NOT h.history_eligible THEN 'Excluded' WHEN h.on_time THEN 'On time' ELSE 'Not on time' END AS "Historical timing",coalesce(h.exclusion_reason,h.data_quality_status) AS "Evidence status" FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) WHERE h.is_overdue ORDER BY h.due_date,h.charge_id
+        ) SELECT h.due_date AS "Due date",CASE WHEN k."Row ID" IS NULL THEN 'Loan key unavailable' ELSE coalesce(c.borrower_name,'Unknown borrower')||'-'||to_char(k."Principal Amount"::numeric,'FM999,999,999,990.00')||'-'||to_char(k."Loan Date",'DD/MM')||'-'||coalesce(to_char(k."Effective Daily Interest Rate"::numeric*100,'FM999990.00')||'%','Unavailable') END AS "Loan Key",h.principal_due AS "Principal due ฿",h.interest_due AS "Interest due ฿",h.principal_remaining_current AS "Principal remaining ฿",h.interest_remaining_current AS "Interest remaining ฿",h.current_days_overdue AS "Days overdue",CASE WHEN NOT h.history_eligible THEN 'Excluded' WHEN h.on_time THEN 'On time' ELSE 'Not on time' END AS "Historical timing",coalesce(h.exclusion_reason,h.data_quality_status) AS "Evidence status" FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) LEFT JOIN public.olap_loans_analytics k ON k."Row ID"=h.loan_id WHERE h.is_overdue ORDER BY h.due_date,h.charge_id
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
@@ -38,16 +38,10 @@
       - "Due date"
       - "base-type": "type/Text"
       "enabled": true
-    - "name": "Loan ID"
+    - "name": "Loan Key"
       "fieldRef":
       - "field"
-      - "Loan ID"
-      - "base-type": "type/Text"
-      "enabled": true
-    - "name": "Charge ID"
-      "fieldRef":
-      - "field"
-      - "Charge ID"
+      - "Loan Key"
       - "base-type": "type/Text"
       "enabled": true
     - "name": "Principal due ฿"
@@ -283,4 +277,12 @@
   "/content/result_metadata":
     "reference": "outputs/r035-borrower-pages/README.md"
     "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "state": "value"
+  "/content/dataset_query":
+    "reference": "outputs/r041-borrower-detail/saved.json"
+    "reason": "R041 verified Detail presentation"
+    "state": "value"
+  "/content/visualization_settings":
+    "reference": "outputs/r041-borrower-detail/saved.json"
+    "reason": "R041 verified Detail presentation"
     "state": "value"

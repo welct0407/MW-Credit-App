@@ -123,3 +123,6 @@ R024 checkpoint order: **5 · Performance** (tab18) preceded the then-current **
 
 
 R040 report-only refinement delivered: Detail monthly punctuality chart304 and summary316 use existing V41 data. No DEV/PROD database or AppSheet definition difference introduced. R040 scope frozen at report publication; R041 is the sole Open release. [Evidence](../outputs/r040-borrower-punctuality/README.md).
+
+
+R041 report-only Detail presentation delivered; no AppSheet or PostgreSQL DEV/PROD difference introduced. R042 is the sole Open release. [Evidence](../outputs/r041-borrower-detail/README.md).
