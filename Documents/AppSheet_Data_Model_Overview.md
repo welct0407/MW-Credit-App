@@ -1,5 +1,7 @@
 # Production model overview
 
+R044 partner reporting adds six read-only V47 views over existing capital, allocated repayment interest, expenses and settlements. Metabase presents current entitlement and dated activity; OLAP retains all operational partner/settlement editing. No AppSheet table binding or financial calculation changed. [Contract and dependencies](../outputs/r044-partners/README.md).
+
 ## R036 daily-interest adjustment — DEV only
 
 DEV V45 retains the original daily-interest ratio as a readable note in existing Loans.Loan Arrangement text; no new column/table. New daily-interest loans capture their starting amount/principal. Existing loans initialize on a future principal change using the first-day charge less recorded transfer fee, or prior current amount/outstanding ratio when first-day evidence is unavailable. No bulk backlog correction. PostgreSQL updates Current Daily Interest, Expected Daily Interest Amount and borrower rollups after authoritative signed repayments. Adjusted amounts round to whole baht and reach zero on payoff; the exact ratio survives rounding/reversals. Posted charges stay unchanged; uncharged intervals retain the owner's current-rate convention. Fixed-interest/installment behavior is unchanged.

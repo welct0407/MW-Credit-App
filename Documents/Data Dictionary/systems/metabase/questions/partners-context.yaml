@@ -1,0 +1,234 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Source and balance checks / 343",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "context",
+    "description": "R044 Partners. Rounding difference = allocated A+B interest minus gross interest. Does not alter entitlement. Query time is not transaction sync time.",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "semantic_type": "type/Category",
+        "lib/deduplicated-name": "Status",
+        "lib/original-name": "Status",
+        "name": "Status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Status",
+        "display_name": "Status",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "timestamp",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Queried at · Bangkok",
+        "lib/original-name": "Queried at · Bangkok",
+        "name": "Queried at · Bangkok",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Queried at · Bangkok",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Queried at · Bangkok",
+          {
+            "base-type": "type/DateTime"
+          }
+        ],
+        "effective_type": "type/DateTime",
+        "lib/desired-column-alias": "Queried at · Bangkok",
+        "display_name": "Queried at · Bangkok",
+        "base_type": "type/DateTime"
+      },
+      {
+        "database_type": "int8",
+        "semantic_type": "type/Source",
+        "lib/deduplicated-name": "Source exceptions",
+        "lib/original-name": "Source exceptions",
+        "name": "Source exceptions",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Source exceptions",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Source exceptions",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "Source exceptions",
+        "display_name": "Source exceptions",
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "int8",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Undated pending",
+        "lib/original-name": "Undated pending",
+        "name": "Undated pending",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Undated pending",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Undated pending",
+          {
+            "base-type": "type/BigInteger"
+          }
+        ],
+        "effective_type": "type/BigInteger",
+        "lib/desired-column-alias": "Undated pending",
+        "display_name": "Undated pending",
+        "base_type": "type/BigInteger"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Allocation rounding difference ฿",
+        "lib/original-name": "Allocation rounding difference ฿",
+        "name": "Allocation rounding difference ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Allocation rounding difference ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Allocation rounding difference ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Allocation rounding difference ฿",
+        "display_name": "Allocation rounding difference ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Source and balance checks",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "f7469a48-dec2-4225-9394-7f28fe8352c7",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-318",
+              "name": "#318",
+              "display-name": "Partners source 318",
+              "card-id": 318
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT CASE WHEN bool_and(ready) THEN 'Ready · live on refresh' ELSE 'Needs review' END AS \"Status\",max(queried_at) AS \"Queried at · Bangkok\",max(capital_exceptions+earnings_exceptions+settlement_exceptions) AS \"Source exceptions\",max(undated_pending) AS \"Undated pending\",max(allocation_residual) AS \"Allocation rounding difference ฿\" FROM {{#318}} d WHERE true [[AND {{partner}}]]"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 343,
+    "display": "table",
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Status",
+          "fieldRef": [
+            "field",
+            "Status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Queried at · Bangkok",
+          "fieldRef": [
+            "field",
+            "Queried at · Bangkok",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Source exceptions",
+          "fieldRef": [
+            "field",
+            "Source exceptions",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Undated pending",
+          "fieldRef": [
+            "field",
+            "Undated pending",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Allocation rounding difference ฿",
+          "fieldRef": [
+            "field",
+            "Allocation rounding difference ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Allocation rounding difference ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 2,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

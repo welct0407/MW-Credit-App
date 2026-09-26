@@ -1,0 +1,234 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Pending settlements · all dates / 340",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "queue",
+    "description": "R044 Partners. Current pending reservations, including future/undated transfer dates. Activity period does not apply. This date is not creation time.",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Partner",
+        "lib/original-name": "Partner",
+        "name": "Partner",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Partner",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Partner",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Partner",
+        "display_name": "Partner",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Amount ฿",
+        "lib/original-name": "Amount ฿",
+        "name": "Amount ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Amount ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Amount ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Amount ฿",
+        "display_name": "Amount ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "date",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Recorded transfer date",
+        "lib/original-name": "Recorded transfer date",
+        "name": "Recorded transfer date",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Recorded transfer date",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Recorded transfer date",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "Recorded transfer date",
+        "display_name": "Recorded transfer date",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Date status",
+        "lib/original-name": "Date status",
+        "name": "Date status",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Date status",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Date status",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Date status",
+        "display_name": "Date status",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Settlement reference",
+        "lib/original-name": "Settlement reference",
+        "name": "Settlement reference",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Settlement reference",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Settlement reference",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Settlement reference",
+        "display_name": "Settlement reference",
+        "base_type": "type/Text"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Pending settlements · all dates",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "b8b84aca-f244-4f83-a8e1-e228fc5fa240",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-321",
+              "name": "#321",
+              "display-name": "Partners source 321",
+              "card-id": 321
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT partner_name AS \"Partner\",amount AS \"Amount ฿\",activity_date AS \"Recorded transfer date\",date_status AS \"Date status\",settlement_id AS \"Settlement reference\" FROM {{#321}} d WHERE true [[AND {{partner}}]] AND status='Pending' ORDER BY activity_date NULLS LAST,settlement_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 340,
+    "display": "table",
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Partner",
+          "fieldRef": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Amount ฿",
+          "fieldRef": [
+            "field",
+            "Amount ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Recorded transfer date",
+          "fieldRef": [
+            "field",
+            "Recorded transfer date",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Date status",
+          "fieldRef": [
+            "field",
+            "Date status",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Settlement reference",
+          "fieldRef": [
+            "field",
+            "Settlement reference",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Amount ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Allocated expenses ฿ / 334",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "period-expense",
+    "description": "R044 Partners. Selected actual event dates.",
+    "result_metadata": [
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Allocated expenses ฿",
+        "lib/original-name": "Allocated expenses ฿",
+        "name": "Allocated expenses ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Allocated expenses ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Allocated expenses ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Allocated expenses ฿",
+        "display_name": "Allocated expenses ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Allocated expenses ฿",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "b0373ce7-1261-4944-b489-d5ed10e85afd",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "widget-type": "date/all-options",
+              "id": "pt-period",
+              "name": "period",
+              "display-name": "Partner activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "64f3ff01-2913-46f5-9a17-ffeef717df22",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.activity_date"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-322",
+              "name": "#322",
+              "display-name": "Partners source 322",
+              "card-id": 322
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(allocated_expense IS NOT NULL) THEN sum(allocated_expense) END AS \"Allocated expenses ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]]"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 334,
+    "display": "scalar",
+    "visualization_settings": {
+      "scalar.field": "Allocated expenses ฿",
+      "column_settings": {
+        "[\"name\",\"Allocated expenses ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  }
+}

@@ -30667,6 +30667,66 @@
       ]
     },
     {
+      "file": "systems/metabase/models/partners-capital-ledger.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Partners · capital ledger source / 323",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/models/partners-capital.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Partners · capital source / 319",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/models/partners-daily.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Partners · daily source / 322",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/models/partners-earnings.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Partners · earnings source / 320",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/models/partners-position.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Partners · position source / 318",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/models/partners-settlements.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "model",
+      "name": "Partners · settlements source / 321",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/models/portfolio-overview.yaml",
       "system": "metabase",
       "component": "recorded-instance",
@@ -31517,6 +31577,206 @@
       "component": "reports.mw-credit.com",
       "kind": "question",
       "name": "Payment punctuality summary · selected due dates / 316",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-available.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Net available ฿ / 329",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-bridge.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "How net available is calculated / 332",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-capital-ledger.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Capital transaction ledger / 341",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-capital-trend.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Net contributed capital over time / 339",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-capital.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Net capital ฿ / 325",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-comparison.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Partner positions · current / 330",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-context.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Source and balance checks / 343",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-earned.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Net earned to date ฿ / 326",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-monthly.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Monthly net earned versus paid / 337",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-movements.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Capital contributions and withdrawals / 338",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-paid.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Completed payouts ฿ / 327",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-pending.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Pending settlements ฿ / 328",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-period-earned.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Net earned ฿ / 335",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-period-expense.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Allocated expenses ฿ / 334",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-period-interest.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Allocated interest ฿ / 333",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-period-paid.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Payouts in period ฿ / 336",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-picker.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Partners · selection list / 324",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-queue.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Pending settlements · all dates / 340",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-settlement-ledger.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Settlement transaction ledger / 342",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/metabase/questions/partners-share.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Capital share · full pool / 331",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -38837,6 +39097,400 @@
         {
           "subject": "schedule_method_version",
           "pointer": "/content/columns/schedule_method_version"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-partner-capital-ledger-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_partner_capital_ledger_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "capital_id",
+          "pointer": "/content/columns/capital_id"
+        },
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "partner_name",
+          "pointer": "/content/columns/partner_name"
+        },
+        {
+          "subject": "partner_role",
+          "pointer": "/content/columns/partner_role"
+        },
+        {
+          "subject": "activity_date",
+          "pointer": "/content/columns/activity_date"
+        },
+        {
+          "subject": "transaction_type",
+          "pointer": "/content/columns/transaction_type"
+        },
+        {
+          "subject": "amount",
+          "pointer": "/content/columns/amount"
+        },
+        {
+          "subject": "net_movement",
+          "pointer": "/content/columns/net_movement"
+        },
+        {
+          "subject": "valid",
+          "pointer": "/content/columns/valid"
+        },
+        {
+          "subject": "date_end_capital",
+          "pointer": "/content/columns/date_end_capital"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-partner-capital-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_partner_capital_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "capital_id",
+          "pointer": "/content/columns/capital_id"
+        },
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "partner_name",
+          "pointer": "/content/columns/partner_name"
+        },
+        {
+          "subject": "partner_role",
+          "pointer": "/content/columns/partner_role"
+        },
+        {
+          "subject": "activity_date",
+          "pointer": "/content/columns/activity_date"
+        },
+        {
+          "subject": "transaction_type",
+          "pointer": "/content/columns/transaction_type"
+        },
+        {
+          "subject": "amount",
+          "pointer": "/content/columns/amount"
+        },
+        {
+          "subject": "net_movement",
+          "pointer": "/content/columns/net_movement"
+        },
+        {
+          "subject": "valid",
+          "pointer": "/content/columns/valid"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-partner-daily-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_partner_daily_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "partner_name",
+          "pointer": "/content/columns/partner_name"
+        },
+        {
+          "subject": "activity_date",
+          "pointer": "/content/columns/activity_date"
+        },
+        {
+          "subject": "ready",
+          "pointer": "/content/columns/ready"
+        },
+        {
+          "subject": "capital_exceptions",
+          "pointer": "/content/columns/capital_exceptions"
+        },
+        {
+          "subject": "earnings_exceptions",
+          "pointer": "/content/columns/earnings_exceptions"
+        },
+        {
+          "subject": "settlement_exceptions",
+          "pointer": "/content/columns/settlement_exceptions"
+        },
+        {
+          "subject": "allocated_interest",
+          "pointer": "/content/columns/allocated_interest"
+        },
+        {
+          "subject": "allocated_expense",
+          "pointer": "/content/columns/allocated_expense"
+        },
+        {
+          "subject": "completed_payouts",
+          "pointer": "/content/columns/completed_payouts"
+        },
+        {
+          "subject": "capital_contributed",
+          "pointer": "/content/columns/capital_contributed"
+        },
+        {
+          "subject": "capital_withdrawn",
+          "pointer": "/content/columns/capital_withdrawn"
+        },
+        {
+          "subject": "capital_movement",
+          "pointer": "/content/columns/capital_movement"
+        },
+        {
+          "subject": "net_earned",
+          "pointer": "/content/columns/net_earned"
+        },
+        {
+          "subject": "capital_eod",
+          "pointer": "/content/columns/capital_eod"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-partner-earnings-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_partner_earnings_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "event_type",
+          "pointer": "/content/columns/event_type"
+        },
+        {
+          "subject": "event_id",
+          "pointer": "/content/columns/event_id"
+        },
+        {
+          "subject": "activity_date",
+          "pointer": "/content/columns/activity_date"
+        },
+        {
+          "subject": "role",
+          "pointer": "/content/columns/role"
+        },
+        {
+          "subject": "allocated_interest",
+          "pointer": "/content/columns/allocated_interest"
+        },
+        {
+          "subject": "allocated_expense",
+          "pointer": "/content/columns/allocated_expense"
+        },
+        {
+          "subject": "amount_known",
+          "pointer": "/content/columns/amount_known"
+        },
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "partner_name",
+          "pointer": "/content/columns/partner_name"
+        },
+        {
+          "subject": "net_earned",
+          "pointer": "/content/columns/net_earned"
+        },
+        {
+          "subject": "valid",
+          "pointer": "/content/columns/valid"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-partner-position-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_partner_position_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "partner_name",
+          "pointer": "/content/columns/partner_name"
+        },
+        {
+          "subject": "partner_role",
+          "pointer": "/content/columns/partner_role"
+        },
+        {
+          "subject": "role_count",
+          "pointer": "/content/columns/role_count"
+        },
+        {
+          "subject": "net_capital",
+          "pointer": "/content/columns/net_capital"
+        },
+        {
+          "subject": "interest_earned",
+          "pointer": "/content/columns/interest_earned"
+        },
+        {
+          "subject": "expenses",
+          "pointer": "/content/columns/expenses"
+        },
+        {
+          "subject": "completed",
+          "pointer": "/content/columns/completed"
+        },
+        {
+          "subject": "pending",
+          "pointer": "/content/columns/pending"
+        },
+        {
+          "subject": "reserved",
+          "pointer": "/content/columns/reserved"
+        },
+        {
+          "subject": "pending_count",
+          "pointer": "/content/columns/pending_count"
+        },
+        {
+          "subject": "capital_exceptions",
+          "pointer": "/content/columns/capital_exceptions"
+        },
+        {
+          "subject": "earnings_exceptions",
+          "pointer": "/content/columns/earnings_exceptions"
+        },
+        {
+          "subject": "settlement_exceptions",
+          "pointer": "/content/columns/settlement_exceptions"
+        },
+        {
+          "subject": "undated_pending",
+          "pointer": "/content/columns/undated_pending"
+        },
+        {
+          "subject": "pool",
+          "pointer": "/content/columns/pool"
+        },
+        {
+          "subject": "allocation_residual",
+          "pointer": "/content/columns/allocation_residual"
+        },
+        {
+          "subject": "net_earned",
+          "pointer": "/content/columns/net_earned"
+        },
+        {
+          "subject": "capital_share",
+          "pointer": "/content/columns/capital_share"
+        },
+        {
+          "subject": "ready",
+          "pointer": "/content/columns/ready"
+        },
+        {
+          "subject": "unpaid",
+          "pointer": "/content/columns/unpaid"
+        },
+        {
+          "subject": "available",
+          "pointer": "/content/columns/available"
+        },
+        {
+          "subject": "other_reserved",
+          "pointer": "/content/columns/other_reserved"
+        },
+        {
+          "subject": "quality_status",
+          "pointer": "/content/columns/quality_status"
+        },
+        {
+          "subject": "queried_at",
+          "pointer": "/content/columns/queried_at"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-partner-settlements-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_partner_settlements_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "settlement_id",
+          "pointer": "/content/columns/settlement_id"
+        },
+        {
+          "subject": "partner_id",
+          "pointer": "/content/columns/partner_id"
+        },
+        {
+          "subject": "partner_name",
+          "pointer": "/content/columns/partner_name"
+        },
+        {
+          "subject": "partner_role",
+          "pointer": "/content/columns/partner_role"
+        },
+        {
+          "subject": "activity_date",
+          "pointer": "/content/columns/activity_date"
+        },
+        {
+          "subject": "amount",
+          "pointer": "/content/columns/amount"
+        },
+        {
+          "subject": "status",
+          "pointer": "/content/columns/status"
+        },
+        {
+          "subject": "completed_amount",
+          "pointer": "/content/columns/completed_amount"
+        },
+        {
+          "subject": "pending_amount",
+          "pointer": "/content/columns/pending_amount"
+        },
+        {
+          "subject": "reserved_amount",
+          "pointer": "/content/columns/reserved_amount"
+        },
+        {
+          "subject": "valid",
+          "pointer": "/content/columns/valid"
+        },
+        {
+          "subject": "date_status",
+          "pointer": "/content/columns/date_status"
         }
       ]
     },

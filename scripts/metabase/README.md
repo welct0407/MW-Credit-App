@@ -1,5 +1,7 @@
 # R040 borrower lifetime display
 
+R044 Partners: `PartnersTab.mjs --publish` adds the tab once, refusing a pre-existing state file and guarding all prior placements. `--verify` exercises saved queries; `VerifyPartnersSaved.mjs` checks multi-partner/status behavior and captures exact definitions. The narrowly scoped `--repair` corrects model-reference tags on state-owned questions only; do not replay publication. Six V47 providers use source2 / loan_manager_prod; no AppSheet writes. [Evidence and recovery](../../outputs/r044-partners/README.md).
+
 `RefineBorrowerLifetimeDisplay.mjs` owns the scoped formatting change to rate question313 and the two lifetime model-backed columns in Portfolio comparison question289. Its private baseline and recovery dashboard14 precede publication; `--verify` checks saved values, date invariance and unchanged dashboard mappings. [Handover](../../outputs/r040-borrower-lifetime-display/README.md).
 
 `AddBorrowerMatrixCategory.mjs` adds the current governed V3 category to comparison question289 and labels inactive borrowers Outside active cohort. It uses a separate fresh private baseline and recovery dashboard15; `--verify` checks source parity, date invariance, population and preserved layout. [Refinement](../../outputs/r040-borrower-lifetime-display/README.md#bcg-matrix-category-refinement).

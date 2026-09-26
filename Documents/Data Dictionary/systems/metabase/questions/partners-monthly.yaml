@@ -1,0 +1,176 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Monthly net earned versus paid / 337",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "monthly",
+    "description": "R044 Partners. Selected dates only; boundary months can be partial. Payouts use Transfer Date and can consume earlier profit; not FIFO profit-month attribution.",
+    "result_metadata": [
+      {
+        "database_type": "date",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Month",
+        "lib/original-name": "Month",
+        "name": "Month",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Month",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Month",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "Month",
+        "display_name": "Month",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Net earned ฿",
+        "lib/original-name": "Net earned ฿",
+        "name": "Net earned ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Net earned ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Net earned ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Net earned ฿",
+        "display_name": "Net earned ฿",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Completed payouts ฿",
+        "lib/original-name": "Completed payouts ฿",
+        "name": "Completed payouts ฿",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Completed payouts ฿",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Completed payouts ฿",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "Completed payouts ฿",
+        "display_name": "Completed payouts ฿",
+        "base_type": "type/Decimal"
+      }
+    ],
+    "collection_id": 5,
+    "name": "Monthly net earned versus paid",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "string/=",
+              "id": "pt-partner",
+              "name": "partner",
+              "display-name": "Partner",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Text",
+                  "lib/uuid": "87363adb-07ff-414e-87e4-bdb0b0d5136b",
+                  "effective-type": "type/Text"
+                },
+                121
+              ],
+              "alias": "d.partner_id"
+            },
+            {
+              "widget-type": "date/all-options",
+              "id": "pt-period",
+              "name": "period",
+              "display-name": "Partner activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "1d787e4f-29ac-4122-86af-bb137bb32d05",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.activity_date"
+            },
+            {
+              "type": "card",
+              "id": "r044-model-322",
+              "name": "#322",
+              "display-name": "Partners source 322",
+              "card-id": 322
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT date_trunc('month',activity_date)::date AS \"Month\",CASE WHEN count(*)=0 THEN 0 WHEN bool_and(net_earned IS NOT NULL) THEN sum(net_earned) END AS \"Net earned ฿\",CASE WHEN count(*)=0 THEN 0 WHEN bool_and(completed_payouts IS NOT NULL) THEN sum(completed_payouts) END AS \"Completed payouts ฿\" FROM {{#322}} d WHERE true [[AND {{partner}}]] [[AND {{period}}]] GROUP BY 1 ORDER BY 1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 337,
+    "display": "bar",
+    "visualization_settings": {
+      "graph.show_values": true,
+      "graph.show_legend": true,
+      "graph.missing": "none",
+      "graph.y_axis.auto_split": false,
+      "graph.metrics": [
+        "Net earned ฿",
+        "Completed payouts ฿"
+      ],
+      "graph.label_value_formatting": "full",
+      "graph.colors": [
+        "#178F8A",
+        "#7472BE",
+        "#D6816B",
+        "#D4AD60"
+      ],
+      "column_settings": {
+        "[\"name\",\"Net earned ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Completed payouts ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      },
+      "graph.dimensions": [
+        "Month"
+      ],
+      "stackable.stack_type": null
+    }
+  }
+}

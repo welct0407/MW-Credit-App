@@ -1,0 +1,216 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "model",
+    "name": "Partners · capital source / 319",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "capital",
+    "description": "R044 thin metadata over governed read-only PostgreSQL provider. No financial writes.",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "capital_id",
+        "lib/original-name": "capital_id",
+        "name": "capital_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "capital_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "capital_id",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "capital_id",
+        "display_name": "capital_id",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_id",
+        "lib/original-name": "partner_id",
+        "name": "partner_id",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_id",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_id",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_id",
+        "display_name": "partner_id",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_name",
+        "lib/original-name": "partner_name",
+        "name": "partner_name",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_name",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_name",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_name",
+        "display_name": "partner_name",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "partner_role",
+        "lib/original-name": "partner_role",
+        "name": "partner_role",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "partner_role",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "partner_role",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "partner_role",
+        "display_name": "partner_role",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "date",
+        "lib/deduplicated-name": "activity_date",
+        "lib/original-name": "activity_date",
+        "name": "activity_date",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "activity_date",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "activity_date",
+          {
+            "base-type": "type/Date"
+          }
+        ],
+        "effective_type": "type/Date",
+        "lib/desired-column-alias": "activity_date",
+        "display_name": "activity_date",
+        "base_type": "type/Date"
+      },
+      {
+        "database_type": "text",
+        "lib/deduplicated-name": "transaction_type",
+        "lib/original-name": "transaction_type",
+        "name": "transaction_type",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "transaction_type",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "transaction_type",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "transaction_type",
+        "display_name": "transaction_type",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "amount",
+        "lib/original-name": "amount",
+        "name": "amount",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "amount",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "amount",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "amount",
+        "display_name": "amount",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "numeric",
+        "lib/deduplicated-name": "net_movement",
+        "lib/original-name": "net_movement",
+        "name": "net_movement",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "net_movement",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "net_movement",
+          {
+            "base-type": "type/Decimal"
+          }
+        ],
+        "effective_type": "type/Decimal",
+        "lib/desired-column-alias": "net_movement",
+        "display_name": "net_movement",
+        "base_type": "type/Decimal"
+      },
+      {
+        "database_type": "bool",
+        "lib/deduplicated-name": "valid",
+        "lib/original-name": "valid",
+        "name": "valid",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "valid",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "valid",
+          {
+            "base-type": "type/Boolean"
+          }
+        ],
+        "effective_type": "type/Boolean",
+        "lib/desired-column-alias": "valid",
+        "display_name": "valid",
+        "base_type": "type/Boolean"
+      }
+    ],
+    "collection_id": 8,
+    "name": "Partners · capital source",
+    "type": "model",
+    "dataset_query": {
+      "stages": [
+        {
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT * FROM public.reporting_partner_capital_v1"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 319,
+    "display": "table",
+    "visualization_settings": {}
+  }
+}

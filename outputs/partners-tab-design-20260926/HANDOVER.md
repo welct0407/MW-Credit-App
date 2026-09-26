@@ -1,5 +1,7 @@
 # Partners tab — detailed design and implementation handover
 
+Implementation status — delivered in R044: [Partners tab](https://reports.mw-credit.com/dashboard/3?tab=249), [saved implementation and verification](../r044-partners/README.md). No AppSheet change. The entitlement bridge uses the specified labelled table fallback. The following design remains the metric contract; delivery evidence supersedes implementation-pending language.
+
 Date: 26 September 2026
 
 Status: **Design complete for review; implementation, live verification and dashboard publication not performed.**

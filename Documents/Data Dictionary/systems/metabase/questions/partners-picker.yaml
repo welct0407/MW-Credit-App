@@ -1,0 +1,114 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "metabase",
+    "component": "reports.mw-credit.com",
+    "kind": "question",
+    "name": "Partners · selection list / 324",
+    "scope": "production"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r044-partners/saved.json"
+  },
+  "content": {
+    "key": "picker",
+    "description": "R044 Partners. ",
+    "result_metadata": [
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Partner ID",
+        "lib/original-name": "Partner ID",
+        "name": "Partner ID",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Partner ID",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Partner ID",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Partner ID",
+        "display_name": "Partner ID",
+        "base_type": "type/Text"
+      },
+      {
+        "database_type": "text",
+        "semantic_type": null,
+        "lib/deduplicated-name": "Partner",
+        "lib/original-name": "Partner",
+        "name": "Partner",
+        "lib/source": "source/native",
+        "lib/source-column-alias": "Partner",
+        "source": "native",
+        "field_ref": [
+          "field",
+          "Partner",
+          {
+            "base-type": "type/Text"
+          }
+        ],
+        "effective_type": "type/Text",
+        "lib/desired-column-alias": "Partner",
+        "display_name": "Partner",
+        "base_type": "type/Text"
+      }
+    ],
+    "collection_id": 8,
+    "name": "Partners · selection list",
+    "type": "question",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "type": "card",
+              "id": "r044-model-318",
+              "name": "#318",
+              "display-name": "Partners source 318",
+              "card-id": 318
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "SELECT d.partner_id AS \"Partner ID\",d.partner_name AS \"Partner\" FROM {{#318}} d ORDER BY d.partner_role,d.partner_id"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "id": 324,
+    "display": "table",
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Partner ID",
+          "fieldRef": [
+            "field",
+            "Partner ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": false
+        },
+        {
+          "name": "Partner",
+          "fieldRef": [
+            "field",
+            "Partner",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        }
+      ],
+      "column_settings": {}
+    }
+  }
+}

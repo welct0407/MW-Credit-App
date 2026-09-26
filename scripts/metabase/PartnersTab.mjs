@@ -13,7 +13,7 @@ const fmt=names=>Object.fromEntries(names.map(n=>[JSON.stringify(['name',n]),n.i
 const table=(names,hidden=[])=>({'table.pivot':false,'table.columns':names.map(name=>({name,fieldRef:['field',name,{'base-type':name.includes('฿')||name.includes('%')?'type/Decimal':'type/Text'}],enabled:!hidden.includes(name)})),column_settings:fmt(names.filter(n=>n.includes('฿')||n.includes('%')))});
 const graph=(dim,metrics,extra={})=>({'graph.dimensions':[dim],'graph.metrics':metrics,'graph.colors':['#178F8A','#7472BE','#D6816B','#D4AD60'],'graph.show_legend':true,'graph.show_values':true,'graph.label_value_formatting':'full','graph.y_axis.auto_split':false,'graph.missing':'none','stackable.stack_type':null,column_settings:fmt(metrics),...extra});
 const tags={partner:{id:'pt-partner',name:'partner','display-name':'Partner',type:'dimension',dimension:['field',121,null],'widget-type':'string/=',alias:'d.partner_id'},period:{id:'pt-period',name:'period','display-name':'Partner activity period',type:'dimension',dimension:['field',82,null],'widget-type':'date/all-options',alias:'d.activity_date'},status:{id:'pt-status',name:'status','display-name':'Settlement ledger status',type:'text'}};
-export const native=(query,keys=[])=>({database:2,type:'native',native:{query,'template-tags':Object.fromEntries(keys.map(k=>[k,tags[k]]))}});
+export const native=(query,keys=[])=>({database:2,type:'native',native:{query,'template-tags':Object.fromEntries([...keys.map(k=>[k,tags[k]]),...Array.from(query.matchAll(/\{\{#(\d+)\}\}/g),m=>['#'+m[1],{id:'r044-model-'+m[1],name:'#'+m[1],'display-name':'Partners source '+m[1],type:'card','card-id':Number(m[1])}])])}});
 const safe=f=>`CASE WHEN count(*)=0 THEN 0 WHEN bool_and(${f} IS NOT NULL) THEN sum(${f}) END`;
 const from=(key,period=false)=>`FROM __MODEL_${key}__ d WHERE true [[AND {{partner}}]]${period?' [[AND {{period}}]]':''}`;
 export function specs(models={}){
@@ -48,7 +48,7 @@ function parameters(state){return [
 function layout(state){
  const placements=[];let id=-47001;const ss=specs(state.models);
  const note=(row,text,h=3)=>placements.push({id:id--,card_id:null,dashboard_tab_id:state.tab,col:0,row,size_x:24,size_y:h,series:[],parameter_mappings:[],visualization_settings:{'card.background':false,virtual_card:{display:'text',visualization_settings:{text}}}});
- const put=(key,col,row,w,h)=>{const s=ss.find(s=>s.key===key);placements.push({id:id--,card_id:state.cards[key],dashboard_tab_id:state.tab,col,row,size_x:w,size_y:h,series:[],visualization_settings:{},parameter_mappings:Object.keys(s.dataset_query.native['template-tags']).map(k=>({parameter_id:tags[k].id,card_id:state.cards[key],target:[k==='status'?'variable':'dimension',['template-tag',k]]}))});};
+ const put=(key,col,row,w,h)=>{const s=ss.find(s=>s.key===key);placements.push({id:id--,card_id:state.cards[key],dashboard_tab_id:state.tab,col,row,size_x:w,size_y:h,series:[],visualization_settings:{},parameter_mappings:Object.keys(s.dataset_query.native['template-tags']).filter(k=>k in tags).map(k=>({parameter_id:tags[k].id,card_id:state.cards[key],target:[k==='status'?'variable':'dimension',['template-tag',k]]}))});};
  note(0,'## Partners\nCurrent capital, earned profit and settlements. All amounts are baht; current balances stay current when activity dates change.');
  ['capital','earned','paid'].forEach((k,i)=>put(k,i*8,3,8,4));put('pending',0,7,12,4);put('available',12,7,12,4);
  put('comparison',0,11,24,7);put('share',0,18,12,9);put('bridge',12,18,12,9);
@@ -81,6 +81,13 @@ if(process.argv.includes('--publish')){
  const withTab=await api('GET','dashboard/3');state.tab=withTab.tabs.find(t=>t.name==='12 · Partners').id;save('state',state);
  await api('PUT','dashboard/3/cards',{tabs:withTab.tabs,cards:[...withTab.dashcards,...layout(state)]});
  console.log(JSON.stringify({tab:state.tab,backup:state.backupDashboard,questions:Object.keys(state.cards).length,models:Object.keys(state.models).length}));
+}
+if(process.argv.includes('--repair')){
+ await assertSource();const state=read('state'),before=[];
+ for(const s of specs(state.models)){const q=await api('GET','card/'+state.cards[s.key]);assert.equal(q.name,s.name);before.push(q);}
+ save('questions-before-repair',before,priv);
+ for(const s of specs(state.models))await api('PUT','card/'+state.cards[s.key],{dataset_query:s.dataset_query});
+ console.log('Updated model-reference tags on the 20 R044 questions');
 }
 if(process.argv.includes('--verify')){
  await assertSource();const state=read('state'),old=read('dashboard-before',priv),d=await api('GET','dashboard/3');

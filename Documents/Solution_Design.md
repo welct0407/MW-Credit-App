@@ -1,5 +1,7 @@
 # Solution design rules
 
+R044 adds **12 · Partners** (249), an actual-only read-only page after the existing tabs. Current capital, earned profit, payouts, reservations and net available use governed V47 views; selected-date activity uses event dates and carries opening capital. Full-pool capital shares are independent of partner selection. OLAP retains settlement entry; report availability is entitlement, not cash custody. [Delivered contract](../outputs/r044-partners/README.md) and [detailed handover](../outputs/partners-tab-design-20260926/HANDOVER.md).
+
 ## Custom borrower matrix extension — R030
 
 Metabase dashboard3/tab31 now includes the accepted Debian-hosted custom matrix; R033 removed the native plot placement while preserving its saved question for recovery. R034 places the chart ahead of category tables and presents baht amounts without decimals on this page; scores, ratios, percentages and stored values retain their original precision. SQL V43 remains the authority for categories and coordinates; the chart joins borrower names through a dedicated read-only role. Four equal quadrants with muted category symbols, nearby name labels without connector lines and a name-first/single-category tooltip improve identification without changing the model. A shared bearer secret protects the fixed-query endpoint; dashboard readers are its intended audience. No OLTP/OLAP AppSheet fields, workflows or app versions change. [R030 evidence](../outputs/r030-custom-matrix/README.md) describes refresh, access, mobile scrolling and rollback.

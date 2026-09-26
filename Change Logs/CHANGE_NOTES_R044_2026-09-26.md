@@ -24,3 +24,7 @@ Status: DEV implementation verified; PROD migration and report publication pendi
 Restore the scoped Metabase definition baseline/recovery copy after checking intervening edits. Additive SQL views may remain unused on report rollback; do not revert financial data. No RC apps or AppSheet rollback required. Finish exact pinned SQL promotion, report/filter verification, correct-profile browser QA, dictionary/core-document closure and final release publication before marking Released.
 
 Scope frozen at 2026-09-26T16:38:54.763258+00:00 for authorized promotion. Exact tested package `8cbf7f1935fa6570b71a913d931c4efdc52318f2` and Flyway manifest captured in the clean managed r044 worktree. R045 opened as sole development release; shared DEV package is independently pinned.
+
+## Delivered closure
+
+PROD migrated from the clean pinned worktree V46 → V47; validation and15 independent source/grain/period checks passed. New Partners249 published with recovery21; all223 previous placements preserved. Required Metabase model-reference tags were added as a scoped candidate correction, then19 saved dashboard visuals, multi-selection and three ledger statuses passed. No SQL correction or AppSheet edit. Desktop/mobile Chrome inspection passed; native wide-table/note scrolling documented. Exact SQL/model/question/dashboard dictionary and core records updated. Private screenshots/backups are excluded from Git. Final publication: current upstream, unique R044 tag. No RC cleanup needed.
