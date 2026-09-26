@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R038 | New development | Open | Opened at R037 report handoff; no shared DEV runtime edits. | Scope not yet assigned |
+| R038 | Lifetime interest / total principal lent | Open | Data/model parity passed; publication pending. | [Evidence](../outputs/r038-lifetime-return/README.md) |
 | R037 | Borrower contribution pies and overall rates | Released | Model310/questions311-315; lifetime daily rate; desktop/mobile and data/filter checks passed; tag R037. | [Handover](../outputs/r037-borrower-contribution/README.md) |
 | R036 | Automatic daily interest; OLTP bilingual labels and Payments presentation; delivered Collection Monitor alignment | Released | SQL V45; OLTP3.000249; OLAP1.100202 unchanged; both editors clear; RC deleted; tag R036. | [Checklist](../outputs/r036-production/promotion-checklist.md) · [Manifest](../outputs/r036-production/release-manifest.json) |
 | R035 | Metabase monitoring and additive borrower pages | Released — SQL/report and monitoring | DEV/PROD44; new Portfolio104 / Detail105, original tabs preserved; data and desktop/mobile checks passed. Apps unchanged; tag R035. | [Evidence](../outputs/r035-borrower-pages/README.md) · [Release log](../Change%20Logs/CHANGE_NOTES_R035_2026-09-25.md) |
