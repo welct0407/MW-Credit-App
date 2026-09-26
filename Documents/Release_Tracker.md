@@ -4,9 +4,9 @@
 
 | Start-of-work lookup | Value |
 | --- | --- |
-| **Use this release for new development** | **R039 — Open** |
-| Next number, not yet open or usable | **R040 — opens only when R039 is frozen at promotion start** |
-| Current release evidence | R039 Open; R038 Released: lifetime borrower return on total lending. [Evidence](../outputs/r038-lifetime-return/README.md) |
+| **Use this release for new development** | **R040 — Open** |
+| Next number, not yet open or usable | **R041 — opens only when R040 is frozen at promotion start** |
+| Current release evidence | R040 Open; R039 Frozen for owner-authorized layout restoration. [Evidence](../outputs/r039-restore-borrower-bars/README.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,8 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R039 | Restore borrower amount bars alongside pies | Open | Layout prepared; saved questions reused unchanged. | [Evidence](../outputs/r039-restore-borrower-bars/README.md) |
+| R040 | New development | Open | R039 layout candidate captured; shared DEV unchanged. | Scope not yet assigned |
+| R039 | Restore borrower amount bars alongside pies | Frozen | 2026-09-26T09:34:39.220534+00:00; pin `2800aab4a0a406ebd787ab99e3e0e0e796b4733a`. | [Evidence](../outputs/r039-restore-borrower-bars/README.md) |
 | R038 | Lifetime interest / total principal lent | Released | Model310/card314/context315; Orgrand160%; data/filter/GUI verified; tag R038. | [Evidence](../outputs/r038-lifetime-return/README.md) |
 | R037 | Borrower contribution pies and overall rates | Released | Model310/questions311-315; lifetime daily rate; desktop/mobile and data/filter checks passed; tag R037. | [Handover](../outputs/r037-borrower-contribution/README.md) |
 | R036 | Automatic daily interest; OLTP bilingual labels and Payments presentation; delivered Collection Monitor alignment | Released | SQL V45; OLTP3.000249; OLAP1.100202 unchanged; both editors clear; RC deleted; tag R036. | [Checklist](../outputs/r036-production/promotion-checklist.md) · [Manifest](../outputs/r036-production/release-manifest.json) |
