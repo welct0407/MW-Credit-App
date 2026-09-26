@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R040 — Open** |
 | Next number, not yet open or usable | **R041 — opens only when R040 is frozen at promotion start** |
-| Current release evidence | R040 Open; R039 Released: principal/interest bars restored alongside both pies and ratio charts. [Evidence](../outputs/r039-restore-borrower-bars/README.md) |
+| Current release evidence | R040 Open: Portfolio comparison lifetime ratios and governed BCG category saved and verified. [Evidence](../outputs/r040-borrower-lifetime-display/README.md) |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R040 | Borrower Portfolio lifetime display | Open | Questions 313/289 saved in Metabase; one-decimal rate and two comparison ratios verified; pending owner review. | [Evidence](../outputs/r040-borrower-lifetime-display/README.md) |
+| R040 | Borrower Portfolio lifetime display and BCG category | Open | One-decimal rate, two comparison ratios and current V3 matrix category saved and verified; pending owner review. | [Evidence](../outputs/r040-borrower-lifetime-display/README.md) |
 | R039 | Restore borrower amount bars alongside pies | Released | Six charts coexist; queries/layout/filters/visual check passed; tagR039. | [Evidence](../outputs/r039-restore-borrower-bars/README.md) |
 | R038 | Lifetime interest / total principal lent | Released | Model310/card314/context315; Orgrand160%; data/filter/GUI verified; tag R038. | [Evidence](../outputs/r038-lifetime-return/README.md) |
 | R037 | Borrower contribution pies and overall rates | Released | Model310/questions311-315; lifetime daily rate; desktop/mobile and data/filter checks passed; tag R037. | [Handover](../outputs/r037-borrower-contribution/README.md) |

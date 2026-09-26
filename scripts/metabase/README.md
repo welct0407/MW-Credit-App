@@ -2,6 +2,8 @@
 
 `RefineBorrowerLifetimeDisplay.mjs` owns the scoped formatting change to rate question313 and the two lifetime model-backed columns in Portfolio comparison question289. Its private baseline and recovery dashboard14 precede publication; `--verify` checks saved values, date invariance and unchanged dashboard mappings. [Handover](../../outputs/r040-borrower-lifetime-display/README.md).
 
+`AddBorrowerMatrixCategory.mjs` adds the current governed V3 category to comparison question289 and labels inactive borrowers Outside active cohort. It uses a separate fresh private baseline and recovery dashboard15; `--verify` checks source parity, date invariance, population and preserved layout. [Refinement](../../outputs/r040-borrower-lifetime-display/README.md#bcg-matrix-category-refinement).
+
 # Borrower contribution refinement — R037
 
 `BorrowerContributionCharts.mjs` owns Portfolio104 questions311-315 and shared model310. See [contract and verification](../../outputs/r037-borrower-contribution/README.md). Its publication mode rejects baseline drift; `--refine` only updates owned questions and methodology spacing. R035 layout replay is guarded after this refinement.

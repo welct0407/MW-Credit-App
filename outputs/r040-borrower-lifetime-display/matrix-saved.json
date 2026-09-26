@@ -1,0 +1,351 @@
+{
+  "dashboard": 3,
+  "tab": 104,
+  "question": {
+    "id": 289,
+    "name": "Borrower comparison · click a name for Detail",
+    "description": "R040 Portfolio comparison. BCG Matrix category is the current governed V3 quadrant for active borrowers; inactive borrowers are outside the active cohort. Category and lifetime ratios ignore Activity dates; period activity and population continue to filter the table. Click Borrower for Detail.",
+    "display": "table",
+    "dataset_query": {
+      "stages": [
+        {
+          "template-tags": [
+            {
+              "widget-type": "date/all-options",
+              "id": "bp-period",
+              "name": "period",
+              "display-name": "Activity period",
+              "type": "dimension",
+              "dimension": [
+                "field",
+                {
+                  "base-type": "type/Date",
+                  "lib/uuid": "fc60dddc-739c-45bd-b364-405b2abeb7d6",
+                  "effective-type": "type/Date"
+                },
+                82
+              ],
+              "alias": "d.\"Date\""
+            },
+            {
+              "type": "text",
+              "id": "bp-population",
+              "name": "population",
+              "display-name": "Population",
+              "default": "All with loan history"
+            },
+            {
+              "type": "card",
+              "id": "r040-model-310",
+              "name": "#310",
+              "display-name": "Borrower lifetime economics",
+              "card-id": 310
+            }
+          ],
+          "lib/type": "mbql.stage/native",
+          "native": "WITH clock AS (SELECT public.olap_reporting_date() today), selected AS (SELECT d.\"Date\" FROM (SELECT generate_series(DATE '1900-01-01',DATE '2199-12-31',interval '1 day')::date \"Date\") d WHERE [[{{period}} --]] d.\"Date\" BETWEEN (SELECT today-30 FROM clock) AND (SELECT today-1 FROM clock)\n), bounds AS (SELECT min(\"Date\") starts,max(\"Date\") ends,count(*) days,count(*)>0 AND count(*)=max(\"Date\")-min(\"Date\")+1 AND max(\"Date\")<=(SELECT today FROM clock) valid FROM selected), cohort AS (SELECT p.* FROM bounds b CROSS JOIN LATERAL public.reporting_borrower_period_v1(b.starts,b.ends,[[{{population}} --]] 'All with loan history'\n) p WHERE b.valid) SELECT c.borrower_label AS \"Borrower\",c.active_loans AS \"Active loans\",c.outstanding_principal AS \"Principal ฿\",c.principal_share AS \"Principal share\",c.interest_received AS \"Interest ฿\",e.\"Achieved daily rate\" AS \"Lifetime daily rate\",e.\"Lifetime interest return\" AS \"Lifetime interest return\",c.principal_issued AS \"Principal issued ฿\",c.loans_issued AS \"Loans issued\",coalesce(h.current_health_status,'Unavailable') AS \"Current health\",CASE WHEN c.active_loans=0 THEN 'Outside active cohort' ELSE coalesce(m.quadrant,'Unavailable') END AS \"BCG Matrix category\",c.principal_returned AS \"Principal returned ฿\",c.loan_count AS \"Lifetime loans\",c.last_payment_date AS \"Last payment\",c.borrower_id AS \"Borrower ID\",b.starts::text AS \"Period start\",b.ends::text AS \"Period end\" FROM cohort c LEFT JOIN {{#310}} e ON e.\"Borrower ID\"=c.borrower_id LEFT JOIN public.reporting_borrower_payment_health_v1 h USING(borrower_id) LEFT JOIN public.reporting_borrower_matrix_v3 m USING(borrower_id) CROSS JOIN bounds b ORDER BY c.principal_rank"
+        }
+      ],
+      "lib/type": "mbql/query",
+      "database": 2
+    },
+    "visualization_settings": {
+      "table.pivot": false,
+      "table.columns": [
+        {
+          "name": "Borrower",
+          "fieldRef": [
+            "field",
+            "Borrower",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Active loans",
+          "fieldRef": [
+            "field",
+            "Active loans",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Principal ฿",
+          "fieldRef": [
+            "field",
+            "Principal ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Principal share",
+          "fieldRef": [
+            "field",
+            "Principal share",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Interest ฿",
+          "fieldRef": [
+            "field",
+            "Interest ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Lifetime daily rate",
+          "fieldRef": [
+            "field",
+            "Lifetime daily rate",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Lifetime interest return",
+          "fieldRef": [
+            "field",
+            "Lifetime interest return",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Principal issued ฿",
+          "fieldRef": [
+            "field",
+            "Principal issued ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Loans issued",
+          "fieldRef": [
+            "field",
+            "Loans issued",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Current health",
+          "fieldRef": [
+            "field",
+            "Current health",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "BCG Matrix category",
+          "fieldRef": [
+            "field",
+            "BCG Matrix category",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Principal returned ฿",
+          "fieldRef": [
+            "field",
+            "Principal returned ฿",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Lifetime loans",
+          "fieldRef": [
+            "field",
+            "Lifetime loans",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Last payment",
+          "fieldRef": [
+            "field",
+            "Last payment",
+            {
+              "base-type": "type/Decimal"
+            }
+          ],
+          "enabled": true
+        },
+        {
+          "name": "Borrower ID",
+          "fieldRef": [
+            "field",
+            "Borrower ID",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": false
+        },
+        {
+          "name": "Period start",
+          "fieldRef": [
+            "field",
+            "Period start",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": false
+        },
+        {
+          "name": "Period end",
+          "fieldRef": [
+            "field",
+            "Period end",
+            {
+              "base-type": "type/Text"
+            }
+          ],
+          "enabled": false
+        }
+      ],
+      "column_settings": {
+        "[\"name\",\"Loans issued\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Lifetime interest return\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal returned ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal share\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Lifetime daily rate\"]": {
+          "number_style": "percent",
+          "decimals": 1,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Interest ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal issued ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Lifetime loans\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Active loans\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        },
+        "[\"name\",\"Principal ฿\"]": {
+          "number_style": "decimal",
+          "decimals": 0,
+          "number_separators": ".,",
+          "compact": false
+        }
+      }
+    }
+  },
+  "placement": {
+    "id": 2159,
+    "card_id": 289,
+    "dashboard_tab_id": 104,
+    "row": 65,
+    "col": 0,
+    "size_x": 24,
+    "size_y": 11,
+    "parameter_mappings": [
+      {
+        "parameter_id": "bp-period",
+        "card_id": 289,
+        "target": [
+          "dimension",
+          [
+            "template-tag",
+            "period"
+          ]
+        ]
+      },
+      {
+        "parameter_id": "bp-population",
+        "card_id": 289,
+        "target": [
+          "variable",
+          [
+            "template-tag",
+            "population"
+          ]
+        ]
+      }
+    ],
+    "visualization_settings": {
+      "column_settings": {
+        "[\"name\",\"Borrower\"]": {
+          "click_behavior": {
+            "type": "link",
+            "linkType": "url",
+            "linkTemplate": "https://reports.mw-credit.com/dashboard/3?tab=105&bd_borrower={{Borrower ID}}&bd_activity={{Period start}}~{{Period end}}"
+          }
+        }
+      }
+    }
+  }
+}
