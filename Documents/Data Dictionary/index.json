@@ -31502,6 +31502,16 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/borrower-punctuality-summary.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Payment punctuality summary · selected due dates / 316",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/reporting-connection-health.yaml",
       "scope": "production",
       "system": "metabase",

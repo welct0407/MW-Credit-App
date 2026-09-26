@@ -214,3 +214,6 @@ This pass verified saved metadata and design/source consistency only. No live me
 Deliver P1–P7 and D1–D11 using existing authoritative facts, with the existing scenario simplified rather than expanded. No new rating, return metric, rating-history storage, borrower financial editing, lending recommendation, or contact workflow. If a desired secondary field lacks a verified source, expose a clear availability gap and resolve it before adding that field; do not invent a value or widen the project.
 
 The owner can review page contents and the all-history default population before implementation. The principal design decision is already explicit: **Portfolio explains borrower contribution and activity; Detail explains one borrower; Health Review continues to own health analysis.**
+
+
+R040 D7 implementation supersedes the original two-way timing display: chart304 splits Paid on time / Paid late / Still overdue; summary316 supplies rate, assessed count and exclusions above the monthly chart. Both use selected borrower and due-date range. [Exact definitions and recovery](../r040-borrower-punctuality/README.md).

@@ -18,3 +18,6 @@
 
 
 **Punctuality refinement and scope freeze, 26 September:** Owner authorized implementing monthly paid-on-time / paid-late / still-overdue results plus a summary in Detail tab105. Existing V41 data only. Starting Git commit 862822bda116d0af9ef01819129bea43fbeff686; unrelated untracked work preserved. R040 frozen 2026-09-26T13:32:03.126579+00:00 with exact [package](../outputs/r040-borrower-punctuality/plan.json), R041 opened as sole development release. Empty-selection preflight passed; saved-state verification pending.
+
+
+**Punctuality delivered:** card304 updated and summary316 added; recovery dashboard17/private baseline established. Two borrowers/two periods reconciled; cleared selection, saved definition/layout preservation and Chrome visual checks passed. Exact dictionary definitions, design/handover and core references updated. No AppSheet, SQL or source-data changes. [Implementation, limitations and recovery](../outputs/r040-borrower-punctuality/README.md). R040 released with tag R040; R041 remains Open.

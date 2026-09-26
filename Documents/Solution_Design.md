@@ -107,3 +107,6 @@ R040 presents the achieved daily-rate bar to one decimal and adds both lifetime 
 The R040 comparison table also displays the current governed V3 BCG Matrix category by borrower ID, alongside Current health. Active borrowers receive the same category as Borrower Health Review/Detail; inactive borrowers are labeled Outside active cohort. Activity dates do not recalculate the category. [Refinement evidence](../outputs/r040-borrower-lifetime-display/README.md#bcg-matrix-category-refinement).
 
 R040 makes Portfolio tab104 the canonical sixth Metabase tab, named **6 · Borrowers**, after Performance and before Borrower Health Review. The original Borrowers tab6 and empty Tab 11 ID17 were removed from the dashboard; their saved questions were retained. Borrower Detail tab105 and all other tabs/filters remain. [Cutover and recovery](../outputs/r040-borrower-lifetime-display/README.md#borrower-tab-cutover).
+
+
+R040 Detail punctuality now presents on-time, subsequently paid-late and still-overdue obligation counts by due month, plus the on-time rate and denominator above the chart. Existing V41 charge-grain eligibility/timing remains authoritative; excluded observations are counted separately. [Contract](../outputs/r040-borrower-punctuality/README.md).

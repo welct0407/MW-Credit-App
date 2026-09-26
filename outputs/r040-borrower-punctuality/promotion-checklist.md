@@ -4,15 +4,15 @@ Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/pr
 
 ## Continue here
 
-- Scope / dependencies / app Upgrade or Unchanged decisions: Pending
-- Release scope / freeze timestamp / successor handoff: Open until authorized promotion starts; then record P13 evidence and update the tracker's current development release.
-- Manifest / change log / test evidence: Pending
-- DEV readiness / owner acceptance: Pending
-- Production authorization / approved RC revision: Pending
-- DEV / RC / PROD-before / PROD-after / rollback / SQL versions: in linked manifest; Pending
-- Implementation commit / Flyway manifest / final tag: in linked manifest; Pending
-- Completed / next / blockers: Query preflight complete; publish and verify affected report definitions next.
-- Documentation impact: Pending — list affected paths or None with a scope-based reason; add their closure rows below.
+- Scope / dependencies / app Upgrade or Unchanged decisions: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
+- Release scope / freeze timestamp / successor handoff: P13; published package commit 73aee35; R041 sole Open release.
+- Manifest / change log / test evidence: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
+- DEV readiness / owner acceptance: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
+- Production authorization / approved RC revision: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
+- DEV / RC / PROD-before / PROD-after / rollback / SQL versions: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
+- Implementation commit / Flyway manifest / final tag: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
+- Completed / next / blockers: Published and verified; documentation complete; final commit/tag publication checked after commit.
+- Documentation impact: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
 
 ## Execution rules
 
@@ -37,14 +37,14 @@ Execute applicable rows in order; one result/evidence link per coherent check. S
 | P30 | D RC | App Upgrade | One RC validation pass: save/reload, editor data validation, zero issues, open/sync and representative changed screens. Resolve unexpected generated changes only. Complete initial Deployment Check and deploy new RC; reuse DEV business tests. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
 | P33 | E Upgrade | App Upgrade | Freeze final deployed RC identity/version and mapping evidence. Confirm authorization covers that revision. Immediately before each upgrade, confirm unchanged PROD baseline and frozen RC version; drift/fixes require a new integrated RC. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
 | P37 | E Upgrade | Each included app | App Upgrade the existing PROD ID from the frozen RC’s full internal name in planned order. Record source, target and before/after versions. Confirm success before dependent steps; never hand-recreate settings in PROD. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
-| P39 | F Validate | Always; mappings if upgraded | One PROD pass: verify version/Deployed state, sources/substitutions, PROD-allowed/RC-excluded guards, both editors clear and both apps open/sync with changed entry points. Visually verify each upgraded logo loads and matches its pre-promotion appearance; use resources/ originals if restoration is needed and recheck the affected logo. Check recipients only if changed. Reuse DEV tests; no repeat Deployment Check. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
-| P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
+| P39 | F Validate | Always; mappings if upgraded | One PROD pass: verify version/Deployed state, sources/substitutions, PROD-allowed/RC-excluded guards, both editors clear and both apps open/sync with changed entry points. Visually verify each upgraded logo loads and matches its pre-promotion appearance; use resources/ originals if restoration is needed and recheck the affected logo. Check recipients only if changed. Reuse DEV tests; no repeat Deployment Check. | Done | Affected report checks and documentation in README.md / verification.json; final publication at tag R040. AppSheet validation not triggered. |
+| P41 | F Validate | Uncovered SQL / critical / external effects | Run only targeted checks not already covered by SQL/RC/PROD evidence. At first guard introduction observe the next normal PROD run; later releases reuse proof. Record execution/delivery limits; no forced writes/notifications without scoped authority. | Done | Affected report checks and documentation in README.md / verification.json; final publication at tag R040. AppSheet validation not triggered. |
 | P38 | F Validate | Paused jobs / cutover steps | Complete approved external cutover steps and resume temporary pauses. Keep integrity triggers and one active scheduler per job/environment. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
-| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
-| P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
+| P45 | G Close | Always | Complete the documentation table below: update/verify the three core records and add only affected documents. No archive/history dispositions or routine folder scan. | Done | Affected report checks and documentation in README.md / verification.json; final publication at tag R040. AppSheet validation not triggered. |
+| P46 | G Close | Always | Reconcile manifest/log, versions, approvals/tests and recovery links. Close only promoted differences. Update exact dictionary rows when changed; revise overview only if explained behavior/architecture changes. Check relevant links/model values and intended Git diff once. | Done | Affected report checks and documentation in README.md / verification.json; final publication at tag R040. AppSheet validation not triggered. |
 | P49 | G Close | RC exists | After all upgrades and required PROD validation pass, automatically delete the recorded RC apps for this promotion, including rejected/superseded attempts; no further owner confirmation. Delete definitions only, preserving DEV/PROD, shared data/files/logos and recovery evidence. Verify deletion and update manifest/log/inventory/checklist before P48. Keep failed/incomplete promotion RCs contained; report cleanup failures as pending. No DEV refresh. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
-| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
-| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
+| P48 | G Close | Always | Commit/push final sanitized evidence/docs; create/push unique annotated Rnnn tag at that evidence commit. Verify remote branch/tag. Do not move tags or redeploy to fix publication. | Done | Affected report checks and documentation in README.md / verification.json; final publication at tag R040. AppSheet validation not triggered. |
+| P50 | G Close | Always | Report Released only after required validation, documentation and publication pass. Give versions, evidence/tag, rollback and limitations. Otherwise state the incomplete phase; repair documents without repeating live tests. | Done | Affected report checks and documentation in README.md / verification.json; final publication at tag R040. AppSheet validation not triggered. |
 | P51 | X Exception | Failure / drift / required gap only | Stop affected dependent steps, record actual partial state and follow only the matching recovery branch. Preserve later writes/work; no blind replay or manual PROD fallback. Ask only for missing authority/material decisions. Reconcile resulting status and documents. | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
 
 ## Documentation impact and closure
@@ -55,14 +55,14 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
-| [Development Changes](../../../Documents/Development_Changes.md) | N/A | Report-only: no AppSheet upgrade, SQL, notification, or runtime change. |
+| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | R040 report scope/results; no AppSheet or database changes. |
+| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | R040 report scope/results; no AppSheet or database changes. |
+| [Development Changes](../../../Documents/Development_Changes.md) | Updated | R040 report scope/results; no AppSheet or database changes. |
 
 ## Close
 
-- Outcome / limitations / rollback: Pending
-- Final evidence commit / Rnnn tag / remote verification: Pending
-- RC cleanup / verified deleted IDs and evidence: Pending or justified N/A
+- Outcome / limitations / rollback: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
+- Final evidence commit / Rnnn tag / remote verification: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
+- RC cleanup / verified deleted IDs and evidence: See README.md and release-manifest.json; report-only scope verified, no RC/SQL/app change.
 
 Released requires applicable activities, documentation, RC cleanup and publication complete. If only documents/publication remain, repair them without redeploying. Record final outcome in the manifest/tracker before the final evidence commit and verify publication afterward; do not create self-referential commit hashes.

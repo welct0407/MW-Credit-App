@@ -158,3 +158,6 @@ R022: all eight 6R Performance trend charts use selective value labels (Show val
 Railway backup policy (26 September 2026): Metabase application PostgreSQL volume has daily/weekly snapshots retained 6/27 days respectively; monthly backups are disabled under the requested 30-day maximum. Initial 275 MB manual backup is available. PITR enabled 26 September with verified coverage from 13:05:43 Bangkok; archives use the Postgres-PITR bucket in Singapore. Source business data and runtime secrets are outside this scope. [Configuration and verification](../Change%20Logs/CHANGE_NOTES_RAILWAY_PRO_BACKUPS_2026-09-26.md).
 
 Metabase runtime source (26 September 2026): GitHub welct0407/AppSheet-Loan-Project, master branch, root /scripts/metabase; automatic deployments watch Dockerfile, start.sh and .dockerignore in that directory only. Direct Metabase UI changes remain database-backed. [Integration and recovery](../Change%20Logs/CHANGE_NOTES_METABASE_GITHUB_2026-09-26.md).
+
+
+R040 Detail tab105: question304 updated to monthly payment punctuality; summary316 added. Dashboard3 now has 238 placements / 12 tabs. Recovery dashboard17 and private pre-change card/layout definitions recorded. Source2, database, AppSheet apps and runtime unchanged. [Evidence](../outputs/r040-borrower-punctuality/README.md).

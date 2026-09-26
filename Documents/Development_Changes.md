@@ -120,3 +120,6 @@ R023 current Performance: owner accepted 6R as the replacement. Tab18 is now **6
 ## R024 — Performance and Borrowers order (released)
 
 R024 checkpoint order: **5 · Performance** (tab18) preceded the then-current **6 · Borrowers** (tab6) on dashboard3. Their identities, cards and filter mappings were unchanged at that checkpoint. [Evidence](../outputs/r024-20260924/README.md). R040 replaced tab6 with tab104.
+
+
+R040 report-only refinement delivered: Detail monthly punctuality chart304 and summary316 use existing V41 data. No DEV/PROD database or AppSheet definition difference introduced. R040 scope frozen at report publication; R041 is the sole Open release. [Evidence](../outputs/r040-borrower-punctuality/README.md).
