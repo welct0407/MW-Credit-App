@@ -1,5 +1,7 @@
 # Environment inventory
 
+R042 current database/report checkpoint (26 September): `appsheet-pg-prod-20260914` / `34.21.174.215`, DEV `loan_manager_dev` and PROD `loan_manager_prod` both **V46**, validated. Adds only `reporting_borrower_payments_v1` and SELECT for existing `metabase_borrower_reader`; no raw Payments-table grant. Metabase dashboard3 has12 tabs /239 placements; Detail Payments317, loan-profit305 and interest-bars302 verified. Recovery dashboard19; AppSheet identities/versions/bindings unchanged. [Evidence](../outputs/r042-borrower-payments/README.md).
+
 R039 (26 September): Portfolio104 restores saved amount-ranking questions285/286 below pies311/312; ratios313/314 retained. Six charts in three rows; later Portfolio rows shifted9. Query definitions, apps, SQL, runtime and permissions unchanged; no DEV difference. Recovery dashboard13; [evidence](../outputs/r039-restore-borrower-bars/README.md). R040 sole Open.
 
 

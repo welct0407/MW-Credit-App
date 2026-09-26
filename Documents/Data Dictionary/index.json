@@ -31502,6 +31502,16 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/borrower-payment-receipts.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "Payments · selected payment dates / 317",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/borrower-punctuality-summary.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
@@ -38161,6 +38171,105 @@
         {
           "subject": "method_version",
           "pointer": "/content/columns/method_version"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/reporting-borrower-payments-v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.reporting_borrower_payments_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "payment_id",
+          "pointer": "/content/columns/payment_id"
+        },
+        {
+          "subject": "borrower_id",
+          "pointer": "/content/columns/borrower_id"
+        },
+        {
+          "subject": "payment_date",
+          "pointer": "/content/columns/payment_date"
+        },
+        {
+          "subject": "status",
+          "pointer": "/content/columns/status"
+        },
+        {
+          "subject": "amount_received",
+          "pointer": "/content/columns/amount_received"
+        },
+        {
+          "subject": "payment_method",
+          "pointer": "/content/columns/payment_method"
+        },
+        {
+          "subject": "allocation_method",
+          "pointer": "/content/columns/allocation_method"
+        },
+        {
+          "subject": "planned_allocation_amount",
+          "pointer": "/content/columns/planned_allocation_amount"
+        },
+        {
+          "subject": "posted_amount",
+          "pointer": "/content/columns/posted_amount"
+        },
+        {
+          "subject": "created_at",
+          "pointer": "/content/columns/created_at"
+        },
+        {
+          "subject": "processed_at",
+          "pointer": "/content/columns/processed_at"
+        },
+        {
+          "subject": "bank_reference",
+          "pointer": "/content/columns/bank_reference"
+        },
+        {
+          "subject": "notes",
+          "pointer": "/content/columns/notes"
+        },
+        {
+          "subject": "created_by",
+          "pointer": "/content/columns/created_by"
+        },
+        {
+          "subject": "target_loan_id",
+          "pointer": "/content/columns/target_loan_id"
+        },
+        {
+          "subject": "target_charge_id",
+          "pointer": "/content/columns/target_charge_id"
+        },
+        {
+          "subject": "received_holder_id",
+          "pointer": "/content/columns/received_holder_id"
+        },
+        {
+          "subject": "received_account_id",
+          "pointer": "/content/columns/received_account_id"
+        },
+        {
+          "subject": "received_holder",
+          "pointer": "/content/columns/received_holder"
+        },
+        {
+          "subject": "received_account",
+          "pointer": "/content/columns/received_account"
+        },
+        {
+          "subject": "target_charge_date",
+          "pointer": "/content/columns/target_charge_date"
+        },
+        {
+          "subject": "target_charge_loan_id",
+          "pointer": "/content/columns/target_charge_loan_id"
         }
       ]
     },

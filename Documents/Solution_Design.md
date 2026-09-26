@@ -113,3 +113,6 @@ R040 Detail punctuality now presents on-time, subsequently paid-late and still-o
 
 
 R041 Detail presentation: grouped principal-issued/returned bars; existing OLAP-style Loan Key in loan/charge/repayment tables; internal IDs omitted from displayed results. Selected-date charges precede repayments, with current-overdue table unchanged. [Contract](../outputs/r041-borrower-detail/README.md).
+
+
+R042 Detail adds original Payments317 between Charges307 and Repayments306, with all payment fields and readable references. V46 supplies receipt-grain rows, including unposted states; receipt amount is distinct from allocated repayments. Loan History305 adds lifetime signed interest/original principal (red below100%, orange100–200% inclusive, green above200%); interest trend302 uses bars. [Contract](../outputs/r042-borrower-payments/README.md).

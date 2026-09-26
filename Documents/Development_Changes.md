@@ -1,5 +1,7 @@
 # Open development differences
 
+R042 delivered: DEV/PROD both V46 with original Payments reporting; three Detail refinements verified. No remaining R042 DEV/PROD schema difference or AppSheet change. R043 is the sole Open release. [Evidence](../outputs/r042-borrower-payments/README.md).
+
 R040 (26 September): Portfolio104 saved questions313/289 show the achieved daily rate with one decimal, both lifetime ratios and current V3 BCG category in the bottom comparison table. Portfolio104 is now sixth as `6 · Borrowers`; original tab6 and empty tab17 were removed, with 21 old placements removed and their saved questions retained. Model310, calculations, all other placements and dashboard parameters are unchanged. Ratios/category ignore Activity dates but respect population; inactive borrowers are outside the matrix cohort. Metabase report published and verified; R040 remains Open for owner review. Recovery dashboards14/15/16; [evidence](../outputs/r040-borrower-lifetime-display/README.md). No AppSheet, SQL, runtime or permission difference.
 
 R039 (26 September): Portfolio104 restores saved amount-ranking questions285/286 below pies311/312; ratios313/314 retained. Six charts in three rows; later Portfolio rows shifted9. Query definitions, apps, SQL, runtime and permissions unchanged; no DEV difference. Recovery dashboard13; [evidence](../outputs/r039-restore-borrower-bars/README.md). R040 sole Open.

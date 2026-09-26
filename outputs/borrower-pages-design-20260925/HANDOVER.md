@@ -220,3 +220,6 @@ R040 D7 implementation supersedes the original two-way timing display: chart304 
 
 
 R041 Detail refinement: principal chart301 uses grouped bars; Loan Key display labels replace internal loan IDs, with other displayed internal IDs removed; selected-date charge table307 precedes repayment table306. Current-overdue308 stays above both. [Saved definitions and recovery](../r041-borrower-detail/README.md).
+
+
+R042 Detail: original Payments317 inserted between Charges307 and Repayments306; all receipt fields included, reference names/Loan Keys shown instead of internal IDs. Loan History305 adds lifetime gross-interest/original-principal percentage (red <100%, orange100–200%, green >200%); Interest trend302 is bars. [Exact source, filters, boundaries and recovery](../r042-borrower-payments/README.md).

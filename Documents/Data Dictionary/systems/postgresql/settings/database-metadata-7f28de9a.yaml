@@ -598,6 +598,20 @@
       "script": "V44__borrower_portfolio_detail_reporting.sql"
       "checksum": 1039437163
       "success": true
+    - "installed_rank": 45
+      "version": "45"
+      "description": "automatic daily interest after principal payment"
+      "type": "SQL"
+      "script": "V45__automatic_daily_interest_after_principal_payment.sql"
+      "checksum": -603055529
+      "success": true
+    - "installed_rank": 46
+      "version": "46"
+      "description": "borrower payment receipt reporting"
+      "type": "SQL"
+      "script": "V46__borrower_payment_receipt_reporting.sql"
+      "checksum": -542284122
+      "success": true
     "foreign_tables": []
     "aggregates": []
     "jobs": []
@@ -608,6 +622,6 @@
     "reason": "V40 verified catalog readback; exact remaining settings and DEV differences."
     "state": "value"
   "/content/sections/flyway":
-    "reference": "outputs/r035-borrower-pages/README.md"
-    "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
+    "reference": "outputs/r042-borrower-payments/README.md"
+    "reason": "R042 saved report definitions and V46 live catalog"
     "state": "value"

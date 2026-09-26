@@ -12,21 +12,22 @@
   "key": "d-loan-history"
   "id": 305
   "name": "Loan history · lifetime"
-  "description": "R035 additive borrower pages. Immutable borrower keys; Bangkok dates; current health from V41/V42. Signed\
-    \ receipts. No AppSheet/financial writes."
+  "description": "Lifetime signed interest received / original loan principal. Gross interest before expenses. <100% red;\
+    \ 100–200% inclusive orange; >200% green. Invalid/nonpositive original principal gives no percentage/color. Ignores activity\
+    \ dates."
   "display": "table"
   "type": "question"
   "dataset_query":
     "stages":
     - "template-tags":
-      - "name": "borrower_id"
-        "display-name": "Borrower"
+      - "display-name": "Borrower"
         "id": "bp-borrower"
+        "name": "borrower_id"
         "type": "text"
       "lib/type": "mbql.stage/native"
       "native": |-
         WITH clock AS (SELECT public.olap_reporting_date() today), chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'
-        ) SELECT CASE WHEN k."Row ID" IS NULL THEN 'Loan key unavailable' ELSE coalesce(c.borrower_name,'Unknown borrower')||'-'||to_char(k."Principal Amount"::numeric,'FM999,999,999,990.00')||'-'||to_char(k."Loan Date",'DD/MM')||'-'||coalesce(to_char(k."Effective Daily Interest Rate"::numeric*100,'FM999990.00')||'%','Unavailable') END AS "Loan Key",l.loan_date AS "Loan date",l.loan_type AS "Loan type",l.loan_status AS "Status",l.original_principal AS "Original principal ฿",l.outstanding_principal AS "Current principal ฿",l.principal_received AS "Principal received ฿",l.interest_received AS "Interest received ฿",l.close_date AS "Close date",l.defaulted AS "Defaulted",l.default_loss AS "Recorded loss ฿" FROM chosen c JOIN public.reporting_borrower_loan_facts_v1 l USING(borrower_id) LEFT JOIN public.olap_loans_analytics k ON k."Row ID"=l.loan_id ORDER BY l.is_active DESC,l.loan_date DESC,l.loan_id
+        ) SELECT CASE WHEN k."Row ID" IS NULL THEN 'Loan key unavailable' ELSE coalesce(c.borrower_name,'Unknown borrower')||'-'||to_char(k."Principal Amount"::numeric,'FM999,999,999,990.00')||'-'||to_char(k."Loan Date",'DD/MM')||'-'||coalesce(to_char(k."Effective Daily Interest Rate"::numeric*100,'FM999990.00')||'%','Unavailable') END AS "Loan Key",l.loan_date AS "Loan date",l.loan_type AS "Loan type",l.loan_status AS "Status",l.original_principal AS "Original principal ฿",l.outstanding_principal AS "Current principal ฿",l.principal_received AS "Principal received ฿",l.interest_received AS "Interest received ฿",CASE WHEN l.original_principal>0 THEN l.interest_received/l.original_principal END AS "Profit / original principal",l.close_date AS "Close date",l.defaulted AS "Defaulted",l.default_loss AS "Recorded loss ฿" FROM chosen c JOIN public.reporting_borrower_loan_facts_v1 l USING(borrower_id) LEFT JOIN public.olap_loans_analytics k ON k."Row ID"=l.loan_id ORDER BY l.is_active DESC,l.loan_date DESC,l.loan_id
     "lib/type": "mbql/query"
     "database": 2
   "visualization_settings":
@@ -80,6 +81,12 @@
       - "Interest received ฿"
       - "base-type": "type/Decimal"
       "enabled": true
+    - "name": "Profit / original principal"
+      "fieldRef":
+      - "field"
+      - "Profit / original principal"
+      - "base-type": "type/Decimal"
+      "enabled": true
     - "name": "Close date"
       "fieldRef":
       - "field"
@@ -98,6 +105,28 @@
       - "Recorded loss ฿"
       - "base-type": "type/Decimal"
       "enabled": true
+    "table.column_formatting":
+    - "columns":
+      - "Profit / original principal"
+      "type": "single"
+      "operator": "<"
+      "value": 1
+      "color": "#E57373"
+      "highlight_row": false
+    - "columns":
+      - "Profit / original principal"
+      "type": "single"
+      "operator": "<="
+      "value": 2
+      "color": "#F0AD4E"
+      "highlight_row": false
+    - "columns":
+      - "Profit / original principal"
+      "type": "single"
+      "operator": ">"
+      "value": 2
+      "color": "#66BB6A"
+      "highlight_row": false
     "column_settings":
       "[\"name\",\"Original principal ฿\"]":
         "number_style": "decimal"
@@ -124,6 +153,9 @@
         "decimals": 0
         "number_separators": ".,"
         "compact": false
+      "[\"name\",\"Profit / original principal\"]":
+        "number_style": "percent"
+        "decimals": 1
   "result_metadata":
   - "database_type": "text"
     "semantic_type": null
@@ -307,10 +339,14 @@
     "reason": "R035 additive borrower pages; exact saved definitions and V44 metadata"
     "state": "value"
   "/content/dataset_query":
-    "reference": "outputs/r041-borrower-detail/saved.json"
-    "reason": "R041 verified Detail presentation"
+    "reference": "outputs/r042-borrower-payments/README.md"
+    "reason": "R042 saved report definitions and V46 live catalog"
     "state": "value"
   "/content/visualization_settings":
-    "reference": "outputs/r041-borrower-detail/saved.json"
-    "reason": "R041 verified Detail presentation"
+    "reference": "outputs/r042-borrower-payments/README.md"
+    "reason": "R042 saved report definitions and V46 live catalog"
+    "state": "value"
+  "/content/description":
+    "reference": "outputs/r042-borrower-payments/README.md"
+    "reason": "R042 saved report definitions and V46 live catalog"
     "state": "value"
