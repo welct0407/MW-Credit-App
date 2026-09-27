@@ -2,6 +2,10 @@
 
 Owner scope, 27 September 2026: deploy the receipt archive and SQL backend to the existing PROD Debian VM; keep AppSheet definition changes in DEV until the next integrated app review. There is one bucket and no DEV agent. Deployment results are recorded in the [change log](../Change%20Logs/CHANGE_NOTES_RECEIPT_EVIDENCE_2026-09-27.md).
 
+## Authorized historical follow-up
+
+On 27 September the owner authorized a one-time archive/metadata backfill. Standalone `scripts/backfill-receipt-evidence.py` and `scripts/verify-receipt-backfill.py` recovered 38 pre-cutoff originals and attached all 27 posted historical receipts. Forty-two journal entries had no image; one expired unposted review remains unavailable. No runtime schedule or automatic history replay was enabled. See [backfill checks and recovery](../Change%20Logs/CHANGE_NOTES_RECEIPT_BACKFILL_2026-09-27.md).
+
 ## Data flow and identity
 
 The existing signed ingress/polling paths freeze source message, attachment index, sender, sent/captured timestamps and available conversation/attachment IDs in `runtime.receipt_jobs.source`. The receipt worker archives every admitted new image before extraction, duplicate exits or terminal cleanup. Existing intake, borrower eligibility, financial rules, review, notification and UNKNOWN-posting policies remain in force.
