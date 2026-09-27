@@ -75,7 +75,7 @@ with transaction(c) as db:db.execute('SELECT receipt_id FROM runtime.receipt_ass
 probe=dict(c,receipt_bucket=BUCKET)
 raw=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII=')
 generation,crc=GCS(probe).put('test/receipt-storage/debian-r046.png',raw,'image/png')
-stamp=datetime.now(timezone.utc).isoformat()
+stamp=c['receipt_archive_cutoff'] if c.get('receipt_archive_enabled') else datetime.now(timezone.utc).isoformat()
 c.update(receipt_archive_enabled=True,receipt_archive_cutoff=stamp,receipt_environment='prod',receipt_bucket=BUCKET,
  receipt_spool_limit_bytes=536870912,receipt_projector_password_file='/etc/mw-integration-agent/secrets/receipt-projector-password.txt')
 catalogue=json.loads((root/'service-catalogue.json').read_text());catalogue['revision']=23

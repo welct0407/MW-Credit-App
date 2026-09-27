@@ -76,6 +76,8 @@ def prepare(config_path,catalogue_path,borrower_id,day,message_id=None):
                         journal.db.execute('UPDATE receipt_jobs SET source=? WHERE id=? AND source IS NULL',(captured_source,key))
                     job['source']=captured_source
                 # An existing job keeps its original source/capture/decision; no replay.
+                # Terminal jobs clear their saved URL; this explicit selection supplies a fresh one.
+                job['url']=url
                 image,digest=Archive(config,journal).capture(job)
             finally:journal.close()
     else:

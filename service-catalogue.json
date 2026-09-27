@@ -3,7 +3,7 @@
   "default_policy": "deny",
   "services": {
     "receipt_evidence": {
-      "enabled": false,
+      "enabled": true,
       "implemented": true
     },
     "partner_receipt_review": {
