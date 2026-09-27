@@ -1,40 +1,50 @@
-{
-  "format": 1,
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r047-collection-receipts/HANDOVER.md"
-  },
-  "identity": {
-    "system": "appsheet",
-    "component": "oltp",
-    "kind": "table",
-    "name": "Borrowers",
-    "scope": "development:R047"
-  },
-  "content": {
-    "release": "R047",
-    "status": "DEV implemented; PROD not promoted",
-    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
-    "version": "1.000098",
-    "production_reference": "systems/appsheet/oltp/tables/borrowers.yaml",
-    "columns": {
-      "Submitted Receipts": {
-        "before": {
-          "state": "absent"
-        },
-        "after": {
-          "state": "value",
-          "value": {
-            "Type": "List",
-            "Element type": "Ref",
-            "Referenced table": "Submitted Receipt Payments",
-            "Virtual": true,
-            "App formula": "REF_ROWS(\"Submitted Receipt Payments\", \"Ref Borrower\")",
-            "Show_If": "AND(CONTEXT(\"ViewType\") = \"detail\", ISNOTBLANK([Submitted Receipts]))",
-            "Display name": "\"หลักฐานที่ส่งแล้ว / Submitted Receipts\""
-          }
-        }
-      }
-    }
-  }
-}
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-collection-receipts/HANDOVER.md"
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Borrowers"
+  "scope": "development:R047"
+"content":
+  "release": "R047"
+  "status": "Promoted and closed 2026-09-27; retained as dated DEV implementation evidence"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000098"
+  "production_reference": "systems/appsheet/oltp/tables/borrowers.yaml"
+  "columns":
+    "Submitted Receipts":
+      "before":
+        "state": "absent"
+      "after":
+        "state": "value"
+        "value":
+          "Type": "List"
+          "Element type": "Ref"
+          "Referenced table": "Submitted Receipt Payments"
+          "Virtual": true
+          "App formula": "REF_ROWS(\"Submitted Receipt Payments\", \"Ref Borrower\")"
+          "Show_If": "AND(CONTEXT(\"ViewType\") = \"detail\", ISNOTBLANK([Submitted Receipts]))"
+          "Display name": "\"หลักฐานที่ส่งแล้ว / Submitted Receipts\""
+  "promotion":
+    "releases":
+    - "R046"
+    - "R047"
+    "evidence": "outputs/r047-production/production-verification.json"
+    "production_versions":
+      "OLTP": "3.000252"
+      "OLAP": "1.100205"
+      "PostgreSQL": "52"
+    "remaining_environment_difference": "DEV sources/theme/owner-only delivery and manual-receipts/dev remain intentional;\
+      \ PROD uses manual-receipts/prod."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
+  "/content/promotion":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"

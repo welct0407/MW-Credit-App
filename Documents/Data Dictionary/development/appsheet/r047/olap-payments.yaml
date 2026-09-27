@@ -10,15 +10,19 @@
   "scope": "development:R047"
 "content":
   "release": "R047"
-  "status": "DEV implemented; PROD pending"
+  "status": "Promoted and closed 2026-09-27; retained as dated DEV implementation evidence"
   "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
   "version": "1.000042"
   "production_reference": "systems/appsheet/olap/tables/payments.yaml"
   "predecessor_reference": "development/appsheet/r046/olap-payments.yaml"
   "columns":
     "Amount Received":
-      "CurrencySymbol": {"before": "$", "after": "฿"}
-      "DecimalDigits": {"before": 2, "after": 0}
+      "CurrencySymbol":
+        "before": "$"
+        "after": "฿"
+      "DecimalDigits":
+        "before": 2
+        "after": 0
       "evidence": "outputs/r047-selected-charges/BAHT_FORMATTING.md"
     "Selected Charge IDs":
       "before":
@@ -58,6 +62,17 @@
     \ Existing allocations/Repayments/cash-ledger Refs expose canonical posting results. Payment/allocation prices now use\
     \ Thai baht with zero decimals at DEV1.000042; see outputs/r047-selected-charges/BAHT_FORMATTING.md."
   "manual_upload_status": "Shared schema reconciled; post-upload load/sync and read-only Payment detail verified"
+  "promotion":
+    "releases":
+    - "R046"
+    - "R047"
+    "evidence": "outputs/r047-production/production-verification.json"
+    "production_versions":
+      "OLTP": "3.000252"
+      "OLAP": "1.100205"
+      "PostgreSQL": "52"
+    "remaining_environment_difference": "DEV sources/theme/owner-only delivery and manual-receipts/dev remain intentional;\
+      \ PROD uses manual-receipts/prod."
 "evidence":
   "/content/version":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
@@ -70,4 +85,12 @@
   "/content/manual_upload_status":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
     "reason": "Native desktop upload verification completed after owner enabled extension file access"
+    "state": "value"
+  "/content/status":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
+  "/content/promotion":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
     "state": "value"

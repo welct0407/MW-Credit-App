@@ -10,7 +10,7 @@
   "scope": "development:R047"
 "content":
   "release": "R047"
-  "status": "DEV implemented; PROD not promoted"
+  "status": "Promoted and closed 2026-09-27; retained as dated DEV implementation evidence"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
   "version": "1.000111"
   "definition":
@@ -133,6 +133,17 @@
     "Column": "Receipt Preview"
   - "Ordinal": 37
     "Column": "Receipt Display At"
+  "promotion":
+    "releases":
+    - "R046"
+    - "R047"
+    "evidence": "outputs/r047-production/production-verification.json"
+    "production_versions":
+      "OLTP": "3.000252"
+      "OLAP": "1.100205"
+      "PostgreSQL": "52"
+    "remaining_environment_difference": "DEV sources/theme/owner-only delivery and manual-receipts/dev remain intentional;\
+      \ PROD uses manual-receipts/prod."
 "evidence":
   "/content/version":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
@@ -145,4 +156,12 @@
   "/content/members":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
     "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/status":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
+  "/content/promotion":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
     "state": "value"

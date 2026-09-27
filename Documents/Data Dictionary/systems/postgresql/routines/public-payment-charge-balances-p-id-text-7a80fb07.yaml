@@ -17,31 +17,19 @@
     "kind": "f"
     "arguments_with_defaults": "p_id text"
     "result": "TABLE(charge text, loan text, charge_day date, principal numeric, interest numeric)"
-    "definition": |
-      CREATE OR REPLACE FUNCTION public.payment_charge_balances(p_id text)
-       RETURNS TABLE(charge text, loan text, charge_day date, principal numeric, interest numeric)
-       LANGUAGE sql
-       STABLE
-       SET search_path TO 'pg_catalog', 'public'
-      AS $function$
-        SELECT c."Row ID",c."Ref Loans",c."Charge Date",
-          c."Principal Due"::numeric-paid.p,c."Interest Due"::numeric-paid.i
-        FROM public."Payments" p
-        JOIN public."Loans" l ON l."Ref Borrowers"=p."Ref Borrower"
-        JOIN public."Charges" c ON c."Ref Loans"=l."Row ID"
-        LEFT JOIN public."Charges" target ON target."Row ID"=p."Ref Target Charge"
-        CROSS JOIN LATERAL (
-          SELECT coalesce(sum(r."Principal Paid"::numeric),0) p,
-                 coalesce(sum(r."Interest Paid"::numeric),0) i
-          FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID"
-        ) paid
-        WHERE p."Row ID"=p_id AND CASE
-          WHEN p."Allocation Method" IN ('Single Full','Single Partial','First-day Auto')
-            THEN c."Row ID"=p."Ref Target Charge"
-          WHEN p."Allocation Method"='Loan Close' THEN c."Ref Loans"=target."Ref Loans"
-          WHEN p."Allocation Method" IN ('Receive All','Lump Sum') THEN c."Charge Date"<=p."Payment Date"
-          ELSE false END;
-      $function$
+    "definition": "CREATE OR REPLACE FUNCTION public.payment_charge_balances(p_id text)\n RETURNS TABLE(charge text, loan\
+      \ text, charge_day date, principal numeric, interest numeric)\n LANGUAGE sql\n STABLE\n SET search_path TO 'pg_catalog',\
+      \ 'public'\nAS $function$\r\n  SELECT c.\"Row ID\",c.\"Ref Loans\",c.\"Charge Date\",\r\n    c.\"Principal Due\"::numeric-paid.p,c.\"\
+      Interest Due\"::numeric-paid.i\r\n  FROM public.\"Payments\" p\r\n  JOIN public.\"Loans\" l ON l.\"Ref Borrowers\"=p.\"\
+      Ref Borrower\"\r\n  JOIN public.\"Charges\" c ON c.\"Ref Loans\"=l.\"Row ID\"\r\n  LEFT JOIN public.\"Charges\" target\
+      \ ON target.\"Row ID\"=p.\"Ref Target Charge\"\r\n  CROSS JOIN LATERAL (\r\n    SELECT coalesce(sum(r.\"Principal Paid\"\
+      ::numeric),0) p,\r\n           coalesce(sum(r.\"Interest Paid\"::numeric),0) i\r\n    FROM public.\"Repayments\" r WHERE\
+      \ r.\"Ref Charges\"=c.\"Row ID\"\r\n  ) paid\r\n  WHERE p.\"Row ID\"=p_id AND CASE\r\n    WHEN p.\"Allocation Method\"\
+      \ IN ('Single Full','Single Partial','First-day Auto')\r\n      THEN c.\"Row ID\"=p.\"Ref Target Charge\"\r\n    WHEN\
+      \ p.\"Allocation Method\"='Loan Close' THEN c.\"Ref Loans\"=target.\"Ref Loans\"\r\n    WHEN p.\"Allocation Method\"\
+      \ IN ('Receive All','Lump Sum') THEN c.\"Charge Date\"<=p.\"Payment Date\"\r\n    WHEN p.\"Allocation Method\"='Selected\
+      \ Charges' THEN\r\n      c.\"Row ID\"=ANY(public.selected_charge_ids(p.\"Selected Charge IDs\"))\r\n      AND c.\"Charge\
+      \ Date\"<=p.\"Payment Date\"\r\n    ELSE false END;\r\n$function$\n"
     "owner": "postgres"
     "language": "sql"
     "volatility": "s"
@@ -56,3 +44,8 @@
     "acl": null
     "comment": null
     "extension": null
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r047-production/postgresql-affected-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
+    "state": "value"

@@ -10,7 +10,7 @@
   "scope": "development:R047"
 "content":
   "release": "R047"
-  "status": "DEV implemented; PROD not promoted"
+  "status": "Promoted and closed 2026-09-27; retained as dated DEV implementation evidence"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
   "version": "1.000116"
   "predecessor_reference": "development/appsheet/r046/oltp-payments.yaml"
@@ -65,8 +65,8 @@
         "after": "AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] <> \"Selected Charges\")"
     "Amount Received":
       "Editable_If":
-        "before": 'NOT(IN([Row ID], Payments[Row ID]))'
-        "after": 'AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] <> "Selected Charges")'
+        "before": "NOT(IN([Row ID], Payments[Row ID]))"
+        "after": "AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] <> \"Selected Charges\")"
         "evidence": "outputs/r047-selected-charges/READONLY_TOTAL.md"
       "Initial value":
         "before": ""
@@ -146,6 +146,17 @@
   "selected_charge_evidence": "outputs/r047-selected-charges/IMPLEMENTATION.md"
   "manual_upload_status": "DEV native create/edit/replacement, GCS storage, Collection and financial invariance verified;\
     \ owner review pending"
+  "promotion":
+    "releases":
+    - "R046"
+    - "R047"
+    "evidence": "outputs/r047-production/production-verification.json"
+    "production_versions":
+      "OLTP": "3.000252"
+      "OLAP": "1.100205"
+      "PostgreSQL": "52"
+    "remaining_environment_difference": "DEV sources/theme/owner-only delivery and manual-receipts/dev remain intentional;\
+      \ PROD uses manual-receipts/prod."
 "evidence":
   "/content/version":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
@@ -162,4 +173,12 @@
   "/content/manual_upload_status":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
     "reason": "Native desktop upload verification completed after owner enabled extension file access"
+    "state": "value"
+  "/content/status":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
+  "/content/promotion":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
     "state": "value"

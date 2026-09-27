@@ -417,6 +417,61 @@
       "collation": null
       "acl": null
       "comment": "Durable ingress capture in Asia/Bangkok; not bank transfer time"
+    "Selected Charge IDs":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Selected Charge IDs"
+      "ordinal": 22
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Selected Charges command scope: canonical comma-separated immutable Charge keys. SQL validates every key\
+        \ and posts FK-backed allocations atomically. NULL for other methods."
+    "Uploaded Receipt":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Uploaded Receipt"
+      "ordinal": 23
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Optional user-uploaded GCS image via AppSheet; agent-owned Receipt Image remains protected"
+    "Uploaded Receipt At":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Uploaded Receipt At"
+      "ordinal": 24
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "Server-maintained Asia/Bangkok time of the latest user image addition or replacement; null after removal"
   "constraints":
     "Payments_Ref Received By Cash Account_fkey":
       "schema": "public"
@@ -834,6 +889,30 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "a00_receipt_evidence":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a00_receipt_evidence"
+      "definition": "CREATE TRIGGER a00_receipt_evidence BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ guard_payment_receipt_evidence()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_payment_receipt_evidence()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a01_receipt_upload_stamp":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a01_receipt_upload_stamp"
+      "definition": "CREATE TRIGGER a01_receipt_upload_stamp BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE\
+        \ FUNCTION payment_receipt_upload_stamp()"
+      "enabled": "O"
+      "internal": false
+      "routine": "payment_receipt_upload_stamp()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "a0_cash_account":
       "schema": "public"
       "relation": "Payments"
@@ -843,6 +922,18 @@
       "enabled": "O"
       "internal": false
       "routine": "guard_source_cash_account()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a1_selected_charge_scope":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a1_selected_charge_scope"
+      "definition": "CREATE TRIGGER a1_selected_charge_scope BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE\
+        \ FUNCTION guard_selected_charge_scope()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_selected_charge_scope()"
       "deferrable": false
       "initially_deferred": false
       "comment": null
@@ -967,18 +1058,6 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "a00_receipt_evidence":
-      "schema": "public"
-      "relation": "Payments"
-      "name": "a00_receipt_evidence"
-      "definition": "CREATE TRIGGER a00_receipt_evidence BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
-        \ guard_payment_receipt_evidence()"
-      "enabled": "O"
-      "internal": false
-      "routine": "guard_payment_receipt_evidence()"
-      "deferrable": false
-      "initially_deferred": false
-      "comment": null
   "policies": {}
   "dependencies": []
 "evidence":
@@ -1001,4 +1080,12 @@
   "/content/triggers/a00_receipt_evidence":
     "reference": "outputs/r046-receipt-evidence/sql-metadata.json"
     "reason": "R046 verified PROD V49/V50 additive receipt schema; DEV/PROD metadata equal"
+    "state": "value"
+  "/content/columns":
+    "reference": "outputs/r047-production/postgresql-affected-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
+    "state": "value"
+  "/content/triggers":
+    "reference": "outputs/r047-production/postgresql-affected-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
     "state": "value"

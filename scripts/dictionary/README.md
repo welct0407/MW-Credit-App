@@ -85,3 +85,6 @@ The [24 September run](../../outputs/dictionary-reconciliation-20260924/README.m
 Run verifiers that write `coverage.json` sequentially. Use the bundled Python and the existing external PyYAML runtime. The regular test command above covers exact state preservation, ordering, overload identity, stale guards, private-data removal and source-ID decoding. Public observation files are sanitized metadata; raw captures and downloaded templates stay outside Git. The dictionary index is navigation only, not a source of live truth.
 
 `validate_run.py <private-folder> <run-folder>` runs the dated run's local checks sequentially and records actual exit codes, outputs and artifact hashes. It performs no live access. Its private input is used for independent saved AppDoc parsing. Use it only with the matching complete run evidence.
+
+
+R047 targeted closure helpers: `capture_r047.py` reads only affected PROD catalog objects with tuple/SSL/read-only assertions; `close_r047.py` plans exact AppDoc/catalog updates and closes the dated overlays. Review saved evidence before `--apply`. Batch callers may use `plan_update(..., validate_candidate=False)` only when they validate all candidate overrides together before any write, recheck all baseline hashes, read back saved bytes, and rebuild/validate the index. Ordinary CLI updates retain immediate validation.

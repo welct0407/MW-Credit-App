@@ -12,21 +12,22 @@
   "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
 "content":
   "definition":
-    "View name": "Payments_Detail"
-    "Created by": "System"
-    "View type": "detail"
     "ActionType": "Automatic"
+    "Created by": "System"
+    "Icon": ""
+    "Menu order": "1"
     "Position": "ref"
     "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\"\
       :[],\"QuickEditColumns\":[\"Ref Received By Cash Holder\"],\"ColumnOrder\":[\"Payment Date\",\"Status\",\"Ref Borrower\"\
       ,\"Amount Received\",\"Payment Method\",\"Allocation Method\",\"Bank Reference\",\"Notes\",\"Ref Received By Cash Holder\"\
-      ,\"Ref Received By Cash Account\",\"Related Repayments\",\"Visible Allocations\",\"Related Loans\"],\"ImageStyle\":\"\
-      Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":10,\"SlideshowMode\"\
-      :false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"\
-      IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+      ,\"Ref Received By Cash Account\",\"Receipt Image\",\"Receipt Received At\",\"Related Repayments\",\"Visible Allocations\"\
+      ,\"Related Loans\",\"Uploaded Receipt\",\"Uploaded Receipt At\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\"\
+      :false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":10,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\"\
+      ,\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\"\
+      :[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+    "View name": "Payments_Detail"
+    "View type": "detail"
     "Visible?": "ALWAYS"
-    "Icon": ""
-    "Menu order": "1"
   "editor":
     "fields":
     - "choices": []
@@ -280,3 +281,8 @@
       "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
         \ app"
     "generated_source_group": "Payments"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r047-production/oltp-affected-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
+    "state": "value"

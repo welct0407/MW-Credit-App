@@ -58,7 +58,7 @@ def check_state(value):
         raise ValueError("Use explicit value (including null) or absent states")
 
 
-def plan_update(root, patch):
+def plan_update(root, patch, *, validate_candidate=True):
     if set(patch) != {"file", "expected_sha256", "evidence", "reason", "changes"}:
         raise ValueError("Patch requires file, expected_sha256, evidence, reason, changes")
     for key in ("file", "expected_sha256", "evidence", "reason"):
@@ -102,9 +102,10 @@ def plan_update(root, patch):
             parent[parts[-1]] = copy.deepcopy(change["target"]["value"])
         result.setdefault("evidence", {})[pointer] = {"reference": patch["evidence"], "reason": patch["reason"],
                                                      "state": change["target"]["state"]}
-    report = validate(root, check_index=False, overrides={patch["file"]: result})
-    if report["errors"]:
-        raise ValueError("Candidate validation failed: " + json.dumps(report["errors"]))
+    if validate_candidate:
+        report = validate(root, check_index=False, overrides={patch["file"]: result})
+        if report["errors"]:
+            raise ValueError("Candidate validation failed: " + json.dumps(report["errors"]))
     encoded = dump(result).encode("utf-8")
     return path, original, encoded, {"file": patch["file"], "before_sha256": digest(original),
                                     "after_sha256": digest(encoded), "changes": changes,

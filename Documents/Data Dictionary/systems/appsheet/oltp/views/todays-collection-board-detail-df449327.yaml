@@ -12,20 +12,21 @@
   "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
 "content":
   "definition":
-    "View name": "Todays Collection Board_Detail"
-    "Created by": "System"
-    "View type": "detail"
     "ActionType": "Automatic"
+    "Created by": "System"
+    "Icon": ""
+    "Menu order": "1"
     "Position": "ref"
     "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\"\
       :[],\"QuickEditColumns\":[\"Borrower Note\"],\"ColumnOrder\":[\"Daily Collection Status - Order\",\"Borrower Reference\
       \ TE\",\"Todays Amount Due\",\"Todays Amount Collected\",\"Todays Amount Remaining\",\"Borrower Note\",\"Todays Collection\
-      \ Charges\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\"\
-      :30,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\"\
-      :null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+      \ Charges\",\"Submitted Receipts\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\"\
+      :\"Automatic\",\"MaxNestedRows\":30,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\"\
+      :true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\"\
+      ,\"IconRunnerUps\":null,\"MenuOrder\":1}"
+    "View name": "Todays Collection Board_Detail"
+    "View type": "detail"
     "Visible?": "ALWAYS"
-    "Icon": ""
-    "Menu order": "1"
   "editor":
     "fields":
     - "choices": []
@@ -249,3 +250,8 @@
       "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
         \ app"
     "generated_source_group": "Todays Collection Board"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r047-production/collection-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
+    "state": "value"

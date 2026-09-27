@@ -1366,37 +1366,29 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
+        "App formula": "=CONCATENATE([Borrower Name TE], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"\
+          ), \"-\", ROUND([Effective Daily Interest Rate] * 100), \"%\")"
         "Column name": "Loan Key"
-        "Visible?": "ALWAYS"
+        "Editable Initial Value?": "Yes"
+        "Fixed definition?": "No"
+        "Formula version": "0"
+        "Hidden": "No"
+        "Key": "No"
+        "Label": "Yes"
+        "LocaleName": "en-US"
+        "Part of Key?": "No"
+        "Read-Only": "Yes"
+        "Reset on edit?": "No"
+        "Scannable": "No"
+        "Searchable": "Yes"
+        "Sensitive data": "No"
+        "System Defined?": "No"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "App formula": |-
-          =CONCATENATE(
-            [Borrower Name TE],
-            "-",
-            TEXT([Principal Amount]),
-            "-",
-            TEXT([Loan Date], "DD/MM"),
-            "-",
-            TEXT([Effective Daily Interest Rate])
-          )
-        "Read-Only": "Yes"
-        "Hidden": "No"
-        "Label": "Yes"
-        "Formula version": "0"
-        "Reset on edit?": "No"
-        "System Defined?": "No"
-        "Key": "No"
-        "Part of Key?": "No"
-        "Fixed definition?": "No"
-        "Editable Initial Value?": "Yes"
         "Virtual?": "Yes"
-        "LocaleName": "en-US"
-        "Searchable": "Yes"
-        "Scannable": "No"
-        "Sensitive data": "No"
+        "Visible?": "ALWAYS"
     "Expected Interest This Month":
       "inventory":
         "App": "OLTP"
@@ -2584,6 +2576,6 @@
           - option "- select a source -"
 "evidence":
   "/content/columns":
-    "reference": "outputs/r036-production/production-verification.json"
-    "reason": "R036 promoted OLTP3.000249 from frozen RC1.000007; scoped AppDoc parity and current GUI verified"
+    "reference": "outputs/r047-production/oltp-affected-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
     "state": "value"

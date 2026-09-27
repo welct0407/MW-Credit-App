@@ -1,0 +1,60 @@
+{
+  "verifiedAt": "2026-09-27T12:15:18.385Z",
+  "status": "Released",
+  "upgrades": {
+    "OLTP": {
+      "from": "3.000249",
+      "to": "3.000252",
+      "source": "MW-OLTP-R047-RC1-578763613",
+      "sourceVersion": "1.000009",
+      "targetId": "93844270-6aa5-420b-a960-bcdf08abd357"
+    },
+    "OLAP": {
+      "from": "1.100202",
+      "to": "1.100205",
+      "source": "MW-OLAP-R047-RC1-578763613",
+      "sourceVersion": "1.000009",
+      "targetId": "e74dd368-654f-44d7-bccf-83cf361d1cdb"
+    }
+  },
+  "checks": {
+    "bothDeployed": true,
+    "bothZeroEditorIssues": true,
+    "prodSqlVersion": 52,
+    "oltpProductionSources": 18,
+    "olapProductionSources": 19,
+    "devSources": 0,
+    "companionLinks": "canonical PROD internal names",
+    "receiptCaptureStore": "MW Receipt Images PROD",
+    "oltpManualReceiptFolder": "manual-receipts/prod",
+    "canonicalGuards": "first branch in both scheduled business processes; PROD allowed and both RC names excluded; original runtime proof reused",
+    "logos": "Both canonical shared Drive logos render and match resources originals; screenshots linked",
+    "api": "Both inbound Enable checked; original enabled keys retained, created 2026-09-08 OLTP and 2026-09-21 OLAP; no keys created or revealed",
+    "runtime": "Both loaded; OLAP sync passed. OLTP Collection receipt section and Receive Selected Charges form inspected; selected total disabled, manual image/camera controls visible; cancelled without save.",
+    "financialWrites": false,
+    "forcedNotifications": false
+  },
+  "limitations": [
+    "Reuse passing DEV business tests; no production financial test or forced notification.",
+    "Phone camera hardware remains untested."
+  ],
+  "evidence": [
+    "prod-oltp-branding.png",
+    "prod-olap-branding.png",
+    "oltp-affected-definitions.json",
+    "olap-affected-definitions.json",
+    "collection-definitions.json",
+    "postgresql-affected-definitions.json",
+    "schema-postflight.json",
+    "production-validate.json"
+  ],
+  "rcCleanup": {
+    "deletedIds": [
+      "31ec94c9-9447-4979-af2a-8a6e73293658",
+      "8cf0abc9-d044-47cc-abaf-24d9d9c83b7b"
+    ],
+    "verifiedAt": "2026-09-27T12:19:42.649Z",
+    "method": "My Apps row opened to verify UUID/internal name before definition deletion; four DEV/PROD apps remain; deleted editors return not-found; no data or file deletion",
+    "logosAfterDeletion": "Both production pages reloaded; shared Drive logos still render at1254x1254"
+  }
+}

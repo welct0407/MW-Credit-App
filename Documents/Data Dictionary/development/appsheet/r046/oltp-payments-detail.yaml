@@ -10,7 +10,7 @@
   "scope": "development:R046"
 "content":
   "release": "R046"
-  "status": "DEV implemented; PROD not promoted"
+  "status": "Promoted and closed 2026-09-27; retained as dated DEV implementation evidence"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
   "version": "1.000095"
   "production_reference": "systems/appsheet/oltp/views/payments-detail-ff6a02d3.yaml"
@@ -22,3 +22,23 @@
     "before_related_lists": true
   "main_image": "Auto assign (None)"
   "image_style": "Fill"
+  "promotion":
+    "releases":
+    - "R046"
+    - "R047"
+    "evidence": "outputs/r047-production/production-verification.json"
+    "production_versions":
+      "OLTP": "3.000252"
+      "OLAP": "1.100205"
+      "PostgreSQL": "52"
+    "remaining_environment_difference": "DEV sources/theme/owner-only delivery and manual-receipts/dev remain intentional;\
+      \ PROD uses manual-receipts/prod."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
+  "/content/promotion":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"

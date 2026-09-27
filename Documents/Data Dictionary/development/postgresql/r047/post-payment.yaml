@@ -1,21 +1,93 @@
-{
-  "format": 1,
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
-  },
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_dev",
-    "kind": "routine",
-    "name": "public.post_payment(text)",
-    "scope": "development:R047"
-  },
-  "content": {
-    "release": "R047",
-    "migration": "database/migrations/V51__selected_charge_receiving.sql",
-    "state_before": "existing routine retained with selected-charge branch additions",
-    "definition": "CREATE OR REPLACE FUNCTION public.post_payment(p_id text)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE p public.\"Payments\"%ROWTYPE; amount numeric; available numeric;\r\nBEGIN\r\n  SELECT * INTO STRICT p FROM public.\"Payments\" WHERE \"Row ID\"=p_id;\r\n  IF p.\"Status\"='Posted' THEN RETURN; END IF;\r\n  IF p.\"Status\" IS DISTINCT FROM 'Processing' THEN\r\n    RAISE EXCEPTION 'Payment must be Processing before posting';\r\n  END IF;\r\n  IF p.\"Allocation Method\" IS NULL OR p.\"Allocation Method\" NOT IN\r\n    ('Single Full','Single Partial','Receive All','Lump Sum','First-day Auto','Loan Close','Selected Charges') THEN\r\n    RAISE EXCEPTION 'Unsupported payment allocation method';\r\n  END IF;\r\n  amount:=p.\"Amount Received\"::numeric;\r\n  IF amount IS NULL OR amount<=0 OR amount<>trunc(amount) THEN\r\n    RAISE EXCEPTION 'Payment requires a positive whole-baht amount';\r\n  END IF;\r\n  IF p.\"Payment Date\" IS NULL OR p.\"Payment Date\"> (statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date THEN\r\n    RAISE EXCEPTION 'Payment date must be present and no later than today';\r\n  END IF;\r\n  PERFORM 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=p.\"Ref Borrower\" FOR UPDATE;\r\n  IF NOT FOUND THEN RAISE EXCEPTION 'Payment borrower does not exist'; END IF;\r\n  -- The receipt BEFORE trigger acquires this same lock before INSERT. Re-read\r\n  -- after acquisition for callers invoking the business function directly.\r\n  SELECT * INTO STRICT p FROM public.\"Payments\" WHERE \"Row ID\"=p_id FOR UPDATE;\r\n  IF p.\"Status\"='Posted' THEN RETURN; END IF;\r\n  IF EXISTS (SELECT 1 FROM public.\"Payments\" q WHERE q.\"Ref Borrower\"=p.\"Ref Borrower\"\r\n    AND q.\"Row ID\"<>p_id AND q.\"Status\" IN ('Processing','Error')) THEN\r\n    RAISE EXCEPTION 'Another receipt for this borrower requires reconciliation';\r\n  END IF;\r\n  IF EXISTS (SELECT 1 FROM public.\"Payment Allocations\" WHERE \"Ref Payment\"=p_id)\r\n    OR EXISTS (SELECT 1 FROM public.\"Repayments\" WHERE \"Ref Payment\"=p_id) THEN\r\n    RAISE EXCEPTION 'Existing receipt results require reconciliation; reallocation refused';\r\n  END IF;\r\n  PERFORM 1 FROM public.\"Loans\" WHERE \"Ref Borrowers\"=p.\"Ref Borrower\"\r\n    ORDER BY \"Row ID\" COLLATE \"C\" FOR UPDATE;\r\n  PERFORM 1 FROM public.\"Charges\" c JOIN public.\"Loans\" l ON l.\"Row ID\"=c.\"Ref Loans\"\r\n    WHERE l.\"Ref Borrowers\"=p.\"Ref Borrower\" ORDER BY c.\"Row ID\" COLLATE \"C\" FOR UPDATE OF c;\r\n  IF p.\"Allocation Method\" IN ('Single Full','Single Partial','First-day Auto','Loan Close') AND NOT EXISTS (\r\n    SELECT 1 FROM public.\"Charges\" c JOIN public.\"Loans\" l ON l.\"Row ID\"=c.\"Ref Loans\"\r\n    WHERE c.\"Row ID\"=p.\"Ref Target Charge\" AND l.\"Ref Borrowers\"=p.\"Ref Borrower\") THEN\r\n    RAISE EXCEPTION 'Target charge must belong to the payment borrower';\r\n  END IF;\r\n  IF p.\"Allocation Method\"='First-day Auto' AND NOT EXISTS (\r\n    SELECT 1 FROM public.\"Charges\" c JOIN public.\"Loans\" l ON l.\"Row ID\"=c.\"Ref Loans\"\r\n    WHERE c.\"Row ID\"=p.\"Ref Target Charge\" AND l.\"Auto Charge Enabled\"\r\n      AND l.\"Loan Type\" IN ('ดอกเบี้ยรายวัน','ผ่อนชำระรายวัน')\r\n      AND c.\"Charge Date\"=l.\"Loan Date\" AND p.\"Payment Date\"=l.\"Loan Date\"\r\n      AND p.\"Payment Method\"='Net-off at Disbursement') THEN\r\n    RAISE EXCEPTION 'First-day receipt must match an eligible loan-date net-off';\r\n  END IF;\r\n  IF EXISTS (SELECT 1 FROM public.payment_charge_balances(p_id)\r\n    WHERE principal IS NULL OR interest IS NULL OR principal<0 OR interest<0) THEN\r\n    RAISE EXCEPTION 'Eligible charge has missing or negative components; reconcile first';\r\n  END IF;\r\n  IF p.\"Allocation Method\"='Selected Charges' AND (\r\n    (SELECT count(*) FROM public.payment_charge_balances(p_id)) <>\r\n      cardinality(public.selected_charge_ids(p.\"Selected Charge IDs\"))\r\n    OR EXISTS(SELECT 1 FROM public.payment_charge_balances(p_id) WHERE principal+interest<=0)) THEN\r\n    RAISE EXCEPTION 'Selected charges changed or are not eligible; refresh and review the full selection';\r\n  END IF;\r\n  SELECT coalesce(sum(principal+interest),0) INTO available FROM public.payment_charge_balances(p_id);\r\n  IF amount>available OR (p.\"Allocation Method\" IN ('Single Full','Receive All','First-day Auto','Loan Close','Selected Charges') AND amount<>available) THEN\r\n    RAISE EXCEPTION 'Payment does not match the current eligible balance';\r\n  END IF;\r\n  WITH ordered AS (\r\n    SELECT *,row_number() OVER w ord,\r\n      coalesce(sum(principal+interest) OVER(ORDER BY charge_day DESC,charge COLLATE \"C\" DESC\r\n        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING),0) previous\r\n    FROM public.payment_charge_balances(p_id) WHERE principal+interest>0\r\n    WINDOW w AS(ORDER BY charge_day DESC,charge COLLATE \"C\" DESC)\r\n  ), plan AS (\r\n    SELECT *,least(principal+interest,greatest(0,amount-previous)) allocated FROM ordered\r\n  )\r\n  INSERT INTO public.\"Payment Allocations\"(\"Row ID\",\"Ref Payment\",\"Ref Charge\",\"Charge Date Snapshot\",\r\n    \"Charge Row Number Snapshot\",\"Interest Remaining Snapshot\",\"Principal Remaining Snapshot\",\"Amount Remaining Snapshot\",\r\n    \"Allocation Order\",\"Allocated Interest\",\"Allocated Principal\",\"Allocated Amount\",\"Created At\")\r\n  SELECT 'pc6:'||length(p_id)||':'||p_id||':'||charge,p_id,charge,charge_day,\r\n    -ord::integer,interest::money,principal::money,(interest+principal)::money,\r\n    ord::integer,least(interest,allocated)::money,(allocated-least(interest,allocated))::money,allocated::money,\r\n    statement_timestamp() AT TIME ZONE 'Asia/Bangkok' FROM plan WHERE allocated>0;\r\n  INSERT INTO public.\"Repayments\"(\"Row ID\",\"Payment Date\",\"Principal Paid\",\"Interest Paid\",\"Notes\",\r\n    \"Ref Loans\",\"Ref Charges\",\"Created By\",\"Ref Payment\",\"Ref Payment Allocation\")\r\n  SELECT a.\"Row ID\",p.\"Payment Date\",a.\"Allocated Principal\",a.\"Allocated Interest\",p.\"Notes\",\r\n    c.\"Ref Loans\",a.\"Ref Charge\",p.\"Created By\",p_id,a.\"Row ID\"\r\n  FROM public.\"Payment Allocations\" a JOIN public.\"Charges\" c ON c.\"Row ID\"=a.\"Ref Charge\"\r\n  WHERE a.\"Ref Payment\"=p_id;\r\n  IF amount IS DISTINCT FROM (SELECT sum(\"Allocated Amount\"::numeric) FROM public.\"Payment Allocations\" WHERE \"Ref Payment\"=p_id)\r\n    OR amount IS DISTINCT FROM (SELECT sum(\"Principal Paid\"::numeric+\"Interest Paid\"::numeric) FROM public.\"Repayments\" WHERE \"Ref Payment\"=p_id) THEN\r\n    RAISE EXCEPTION 'Payment ledger reconciliation failed';\r\n  END IF;\r\n  PERFORM public.close_payment_loans(p_id);\r\n  UPDATE public.\"Payments\" SET \"Status\"='Posted',\"Processed At\"=clock_timestamp() AT TIME ZONE 'Asia/Bangkok'\r\n    WHERE \"Row ID\"=p_id;\r\nEND $function$\n",
-    "source_evidence": "outputs/r047-selected-charges/dev-metadata.json"
-  }
-}
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.post_payment(text)"
+  "scope": "development:R047"
+"content":
+  "release": "R047"
+  "migration": "database/migrations/V51__selected_charge_receiving.sql"
+  "state_before": "existing routine retained with selected-charge branch additions"
+  "definition": "CREATE OR REPLACE FUNCTION public.post_payment(p_id text)\n RETURNS void\n LANGUAGE plpgsql\n SET search_path\
+    \ TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE p public.\"Payments\"%ROWTYPE; amount numeric; available numeric;\r\
+    \nBEGIN\r\n  SELECT * INTO STRICT p FROM public.\"Payments\" WHERE \"Row ID\"=p_id;\r\n  IF p.\"Status\"='Posted' THEN\
+    \ RETURN; END IF;\r\n  IF p.\"Status\" IS DISTINCT FROM 'Processing' THEN\r\n    RAISE EXCEPTION 'Payment must be Processing\
+    \ before posting';\r\n  END IF;\r\n  IF p.\"Allocation Method\" IS NULL OR p.\"Allocation Method\" NOT IN\r\n    ('Single\
+    \ Full','Single Partial','Receive All','Lump Sum','First-day Auto','Loan Close','Selected Charges') THEN\r\n    RAISE\
+    \ EXCEPTION 'Unsupported payment allocation method';\r\n  END IF;\r\n  amount:=p.\"Amount Received\"::numeric;\r\n  IF\
+    \ amount IS NULL OR amount<=0 OR amount<>trunc(amount) THEN\r\n    RAISE EXCEPTION 'Payment requires a positive whole-baht\
+    \ amount';\r\n  END IF;\r\n  IF p.\"Payment Date\" IS NULL OR p.\"Payment Date\"> (statement_timestamp() AT TIME ZONE\
+    \ 'Asia/Bangkok')::date THEN\r\n    RAISE EXCEPTION 'Payment date must be present and no later than today';\r\n  END IF;\r\
+    \n  PERFORM 1 FROM public.\"Borrowers\" WHERE \"Row ID\"=p.\"Ref Borrower\" FOR UPDATE;\r\n  IF NOT FOUND THEN RAISE EXCEPTION\
+    \ 'Payment borrower does not exist'; END IF;\r\n  -- The receipt BEFORE trigger acquires this same lock before INSERT.\
+    \ Re-read\r\n  -- after acquisition for callers invoking the business function directly.\r\n  SELECT * INTO STRICT p FROM\
+    \ public.\"Payments\" WHERE \"Row ID\"=p_id FOR UPDATE;\r\n  IF p.\"Status\"='Posted' THEN RETURN; END IF;\r\n  IF EXISTS\
+    \ (SELECT 1 FROM public.\"Payments\" q WHERE q.\"Ref Borrower\"=p.\"Ref Borrower\"\r\n    AND q.\"Row ID\"<>p_id AND q.\"\
+    Status\" IN ('Processing','Error')) THEN\r\n    RAISE EXCEPTION 'Another receipt for this borrower requires reconciliation';\r\
+    \n  END IF;\r\n  IF EXISTS (SELECT 1 FROM public.\"Payment Allocations\" WHERE \"Ref Payment\"=p_id)\r\n    OR EXISTS\
+    \ (SELECT 1 FROM public.\"Repayments\" WHERE \"Ref Payment\"=p_id) THEN\r\n    RAISE EXCEPTION 'Existing receipt results\
+    \ require reconciliation; reallocation refused';\r\n  END IF;\r\n  PERFORM 1 FROM public.\"Loans\" WHERE \"Ref Borrowers\"\
+    =p.\"Ref Borrower\"\r\n    ORDER BY \"Row ID\" COLLATE \"C\" FOR UPDATE;\r\n  PERFORM 1 FROM public.\"Charges\" c JOIN\
+    \ public.\"Loans\" l ON l.\"Row ID\"=c.\"Ref Loans\"\r\n    WHERE l.\"Ref Borrowers\"=p.\"Ref Borrower\" ORDER BY c.\"\
+    Row ID\" COLLATE \"C\" FOR UPDATE OF c;\r\n  IF p.\"Allocation Method\" IN ('Single Full','Single Partial','First-day\
+    \ Auto','Loan Close') AND NOT EXISTS (\r\n    SELECT 1 FROM public.\"Charges\" c JOIN public.\"Loans\" l ON l.\"Row ID\"\
+    =c.\"Ref Loans\"\r\n    WHERE c.\"Row ID\"=p.\"Ref Target Charge\" AND l.\"Ref Borrowers\"=p.\"Ref Borrower\") THEN\r\n\
+    \    RAISE EXCEPTION 'Target charge must belong to the payment borrower';\r\n  END IF;\r\n  IF p.\"Allocation Method\"\
+    ='First-day Auto' AND NOT EXISTS (\r\n    SELECT 1 FROM public.\"Charges\" c JOIN public.\"Loans\" l ON l.\"Row ID\"=c.\"\
+    Ref Loans\"\r\n    WHERE c.\"Row ID\"=p.\"Ref Target Charge\" AND l.\"Auto Charge Enabled\"\r\n      AND l.\"Loan Type\"\
+    \ IN ('ดอกเบี้ยรายวัน','ผ่อนชำระรายวัน')\r\n      AND c.\"Charge Date\"=l.\"Loan Date\" AND p.\"Payment Date\"=l.\"Loan\
+    \ Date\"\r\n      AND p.\"Payment Method\"='Net-off at Disbursement') THEN\r\n    RAISE EXCEPTION 'First-day receipt must\
+    \ match an eligible loan-date net-off';\r\n  END IF;\r\n  IF EXISTS (SELECT 1 FROM public.payment_charge_balances(p_id)\r\
+    \n    WHERE principal IS NULL OR interest IS NULL OR principal<0 OR interest<0) THEN\r\n    RAISE EXCEPTION 'Eligible\
+    \ charge has missing or negative components; reconcile first';\r\n  END IF;\r\n  IF p.\"Allocation Method\"='Selected\
+    \ Charges' AND (\r\n    (SELECT count(*) FROM public.payment_charge_balances(p_id)) <>\r\n      cardinality(public.selected_charge_ids(p.\"\
+    Selected Charge IDs\"))\r\n    OR EXISTS(SELECT 1 FROM public.payment_charge_balances(p_id) WHERE principal+interest<=0))\
+    \ THEN\r\n    RAISE EXCEPTION 'Selected charges changed or are not eligible; refresh and review the full selection';\r\
+    \n  END IF;\r\n  SELECT coalesce(sum(principal+interest),0) INTO available FROM public.payment_charge_balances(p_id);\r\
+    \n  IF amount>available OR (p.\"Allocation Method\" IN ('Single Full','Receive All','First-day Auto','Loan Close','Selected\
+    \ Charges') AND amount<>available) THEN\r\n    RAISE EXCEPTION 'Payment does not match the current eligible balance';\r\
+    \n  END IF;\r\n  WITH ordered AS (\r\n    SELECT *,row_number() OVER w ord,\r\n      coalesce(sum(principal+interest)\
+    \ OVER(ORDER BY charge_day DESC,charge COLLATE \"C\" DESC\r\n        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING),0)\
+    \ previous\r\n    FROM public.payment_charge_balances(p_id) WHERE principal+interest>0\r\n    WINDOW w AS(ORDER BY charge_day\
+    \ DESC,charge COLLATE \"C\" DESC)\r\n  ), plan AS (\r\n    SELECT *,least(principal+interest,greatest(0,amount-previous))\
+    \ allocated FROM ordered\r\n  )\r\n  INSERT INTO public.\"Payment Allocations\"(\"Row ID\",\"Ref Payment\",\"Ref Charge\"\
+    ,\"Charge Date Snapshot\",\r\n    \"Charge Row Number Snapshot\",\"Interest Remaining Snapshot\",\"Principal Remaining\
+    \ Snapshot\",\"Amount Remaining Snapshot\",\r\n    \"Allocation Order\",\"Allocated Interest\",\"Allocated Principal\"\
+    ,\"Allocated Amount\",\"Created At\")\r\n  SELECT 'pc6:'||length(p_id)||':'||p_id||':'||charge,p_id,charge,charge_day,\r\
+    \n    -ord::integer,interest::money,principal::money,(interest+principal)::money,\r\n    ord::integer,least(interest,allocated)::money,(allocated-least(interest,allocated))::money,allocated::money,\r\
+    \n    statement_timestamp() AT TIME ZONE 'Asia/Bangkok' FROM plan WHERE allocated>0;\r\n  INSERT INTO public.\"Repayments\"\
+    (\"Row ID\",\"Payment Date\",\"Principal Paid\",\"Interest Paid\",\"Notes\",\r\n    \"Ref Loans\",\"Ref Charges\",\"Created\
+    \ By\",\"Ref Payment\",\"Ref Payment Allocation\")\r\n  SELECT a.\"Row ID\",p.\"Payment Date\",a.\"Allocated Principal\"\
+    ,a.\"Allocated Interest\",p.\"Notes\",\r\n    c.\"Ref Loans\",a.\"Ref Charge\",p.\"Created By\",p_id,a.\"Row ID\"\r\n\
+    \  FROM public.\"Payment Allocations\" a JOIN public.\"Charges\" c ON c.\"Row ID\"=a.\"Ref Charge\"\r\n  WHERE a.\"Ref\
+    \ Payment\"=p_id;\r\n  IF amount IS DISTINCT FROM (SELECT sum(\"Allocated Amount\"::numeric) FROM public.\"Payment Allocations\"\
+    \ WHERE \"Ref Payment\"=p_id)\r\n    OR amount IS DISTINCT FROM (SELECT sum(\"Principal Paid\"::numeric+\"Interest Paid\"\
+    ::numeric) FROM public.\"Repayments\" WHERE \"Ref Payment\"=p_id) THEN\r\n    RAISE EXCEPTION 'Payment ledger reconciliation\
+    \ failed';\r\n  END IF;\r\n  PERFORM public.close_payment_loans(p_id);\r\n  UPDATE public.\"Payments\" SET \"Status\"\
+    ='Posted',\"Processed At\"=clock_timestamp() AT TIME ZONE 'Asia/Bangkok'\r\n    WHERE \"Row ID\"=p_id;\r\nEND $function$\n"
+  "source_evidence": "outputs/r047-selected-charges/dev-metadata.json"
+  "status": "Promoted and closed 2026-09-27; retained as dated DEV implementation evidence"
+  "promotion":
+    "releases":
+    - "R046"
+    - "R047"
+    "evidence": "outputs/r047-production/production-verification.json"
+    "production_versions":
+      "OLTP": "3.000252"
+      "OLAP": "1.100205"
+      "PostgreSQL": "52"
+    "remaining_environment_difference": "DEV sources/theme/owner-only delivery and manual-receipts/dev remain intentional;\
+      \ PROD uses manual-receipts/prod."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
+  "/content/promotion":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"

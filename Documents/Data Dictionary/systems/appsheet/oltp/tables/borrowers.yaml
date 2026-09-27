@@ -1909,6 +1909,49 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
+    "Submitted Receipts":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Borrowers"
+        "Column": "Submitted Receipts"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "App formula": "=REF_ROWS(\"Submitted Receipt Payments\", \"Ref Borrower\")"
+        "Column name": "Submitted Receipts"
+        "Display name": "=\"หลักฐานที่ส่งแล้ว / Submitted Receipts\""
+        "Editable Initial Value?": "Yes"
+        "Fixed definition?": "No"
+        "Formula version": "0"
+        "Hidden": "No"
+        "Key": "No"
+        "Label": "No"
+        "LocaleName": "en-US"
+        "Part of Key?": "No"
+        "Read-Only": "Yes"
+        "Reset on edit?": "No"
+        "Scannable": "No"
+        "Searchable": "Yes"
+        "Sensitive data": "No"
+        "System Defined?": "No"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Submitted\
+          \ Receipt Payments\\\",\\\"ReferencedRootTableName\\\":\\\"Payments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"\
+          ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\
+          \\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"\
+          Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\
+          \\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\"\
+          :\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\
+          \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\"\
+          :null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":\"=AND(CONTEXT(\\\"ViewType\\\") = \\\"detail\\\", ISNOTBLANK([Submitted Receipts]))\",\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Virtual?": "Yes"
+        "Visible?": "ALWAYS"
   "editor":
     "fields":
     - "choices": []
@@ -2291,6 +2334,6 @@
           - option "- select a source -"
 "evidence":
   "/content/columns":
-    "reference": "outputs/r036-production/production-verification.json"
-    "reason": "R036 promoted OLTP3.000249 from frozen RC1.000007; scoped AppDoc parity and current GUI verified"
+    "reference": "outputs/r047-production/oltp-affected-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
     "state": "value"

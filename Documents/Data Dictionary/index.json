@@ -21020,6 +21020,30 @@
         {
           "subject": "Related Cash Ledgers",
           "pointer": "/content/columns/Related Cash Ledgers"
+        },
+        {
+          "subject": "IG Receipt ID",
+          "pointer": "/content/columns/IG Receipt ID"
+        },
+        {
+          "subject": "Receipt Image",
+          "pointer": "/content/columns/Receipt Image"
+        },
+        {
+          "subject": "Receipt Received At",
+          "pointer": "/content/columns/Receipt Received At"
+        },
+        {
+          "subject": "Selected Charge IDs",
+          "pointer": "/content/columns/Selected Charge IDs"
+        },
+        {
+          "subject": "Uploaded Receipt",
+          "pointer": "/content/columns/Uploaded Receipt"
+        },
+        {
+          "subject": "Uploaded Receipt At",
+          "pointer": "/content/columns/Uploaded Receipt At"
         }
       ]
     },
@@ -22825,6 +22849,16 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/oltp/actions/borrowers-receive-selected-charges-2c6b24ca.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "action",
+      "name": "Borrowers.Receive Selected Charges",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/actions/borrowers-view-ref-borrower-reference-te-e72023f5.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -23540,6 +23574,16 @@
       "component": "oltp",
       "kind": "action",
       "name": "Payments.Edit",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/actions/payments-open-submitted-receipt-payment-50af1772.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "action",
+      "name": "Payments.Open Submitted Receipt Payment",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -24845,6 +24889,16 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/oltp/slices/submitted-receipt-payments-eeed4b2d.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "Submitted Receipt Payments",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/slices/todays-collection-board.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -25068,6 +25122,10 @@
         {
           "subject": "Borrower Activity Group",
           "pointer": "/content/columns/Borrower Activity Group"
+        },
+        {
+          "subject": "Submitted Receipts",
+          "pointer": "/content/columns/Submitted Receipts"
         }
       ]
     },
@@ -25833,6 +25891,10 @@
         {
           "subject": "Borrower Reference TE",
           "pointer": "/content/columns/Borrower Reference TE"
+        },
+        {
+          "subject": "Charge Selection Label",
+          "pointer": "/content/columns/Charge Selection Label"
         }
       ]
     },
@@ -26646,6 +26708,38 @@
         {
           "subject": "Related Cash Account Statement Recents",
           "pointer": "/content/columns/Related Cash Account Statement Recents"
+        },
+        {
+          "subject": "IG Receipt ID",
+          "pointer": "/content/columns/IG Receipt ID"
+        },
+        {
+          "subject": "Receipt Display At",
+          "pointer": "/content/columns/Receipt Display At"
+        },
+        {
+          "subject": "Receipt Image",
+          "pointer": "/content/columns/Receipt Image"
+        },
+        {
+          "subject": "Receipt Preview",
+          "pointer": "/content/columns/Receipt Preview"
+        },
+        {
+          "subject": "Receipt Received At",
+          "pointer": "/content/columns/Receipt Received At"
+        },
+        {
+          "subject": "Selected Charge IDs",
+          "pointer": "/content/columns/Selected Charge IDs"
+        },
+        {
+          "subject": "Uploaded Receipt",
+          "pointer": "/content/columns/Uploaded Receipt"
+        },
+        {
+          "subject": "Uploaded Receipt At",
+          "pointer": "/content/columns/Uploaded Receipt At"
         }
       ]
     },
@@ -28909,6 +29003,16 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/oltp/views/receive-selected-charges-form-f297453e.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Receive Selected Charges_Form",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/views/repayments-detail-fe26974c.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -28964,6 +29068,16 @@
       "component": "oltp",
       "kind": "view",
       "name": "Statistics_Form",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/views/submitted-receipts-inline-2db38bc3.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Submitted Receipts_Inline",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -36090,6 +36204,18 @@
           "pointer": "/content/columns/Receipt Received At"
         },
         {
+          "subject": "Selected Charge IDs",
+          "pointer": "/content/columns/Selected Charge IDs"
+        },
+        {
+          "subject": "Uploaded Receipt",
+          "pointer": "/content/columns/Uploaded Receipt"
+        },
+        {
+          "subject": "Uploaded Receipt At",
+          "pointer": "/content/columns/Uploaded Receipt At"
+        },
+        {
           "subject": "Payments_Ref Received By Cash Account_fkey",
           "pointer": "/content/constraints/Payments_Ref Received By Cash Account_fkey"
         },
@@ -41123,6 +41249,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-guard-selected-charge-scope-f9f3b170.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.guard_selected_charge_scope()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-guard-settlement-reversal-8f36fd95.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -41238,6 +41374,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.payment_charge_balances(p_id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-payment-receipt-upload-stamp-9e70778c.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.payment_receipt_upload_stamp()",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -41388,6 +41534,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.seed_cash_statement_context()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-selected-charge-ids-value-text-7664d518.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.selected_charge_ids(value text)",
       "scope": "production",
       "status": "documented",
       "lookup": []

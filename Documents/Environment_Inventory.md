@@ -1,18 +1,10 @@
 # Environment inventory
 
-R047 formatting checkpoint: DEV OLAP **1.000042** (rollback1.000041) corrects all seven reported Payment/allocation dollar fields to ฿ with zero decimals. OLTP1.000116 and SQL V52 unchanged. Both editors clear; synthetic receipt/allocation display verified. [Evidence](../outputs/r047-selected-charges/BAHT_FORMATTING.md).
-
-R047 charge-label refinement: DEV OLTP **1.000116** (rollback1.000112) displays charge date, residual and Loan Key, with no displayed Row ID. Current GUI card/picker verified; both editors clear, OLAP1.000041 unchanged. SQL remains V52 from the receipt-upload checkpoint; this refinement has no data/SQL/PROD change. [Evidence](../outputs/r047-selected-charges/LABEL_REFINEMENT.md).
-
-R047 current DEV checkpoint (27 September): OLTP **1.000111**, OLAP **1.000041**, database **loan_manager_dev V52**. Manual Payment receipt upload is configured alongside Receive Selected Charges and Collection receipts. Both saved editors have no issues and remain Deployed. Native create/edit/replacement uploads, actual GCS paths, financial invariance, Collection rendering and OLAP read/sync are verified; ready for owner DEV review. Manual-upload rollback: OLTP1.000109 / OLAP1.000039 and verified private pre-V52 dump. PROD remains V50; agent runtime, bucket permissions and PROD apps are unchanged. [Current handover](../outputs/r047-receipt-upload/HANDOVER.md); [prior selected-charge verification](../outputs/r047-selected-charges/IMPLEMENTATION.md).
-
-R047 DEV UI checkpoint (27 September): DEV OLTP **1.000098** adds linked-payment receipt thumbnails to the Collection borrower detail; rollback1.000095. DEV OLAP observed **1.000036**, unchanged by this task. Both saved editors report no issues and both remain Deployed. No source, database, agent, GCS or PROD app change. [Current DEV handover](../outputs/r047-collection-receipts/HANDOVER.md).
-
-R046 receipt backend delivered: DEV/PROD V50, central mw_agent V4, Debian34c4133 active after the verified receipt-audit repair (28/28 exported; [evidence](../outputs/r046-receipt-evidence/AUDIT_REPAIR.md)), with archive cutoff2026-09-27T05:43:10.226553+00:00. PROD AppSheet remains at recorded3.000249 /1.100202; receipt UI promotion remains pending. R046 Frozen / R047 Open. [Backend implementation and deployment evidence](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).
+R046/R047 promoted together on 27 September 2026: PROD OLTP **3.000252**, OLAP **1.100205**, PostgreSQL **V52**. Both apps are Deployed with zero editor issues. PROD sources, links, receipt store/folder, API enablement, scheduled guards, load/sync and changed entry points passed; original shared logos render after RC deletion. DEV remains OLTP **1.000118**, OLAP **1.000042**, V52. R048 is the sole Open release; the capture hold is released. [production verification](../outputs/r047-production/production-verification.json).
 
 ## Receipt object storage — 27 September 2026
 
-Owner-approved GCS bucket `gs://mw-payment-receipts-prod-508610-n7` created in `clever-oasis-508610-n7`, `asia-southeast1` (Singapore), Standard. Saved configuration verified: uniform IAM, public access prevented via organization policy, seven-day soft delete, Google-managed encryption, no versioning/retention lock/lifecycle rules. One bucket; no DEV or separate display bucket. AppSheet account stores `MW Receipt Images DEV` and `MW Receipt Images PROD` are saved/tested. Their dedicated identities have Storage Object User and Storage Bucket Viewer on this bucket, with no DEV prefix restriction, per owner instruction. A standing tagged exception permits key creation only for these identities. Synthetic upload/readback passed; two small probes are retained. Agent capture is active in PROD; DEV table bindings/rendering are verified. PROD AppSheet UI promotion remains deferred. [Connection configuration](../outputs/receipt-storage-design-20260927/APPSHEET_CONNECTION.md). [Configuration and creation evidence](../outputs/receipt-storage-design-20260927/GCS_REVIEW.md).
+Owner-approved GCS bucket `gs://mw-payment-receipts-prod-508610-n7` created in `clever-oasis-508610-n7`, `asia-southeast1` (Singapore), Standard. Saved configuration verified: uniform IAM, public access prevented via organization policy, seven-day soft delete, Google-managed encryption, no versioning/retention lock/lifecycle rules. One bucket; no DEV or separate display bucket. AppSheet account stores `MW Receipt Images DEV` and `MW Receipt Images PROD` are saved/tested. Their dedicated identities have Storage Object User and Storage Bucket Viewer on this bucket, with no DEV prefix restriction, per owner instruction. A standing tagged exception permits key creation only for these identities. Synthetic upload/readback passed; two small probes are retained. Agent capture is active in PROD; DEV table bindings/rendering are verified. PROD AppSheet receipt UI is promoted in the integrated R046/R047 package. [Connection configuration](../outputs/receipt-storage-design-20260927/APPSHEET_CONNECTION.md). [Configuration and creation evidence](../outputs/receipt-storage-design-20260927/GCS_REVIEW.md).
 
 R045 delivered (27 September 2026): DEV/PROD V48; dashboard3 adds **13 · Forecast & Planning** (tab262), four models344–347 and 21 questions348–368. Existing 12 tabs /247 placements preserved. Recovery dashboard22. No AppSheet, source-record, notification or operational binding change. No remaining R045 DEV/PROD schema difference; R046 is the sole Open release. [Evidence](../outputs/r045-forecast-planning/README.md).
 
@@ -103,10 +95,10 @@ Latest metadata checkpoint: **24 September 2026**, from the [dictionary reconcil
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000246 (observed R016; unchanged) | database-2 | 18 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100195 (observed R016; unchanged) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000075 (R014) | database-3 | 18 |
-| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000031 (R014) | database-3 | 19 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000252 (R046/R047) | database-2 | 18 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100205 (R046/R047) | database-2 | 19 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000118 (R047 capture) | database-3 | 18 |
+| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000042 (R047 capture) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
 
@@ -141,7 +133,7 @@ R010 OLTP RC2 `MW-OLTP-R010-RC2-578763613` (`4bb85573-773f-4495-9f69-6207697adde
 | Tier | db-f1-micro | db-f1-micro | Shared instance; live console readback |
 | Storage | 10 GB HDD, automatic increase | Shared 10 GB HDD, automatic increase | Shared instance; live console readback |
 | Access list | AppSheet 73 addresses plus authorized workstation /32 | Same shared instance policy | No network-policy change |
-| Flyway | V40; validation passed 24 September | V40; validation passed 24 September | [R026 verification](../outputs/r026-dictionary-fixes/database-verification.json). Unused PROD pg_cron removed; all non-cron business definitions retained. DEV already omitted the extension. |
+| Flyway | V52; validation passed 27 September | V52; validation passed 27 September | [Integrated R046/R047 evidence](../outputs/r047-production/production-validate.json); PROD V50→V52 from pinned commit0d2ed52. |
 
 The full instance/host/database tuple establishes environment identity; host or instance alone no longer distinguishes DEV from PROD. Direct public-IP SSL is used; sslmode=require does not establish hostname verification. Credentials remain outside Git at the paths in the maintained environment configuration. After the consolidated DEV database and natural scheduler run were verified, the owner authorized deletion of former instance `appsheet-pg-dev-20260915`. Cloud SQL completed deletion on 20 September 2026, released public IP `34.158.38.171`, and retained no backups or final backup for that instance. The verified private former-DEV logical dump remains outside Git as recovery evidence.
 

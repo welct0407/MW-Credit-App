@@ -86,6 +86,18 @@
         "comment": null
   "data_change": "No backfill or existing financial-row change. Test fixture is synthetic DEV only."
   "manual_upload_migration": "database/migrations/V52__manual_payment_receipt_upload.sql"
+  "status": "Promoted and closed 2026-09-27; retained as dated DEV implementation evidence"
+  "promotion":
+    "releases":
+    - "R046"
+    - "R047"
+    "evidence": "outputs/r047-production/production-verification.json"
+    "production_versions":
+      "OLTP": "3.000252"
+      "OLAP": "1.100205"
+      "PostgreSQL": "52"
+    "remaining_environment_difference": "DEV sources/theme/owner-only delivery and manual-receipts/dev remain intentional;\
+      \ PROD uses manual-receipts/prod."
 "evidence":
   "/content/columns":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
@@ -98,4 +110,12 @@
   "/content/manual_upload_migration":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
     "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/status":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
+  "/content/promotion":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
     "state": "value"

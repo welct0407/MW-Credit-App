@@ -1,0 +1,25 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Receive Selected Charges_Form"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-production/oltp-affected-definitions.json"
+"content":
+  "definition":
+    "Created by": "App owner"
+    "Icon": ""
+    "Menu order": "1"
+    "Position": "ref"
+    "View configuration": "{\"ColumnOrder\":[\"Ref Borrower\",\"Payment Date\",\"Selected Charge IDs\",\"Amount Received\"\
+      ,\"Ref Received By Cash Account\",\"Ref Received By Cash Holder\",\"Payment Method\",\"Bank Reference\",\"Notes\",\"\
+      Uploaded Receipt\"],\"AutoSave\":false,\"AutoReopen\":false,\"FinishView\":\"**Automatic**\",\"RowKey\":\"\",\"FormStyle\"\
+      :\"Automatic\",\"PageStyle\":\"Automatic\",\"FormFooterStyle\":\"Bottom\",\"MaxNestedRows\":5,\"AudioInput\":false,\"\
+      Events\":[{\"EventType\":\"Form Saved\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"\
+      MenuOrder\":1}"
+    "View name": "Receive Selected Charges_Form"
+    "View type": "form"
+    "Visible?": "ALWAYS"

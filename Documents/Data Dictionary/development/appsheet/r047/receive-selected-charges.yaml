@@ -1,34 +1,51 @@
-{
-  "format": 1,
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
-  },
-  "identity": {
-    "system": "appsheet",
-    "component": "oltp",
-    "kind": "action",
-    "name": "Receive Selected Charges",
-    "scope": "development:R047"
-  },
-  "content": {
-    "release": "R047",
-    "status": "DEV implemented; owner acceptance and PROD promotion pending",
-    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
-    "version": "1.000109",
-    "before": {
-      "state": "absent"
-    },
-    "definition": {
-      "For a record of this table": "Borrowers",
-      "Do this": "App: go to another view within this app",
-      "Target": "LINKTOFORM(\"Receive Selected Charges_Form\", \"Ref Borrower\", [Row ID], \"Payment Date\", TODAY(), \"Payment Method\", \"Bank Transfer\", \"Allocation Method\", \"Selected Charges\")",
-      "Position": "Primary",
-      "Display name": "\"รับชำระรายการที่เลือก / Receive Selected Charges\"",
-      "Action icon": "file-invoice-dollar",
-      "Only if this condition is true": "AND(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row ID], [Charge Date] <= TODAY(), [Amount Remaining] > 0))) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Row ID], IN([Status], LIST(\"Processing\", \"Error\"))))) = 0)",
-      "Needs confirmation?": false
-    },
-    "effects": "Opens unsaved Payment form. Automatically available in Collection borrower detail; no persisted selection state or separate charge-row writes."
-  }
-}
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Receive Selected Charges"
+  "scope": "development:R047"
+"content":
+  "release": "R047"
+  "status": "Promoted and closed 2026-09-27; retained as dated DEV implementation evidence"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000109"
+  "before":
+    "state": "absent"
+  "definition":
+    "For a record of this table": "Borrowers"
+    "Do this": "App: go to another view within this app"
+    "Target": "LINKTOFORM(\"Receive Selected Charges_Form\", \"Ref Borrower\", [Row ID], \"Payment Date\", TODAY(), \"Payment\
+      \ Method\", \"Bank Transfer\", \"Allocation Method\", \"Selected Charges\")"
+    "Position": "Primary"
+    "Display name": "\"รับชำระรายการที่เลือก / Receive Selected Charges\""
+    "Action icon": "file-invoice-dollar"
+    "Only if this condition is true": "AND(COUNT(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Row\
+      \ ID], [Charge Date] <= TODAY(), [Amount Remaining] > 0))) > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] =\
+      \ [_THISROW].[Row ID], IN([Status], LIST(\"Processing\", \"Error\"))))) = 0)"
+    "Needs confirmation?": false
+  "effects": "Opens unsaved Payment form. Automatically available in Collection borrower detail; no persisted selection state\
+    \ or separate charge-row writes."
+  "promotion":
+    "releases":
+    - "R046"
+    - "R047"
+    "evidence": "outputs/r047-production/production-verification.json"
+    "production_versions":
+      "OLTP": "3.000252"
+      "OLAP": "1.100205"
+      "PostgreSQL": "52"
+    "remaining_environment_difference": "DEV sources/theme/owner-only delivery and manual-receipts/dev remain intentional;\
+      \ PROD uses manual-receipts/prod."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
+  "/content/promotion":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"

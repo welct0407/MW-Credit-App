@@ -20,7 +20,9 @@
       "scope": "recorded-production"
 "content":
   "definition":
-    "Slice Name": "Todays Collection Board"
+    "Row filter condition": "=ISNOTBLANK([Daily Collection Status])"
+    "Slice Actions":
+    - "**auto**"
     "Slice Columns":
     - "_RowNumber"
     - "Row ID"
@@ -51,12 +53,11 @@
     - "Related Repayments"
     - "Related Cash Account Statement Recents"
     - "Borrower Note"
-    "Row filter condition": "=ISNOTBLANK([Daily Collection Status])"
-    "Update mode": "UPDATES_ONLY"
+    - "Submitted Receipts"
+    "Slice Name": "Todays Collection Board"
     "Source Table": "Borrowers"
+    "Update mode": "UPDATES_ONLY"
     "Visible?": "ALWAYS"
-    "Slice Actions":
-    - "**auto**"
   "members":
   - "Ordinal": 1
     "Column": "_RowNumber"
@@ -116,3 +117,14 @@
     "Column": "Related Cash Account Statement Recents"
   - "Ordinal": 29
     "Column": "Borrower Note"
+  - "Ordinal": 30
+    "Column": "Submitted Receipts"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r047-production/collection-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
+    "state": "value"
+  "/content/members":
+    "reference": "outputs/r047-production/collection-definitions.json"
+    "reason": "R046/R047 promotion; saved production object readback"
+    "state": "value"

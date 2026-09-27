@@ -1,5 +1,19 @@
 # R047 — Collection borrower receipts
 
+Status: Released with integrated R046/R047 promotion; final evidence tags R046 and R047. R048 remains the sole Open release.
+
+## Integrated production closure — 27 September 2026
+
+Owner authorized R046, R047 and relevant pending changes. Included DEV OLTP1.000118 (owner-confirmed minor icon/cosmetic saves after1.000116) and OLAP1.000042. Both definition-only RC1 copies had data/file copy unchecked, were rebound to PROD and frozen Deployed at1.000009. App Upgrade applied OLTP3.000249→3.000252, then OLAP1.100202→1.100205. The sole active promotion checklist is [R047 integrated checklist](../outputs/r047-production/promotion-checklist.md).
+
+PROD loan_manager_prod on appsheet-pg-prod-20260914 /34.21.174.215 migrated V50→V52 using exact tested commit0d2ed5298393cfdec34ba953e9549e3f01c670d9. Private pre-change backup restored with matching fingerprints; V51/V52 rehearsal preserved all existing financial rows. Final Flyway validation53 passed and schema matched pinned DEV. No DEV financial data copied to PROD.
+
+Both PROD apps remain Deployed with zero editor issues. Source mappings, companion links, receipt storage/folder, existing API enablement/keys, canonical scheduled guards, load/sync and Collection/Selected Charges entry points passed. Selected total is disabled; the inspected form was cancelled. Canonical shared Drive logos were reselected in RC to repair broken previews; both render after upgrade and RC deletion. No PROD payment test, upload or forced notification was performed; passing DEV behavior tests are reused. Phone camera hardware remains untested.
+
+Both temporary RC definitions were deleted by verified UUID, leaving DEV/PROD and shared data/files intact. Rollback app versions:3.000249/1.100202; SQL is compatible expansion, so use reviewed forward-fix or the verified private backup under the recovery runbook, preserving later financial writes. App restore does not undo SQL or financial writes. [Production evidence](../outputs/r047-production/production-verification.json) · [backup](../outputs/r047-production/production-backup.json).
+
+Updated tracker, inventory, development differences, design/overview and exact dictionary objects/closed overlays. Targeted dictionary capture and hash/old-value guarded batch closure tooling were added; helper batch planning defers structural validation only until all candidates can be validated together before writes. No reports, Looker/Metabase definitions, dashboard flows, agent runtime, bucket grants or notifications changed in this promotion. Prior backend evidence is reused; no new operating policy. Repository baseline8ebe809; unrelated risks/payment-health work preserved. Relevant dictionary/tool tests, JSON and whitespace checks precede normal push and unique final tags R046/R047 at the evidence commit.
+
 ## OLAP whole-baht formatting — 27 September 2026
 
 Owner requested fixing the disclosed dollar-sign fields with ฿ and zero decimals. Confirmed and changed seven Price fields: Payments.Amount Received and Payment Allocations' three remaining snapshots/three allocated amounts. DEV OLAP1.000042, rollback1.000041; OLTP1.000116 unchanged. Synthetic payment/allocation list and detail verified, both editors clear. No SQL/data/PROD change. Prior formatting limitation resolved in DEV. Updated exact dictionary, integrated manifest, current versions and [evidence](../outputs/r047-selected-charges/BAHT_FORMATTING.md). Git baseline47b786b; dictionary/whitespace checks and normal publication complete the batch; unrelated work preserved.

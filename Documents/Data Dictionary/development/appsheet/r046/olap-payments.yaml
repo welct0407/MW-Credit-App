@@ -10,7 +10,7 @@
   "scope": "development:R046"
 "content":
   "release": "R046"
-  "status": "DEV implemented; PROD definition not promoted"
+  "status": "Promoted and closed 2026-09-27; retained as dated DEV implementation evidence"
   "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
   "version": "1.000035"
   "production_reference": "systems/appsheet/olap/tables/payments.yaml"
@@ -67,3 +67,23 @@
     "before": "Default"
     "after": "MW Receipt Images DEV"
   "offline_content": false
+  "promotion":
+    "releases":
+    - "R046"
+    - "R047"
+    "evidence": "outputs/r047-production/production-verification.json"
+    "production_versions":
+      "OLTP": "3.000252"
+      "OLAP": "1.100205"
+      "PostgreSQL": "52"
+    "remaining_environment_difference": "DEV sources/theme/owner-only delivery and manual-receipts/dev remain intentional;\
+      \ PROD uses manual-receipts/prod."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
+  "/content/promotion":
+    "reference": "outputs/r047-production/production-verification.json"
+    "reason": "Close promoted release overlay; retain dated implementation values"
+    "state": "value"
