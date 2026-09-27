@@ -63,6 +63,7 @@
     - "Related Payments"
     - "Related Business Expenses"
     - "Related Cash Account Statement Recents"
+    - "Original Daily Interest Rate"
     "Update mode": "UPDATES_ONLY"
     "Source Table": "Loans"
     "Visible?": "ALWAYS"
@@ -169,3 +170,14 @@
     "Column": "Related Business Expenses"
   - "Ordinal": 50
     "Column": "Related Cash Account Statement Recents"
+  - "Ordinal": 51
+    "Column": "Original Daily Interest Rate"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r048-loan-interest-production/slices-observed.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/members":
+    "reference": "outputs/r048-loan-interest-production/slices-observed.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

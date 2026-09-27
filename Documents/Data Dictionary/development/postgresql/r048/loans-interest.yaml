@@ -10,7 +10,7 @@
   "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
 "content":
   "release": "R048"
-  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "status": "Delivered to PROD 2026-09-28 by owner-authorized manual cutover; closed, retained as dated DEV evidence"
   "database": "loan_manager_dev"
   "migration": 53
   "metadata_source": "outputs/r048-loan-interest/postgresql-affected-definitions.json"
@@ -54,8 +54,8 @@
         "default_expression": null
         "collation": null
         "acl": null
-        "comment": "Original average daily interest / original principal * 100, rounded to integer percentage points\
-          \ (1 means 1%). Frozen at creation. NULL means original terms unavailable."
+        "comment": "Original average daily interest / original principal * 100, rounded to integer percentage points (1 means\
+          \ 1%). Frozen at creation. NULL means original terms unavailable."
   "constraint_delta":
     "before":
       "state": "absent"
@@ -78,3 +78,18 @@
         "delete_action": " "
         "match_type": " "
         "comment": null
+  "production_delivery":
+    "evidence": "outputs/r048-loan-interest-production/README.md"
+    "OLTP": "3.000257"
+    "OLAP": "1.100208"
+    "PostgreSQL": "53"
+    "remaining_feature_difference": "None; environment bindings and different missing-basis data remain intentional."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/production_delivery":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

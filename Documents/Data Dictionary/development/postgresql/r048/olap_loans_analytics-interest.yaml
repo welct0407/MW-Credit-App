@@ -10,7 +10,7 @@
   "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
 "content":
   "release": "R048"
-  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "status": "Delivered to PROD 2026-09-28 by owner-authorized manual cutover; closed, retained as dated DEV evidence"
   "database": "loan_manager_dev"
   "migration": 53
   "metadata_source": "outputs/r048-loan-interest/postgresql-affected-definitions.json"
@@ -27,203 +27,374 @@
     "options": null
     "acl": null
     "comment": null
-    "view_definition": " SELECT existing.\"Row ID\",\n    existing.\"Loan Date\",\n    existing.\"Close Date\",\n   \
-      \ existing.\"Principal Amount\",\n    existing.\"Due Date\",\n    existing.\"Ref Borrowers\",\n    existing.\"\
-      Loan Arrangement\",\n    existing.\"Loan Status\",\n    existing.\"Loan Type\",\n    existing.\"Current Daily Interest\"\
-      ,\n    existing.\"Fixed Interest\",\n    existing.\"Transfer Fee\",\n    existing.\"Interest Payment Interval\"\
-      ,\n    existing.\"Created By\",\n    existing.\"Closed By\",\n    existing.\"Defaulted\",\n    existing.\"Default\
-      \ Loss Amount\",\n    existing.\"Daily Payment Amount\",\n    existing.\"Auto Charge Enabled\",\n    existing.\"\
-      Interest Schedule Anchor Date\",\n    existing.\"Ref Closing Payment\",\n    existing.\"Charge Generation Request\"\
-      ,\n    existing.\"Total Interest Received\",\n    existing.\"Total Principal Received\",\n    existing.\"Outstanding\
-      \ Principal\",\n    existing.\"Total Amount Received\",\n    existing.\"Expected Daily Interest Amount\",\n   \
-      \ existing.\"Borrower Total Interest\",\n    existing.\"Expected Interest This Month\",\n    existing.\"Effective\
-      \ Daily Interest Rate\",\n    existing.\"Principal Recovered by Interest %\",\n    existing.\"Principal Days MTD\"\
-      ,\n    existing.\"Loan Start Day Index\",\n    existing.\"Principal Start Weight\",\n    existing.\"Loan End Date\"\
-      ,\n    existing.\"Loan Duration\",\n    existing.\"30D Principal Days\",\n    existing.\"Loan Age Days\",\n   \
-      \ existing.\"Loan Age Bucket\",\n    existing.\"Defaulted Flag\",\n    existing.\"Maximum Days Late\",\n    existing.\"\
-      Last Interest Charge Date\",\n    existing.\"Accrued Interest Days\",\n    existing.\"Accrued Interest\",\n   \
-      \ existing.\"Daily Installment Base Principal\",\n    existing.\"Ref Disbursed From Cash Account\",\n    existing.\"\
-      Payment Request Cash Account\",\n    existing.\"Payment Request Token\",\n    l.\"Original Daily Interest Rate\"\
-      \n   FROM ( SELECT old_view.\"Row ID\",\n            old_view.\"Loan Date\",\n            old_view.\"Close Date\"\
-      ,\n            old_view.\"Principal Amount\",\n            old_view.\"Due Date\",\n            old_view.\"Ref Borrowers\"\
-      ,\n            old_view.\"Loan Arrangement\",\n            old_view.\"Loan Status\",\n            old_view.\"Loan\
-      \ Type\",\n            old_view.\"Current Daily Interest\",\n            old_view.\"Fixed Interest\",\n       \
-      \     old_view.\"Transfer Fee\",\n            old_view.\"Interest Payment Interval\",\n            old_view.\"\
-      Created By\",\n            old_view.\"Closed By\",\n            old_view.\"Defaulted\",\n            old_view.\"\
-      Default Loss Amount\",\n            old_view.\"Daily Payment Amount\",\n            old_view.\"Auto Charge Enabled\"\
-      ,\n            old_view.\"Interest Schedule Anchor Date\",\n            old_view.\"Ref Closing Payment\",\n   \
-      \         old_view.\"Charge Generation Request\",\n            old_view.\"Total Interest Received\",\n        \
-      \    old_view.\"Total Principal Received\",\n            old_view.\"Outstanding Principal\",\n            old_view.\"\
-      Total Amount Received\",\n            old_view.\"Expected Daily Interest Amount\",\n            old_view.\"Borrower\
-      \ Total Interest\",\n            old_view.\"Expected Interest This Month\",\n            old_view.\"Effective Daily\
-      \ Interest Rate\",\n            old_view.\"Principal Recovered by Interest %\",\n            old_view.\"Principal\
-      \ Days MTD\",\n            old_view.\"Loan Start Day Index\",\n            old_view.\"Principal Start Weight\"\
-      ,\n            old_view.\"Loan End Date\",\n            old_view.\"Loan Duration\",\n            old_view.\"30D\
-      \ Principal Days\",\n            old_view.\"Loan Age Days\",\n            old_view.\"Loan Age Bucket\",\n     \
-      \       old_view.\"Defaulted Flag\",\n            old_view.\"Maximum Days Late\",\n            old_view.\"Last\
-      \ Interest Charge Date\",\n            old_view.\"Accrued Interest Days\",\n            old_view.\"Accrued Interest\"\
-      ,\n            old_view.\"Daily Installment Base Principal\",\n            b.\"Ref Disbursed From Cash Account\"\
-      ,\n            b.\"Payment Request Cash Account\",\n            b.\"Payment Request Token\"\n           FROM (\
-      \ WITH ctx AS (\n                         SELECT q.d,\n                            date_trunc('month'::text, q.d::timestamp\
-      \ with time zone)::date AS ms,\n                            (date_trunc('month'::text, q.d::timestamp with time\
-      \ zone) + '1 mon -1 days'::interval)::date AS me\n                           FROM ( SELECT olap_reporting_date()\
-      \ AS d) q\n                        ), cr AS (\n                         SELECT olap_charges_analytics.\"Ref Loans\"\
-      \ AS id,\n                            max(olap_charges_analytics.\"Days Late\") AS late,\n                    \
-      \        max(olap_charges_analytics.\"Charge Date\") FILTER (WHERE olap_charges_analytics.\"Charge Date\" <= ctx.d)\
-      \ AS last_interest,\n                            max(olap_charges_analytics.\"Charge Date\") AS last_charge,\n\
-      \                            sum(olap_charges_analytics.\"Interest Remaining\") FILTER (WHERE olap_charges_analytics.\"\
-      Charge Date\" > ctx.d AND olap_charges_analytics.\"Charge Date\" <= ctx.me) AS scheduled\n                    \
-      \       FROM olap_charges_analytics\n                             CROSS JOIN ctx\n                          GROUP\
-      \ BY olap_charges_analytics.\"Ref Loans\"\n                        ), br AS (\n                         SELECT\
-      \ \"Loans\".\"Ref Borrowers\" AS id,\n                            sum(\"Loans\".\"Total Interest Received\") AS\
-      \ total\n                           FROM \"Loans\"\n                          GROUP BY \"Loans\".\"Ref Borrowers\"\
-      \n                        ), a AS (\n                         SELECT l_1.\"Row ID\",\n                        \
-      \    l_1.\"Loan Date\",\n                            l_1.\"Close Date\",\n                            l_1.\"Principal\
-      \ Amount\",\n                            l_1.\"Due Date\",\n                            l_1.\"Ref Borrowers\",\n\
-      \                            l_1.\"Loan Arrangement\",\n                            l_1.\"Loan Status\",\n    \
-      \                        l_1.\"Loan Type\",\n                            l_1.\"Current Daily Interest\",\n    \
-      \                        l_1.\"Fixed Interest\",\n                            l_1.\"Transfer Fee\",\n         \
-      \                   l_1.\"Interest Payment Interval\",\n                            l_1.\"Created By\",\n     \
-      \                       l_1.\"Closed By\",\n                            l_1.\"Defaulted\",\n                  \
-      \          l_1.\"Default Loss Amount\",\n                            l_1.\"Daily Payment Amount\",\n          \
-      \                  l_1.\"Auto Charge Enabled\",\n                            l_1.\"Interest Schedule Anchor Date\"\
-      ,\n                            l_1.\"Ref Closing Payment\",\n                            l_1.\"Charge Generation\
-      \ Request\",\n                            l_1.\"Total Interest Received\",\n                            l_1.\"\
-      Total Principal Received\",\n                            l_1.\"Outstanding Principal\",\n                     \
-      \       l_1.\"Total Amount Received\",\n                            l_1.\"Expected Daily Interest Amount\",\n \
-      \                           COALESCE(br.total, 0::numeric) AS \"Borrower Total Interest\",\n                  \
-      \              CASE\n                                    WHEN COALESCE(l_1.\"Principal Amount\"::numeric, 0::numeric)\
-      \ > 0::numeric THEN COALESCE(l_1.\"Total Interest Received\", 0::numeric) / l_1.\"Principal Amount\"::numeric\n\
-      \                                    ELSE 0::numeric\n                                END AS \"Principal Recovered\
-      \ by Interest %\",\n                                CASE\n                                    WHEN l_1.\"Loan Date\"\
-      \ > ctx.d THEN 0::numeric\n                                    ELSE COALESCE(l_1.\"Principal Amount\"::numeric,\
-      \ 0::numeric) *\n                                    CASE\nWHEN l_1.\"Loan Date\" >= ctx.ms AND l_1.\"Loan Date\"\
-      \ <= ctx.me THEN (ctx.d - l_1.\"Loan Date\" + 1)::numeric\nELSE EXTRACT(day FROM ctx.d)\n                     \
-      \               END\n                                END AS \"Principal Days MTD\",\n                         \
-      \   (l_1.\"Loan Date\" - '2000-01-01'::date)::numeric AS \"Loan Start Day Index\",\n                          \
-      \  l_1.\"Close Date\" AS \"Loan End Date\",\n                                CASE\n                           \
-      \         WHEN l_1.\"Close Date\" IS NOT NULL THEN l_1.\"Close Date\" - l_1.\"Loan Date\" + 1\n               \
-      \                     ELSE NULL::integer\n                                END AS \"Loan Duration\",\n         \
-      \                       CASE\n                                    WHEN l_1.\"Loan Date\" > ctx.d THEN 0::numeric\n\
-      \                                    ELSE COALESCE(l_1.\"Principal Amount\"::numeric, 0::numeric) * (ctx.d - GREATEST(l_1.\"\
-      Loan Date\", ctx.d - 29) + 1)::numeric\n                                END AS \"30D Principal Days\",\n      \
-      \                      ctx.d - l_1.\"Loan Date\" AS \"Loan Age Days\",\n                            COALESCE(l_1.\"\
-      Defaulted\", false) AS \"Defaulted Flag\",\n                            GREATEST(0, cr.late) AS \"Maximum Days\
-      \ Late\",\n                            cr.last_interest AS \"Last Interest Charge Date\",\n                   \
-      \         GREATEST(0, ctx.d - COALESCE(cr.last_interest, l_1.\"Loan Date\")) AS \"Accrued Interest Days\",\n  \
-      \                          cr.last_charge,\n                            COALESCE(cr.scheduled, 0::numeric) AS scheduled,\n\
-      \                            LEAST(l_1.\"Due Date\", ctx.me) AS forecast_end,\n                            l_1.\"\
-      Due Date\" - l_1.\"Loan Date\" + 1 AS term_days\n                           FROM \"Loans\" l_1\n              \
-      \               CROSS JOIN ctx\n                             LEFT JOIN cr ON cr.id = l_1.\"Row ID\"\n         \
-      \                    LEFT JOIN br ON br.id = l_1.\"Ref Borrowers\"\n                        ), b AS (\n       \
-      \                  SELECT a.\"Row ID\",\n                            a.\"Loan Date\",\n                       \
-      \     a.\"Close Date\",\n                            a.\"Principal Amount\",\n                            a.\"\
-      Due Date\",\n                            a.\"Ref Borrowers\",\n                            a.\"Loan Arrangement\"\
-      ,\n                            a.\"Loan Status\",\n                            a.\"Loan Type\",\n             \
-      \               a.\"Current Daily Interest\",\n                            a.\"Fixed Interest\",\n            \
-      \                a.\"Transfer Fee\",\n                            a.\"Interest Payment Interval\",\n          \
-      \                  a.\"Created By\",\n                            a.\"Closed By\",\n                          \
-      \  a.\"Defaulted\",\n                            a.\"Default Loss Amount\",\n                            a.\"Daily\
-      \ Payment Amount\",\n                            a.\"Auto Charge Enabled\",\n                            a.\"Interest\
-      \ Schedule Anchor Date\",\n                            a.\"Ref Closing Payment\",\n                           \
-      \ a.\"Charge Generation Request\",\n                            a.\"Total Interest Received\",\n              \
-      \              a.\"Total Principal Received\",\n                            a.\"Outstanding Principal\",\n    \
-      \                        a.\"Total Amount Received\",\n                            a.\"Expected Daily Interest\
-      \ Amount\",\n                            a.\"Borrower Total Interest\",\n                            a.\"Principal\
-      \ Recovered by Interest %\",\n                            a.\"Principal Days MTD\",\n                         \
-      \   a.\"Loan Start Day Index\",\n                            a.\"Loan End Date\",\n                           \
-      \ a.\"Loan Duration\",\n                            a.\"30D Principal Days\",\n                            a.\"\
-      Loan Age Days\",\n                            a.\"Defaulted Flag\",\n                            a.\"Maximum Days\
-      \ Late\",\n                            a.\"Last Interest Charge Date\",\n                            a.\"Accrued\
-      \ Interest Days\",\n                            a.last_charge,\n                            a.scheduled,\n    \
-      \                        a.forecast_end,\n                            a.term_days,\n                          \
-      \  COALESCE(a.\"Principal Amount\"::numeric, 0::numeric) * a.\"Loan Start Day Index\" AS \"Principal Start Weight\"\
-      ,\n                                CASE\n                                    WHEN a.\"Loan Age Days\" <= 10 THEN\
-      \ '0-10 Days'::text\n                                    WHEN a.\"Loan Age Days\" <= 20 THEN '11-20 Days'::text\n\
-      \                                    WHEN a.\"Loan Age Days\" <= 30 THEN '21-30 Days'::text\n                 \
-      \                   WHEN a.\"Loan Age Days\" <= 60 THEN '31-60 Days'::text\n                                  \
-      \  ELSE '60+ Days'::text\n                                END AS \"Loan Age Bucket\",\n                       \
-      \         CASE\n                                    WHEN a.\"Auto Charge Enabled\" AND a.\"Loan Type\" = 'ดอกเบี้ยรายวัน'::text\
-      \ THEN COALESCE(a.\"Current Daily Interest\"::numeric, 0::numeric) * a.\"Accrued Interest Days\"::numeric\n   \
-      \                                 ELSE 0::numeric\n                                END AS \"Accrued Interest\"\
-      ,\n                                CASE\n                                    WHEN a.\"Loan Type\" = 'ผ่อนชำระรายวัน'::text\
-      \ AND a.\"Loan Date\" IS NOT NULL AND a.\"Due Date\" >= a.\"Loan Date\" THEN floor(COALESCE(a.\"Principal Amount\"\
-      ::numeric, 0::numeric) / NULLIF(a.term_days, 0)::numeric)\n                                    ELSE 0::numeric\n\
-      \                                END AS \"Daily Installment Base Principal\",\n                               \
-      \ CASE\n                                    WHEN COALESCE(a.\"Outstanding Principal\", 0::numeric) <= 0::numeric\
-      \ THEN 0::numeric\n                                    ELSE\n                                    CASE a.\"Loan\
-      \ Type\"\nWHEN 'ดอกเบี้ยรายวัน'::text THEN COALESCE(a.\"Current Daily Interest\"::numeric, 0::numeric) / a.\"Outstanding\
-      \ Principal\"\nWHEN 'กำหนดวันชำระ'::text THEN COALESCE(a.\"Fixed Interest\"::numeric, 0::numeric) / NULLIF(a.term_days,\
-      \ 0)::numeric / a.\"Outstanding Principal\"\nWHEN 'ผ่อนชำระรายวัน'::text THEN (COALESCE(a.\"Daily Payment Amount\"\
-      ::numeric, 0::numeric) * a.term_days::numeric - COALESCE(a.\"Principal Amount\"::numeric, 0::numeric)) / NULLIF(a.term_days,\
-      \ 0)::numeric / a.\"Outstanding Principal\"\nELSE 0::numeric\n                                    END\n       \
-      \                         END AS \"Effective Daily Interest Rate\"\n                           FROM a\n       \
-      \                 ), final AS (\n                         SELECT b_1.\"Row ID\",\n                            b_1.\"\
-      Loan Date\",\n                            b_1.\"Close Date\",\n                            b_1.\"Principal Amount\"\
-      ,\n                            b_1.\"Due Date\",\n                            b_1.\"Ref Borrowers\",\n        \
-      \                    b_1.\"Loan Arrangement\",\n                            b_1.\"Loan Status\",\n            \
-      \                b_1.\"Loan Type\",\n                            b_1.\"Current Daily Interest\",\n            \
-      \                b_1.\"Fixed Interest\",\n                            b_1.\"Transfer Fee\",\n                 \
-      \           b_1.\"Interest Payment Interval\",\n                            b_1.\"Created By\",\n             \
-      \               b_1.\"Closed By\",\n                            b_1.\"Defaulted\",\n                          \
-      \  b_1.\"Default Loss Amount\",\n                            b_1.\"Daily Payment Amount\",\n                  \
-      \          b_1.\"Auto Charge Enabled\",\n                            b_1.\"Interest Schedule Anchor Date\",\n \
-      \                           b_1.\"Ref Closing Payment\",\n                            b_1.\"Charge Generation Request\"\
-      ,\n                            b_1.\"Total Interest Received\",\n                            b_1.\"Total Principal\
-      \ Received\",\n                            b_1.\"Outstanding Principal\",\n                            b_1.\"Total\
-      \ Amount Received\",\n                            b_1.\"Expected Daily Interest Amount\",\n                   \
-      \         b_1.\"Borrower Total Interest\",\n                            b_1.\"Principal Recovered by Interest %\"\
-      ,\n                            b_1.\"Principal Days MTD\",\n                            b_1.\"Loan Start Day Index\"\
-      ,\n                            b_1.\"Loan End Date\",\n                            b_1.\"Loan Duration\",\n   \
-      \                         b_1.\"30D Principal Days\",\n                            b_1.\"Loan Age Days\",\n   \
-      \                         b_1.\"Defaulted Flag\",\n                            b_1.\"Maximum Days Late\",\n   \
-      \                         b_1.\"Last Interest Charge Date\",\n                            b_1.\"Accrued Interest\
-      \ Days\",\n                            b_1.last_charge,\n                            b_1.scheduled,\n         \
-      \                   b_1.forecast_end,\n                            b_1.term_days,\n                           \
-      \ b_1.\"Principal Start Weight\",\n                            b_1.\"Loan Age Bucket\",\n                     \
-      \       b_1.\"Accrued Interest\",\n                            b_1.\"Daily Installment Base Principal\",\n    \
-      \                        b_1.\"Effective Daily Interest Rate\",\n                                CASE\n       \
-      \                             WHEN b_1.\"Loan Status\" = 'ปิดยอดแล้ว'::text THEN 0::numeric\n                 \
-      \                   WHEN NOT COALESCE(b_1.\"Auto Charge Enabled\", false) OR b_1.\"Loan Type\" = 'ดอกเบี้ยรายวัน'::text\
-      \ AND COALESCE(b_1.\"Current Daily Interest\"::numeric, 0::numeric) = 0::numeric THEN b_1.scheduled\n         \
-      \                           WHEN b_1.\"Loan Type\" = 'ดอกเบี้ยรายวัน'::text THEN GREATEST(0::numeric, b_1.\"Accrued\
-      \ Interest\") + COALESCE(b_1.\"Current Daily Interest\"::numeric, 0::numeric) * (ctx.me - ctx.d)::numeric\n   \
-      \                                 WHEN b_1.\"Loan Type\" = 'กำหนดวันชำระ'::text THEN\n                        \
-      \            CASE\nWHEN b_1.\"Due Date\" > ctx.d AND b_1.\"Due Date\" <= ctx.me THEN COALESCE(b_1.\"Fixed Interest\"\
-      ::numeric, 0::numeric)\nELSE 0::numeric\n                                    END\n                            \
-      \        WHEN b_1.\"Loan Type\" = 'ผ่อนชำระรายวัน'::text THEN\n                                    CASE\nWHEN b_1.last_charge\
-      \ IS NOT NULL AND b_1.forecast_end > b_1.last_charge THEN COALESCE(b_1.\"Daily Payment Amount\"::numeric, 0::numeric)\
-      \ * (b_1.forecast_end - b_1.last_charge)::numeric - (floor(COALESCE(b_1.\"Principal Amount\"::numeric, 0::numeric)\
-      \ / NULLIF(b_1.term_days, 0)::numeric) * (b_1.forecast_end - b_1.last_charge)::numeric + GREATEST(0::numeric, LEAST((b_1.forecast_end\
-      \ - b_1.\"Loan Date\" + 1)::numeric, mod(COALESCE(b_1.\"Principal Amount\"::numeric, 0::numeric), NULLIF(b_1.term_days,\
-      \ 0)::numeric)) - (b_1.last_charge - b_1.\"Loan Date\" + 1)::numeric))\nELSE 0::numeric\n                     \
-      \               END\n                                    ELSE 0::numeric\n                                END AS\
-      \ \"Expected Interest This Month\"\n                           FROM b b_1\n                             CROSS JOIN\
-      \ ctx\n                        )\n                 SELECT x.\"Row ID\",\n                    x.\"Loan Date\",\n\
-      \                    x.\"Close Date\",\n                    x.\"Principal Amount\",\n                    x.\"Due\
-      \ Date\",\n                    x.\"Ref Borrowers\",\n                    x.\"Loan Arrangement\",\n            \
-      \        x.\"Loan Status\",\n                    x.\"Loan Type\",\n                    x.\"Current Daily Interest\"\
-      ,\n                    x.\"Fixed Interest\",\n                    x.\"Transfer Fee\",\n                    x.\"\
-      Interest Payment Interval\",\n                    x.\"Created By\",\n                    x.\"Closed By\",\n   \
-      \                 x.\"Defaulted\",\n                    x.\"Default Loss Amount\",\n                    x.\"Daily\
-      \ Payment Amount\",\n                    x.\"Auto Charge Enabled\",\n                    x.\"Interest Schedule\
-      \ Anchor Date\",\n                    x.\"Ref Closing Payment\",\n                    x.\"Charge Generation Request\"\
-      ,\n                    x.\"Total Interest Received\",\n                    x.\"Total Principal Received\",\n  \
-      \                  x.\"Outstanding Principal\",\n                    x.\"Total Amount Received\",\n           \
-      \         x.\"Expected Daily Interest Amount\",\n                    round(x.\"Borrower Total Interest\", 0) AS\
-      \ \"Borrower Total Interest\",\n                    round(x.\"Expected Interest This Month\", 0) AS \"Expected\
-      \ Interest This Month\",\n                    round(COALESCE(x.\"Effective Daily Interest Rate\", 0::numeric),\
-      \ 4) AS \"Effective Daily Interest Rate\",\n                    round(x.\"Principal Recovered by Interest %\",\
-      \ 2) AS \"Principal Recovered by Interest %\",\n                    x.\"Principal Days MTD\",\n               \
-      \     round(x.\"Loan Start Day Index\", 0) AS \"Loan Start Day Index\",\n                    round(x.\"Principal\
-      \ Start Weight\", 0) AS \"Principal Start Weight\",\n                    x.\"Loan End Date\",\n               \
-      \     x.\"Loan Duration\",\n                    round(x.\"30D Principal Days\", 2) AS \"30D Principal Days\",\n\
-      \                    x.\"Loan Age Days\",\n                    x.\"Loan Age Bucket\",\n                    x.\"\
-      Defaulted Flag\",\n                    x.\"Maximum Days Late\",\n                    x.\"Last Interest Charge Date\"\
-      ,\n                    x.\"Accrued Interest Days\",\n                    round(x.\"Accrued Interest\", 0) AS \"\
-      Accrued Interest\",\n                    x.\"Daily Installment Base Principal\"\n                   FROM final\
-      \ x) old_view\n             JOIN \"Loans\" b ON b.\"Row ID\" = old_view.\"Row ID\") existing\n     JOIN \"Loans\"\
-      \ l ON l.\"Row ID\" = existing.\"Row ID\";"
+    "view_definition": |2-
+       SELECT existing."Row ID",
+          existing."Loan Date",
+          existing."Close Date",
+          existing."Principal Amount",
+          existing."Due Date",
+          existing."Ref Borrowers",
+          existing."Loan Arrangement",
+          existing."Loan Status",
+          existing."Loan Type",
+          existing."Current Daily Interest",
+          existing."Fixed Interest",
+          existing."Transfer Fee",
+          existing."Interest Payment Interval",
+          existing."Created By",
+          existing."Closed By",
+          existing."Defaulted",
+          existing."Default Loss Amount",
+          existing."Daily Payment Amount",
+          existing."Auto Charge Enabled",
+          existing."Interest Schedule Anchor Date",
+          existing."Ref Closing Payment",
+          existing."Charge Generation Request",
+          existing."Total Interest Received",
+          existing."Total Principal Received",
+          existing."Outstanding Principal",
+          existing."Total Amount Received",
+          existing."Expected Daily Interest Amount",
+          existing."Borrower Total Interest",
+          existing."Expected Interest This Month",
+          existing."Effective Daily Interest Rate",
+          existing."Principal Recovered by Interest %",
+          existing."Principal Days MTD",
+          existing."Loan Start Day Index",
+          existing."Principal Start Weight",
+          existing."Loan End Date",
+          existing."Loan Duration",
+          existing."30D Principal Days",
+          existing."Loan Age Days",
+          existing."Loan Age Bucket",
+          existing."Defaulted Flag",
+          existing."Maximum Days Late",
+          existing."Last Interest Charge Date",
+          existing."Accrued Interest Days",
+          existing."Accrued Interest",
+          existing."Daily Installment Base Principal",
+          existing."Ref Disbursed From Cash Account",
+          existing."Payment Request Cash Account",
+          existing."Payment Request Token",
+          l."Original Daily Interest Rate"
+         FROM ( SELECT old_view."Row ID",
+                  old_view."Loan Date",
+                  old_view."Close Date",
+                  old_view."Principal Amount",
+                  old_view."Due Date",
+                  old_view."Ref Borrowers",
+                  old_view."Loan Arrangement",
+                  old_view."Loan Status",
+                  old_view."Loan Type",
+                  old_view."Current Daily Interest",
+                  old_view."Fixed Interest",
+                  old_view."Transfer Fee",
+                  old_view."Interest Payment Interval",
+                  old_view."Created By",
+                  old_view."Closed By",
+                  old_view."Defaulted",
+                  old_view."Default Loss Amount",
+                  old_view."Daily Payment Amount",
+                  old_view."Auto Charge Enabled",
+                  old_view."Interest Schedule Anchor Date",
+                  old_view."Ref Closing Payment",
+                  old_view."Charge Generation Request",
+                  old_view."Total Interest Received",
+                  old_view."Total Principal Received",
+                  old_view."Outstanding Principal",
+                  old_view."Total Amount Received",
+                  old_view."Expected Daily Interest Amount",
+                  old_view."Borrower Total Interest",
+                  old_view."Expected Interest This Month",
+                  old_view."Effective Daily Interest Rate",
+                  old_view."Principal Recovered by Interest %",
+                  old_view."Principal Days MTD",
+                  old_view."Loan Start Day Index",
+                  old_view."Principal Start Weight",
+                  old_view."Loan End Date",
+                  old_view."Loan Duration",
+                  old_view."30D Principal Days",
+                  old_view."Loan Age Days",
+                  old_view."Loan Age Bucket",
+                  old_view."Defaulted Flag",
+                  old_view."Maximum Days Late",
+                  old_view."Last Interest Charge Date",
+                  old_view."Accrued Interest Days",
+                  old_view."Accrued Interest",
+                  old_view."Daily Installment Base Principal",
+                  b."Ref Disbursed From Cash Account",
+                  b."Payment Request Cash Account",
+                  b."Payment Request Token"
+                 FROM ( WITH ctx AS (
+                               SELECT q.d,
+                                  date_trunc('month'::text, q.d::timestamp with time zone)::date AS ms,
+                                  (date_trunc('month'::text, q.d::timestamp with time zone) + '1 mon -1 days'::interval)::date AS me
+                                 FROM ( SELECT olap_reporting_date() AS d) q
+                              ), cr AS (
+                               SELECT olap_charges_analytics."Ref Loans" AS id,
+                                  max(olap_charges_analytics."Days Late") AS late,
+                                  max(olap_charges_analytics."Charge Date") FILTER (WHERE olap_charges_analytics."Charge Date" <= ctx.d) AS last_interest,
+                                  max(olap_charges_analytics."Charge Date") AS last_charge,
+                                  sum(olap_charges_analytics."Interest Remaining") FILTER (WHERE olap_charges_analytics."Charge Date" > ctx.d AND olap_charges_analytics."Charge Date" <= ctx.me) AS scheduled
+                                 FROM olap_charges_analytics
+                                   CROSS JOIN ctx
+                                GROUP BY olap_charges_analytics."Ref Loans"
+                              ), br AS (
+                               SELECT "Loans"."Ref Borrowers" AS id,
+                                  sum("Loans"."Total Interest Received") AS total
+                                 FROM "Loans"
+                                GROUP BY "Loans"."Ref Borrowers"
+                              ), a AS (
+                               SELECT l_1."Row ID",
+                                  l_1."Loan Date",
+                                  l_1."Close Date",
+                                  l_1."Principal Amount",
+                                  l_1."Due Date",
+                                  l_1."Ref Borrowers",
+                                  l_1."Loan Arrangement",
+                                  l_1."Loan Status",
+                                  l_1."Loan Type",
+                                  l_1."Current Daily Interest",
+                                  l_1."Fixed Interest",
+                                  l_1."Transfer Fee",
+                                  l_1."Interest Payment Interval",
+                                  l_1."Created By",
+                                  l_1."Closed By",
+                                  l_1."Defaulted",
+                                  l_1."Default Loss Amount",
+                                  l_1."Daily Payment Amount",
+                                  l_1."Auto Charge Enabled",
+                                  l_1."Interest Schedule Anchor Date",
+                                  l_1."Ref Closing Payment",
+                                  l_1."Charge Generation Request",
+                                  l_1."Total Interest Received",
+                                  l_1."Total Principal Received",
+                                  l_1."Outstanding Principal",
+                                  l_1."Total Amount Received",
+                                  l_1."Expected Daily Interest Amount",
+                                  COALESCE(br.total, 0::numeric) AS "Borrower Total Interest",
+                                      CASE
+                                          WHEN COALESCE(l_1."Principal Amount"::numeric, 0::numeric) > 0::numeric THEN COALESCE(l_1."Total Interest Received", 0::numeric) / l_1."Principal Amount"::numeric
+                                          ELSE 0::numeric
+                                      END AS "Principal Recovered by Interest %",
+                                      CASE
+                                          WHEN l_1."Loan Date" > ctx.d THEN 0::numeric
+                                          ELSE COALESCE(l_1."Principal Amount"::numeric, 0::numeric) *
+                                          CASE
+      WHEN l_1."Loan Date" >= ctx.ms AND l_1."Loan Date" <= ctx.me THEN (ctx.d - l_1."Loan Date" + 1)::numeric
+      ELSE EXTRACT(day FROM ctx.d)
+                                          END
+                                      END AS "Principal Days MTD",
+                                  (l_1."Loan Date" - '2000-01-01'::date)::numeric AS "Loan Start Day Index",
+                                  l_1."Close Date" AS "Loan End Date",
+                                      CASE
+                                          WHEN l_1."Close Date" IS NOT NULL THEN l_1."Close Date" - l_1."Loan Date" + 1
+                                          ELSE NULL::integer
+                                      END AS "Loan Duration",
+                                      CASE
+                                          WHEN l_1."Loan Date" > ctx.d THEN 0::numeric
+                                          ELSE COALESCE(l_1."Principal Amount"::numeric, 0::numeric) * (ctx.d - GREATEST(l_1."Loan Date", ctx.d - 29) + 1)::numeric
+                                      END AS "30D Principal Days",
+                                  ctx.d - l_1."Loan Date" AS "Loan Age Days",
+                                  COALESCE(l_1."Defaulted", false) AS "Defaulted Flag",
+                                  GREATEST(0, cr.late) AS "Maximum Days Late",
+                                  cr.last_interest AS "Last Interest Charge Date",
+                                  GREATEST(0, ctx.d - COALESCE(cr.last_interest, l_1."Loan Date")) AS "Accrued Interest Days",
+                                  cr.last_charge,
+                                  COALESCE(cr.scheduled, 0::numeric) AS scheduled,
+                                  LEAST(l_1."Due Date", ctx.me) AS forecast_end,
+                                  l_1."Due Date" - l_1."Loan Date" + 1 AS term_days
+                                 FROM "Loans" l_1
+                                   CROSS JOIN ctx
+                                   LEFT JOIN cr ON cr.id = l_1."Row ID"
+                                   LEFT JOIN br ON br.id = l_1."Ref Borrowers"
+                              ), b AS (
+                               SELECT a."Row ID",
+                                  a."Loan Date",
+                                  a."Close Date",
+                                  a."Principal Amount",
+                                  a."Due Date",
+                                  a."Ref Borrowers",
+                                  a."Loan Arrangement",
+                                  a."Loan Status",
+                                  a."Loan Type",
+                                  a."Current Daily Interest",
+                                  a."Fixed Interest",
+                                  a."Transfer Fee",
+                                  a."Interest Payment Interval",
+                                  a."Created By",
+                                  a."Closed By",
+                                  a."Defaulted",
+                                  a."Default Loss Amount",
+                                  a."Daily Payment Amount",
+                                  a."Auto Charge Enabled",
+                                  a."Interest Schedule Anchor Date",
+                                  a."Ref Closing Payment",
+                                  a."Charge Generation Request",
+                                  a."Total Interest Received",
+                                  a."Total Principal Received",
+                                  a."Outstanding Principal",
+                                  a."Total Amount Received",
+                                  a."Expected Daily Interest Amount",
+                                  a."Borrower Total Interest",
+                                  a."Principal Recovered by Interest %",
+                                  a."Principal Days MTD",
+                                  a."Loan Start Day Index",
+                                  a."Loan End Date",
+                                  a."Loan Duration",
+                                  a."30D Principal Days",
+                                  a."Loan Age Days",
+                                  a."Defaulted Flag",
+                                  a."Maximum Days Late",
+                                  a."Last Interest Charge Date",
+                                  a."Accrued Interest Days",
+                                  a.last_charge,
+                                  a.scheduled,
+                                  a.forecast_end,
+                                  a.term_days,
+                                  COALESCE(a."Principal Amount"::numeric, 0::numeric) * a."Loan Start Day Index" AS "Principal Start Weight",
+                                      CASE
+                                          WHEN a."Loan Age Days" <= 10 THEN '0-10 Days'::text
+                                          WHEN a."Loan Age Days" <= 20 THEN '11-20 Days'::text
+                                          WHEN a."Loan Age Days" <= 30 THEN '21-30 Days'::text
+                                          WHEN a."Loan Age Days" <= 60 THEN '31-60 Days'::text
+                                          ELSE '60+ Days'::text
+                                      END AS "Loan Age Bucket",
+                                      CASE
+                                          WHEN a."Auto Charge Enabled" AND a."Loan Type" = 'ดอกเบี้ยรายวัน'::text THEN COALESCE(a."Current Daily Interest"::numeric, 0::numeric) * a."Accrued Interest Days"::numeric
+                                          ELSE 0::numeric
+                                      END AS "Accrued Interest",
+                                      CASE
+                                          WHEN a."Loan Type" = 'ผ่อนชำระรายวัน'::text AND a."Loan Date" IS NOT NULL AND a."Due Date" >= a."Loan Date" THEN floor(COALESCE(a."Principal Amount"::numeric, 0::numeric) / NULLIF(a.term_days, 0)::numeric)
+                                          ELSE 0::numeric
+                                      END AS "Daily Installment Base Principal",
+                                      CASE
+                                          WHEN COALESCE(a."Outstanding Principal", 0::numeric) <= 0::numeric THEN 0::numeric
+                                          ELSE
+                                          CASE a."Loan Type"
+      WHEN 'ดอกเบี้ยรายวัน'::text THEN COALESCE(a."Current Daily Interest"::numeric, 0::numeric) / a."Outstanding Principal"
+      WHEN 'กำหนดวันชำระ'::text THEN COALESCE(a."Fixed Interest"::numeric, 0::numeric) / NULLIF(a.term_days, 0)::numeric / a."Outstanding Principal"
+      WHEN 'ผ่อนชำระรายวัน'::text THEN (COALESCE(a."Daily Payment Amount"::numeric, 0::numeric) * a.term_days::numeric - COALESCE(a."Principal Amount"::numeric, 0::numeric)) / NULLIF(a.term_days, 0)::numeric / a."Outstanding Principal"
+      ELSE 0::numeric
+                                          END
+                                      END AS "Effective Daily Interest Rate"
+                                 FROM a
+                              ), final AS (
+                               SELECT b_1."Row ID",
+                                  b_1."Loan Date",
+                                  b_1."Close Date",
+                                  b_1."Principal Amount",
+                                  b_1."Due Date",
+                                  b_1."Ref Borrowers",
+                                  b_1."Loan Arrangement",
+                                  b_1."Loan Status",
+                                  b_1."Loan Type",
+                                  b_1."Current Daily Interest",
+                                  b_1."Fixed Interest",
+                                  b_1."Transfer Fee",
+                                  b_1."Interest Payment Interval",
+                                  b_1."Created By",
+                                  b_1."Closed By",
+                                  b_1."Defaulted",
+                                  b_1."Default Loss Amount",
+                                  b_1."Daily Payment Amount",
+                                  b_1."Auto Charge Enabled",
+                                  b_1."Interest Schedule Anchor Date",
+                                  b_1."Ref Closing Payment",
+                                  b_1."Charge Generation Request",
+                                  b_1."Total Interest Received",
+                                  b_1."Total Principal Received",
+                                  b_1."Outstanding Principal",
+                                  b_1."Total Amount Received",
+                                  b_1."Expected Daily Interest Amount",
+                                  b_1."Borrower Total Interest",
+                                  b_1."Principal Recovered by Interest %",
+                                  b_1."Principal Days MTD",
+                                  b_1."Loan Start Day Index",
+                                  b_1."Loan End Date",
+                                  b_1."Loan Duration",
+                                  b_1."30D Principal Days",
+                                  b_1."Loan Age Days",
+                                  b_1."Defaulted Flag",
+                                  b_1."Maximum Days Late",
+                                  b_1."Last Interest Charge Date",
+                                  b_1."Accrued Interest Days",
+                                  b_1.last_charge,
+                                  b_1.scheduled,
+                                  b_1.forecast_end,
+                                  b_1.term_days,
+                                  b_1."Principal Start Weight",
+                                  b_1."Loan Age Bucket",
+                                  b_1."Accrued Interest",
+                                  b_1."Daily Installment Base Principal",
+                                  b_1."Effective Daily Interest Rate",
+                                      CASE
+                                          WHEN b_1."Loan Status" = 'ปิดยอดแล้ว'::text THEN 0::numeric
+                                          WHEN NOT COALESCE(b_1."Auto Charge Enabled", false) OR b_1."Loan Type" = 'ดอกเบี้ยรายวัน'::text AND COALESCE(b_1."Current Daily Interest"::numeric, 0::numeric) = 0::numeric THEN b_1.scheduled
+                                          WHEN b_1."Loan Type" = 'ดอกเบี้ยรายวัน'::text THEN GREATEST(0::numeric, b_1."Accrued Interest") + COALESCE(b_1."Current Daily Interest"::numeric, 0::numeric) * (ctx.me - ctx.d)::numeric
+                                          WHEN b_1."Loan Type" = 'กำหนดวันชำระ'::text THEN
+                                          CASE
+      WHEN b_1."Due Date" > ctx.d AND b_1."Due Date" <= ctx.me THEN COALESCE(b_1."Fixed Interest"::numeric, 0::numeric)
+      ELSE 0::numeric
+                                          END
+                                          WHEN b_1."Loan Type" = 'ผ่อนชำระรายวัน'::text THEN
+                                          CASE
+      WHEN b_1.last_charge IS NOT NULL AND b_1.forecast_end > b_1.last_charge THEN COALESCE(b_1."Daily Payment Amount"::numeric, 0::numeric) * (b_1.forecast_end - b_1.last_charge)::numeric - (floor(COALESCE(b_1."Principal Amount"::numeric, 0::numeric) / NULLIF(b_1.term_days, 0)::numeric) * (b_1.forecast_end - b_1.last_charge)::numeric + GREATEST(0::numeric, LEAST((b_1.forecast_end - b_1."Loan Date" + 1)::numeric, mod(COALESCE(b_1."Principal Amount"::numeric, 0::numeric), NULLIF(b_1.term_days, 0)::numeric)) - (b_1.last_charge - b_1."Loan Date" + 1)::numeric))
+      ELSE 0::numeric
+                                          END
+                                          ELSE 0::numeric
+                                      END AS "Expected Interest This Month"
+                                 FROM b b_1
+                                   CROSS JOIN ctx
+                              )
+                       SELECT x."Row ID",
+                          x."Loan Date",
+                          x."Close Date",
+                          x."Principal Amount",
+                          x."Due Date",
+                          x."Ref Borrowers",
+                          x."Loan Arrangement",
+                          x."Loan Status",
+                          x."Loan Type",
+                          x."Current Daily Interest",
+                          x."Fixed Interest",
+                          x."Transfer Fee",
+                          x."Interest Payment Interval",
+                          x."Created By",
+                          x."Closed By",
+                          x."Defaulted",
+                          x."Default Loss Amount",
+                          x."Daily Payment Amount",
+                          x."Auto Charge Enabled",
+                          x."Interest Schedule Anchor Date",
+                          x."Ref Closing Payment",
+                          x."Charge Generation Request",
+                          x."Total Interest Received",
+                          x."Total Principal Received",
+                          x."Outstanding Principal",
+                          x."Total Amount Received",
+                          x."Expected Daily Interest Amount",
+                          round(x."Borrower Total Interest", 0) AS "Borrower Total Interest",
+                          round(x."Expected Interest This Month", 0) AS "Expected Interest This Month",
+                          round(COALESCE(x."Effective Daily Interest Rate", 0::numeric), 4) AS "Effective Daily Interest Rate",
+                          round(x."Principal Recovered by Interest %", 2) AS "Principal Recovered by Interest %",
+                          x."Principal Days MTD",
+                          round(x."Loan Start Day Index", 0) AS "Loan Start Day Index",
+                          round(x."Principal Start Weight", 0) AS "Principal Start Weight",
+                          x."Loan End Date",
+                          x."Loan Duration",
+                          round(x."30D Principal Days", 2) AS "30D Principal Days",
+                          x."Loan Age Days",
+                          x."Loan Age Bucket",
+                          x."Defaulted Flag",
+                          x."Maximum Days Late",
+                          x."Last Interest Charge Date",
+                          x."Accrued Interest Days",
+                          round(x."Accrued Interest", 0) AS "Accrued Interest",
+                          x."Daily Installment Base Principal"
+                         FROM final x) old_view
+                   JOIN "Loans" b ON b."Row ID" = old_view."Row ID") existing
+           JOIN "Loans" l ON l."Row ID" = existing."Row ID";
     "partition_key": null
     "partition_bound": null
     "parents": null
@@ -1062,3 +1233,18 @@
     "collation": null
     "acl": null
     "comment": null
+  "production_delivery":
+    "evidence": "outputs/r048-loan-interest-production/README.md"
+    "OLTP": "3.000257"
+    "OLAP": "1.100208"
+    "PostgreSQL": "53"
+    "remaining_feature_difference": "None; environment bindings and different missing-basis data remain intentional."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/production_delivery":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

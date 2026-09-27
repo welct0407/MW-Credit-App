@@ -10,7 +10,7 @@
   "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
 "content":
   "release": "R048"
-  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "status": "Delivered to PROD 2026-09-28 by owner-authorized manual cutover; closed, retained as dated DEV evidence"
   "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
   "before_version": "1.000042"
   "version": "1.000045"
@@ -33,14 +33,37 @@
     "Loan Key":
       "before":
         "state": "value"
-        "value": "CONCATENATE(\n  [Borrower Name],\n  \"-\",\n  TEXT([Principal Amount]),\n  \"-\",\n  TEXT([Loan Date],\
-          \ \"DD/MM\"),\n  \"-\",\n  TEXT([Effective Daily Interest Rate])\n)"
+        "value": |-
+          CONCATENATE(
+            [Borrower Name],
+            "-",
+            TEXT([Principal Amount]),
+            "-",
+            TEXT([Loan Date], "DD/MM"),
+            "-",
+            TEXT([Effective Daily Interest Rate])
+          )
       "after":
         "state": "value"
-        "value": "CONCATENATE([Borrower Name], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"),\
-          \ \"-\", IF(ISBLANK([Original Daily Interest Rate]), \"Unavailable\", CONCATENATE([Original Daily Interest\
-          \ Rate], \"%\")))"
+        "value": "CONCATENATE([Borrower Name], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"), \"-\"\
+          , IF(ISBLANK([Original Daily Interest Rate]), \"Unavailable\", CONCATENATE([Original Daily Interest Rate], \"%\"\
+          )))"
       "property": "App formula"
   "units": "integer percentage points; 1 means 1%; blank means original terms unavailable"
   "actual_key": "Row ID unchanged"
   "evidence": "outputs/r048-loan-interest/app-evidence.json"
+  "production_delivery":
+    "evidence": "outputs/r048-loan-interest-production/README.md"
+    "OLTP": "3.000257"
+    "OLAP": "1.100208"
+    "PostgreSQL": "53"
+    "remaining_feature_difference": "None; environment bindings and different missing-basis data remain intentional."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/production_delivery":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

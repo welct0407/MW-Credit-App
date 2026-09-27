@@ -20916,6 +20916,10 @@
         {
           "subject": "Related Cash Ledgers",
           "pointer": "/content/columns/Related Cash Ledgers"
+        },
+        {
+          "subject": "Original Daily Interest Rate",
+          "pointer": "/content/columns/Original Daily Interest Rate"
         }
       ]
     },
@@ -26552,6 +26556,10 @@
         {
           "subject": "Related Cash Account Statement Recents",
           "pointer": "/content/columns/Related Cash Account Statement Recents"
+        },
+        {
+          "subject": "Original Daily Interest Rate",
+          "pointer": "/content/columns/Original Daily Interest Rate"
         }
       ]
     },
@@ -35815,6 +35823,10 @@
           "pointer": "/content/columns/Payment Request Token"
         },
         {
+          "subject": "Original Daily Interest Rate",
+          "pointer": "/content/columns/Original Daily Interest Rate"
+        },
+        {
           "subject": "Loans_Payment Request Cash Account_fkey",
           "pointer": "/content/constraints/Loans_Payment Request Cash Account_fkey"
         },
@@ -35841,6 +35853,10 @@
         {
           "subject": "loans_interest_schedule_anchor_date_check",
           "pointer": "/content/constraints/loans_interest_schedule_anchor_date_check"
+        },
+        {
+          "subject": "loans_original_daily_rate_nonnegative",
+          "pointer": "/content/constraints/loans_original_daily_rate_nonnegative"
         },
         {
           "subject": "referral_loan_closed",
@@ -37647,6 +37663,10 @@
         {
           "subject": "Payment Request Token",
           "pointer": "/content/columns/Payment Request Token"
+        },
+        {
+          "subject": "Original Daily Interest Rate",
+          "pointer": "/content/columns/Original Daily Interest Rate"
         }
       ]
     },
@@ -41521,6 +41541,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.olap_reporting_date()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-original-daily-interest-rate-p-loans-historical-boolean-25d076c5.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.original_daily_interest_rate(p \"Loans\", historical boolean)",
       "scope": "production",
       "status": "documented",
       "lookup": []

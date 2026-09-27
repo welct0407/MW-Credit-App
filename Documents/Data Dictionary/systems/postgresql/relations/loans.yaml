@@ -581,6 +581,25 @@
       "collation": "\"default\""
       "acl": null
       "comment": null
+    "Original Daily Interest Rate":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "Original Daily Interest Rate"
+      "ordinal": 32
+      "data_type": "integer"
+      "type_schema": "pg_catalog"
+      "type_name": "int4"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "Original average daily interest / original principal * 100, rounded to integer percentage points (1 means\
+        \ 1%). Frozen at creation. NULL means original terms unavailable."
   "constraints":
     "Loans_Payment Request Cash Account_fkey":
       "schema": "public"
@@ -702,6 +721,23 @@
       "column_numbers":
       - 21
       - 2
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "loans_original_daily_rate_nonnegative":
+      "schema": "public"
+      "relation": "Loans"
+      "name": "loans_original_daily_rate_nonnegative"
+      "kind": "c"
+      "definition": "CHECK (\"Original Daily Interest Rate\" >= 0)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 32
       "referenced_column_numbers": null
       "referenced_relation": null
       "update_action": " "
@@ -1251,3 +1287,12 @@
       "comment": null
   "policies": {}
   "dependencies": []
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r048-loan-interest-production/postgresql-affected-definitions.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/constraints":
+    "reference": "outputs/r048-loan-interest-production/postgresql-affected-definitions.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

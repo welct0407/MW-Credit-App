@@ -1,0 +1,476 @@
+{
+  "identity": {
+    "database": "loan_manager_prod",
+    "host": "34.21.174.215",
+    "read_only": "on",
+    "ssl": true
+  },
+  "history": {
+    "version": "53",
+    "success": true
+  },
+  "coverage": {
+    "loans": 80,
+    "populated": 79,
+    "missing": 1,
+    "negative": 0,
+    "missing_with_outstanding": 0
+  },
+  "view_dependencies": [
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Auto Charge Enabled"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Charge Generation Request"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Close Date"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Closed By"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Created By"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Current Daily Interest"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Daily Payment Amount"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Default Loss Amount"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Defaulted"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Due Date"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Expected Daily Interest Amount"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Fixed Interest"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Interest Payment Interval"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Interest Schedule Anchor Date"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Loan Arrangement"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Loan Date"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Loan Status"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Loan Type"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Original Daily Interest Rate"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Outstanding Principal"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Payment Request Cash Account"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Payment Request Token"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Principal Amount"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Ref Borrowers"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Ref Closing Payment"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Ref Disbursed From Cash Account"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Row ID"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Total Amount Received"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Total Interest Received"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Total Principal Received"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Transfer Fee"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "olap_charges_analytics",
+      "referenced_column": "Charge Date"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "olap_charges_analytics",
+      "referenced_column": "Days Late"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "olap_charges_analytics",
+      "referenced_column": "Interest Remaining"
+    },
+    {
+      "schema": "public",
+      "relation": "olap_loans_analytics",
+      "referenced_schema": "public",
+      "referenced_relation": "olap_charges_analytics",
+      "referenced_column": "Ref Loans"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Borrowers",
+      "referenced_column": "Borrower Name"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Borrowers",
+      "referenced_column": "Description"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Borrowers",
+      "referenced_column": "Row ID"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Charges",
+      "referenced_column": "Charge Date"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Charges",
+      "referenced_column": "Interest Due"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Charges",
+      "referenced_column": "Principal Due"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Charges",
+      "referenced_column": "Ref Loans"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Charges",
+      "referenced_column": "Row ID"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Auto Charge Enabled"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Close Date"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Current Daily Interest"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Daily Payment Amount"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Defaulted"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Due Date"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Fixed Interest"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Interest Payment Interval"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Interest Schedule Anchor Date"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Loan Arrangement"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Loan Date"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Loan Status"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Loan Type"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Original Daily Interest Rate"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Principal Amount"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Ref Borrowers"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Loans",
+      "referenced_column": "Row ID"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Repayments",
+      "referenced_column": "Interest Paid"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Repayments",
+      "referenced_column": "Payment Date"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Repayments",
+      "referenced_column": "Principal Paid"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Repayments",
+      "referenced_column": "Ref Charges"
+    },
+    {
+      "schema": "public",
+      "relation": "reporting_forecast_inputs_v1",
+      "referenced_schema": "public",
+      "referenced_relation": "Repayments",
+      "referenced_column": "Ref Loans"
+    }
+  ]
+}

@@ -10,7 +10,7 @@
   "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
 "content":
   "release": "R048"
-  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "status": "Delivered to PROD 2026-09-28 by owner-authorized manual cutover; closed, retained as dated DEV evidence"
   "database": "loan_manager_dev"
   "migration": 53
   "definition_after":
@@ -19,26 +19,26 @@
     "arguments": "l jsonb, charges jsonb, t date, e date"
     "kind": "f"
     "arguments_with_defaults": "l jsonb, charges jsonb, t date, e date"
-    "result": "TABLE(due_date date, origin text, bucket text, principal numeric, interest numeric, eligible boolean,\
-      \ issue text)"
+    "result": "TABLE(due_date date, origin text, bucket text, principal numeric, interest numeric, eligible boolean, issue\
+      \ text)"
     "definition": "CREATE OR REPLACE FUNCTION public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)\n RETURNS\
       \ TABLE(due_date date, origin text, bucket text, principal numeric, interest numeric, eligible boolean, issue text)\n\
-      \ LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE c jsonb; d\
-      \ date; latest date; anchor date; n integer; elapsed integer; term integer;\r\n p numeric; i numeric; balance numeric;\
-      \ daily_rate numeric; basis numeric[]; active boolean;\r\n blocked boolean:=false; scheduled_principal numeric:=0;\
-      \ found_today boolean:=false; today_principal numeric:=0; simulated_principal numeric:=0;\r\nBEGIN\r\n IF t IS\
-      \ NULL OR e<t OR e>t+93 THEN RAISE EXCEPTION 'Forecast window invalid'; END IF;\r\n active:=coalesce(l->>'status'='ยังไม่ปิดยอด'\
-      \ AND NOT (l->>'defaulted')::boolean AND (l->>'start')::date<=t\r\n  AND ((l->>'close') IS NULL OR (l->>'close')::date>t),false);\r\
-      \n balance:=(l->>'balance')::numeric;daily_rate:=(l->>'daily')::numeric;\r\n FOR c IN SELECT value FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb))\
-      \ ORDER BY (value->>'date')::date,value->>'id' LOOP\r\n  d:=(c->>'date')::date;\r\n  IF d=t THEN found_today:=true;\
-      \ END IF;\r\n  IF coalesce((c->>'invalid')::boolean,false) OR d IS NULL THEN\r\n   due_date:=d;origin:='Exception';bucket:='Source\
-      \ review';principal:=0;interest:=0;eligible:=false;issue:='Invalid charge or allocation';RETURN NEXT;blocked:=true;CONTINUE;\r\
-      \n  END IF;\r\n  -- Negative default-accounting obligations are not expected cash receipts.\r\n  IF (c->>'pdue')::numeric<0\
-      \ OR (c->>'idue')::numeric<0 THEN\r\n   IF NOT coalesce((l->>'defaulted')::boolean,false) THEN\r\n    due_date:=d;origin:='Exception';bucket:='Source\
-      \ review';principal:=0;interest:=0;eligible:=false;issue:='Negative obligation';RETURN NEXT;blocked:=true;\r\n\
-      \   END IF;CONTINUE;\r\n  END IF;\r\n  IF d>e THEN CONTINUE; END IF;\r\n  p:=greatest((c->>'pdue')::numeric-coalesce((c->>'ppaid')::numeric,0),0);\r\
-      \n  i:=greatest((c->>'idue')::numeric-coalesce((c->>'ipaid')::numeric,0),0);\r\n  IF p+i>0 THEN\r\n   due_date:=d;origin:='Recorded';bucket:=CASE\
-      \ WHEN NOT active THEN 'Recovery only' WHEN d<t THEN 'Overdue' WHEN d=t THEN 'Today' ELSE 'Future' END;\r\n   principal:=p;interest:=i;eligible:=active;issue:=NULL;RETURN\
+      \ LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE c jsonb; d date;\
+      \ latest date; anchor date; n integer; elapsed integer; term integer;\r\n p numeric; i numeric; balance numeric; daily_rate\
+      \ numeric; basis numeric[]; active boolean;\r\n blocked boolean:=false; scheduled_principal numeric:=0; found_today\
+      \ boolean:=false; today_principal numeric:=0; simulated_principal numeric:=0;\r\nBEGIN\r\n IF t IS NULL OR e<t OR e>t+93\
+      \ THEN RAISE EXCEPTION 'Forecast window invalid'; END IF;\r\n active:=coalesce(l->>'status'='ยังไม่ปิดยอด' AND NOT (l->>'defaulted')::boolean\
+      \ AND (l->>'start')::date<=t\r\n  AND ((l->>'close') IS NULL OR (l->>'close')::date>t),false);\r\n balance:=(l->>'balance')::numeric;daily_rate:=(l->>'daily')::numeric;\r\
+      \n FOR c IN SELECT value FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb)) ORDER BY (value->>'date')::date,value->>'id'\
+      \ LOOP\r\n  d:=(c->>'date')::date;\r\n  IF d=t THEN found_today:=true; END IF;\r\n  IF coalesce((c->>'invalid')::boolean,false)\
+      \ OR d IS NULL THEN\r\n   due_date:=d;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Invalid\
+      \ charge or allocation';RETURN NEXT;blocked:=true;CONTINUE;\r\n  END IF;\r\n  -- Negative default-accounting obligations\
+      \ are not expected cash receipts.\r\n  IF (c->>'pdue')::numeric<0 OR (c->>'idue')::numeric<0 THEN\r\n   IF NOT coalesce((l->>'defaulted')::boolean,false)\
+      \ THEN\r\n    due_date:=d;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Negative\
+      \ obligation';RETURN NEXT;blocked:=true;\r\n   END IF;CONTINUE;\r\n  END IF;\r\n  IF d>e THEN CONTINUE; END IF;\r\n\
+      \  p:=greatest((c->>'pdue')::numeric-coalesce((c->>'ppaid')::numeric,0),0);\r\n  i:=greatest((c->>'idue')::numeric-coalesce((c->>'ipaid')::numeric,0),0);\r\
+      \n  IF p+i>0 THEN\r\n   due_date:=d;origin:='Recorded';bucket:=CASE WHEN NOT active THEN 'Recovery only' WHEN d<t THEN\
+      \ 'Overdue' WHEN d=t THEN 'Today' ELSE 'Future' END;\r\n   principal:=p;interest:=i;eligible:=active;issue:=NULL;RETURN\
       \ NEXT;\r\n  END IF;\r\n  scheduled_principal:=scheduled_principal+p;\r\n  IF d=t THEN today_principal:=today_principal+p;\
       \ END IF;\r\n END LOOP;\r\n IF l->>'status' NOT IN ('ยังไม่ปิดยอด','ปิดยอดแล้ว') OR l->>'status' IS NULL OR coalesce((l->>'invalid')::boolean,true)\
       \ THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Invalid\
@@ -48,33 +48,33 @@
       \n END IF;\r\n IF NOT coalesce((l->>'auto')::boolean,false) THEN\r\n  due_date:=t;origin:='Notice';bucket:='Recorded\
       \ plan only';principal:=0;interest:=0;eligible:=false;issue:='Manual schedule: only recorded obligations forecast';RETURN\
       \ NEXT;RETURN;\r\n END IF;\r\n IF blocked THEN RETURN; END IF;\r\n n:=(l->>'interval')::integer;anchor:=coalesce((l->>'anchor')::date,(l->>'start')::date);\r\
-      \n IF l->>'type' NOT IN ('ดอกเบี้ยรายวัน','กำหนดวันชำระ','ผ่อนชำระรายวัน')\r\n OR (l->>'type'<>'กำหนดวันชำระ' AND\
-      \ (n IS NULL OR n<1))\r\n OR (l->>'type'='ดอกเบี้ยรายวัน' AND (daily_rate IS NULL OR daily_rate<0 OR anchor<(l->>'start')::date))\r\
-      \n OR (l->>'type'<>'ดอกเบี้ยรายวัน' AND ((l->>'due') IS NULL OR (l->>'due')::date<(l->>'start')::date)) THEN\r\n\
-      \  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Unsupported\
-      \ automatic schedule';RETURN NEXT;RETURN;\r\n END IF;\r\n SELECT max((value->>'date')::date) INTO latest FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb))\r\
-      \n WHERE l->>'type'='ผ่อนชำระรายวัน' OR (value->>'date')::date<=t;\r\n IF l->>'type'='ผ่อนชำระรายวัน' AND latest\
-      \ IS NULL THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Installment\
-      \ missing initial charge';RETURN NEXT;RETURN;\r\n END IF;\r\n IF NOT found_today AND ((l->>'type'='ดอกเบี้ยรายวัน'\
-      \ AND daily_rate>0 AND t>anchor AND mod(t-anchor,n)=0)\r\n  OR (l->>'type'='กำหนดวันชำระ' AND (l->>'due')::date=t)\r\
-      \n  OR (l->>'type'='ผ่อนชำระรายวัน' AND t>(l->>'start')::date AND t<=(l->>'due')::date AND (mod(t-(l->>'start')::date,n)=0\
+      \n IF l->>'type' NOT IN ('ดอกเบี้ยรายวัน','กำหนดวันชำระ','ผ่อนชำระรายวัน')\r\n OR (l->>'type'<>'กำหนดวันชำระ' AND (n\
+      \ IS NULL OR n<1))\r\n OR (l->>'type'='ดอกเบี้ยรายวัน' AND (daily_rate IS NULL OR daily_rate<0 OR anchor<(l->>'start')::date))\r\
+      \n OR (l->>'type'<>'ดอกเบี้ยรายวัน' AND ((l->>'due') IS NULL OR (l->>'due')::date<(l->>'start')::date)) THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source\
+      \ review';principal:=0;interest:=0;eligible:=false;issue:='Unsupported automatic schedule';RETURN NEXT;RETURN;\r\n END\
+      \ IF;\r\n SELECT max((value->>'date')::date) INTO latest FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb))\r\n\
+      \ WHERE l->>'type'='ผ่อนชำระรายวัน' OR (value->>'date')::date<=t;\r\n IF l->>'type'='ผ่อนชำระรายวัน' AND latest IS NULL\
+      \ THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Installment\
+      \ missing initial charge';RETURN NEXT;RETURN;\r\n END IF;\r\n IF NOT found_today AND ((l->>'type'='ดอกเบี้ยรายวัน' AND\
+      \ daily_rate>0 AND t>anchor AND mod(t-anchor,n)=0)\r\n  OR (l->>'type'='กำหนดวันชำระ' AND (l->>'due')::date=t)\r\n \
+      \ OR (l->>'type'='ผ่อนชำระรายวัน' AND t>(l->>'start')::date AND t<=(l->>'due')::date AND (mod(t-(l->>'start')::date,n)=0\
       \ OR t=(l->>'due')::date))) THEN\r\n  due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Expected\
       \ today charge missing';RETURN NEXT;\r\n END IF;\r\n IF l->>'type'='ดอกเบี้ยรายวัน' THEN\r\n  IF l ? 'original_rate'\
-      \ THEN\r\n   IF l->>'original_rate' IS NOT NULL THEN basis:=ARRAY[(l->>'original_rate')::numeric,100::numeric];\
-      \ END IF;\r\n  ELSE\r\n   BEGIN basis:=public.daily_interest_basis(l->>'arrangement'); EXCEPTION WHEN OTHERS THEN\
-      \ basis:=NULL; END;\r\n  END IF;\r\n END IF;\r\n balance:=balance-today_principal;\r\n IF l->>'type'='ดอกเบี้ยรายวัน'\
-      \ AND today_principal>0 THEN\r\n  IF basis IS NULL THEN due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Daily\
+      \ THEN\r\n   IF l->>'original_rate' IS NOT NULL THEN basis:=ARRAY[(l->>'original_rate')::numeric,100::numeric]; END\
+      \ IF;\r\n  ELSE\r\n   BEGIN basis:=public.daily_interest_basis(l->>'arrangement'); EXCEPTION WHEN OTHERS THEN basis:=NULL;\
+      \ END;\r\n  END IF;\r\n END IF;\r\n balance:=balance-today_principal;\r\n IF l->>'type'='ดอกเบี้ยรายวัน' AND today_principal>0\
+      \ THEN\r\n  IF basis IS NULL THEN due_date:=t;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Daily\
       \ interest basis unavailable after scheduled principal';RETURN NEXT;RETURN;END IF;\r\n  daily_rate:=round(basis[1]*greatest(0,balance)/basis[2],0);\r\
-      \n END IF;\r\n term:=(l->>'due')::date-(l->>'start')::date+1;\r\n FOR d IN SELECT generate_series(t+1,e,interval\
-      \ '1 day')::date LOOP\r\n  p:=0;i:=0;\r\n  IF EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb))\
+      \n END IF;\r\n term:=(l->>'due')::date-(l->>'start')::date+1;\r\n FOR d IN SELECT generate_series(t+1,e,interval '1\
+      \ day')::date LOOP\r\n  p:=0;i:=0;\r\n  IF EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(charges,'[]'::jsonb))\
       \ WHERE (value->>'date')::date=d) THEN\r\n   SELECT coalesce(sum(greatest((value->>'pdue')::numeric-coalesce((value->>'ppaid')::numeric,0),0)),0)\
       \ INTO p\r\n    FROM jsonb_array_elements(charges) WHERE (value->>'date')::date=d;\r\n   IF l->>'type'='ดอกเบี้ยรายวัน'\
-      \ THEN latest:=d; END IF;\r\n   balance:=balance-p;\r\n   IF l->>'type'='ดอกเบี้ยรายวัน' AND p>0 THEN\r\n    IF\
-      \ basis IS NULL THEN due_date:=d;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Daily\
+      \ THEN latest:=d; END IF;\r\n   balance:=balance-p;\r\n   IF l->>'type'='ดอกเบี้ยรายวัน' AND p>0 THEN\r\n    IF basis\
+      \ IS NULL THEN due_date:=d;origin:='Exception';bucket:='Source review';principal:=0;interest:=0;eligible:=false;issue:='Daily\
       \ interest basis unavailable after scheduled principal';RETURN NEXT;RETURN;END IF;\r\n    daily_rate:=round(basis[1]*greatest(0,balance)/basis[2],0);\r\
       \n   END IF;\r\n   CONTINUE;\r\n  END IF;\r\n  IF l->>'type'='ดอกเบี้ยรายวัน' THEN\r\n   IF d<=anchor OR mod(d-anchor,n)<>0\
-      \ OR daily_rate=0 THEN CONTINUE; END IF;\r\n   i:=daily_rate*greatest(0,d-coalesce(latest,(l->>'start')::date));\r\
-      \n  ELSIF l->>'type'='กำหนดวันชำระ' THEN\r\n   IF d<>(l->>'due')::date THEN CONTINUE; END IF;\r\n   p:=balance;i:=(l->>'fixed')::numeric;\r\
+      \ OR daily_rate=0 THEN CONTINUE; END IF;\r\n   i:=daily_rate*greatest(0,d-coalesce(latest,(l->>'start')::date));\r\n\
+      \  ELSIF l->>'type'='กำหนดวันชำระ' THEN\r\n   IF d<>(l->>'due')::date THEN CONTINUE; END IF;\r\n   p:=balance;i:=(l->>'fixed')::numeric;\r\
       \n  ELSE\r\n   IF d<=(l->>'start')::date OR d>(l->>'due')::date OR (mod(d-(l->>'start')::date,n)<>0 AND d<>(l->>'due')::date)\
       \ THEN CONTINUE; END IF;\r\n   elapsed:=d-latest;IF elapsed<=0 THEN CONTINUE;END IF;\r\n   p:=floor((l->>'original')::numeric/term)*elapsed+greatest(0,least(d-(l->>'start')::date+1,mod((l->>'original')::numeric,term))-(latest-(l->>'start')::date+1));\r\
       \n   i:=(l->>'payment')::numeric*elapsed-p;\r\n  END IF;\r\n  IF p IS NULL OR i IS NULL OR p<0 OR i<0 OR p>balance+0.005\
@@ -100,3 +100,18 @@
     "state": "value"
     "source_migration": "V48"
   "metadata_source": "outputs/r048-loan-interest/postgresql-affected-definitions.json"
+  "production_delivery":
+    "evidence": "outputs/r048-loan-interest-production/README.md"
+    "OLTP": "3.000257"
+    "OLAP": "1.100208"
+    "PostgreSQL": "53"
+    "remaining_feature_difference": "None; environment bindings and different missing-basis data remain intentional."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/production_delivery":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

@@ -2,7 +2,7 @@
 
 ## DEV implemented and tested — 27 September 2026
 
-Owner requested DEV implementation first and a step-by-step record for their later manual PROD edits after review. No PROD execution is authorized in this task. R048 remains Open; prior R048 receipt/report changes are preserved.
+This section records the DEV checkpoint. The owner subsequently approved the agreed manual production cutover, completed 28 September at PROD OLTP3.000257 / OLAP1.100208 / V53. [Ordered production execution and recovery](../r048-loan-interest-production/README.md) supersede pending-PROD statements below. R048 remains Open; prior R048 receipt/report changes are preserved.
 
 Confirmed decisions: round the **stored** original rate to the nearest whole percentage; populate existing DEV loans from original evidence too. Existing daily amounts stay unchanged until a principal repayment. Values below 0.5% become 0%; exactly 0.5% becomes 1%. This can increase or decrease daily interest after repayment compared with the former exact ratio.
 

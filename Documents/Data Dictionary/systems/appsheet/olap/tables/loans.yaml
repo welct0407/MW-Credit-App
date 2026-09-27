@@ -2013,16 +2013,9 @@
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "App formula": |-
-          =CONCATENATE(
-            [Borrower Name],
-            "-",
-            TEXT([Principal Amount]),
-            "-",
-            TEXT([Loan Date], "DD/MM"),
-            "-",
-            TEXT([Effective Daily Interest Rate])
-          )
+        "App formula": "=CONCATENATE([Borrower Name], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"\
+          ), \"-\", IF(ISBLANK([Original Daily Interest Rate]), \"Unavailable\", CONCATENATE([Original Daily Interest Rate],\
+          \ \"%\")))"
         "Read-Only": "Yes"
         "Hidden": "No"
         "Label": "Yes"
@@ -2314,6 +2307,30 @@
         "Scannable": "No"
         "NFC Scannable": "No"
         "Sensitive data": "No"
+    "Original Daily Interest Rate":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Loans"
+        "Column": "Original Daily Interest Rate"
+        "Type": "Number"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Original Daily Interest Rate"
+        "Type": "Number"
+        "Visible?": "ALWAYS"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Key": "No"
+        "Label": "No"
+        "Virtual?": "No"
+        "Reset on edit?": "No"
+        "App formula": ""
+        "Initial value": ""
+        "Display name": "=\"อัตราดอกเบี้ยรายวันเดิม (%) / Original Daily Interest (%)\""
   "editor":
     "fields":
     - "choices": []
@@ -2531,3 +2548,8 @@
         - heading "Security" [level=3]
         - generic: 
         - text: (APPSHEET CORE) (APPSHEET CORE) (APPSHEET CORE)
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r048-loan-interest-production/app-config-observations.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

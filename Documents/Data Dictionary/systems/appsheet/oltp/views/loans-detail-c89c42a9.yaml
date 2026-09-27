@@ -20,13 +20,13 @@
     "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\"\
       :[],\"QuickEditColumns\":[],\"ColumnOrder\":[\"Loan Date\",\"Close Date\",\"Loan Duration\",\"Principal Amount\",\"\
       Defaulted\",\"Default Loss Amount\",\"Loan Type TE\",\"Due Date\",\"Daily Payment Amount\",\"Fixed Interest\",\"Current\
-      \ Daily Interest\",\"Interest Payment Interval\",\"Interest Schedule Anchor Date\",\"Ref Borrowers\",\"Loan Arrangement\"\
-      ,\"Loan Status TE\",\"Statistics Header\",\"Outstanding Principal\",\"Transfer Fee\",\"Total Principal Received\",\"\
-      Total Amount Received\",\"Total Interest Received\",\"Principal Recovered by Interest %\",\"Related Charges\",\"Auto\
-      \ Charge Enabled\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"\
-      MaxNestedRows\":20,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\"\
-      :[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\"\
-      :null,\"MenuOrder\":1}"
+      \ Daily Interest\",\"Original Daily Interest Rate\",\"Interest Payment Interval\",\"Interest Schedule Anchor Date\"\
+      ,\"Ref Borrowers\",\"Loan Arrangement\",\"Loan Status TE\",\"Statistics Header\",\"Outstanding Principal\",\"Transfer\
+      \ Fee\",\"Total Principal Received\",\"Total Amount Received\",\"Total Interest Received\",\"Principal Recovered by\
+      \ Interest %\",\"Related Charges\",\"Auto Charge Enabled\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\"\
+      :false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":20,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\"\
+      ,\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\"\
+      :[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
     "Visible?": "ALWAYS"
     "Icon": ""
     "Menu order": "1"
@@ -185,6 +185,10 @@
         "tag": "INPUT"
         "type": "checkbox"
         "value": false
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
       "label": "Column order"
       "text": |-
         Column order
@@ -207,6 +211,7 @@
         Daily Payment Amount
         Fixed Interest
         Current Daily Interest
+        Original Daily Interest Rate
         Interest Payment Interval
         Interest Schedule Anchor Date
         Ref Borrowers
@@ -335,3 +340,12 @@
       "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
         \ app"
     "generated_source_group": "Loans"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r048-loan-interest-production/app-config-observations.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/editor":
+    "reference": "outputs/r048-loan-interest-production/app-config-observations.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

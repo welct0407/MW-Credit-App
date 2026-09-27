@@ -64,6 +64,7 @@
     - "Ref Disbursed From Cash Account"
     - "Payment Request Cash Account"
     - "Payment Request Token"
+    - "Original Daily Interest Rate"
     "Update mode": "READ_ONLY"
     "Source Table": "Loans"
     "Visible?": "ALWAYS"
@@ -154,3 +155,14 @@
     "Column": "Payment Request Cash Account"
   - "Ordinal": 42
     "Column": "Payment Request Token"
+  - "Ordinal": 43
+    "Column": "Original Daily Interest Rate"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r048-loan-interest-production/slices-observed.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/members":
+    "reference": "outputs/r048-loan-interest-production/slices-observed.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

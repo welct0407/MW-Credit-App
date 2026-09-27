@@ -1,6 +1,6 @@
 # Environment inventory
 
-R048 original daily interest — **DEV only** (27 September 2026): OLTP **1.000128**, OLAP **1.000045**, PostgreSQL **V53**. Stored whole-percentage original rate now drives Loan Key and daily-loan principal adjustment; both apps show the read-only field and have zero editor issues. Backfill75/78; three incomplete fixed-term records remain blank. Synthetic creation/partial repayment/payoff and SQL CI passed. PROD remains unchanged by this feature (recorded OLTP3.000253 / OLAP1.100205 / V52). R048 stays Open for review. [Steps, tests and manual PROD handover](../outputs/r048-loan-interest/IMPLEMENTATION.md).
+R048 original daily interest — **delivered to PROD by owner-authorized manual cutover** (28 September 2026): PROD OLTP **3.000257**, OLAP **1.100208**, PostgreSQL **V53**; DEV remains1.000128 /1.000045 /V53. Both PROD editors clear, canonical load/sync and read-only loan details verified. Backfill **79/80**; one closed daily loan with no recoverable original basis and no outstanding principal remains blank. Original-rate feature differences are closed. Metabase label alignment remains a separate follow-up. R048 stays Open under the scoped direct-cutover exception. [Ordered execution, verification and recovery](../outputs/r048-loan-interest-production/README.md).
 
 R048 Forecast watchlist refinement (27 September 2026): Metabase dashboard3/tab262 question360 displays readable Loan Key in place of Loan reference. Recovery dashboard23. Other report values/placements, both AppSheet apps and PostgreSQL V52 are unchanged. [Evidence](../outputs/r048-forecast-watchlist/README.md). R048 remains Open.
 
@@ -105,10 +105,10 @@ Latest metadata checkpoint: **24 September 2026**, from the [dictionary reconcil
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000253 (R048 direct correction) | database-2 | 18 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100205 (R046/R047) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000124 (R048 DEV) | database-3 | 18 |
-| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000042 (R047 capture) | database-3 | 19 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000257 (R048 original interest) | database-2 | 18 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100208 (R048 original interest) | database-2 | 19 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000128 (R048 DEV) | database-3 | 18 |
+| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000045 (R048 DEV) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
 

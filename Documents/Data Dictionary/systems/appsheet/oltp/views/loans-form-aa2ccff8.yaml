@@ -17,11 +17,12 @@
     "View type": "form"
     "Position": "ref"
     "View configuration": "{\"ColumnOrder\":[\"Loan Date\",\"Principal Amount\",\"Transfer Fee\",\"Ref Disbursed From Cash\
-      \ Account\",\"Loan Type\",\"Due Date\",\"Daily Payment Amount\",\"Fixed Interest\",\"Current Daily Interest\",\"Interest\
-      \ Payment Interval\",\"Interest Schedule Anchor Date\",\"Loan Arrangement\",\"Auto Charge Enabled\"],\"AutoSave\":false,\"\
-      AutoReopen\":false,\"FinishView\":\"**Automatic**\",\"RowKey\":\"\",\"FormStyle\":\"Automatic\",\"PageStyle\":\"Automatic\"\
-      ,\"FormFooterStyle\":\"Bottom\",\"MaxNestedRows\":5,\"AudioInput\":false,\"Events\":[{\"EventType\":\"Form Saved\",\"\
-      EventAction\":\"**auto**\"}],\"Icon\":\"fa-edit\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+      \ Account\",\"Loan Type\",\"Due Date\",\"Daily Payment Amount\",\"Fixed Interest\",\"Current Daily Interest\",\"Original\
+      \ Daily Interest Rate\",\"Interest Payment Interval\",\"Interest Schedule Anchor Date\",\"Loan Arrangement\",\"Auto\
+      \ Charge Enabled\"],\"AutoSave\":false,\"AutoReopen\":false,\"FinishView\":\"**Automatic**\",\"RowKey\":\"\",\"FormStyle\"\
+      :\"Automatic\",\"PageStyle\":\"Automatic\",\"FormFooterStyle\":\"Bottom\",\"MaxNestedRows\":5,\"AudioInput\":false,\"\
+      Events\":[{\"EventType\":\"Form Saved\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-edit\",\"IconRunnerUps\":null,\"\
+      MenuOrder\":1}"
     "Visible?": "ALWAYS"
     "Icon": ""
     "Menu order": "1"
@@ -122,6 +123,10 @@
         "tag": "INPUT"
         "type": "checkbox"
         "value": false
+      - "selected": null
+        "tag": "INPUT"
+        "type": "checkbox"
+        "value": false
       "label": "Column order"
       "text": |-
         Column order
@@ -142,6 +147,7 @@
         Daily Payment Amount
         Fixed Interest
         Current Daily Interest
+        Original Daily Interest Rate
         Interest Payment Interval
         Interest Schedule Anchor Date
         Loan Arrangement
@@ -240,3 +246,12 @@
       "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
         \ app"
     "generated_source_group": "Loans"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r048-loan-interest-production/app-config-observations.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/editor":
+    "reference": "outputs/r048-loan-interest-production/app-config-observations.json"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

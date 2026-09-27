@@ -12,11 +12,11 @@ R045 adds **13 · Forecast & Planning** (262): read-only current-month actuals, 
 
 R044 partner reporting adds six read-only V47 views over existing capital, allocated repayment interest, expenses and settlements. Metabase presents current entitlement and dated activity; OLAP retains all operational partner/settlement editing. No AppSheet table binding or financial calculation changed. [Contract and dependencies](../outputs/r044-partners/README.md).
 
-## Original daily interest — R048 DEV / prior PROD behavior
+## Original daily interest — R048 production contract
 
-R048 DEV stores `Loans.Original Daily Interest Rate` as integer percentage points (1 means1%), rounded once from original average daily interest/original principal for every loan type. SQL owns creation/backfill and immutability; AppSheet previews it and shows a read-only field. Loan Key uses that original rate while Effective Daily Interest Rate retains its analytics meaning. Only daily-interest principal changes apply `round(outstanding × rate /100)`; original daily amounts stay unchanged during backfill and fixed/installment schedules are preserved. Unknown original terms stay blank. DEV forecast simulation uses the same frozen rate. PROD retains the previous V45/V48 behavior until separate execution. [Implementation, exceptions and tests](../outputs/r048-loan-interest/IMPLEMENTATION.md).
+R048 PROD and DEV store `Loans.Original Daily Interest Rate` as integer percentage points (1 means1%), rounded once from original average daily interest/original principal for every loan type. SQL owns creation/backfill and immutability; AppSheet previews it and shows a read-only field. Loan Key uses that original rate while Effective Daily Interest Rate retains its analytics meaning. Only daily-interest principal changes apply `round(outstanding × rate /100)`; original daily amounts stay unchanged during backfill and fixed/installment schedules are preserved. Unknown original terms stay blank. Forecast simulation uses the same frozen rate in both environments. PROD cutover is verified at OLTP3.000257 / OLAP1.100208 / V53; one closed daily loan lacks original basis and remains blank. [Production execution and recovery](../outputs/r048-loan-interest-production/README.md) · [DEV behavior tests](../outputs/r048-loan-interest/IMPLEMENTATION.md).
 
-PROD previously received R036 V45 through OLTP3.000249: the original daily ratio is retained in Loan Arrangement and used after signed principal changes. V53 replaces that basis with the physical rounded rate in DEV. Original historical/recovery details remain in the [R036 record](../outputs/r036-principal-interest/README.md); the old DEV-only/PROD-V44 wording is superseded.
+PROD previously received R036 V45 through OLTP3.000249: the original daily ratio is retained in Loan Arrangement and used after signed principal changes. V53 now replaces that calculation basis with the physical rounded rate in both environments. Original historical/recovery details remain in the [R036 record](../outputs/r036-principal-interest/README.md); the old DEV-only/PROD-V44 wording is superseded.
 
 ## R028 reporting-only automatic schedule assessment
 
@@ -89,7 +89,7 @@ Loan Assessment exposes stored SQL results with source/input/date freshness guar
 
 Partners.Login Email uniquely identifies sign-in after normalized matching; Partners.Email is the possibly shared delivery address. Transaction Created By/Closed By resolves to Partner Row ID, that partner is excluded, and nonblank delivery addresses are deduplicated. Unknown actors yield no recipients. The bot runner is not the actor. Closure summaries require positive closures of the exact receipt and show Loan Key.
 
-Native borrower Refs provide detail navigation in Loans, Charges and Repayments. Receive All remains inline in Collection and excluded from Detail views. PROD Loan Key labels currently reflect effective rate; R048 DEV labels use the frozen original daily percentage. Environment-specific delivery, links and colors follow AGENTS, not duplicated formulas here.
+Native borrower Refs provide detail navigation in Loans, Charges and Repayments. Receive All remains inline in Collection and excluded from Detail views. Both AppSheet Loan Key labels use the frozen original daily percentage; independent Metabase label formulas remain a separate follow-up. Environment-specific delivery, links and colors follow AGENTS, not duplicated formulas here.
 
 ## Current R010 behavior
 

@@ -10,7 +10,7 @@
   "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
 "content":
   "release": "R048"
-  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "status": "Delivered to PROD 2026-09-28 by owner-authorized manual cutover; closed, retained as dated DEV evidence"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
   "before_version": "1.000125"
   "version": "1.000128"
@@ -28,36 +28,36 @@
           "Required": false
           "Reset on edit": false
           "App formula": ""
-          "Initial value": "IF([Principal Amount] > 0, IFS(AND([Loan Type] = \"ดอกเบี้ยรายวัน\", ISNOTBLANK([Current\
-            \ Daily Interest])), ROUND(100.0 * [Current Daily Interest] / [Principal Amount]), AND([Loan Type] = \"กำหนดวันชำระ\"\
-            , ISNOTBLANK([Fixed Interest]), ISNOTBLANK([Loan Date]), ISNOTBLANK([Due Date]), [Due Date] >= [Loan Date]),\
-            \ ROUND(100.0 * [Fixed Interest] / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1) / [Principal Amount]),\
-            \ AND([Loan Type] = \"ผ่อนชำระรายวัน\", ISNOTBLANK([Daily Payment Amount]), ISNOTBLANK([Loan Date]), ISNOTBLANK([Due\
-            \ Date]), [Due Date] >= [Loan Date]), ROUND(100.0 * (([Daily Payment Amount] * (TOTALHOURS([Due Date] - [Loan\
-            \ Date]) / 24 + 1)) - [Principal Amount]) / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1) / [Principal\
-            \ Amount])), NUMBER(\"\"))"
+          "Initial value": "IF([Principal Amount] > 0, IFS(AND([Loan Type] = \"ดอกเบี้ยรายวัน\", ISNOTBLANK([Current Daily\
+            \ Interest])), ROUND(100.0 * [Current Daily Interest] / [Principal Amount]), AND([Loan Type] = \"กำหนดวันชำระ\"\
+            , ISNOTBLANK([Fixed Interest]), ISNOTBLANK([Loan Date]), ISNOTBLANK([Due Date]), [Due Date] >= [Loan Date]), ROUND(100.0\
+            \ * [Fixed Interest] / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1) / [Principal Amount]), AND([Loan Type]\
+            \ = \"ผ่อนชำระรายวัน\", ISNOTBLANK([Daily Payment Amount]), ISNOTBLANK([Loan Date]), ISNOTBLANK([Due Date]), [Due\
+            \ Date] >= [Loan Date]), ROUND(100.0 * (([Daily Payment Amount] * (TOTALHOURS([Due Date] - [Loan Date]) / 24 +\
+            \ 1)) - [Principal Amount]) / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1) / [Principal Amount])), NUMBER(\"\
+            \"))"
           "Display name": "\"อัตราดอกเบี้ยรายวันเดิม (%) / Original Daily Interest (%)\""
     "Loan Key":
       "before":
         "state": "value"
-        "value": "CONCATENATE([Borrower Name TE], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"\
-          ), \"-\", ROUND([Effective Daily Interest Rate] * 100), \"%\")"
+        "value": "CONCATENATE([Borrower Name TE], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"), \"\
+          -\", ROUND([Effective Daily Interest Rate] * 100), \"%\")"
       "after":
         "state": "value"
-        "value": "CONCATENATE([Borrower Name TE], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"\
-          ), \"-\", IF(ISBLANK([Original Daily Interest Rate]), \"Unavailable\", CONCATENATE([Original Daily Interest\
-          \ Rate], \"%\")))"
+        "value": "CONCATENATE([Borrower Name TE], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"), \"\
+          -\", IF(ISBLANK([Original Daily Interest Rate]), \"Unavailable\", CONCATENATE([Original Daily Interest Rate], \"\
+          %\")))"
       "property": "App formula"
     "Current Daily Interest":
       "valid_if":
         "before":
           "state": "value"
-          "value": "OR([Loan Type] <> \"ดอกเบี้ยรายวัน\", [Current Daily Interest] > 0, AND([Current Daily Interest]\
-            \ = 0, CONTAINS([Loan Arrangement], \"[Original daily interest:\")))"
+          "value": "OR([Loan Type] <> \"ดอกเบี้ยรายวัน\", [Current Daily Interest] > 0, AND([Current Daily Interest] = 0,\
+            \ CONTAINS([Loan Arrangement], \"[Original daily interest:\")))"
         "after":
           "state": "value"
-          "value": "OR([Loan Type] <> \"ดอกเบี้ยรายวัน\", [Current Daily Interest] > 0, AND([Current Daily Interest]\
-            \ = 0, IN([Row ID], Loans[Row ID]), ISNOTBLANK([Original Daily Interest Rate])))"
+          "value": "OR([Loan Type] <> \"ดอกเบี้ยรายวัน\", [Current Daily Interest] > 0, AND([Current Daily Interest] = 0,\
+            \ IN([Row ID], Loans[Row ID]), ISNOTBLANK([Original Daily Interest Rate])))"
       "editable_if":
         "before":
           "state": "value"
@@ -68,3 +68,18 @@
   "units": "integer percentage points; 1 means 1%; blank means original terms unavailable"
   "actual_key": "Row ID unchanged"
   "evidence": "outputs/r048-loan-interest/app-evidence.json"
+  "production_delivery":
+    "evidence": "outputs/r048-loan-interest-production/README.md"
+    "OLTP": "3.000257"
+    "OLAP": "1.100208"
+    "PostgreSQL": "53"
+    "remaining_feature_difference": "None; environment bindings and different missing-basis data remain intentional."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"
+  "/content/production_delivery":
+    "reference": "outputs/r048-loan-interest-production/README.md"
+    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "state": "value"

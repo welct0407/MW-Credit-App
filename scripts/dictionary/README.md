@@ -88,3 +88,5 @@ Run verifiers that write `coverage.json` sequentially. Use the bundled Python an
 
 
 R047 targeted closure helpers: `capture_r047.py` reads only affected PROD catalog objects with tuple/SSL/read-only assertions; `close_r047.py` plans exact AppDoc/catalog updates and closes the dated overlays. Review saved evidence before `--apply`. Batch callers may use `plan_update(..., validate_candidate=False)` only when they validate all candidate overrides together before any write, recheck all baseline hashes, read back saved bytes, and rebuild/validate the index. Ordinary CLI updates retain immediate validation.
+
+R048 interest closure: `capture_r048_interest_production.py` captures only affected PROD metadata using the existing read-only collector. `close_r048_interest.py` plans targeted saved-state updates and closes 13 interest overlays with batch validation and exact hash guards; review before `--apply`. It is a dated closure helper, not a recurring migration or app-edit command. [Evidence](../../outputs/r048-loan-interest-production/README.md).

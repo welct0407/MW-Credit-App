@@ -1,6 +1,6 @@
 # R048 — manual PROD implementation steps for owner review
 
-This is the exact DEV change recipe requested by the owner, for later manual PROD work without App Upgrade. **Nothing in this document has been executed against PROD.** DEV evidence is [here](IMPLEMENTATION.md). Apply only after review, against the then-current PROD baseline; preserve intervening changes.
+**Executed after owner approval on 27–28 September 2026** against the canonical PROD apps, without App Upgrade. Final OLTP3.000257 / OLAP1.100208 / V53. [Actual ordered execution, checks, exception and rollback](../r048-loan-interest-production/README.md). The recipe below is retained as reviewed implementation evidence, not an instruction to rerun the completed migration. DEV evidence is [here](IMPLEMENTATION.md).
 
 ## 1. Record recovery and target identity
 

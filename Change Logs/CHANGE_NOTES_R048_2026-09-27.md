@@ -1,5 +1,11 @@
 # R048 — Collection receipts, report labels and original loan interest
 
+## Original daily interest — production cutover completed 28 September
+
+Owner explicitly authorized the agreed direct-production method. Applied immutable V53 from clean pin `487a238a036853d9470fbaa08b788f2b79983440` after private backup/restore verification and a production-data rehearsal. Edited only the affected canonical app properties from OLTP3.000254 / OLAP1.100205 to **3.000257 /1.100208**; preserved the intervening OLTP owner version. Both editors clear and Deployed; live load/sync, integer Loan Key, read-only rate/details and slice membership passed. PROD backfill **79/80**: one closed daily loan lacks original basis and has no outstanding principal; left blank. No financial test writes or forced notifications. Metabase label alignment remains a separate follow-up.
+
+[Production record](../outputs/r048-loan-interest-production/README.md) contains exact steps, SQL/app evidence, pinned manifest, backup hash, rollback and limits. Canonical dictionary objects reconciled, 13 feature overlays closed, owning model/current-state documents updated. Added reviewed backup/rehearsal, read-only verification and dictionary-closure helpers. Local database CI passed; dictionary/syntax/diff checks precede normal publication. R048 stays Open under the scoped exception, with no RC, release freeze/number handoff or tag. Earlier DEV pending-PROD statements below are historical and superseded for this feature.
+
 ## Original daily interest and Loan Key — DEV implemented and tested
 
 27 September: owner requested a stored, read-only original daily interest percentage for all loan types, calculated at creation, used in Loan Key and daily-loan principal-repayment recalculation, and visible in loan views. Owner confirmed whole-percentage rounding of the stored rate and existing-DEV-loan backfill. DEV only; owner intends manual PROD changes after review. Starting Git `78fd914557c37827daa8bbddb9f5b1b61e8dc272`; live rollback OLTP1.000125 / OLAP1.000042 / SQLV52. Private dump restored with matching fingerprints. Implementation, checks, recovery and remaining work: [step-by-step record](../outputs/r048-loan-interest/IMPLEMENTATION.md). R048 remains Open; earlier delivered scope below remains intact.
