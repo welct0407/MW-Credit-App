@@ -27,4 +27,16 @@ source=Path('/opt/mw-integration-agent-src/src/mw_integration_agent')
 files=list(source.rglob('*.py'))
 assert all(hashlib.sha256(f.read_bytes()).digest()==hashlib.sha256((installed/f.relative_to(source)).read_bytes()).digest() for f in files)
 secret=root/'secrets/receipt-projector-password.txt';assert secret.stat().st_mode & 0o777==0o640
-print(json.dumps({'code_version':c['code_version'],'archive_cutoff':c['receipt_archive_cutoff'],'changed_config_keys':changed,'other_services_unchanged':True,'installed_python_files_verified':len(files),'credential_mode':'0640','units':states,'rollback':json.loads((backup/'deployment.json').read_text())},indent=2))
+probe=r'''
+import json,psycopg
+from pathlib import Path
+c=json.loads(Path('/etc/mw-integration-agent/config.json').read_text())
+assert c['database_host'] in ('127.0.0.1','::1') and c['database_port']==5432 and c['database_name']=='loan_manager_prod'
+with psycopg.connect(host=c['database_host'],port=5432,dbname=c['database_name'],user='mw_receipt_projector',password=Path(c['receipt_projector_password_file']).read_text().strip(),connect_timeout=10) as db:
+ db.execute('BEGIN READ ONLY')
+ row=db.execute("SELECT current_database(),session_user,has_table_privilege(current_user,'public.\"Payments\"','UPDATE'),has_function_privilege(current_user,'public.attach_payment_receipt_evidence(text,text,text,timestamptz,jsonb,uuid,text)','EXECUTE')").fetchone()
+ assert row==('loan_manager_prod','mw_receipt_projector',False,True)
+print(json.dumps({'database':row[0],'role':row[1],'direct_update':row[2],'execute':row[3]}))
+'''
+projector=json.loads(subprocess.check_output(['sudo','-u','mwagent',python,'-c',probe],text=True))
+print(json.dumps({'code_version':c['code_version'],'archive_cutoff':c['receipt_archive_cutoff'],'changed_config_keys':changed,'other_services_unchanged':True,'installed_python_files_verified':len(files),'credential_mode':'0640','projector_connectivity':projector,'units':states,'rollback':json.loads((backup/'deployment.json').read_text())},indent=2))
