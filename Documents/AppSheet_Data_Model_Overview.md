@@ -1,5 +1,7 @@
 # Production model overview
 
+R047 selected-charge receiving is DEV-only at V51: nullable Payments.Selected Charge IDs persists the command scope; AppSheet uses an EnumList of Charge Refs and SQL validates every key and exact combined residual atomically. One Payment produces existing per-charge allocations/Repayments and one receipt cash effect. No new financial child grain. OLTP adds a descriptive Charge Ref label; OLAP hides the new command field. [Verified contract](../outputs/r047-selected-charges/IMPLEMENTATION.md).
+
 R046 receipt evidence: original files live in private GCS, with the archive catalogue in `mw_agent`; business Payments hold only service-owned ID/image/capture-time metadata. OLTP owns on-demand review; OLAP hides these fields. Financial allocation grain/calculations are unchanged. AppSheet display is DEV-only until integrated promotion. [Implementation contract](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).
 
 R047 DEV-only: Collection borrower detail includes Submitted Receipts through the existing Payments borrower Ref and a read-only image-bearing Posted Payments slice. It lists historical and new linked receipts, newest first, and opens the existing Payment detail/full-size original. Borrowers without matching images have no receipt section. Unlinked agent submissions remain private. No persisted column, financial behavior or OLAP ownership change. [DEV contract and tests](../outputs/r047-collection-receipts/HANDOVER.md).

@@ -58,3 +58,42 @@ END $$;
 $check | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
 if($LASTEXITCODE){throw 'Concurrency assertions failed'}
 [pscustomobject]@{competingOverpaymentRejected=$true;cashpoolLockFailsPromptly=$true;differentBorrowerRetrySucceeded=$true;busyMilliseconds=$timer.Elapsed.TotalMilliseconds}
+
+# R047: two collectors submit the same explicit remaining-charge set.
+$selectedFirst=@'
+BEGIN;
+INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Amount Received","Payment Date","Status","Allocation Method","Selected Charge IDs")
+VALUES ('CI-DAD','CP6-SELECT-P1','CP6-CON',30::money,current_date,'Processing','Selected Charges','CP6-CON-C');
+\echo SELECT_LOCK_READY
+SELECT pg_sleep(3);
+COMMIT;
+'@
+$selectedFile=Join-Path $OutputDirectory 'selected-concurrent-first.sql'
+[IO.File]::WriteAllText($selectedFile,$selectedFirst,[Text.UTF8Encoding]::new($false))
+$selectedOut=Join-Path $OutputDirectory 'selected-concurrent-first.out'
+$selectedErr=Join-Path $OutputDirectory 'selected-concurrent-first.err'
+$selectedProcess=Start-Process $psql -ArgumentList @('-X','-v','ON_ERROR_STOP=1','-h','127.0.0.1','-p',"$Port",'-U','postgres','-d','postgres','-f',('"'+$selectedFile+'"')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $selectedOut -RedirectStandardError $selectedErr
+$deadline=[DateTime]::UtcNow.AddSeconds(10)
+while(-not ((Get-Content $selectedOut -Raw -ErrorAction SilentlyContinue) -match 'SELECT_LOCK_READY')) {
+ if($selectedProcess.HasExited -or [DateTime]::UtcNow -gt $deadline){throw 'Selected receipt did not reach lock barrier'}
+ Start-Sleep -Milliseconds 50
+}
+$selectedCompeting=@'
+INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Amount Received","Payment Date","Status","Allocation Method","Selected Charge IDs")
+VALUES ('CI-DAD','CP6-SELECT-P2','CP6-CON',30::money,current_date,'Processing','Selected Charges','CP6-CON-C');
+'@
+$selectedResult=$selectedCompeting | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
+if($LASTEXITCODE -eq 0 -or ($selectedResult -join "`n") -notmatch 'not eligible'){throw 'Competing selected receipt was not rejected after refresh'}
+$selectedProcess.WaitForExit()
+if($selectedProcess.ExitCode){throw 'First selected receipt failed'}
+$selectedCheck=@'
+DO $$ BEGIN
+ ASSERT (SELECT count(*)=1 FROM "Payments" WHERE "Row ID" LIKE 'CP6-SELECT-%'),'one selected receipt';
+ ASSERT (SELECT sum("Interest Paid"::numeric)=100 FROM "Repayments" WHERE "Ref Charges"='CP6-CON-C'),'selected residual conserved';
+ ASSERT NOT EXISTS(SELECT 1 FROM "Payment Allocations" WHERE "Ref Payment"='CP6-SELECT-P2'),'competing plan rolled back';
+ ASSERT (SELECT count(*)=1 FROM "Cash Ledger" WHERE "Ref Payment"='CP6-SELECT-P1'),'one selected receipt cash effect';
+END $$;
+'@
+$selectedCheck | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+if($LASTEXITCODE){throw 'Selected receipt concurrency assertions failed'}
+[pscustomobject]@{selectedChargeConcurrentReplayRejected=$true;selectedResidualConserved=$true}

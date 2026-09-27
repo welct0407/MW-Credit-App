@@ -1,0 +1,21 @@
+{
+  "format": 1,
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
+  },
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "routine",
+    "name": "public.selected_charge_ids(text)",
+    "scope": "development:R047"
+  },
+  "content": {
+    "release": "R047",
+    "migration": "database/migrations/V51__selected_charge_receiving.sql",
+    "state_before": "absent",
+    "definition": "CREATE OR REPLACE FUNCTION public.selected_charge_ids(value text)\n RETURNS text[]\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO 'pg_catalog'\nAS $function$\r\nDECLARE ids text[]; unique_ids text[];\r\nBEGIN\r\n IF value IS NULL OR btrim(value)='' THEN RETURN ARRAY[]::text[]; END IF;\r\n -- AppSheet EnumList uses a comma with optional ASCII spaces. Keys containing\r\n -- commas/whitespace are deliberately unsupported, never ambiguously decoded.\r\n IF value !~ '^[^,[:space:]]+( *, *[^,[:space:]]+)*$' THEN\r\n  RAISE EXCEPTION 'Invalid selected charge key encoding';\r\n END IF;\r\n ids:=string_to_array(replace(value,' ',''),',');\r\n SELECT array_agg(k ORDER BY k COLLATE \"C\") INTO unique_ids FROM (SELECT DISTINCT unnest(ids) k) s;\r\n IF cardinality(ids)<>cardinality(unique_ids) THEN\r\n  RAISE EXCEPTION 'Selected charge keys must be unique';\r\n END IF;\r\n RETURN unique_ids;\r\nEND $function$\n",
+    "source_evidence": "outputs/r047-selected-charges/dev-metadata.json"
+  }
+}

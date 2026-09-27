@@ -4,3 +4,4 @@
 \ir Test-ScheduleHealth.sql
 \ir Test-BorrowerPages.sql
 \ir Test-PrincipalDailyInterest.sql
+\ir Test-SelectedCharges.sql

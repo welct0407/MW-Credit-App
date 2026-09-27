@@ -1,0 +1,45 @@
+{
+  "release": "R047",
+  "environment": "development",
+  "date": "2026-09-27",
+  "status": "passed",
+  "sql": {
+    "version": 51,
+    "flyway": "passed",
+    "ci": "passed",
+    "concurrency": "passed",
+    "migration": "dev-migrate.json",
+    "validation": "dev-validate.json",
+    "reconciliation": "dev-reconciliation.json",
+    "fixtureRetirement": "fixture-retired.json"
+  },
+  "apps": {
+    "OLTP": {
+      "version": "1.000109",
+      "mode": "Deployed",
+      "editorIssues": 0
+    },
+    "OLAP": {
+      "version": "1.000039",
+      "mode": "Deployed",
+      "editorIssues": 0
+    }
+  },
+  "gui": [
+    "650 exact selected receipt posted",
+    "649 rejected before save",
+    "unselected 400 untouched",
+    "paid/future exclusions",
+    "date filtering",
+    "principal/interest/total preview",
+    "posted financial fields locked",
+    "existing Lump Sum and Single Partial open correctly",
+    "OLAP read-only receipt and children reconcile"
+  ],
+  "limitations": [
+    "No separate phone-device layout test",
+    "Existing OLAP dollar-symbol formatting on some amount fields remains"
+  ],
+  "productionChanged": false,
+  "ownerAcceptance": "pending"
+}

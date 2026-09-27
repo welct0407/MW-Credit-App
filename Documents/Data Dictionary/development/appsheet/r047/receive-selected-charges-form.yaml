@@ -1,0 +1,44 @@
+{
+  "format": 1,
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
+  },
+  "identity": {
+    "system": "appsheet",
+    "component": "oltp",
+    "kind": "view",
+    "name": "Receive Selected Charges_Form",
+    "scope": "development:R047"
+  },
+  "content": {
+    "release": "R047",
+    "status": "DEV implemented; owner acceptance and PROD promotion pending",
+    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "version": "1.000109",
+    "before": {
+      "state": "absent"
+    },
+    "definition": {
+      "For this data": "Payments",
+      "View type": "form",
+      "Position": "ref",
+      "Column order": [
+        "Ref Borrower",
+        "Payment Date",
+        "Selected Charge IDs",
+        "Amount Received",
+        "Ref Received By Cash Account",
+        "Ref Received By Cash Holder",
+        "Payment Method",
+        "Bank Reference",
+        "Notes"
+      ],
+      "Auto save": false,
+      "Auto re-open": false,
+      "Finish view": "Auto assign (Go Back)",
+      "Form Saved": "Auto assign (Go back)"
+    },
+    "note": "After saving, sync and review the existing Payment detail. No AppSheet posting bot enabled; SQL posts the complete submitted receipt."
+  }
+}

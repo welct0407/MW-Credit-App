@@ -1,0 +1,41 @@
+{
+  "format": 1,
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
+  },
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "relation",
+    "name": "public.Payments",
+    "scope": "development:R047"
+  },
+  "content": {
+    "release": "R047",
+    "migration": "database/migrations/V51__selected_charge_receiving.sql",
+    "production_reference": "systems/postgresql/relations/payments.yaml",
+    "columns": {
+      "Selected Charge IDs": {
+        "before": {
+          "state": "absent"
+        },
+        "after": {
+          "data_type": "text",
+          "is_nullable": "YES",
+          "column_default": null,
+          "purpose": "Canonical selected Charge keys; NULL for other receiving methods"
+        }
+      }
+    },
+    "triggers": {
+      "a1_selected_charge_scope": {
+        "before": {
+          "state": "absent"
+        },
+        "after": "CREATE TRIGGER a1_selected_charge_scope BEFORE INSERT OR UPDATE ON public.\"Payments\" FOR EACH ROW EXECUTE FUNCTION guard_selected_charge_scope()"
+      }
+    },
+    "data_change": "No backfill or existing financial-row change. Test fixture is synthetic DEV only."
+  }
+}

@@ -2569,6 +2569,21 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/r047/olap-payments.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "table",
+      "name": "Payments",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Selected Charge IDs",
+          "pointer": "/content/columns/Selected Charge IDs"
+        }
+      ]
+    },
+    {
       "file": "development/appsheet/r047/oltp-borrowers.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -2599,6 +2614,26 @@
         {
           "subject": "Receipt Received At",
           "pointer": "/content/columns/Receipt Received At"
+        },
+        {
+          "subject": "Selected Charge IDs",
+          "pointer": "/content/columns/Selected Charge IDs"
+        },
+        {
+          "subject": "Allocation Method",
+          "pointer": "/content/columns/Allocation Method"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "Amount Received",
+          "pointer": "/content/columns/Amount Received"
+        },
+        {
+          "subject": "Eligible Charges",
+          "pointer": "/content/columns/Eligible Charges"
         }
       ]
     },
@@ -2611,6 +2646,49 @@
       "scope": "development:R047",
       "status": "documented",
       "lookup": []
+    },
+    {
+      "file": "development/appsheet/r047/receive-selected-charges-form.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Receive Selected Charges_Form",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r047/receive-selected-charges.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "action",
+      "name": "Receive Selected Charges",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r047/selected-charge-labels.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Charges",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Charge Selection Label",
+          "pointer": "/content/columns/Charge Selection Label"
+        },
+        {
+          "subject": "Charge Date",
+          "pointer": "/content/columns/Charge Date"
+        },
+        {
+          "subject": "Borrower Name",
+          "pointer": "/content/columns/Borrower Name"
+        }
+      ]
     },
     {
       "file": "development/appsheet/r047/submitted-receipt-payments.yaml",
@@ -3269,6 +3347,61 @@
       "kind": "settings",
       "name": "Database metadata",
       "scope": "development:observed",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r047/guard-selected-charge-scope.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.guard_selected_charge_scope()",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r047/payment-charge-balances.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.payment_charge_balances(text)",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r047/payments.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.Payments",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Selected Charge IDs",
+          "pointer": "/content/columns/Selected Charge IDs"
+        }
+      ]
+    },
+    {
+      "file": "development/postgresql/r047/post-payment.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.post_payment(text)",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r047/selected-charge-ids.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.selected_charge_ids(text)",
+      "scope": "development:R047",
       "status": "documented",
       "lookup": []
     },

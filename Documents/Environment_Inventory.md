@@ -1,5 +1,7 @@
 # Environment inventory
 
+R047 DEV checkpoint (27 September): OLTP **1.000109**, OLAP **1.000039**, database **loan_manager_dev V51**. Receive Selected Charges is implemented; the prior Collection receipt section is retained. Both saved editors have no issues and remain Deployed. Selected-charge rollback versions are OLTP1.000098 / OLAP1.000036, with a verified private pre-V51 dump. PROD remains V50 and its apps are unchanged. [Implementation and verification](../outputs/r047-selected-charges/IMPLEMENTATION.md).
+
 R047 DEV UI checkpoint (27 September): DEV OLTP **1.000098** adds linked-payment receipt thumbnails to the Collection borrower detail; rollback1.000095. DEV OLAP observed **1.000036**, unchanged by this task. Both saved editors report no issues and both remain Deployed. No source, database, agent, GCS or PROD app change. [Current DEV handover](../outputs/r047-collection-receipts/HANDOVER.md).
 
 R046 receipt backend delivered: DEV/PROD V50, central mw_agent V4, Debian34c4133 active after the verified receipt-audit repair (28/28 exported; [evidence](../outputs/r046-receipt-evidence/AUDIT_REPAIR.md)), with archive cutoff2026-09-27T05:43:10.226553+00:00. PROD AppSheet remains at recorded3.000249 /1.100202; receipt UI promotion remains pending. R046 Frozen / R047 Open. [Backend implementation and deployment evidence](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).

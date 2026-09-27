@@ -1,6 +1,6 @@
 # R047 — Receive Selected Charges: design and implementation handover
 
-27 September 2026 · **Design complete; proposed implementation, not applied or runtime-tested.**
+27 September 2026 · **Implemented and verified in DEV.** See [the implementation, saved versions, tests and recovery](IMPLEMENTATION.md). The proposal below is retained as dated design evidence; its implementation-pending statements describe the original design stage. Owner review and production promotion remain pending.
 
 ## Design summary
 

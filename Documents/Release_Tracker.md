@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R047 — Open** |
 | Next number, not yet open or usable | **R048 — opens only when R047 is frozen at promotion start** |
-| Current release evidence | R047 Open: Collection borrower receipt list implemented in DEV OLTP1.000098; [handover](../outputs/r047-collection-receipts/HANDOVER.md). Receive Selected Charges [design/handover](../outputs/r047-selected-charges/HANDOVER.md) completed; implementation pending. R046 backend remains deployed with receipt UI pending integrated review. |
+| Current release evidence | R047 Open: Collection receipts and Receive Selected Charges implemented in DEV OLTP1.000109 / OLAP1.000039 / SQL V51; [implementation](../outputs/r047-selected-charges/IMPLEMENTATION.md). R046 backend remains deployed with receipt UI pending integrated review. |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R047 | Collection borrower linked-payment receipts; Receive Selected Charges design; depends on R046 receipt UI | Open; receipt UI DEV implemented, owner review pending; selected-charge implementation pending | Receipt UI: DEV OLTP1.000098, GUI checks passed and both DEV editors clear. Selected Charges: design/handover only; no live change. PROD unchanged | [Log](../Change%20Logs/CHANGE_NOTES_R047_2026-09-27.md) |
+| R047 | Collection borrower linked-payment receipts; Receive Selected Charges; depends on R046 receipt UI | Open; DEV implemented, owner review and integrated promotion pending | OLTP1.000109 / OLAP1.000039 / DEV V51; GUI650 receipt and SQL regression/concurrency passed; both editors clear. PROD unchanged | [Log](../Change%20Logs/CHANGE_NOTES_R047_2026-09-27.md) |
 | R046 | Receipt image archive and existing OLTP Payment review | Frozen; backend deployed; UI stays DEV | 2026-09-27T05:35:58.976663+00:00; PROD V50 / mw_agent V4 / Debian34c4133; audit relay repaired,28/28 exported; DEV image verified; PROD UI pending | [Log](../Change%20Logs/CHANGE_NOTES_R046_2026-09-27.md) |
 | R045 | Additive Forecast & Planning tab and read-only SQL providers | Released | DEV/PROD V48; tab262 and21 visuals verified; recovery22; no AppSheet change; tag R045 | [Evidence](../outputs/r045-forecast-planning/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R045_2026-09-27.md) |
 | R044 | Additive Partners tab and read-only SQL providers | Released | DEV/PROD V47; Partners249 and19 visuals verified; recovery21; no AppSheet changes; tag R044 | [Evidence](../outputs/r044-partners/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R044_2026-09-26.md) |
