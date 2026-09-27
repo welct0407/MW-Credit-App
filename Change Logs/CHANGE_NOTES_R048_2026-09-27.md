@@ -43,3 +43,7 @@ Earlier pending-approval/promotion statements above describe the DEV checkpoint 
 ## Forecast watchlist refinement
 
 Owner requested that Forecast watchlist show Loan Key in place of Loan reference. Starting Git commit `4585b62ffd8116c2745fb85d85cecc86fd3e0a1f`. Saved Metabase question360 now builds the readable Borrower Detail Loan Key from original principal, loan date and effective daily interest rate. Its other columns, 34 rows, filters, dashboard placement and other questions remained unchanged in the saved-state comparison. Dashboard23 and a private exact question definition provide rollback. The affected Metabase dictionary question, tracker, inventory, development record and tool documentation are updated. Chrome Wel displayed the new column. No AppSheet, SQL migration, financial record or notification change; R048 remains Open. [Checks and recovery](../outputs/r048-forecast-watchlist/README.md).
+
+## Forecast original-rate alignment — 28 September 2026
+
+Owner approved correcting question360 to stored Original Daily Interest Rate with whole percentages. Earlier effective-rate/two-decimal expression is superseded for this question. All36 rows checked; other values and dashboard unchanged; Chrome verified. Recovery dashboard24 and private exact baseline; starting Git4b682c5. Generator, canonical dictionary and current references updated. No app/schema/charging change; R048 remains Open. [Steps, verification and rollback](../outputs/r048-forecast-original-rate/README.md).
