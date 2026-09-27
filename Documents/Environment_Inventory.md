@@ -1,6 +1,6 @@
 # Environment inventory
 
-R048 DEV update (27 September 2026): OLTP **1.000124** filters Collection receipts through positive Payment Allocations to the exact displayed Todays Collection Charges. Receipt Preview is the image label, fixing manual-only gallery cards. DEV OLAP **1.000042** and SQLV52 are unchanged. Owner review and production promotion are pending. [Handover](../outputs/r048-collection-receipts/HANDOVER.md).
+R048 direct PROD correction (27 September 2026): canonical OLTP **3.000253** now matches DEV **1.000124** for displayed-charge receipt filtering and the Receipt Preview image label. Applied under the owner’s explicit instruction to skip the promotion process. Both PROD editors clear; load/sync and Collection receipt rendering verified. OLAP, SQLV52, GCS and Debian unchanged. No remaining feature difference; R048 stays Open with this correction delivered. [Evidence and rollback](../outputs/r048-collection-receipts/PRODUCTION.md).
 
 ## Looker Studio retirement — 27 September 2026
 
@@ -101,7 +101,7 @@ Latest metadata checkpoint: **24 September 2026**, from the [dictionary reconcil
 
 | Environment | App | App ID | Live version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000252 (R046/R047) | database-2 | 18 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000253 (R048 direct correction) | database-2 | 18 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100205 (R046/R047) | database-2 | 19 |
 | Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000124 (R048 DEV) | database-3 | 18 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000042 (R047 capture) | database-3 | 19 |

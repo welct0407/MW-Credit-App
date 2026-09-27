@@ -1341,7 +1341,7 @@
         "Type": "Image"
         "Virtual": "Yes"
         "Key": "No"
-        "Label": "No"
+        "Label": "Yes"
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
@@ -1352,7 +1352,7 @@
         "Formula version": "0"
         "Hidden": "No"
         "Key": "No"
-        "Label": "No"
+        "Label": "Yes"
         "LocaleName": "en-US"
         "Part of Key?": "No"
         "Read-Only": "Yes"
@@ -1908,4 +1908,12 @@
   "/content/binding":
     "reference": "outputs/r047-production/oltp-affected-definitions.json"
     "reason": "R046/R047 promotion; saved production object readback"
+    "state": "value"
+  "/content/columns/Receipt Preview/inventory/Label":
+    "reference": "outputs/r048-collection-receipts/PRODUCTION.md"
+    "reason": "Owner-authorized direct PROD correction verified at3.000253; close matching DEV difference"
+    "state": "value"
+  "/content/columns/Receipt Preview/rules/Label":
+    "reference": "outputs/r048-collection-receipts/PRODUCTION.md"
+    "reason": "Owner-authorized direct PROD correction verified at3.000253; close matching DEV difference"
     "state": "value"

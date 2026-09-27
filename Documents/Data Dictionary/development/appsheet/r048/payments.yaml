@@ -10,14 +10,25 @@
   "source": "outputs/r048-collection-receipts/HANDOVER.md"
 "content":
   "release": "R048"
-  "status": "DEV implemented; owner review and promotion pending"
+  "status": "Delivered directly to PROD3.000253 on 2026-09-27 by scoped owner exception; DEV reconciled; retained as implementation\
+    \ evidence"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
   "version": "1.000124"
   "production_object": "systems/appsheet/oltp/tables/payments.yaml"
   "columns":
     "Receipt Preview":
       "Label":
-        "before": {"state": "value", "value": "No"}
-        "after": {"state": "value", "value": "Yes"}
-      "unchanged_formula": 'IF(ISNOTBLANK([Uploaded Receipt]), [Uploaded Receipt], [Receipt Image])'
-  "impact": "Gallery and automatic Payment/Ref/detail images select the combined preview. Payment Date nonimage label and original images remain. No schema or data change."
+        "before":
+          "state": "value"
+          "value": "No"
+        "after":
+          "state": "value"
+          "value": "Yes"
+      "unchanged_formula": "IF(ISNOTBLANK([Uploaded Receipt]), [Uploaded Receipt], [Receipt Image])"
+  "impact": "Gallery and automatic Payment/Ref/detail images select the combined preview. Payment Date nonimage label and\
+    \ original images remain. No schema or data change."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r048-collection-receipts/PRODUCTION.md"
+    "reason": "Owner-authorized direct PROD correction verified at3.000253; close matching DEV difference"
+    "state": "value"

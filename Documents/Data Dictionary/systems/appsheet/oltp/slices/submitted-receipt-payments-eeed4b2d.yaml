@@ -10,7 +10,17 @@
   "source": "outputs/r047-production/oltp-affected-definitions.json"
 "content":
   "definition":
-    "Row filter condition": "=AND([Status] = \"Posted\", OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])))"
+    "Row filter condition": |-
+      =AND(
+        [Status] = "Posted",
+        OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])),
+        COUNT(
+          INTERSECT(
+            SELECT([Related Payment Allocations][Ref Charge], [Allocated Amount] > 0),
+            [Ref Borrower].[Todays Collection Charges]
+          )
+        ) > 0
+      )
     "Slice Actions":
     - "**auto**"
     "Slice Columns":
@@ -130,3 +140,8 @@
     "Column": "Receipt Preview"
   - "Ordinal": 37
     "Column": "Receipt Display At"
+"evidence":
+  "/content/definition/Row filter condition":
+    "reference": "outputs/r048-collection-receipts/PRODUCTION.md"
+    "reason": "Owner-authorized direct PROD correction verified at3.000253; close matching DEV difference"
+    "state": "value"

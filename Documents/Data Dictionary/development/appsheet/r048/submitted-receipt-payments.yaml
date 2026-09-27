@@ -10,7 +10,8 @@
   "source": "outputs/r048-collection-receipts/HANDOVER.md"
 "content":
   "release": "R048"
-  "status": "DEV implemented; owner review and promotion pending"
+  "status": "Delivered directly to PROD3.000253 on 2026-09-27 by scoped owner exception; DEV reconciled; retained as implementation\
+    \ evidence"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
   "version": "1.000124"
   "production_object": "systems/appsheet/oltp/slices/submitted-receipt-payments-eeed4b2d.yaml"
@@ -18,7 +19,7 @@
     "Row filter condition":
       "before":
         "state": "value"
-        "value": 'AND([Status] = "Posted", OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])))'
+        "value": "AND([Status] = \"Posted\", OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])))"
       "after":
         "state": "value"
         "value": |-
@@ -33,3 +34,8 @@
             ) > 0
           )
   "preserved": "Payments source, columns, read-only mode, Borrowers REF_ROWS and gallery configuration"
+"evidence":
+  "/content/status":
+    "reference": "outputs/r048-collection-receipts/PRODUCTION.md"
+    "reason": "Owner-authorized direct PROD correction verified at3.000253; close matching DEV difference"
+    "state": "value"

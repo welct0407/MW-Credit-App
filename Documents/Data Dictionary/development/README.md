@@ -1,6 +1,6 @@
 # Verified and historical development differences
 
-Active R048 DEV overlays under `appsheet/r048/` narrow Submitted Receipt Payments to displayed charges and set Payments.Receipt Preview as the image label. Verified at OLTP1.000124; owner review/promotion pending. [Evidence](../../../outputs/r048-collection-receipts/HANDOVER.md).
+R048 overlays under `appsheet/r048/` are closed: the owner-authorized direct PROD3.000253 correction now matches DEV1.000124 for charge-scoped receipt filtering and the Receipt Preview image label. Retained as dated implementation evidence; current PROD values are in `systems/`. [Evidence](../../../outputs/r048-collection-receipts/PRODUCTION.md).
 
 R046/R047 are promoted and closed on 27 September 2026. `appsheet/r046/`, `appsheet/r047/` and `postgresql/r047/` retain dated implementation evidence, not active feature differences. Exact accepted production objects are updated under `systems/` from targeted saved PROD readback. DEV-only bindings, themes, delivery data and manual upload folder remain intentional. [Production verification](../../../outputs/r047-production/production-verification.json).
 
