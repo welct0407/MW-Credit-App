@@ -39,3 +39,7 @@ From an enabled Partner account: ask a current borrower question, then a follow-
 
 
 25 September owner routing rule (revision22): **every direct reply is review-only**, including replies to hold notifications, unknown messages and already-decided requests. Such messages never enter the model or its tools; unmatched references make no change. General conversation requires a standalone message. See [held receipt rejection](PARTNER_REVIEW.md#rejecting-held-receipts--revision-22).
+
+## Instagram reply formatting — 27 September 2026
+
+Every new or resumed conversation receives plain-text Instagram instructions: answer first, short paragraphs, and labeled bullets per record. Markdown tables, pipe columns, code blocks and decorative Markdown are prohibited. Totals, exclusions, projections and data timestamps remain explicit; financial meaning must not be shortened away. Existing over-1,000-character email fallback remains unchanged. This prompt change does not rewrite or resend earlier replies.
