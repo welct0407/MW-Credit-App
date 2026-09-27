@@ -1,5 +1,7 @@
 # R040 borrower lifetime display
 
+R048 Forecast watchlist: `RefineForecastWatchlist.mjs --prepare`, `--apply`, then `--verify` changes only question360 from Loan reference to the established readable Loan Key. It captures dashboard23 and a private question baseline before editing, then compares every returned row and the dashboard structure. [Evidence and recovery](../../outputs/r048-forecast-watchlist/README.md).
+
 R045 Forecast & Planning: `ForecastPlanning.mjs --publish` creates the tab once; `--refine --only=key,...` scopes corrections to state-owned questions; `--verify` checks saved mappings and preservation. `VerifyForecastSaved.mjs` performs 15 numerical/filter reconciliations. Four models and21 questions use V48. Never replay publication with an existing state. [Contract/recovery](../../outputs/r045-forecast-planning/IMPLEMENTATION.md).
 
 R044 Partners: `PartnersTab.mjs --publish` adds the tab once, refusing a pre-existing state file and guarding all prior placements. `--verify` exercises saved queries; `VerifyPartnersSaved.mjs` checks multi-partner/status behavior and captures exact definitions. The narrowly scoped `--repair` corrects model-reference tags on state-owned questions only; do not replay publication. Six V47 providers use source2 / loan_manager_prod; no AppSheet writes. [Evidence and recovery](../../outputs/r044-partners/README.md).

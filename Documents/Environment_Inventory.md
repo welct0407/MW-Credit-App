@@ -1,5 +1,7 @@
 # Environment inventory
 
+R048 Forecast watchlist refinement (27 September 2026): Metabase dashboard3/tab262 question360 displays readable Loan Key in place of Loan reference. Recovery dashboard23. Other report values/placements, both AppSheet apps and PostgreSQL V52 are unchanged. [Evidence](../outputs/r048-forecast-watchlist/README.md). R048 remains Open.
+
 R048 direct PROD correction (27 September 2026): canonical OLTP **3.000253** now matches DEV **1.000124** for displayed-charge receipt filtering and the Receipt Preview image label. Applied under the owner’s explicit instruction to skip the promotion process. Both PROD editors clear; load/sync and Collection receipt rendering verified. OLAP, SQLV52, GCS and Debian unchanged. No remaining feature difference; R048 stays Open with this correction delivered. [Evidence and rollback](../outputs/r048-collection-receipts/PRODUCTION.md).
 
 ## Looker Studio retirement — 27 September 2026

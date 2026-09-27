@@ -1,7 +1,10 @@
 // R045 additive Forecast & Planning. API writes affect only state-owned new objects.
 import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {api,assertSource,root} from './ReportingApi.mjs';
+const runCli=Boolean(process.argv[1]&&path.resolve(process.argv[1]).toLowerCase()===fileURLToPath(import.meta.url).toLowerCase());
 export const out=root+'/outputs/r045-forecast-planning';
 export const priv='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r045-forecast-planning';
 fs.mkdirSync(out,{recursive:true});fs.mkdirSync(priv,{recursive:true});
@@ -44,7 +47,9 @@ export function specs(models={}){
  add('types','Interest by loan type','bar',`${core}, f AS (SELECT loan_type,sum(r.remaining_interest) remaining FROM loans CROSS JOIN args a CROSS JOIN LATERAL public.forecast_scenario_v1(ui,up,oi,op,ci,cp,rr,scenario) r GROUP BY 1), v AS (SELECT loan_type,sum(interest) actual FROM __actuals__ l,args a WHERE a.kind='All' OR l.loan_type=a.kind GROUP BY 1) SELECT coalesce(f.loan_type,v.loan_type) AS "Loan type",coalesce(actual,0) AS "Actual interest ฿",coalesce(remaining,0) AS "Remaining interest ฿" FROM f FULL JOIN v USING(loan_type) ORDER BY 1`,graph('Loan type',['Actual interest ฿','Remaining interest ฿']));
  const detail=`${core} SELECT borrower AS "Borrower",borrower_id AS "Borrower ID",loan_id AS "Loan reference",loan_type AS "Loan type",outstanding_principal AS "Principal outstanding ฿",next_due AS "Next due",ui AS "Today / future interest ฿",up AS "Today / future principal ฿",oi AS "Overdue interest ฿",op AS "Overdue principal ฿",xi+xp AS "Recovery only ฿",recorded_interest AS "Recorded interest ฿",simulated_interest AS "Simulated interest ฿",f.remaining_interest AS "Scenario interest ฿",f.remaining_principal AS "Scenario principal ฿",arrangement_status AS "Schedule",coalesce(issues,'Covered') AS "Coverage" FROM loans CROSS JOIN args a CROSS JOIN LATERAL public.forecast_scenario_v1(ui,up,oi,op,ci,cp,rr,scenario) f`;
  const cols=['Borrower','Borrower ID','Loan reference','Loan type','Principal outstanding ฿','Next due','Today / future interest ฿','Today / future principal ฿','Overdue interest ฿','Overdue principal ฿','Recovery only ฿','Recorded interest ฿','Simulated interest ฿','Scenario interest ฿','Scenario principal ฿','Schedule','Coverage'];
- add('watchlist','Forecast watchlist','table',detail+` WHERE oi+op+xi+xp>0 OR issues IS NOT NULL OR arrangement_status='Modified payment schedule' ORDER BY incomplete DESC,ui DESC,loan_id`,table(cols,['Borrower ID']));
+ const loanKey=`CASE WHEN k."Row ID" IS NULL THEN 'Loan key unavailable' ELSE borrower||'-'||to_char(k."Principal Amount"::numeric,'FM999,999,999,990.00')||'-'||to_char(k."Loan Date",'DD/MM')||'-'||coalesce(to_char(k."Effective Daily Interest Rate"::numeric*100,'FM999990.00')||'%','Unavailable') END AS "Loan Key"`;
+ const watchlist=detail.replace('loan_id AS "Loan reference"',loanKey).replace(' FROM loans CROSS JOIN args',' FROM loans LEFT JOIN public.olap_loans_analytics k ON k."Row ID"=loans.loan_id CROSS JOIN args');
+ add('watchlist','Forecast watchlist','table',watchlist+` WHERE oi+op+xi+xp>0 OR issues IS NOT NULL OR arrangement_status='Modified payment schedule' ORDER BY incomplete DESC,ui DESC,loan_id`,table(cols.map(n=>n==='Loan reference'?'Loan Key':n),['Borrower ID']));
  add('detail','Loan forecast detail','table',detail+' ORDER BY ui DESC,borrower,loan_id',table(cols,['Borrower ID']));
  add('obligations','Recorded and simulated obligations','table',`WITH ${arg} SELECT borrower AS "Borrower",borrower_id AS "Borrower ID",loan_id AS "Loan reference",due_date AS "Due date",origin AS "Origin",bucket AS "Bucket",interest AS "Interest ฿",principal AS "Principal ฿",issue AS "Issue" FROM __events__ ev,args a WHERE (a.kind='All' OR ev.loan_type=a.kind) ORDER BY due_date,loan_id,origin`,table(['Borrower','Borrower ID','Loan reference','Due date','Origin','Bucket','Interest ฿','Principal ฿','Issue'],['Borrower ID']));
  add('coverage','Forecast coverage & exceptions','table',`${core} SELECT label AS "Coverage",value AS "Value" FROM s CROSS JOIN LATERAL (VALUES
@@ -88,9 +93,9 @@ function layout(state){
  return rows;
 }
 export async function query(dq,params){const r=await api('POST','dataset',{...dq,...(params?{parameters:params}:{})});if(r.status!=='completed'){save('query-error',r,priv);throw Error('Forecast query failed; diagnostics private');}assert(!r.data.rows_truncated);return r;}
-if(process.argv.includes('--prepare')){await assertSource();assert(!fs.existsSync(priv+'/dashboard-before.json'),'Baseline already exists');const d=await api('GET','dashboard/3');save('dashboard-before',d,priv);save('baseline',{tabs:d.tabs,placements:d.dashcards.length,source:2,at:new Date().toISOString()});console.log(JSON.stringify({tabs:d.tabs,placements:d.dashcards.length}));}
-if(process.argv.includes('--plan')){save('plan',{specs:specs(),parameters:parameters()});console.log('Saved forecast report plan');}
-if(process.argv.includes('--publish')){
+if(runCli&&process.argv.includes('--prepare')){await assertSource();assert(!fs.existsSync(priv+'/dashboard-before.json'),'Baseline already exists');const d=await api('GET','dashboard/3');save('dashboard-before',d,priv);save('baseline',{tabs:d.tabs,placements:d.dashcards.length,source:2,at:new Date().toISOString()});console.log(JSON.stringify({tabs:d.tabs,placements:d.dashcards.length}));}
+if(runCli&&process.argv.includes('--plan')){save('plan',{specs:specs(),parameters:parameters()});console.log('Saved forecast report plan');}
+if(runCli&&process.argv.includes('--publish')){
  await assertSource();assert(!fs.existsSync(out+'/state.json'),'Already started: inspect state before resume');
  const baseline=read('dashboard-before',priv),d=await api('GET','dashboard/3');assert.deepEqual(shape(d),shape(baseline));assert.deepEqual(d.tabs,baseline.tabs);assert.deepEqual(d.parameters,baseline.parameters);
  for(const s of specs()){try{await query(s.dataset_query);}catch(e){throw Error(s.key+': '+e.message);}}
@@ -103,11 +108,11 @@ if(process.argv.includes('--publish')){
  const withTab=await api('GET','dashboard/3');state.tab=withTab.tabs.find(t=>t.name==='13 · Forecast & Planning').id;save('state',state);
  await api('PUT','dashboard/3/cards',{tabs:withTab.tabs,cards:[...withTab.dashcards,...layout(state)]});console.log(JSON.stringify(state));
 }
-if(process.argv.includes('--refine')){
+if(runCli&&process.argv.includes('--refine')){
  await assertSource();const state=read('state');const only=process.argv.find(v=>v.startsWith('--only='))?.slice(7).split(',');for(const s of specs(state.models).filter(s=>!only||only.includes(s.key))){const q=await api('GET','card/'+state.cards[s.key]);assert.equal(q.name,s.name);await api('PUT','card/'+q.id,{dataset_query:s.dataset_query,display:s.display,visualization_settings:s.visualization_settings});}
  const d=await api('GET','dashboard/3');await api('PUT','dashboard/3',{parameters:[...d.parameters.filter(p=>!p.id.startsWith('fp-')),...parameters()]});console.log('Owned definitions refined');
 }
-if(process.argv.includes('--verify')){
+if(runCli&&process.argv.includes('--verify')){
  await assertSource();const state=read('state'),old=read('dashboard-before',priv),d=await api('GET','dashboard/3');assert.deepEqual(shape({...d,dashcards:d.dashcards.filter(c=>c.dashboard_tab_id!==state.tab)}),shape(old));assert.deepEqual(d.tabs.filter(t=>t.id!==state.tab),old.tabs);assert.deepEqual(d.parameters.filter(p=>!p.id.startsWith('fp-')),old.parameters);
  const saved=[],checks=[];for(const s of specs(state.models)){const id=state.cards[s.key],q=await api('GET','card/'+id);assert.equal(q.dataset_query.stages?.[0]?.native??q.dataset_query.native?.query,s.dataset_query.native.query);const place=d.dashcards.find(c=>c.card_id===id&&c.dashboard_tab_id===state.tab);assert(place);
   for(const ps of [[],[{id:'fp-ci',type:'number/=',value:[80]},{id:'fp-cp',type:'number/=',value:[75]},{id:'fp-rr',type:'number/=',value:[25]},{id:'fp-scenario',type:'string/=',value:['Planning']}],[{id:'fp-scenario',type:'string/=',value:['Stress']},{id:'fp-kind',type:'string/=',value:['Daily Interest']},...['lending','expenses','withdrawals','inflows','reserve'].map(k=>({id:'fp-'+k,type:'number/=',value:[0]}))]]){

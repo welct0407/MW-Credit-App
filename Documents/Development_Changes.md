@@ -1,5 +1,7 @@
 # Open development differences
 
+R048 Forecast watchlist refinement (27 September 2026): Metabase question360 now displays Loan Key, with 34 rows and other values unchanged. No DEV/PROD schema or AppSheet difference from this report edit. [Evidence](../outputs/r048-forecast-watchlist/README.md). R048 remains Open.
+
 R048 direct PROD correction (27 September 2026): canonical OLTP **3.000253** now matches DEV **1.000124** for displayed-charge receipt filtering and the Receipt Preview image label. Applied under the owner’s explicit instruction to skip the promotion process. Both PROD editors clear; load/sync and Collection receipt rendering verified. OLAP, SQLV52, GCS and Debian unchanged. No remaining feature difference; R048 stays Open with this correction delivered. [Evidence and rollback](../outputs/r048-collection-receipts/PRODUCTION.md).
 
 R046/R047 promoted together on 27 September 2026: PROD OLTP **3.000252**, OLAP **1.100205**, PostgreSQL **V52**. Both apps are Deployed with zero editor issues. PROD sources, links, receipt store/folder, API enablement, scheduled guards, load/sync and changed entry points passed; original shared logos render after RC deletion. At R047 capture, DEV was OLTP **1.000118**, OLAP **1.000042**, V52; the R048 checkpoint above is current. R048 is the sole Open release; the capture hold is released. [production verification](../outputs/r047-production/production-verification.json).
