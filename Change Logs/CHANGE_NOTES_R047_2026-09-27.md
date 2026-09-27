@@ -1,5 +1,11 @@
 # R047 — Collection borrower receipts
 
+## Receipt upload DEV acceptance - 27 September 2026
+
+Owner confirmed the feature was verified and looks good. Recorded acceptance of the receipt-upload DEV feature; this status question does not authorize production promotion. Current integrated DEV is OLTP1.000116 / OLAP1.000041 / SQL V52, including the separately documented label and read-only selected-total refinements. No known receipt implementation blocker remains. At authorized promotion, use the single checklist to pin the integrated package, verify PROD backup/baseline, apply V51/V52, prepare PROD-bound RCs with storage folder/bindings and scheduled guards, then App Upgrade and validate. Phone-camera capture remains untested and is a stated limitation, not a new mandatory gate.
+
+Documentation-only change from Git aa0c6fbbb92f88dc3a74301a5776f5d1c2776ecb; rollback is the prior Git revision. Checked current tracker/log, affected evidence and master checklist; no live audit or mutation. Manifest acceptance is scoped to this feature. JSON and whitespace checked before normal commit/push; unrelated work preserved.
+
 ## Read-only selected-charge total — 27 September 2026
 
 Owner authorized locking the selection-derived total. Updated only OLTP Payments.Amount Received Editable_If to exclude Selected Charges while preserving existing-record locks. DEV1.000116, rollback1.000115, Git baseline d01982b. GUI select/clear recalculation and disabled controls passed; Lump Sum/Single Partial remain editable. All forms cancelled; both editors clear, OLAP1.000041 unchanged. No SQL/data/PROD change. Exact dictionary, evidence, current versions and manifest updated; dictionary/whitespace checks and normal publication complete the batch. [Evidence](../outputs/r047-selected-charges/READONLY_TOTAL.md).

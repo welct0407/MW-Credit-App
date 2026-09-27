@@ -148,14 +148,19 @@
     "Validate PROD-bound RCs and App Upgrade through master checklist"
   ],
   "approvals": {
-    "devAcceptance": null,
+    "devAcceptance": {
+      "date": "2026-09-27",
+      "scope": "Manual Payment receipt upload DEV feature",
+      "ownerStatement": "i have verified and it looks good. is there anything lese pending before production promotion?",
+      "productionAuthorization": false
+    },
     "productionScope": null,
     "reference": null,
     "approvedRcVersions": null,
     "productionWriteTests": null
   },
   "validation": {
-    "A_devIntegrated": "Passed desktop create/edit/replacement, actual GCS objects, financial invariance, Collection and OLAP read/sync; both editors clear; owner review pending",
+    "A_devIntegrated": "Passed desktop create/edit/replacement, actual GCS objects, financial invariance, Collection and OLAP read/sync; both editors clear; receipt-upload owner review accepted 2026-09-27; later integrated refinements retain their own evidence",
     "B_candidateCaptured": "pending",
     "C_databaseReady": "pending",
     "D_rcReady": "pending",
