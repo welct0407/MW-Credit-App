@@ -1,0 +1,40 @@
+{
+  "release": "R046",
+  "scopeFrozenAt": "2026-09-27T05:35:58.976663+00:00",
+  "agentCommit": "70277de90ba77c08a6fc525a844c14c4bc26e648",
+  "businessMigrations": {
+    "V50__receipt_appsheet_root_path.sql": "99d3149f0b45a882c57ec0ae3b317755947b69c85ca75317a7752f189cb91f6a"
+  },
+  "additionalMigration": {
+    "V49__payment_receipt_evidence.sql": "b1763fc285347ce7d407ae43ea5c88ca48eae898a24470a30dbdf3462786e738"
+  },
+  "devApps": {
+    "date": "2026-09-27T05:35:58.976663+00:00",
+    "syntheticPayment": "R046-payment",
+    "oltp": {
+      "appId": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+      "version": "1.000095",
+      "rollback": "1.000092",
+      "diagnostics": "No issues found",
+      "imageDimensions": [
+        720,
+        960
+      ],
+      "expandedImage": "passed",
+      "editFormEvidenceControls": "absent",
+      "offlineContent": false
+    },
+    "olap": {
+      "appId": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+      "version": "1.000035",
+      "rollback": "1.000033",
+      "diagnostics": "No issues found",
+      "receiptFieldsHidden": true,
+      "offlineContent": false
+    },
+    "productionAppsChanged": false
+  },
+  "productionAuthorization": "Owner: you may make the changes to prod such as debian vm and SQL DB. only appsheet will be in dev because i have another feature to be added",
+  "appPromotion": "not authorized; pending integrated owner review",
+  "successor": "R047"
+}

@@ -1,5 +1,7 @@
 # Environment inventory
 
+R046 receipt implementation: DEV V50, OLTP1.000095 / OLAP1.000035; native original-image display verified and both editors clear. PROD SQL/agent deployment authorized and in progress; PROD AppSheet definitions unchanged. R046 Frozen / R047 Open. [Current implementation and deployment evidence](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).
+
 ## Receipt object storage — 27 September 2026
 
 Owner-approved GCS bucket `gs://mw-payment-receipts-prod-508610-n7` created in `clever-oasis-508610-n7`, `asia-southeast1` (Singapore), Standard. Saved configuration verified: uniform IAM, public access prevented via organization policy, seven-day soft delete, Google-managed encryption, no versioning/retention lock/lifecycle rules. One bucket; no DEV or separate display bucket. AppSheet account stores `MW Receipt Images DEV` and `MW Receipt Images PROD` are saved/tested. Their dedicated identities have Storage Object User and Storage Bucket Viewer on this bucket, with no DEV prefix restriction, per owner instruction. A standing tagged exception permits key creation only for these identities. Synthetic upload/readback passed; two small probes are retained. Agent capture, app-table binding and receipt rendering remain pending. [Connection configuration](../outputs/receipt-storage-design-20260927/APPSHEET_CONNECTION.md). [Configuration and creation evidence](../outputs/receipt-storage-design-20260927/GCS_REVIEW.md).

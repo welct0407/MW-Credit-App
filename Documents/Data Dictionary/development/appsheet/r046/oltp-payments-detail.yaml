@@ -1,0 +1,24 @@
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r046-receipt-evidence/dev-app-verification.json"
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Payments_Detail"
+  "scope": "development:R046"
+"content":
+  "release": "R046"
+  "status": "DEV implemented; PROD not promoted"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000095"
+  "production_reference": "systems/appsheet/oltp/views/payments-detail-ff6a02d3.yaml"
+  "change":
+    "insert_after": "Ref Received By Cash Account"
+    "columns":
+    - "Receipt Image"
+    - "Receipt Received At"
+    "before_related_lists": true
+  "main_image": "Auto assign (None)"
+  "image_style": "Fill"

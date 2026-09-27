@@ -1,5 +1,7 @@
 # Open development differences
 
+R046 receipt implementation: DEV V50, OLTP1.000095 / OLAP1.000035; native original-image display verified and both editors clear. PROD SQL/agent deployment authorized and in progress; PROD AppSheet definitions unchanged. R046 Frozen / R047 Open. [Current implementation and deployment evidence](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).
+
 R045 delivered (27 September 2026): DEV/PROD V48; dashboard3 adds **13 · Forecast & Planning** (tab262), four models344–347 and 21 questions348–368. Existing 12 tabs /247 placements preserved. Recovery dashboard22. No AppSheet, source-record, notification or operational binding change. No remaining R045 DEV/PROD schema difference; R046 is the sole Open release. [Evidence](../outputs/r045-forecast-planning/README.md).
 
 R044 delivered (26 September 2026): DEV/PROD V47; dashboard3 adds **12 · Partners** (tab249), 19 visible questions plus picker324 and six models318–323. All prior11 tabs /223 placements are preserved; total12 tabs /247 placements. Recovery dashboard21. Both AppSheet apps, source records and operational bindings are unchanged. No remaining R044 DEV/PROD schema difference; R045 is the sole Open release. [Evidence](../outputs/r044-partners/README.md).

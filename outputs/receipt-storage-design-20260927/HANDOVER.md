@@ -1,6 +1,8 @@
 # Receipt picture capture and storage — implementation handover
 
-Date: 27 September 2026. Status: **GCS bucket and AppSheet DEV/PROD account connections configured; receipt capture, table bindings and display implementation pending**.
+Date: 27 September 2026. **Implementation handover: [implemented contracts, tests, deployment and remaining AppSheet promotion](../r046-receipt-evidence/IMPLEMENTATION.md).** DEV is validated; the owner has authorized PROD Debian and SQL while AppSheet definitions remain DEV. Current deployment state is recorded in the [R046 log](../../Change%20Logs/CHANGE_NOTES_R046_2026-09-27.md).
+
+The design below is retained as pre-implementation rationale. Where it differs from the linked implementation, the implementation governs: actual object keys are `receipts/{dev|prod}/YYYY/MM/DD/{receipt_id}/{raw_sha256}.{extension}`; AppSheet stores `//` plus that key; only one primary association is implemented; timestamps in the private agent journal use Unix seconds. Proposed secondary/supersession workflows are not delivered. Earlier statements below that no release, schema, table binding or activation work is authorized are superseded by the owner's later implementation and PROD-backend instructions.
 
 AppSheet connectivity follow-up: both account object stores are saved and connection/file-access tests passed. Owner requested standard bucket-level access; both identities have Storage Object User and Storage Bucket Viewer on the single bucket. A standing key-creation exception applies only to the two dedicated identities. See the [implemented connection configuration and remaining app work](APPSHEET_CONNECTION.md).
 

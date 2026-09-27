@@ -1,0 +1,73 @@
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r046-receipt-evidence/dev-app-verification.json"
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Payments"
+  "scope": "development:R046"
+"content":
+  "release": "R046"
+  "status": "DEV implemented; PROD definition not promoted"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000095"
+  "production_reference": "systems/appsheet/oltp/tables/payments.yaml"
+  "columns":
+    "IG Receipt ID":
+      "before":
+        "state": "absent"
+      "after":
+        "state": "value"
+        "value":
+          "Type": "Text"
+          "Key": false
+          "Label": false
+          "Editable": false
+          "Required": false
+          "Searchable": false
+          "App formula": ""
+          "Initial value": ""
+          "Show": false
+          "PII": false
+    "Receipt Image":
+      "before":
+        "state": "absent"
+      "after":
+        "state": "value"
+        "value":
+          "Type": "Image"
+          "Key": false
+          "Label": false
+          "Editable": false
+          "Required": false
+          "Searchable": false
+          "App formula": ""
+          "Initial value": ""
+          "Show": "AND(CONTEXT(\"View\") = \"Payments_Detail\", ISNOTBLANK([Receipt Image]))"
+          "PII": true
+          "Display name": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+            \ = \"ไทย\", \"รูปหลักฐานการชำระเงิน\", \"Receipt Image\")"
+    "Receipt Received At":
+      "before":
+        "state": "absent"
+      "after":
+        "state": "value"
+        "value":
+          "Type": "DateTime"
+          "Key": false
+          "Label": false
+          "Editable": false
+          "Required": false
+          "Searchable": false
+          "App formula": ""
+          "Initial value": ""
+          "Show": "AND(CONTEXT(\"View\") = \"Payments_Detail\", ISNOTBLANK([Receipt Image]))"
+          "PII": false
+          "Display name": "IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
+            \ = \"ไทย\", \"เวลารับหลักฐาน\", \"Receipt Received At\")"
+  "storage":
+    "before": "Default"
+    "after": "MW Receipt Images DEV"
+  "offline_content": false

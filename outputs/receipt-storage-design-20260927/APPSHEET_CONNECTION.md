@@ -60,3 +60,11 @@ Starting Git commit: `4d360d4093edd67973e9c0ff20813dcb886658f7`. Unrelated worki
 ![Saved DEV and PROD object stores](appsheet-stores-created.png)
 
 Official references: [AppSheet GCS configuration](https://support.google.com/appsheet/answer/10106382?hl=en), [service-account policy exceptions](https://docs.cloud.google.com/iam/docs/troubleshoot-org-policies), [GCS roles](https://docs.cloud.google.com/storage/docs/access-control/iam-roles).
+# R046 implementation update — 27 September 2026
+
+Both DEV Payments tables now select `MW Receipt Images DEV`; native OLTP image display is verified using `//receipts/...` bucket-root references. The PROD store remains available for later integrated AppSheet promotion; PROD app definitions are unchanged.
+
+Credential correction: cached PROD key `efe7caffed603201d8c6cebb19e6d05187d3692a` appeared in diagnostic output, was immediately disabled and then deleted. Replacement key ID `665486ed05f0e5d34cc8ee03dd13cabea6e73711` was entered in the same named PROD store; native Test Connection passed and Save completed with one PROD store card. Private file: `C:\Users\MWCredit\Documents\ChatGPT\AppSheet-Loan-Project\receipt-storage\appsheet-receipts-prod-v3.json`. No private key contents are in Git. Earlier key references below are historical and revoked.
+
+The VM attached identity also has bucket-level Storage Object User and Storage Bucket Viewer. It uses metadata-issued short-lived tokens, not either AppSheet exported key. [Implementation and deployment evidence](../r046-receipt-evidence/IMPLEMENTATION.md).
+

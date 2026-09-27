@@ -1,5 +1,7 @@
 # Production model overview
 
+R046 receipt evidence: original files live in private GCS, with the archive catalogue in `mw_agent`; business Payments hold only service-owned ID/image/capture-time metadata. OLTP owns on-demand review; OLAP hides these fields. Financial allocation grain/calculations are unchanged. AppSheet display is DEV-only until integrated promotion. [Implementation contract](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).
+
 R045 adds **13 · Forecast & Planning** (262): read-only current-month actuals, schedule-aware future obligations, explicit collection/arrears scenarios and conditional whole-portfolio funding. Actual interest and principal receipts remain separate; incomplete forecasts and manual-only coverage are disclosed. AppSheet retains operational entry; no financial source data changes. [Delivered contract](../outputs/r045-forecast-planning/IMPLEMENTATION.md).
 
 R044 partner reporting adds six read-only V47 views over existing capital, allocated repayment interest, expenses and settlements. Metabase presents current entitlement and dated activity; OLAP retains all operational partner/settlement editing. No AppSheet table binding or financial calculation changed. [Contract and dependencies](../outputs/r044-partners/README.md).
