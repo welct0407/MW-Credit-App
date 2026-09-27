@@ -157,7 +157,13 @@
     "productionScope": null,
     "reference": null,
     "approvedRcVersions": null,
-    "productionWriteTests": null
+    "productionWriteTests": null,
+    "selectedChargesDevAcceptance": {
+      "date": "2026-09-27",
+      "scope": "Receive Selected Charges including label, Loan Key whole-percent display and read-only calculated total at OLTP1.000116",
+      "ownerStatement": "i have verified and it looks good. is there anything lese pending before production promotion?",
+      "productionAuthorization": false
+    }
   },
   "validation": {
     "A_devIntegrated": "Passed desktop create/edit/replacement, actual GCS objects, financial invariance, Collection and OLAP read/sync; both editors clear; receipt-upload owner review accepted 2026-09-27; later integrated refinements retain their own evidence",

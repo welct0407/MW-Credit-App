@@ -1,5 +1,9 @@
 # R047 — Collection borrower receipts
 
+## Selected-charge DEV acceptance — 27 September 2026
+
+Owner verified and accepted Receive Selected Charges and its display/read-only-total refinements at OLTP1.000116. No known implementation blocker remains in this scope. Recorded scoped acceptance in the integrated manifest, preserving the separate receipt-upload acceptance. This status request is not production authorization. R047 stays Open; package pinning, PROD backup/baseline, V51/V52 deployment, PROD-bound RC validation/App Upgrade and closure remain promotion work. Existing OLAP currency-symbol formatting and untested phone layout/camera remain disclosed limitations, not newly imposed gates. Documentation-only from Git e90e1c10c416aa2ec27f878c301e1264cc9640fd; rollback is that revision. JSON/whitespace checked; no live audit or mutation.
+
 ## Receipt upload DEV acceptance - 27 September 2026
 
 Owner confirmed the feature was verified and looks good. Recorded acceptance of the receipt-upload DEV feature; this status question does not authorize production promotion. Current integrated DEV is OLTP1.000116 / OLAP1.000041 / SQL V52, including the separately documented label and read-only selected-total refinements. No known receipt implementation blocker remains. At authorized promotion, use the single checklist to pin the integrated package, verify PROD backup/baseline, apply V51/V52, prepare PROD-bound RCs with storage folder/bindings and scheduled guards, then App Upgrade and validate. Phone-camera capture remains untested and is a stated limitation, not a new mandatory gate.
