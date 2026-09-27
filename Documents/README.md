@@ -9,6 +9,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Current identities/settings | [Environment Inventory](Environment_Inventory.md) |
 | Service login account / browser profile | [Service account and browser mapping](Service_Account_Browser_Mapping.md) |
 | Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |
+| Receive one payment for selected Collection charges | [R047 design and implementation handover](../outputs/r047-selected-charges/HANDOVER.md) — proposed full settlement of selected charges; implementation pending |
 | Debian receipt picture capture and AppSheet viewing | [Receipt storage implementation handover — 27 September 2026](../outputs/receipt-storage-design-20260927/HANDOVER.md) and [GCS configuration/creation evidence](../outputs/receipt-storage-design-20260927/GCS_REVIEW.md) — one private bucket; DEV receipt display verified; PROD backend deployment recorded in the linked implementation |
 | Proposed Borrower Portfolio / Detail pages and implementation handover | [Borrower pages design — 25 September 2026](../outputs/borrower-pages-design-20260925/HANDOVER.md) — design only; pending owner review |
 | Partners tab, actual metrics and implementation handover | [Partners tab design — 26 September 2026](../outputs/partners-tab-design-20260926/HANDOVER.md) — delivered in R044; actual metrics, no forecast content |
