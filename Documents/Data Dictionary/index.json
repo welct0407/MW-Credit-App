@@ -2569,6 +2569,21 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/r047/loan-key.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Loans",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Loan Key",
+          "pointer": "/content/columns/Loan Key"
+        }
+      ]
+    },
+    {
       "file": "development/appsheet/r047/olap-payments.yaml",
       "system": "appsheet",
       "component": "olap",
