@@ -1,5 +1,7 @@
 # Verified and historical development differences
 
+Current receipt UI composition: `appsheet/r046/` records the unpromoted receipt foundation; `appsheet/r047/` adds Collection borrower receipt review at DEV OLTP1.000098 and supersedes only the two Payments receipt Show_If expressions. Apply these labeled overlays in release order when reading current DEV; PROD definitions remain under `systems/appsheet/`. [R047 evidence](../../../outputs/r047-collection-receipts/HANDOVER.md).
+
 No active DEV overlay was inferred during migration. Existing workbook differences remain under [imported evidence](../imports/excel-20260923/README.md), with their original labels and values. The owner-authorized [24 September reconciliation](../../../outputs/dictionary-reconciliation-20260924/README.md) independently observed DEV and PROD and created explicit guarded deltas under `appsheet/environment/` and `postgresql/environment/`.
 
 `development:observed` reconstructs AppDoc or SQL source objects. `development:editor-observed` reconstructs editor supplements; it is a separate representation, not an additional product change. Both are checked by the reconciliation verifiers. Many deltas are source IDs, locale state, generated identifiers, ACL/ordinal differences or UI representation differences. Classification explains the evidence without inventing release ownership. The `environment/` directory is storage for the observation set, not proof that every difference was intentionally approved.

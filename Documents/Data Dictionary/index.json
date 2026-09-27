@@ -2549,6 +2549,90 @@
       ]
     },
     {
+      "file": "development/appsheet/r047/collection-detail.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Todays Collection Board_Detail",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r047/collection-slice.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "Todays Collection Board",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r047/oltp-borrowers.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Borrowers",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Submitted Receipts",
+          "pointer": "/content/columns/Submitted Receipts"
+        }
+      ]
+    },
+    {
+      "file": "development/appsheet/r047/oltp-payments.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Payments",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Receipt Image",
+          "pointer": "/content/columns/Receipt Image"
+        },
+        {
+          "subject": "Receipt Received At",
+          "pointer": "/content/columns/Receipt Received At"
+        }
+      ]
+    },
+    {
+      "file": "development/appsheet/r047/open-submitted-receipt-payment.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "action",
+      "name": "Open Submitted Receipt Payment",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r047/submitted-receipt-payments.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "Submitted Receipt Payments",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r047/submitted-receipts-inline.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Submitted Receipts_Inline",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/environment/loan_manager_prod-relation-agent-audit-commits-5541f3ed.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",

@@ -1,5 +1,7 @@
 # Solution design rules
 
+R047 DEV-only Collection review reuses linked Posted Payments to show each borrower's submitted receipt originals. A read-only AppSheet slice and virtual Ref list provide thumbnail/date/amount navigation to existing Payment detail. Empty lists are hidden; unlinked/rejected/pending agent images are outside this view. No new database fields, duplicate originals or financial workflow. [Implementation](../outputs/r047-collection-receipts/HANDOVER.md).
+
 R045 adds **13 · Forecast & Planning** (262): read-only current-month actuals, schedule-aware future obligations, explicit collection/arrears scenarios and conditional whole-portfolio funding. Actual interest and principal receipts remain separate; incomplete forecasts and manual-only coverage are disclosed. AppSheet retains operational entry; no financial source data changes. [Delivered contract](../outputs/r045-forecast-planning/IMPLEMENTATION.md).
 
 R044 adds **12 · Partners** (249), an actual-only read-only page after the existing tabs. Current capital, earned profit, payouts, reservations and net available use governed V47 views; selected-date activity uses event dates and carries opening capital. Full-pool capital shares are independent of partner selection. OLAP retains settlement entry; report availability is entitlement, not cash custody. [Delivered contract](../outputs/r044-partners/README.md) and [detailed handover](../outputs/partners-tab-design-20260926/HANDOVER.md).

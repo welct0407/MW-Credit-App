@@ -1,5 +1,7 @@
 # Open development differences
 
+R047 (Open, DEV implemented): OLTP **1.000098** adds a read-only Submitted Receipts section to Collection borrower detail, using only linked Posted Payments with images. Thumbnail/date/amount, canonical Payment navigation, full-size viewing and empty-state GUI checks passed. Both DEV editors are clear; OLAP observed1.000036 unchanged. No backend or PROD app change. R047 extends the still-unpromoted R046 receipt UI; review and integrated promotion remain pending. [Handover and exact DEV overlays](../outputs/r047-collection-receipts/HANDOVER.md).
+
 R046 receipt backend delivered: DEV/PROD V50, central mw_agent V4, Debian817c9b4 active with archive cutoff2026-09-27T05:43:10.226553+00:00. DEV OLTP1.000095 / OLAP1.000035 display/schema verified and both editors clear. PROD AppSheet remains unchanged3.000249 /1.100202, both clear and load/sync passed. Receipt UI promotion remains pending; R046 Frozen / R047 Open. [Current implementation and deployment evidence](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).
 
 R045 delivered (27 September 2026): DEV/PROD V48; dashboard3 adds **13 · Forecast & Planning** (tab262), four models344–347 and 21 questions348–368. Existing 12 tabs /247 placements preserved. Recovery dashboard22. No AppSheet, source-record, notification or operational binding change. No remaining R045 DEV/PROD schema difference; R046 is the sole Open release. [Evidence](../outputs/r045-forecast-planning/README.md).

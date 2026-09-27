@@ -1,6 +1,8 @@
 # Environment inventory
 
-R046 receipt backend delivered: DEV/PROD V50, central mw_agent V4, Debian817c9b4 active with archive cutoff2026-09-27T05:43:10.226553+00:00. DEV OLTP1.000095 / OLAP1.000035 display/schema verified and both editors clear. PROD AppSheet remains unchanged3.000249 /1.100202, both clear and load/sync passed. Receipt UI promotion remains pending; R046 Frozen / R047 Open. [Current implementation and deployment evidence](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).
+R047 DEV UI checkpoint (27 September): DEV OLTP **1.000098** adds linked-payment receipt thumbnails to the Collection borrower detail; rollback1.000095. DEV OLAP observed **1.000036**, unchanged by this task. Both saved editors report no issues and both remain Deployed. No source, database, agent, GCS or PROD app change. [Current DEV handover](../outputs/r047-collection-receipts/HANDOVER.md).
+
+R046 receipt backend delivered: DEV/PROD V50, central mw_agent V4, Debian817c9b4 active with archive cutoff2026-09-27T05:43:10.226553+00:00. PROD AppSheet remains at recorded3.000249 /1.100202; receipt UI promotion remains pending. R046 Frozen / R047 Open. [Backend implementation and deployment evidence](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).
 
 ## Receipt object storage — 27 September 2026
 

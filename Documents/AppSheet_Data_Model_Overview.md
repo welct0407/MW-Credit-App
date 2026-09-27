@@ -2,6 +2,8 @@
 
 R046 receipt evidence: original files live in private GCS, with the archive catalogue in `mw_agent`; business Payments hold only service-owned ID/image/capture-time metadata. OLTP owns on-demand review; OLAP hides these fields. Financial allocation grain/calculations are unchanged. AppSheet display is DEV-only until integrated promotion. [Implementation contract](../outputs/r046-receipt-evidence/IMPLEMENTATION.md).
 
+R047 DEV-only: Collection borrower detail includes Submitted Receipts through the existing Payments borrower Ref and a read-only image-bearing Posted Payments slice. It lists historical and new linked receipts, newest first, and opens the existing Payment detail/full-size original. Borrowers without matching images have no receipt section. Unlinked agent submissions remain private. No persisted column, financial behavior or OLAP ownership change. [DEV contract and tests](../outputs/r047-collection-receipts/HANDOVER.md).
+
 R045 adds **13 · Forecast & Planning** (262): read-only current-month actuals, schedule-aware future obligations, explicit collection/arrears scenarios and conditional whole-portfolio funding. Actual interest and principal receipts remain separate; incomplete forecasts and manual-only coverage are disclosed. AppSheet retains operational entry; no financial source data changes. [Delivered contract](../outputs/r045-forecast-planning/IMPLEMENTATION.md).
 
 R044 partner reporting adds six read-only V47 views over existing capital, allocated repayment interest, expenses and settlements. Metabase presents current entitlement and dated activity; OLAP retains all operational partner/settlement editing. No AppSheet table binding or financial calculation changed. [Contract and dependencies](../outputs/r044-partners/README.md).

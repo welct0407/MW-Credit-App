@@ -1,0 +1,36 @@
+{
+  "format": 1,
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r047-collection-receipts/HANDOVER.md"
+  },
+  "identity": {
+    "system": "appsheet",
+    "component": "oltp",
+    "kind": "view",
+    "name": "Todays Collection Board_Detail",
+    "scope": "development:R047"
+  },
+  "content": {
+    "release": "R047",
+    "status": "DEV implemented; PROD not promoted",
+    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "version": "1.000098",
+    "production_reference": "systems/appsheet/oltp/views/todays-collection-board-detail-df449327.yaml",
+    "definition": {
+      "View type": "detail",
+      "For this data": "Todays Collection Board",
+      "Column order": [
+        "Daily Collection Status - Order",
+        "Borrower Reference TE",
+        "Todays Amount Due",
+        "Todays Amount Collected",
+        "Todays Amount Remaining",
+        "Borrower Note",
+        "Todays Collection Charges",
+        "Submitted Receipts"
+      ]
+    },
+    "other_configuration": "unchanged"
+  }
+}
