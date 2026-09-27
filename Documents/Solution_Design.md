@@ -49,23 +49,11 @@ Prefer read-only or tightly controlled interactions. Do not duplicate operationa
 
 Business behavior and relationships are explained in the [Model Overview](AppSheet_Data_Model_Overview.md); exact values belong in the dictionary. Integrity, auditability and correction rules follow AGENTS.
 
-## Looker Studio dashboard
+## Reporting platform
 
-Name: **Loan Reports - Mobile**. Presentation/exploration over governed metrics, not an alternate transaction system or the sole location for critical business rules. Each metric needs a documented source, grain, date basis, filter population and refresh cutoff; totals must reconcile with the governed source.
+Metabase is the active presentation and exploration platform over governed PostgreSQL reporting sources. The former Looker Studio **Loan Reports - Mobile** report, its eight backup reports and seven owned data sources were moved to Looker Studio Trash on 27 September 2026 at the owner's direction. They are no longer active reporting assets. [Retirement inventory and recovery](../outputs/looker-studio-retirement-20260927/README.md).
 
-Preserve the page order unless the owner requests a change:
-
-1. Overview
-2. Cash Analysis
-3. Borrowers Analysis
-4. Business Performance
-5. Portfolio / Risk
-6. Daily Collection Tracking
-7. Borrower Insight
-8. Profit Forecast & Partner Outlook
-9. Income Statement (Metabase addition)
-
-App workflows take priority. Review direct downstream impacts, but test/edit reports only when explicitly in scope or directly affected; record limitations rather than auditing unrelated reports. Back up the affected report before editing, including when a task also changes AppSheet.
+App workflows take priority. Review direct downstream impacts, but test/edit reports only when explicitly in scope or directly affected; record limitations rather than auditing unrelated reports. Back up an affected active report before editing, including when a task also changes AppSheet.
 
 ## Metabase migration
 

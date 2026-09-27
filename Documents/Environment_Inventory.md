@@ -1,5 +1,9 @@
 # Environment inventory
 
+## Looker Studio retirement — 27 September 2026
+
+The owner decommissioned the former Data Studio / Looker Studio reporting assets after migrating to Metabase. Under `welct0407@gmail.com`, all nine owned reports (the live **Loan Reports - Mobile** and eight backups) and all seven owned data sources were moved to Trash. The owned reports and data source lists were empty afterward; all 16 named items were visible in Trash. No shared items or saved explorations were found. This is recoverable through Looker Studio Trash; older items already in Trash were left untouched. [Exact asset inventory and checks](../outputs/looker-studio-retirement-20260927/README.md). Metabase, AppSheet, PostgreSQL and their access paths were not changed by this retirement.
+
 R046/R047 promoted together on 27 September 2026: PROD OLTP **3.000252**, OLAP **1.100205**, PostgreSQL **V52**. Both apps are Deployed with zero editor issues. PROD sources, links, receipt store/folder, API enablement, scheduled guards, load/sync and changed entry points passed; original shared logos render after RC deletion. DEV remains OLTP **1.000118**, OLAP **1.000042**, V52. R048 is the sole Open release; the capture hold is released. [production verification](../outputs/r047-production/production-verification.json).
 
 ## Receipt object storage — 27 September 2026

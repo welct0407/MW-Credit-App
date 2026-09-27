@@ -38,7 +38,7 @@ Accounts and authentication notes were supplied by the owner in the completed re
 | Tailscale | Private network administration | zhcyidea@gmail.com | Edge | Gmail authentication |
 | Outlook | Existing fallback email service | welctcodex@outlook.com | Edge | |
 | Google Sites | Existing privacy/public site | welct0407@mw-credit.com | Chrome work | |
-| Looker Studio | Existing / legacy reports | welct0407@gmail.com | Chrome Gmail | |
+| Looker Studio | Retired; Trash recovery only | welct0407@gmail.com | Chrome Gmail | Nine reports and seven data sources moved to Trash 27 September 2026 |
 | ChatGPT / Codex web | Account and subscription UI | zhcyidea@gmail.com | Edge | |
 
 ## Maintenance
