@@ -17,7 +17,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
 | R047 | Next integrated development feature | Open | No scope assigned; R046 receipt UI remains pending promotion | [R046 dependency](../outputs/r046-receipt-evidence/frozen-package.json) |
-| R046 | Receipt image archive and existing OLTP Payment review | Frozen; backend promotion in progress; UI stays DEV | 2026-09-27T05:35:58.976663+00:00; SQL/agent pinned, DEV image verified | [Log](../Change%20Logs/CHANGE_NOTES_R046_2026-09-27.md) |
+| R046 | Receipt image archive and existing OLTP Payment review | Frozen; backend deployed; UI stays DEV | 2026-09-27T05:35:58.976663+00:00; PROD V50 / mw_agent V4 / Debian817c9b4 verified; DEV image verified; PROD UI pending | [Log](../Change%20Logs/CHANGE_NOTES_R046_2026-09-27.md) |
 | R045 | Additive Forecast & Planning tab and read-only SQL providers | Released | DEV/PROD V48; tab262 and21 visuals verified; recovery22; no AppSheet change; tag R045 | [Evidence](../outputs/r045-forecast-planning/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R045_2026-09-27.md) |
 | R044 | Additive Partners tab and read-only SQL providers | Released | DEV/PROD V47; Partners249 and19 visuals verified; recovery21; no AppSheet changes; tag R044 | [Evidence](../outputs/r044-partners/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R044_2026-09-26.md) |
 | R043 | Canonical borrower tabs and drill-through | Released | Tabs7/8, name links, saved-state and Chrome verified; recovery20; tag R043 | [Evidence](../outputs/r043-borrower-navigation/README.md) |

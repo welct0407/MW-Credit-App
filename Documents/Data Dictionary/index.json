@@ -35745,6 +35745,18 @@
           "pointer": "/content/columns/Ref Received By Cash Account"
         },
         {
+          "subject": "IG Receipt ID",
+          "pointer": "/content/columns/IG Receipt ID"
+        },
+        {
+          "subject": "Receipt Image",
+          "pointer": "/content/columns/Receipt Image"
+        },
+        {
+          "subject": "Receipt Received At",
+          "pointer": "/content/columns/Receipt Received At"
+        },
+        {
           "subject": "Payments_Ref Received By Cash Account_fkey",
           "pointer": "/content/constraints/Payments_Ref Received By Cash Account_fkey"
         },
@@ -35771,6 +35783,10 @@
         {
           "subject": "appsheet_ref_13",
           "pointer": "/content/constraints/appsheet_ref_13"
+        },
+        {
+          "subject": "payment_receipt_triplet",
+          "pointer": "/content/constraints/payment_receipt_triplet"
         }
       ]
     },
@@ -41249,6 +41265,26 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.vc_repayment_changed()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/r046-attach-payment-receipt-evidence.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.attach_payment_receipt_evidence(p_payment text, p_receipt text, p_key text, p_captured timestamp with time zone, p_expected jsonb, p_operation uuid, p_code_version text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/r046-guard-payment-receipt-evidence.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.guard_payment_receipt_evidence()",
       "scope": "production",
       "status": "documented",
       "lookup": []

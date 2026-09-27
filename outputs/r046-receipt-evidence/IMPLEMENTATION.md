@@ -1,6 +1,6 @@
 # R046 receipt evidence — implementation handover
 
-27 September 2026. DEV SQL and AppSheet implementation validated. PROD backend deployment is authorized; its actual outcome is maintained in the [release log](../../Change%20Logs/CHANGE_NOTES_R046_2026-09-27.md) and [single checklist](promotion-checklist.md). PROD AppSheet definitions remain unchanged until the owner reviews an integrated app release containing the next feature.
+27 September 2026. PROD SQL/agent backend is deployed and verified; DEV AppSheet is validated. The actual outcome is maintained in the [release log](../../Change%20Logs/CHANGE_NOTES_R046_2026-09-27.md) and [single checklist](promotion-checklist.md). PROD AppSheet definitions remain unchanged until the owner reviews an integrated app release containing the next feature.
 
 ## Scope and flow
 
@@ -69,10 +69,12 @@ Later integrated PROD-mapped RCs must include these fields/view settings and sel
 ## Tests and recovery
 
 - SQL chain through V50, no-op rerun and checksum rejection passed. Tests cover exact attach/retry, role boundaries, bad URL/incomplete facts, Bangkok midnight, rooted image path, one audit and unchanged Payment financial values/repayments/allocations/ledger. Existing database CI completed successfully.
-- Agent suite:258 tests,33 environment-dependent skips. Separate real PostgreSQL V4/adapter tests passed, including source/locator immutability, audit and terminal original retention. Archive tests cover lost acknowledgement/restart, corruption, quota, outage and attachment timeout without reposting.
+- Final agent suite:259 tests;34 environment-dependent skips on Windows and30 on Debian. Separate real PostgreSQL V4/adapter tests passed, including source/locator immutability, audit and terminal original retention. Archive tests cover lost acknowledgement/restart, corruption, quota, outage and attachment timeout without reposting.
 - DEV synthetic `R046-payment` renders and expands the original; the edit form excludes receipt controls. Both saved editors report No issues found. [Full-size image proof](dev-receipt-expanded.png), [Payment detail](dev-payment-review.png).
 - Private PROD business and central logical backups passed local restores. [Hashes](prod-backups.json), [restore tests](prod-restore-tests.json). Private dumps/credentials are not published to Git.
 
 Use the clean pinned checkout, existing Flyway manifest/runner and explicit owner/backup references for PROD SQL. Apply compatible business V49/V50 and central V4 before runtime activation. The reviewed deployment script pauses/drains the five existing business timers, verifies a private package/config/catalogue copy, installs the exact commit without dependency changes, runs tests, and checks schema plus metadata-identity GCS upload/readback. Activation sets a new archive cutoff and resumes only previously active timers; ingress/audit relay and prior cutoffs/model settings are preserved.
 
-Rollback pauses/drains workers, restores that verified runtime package/config/catalogue, and resumes recorded timers. Keep additive SQL and all captured originals. Do not restore an old business database over later financial writes. AppSheet rollback does not undo backend data. Unknown outcomes require readback, not reposting. Private credential/dump independent recovery coverage is separate from repository publication. No real customer receipt or PROD financial write is fabricated for testing; first natural post-cutoff processing is an operational observation.
+Rollback pauses/drains workers, restores that verified runtime package/config/catalogue, and resumes recorded timers. Keep additive SQL and all captured originals. Do not restore an old business database over later financial writes. AppSheet rollback does not undo backend data. Unknown outcomes require readback, not reposting. Private credential/dump independent recovery coverage is separate from repository publication. No real customer receipt or PROD financial write was fabricated for testing; first natural post-cutoff processing remains an operational observation.
+
+Delivered: business DEV/PROD V50, central V4 and Debian `817c9b47a574227874cbfb407aaa08794cb50dac`. Archive activation is `2026-09-27T05:43:10.226553+00:00` (12:43 Bangkok), preserved during the recovery-path correction. VM GCS upload/readback and projector connectivity passed; all timers are healthy. [Exact final manifest](release-manifest.json).

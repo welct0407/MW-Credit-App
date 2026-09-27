@@ -12,7 +12,8 @@
     ],
     "expandedImage": "passed",
     "editFormEvidenceControls": "absent",
-    "offlineContent": false
+    "offlineContent": false,
+    "syntheticEditCancelledWithoutSave": true
   },
   "olap": {
     "appId": "9f3422be-bc87-4a5a-a42a-67528ee80393",
@@ -20,7 +21,9 @@
     "rollback": "1.000033",
     "diagnostics": "No issues found",
     "receiptFieldsHidden": true,
-    "offlineContent": false
+    "offlineContent": false,
+    "paymentDetailLoads": true,
+    "receiptImageRequests": 0
   },
   "productionAppsChanged": false
 }

@@ -363,6 +363,60 @@
       "collation": "\"default\""
       "acl": null
       "comment": null
+    "IG Receipt ID":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "IG Receipt ID"
+      "ordinal": 19
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Service-owned primary asset ID in mw_agent; not an AppSheet Ref"
+    "Receipt Image":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Receipt Image"
+      "ordinal": 20
+      "data_type": "text"
+      "type_schema": "pg_catalog"
+      "type_name": "text"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "x"
+      "compression": ""
+      "default_expression": null
+      "collation": "\"default\""
+      "acl": null
+      "comment": "Bucket-root AppSheet GCS reference: // followed by the immutable object key"
+    "Receipt Received At":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Receipt Received At"
+      "ordinal": 21
+      "data_type": "timestamp without time zone"
+      "type_schema": "pg_catalog"
+      "type_name": "timestamp"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": null
+      "collation": null
+      "acl": null
+      "comment": "Durable ingress capture in Asia/Bangkok; not bank transfer time"
   "constraints":
     "Payments_Ref Received By Cash Account_fkey":
       "schema": "public"
@@ -487,6 +541,27 @@
       "update_action": "a"
       "delete_action": "a"
       "match_type": "s"
+      "comment": null
+    "payment_receipt_triplet":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "payment_receipt_triplet"
+      "kind": "c"
+      "definition": "CHECK (\"IG Receipt ID\" IS NULL AND \"Receipt Image\" IS NULL AND \"Receipt Received At\" IS NULL OR\
+        \ \"IG Receipt ID\" IS NOT NULL AND \"IG Receipt ID\" ~ '^[0-9a-f]{64}$'::text AND \"Receipt Image\" IS NOT NULL AND\
+        \ \"Receipt Received At\" IS NOT NULL)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 19
+      - 20
+      - 21
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
       "comment": null
   "indexes":
     "Payments_pkey":
@@ -892,5 +967,38 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "a00_receipt_evidence":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a00_receipt_evidence"
+      "definition": "CREATE TRIGGER a00_receipt_evidence BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ guard_payment_receipt_evidence()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_payment_receipt_evidence()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
   "policies": {}
   "dependencies": []
+"evidence":
+  "/content/columns/IG Receipt ID":
+    "reference": "outputs/r046-receipt-evidence/sql-metadata.json"
+    "reason": "R046 verified PROD V49/V50 additive receipt schema; DEV/PROD metadata equal"
+    "state": "value"
+  "/content/columns/Receipt Image":
+    "reference": "outputs/r046-receipt-evidence/sql-metadata.json"
+    "reason": "R046 verified PROD V49/V50 additive receipt schema; DEV/PROD metadata equal"
+    "state": "value"
+  "/content/columns/Receipt Received At":
+    "reference": "outputs/r046-receipt-evidence/sql-metadata.json"
+    "reason": "R046 verified PROD V49/V50 additive receipt schema; DEV/PROD metadata equal"
+    "state": "value"
+  "/content/constraints/payment_receipt_triplet":
+    "reference": "outputs/r046-receipt-evidence/sql-metadata.json"
+    "reason": "R046 verified PROD V49/V50 additive receipt schema; DEV/PROD metadata equal"
+    "state": "value"
+  "/content/triggers/a00_receipt_evidence":
+    "reference": "outputs/r046-receipt-evidence/sql-metadata.json"
+    "reason": "R046 verified PROD V49/V50 additive receipt schema; DEV/PROD metadata equal"
+    "state": "value"

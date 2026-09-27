@@ -1,0 +1,16 @@
+{
+  "sourceCommit": "817c9b47a574227874cbfb407aaa08794cb50dac",
+  "debian": {
+    "run": 259,
+    "skipped": 30,
+    "result": "OK",
+    "seconds": 2.994
+  },
+  "windows": {
+    "run": 259,
+    "skipped": 34,
+    "result": "OK",
+    "seconds": 16.888
+  },
+  "addedRecoveryCase": "Explicit terminal receipt preparation uses fresh API URL without requeuing or financial effects"
+}
