@@ -65,3 +65,7 @@ Synthetic checks can use `test/receipt-storage/<run-id>/` with isolated temporar
 ## AppSheet connection follow-up
 
 The owner subsequently requested connectivity for DEV and PROD. Account prerequisites pass, but both effective service-account key-creation policies prohibit the JSON keys required by AppSheet. No IAM/policy/key/store/app changes were applied. [Prepared configuration, evidence and required scoped exception](APPSHEET_CONNECTION.md).
+
+## AppSheet connectivity configured — 27 September 2026
+
+Both account stores are now saved and tested. Owner approved the key exception and then requested standard bucket-level access without fine-grained restrictions or frequent exceptions. The earlier synthetic-only/read-only proposal is superseded: both dedicated identities have Storage Object User and Storage Bucket Viewer on this one bucket. A standing key-creation exception is limited to those identities. No public access or additional bucket was introduced. [Current configuration, tests and remaining app-table work](APPSHEET_CONNECTION.md).

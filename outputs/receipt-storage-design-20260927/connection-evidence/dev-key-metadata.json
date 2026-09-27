@@ -1,0 +1,10 @@
+[
+  {
+    "keyAlgorithm": "KEY_ALG_RSA_2048",
+    "keyOrigin": "GOOGLE_PROVIDED",
+    "keyType": "USER_MANAGED",
+    "name": "projects/clever-oasis-508610-n7/serviceAccounts/appsheet-receipts-dev@clever-oasis-508610-n7.iam.gserviceaccount.com/keys/22234b65330fea9f2419d85ac8871d2bded393d5",
+    "validAfterTime": "2026-09-27T04:20:33Z",
+    "validBeforeTime": "9999-12-31T23:59:59Z"
+  }
+]
