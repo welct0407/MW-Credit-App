@@ -53,7 +53,7 @@
   "note": "Payments schema regenerated against DEV database-3. Allocation Method is already Text, so no enum change is necessary.\
     \ Existing allocations/Repayments/cash-ledger Refs expose canonical posting results. Existing dollar-format issue on some\
     \ OLAP payment/allocation prices remains recorded separately."
-  "manual_upload_status": "Shared schema reconciled; post-upload read verification pending"
+  "manual_upload_status": "Shared schema reconciled; post-upload load/sync and read-only Payment detail verified"
 "evidence":
   "/content/version":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
@@ -65,5 +65,5 @@
     "state": "value"
   "/content/manual_upload_status":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
-    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "reason": "Native desktop upload verification completed after owner enabled extension file access"
     "state": "value"

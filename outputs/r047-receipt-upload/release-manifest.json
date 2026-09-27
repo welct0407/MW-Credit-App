@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "release": "R047",
-  "revision": 2,
-  "status": "open-dev-configured-upload-test-blocked",
+  "revision": 3,
+  "status": "open-dev-verified-owner-review-pending",
   "scope": [
     "Collection borrower linked-payment receipts",
     "Receive Selected Charges",
@@ -12,7 +12,7 @@
     "R046 unpromoted AppSheet receipt UI integrated in DEV"
   ],
   "git": {
-    "implementationCommit": null,
+    "implementationCommit": "525f75eed29f9c17985dedad27b2d73c0e2e5755",
     "finalTag": null,
     "baselineCommit": "1b8081f272c900f413151c4b8e9ba0c3721797f7"
   },
@@ -151,7 +151,7 @@
     "productionWriteTests": null
   },
   "validation": {
-    "A_devIntegrated": "Manual upload configured; native file upload/GCS/save/replacement and post-upload read tests pending",
+    "A_devIntegrated": "Passed desktop create/edit/replacement, actual GCS objects, financial invariance, Collection and OLAP read/sync; both editors clear; owner review pending",
     "B_candidateCaptured": "pending",
     "C_databaseReady": "pending",
     "D_rcReady": "pending",
@@ -167,7 +167,7 @@
   "timestamps": {
     "started": "2026-09-27",
     "promoted": null,
-    "validated": null
+    "validated": "2026-09-27"
   },
   "publication": {
     "evidenceCommit": "containing Git commit; Open release is not frozen",

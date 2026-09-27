@@ -1,6 +1,6 @@
 # R047 — Manual Payment receipt upload
 
-27 September 2026. **DEV configuration applied; end-to-end upload verification pending.** R047 remains Open. Owner requested receipt upload in both create and edit Payment windows. No production changes in this component.
+27 September 2026. **DEV implementation and desktop end-to-end verification complete; ready for owner review.** R047 remains Open. Owner requested receipt upload in both create and edit Payment windows. No production changes in this component.
 
 ## Receipt ownership
 
@@ -8,7 +8,7 @@ The private bucket is shared: `mw-payment-receipts-prod-508610-n7`. AppSheet use
 
 Agent-handled receipts retain their `mw_agent.receipt_assets` and `receipt_payment_links` catalogue and protected Payments projection (`IG Receipt ID`, `Receipt Image`, `Receipt Received At`). These describe agent intake, processing and linkage. Manual AppSheet uploads are linked directly to the existing Payment through `Uploaded Receipt`; they do not create agent/message records, trigger OCR, request another approval or automatically create another Payment. The agent database is therefore **not an inventory of every receipt object in GCS**. Any future inventory/cleanup process must consult both sources and must not classify manual objects as orphaned merely because they are absent from `receipt_assets`.
 
-One current manual image is supported per Payment. Replacing/removing it changes the Payment reference; there is no user-facing attachment history or multi-image list. Agent originals remain independent and protected. No automatic GCS object deletion was added. The same image bytes are used for AppSheet viewing; there is no separate application display-copy pipeline.
+One current manual image is supported per Payment. Replacing/removing it changes the Payment reference; there is no user-facing attachment history or multi-image list. Agent originals remain independent and protected. No automatic GCS object deletion was added. AppSheet reads the stored manual image directly; there is no separate application display-copy pipeline. Native AppSheet upload processing changed the PNG bytes compared with the local fixtures (verified GCS MD5 differs), so this route does not promise byte-for-byte preservation of the selected source file. Agent-original preservation remains independent.
 
 ## Applied DEV changes
 
@@ -42,7 +42,9 @@ Both virtuals are shown only outside forms when either image exists. The slice r
 
 OLAP Payments was regenerated. Both new fields are hidden, noneditable and nonsearchable; image type is Image and sensitive, timestamp DateTime with no initial formula. OLAP stays read-only. Existing financial posting, selected-charge receiving, notifications, reporting and agent/audit relay code are unchanged.
 
-AppSheet's native object-store mechanism writes image files and stores their reference in the column ([official documentation](https://support.google.com/appsheet/answer/10106769?hl=en)). The configured folder is **not yet a verified final GCS object key**: native create/edit upload testing must establish the saved path and actual object location, including any AppSheet prefix. Do not hard-code an assumed path in integrations.
+AppSheet's native object-store mechanism writes image files and stores their reference in the column ([official documentation](https://support.google.com/appsheet/answer/10106769?hl=en)). The native path is now verified. For the existing test Payment, SQL stores `manual-receipts/dev/R046-payment.Uploaded Receipt.095636.png`, while GCS stores `appsheet/data/MW_OLTP_DEV_20260919_578763613/manual_receipts/dev/R046_payment.Uploaded_Receipt.095636.png`. AppSheet adds its app folder and normalizes spaces/hyphens to underscores. Preserve the native SQL reference; do not replace it with the normalized object key. [GCS metadata evidence](gcs-verification.json) records all three test objects, sizes, content types, generations and hashes. The first two uploads of the same fixture have identical stored MD5; replacement has a different MD5. Full-size rendering verified their content.
+
+The timestamp is maintained by SQL and can require the next data sync to appear after save. A fresh sync populated it and updated Collection sorting. Existing app sessions may need a reload to acquire the new app definition; subsequent uploads use normal Save/Sync.
 
 ## Verification and remaining work
 
@@ -50,17 +52,23 @@ AppSheet's native object-store mechanism writes image files and stores their ref
 - [Database CI](ci.txt) passed, including insert/replace/remove timestamp behavior, unchanged financial rows/children, existing receiving methods and transaction/concurrency checks.
 - [Agent compatibility test](agent-compatibility.txt) passed with a manual image already on the synthetic Payment before agent attachment; attachment/retry/protected metadata checks passed.
 - DEV V52 migration and [Flyway validation](dev-validate.json) passed (53 validated migrations).
-- Current desktop GUI showed optional upload in posted-Payment edit, ordinary new Payment and Receive Selected Charges forms. Forms were cancelled; no GUI financial writes or file uploads completed.
-- Both saved editors report no issues. Existing synthetic agent receipt still appears in Collection and Payment detail.
+- Desktop GUI upload/save/sync passed on existing agent-backed `R046-payment`; [edit reconciliation](gui-after-edit.json) proves every other Payment field and every allocation, repayment and cash entry stayed unchanged.
+- Created one synthetic manual-only Payment `YpbLleCs6kW3gt6sAIVZIa`, amount 25, against R046-borrower and Synthetic R046 Dad account. It posted with one allocation, one repayment and one cash entry. Collection moved from 25 collected/75 remaining to 50/50. [Creation snapshot](gui-after-create.json).
+- Replaced its image through Payment edit. Path and server timestamp advanced; all other Payment fields and child rows had identical before/after digests, with no additional rows. [Reconciliation](gui-after-replace.json).
+- Collection shows both mixed-source and manual-only cards in descending upload-time order; both open canonical Payment detail. Manual upload and replacement full-size content were visually verified. The agent-backed Payment retains its original agent reference and independent image.
+- All three actual objects were found in the existing private bucket. No permission or bucket changes were made. Old replacement objects remain retained by design.
+- OLAP loaded/synced the new synthetic Payment and its allocation/repayment/cash entry; no Edit action and no manual receipt fields are exposed. Both saved editor versions remain 1.000111/1.000041 with **No issues found**.
 
-**Blocking test setup:** Chrome ChatGPT browser extension in the `mw-credit.com` profile needs **Allow access to file URLs** enabled. The native chooser was reached, but `setFiles` was rejected by that extension setting. No successful storage write is claimed. This is an automation test prerequisite, not an AppSheet end-user requirement.
+The owner enabled the work-profile ChatGPT extension file-access setting and removed the earlier automation blocker. This is not an AppSheet end-user requirement. Phone-camera capture has not been tested; desktop file selection, creation, edit and replacement are verified. The optional control in Receive Selected Charges was verified; its financial workflow regression is covered by the prior selected-charge GUI tests and current SQL CI, not a second new selected-charge transaction in this upload test.
 
-After enabled: upload `synthetic-upload.png` on `R046-payment`, save/sync and run `Verify-ReceiptUploadDev.py after-edit` to compare all other Payment fields and child rows against [baseline](gui-before.json). Then create a synthetic Payment with upload against R046-borrower, use the synthetic receiving account, reconcile posting, replace with `synthetic-replacement.png`, verify timestamp and no reposting, and inspect both manual-only and agent-backed receipt cards/full-size images. Verify actual objects in the existing bucket with the correct account, retaining private access. Recheck OLAP load/sync and affected read view. Record actual results and screenshots before claiming DEV completion. Phone-camera testing has not been performed.
+Synthetic records and three non-sensitive GCS objects are retained for owner review. No real borrower or PROD financial data was modified.
 
-![DEV posted Payment edit has optional upload](dev-edit-upload-form.png)
+![DEV Collection shows uploaded receipt cards](dev-collection-uploaded.png)
+
+![Replacement receipt full-size](dev-replacement-fullsize.png)
 
 ## Recovery and promotion
 
 Restore the affected AppSheet baseline versions if needed; retain compatible nullable SQL columns while correcting forward. Restoring an app does not undo uploaded objects or financial writes. Full DEV DB restore requires accounting for later shared development. The [backup evidence](development-backup.json) records the private dump and verified restore hash.
 
-PROD remains V50; agent runtime/catalogue, GCS permissions and PROD apps are untouched. This feature is **not ready for promotion** until the pending GUI/GCS checks pass and owner review is complete. Integrated promotion must include outstanding R046 receipt UI, R047 selected-charge and manual-upload changes, apply the exact compatible V51/V52 migrations before RC binding checks, and follow the single master promotion checklist. Replace the DEV upload-folder expression with the chosen PROD folder during RC preparation and verify its native storage path; do not modify ordinary DEV to achieve that substitution. No RC or final release tag has been created.
+PROD remains V50; agent runtime/catalogue, GCS permissions and PROD apps are untouched. This feature is **ready for owner DEV review**. Production authorization and integrated RC preparation/validation remain pending. Integrated promotion must include outstanding R046 receipt UI, R047 selected-charge and manual-upload changes, apply the exact compatible V51/V52 migrations before RC binding checks, and follow the single master promotion checklist. Replace the DEV upload-folder expression with the chosen PROD folder during RC preparation and verify its native storage path; do not modify ordinary DEV to achieve that substitution. No RC or final release tag has been created.

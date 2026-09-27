@@ -27,5 +27,27 @@ with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['
   new=next(p for p in result['payments'] if p['id']=='R046-payment')
   assert new['financial_digest']==old['financial_digest'] and new['uploaded_receipt'] and new['uploaded_at']
   result['original_financial_and_agent_data_unchanged']=True
+ if mode in ['after-create','after-replace']:
+  baseline=json.loads((out/'gui-before.json').read_text())
+  old=next(p for p in baseline['payments'] if p['id']=='R046-payment')
+  original=next(p for p in result['payments'] if p['id']=='R046-payment')
+  assert original['financial_digest']==old['financial_digest']
+  additions=[p for p in result['payments'] if p['id'] not in {x['id'] for x in baseline['payments']}]
+  assert len(additions)==1 and len(result['payments'])==len(baseline['payments'])+1
+  added=additions[0]
+  assert added['status']=='Posted' and added['amount']=='$25.00'
+  assert added['uploaded_receipt'] and added['uploaded_at'] and added['agent_receipt'] is None
+  assert added['child_counts']=={'Payment Allocations':1,'Repayments':1,'Cash Ledger':1}
+  result['original_financial_and_agent_data_unchanged']=True
+  result['one_new_posted_synthetic_payment_with_expected_children']=True
+ if mode=='after-replace':
+  created=json.loads((out/'gui-after-create.json').read_text())
+  assert {p['id'] for p in created['payments']}=={p['id'] for p in result['payments']}
+  for p in result['payments']:
+   prior=next(x for x in created['payments'] if x['id']==p['id'])
+   assert p['financial_digest']==prior['financial_digest']
+  prior=next(x for x in created['payments'] if x['id']==added['id'])
+  assert added['uploaded_receipt']!=prior['uploaded_receipt'] and added['uploaded_at']>prior['uploaded_at']
+  result['replacement_changed_image_and_time_without_reposting']=True
  (out/f'gui-{mode}.json').write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
  print(json.dumps(result,ensure_ascii=False))

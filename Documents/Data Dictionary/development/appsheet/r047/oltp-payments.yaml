@@ -140,7 +140,8 @@
   "unchanged": "Posted financial locks, selected-charge rules, initial status, key, agent-owned evidence protection, cash-account\
     \ defaults, notifications and posting ownership."
   "selected_charge_evidence": "outputs/r047-selected-charges/IMPLEMENTATION.md"
-  "manual_upload_status": "Configured; native GCS upload/save verification pending"
+  "manual_upload_status": "DEV native create/edit/replacement, GCS storage, Collection and financial invariance verified;\
+    \ owner review pending"
 "evidence":
   "/content/version":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
@@ -156,5 +157,5 @@
     "state": "value"
   "/content/manual_upload_status":
     "reference": "outputs/r047-receipt-upload/HANDOVER.md"
-    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "reason": "Native desktop upload verification completed after owner enabled extension file access"
     "state": "value"
