@@ -1,0 +1,263 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.reporting_forecast_inputs_v1"
+  "scope": "development:R048"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "database": "loan_manager_dev"
+  "migration": 53
+  "metadata_source": "outputs/r048-loan-interest/postgresql-affected-definitions.json"
+  "definition_after":
+    "schema": "public"
+    "name": "reporting_forecast_inputs_v1"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,metabase_borrower_reader=r/postgres}"
+    "comment": null
+    "view_definition": " SELECT existing.loan_id,\n    existing.borrower_id,\n    existing.borrower,\n    existing.loan_type,\n\
+      \    existing.loan_status,\n    existing.defaulted,\n    existing.outstanding_principal,\n    existing.reporting_date,\n\
+      \    existing.month_end,\n    existing.loan || jsonb_build_object('original_rate', l.\"Original Daily Interest\
+      \ Rate\") AS loan,\n    existing.charges\n   FROM ( WITH ctx AS (\n                 SELECT olap_reporting_date()\
+      \ AS t\n                ), repayments AS (\n                 SELECT \"Repayments\".\"Ref Loans\" AS loan_id,\n\
+      \                    COALESCE(sum(\"Repayments\".\"Principal Paid\"::numeric) FILTER (WHERE \"Repayments\".\"Payment\
+      \ Date\" <= ctx_1.t), 0::numeric) AS principal,\n                    bool_or(\"Repayments\".\"Payment Date\" IS\
+      \ NULL OR \"Repayments\".\"Principal Paid\" IS NULL OR \"Repayments\".\"Interest Paid\" IS NULL OR \"Repayments\"\
+      .\"Payment Date\" > ctx_1.t) AS invalid\n                   FROM \"Repayments\"\n                     CROSS JOIN\
+      \ ctx ctx_1\n                  GROUP BY \"Repayments\".\"Ref Loans\"\n                ), paid AS (\n          \
+      \       SELECT r_1.\"Ref Charges\" AS charge_id,\n                    sum(r_1.\"Principal Paid\"::numeric) FILTER\
+      \ (WHERE r_1.\"Payment Date\" <= ctx_1.t) AS p,\n                    sum(r_1.\"Interest Paid\"::numeric) FILTER\
+      \ (WHERE r_1.\"Payment Date\" <= ctx_1.t) AS i,\n                    bool_or(r_1.\"Payment Date\" IS NULL OR r_1.\"\
+      Principal Paid\" IS NULL OR r_1.\"Interest Paid\" IS NULL OR r_1.\"Ref Loans\" IS DISTINCT FROM c_1.\"Ref Loans\"\
+      ) AS invalid\n                   FROM \"Repayments\" r_1\n                     LEFT JOIN \"Charges\" c_1 ON c_1.\"\
+      Row ID\" = r_1.\"Ref Charges\"\n                     CROSS JOIN ctx ctx_1\n                  GROUP BY r_1.\"Ref\
+      \ Charges\"\n                ), charges AS (\n                 SELECT c_1.\"Ref Loans\" AS loan_id,\n         \
+      \           jsonb_agg(jsonb_build_object('id', c_1.\"Row ID\", 'date', c_1.\"Charge Date\", 'pdue', c_1.\"Principal\
+      \ Due\"::numeric, 'idue', c_1.\"Interest Due\"::numeric, 'ppaid', COALESCE(p.p, 0::numeric), 'ipaid', COALESCE(p.i,\
+      \ 0::numeric), 'invalid', COALESCE(p.invalid, false) OR c_1.\"Charge Date\" IS NULL OR c_1.\"Principal Due\" IS\
+      \ NULL OR c_1.\"Interest Due\" IS NULL)) AS charges\n                   FROM \"Charges\" c_1\n                \
+      \     LEFT JOIN paid p ON p.charge_id = c_1.\"Row ID\"\n                  GROUP BY c_1.\"Ref Loans\"\n        \
+      \        )\n         SELECT l_1.\"Row ID\" AS loan_id,\n            l_1.\"Ref Borrowers\" AS borrower_id,\n   \
+      \         COALESCE(NULLIF(b.\"Description\", ''::text), b.\"Borrower Name\", l_1.\"Ref Borrowers\", 'Unmapped'::text)\
+      \ AS borrower,\n                CASE l_1.\"Loan Type\"\n                    WHEN 'ดอกเบี้ยรายวัน'::text THEN 'Daily\
+      \ Interest'::text\n                    WHEN 'กำหนดวันชำระ'::text THEN 'Fixed Due Date'::text\n                \
+      \    WHEN 'ผ่อนชำระรายวัน'::text THEN 'Daily Installment'::text\n                    ELSE 'Unknown'::text\n   \
+      \             END AS loan_type,\n            l_1.\"Loan Status\" AS loan_status,\n            COALESCE(l_1.\"Defaulted\"\
+      , false) AS defaulted,\n            l_1.\"Principal Amount\"::numeric - COALESCE(r.principal, 0::numeric) AS outstanding_principal,\n\
+      \            ctx.t AS reporting_date,\n            (date_trunc('month'::text, ctx.t::timestamp with time zone)\
+      \ + '1 mon -1 days'::interval)::date AS month_end,\n            jsonb_build_object('status', l_1.\"Loan Status\"\
+      , 'defaulted', COALESCE(l_1.\"Defaulted\", false), 'start', l_1.\"Loan Date\", 'close', l_1.\"Close Date\", 'balance',\
+      \ l_1.\"Principal Amount\"::numeric - COALESCE(r.principal, 0::numeric), 'daily', l_1.\"Current Daily Interest\"\
+      ::numeric, 'auto', l_1.\"Auto Charge Enabled\", 'interval', l_1.\"Interest Payment Interval\", 'anchor', l_1.\"\
+      Interest Schedule Anchor Date\", 'type', l_1.\"Loan Type\", 'due', l_1.\"Due Date\", 'arrangement', l_1.\"Loan\
+      \ Arrangement\", 'original', l_1.\"Principal Amount\"::numeric, 'payment', l_1.\"Daily Payment Amount\"::numeric,\
+      \ 'fixed', l_1.\"Fixed Interest\"::numeric, 'invalid', l_1.\"Loan Date\" IS NULL OR l_1.\"Principal Amount\" IS\
+      \ NULL OR b.\"Row ID\" IS NULL OR COALESCE(r.invalid, false)) AS loan,\n            COALESCE(c.charges, '[]'::jsonb)\
+      \ AS charges\n           FROM \"Loans\" l_1\n             LEFT JOIN \"Borrowers\" b ON b.\"Row ID\" = l_1.\"Ref\
+      \ Borrowers\"\n             LEFT JOIN repayments r ON r.loan_id = l_1.\"Row ID\"\n             LEFT JOIN charges\
+      \ c ON c.loan_id = l_1.\"Row ID\"\n             CROSS JOIN ctx) existing\n     JOIN \"Loans\" l ON l.\"Row ID\"\
+      \ = existing.loan_id;"
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns_after":
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "loan_id"
+    "ordinal": 1
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "borrower_id"
+    "ordinal": 2
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "borrower"
+    "ordinal": 3
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "loan_type"
+    "ordinal": 4
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "loan_status"
+    "ordinal": 5
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "defaulted"
+    "ordinal": 6
+    "data_type": "boolean"
+    "type_schema": "pg_catalog"
+    "type_name": "bool"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "outstanding_principal"
+    "ordinal": 7
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "reporting_date"
+    "ordinal": 8
+    "data_type": "date"
+    "type_schema": "pg_catalog"
+    "type_name": "date"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "month_end"
+    "ordinal": 9
+    "data_type": "date"
+    "type_schema": "pg_catalog"
+    "type_name": "date"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "loan"
+    "ordinal": 10
+    "data_type": "jsonb"
+    "type_schema": "pg_catalog"
+    "type_name": "jsonb"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "reporting_forecast_inputs_v1"
+    "name": "charges"
+    "ordinal": 11
+    "data_type": "jsonb"
+    "type_schema": "pg_catalog"
+    "type_name": "jsonb"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null

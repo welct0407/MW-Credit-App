@@ -1,4 +1,10 @@
-# R048 — Charge-scoped Collection receipts
+# R048 — Collection receipts, report labels and original loan interest
+
+## Original daily interest and Loan Key — DEV implemented and tested
+
+27 September: owner requested a stored, read-only original daily interest percentage for all loan types, calculated at creation, used in Loan Key and daily-loan principal-repayment recalculation, and visible in loan views. Owner confirmed whole-percentage rounding of the stored rate and existing-DEV-loan backfill. DEV only; owner intends manual PROD changes after review. Starting Git `78fd914557c37827daa8bbddb9f5b1b61e8dc272`; live rollback OLTP1.000125 / OLAP1.000042 / SQLV52. Private dump restored with matching fingerprints. Implementation, checks, recovery and remaining work: [step-by-step record](../outputs/r048-loan-interest/IMPLEMENTATION.md). R048 remains Open; earlier delivered scope below remains intact.
+
+Final DEV: OLTP1.000128 / OLAP1.000045 / SQLV53; both editors zero issues. V53 and both regenerated app schemas/configuration are applied. Stored integer rate, immutable server calculation, historical backfill, Loan Key, read-only forms/detail views, generated slice membership and forecast use are reconciled in DEV dictionary overlays. Full SQL CI and restored-backup invariance passed. GUI loan1000/daily5 stored1%; receipt205 left800/daily8; final800 payoff left0/daily0 with1% retained. Both apps displayed the partial result. Fixture retired, audit records retained. Backfill75/78; three fixed-term rows lack original Due Date/Fixed Interest. Owner review and their later manual PROD execution remain pending. Exact instructions and report dependencies are in the linked handover. Repository checks/publication recorded with this batch; no production mutation, RC or tag.
 
 ## Scope and status
 

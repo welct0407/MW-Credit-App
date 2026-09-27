@@ -1,0 +1,1064 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.olap_loans_analytics"
+  "scope": "development:R048"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "database": "loan_manager_dev"
+  "migration": 53
+  "metadata_source": "outputs/r048-loan-interest/postgresql-affected-definitions.json"
+  "definition_after":
+    "schema": "public"
+    "name": "olap_loans_analytics"
+    "kind": "v"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "n"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": null
+    "comment": null
+    "view_definition": " SELECT existing.\"Row ID\",\n    existing.\"Loan Date\",\n    existing.\"Close Date\",\n   \
+      \ existing.\"Principal Amount\",\n    existing.\"Due Date\",\n    existing.\"Ref Borrowers\",\n    existing.\"\
+      Loan Arrangement\",\n    existing.\"Loan Status\",\n    existing.\"Loan Type\",\n    existing.\"Current Daily Interest\"\
+      ,\n    existing.\"Fixed Interest\",\n    existing.\"Transfer Fee\",\n    existing.\"Interest Payment Interval\"\
+      ,\n    existing.\"Created By\",\n    existing.\"Closed By\",\n    existing.\"Defaulted\",\n    existing.\"Default\
+      \ Loss Amount\",\n    existing.\"Daily Payment Amount\",\n    existing.\"Auto Charge Enabled\",\n    existing.\"\
+      Interest Schedule Anchor Date\",\n    existing.\"Ref Closing Payment\",\n    existing.\"Charge Generation Request\"\
+      ,\n    existing.\"Total Interest Received\",\n    existing.\"Total Principal Received\",\n    existing.\"Outstanding\
+      \ Principal\",\n    existing.\"Total Amount Received\",\n    existing.\"Expected Daily Interest Amount\",\n   \
+      \ existing.\"Borrower Total Interest\",\n    existing.\"Expected Interest This Month\",\n    existing.\"Effective\
+      \ Daily Interest Rate\",\n    existing.\"Principal Recovered by Interest %\",\n    existing.\"Principal Days MTD\"\
+      ,\n    existing.\"Loan Start Day Index\",\n    existing.\"Principal Start Weight\",\n    existing.\"Loan End Date\"\
+      ,\n    existing.\"Loan Duration\",\n    existing.\"30D Principal Days\",\n    existing.\"Loan Age Days\",\n   \
+      \ existing.\"Loan Age Bucket\",\n    existing.\"Defaulted Flag\",\n    existing.\"Maximum Days Late\",\n    existing.\"\
+      Last Interest Charge Date\",\n    existing.\"Accrued Interest Days\",\n    existing.\"Accrued Interest\",\n   \
+      \ existing.\"Daily Installment Base Principal\",\n    existing.\"Ref Disbursed From Cash Account\",\n    existing.\"\
+      Payment Request Cash Account\",\n    existing.\"Payment Request Token\",\n    l.\"Original Daily Interest Rate\"\
+      \n   FROM ( SELECT old_view.\"Row ID\",\n            old_view.\"Loan Date\",\n            old_view.\"Close Date\"\
+      ,\n            old_view.\"Principal Amount\",\n            old_view.\"Due Date\",\n            old_view.\"Ref Borrowers\"\
+      ,\n            old_view.\"Loan Arrangement\",\n            old_view.\"Loan Status\",\n            old_view.\"Loan\
+      \ Type\",\n            old_view.\"Current Daily Interest\",\n            old_view.\"Fixed Interest\",\n       \
+      \     old_view.\"Transfer Fee\",\n            old_view.\"Interest Payment Interval\",\n            old_view.\"\
+      Created By\",\n            old_view.\"Closed By\",\n            old_view.\"Defaulted\",\n            old_view.\"\
+      Default Loss Amount\",\n            old_view.\"Daily Payment Amount\",\n            old_view.\"Auto Charge Enabled\"\
+      ,\n            old_view.\"Interest Schedule Anchor Date\",\n            old_view.\"Ref Closing Payment\",\n   \
+      \         old_view.\"Charge Generation Request\",\n            old_view.\"Total Interest Received\",\n        \
+      \    old_view.\"Total Principal Received\",\n            old_view.\"Outstanding Principal\",\n            old_view.\"\
+      Total Amount Received\",\n            old_view.\"Expected Daily Interest Amount\",\n            old_view.\"Borrower\
+      \ Total Interest\",\n            old_view.\"Expected Interest This Month\",\n            old_view.\"Effective Daily\
+      \ Interest Rate\",\n            old_view.\"Principal Recovered by Interest %\",\n            old_view.\"Principal\
+      \ Days MTD\",\n            old_view.\"Loan Start Day Index\",\n            old_view.\"Principal Start Weight\"\
+      ,\n            old_view.\"Loan End Date\",\n            old_view.\"Loan Duration\",\n            old_view.\"30D\
+      \ Principal Days\",\n            old_view.\"Loan Age Days\",\n            old_view.\"Loan Age Bucket\",\n     \
+      \       old_view.\"Defaulted Flag\",\n            old_view.\"Maximum Days Late\",\n            old_view.\"Last\
+      \ Interest Charge Date\",\n            old_view.\"Accrued Interest Days\",\n            old_view.\"Accrued Interest\"\
+      ,\n            old_view.\"Daily Installment Base Principal\",\n            b.\"Ref Disbursed From Cash Account\"\
+      ,\n            b.\"Payment Request Cash Account\",\n            b.\"Payment Request Token\"\n           FROM (\
+      \ WITH ctx AS (\n                         SELECT q.d,\n                            date_trunc('month'::text, q.d::timestamp\
+      \ with time zone)::date AS ms,\n                            (date_trunc('month'::text, q.d::timestamp with time\
+      \ zone) + '1 mon -1 days'::interval)::date AS me\n                           FROM ( SELECT olap_reporting_date()\
+      \ AS d) q\n                        ), cr AS (\n                         SELECT olap_charges_analytics.\"Ref Loans\"\
+      \ AS id,\n                            max(olap_charges_analytics.\"Days Late\") AS late,\n                    \
+      \        max(olap_charges_analytics.\"Charge Date\") FILTER (WHERE olap_charges_analytics.\"Charge Date\" <= ctx.d)\
+      \ AS last_interest,\n                            max(olap_charges_analytics.\"Charge Date\") AS last_charge,\n\
+      \                            sum(olap_charges_analytics.\"Interest Remaining\") FILTER (WHERE olap_charges_analytics.\"\
+      Charge Date\" > ctx.d AND olap_charges_analytics.\"Charge Date\" <= ctx.me) AS scheduled\n                    \
+      \       FROM olap_charges_analytics\n                             CROSS JOIN ctx\n                          GROUP\
+      \ BY olap_charges_analytics.\"Ref Loans\"\n                        ), br AS (\n                         SELECT\
+      \ \"Loans\".\"Ref Borrowers\" AS id,\n                            sum(\"Loans\".\"Total Interest Received\") AS\
+      \ total\n                           FROM \"Loans\"\n                          GROUP BY \"Loans\".\"Ref Borrowers\"\
+      \n                        ), a AS (\n                         SELECT l_1.\"Row ID\",\n                        \
+      \    l_1.\"Loan Date\",\n                            l_1.\"Close Date\",\n                            l_1.\"Principal\
+      \ Amount\",\n                            l_1.\"Due Date\",\n                            l_1.\"Ref Borrowers\",\n\
+      \                            l_1.\"Loan Arrangement\",\n                            l_1.\"Loan Status\",\n    \
+      \                        l_1.\"Loan Type\",\n                            l_1.\"Current Daily Interest\",\n    \
+      \                        l_1.\"Fixed Interest\",\n                            l_1.\"Transfer Fee\",\n         \
+      \                   l_1.\"Interest Payment Interval\",\n                            l_1.\"Created By\",\n     \
+      \                       l_1.\"Closed By\",\n                            l_1.\"Defaulted\",\n                  \
+      \          l_1.\"Default Loss Amount\",\n                            l_1.\"Daily Payment Amount\",\n          \
+      \                  l_1.\"Auto Charge Enabled\",\n                            l_1.\"Interest Schedule Anchor Date\"\
+      ,\n                            l_1.\"Ref Closing Payment\",\n                            l_1.\"Charge Generation\
+      \ Request\",\n                            l_1.\"Total Interest Received\",\n                            l_1.\"\
+      Total Principal Received\",\n                            l_1.\"Outstanding Principal\",\n                     \
+      \       l_1.\"Total Amount Received\",\n                            l_1.\"Expected Daily Interest Amount\",\n \
+      \                           COALESCE(br.total, 0::numeric) AS \"Borrower Total Interest\",\n                  \
+      \              CASE\n                                    WHEN COALESCE(l_1.\"Principal Amount\"::numeric, 0::numeric)\
+      \ > 0::numeric THEN COALESCE(l_1.\"Total Interest Received\", 0::numeric) / l_1.\"Principal Amount\"::numeric\n\
+      \                                    ELSE 0::numeric\n                                END AS \"Principal Recovered\
+      \ by Interest %\",\n                                CASE\n                                    WHEN l_1.\"Loan Date\"\
+      \ > ctx.d THEN 0::numeric\n                                    ELSE COALESCE(l_1.\"Principal Amount\"::numeric,\
+      \ 0::numeric) *\n                                    CASE\nWHEN l_1.\"Loan Date\" >= ctx.ms AND l_1.\"Loan Date\"\
+      \ <= ctx.me THEN (ctx.d - l_1.\"Loan Date\" + 1)::numeric\nELSE EXTRACT(day FROM ctx.d)\n                     \
+      \               END\n                                END AS \"Principal Days MTD\",\n                         \
+      \   (l_1.\"Loan Date\" - '2000-01-01'::date)::numeric AS \"Loan Start Day Index\",\n                          \
+      \  l_1.\"Close Date\" AS \"Loan End Date\",\n                                CASE\n                           \
+      \         WHEN l_1.\"Close Date\" IS NOT NULL THEN l_1.\"Close Date\" - l_1.\"Loan Date\" + 1\n               \
+      \                     ELSE NULL::integer\n                                END AS \"Loan Duration\",\n         \
+      \                       CASE\n                                    WHEN l_1.\"Loan Date\" > ctx.d THEN 0::numeric\n\
+      \                                    ELSE COALESCE(l_1.\"Principal Amount\"::numeric, 0::numeric) * (ctx.d - GREATEST(l_1.\"\
+      Loan Date\", ctx.d - 29) + 1)::numeric\n                                END AS \"30D Principal Days\",\n      \
+      \                      ctx.d - l_1.\"Loan Date\" AS \"Loan Age Days\",\n                            COALESCE(l_1.\"\
+      Defaulted\", false) AS \"Defaulted Flag\",\n                            GREATEST(0, cr.late) AS \"Maximum Days\
+      \ Late\",\n                            cr.last_interest AS \"Last Interest Charge Date\",\n                   \
+      \         GREATEST(0, ctx.d - COALESCE(cr.last_interest, l_1.\"Loan Date\")) AS \"Accrued Interest Days\",\n  \
+      \                          cr.last_charge,\n                            COALESCE(cr.scheduled, 0::numeric) AS scheduled,\n\
+      \                            LEAST(l_1.\"Due Date\", ctx.me) AS forecast_end,\n                            l_1.\"\
+      Due Date\" - l_1.\"Loan Date\" + 1 AS term_days\n                           FROM \"Loans\" l_1\n              \
+      \               CROSS JOIN ctx\n                             LEFT JOIN cr ON cr.id = l_1.\"Row ID\"\n         \
+      \                    LEFT JOIN br ON br.id = l_1.\"Ref Borrowers\"\n                        ), b AS (\n       \
+      \                  SELECT a.\"Row ID\",\n                            a.\"Loan Date\",\n                       \
+      \     a.\"Close Date\",\n                            a.\"Principal Amount\",\n                            a.\"\
+      Due Date\",\n                            a.\"Ref Borrowers\",\n                            a.\"Loan Arrangement\"\
+      ,\n                            a.\"Loan Status\",\n                            a.\"Loan Type\",\n             \
+      \               a.\"Current Daily Interest\",\n                            a.\"Fixed Interest\",\n            \
+      \                a.\"Transfer Fee\",\n                            a.\"Interest Payment Interval\",\n          \
+      \                  a.\"Created By\",\n                            a.\"Closed By\",\n                          \
+      \  a.\"Defaulted\",\n                            a.\"Default Loss Amount\",\n                            a.\"Daily\
+      \ Payment Amount\",\n                            a.\"Auto Charge Enabled\",\n                            a.\"Interest\
+      \ Schedule Anchor Date\",\n                            a.\"Ref Closing Payment\",\n                           \
+      \ a.\"Charge Generation Request\",\n                            a.\"Total Interest Received\",\n              \
+      \              a.\"Total Principal Received\",\n                            a.\"Outstanding Principal\",\n    \
+      \                        a.\"Total Amount Received\",\n                            a.\"Expected Daily Interest\
+      \ Amount\",\n                            a.\"Borrower Total Interest\",\n                            a.\"Principal\
+      \ Recovered by Interest %\",\n                            a.\"Principal Days MTD\",\n                         \
+      \   a.\"Loan Start Day Index\",\n                            a.\"Loan End Date\",\n                           \
+      \ a.\"Loan Duration\",\n                            a.\"30D Principal Days\",\n                            a.\"\
+      Loan Age Days\",\n                            a.\"Defaulted Flag\",\n                            a.\"Maximum Days\
+      \ Late\",\n                            a.\"Last Interest Charge Date\",\n                            a.\"Accrued\
+      \ Interest Days\",\n                            a.last_charge,\n                            a.scheduled,\n    \
+      \                        a.forecast_end,\n                            a.term_days,\n                          \
+      \  COALESCE(a.\"Principal Amount\"::numeric, 0::numeric) * a.\"Loan Start Day Index\" AS \"Principal Start Weight\"\
+      ,\n                                CASE\n                                    WHEN a.\"Loan Age Days\" <= 10 THEN\
+      \ '0-10 Days'::text\n                                    WHEN a.\"Loan Age Days\" <= 20 THEN '11-20 Days'::text\n\
+      \                                    WHEN a.\"Loan Age Days\" <= 30 THEN '21-30 Days'::text\n                 \
+      \                   WHEN a.\"Loan Age Days\" <= 60 THEN '31-60 Days'::text\n                                  \
+      \  ELSE '60+ Days'::text\n                                END AS \"Loan Age Bucket\",\n                       \
+      \         CASE\n                                    WHEN a.\"Auto Charge Enabled\" AND a.\"Loan Type\" = 'ดอกเบี้ยรายวัน'::text\
+      \ THEN COALESCE(a.\"Current Daily Interest\"::numeric, 0::numeric) * a.\"Accrued Interest Days\"::numeric\n   \
+      \                                 ELSE 0::numeric\n                                END AS \"Accrued Interest\"\
+      ,\n                                CASE\n                                    WHEN a.\"Loan Type\" = 'ผ่อนชำระรายวัน'::text\
+      \ AND a.\"Loan Date\" IS NOT NULL AND a.\"Due Date\" >= a.\"Loan Date\" THEN floor(COALESCE(a.\"Principal Amount\"\
+      ::numeric, 0::numeric) / NULLIF(a.term_days, 0)::numeric)\n                                    ELSE 0::numeric\n\
+      \                                END AS \"Daily Installment Base Principal\",\n                               \
+      \ CASE\n                                    WHEN COALESCE(a.\"Outstanding Principal\", 0::numeric) <= 0::numeric\
+      \ THEN 0::numeric\n                                    ELSE\n                                    CASE a.\"Loan\
+      \ Type\"\nWHEN 'ดอกเบี้ยรายวัน'::text THEN COALESCE(a.\"Current Daily Interest\"::numeric, 0::numeric) / a.\"Outstanding\
+      \ Principal\"\nWHEN 'กำหนดวันชำระ'::text THEN COALESCE(a.\"Fixed Interest\"::numeric, 0::numeric) / NULLIF(a.term_days,\
+      \ 0)::numeric / a.\"Outstanding Principal\"\nWHEN 'ผ่อนชำระรายวัน'::text THEN (COALESCE(a.\"Daily Payment Amount\"\
+      ::numeric, 0::numeric) * a.term_days::numeric - COALESCE(a.\"Principal Amount\"::numeric, 0::numeric)) / NULLIF(a.term_days,\
+      \ 0)::numeric / a.\"Outstanding Principal\"\nELSE 0::numeric\n                                    END\n       \
+      \                         END AS \"Effective Daily Interest Rate\"\n                           FROM a\n       \
+      \                 ), final AS (\n                         SELECT b_1.\"Row ID\",\n                            b_1.\"\
+      Loan Date\",\n                            b_1.\"Close Date\",\n                            b_1.\"Principal Amount\"\
+      ,\n                            b_1.\"Due Date\",\n                            b_1.\"Ref Borrowers\",\n        \
+      \                    b_1.\"Loan Arrangement\",\n                            b_1.\"Loan Status\",\n            \
+      \                b_1.\"Loan Type\",\n                            b_1.\"Current Daily Interest\",\n            \
+      \                b_1.\"Fixed Interest\",\n                            b_1.\"Transfer Fee\",\n                 \
+      \           b_1.\"Interest Payment Interval\",\n                            b_1.\"Created By\",\n             \
+      \               b_1.\"Closed By\",\n                            b_1.\"Defaulted\",\n                          \
+      \  b_1.\"Default Loss Amount\",\n                            b_1.\"Daily Payment Amount\",\n                  \
+      \          b_1.\"Auto Charge Enabled\",\n                            b_1.\"Interest Schedule Anchor Date\",\n \
+      \                           b_1.\"Ref Closing Payment\",\n                            b_1.\"Charge Generation Request\"\
+      ,\n                            b_1.\"Total Interest Received\",\n                            b_1.\"Total Principal\
+      \ Received\",\n                            b_1.\"Outstanding Principal\",\n                            b_1.\"Total\
+      \ Amount Received\",\n                            b_1.\"Expected Daily Interest Amount\",\n                   \
+      \         b_1.\"Borrower Total Interest\",\n                            b_1.\"Principal Recovered by Interest %\"\
+      ,\n                            b_1.\"Principal Days MTD\",\n                            b_1.\"Loan Start Day Index\"\
+      ,\n                            b_1.\"Loan End Date\",\n                            b_1.\"Loan Duration\",\n   \
+      \                         b_1.\"30D Principal Days\",\n                            b_1.\"Loan Age Days\",\n   \
+      \                         b_1.\"Defaulted Flag\",\n                            b_1.\"Maximum Days Late\",\n   \
+      \                         b_1.\"Last Interest Charge Date\",\n                            b_1.\"Accrued Interest\
+      \ Days\",\n                            b_1.last_charge,\n                            b_1.scheduled,\n         \
+      \                   b_1.forecast_end,\n                            b_1.term_days,\n                           \
+      \ b_1.\"Principal Start Weight\",\n                            b_1.\"Loan Age Bucket\",\n                     \
+      \       b_1.\"Accrued Interest\",\n                            b_1.\"Daily Installment Base Principal\",\n    \
+      \                        b_1.\"Effective Daily Interest Rate\",\n                                CASE\n       \
+      \                             WHEN b_1.\"Loan Status\" = 'ปิดยอดแล้ว'::text THEN 0::numeric\n                 \
+      \                   WHEN NOT COALESCE(b_1.\"Auto Charge Enabled\", false) OR b_1.\"Loan Type\" = 'ดอกเบี้ยรายวัน'::text\
+      \ AND COALESCE(b_1.\"Current Daily Interest\"::numeric, 0::numeric) = 0::numeric THEN b_1.scheduled\n         \
+      \                           WHEN b_1.\"Loan Type\" = 'ดอกเบี้ยรายวัน'::text THEN GREATEST(0::numeric, b_1.\"Accrued\
+      \ Interest\") + COALESCE(b_1.\"Current Daily Interest\"::numeric, 0::numeric) * (ctx.me - ctx.d)::numeric\n   \
+      \                                 WHEN b_1.\"Loan Type\" = 'กำหนดวันชำระ'::text THEN\n                        \
+      \            CASE\nWHEN b_1.\"Due Date\" > ctx.d AND b_1.\"Due Date\" <= ctx.me THEN COALESCE(b_1.\"Fixed Interest\"\
+      ::numeric, 0::numeric)\nELSE 0::numeric\n                                    END\n                            \
+      \        WHEN b_1.\"Loan Type\" = 'ผ่อนชำระรายวัน'::text THEN\n                                    CASE\nWHEN b_1.last_charge\
+      \ IS NOT NULL AND b_1.forecast_end > b_1.last_charge THEN COALESCE(b_1.\"Daily Payment Amount\"::numeric, 0::numeric)\
+      \ * (b_1.forecast_end - b_1.last_charge)::numeric - (floor(COALESCE(b_1.\"Principal Amount\"::numeric, 0::numeric)\
+      \ / NULLIF(b_1.term_days, 0)::numeric) * (b_1.forecast_end - b_1.last_charge)::numeric + GREATEST(0::numeric, LEAST((b_1.forecast_end\
+      \ - b_1.\"Loan Date\" + 1)::numeric, mod(COALESCE(b_1.\"Principal Amount\"::numeric, 0::numeric), NULLIF(b_1.term_days,\
+      \ 0)::numeric)) - (b_1.last_charge - b_1.\"Loan Date\" + 1)::numeric))\nELSE 0::numeric\n                     \
+      \               END\n                                    ELSE 0::numeric\n                                END AS\
+      \ \"Expected Interest This Month\"\n                           FROM b b_1\n                             CROSS JOIN\
+      \ ctx\n                        )\n                 SELECT x.\"Row ID\",\n                    x.\"Loan Date\",\n\
+      \                    x.\"Close Date\",\n                    x.\"Principal Amount\",\n                    x.\"Due\
+      \ Date\",\n                    x.\"Ref Borrowers\",\n                    x.\"Loan Arrangement\",\n            \
+      \        x.\"Loan Status\",\n                    x.\"Loan Type\",\n                    x.\"Current Daily Interest\"\
+      ,\n                    x.\"Fixed Interest\",\n                    x.\"Transfer Fee\",\n                    x.\"\
+      Interest Payment Interval\",\n                    x.\"Created By\",\n                    x.\"Closed By\",\n   \
+      \                 x.\"Defaulted\",\n                    x.\"Default Loss Amount\",\n                    x.\"Daily\
+      \ Payment Amount\",\n                    x.\"Auto Charge Enabled\",\n                    x.\"Interest Schedule\
+      \ Anchor Date\",\n                    x.\"Ref Closing Payment\",\n                    x.\"Charge Generation Request\"\
+      ,\n                    x.\"Total Interest Received\",\n                    x.\"Total Principal Received\",\n  \
+      \                  x.\"Outstanding Principal\",\n                    x.\"Total Amount Received\",\n           \
+      \         x.\"Expected Daily Interest Amount\",\n                    round(x.\"Borrower Total Interest\", 0) AS\
+      \ \"Borrower Total Interest\",\n                    round(x.\"Expected Interest This Month\", 0) AS \"Expected\
+      \ Interest This Month\",\n                    round(COALESCE(x.\"Effective Daily Interest Rate\", 0::numeric),\
+      \ 4) AS \"Effective Daily Interest Rate\",\n                    round(x.\"Principal Recovered by Interest %\",\
+      \ 2) AS \"Principal Recovered by Interest %\",\n                    x.\"Principal Days MTD\",\n               \
+      \     round(x.\"Loan Start Day Index\", 0) AS \"Loan Start Day Index\",\n                    round(x.\"Principal\
+      \ Start Weight\", 0) AS \"Principal Start Weight\",\n                    x.\"Loan End Date\",\n               \
+      \     x.\"Loan Duration\",\n                    round(x.\"30D Principal Days\", 2) AS \"30D Principal Days\",\n\
+      \                    x.\"Loan Age Days\",\n                    x.\"Loan Age Bucket\",\n                    x.\"\
+      Defaulted Flag\",\n                    x.\"Maximum Days Late\",\n                    x.\"Last Interest Charge Date\"\
+      ,\n                    x.\"Accrued Interest Days\",\n                    round(x.\"Accrued Interest\", 0) AS \"\
+      Accrued Interest\",\n                    x.\"Daily Installment Base Principal\"\n                   FROM final\
+      \ x) old_view\n             JOIN \"Loans\" b ON b.\"Row ID\" = old_view.\"Row ID\") existing\n     JOIN \"Loans\"\
+      \ l ON l.\"Row ID\" = existing.\"Row ID\";"
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "columns_after":
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Row ID"
+    "ordinal": 1
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Loan Date"
+    "ordinal": 2
+    "data_type": "date"
+    "type_schema": "pg_catalog"
+    "type_name": "date"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Close Date"
+    "ordinal": 3
+    "data_type": "date"
+    "type_schema": "pg_catalog"
+    "type_name": "date"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Principal Amount"
+    "ordinal": 4
+    "data_type": "money"
+    "type_schema": "pg_catalog"
+    "type_name": "money"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Due Date"
+    "ordinal": 5
+    "data_type": "date"
+    "type_schema": "pg_catalog"
+    "type_name": "date"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Ref Borrowers"
+    "ordinal": 6
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Loan Arrangement"
+    "ordinal": 7
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Loan Status"
+    "ordinal": 8
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Loan Type"
+    "ordinal": 9
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Current Daily Interest"
+    "ordinal": 10
+    "data_type": "money"
+    "type_schema": "pg_catalog"
+    "type_name": "money"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Fixed Interest"
+    "ordinal": 11
+    "data_type": "money"
+    "type_schema": "pg_catalog"
+    "type_name": "money"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Transfer Fee"
+    "ordinal": 12
+    "data_type": "money"
+    "type_schema": "pg_catalog"
+    "type_name": "money"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Interest Payment Interval"
+    "ordinal": 13
+    "data_type": "integer"
+    "type_schema": "pg_catalog"
+    "type_name": "int4"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Created By"
+    "ordinal": 14
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Closed By"
+    "ordinal": 15
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Defaulted"
+    "ordinal": 16
+    "data_type": "boolean"
+    "type_schema": "pg_catalog"
+    "type_name": "bool"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Default Loss Amount"
+    "ordinal": 17
+    "data_type": "money"
+    "type_schema": "pg_catalog"
+    "type_name": "money"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Daily Payment Amount"
+    "ordinal": 18
+    "data_type": "money"
+    "type_schema": "pg_catalog"
+    "type_name": "money"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Auto Charge Enabled"
+    "ordinal": 19
+    "data_type": "boolean"
+    "type_schema": "pg_catalog"
+    "type_name": "bool"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Interest Schedule Anchor Date"
+    "ordinal": 20
+    "data_type": "date"
+    "type_schema": "pg_catalog"
+    "type_name": "date"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Ref Closing Payment"
+    "ordinal": 21
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Charge Generation Request"
+    "ordinal": 22
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Total Interest Received"
+    "ordinal": 23
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Total Principal Received"
+    "ordinal": 24
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Outstanding Principal"
+    "ordinal": 25
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Total Amount Received"
+    "ordinal": 26
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Expected Daily Interest Amount"
+    "ordinal": 27
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Borrower Total Interest"
+    "ordinal": 28
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Expected Interest This Month"
+    "ordinal": 29
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Effective Daily Interest Rate"
+    "ordinal": 30
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Principal Recovered by Interest %"
+    "ordinal": 31
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Principal Days MTD"
+    "ordinal": 32
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Loan Start Day Index"
+    "ordinal": 33
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Principal Start Weight"
+    "ordinal": 34
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Loan End Date"
+    "ordinal": 35
+    "data_type": "date"
+    "type_schema": "pg_catalog"
+    "type_name": "date"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Loan Duration"
+    "ordinal": 36
+    "data_type": "integer"
+    "type_schema": "pg_catalog"
+    "type_name": "int4"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "30D Principal Days"
+    "ordinal": 37
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Loan Age Days"
+    "ordinal": 38
+    "data_type": "integer"
+    "type_schema": "pg_catalog"
+    "type_name": "int4"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Loan Age Bucket"
+    "ordinal": 39
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Defaulted Flag"
+    "ordinal": 40
+    "data_type": "boolean"
+    "type_schema": "pg_catalog"
+    "type_name": "bool"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Maximum Days Late"
+    "ordinal": 41
+    "data_type": "integer"
+    "type_schema": "pg_catalog"
+    "type_name": "int4"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Last Interest Charge Date"
+    "ordinal": 42
+    "data_type": "date"
+    "type_schema": "pg_catalog"
+    "type_name": "date"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Accrued Interest Days"
+    "ordinal": 43
+    "data_type": "integer"
+    "type_schema": "pg_catalog"
+    "type_name": "int4"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Accrued Interest"
+    "ordinal": 44
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Daily Installment Base Principal"
+    "ordinal": 45
+    "data_type": "numeric"
+    "type_schema": "pg_catalog"
+    "type_name": "numeric"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "m"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Ref Disbursed From Cash Account"
+    "ordinal": 46
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Payment Request Cash Account"
+    "ordinal": 47
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Payment Request Token"
+    "ordinal": 48
+    "data_type": "text"
+    "type_schema": "pg_catalog"
+    "type_name": "text"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "x"
+    "compression": ""
+    "default_expression": null
+    "collation": "\"default\""
+    "acl": null
+    "comment": null
+  - "schema": "public"
+    "relation": "olap_loans_analytics"
+    "name": "Original Daily Interest Rate"
+    "ordinal": 49
+    "data_type": "integer"
+    "type_schema": "pg_catalog"
+    "type_name": "int4"
+    "not_null": false
+    "identity": ""
+    "generated": ""
+    "dimensions": 0
+    "storage": "p"
+    "compression": ""
+    "default_expression": null
+    "collation": null
+    "acl": null
+    "comment": null

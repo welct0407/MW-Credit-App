@@ -1,5 +1,7 @@
 # Project scripts and shared dependencies
 
+R048 original-rate tools: `database/Backup-OriginalDailyInterest.py` captures/restores and rehearses a DEV backup; `database/Invoke-OriginalRateFixture.ps1` manages only the named DEV synthetic fixture (seed/prepare-charge/state/retire); `dictionary/capture_r048_interest.py` reads affected DEV catalog metadata. Review their current guards before reuse; fixture creation refuses an existing fixture. `Test-OriginalDailyInterest.sql` and stored-rate forecast assertions run through `database/Test-CI.ps1`. [Evidence](../outputs/r048-loan-interest/IMPLEMENTATION.md).
+
 Maintained automation belongs in scripts/. Generated files belong in outputs/.
 
 The owner's single-file dictionary upload is a deliberate output-location exception: double-click [Export Data Dictionary.cmd](Export%20Data%20Dictionary.cmd) to generate the local, Git-ignored `Documents/Data_Dictionary_ChatGPT.md`. See the [export instructions](../Documents/Data_Dictionary_Export.md). It performs no AI/network calls or Git mutations.

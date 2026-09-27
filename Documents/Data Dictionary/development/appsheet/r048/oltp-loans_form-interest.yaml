@@ -1,0 +1,24 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Loans_Form"
+  "scope": "development:R048"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000128"
+  "column_order_delta":
+    "column": "Original Daily Interest Rate"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "immediately_after": "Current Daily Interest"
+  "other_order": "preserved"

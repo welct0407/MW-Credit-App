@@ -13,7 +13,7 @@ INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loa
  ('DI45-F','DI45-B',current_date-10,300::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,10::money,1,0::money,NULL,'CI-LISA'),
  ('DI45-O','DI45-B',current_date-10,10000::money,'กำหนดวันชำระ','ยังไม่ปิดยอด',false,100::money,1,0::money,'Fixed terms','CI-LISA');
 SET CONSTRAINTS ALL IMMEDIATE;
-SELECT pg_temp.di_assert((SELECT "Loan Arrangement" LIKE 'Original borrower agreement%' AND daily_interest_basis("Loan Arrangement")=ARRAY[100::numeric,10000::numeric] FROM "Loans" WHERE "Row ID"='DI45-L'),'new loan retains text and exact original ratio');
+SELECT pg_temp.di_assert((SELECT "Loan Arrangement" LIKE 'Original borrower agreement%' AND "Original Daily Interest Rate"=1 FROM "Loans" WHERE "Row ID"='DI45-L'),'new loan retains text and rounded original percentage');
 UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID" IN ('DI45-L','DI45-F');
 INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due")
  VALUES('DI45-C','DI45-L',current_date-1,5000::money,100::money);
@@ -31,7 +31,7 @@ INSERT INTO "Repayments"("Row ID","Ref Loans","Payment Date","Principal Paid","I
  VALUES('DI45-P2','DI45-L',current_date,3000::money,0::money);
 SELECT pg_temp.di_assert((SELECT "Outstanding Principal"=5000 AND "Current Daily Interest"::numeric=50 FROM "Loans" WHERE "Row ID"='DI45-L'),'second principal payment uses original rate');
 UPDATE "Loans" SET "Loan Arrangement"='Original borrower agreement; additional note',"Current Daily Interest"=100::money WHERE "Row ID"='DI45-L';
-SELECT pg_temp.di_assert((SELECT "Current Daily Interest"::numeric=50 AND "Loan Arrangement" LIKE 'Original borrower agreement; additional note%' AND daily_interest_basis("Loan Arrangement")=ARRAY[100::numeric,10000::numeric] FROM "Loans" WHERE "Row ID"='DI45-L'),'stale save preserves notes, restores basis and computed amount');
+SELECT pg_temp.di_assert((SELECT "Current Daily Interest"::numeric=50 AND "Loan Arrangement" LIKE 'Original borrower agreement; additional note%' AND "Original Daily Interest Rate"=1 FROM "Loans" WHERE "Row ID"='DI45-L'),'stale save preserves notes, frozen rate and computed amount');
 INSERT INTO "Repayments"("Row ID","Ref Loans","Payment Date","Principal Paid","Interest Paid")
  VALUES('DI45-REV','DI45-L',current_date,(-1000)::money,0::money);
 SELECT pg_temp.di_assert((SELECT "Outstanding Principal"=6000 AND "Current Daily Interest"::numeric=60 FROM "Loans" WHERE "Row ID"='DI45-L'),'signed principal correction restores daily amount');
@@ -39,10 +39,10 @@ SELECT pg_temp.di_assert((SELECT "Outstanding Principal"=6000 AND "Current Daily
 SELECT public.generate_loan_charge('DI45-L',current_date);
 SELECT pg_temp.di_assert((SELECT "Interest Due"::numeric=60 FROM "Charges" WHERE "Ref Loans"='DI45-L' AND "Charge Date"=current_date),'charge generator consumes new current amount');
 SELECT pg_temp.di_assert((SELECT "Interest Due"::numeric=100 FROM "Charges" WHERE "Row ID"='DI45-C'),'existing charge amount preserved');
--- Exact 10/300 rate must not be reconstructed from rounded 7/200.
+-- Rounded 3% rate must not be reconstructed from successive rounded daily amounts.
 INSERT INTO "Repayments"("Row ID","Ref Loans","Payment Date","Principal Paid","Interest Paid")
  VALUES('DI45-F1','DI45-F',current_date,100::money,0::money),('DI45-F2','DI45-F',current_date,100::money,0::money);
-SELECT pg_temp.di_assert((SELECT "Current Daily Interest"::numeric=3 AND daily_interest_basis("Loan Arrangement")=ARRAY[10::numeric,300::numeric] FROM "Loans" WHERE "Row ID"='DI45-F'),'multiple fractional repayments do not compound rounding');
+SELECT pg_temp.di_assert((SELECT "Current Daily Interest"::numeric=3 AND "Original Daily Interest Rate"=3 FROM "Loans" WHERE "Row ID"='DI45-F'),'multiple fractional repayments do not compound rounding');
 INSERT INTO "Repayments"("Row ID","Ref Loans","Payment Date","Principal Paid","Interest Paid")
  VALUES('DI45-F3','DI45-F',current_date,100::money,0::money);
 SELECT pg_temp.di_assert((SELECT "Outstanding Principal"=0 AND "Current Daily Interest"::numeric=0 FROM "Loans" WHERE "Row ID"='DI45-F'),'full repayment reduces daily amount to zero');
@@ -56,7 +56,7 @@ DO $$
 DECLARE oldrow public."Loans"; newrow public."Loans";
 BEGIN
  SELECT * INTO oldrow FROM "Loans" WHERE "Row ID"='DI45-L';
- oldrow."Loan Arrangement":='Legacy agreement'; oldrow."Total Principal Received":=2000;
+ oldrow."Original Daily Interest Rate":=NULL; oldrow."Loan Arrangement":='Legacy agreement'; oldrow."Total Principal Received":=2000;
  oldrow."Outstanding Principal":=8000; oldrow."Current Daily Interest":=100::money;
  newrow:=oldrow;
  newrow:=apply_principal_daily_interest(newrow,oldrow);
@@ -65,12 +65,16 @@ BEGIN
  newrow."Outstanding Principal":=7000; newrow."Total Principal Received":=3000;
  newrow:=apply_principal_daily_interest(newrow,oldrow);
  ASSERT newrow."Current Daily Interest"::numeric=70,'legacy first-day reconstruction excludes transfer fee, not inflated current rate';
- ASSERT daily_interest_basis(newrow."Loan Arrangement")=ARRAY[100::numeric,10000::numeric],'historical exact basis retained';
+ ASSERT newrow."Original Daily Interest Rate"=1,'historical rounded rate retained';
  oldrow."Loan Date":=current_date-19;
  oldrow."Current Daily Interest":=80::money;
  newrow:=oldrow; newrow."Outstanding Principal":=7000;newrow."Total Principal Received":=3000;
- newrow:=apply_principal_daily_interest(newrow,oldrow);
- ASSERT newrow."Current Daily Interest"::numeric=70,'no-first-day fallback uses balance before repayment';
+ BEGIN
+  newrow:=apply_principal_daily_interest(newrow,oldrow);
+  RAISE EXCEPTION 'Expected missing original terms rejection';
+ EXCEPTION WHEN raise_exception THEN
+  IF SQLERRM NOT LIKE 'Original daily interest rate unavailable%' THEN RAISE; END IF;
+ END;
 END $$;
 SELECT 'R036 principal daily interest regression passed' AS result;
 ROLLBACK;

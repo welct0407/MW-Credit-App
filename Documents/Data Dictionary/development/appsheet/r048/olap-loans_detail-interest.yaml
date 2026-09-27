@@ -1,0 +1,24 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "view"
+  "name": "Loans_Detail"
+  "scope": "development:R048"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+  "version": "1.000045"
+  "column_order_delta":
+    "column": "Original Daily Interest Rate"
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "immediately_after": "Current Daily Interest"
+  "other_order": "preserved"

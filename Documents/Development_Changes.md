@@ -1,5 +1,7 @@
 # Open development differences
 
+R048 original daily interest — **DEV only** (27 September 2026): OLTP **1.000128**, OLAP **1.000045**, PostgreSQL **V53**. Stored whole-percentage original rate now drives Loan Key and daily-loan principal adjustment; both apps show the read-only field and have zero editor issues. Backfill75/78; three incomplete fixed-term records remain blank. Synthetic creation/partial repayment/payoff and SQL CI passed. PROD remains unchanged by this feature (recorded OLTP3.000253 / OLAP1.100205 / V52). R048 stays Open for review. [Steps, tests and manual PROD handover](../outputs/r048-loan-interest/IMPLEMENTATION.md).
+
 R048 Forecast watchlist refinement (27 September 2026): Metabase question360 now displays Loan Key, with 34 rows and other values unchanged. No DEV/PROD schema or AppSheet difference from this report edit. [Evidence](../outputs/r048-forecast-watchlist/README.md). R048 remains Open.
 
 R048 direct PROD correction (27 September 2026): canonical OLTP **3.000253** now matches DEV **1.000124** for displayed-charge receipt filtering and the Receipt Preview image label. Applied under the owner’s explicit instruction to skip the promotion process. Both PROD editors clear; load/sync and Collection receipt rendering verified. OLAP, SQLV52, GCS and Debian unchanged. No remaining feature difference; R048 stays Open with this correction delivered. [Evidence and rollback](../outputs/r048-collection-receipts/PRODUCTION.md).

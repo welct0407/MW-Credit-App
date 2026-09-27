@@ -2809,6 +2809,98 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/r048/olap-loan-slice-interest.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "slice",
+      "name": "Reporting Loans",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r048/olap-loans-interest.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "table",
+      "name": "Loans",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Original Daily Interest Rate",
+          "pointer": "/content/columns/Original Daily Interest Rate"
+        },
+        {
+          "subject": "Loan Key",
+          "pointer": "/content/columns/Loan Key"
+        }
+      ]
+    },
+    {
+      "file": "development/appsheet/r048/olap-loans_detail-interest.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "view",
+      "name": "Loans_Detail",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r048/oltp-loan-slice-interest.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "R008 Loan Commands",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r048/oltp-loans-interest.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Loans",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Original Daily Interest Rate",
+          "pointer": "/content/columns/Original Daily Interest Rate"
+        },
+        {
+          "subject": "Loan Key",
+          "pointer": "/content/columns/Loan Key"
+        },
+        {
+          "subject": "Current Daily Interest",
+          "pointer": "/content/columns/Current Daily Interest"
+        }
+      ]
+    },
+    {
+      "file": "development/appsheet/r048/oltp-loans_detail-interest.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Loans_Detail",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r048/oltp-loans_form-interest.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Loans_Form",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/appsheet/r048/payments.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -3543,6 +3635,66 @@
       "kind": "routine",
       "name": "public.selected_charge_ids(text)",
       "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r048/apply_principal_daily_interest.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.apply_principal_daily_interest(p \"Loans\", previous \"Loans\")",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r048/forecast_schedule_v1.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.forecast_schedule_v1(l jsonb, charges jsonb, t date, e date)",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r048/loans-interest.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.Loans",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r048/olap_loans_analytics-interest.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.olap_loans_analytics",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r048/original_daily_interest_rate.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.original_daily_interest_rate(p \"Loans\", historical boolean)",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r048/reporting_forecast_inputs_v1-interest.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.reporting_forecast_inputs_v1",
+      "scope": "development:R048",
       "status": "documented",
       "lookup": []
     },

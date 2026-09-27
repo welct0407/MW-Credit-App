@@ -1,6 +1,8 @@
 # Verified and historical development differences
 
-R048 overlays under `appsheet/r048/` are closed: the owner-authorized direct PROD3.000253 correction now matches DEV1.000124 for charge-scoped receipt filtering and the Receipt Preview image label. Retained as dated implementation evidence; current PROD values are in `systems/`. [Evidence](../../../outputs/r048-collection-receipts/PRODUCTION.md).
+R048 **original-rate overlays are active DEV differences**: the new `*-interest.yaml`, loan-slice files and `postgresql/r048/` record V53 / OLTP1.000128 / OLAP1.000045. They preserve PROD definitions and cover the integer rate, Loan Key, read-only field, views/slices and forecast providers. [DEV evidence and manual handover](../../../outputs/r048-loan-interest/IMPLEMENTATION.md).
+
+R048 receipt overlays under `appsheet/r048/` (`payments.yaml` and receipt-scope files) are closed: the owner-authorized direct PROD3.000253 correction now matches DEV1.000124 for charge-scoped receipt filtering and the Receipt Preview image label. Retained as dated implementation evidence; current PROD values are in `systems/`. [Evidence](../../../outputs/r048-collection-receipts/PRODUCTION.md).
 
 R046/R047 are promoted and closed on 27 September 2026. `appsheet/r046/`, `appsheet/r047/` and `postgresql/r047/` retain dated implementation evidence, not active feature differences. Exact accepted production objects are updated under `systems/` from targeted saved PROD readback. DEV-only bindings, themes, delivery data and manual upload folder remain intentional. [Production verification](../../../outputs/r047-production/production-verification.json).
 

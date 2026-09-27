@@ -1,0 +1,56 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.apply_principal_daily_interest(p \"Loans\", previous \"Loans\")"
+  "scope": "development:R048"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "database": "loan_manager_dev"
+  "migration": 53
+  "definition_after":
+    "schema": "public"
+    "name": "apply_principal_daily_interest"
+    "arguments": "p \"Loans\", previous \"Loans\""
+    "kind": "f"
+    "arguments_with_defaults": "p \"Loans\", previous \"Loans\""
+    "result": "\"Loans\""
+    "definition": "CREATE OR REPLACE FUNCTION public.apply_principal_daily_interest(p \"Loans\", previous \"Loans\")\n\
+      \ RETURNS \"Loans\"\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE principal_changed\
+      \ boolean;\r\nBEGIN\r\n IF previous.\"Row ID\" IS NULL THEN\r\n  -- SQL calculates the authoritative value, including\
+      \ for clients without the new field.\r\n  p.\"Original Daily Interest Rate\":=public.original_daily_interest_rate(p,false);\r\
+      \n  RETURN p;\r\n END IF;\r\n IF previous.\"Original Daily Interest Rate\" IS NOT NULL THEN\r\n  IF p.\"Original\
+      \ Daily Interest Rate\" IS NOT NULL AND\r\n     p.\"Original Daily Interest Rate\" IS DISTINCT FROM previous.\"\
+      Original Daily Interest Rate\" THEN\r\n   RAISE EXCEPTION 'Original daily interest rate is read-only';\r\n  END\
+      \ IF;\r\n  p.\"Original Daily Interest Rate\":=previous.\"Original Daily Interest Rate\";\r\n ELSE\r\n  p.\"Original\
+      \ Daily Interest Rate\":=public.original_daily_interest_rate(previous,true);\r\n END IF;\r\n IF p.\"Loan Type\"\
+      \ IS DISTINCT FROM 'ดอกเบี้ยรายวัน' THEN RETURN p; END IF;\r\n principal_changed:=p.\"Total Principal Received\"\
+      \ IS DISTINCT FROM previous.\"Total Principal Received\";\r\n IF principal_changed THEN\r\n  IF p.\"Original Daily\
+      \ Interest Rate\" IS NULL THEN\r\n   RAISE EXCEPTION 'Original daily interest rate unavailable; review original\
+      \ loan terms before principal repayment';\r\n  END IF;\r\n  p.\"Current Daily Interest\":=round(greatest(0,p.\"\
+      Outstanding Principal\")*p.\"Original Daily Interest Rate\"/100.0)::money;\r\n ELSE\r\n  -- Preserve entry/backlog\
+      \ amount until a principal change; stale app saves cannot undo adjustment.\r\n  p.\"Current Daily Interest\":=previous.\"\
+      Current Daily Interest\";\r\n END IF;\r\n RETURN p;\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null
+  "before":
+    "state": "value"
+    "source_migration": "V45"
+  "metadata_source": "outputs/r048-loan-interest/postgresql-affected-definitions.json"

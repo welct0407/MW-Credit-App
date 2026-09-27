@@ -1,0 +1,46 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "Loans"
+  "scope": "development:R048"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+  "before_version": "1.000042"
+  "version": "1.000045"
+  "production_object": "systems/appsheet/olap/tables/loans.yaml"
+  "columns":
+    "Original Daily Interest Rate":
+      "before":
+        "state": "absent"
+      "after":
+        "state": "value"
+        "value":
+          "Type": "Number"
+          "Show": true
+          "Editable": false
+          "Required": false
+          "Reset on edit": false
+          "App formula": ""
+          "Initial value": ""
+          "Display name": "\"อัตราดอกเบี้ยรายวันเดิม (%) / Original Daily Interest (%)\""
+    "Loan Key":
+      "before":
+        "state": "value"
+        "value": "CONCATENATE(\n  [Borrower Name],\n  \"-\",\n  TEXT([Principal Amount]),\n  \"-\",\n  TEXT([Loan Date],\
+          \ \"DD/MM\"),\n  \"-\",\n  TEXT([Effective Daily Interest Rate])\n)"
+      "after":
+        "state": "value"
+        "value": "CONCATENATE([Borrower Name], \"-\", TEXT([Principal Amount]), \"-\", TEXT([Loan Date], \"DD/MM\"),\
+          \ \"-\", IF(ISBLANK([Original Daily Interest Rate]), \"Unavailable\", CONCATENATE([Original Daily Interest\
+          \ Rate], \"%\")))"
+      "property": "App formula"
+  "units": "integer percentage points; 1 means 1%; blank means original terms unavailable"
+  "actual_key": "Row ID unchanged"
+  "evidence": "outputs/r048-loan-interest/app-evidence.json"

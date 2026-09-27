@@ -1,0 +1,80 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.Loans"
+  "scope": "development:R048"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "database": "loan_manager_dev"
+  "migration": 53
+  "metadata_source": "outputs/r048-loan-interest/postgresql-affected-definitions.json"
+  "definition_after":
+    "schema": "public"
+    "name": "Loans"
+    "kind": "r"
+    "owner": "postgres"
+    "row_security": false
+    "force_row_security": false
+    "replica_identity": "d"
+    "persistence": "p"
+    "is_partition": false
+    "options": null
+    "acl": "{postgres=arwdDxtm/postgres,mw_reviewer_dml=d/postgres}"
+    "comment": null
+    "view_definition": null
+    "partition_key": null
+    "partition_bound": null
+    "parents": null
+    "extension": null
+  "column_delta":
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Loans"
+        "name": "Original Daily Interest Rate"
+        "ordinal": 31
+        "data_type": "integer"
+        "type_schema": "pg_catalog"
+        "type_name": "int4"
+        "not_null": false
+        "identity": ""
+        "generated": ""
+        "dimensions": 0
+        "storage": "p"
+        "compression": ""
+        "default_expression": null
+        "collation": null
+        "acl": null
+        "comment": "Original average daily interest / original principal * 100, rounded to integer percentage points\
+          \ (1 means 1%). Frozen at creation. NULL means original terms unavailable."
+  "constraint_delta":
+    "before":
+      "state": "absent"
+    "after":
+      "state": "value"
+      "value":
+        "schema": "public"
+        "relation": "Loans"
+        "name": "loans_original_daily_rate_nonnegative"
+        "kind": "c"
+        "definition": "CHECK (\"Original Daily Interest Rate\" >= 0)"
+        "deferrable": false
+        "initially_deferred": false
+        "validated": true
+        "column_numbers":
+        - 31
+        "referenced_column_numbers": null
+        "referenced_relation": null
+        "update_action": " "
+        "delete_action": " "
+        "match_type": " "
+        "comment": null

@@ -1,0 +1,56 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.original_daily_interest_rate(p \"Loans\", historical boolean)"
+  "scope": "development:R048"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-loan-interest/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review pending; PROD unchanged"
+  "database": "loan_manager_dev"
+  "migration": 53
+  "definition_after":
+    "schema": "public"
+    "name": "original_daily_interest_rate"
+    "arguments": "p \"Loans\", historical boolean"
+    "kind": "f"
+    "arguments_with_defaults": "p \"Loans\", historical boolean DEFAULT false"
+    "result": "integer"
+    "definition": "CREATE OR REPLACE FUNCTION public.original_daily_interest_rate(p \"Loans\", historical boolean DEFAULT\
+      \ false)\n RETURNS integer\n LANGUAGE plpgsql\n STABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\
+      \nDECLARE daily numeric; basis numeric[]; n bigint; days integer;\r\nBEGIN\r\n IF p.\"Principal Amount\" IS NULL\
+      \ OR p.\"Principal Amount\"::numeric<=0 THEN RETURN NULL; END IF;\r\n CASE p.\"Loan Type\"\r\n WHEN 'ดอกเบี้ยรายวัน'\
+      \ THEN\r\n  IF historical THEN\r\n   basis:=public.daily_interest_basis(p.\"Loan Arrangement\");\r\n   IF basis\
+      \ IS NOT NULL THEN RETURN round(100*basis[1]/basis[2])::integer; END IF;\r\n   SELECT count(*),min(c.\"Interest\
+      \ Due\"::numeric-coalesce(p.\"Transfer Fee\"::numeric,0))\r\n    INTO n,daily FROM public.\"Charges\" c WHERE c.\"\
+      Ref Loans\"=p.\"Row ID\"\r\n     AND c.\"Charge Date\"=p.\"Loan Date\" AND coalesce(c.\"Principal Due\"::numeric,0)=0;\r\
+      \n   IF n=1 AND daily>=0 THEN RETURN round(100*daily/p.\"Principal Amount\"::numeric)::integer; END IF;\r\n   --\
+      \ With no original evidence, only an unrepaid loan still has its entry amount.\r\n   IF coalesce(p.\"Total Principal\
+      \ Received\",0)<>0 THEN RETURN NULL; END IF;\r\n  END IF;\r\n  daily:=p.\"Current Daily Interest\"::numeric;\r\n\
+      \ WHEN 'กำหนดวันชำระ' THEN\r\n  days:=p.\"Due Date\"-p.\"Loan Date\"+1;\r\n  IF days IS NULL OR days<=0 THEN RETURN\
+      \ NULL; END IF;\r\n  daily:=p.\"Fixed Interest\"::numeric/days;\r\n WHEN 'ผ่อนชำระรายวัน' THEN\r\n  days:=p.\"\
+      Due Date\"-p.\"Loan Date\"+1;\r\n  IF days IS NULL OR days<=0 THEN RETURN NULL; END IF;\r\n  daily:=(p.\"Daily\
+      \ Payment Amount\"::numeric*days-p.\"Principal Amount\"::numeric)/days;\r\n ELSE RETURN NULL;\r\n END CASE;\r\n\
+      \ IF daily IS NULL OR daily<0 THEN RETURN NULL; END IF;\r\n RETURN round(100*daily/p.\"Principal Amount\"::numeric)::integer;\r\
+      \nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "s"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null
+  "before":
+    "state": "absent"
+  "metadata_source": "outputs/r048-loan-interest/postgresql-affected-definitions.json"
