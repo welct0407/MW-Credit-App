@@ -1,6 +1,8 @@
 # Open development differences
 
-R046/R047 promoted together on 27 September 2026: PROD OLTP **3.000252**, OLAP **1.100205**, PostgreSQL **V52**. Both apps are Deployed with zero editor issues. PROD sources, links, receipt store/folder, API enablement, scheduled guards, load/sync and changed entry points passed; original shared logos render after RC deletion. DEV remains OLTP **1.000118**, OLAP **1.000042**, V52. R048 is the sole Open release; the capture hold is released. [production verification](../outputs/r047-production/production-verification.json).
+R048 DEV update (27 September 2026): OLTP **1.000124** filters Collection receipts through positive Payment Allocations to the exact displayed Todays Collection Charges. Receipt Preview is the image label, fixing manual-only gallery cards. DEV OLAP **1.000042** and SQLV52 are unchanged. Owner review and production promotion are pending. [Handover](../outputs/r048-collection-receipts/HANDOVER.md).
+
+R046/R047 promoted together on 27 September 2026: PROD OLTP **3.000252**, OLAP **1.100205**, PostgreSQL **V52**. Both apps are Deployed with zero editor issues. PROD sources, links, receipt store/folder, API enablement, scheduled guards, load/sync and changed entry points passed; original shared logos render after RC deletion. At R047 capture, DEV was OLTP **1.000118**, OLAP **1.000042**, V52; the R048 checkpoint above is current. R048 is the sole Open release; the capture hold is released. [production verification](../outputs/r047-production/production-verification.json).
 
 R046/R047 product differences are closed. Intentional DEV database/source bindings, companion links, theme, owner-only Partner delivery and `manual-receipts/dev` remain; PROD uses `MW Receipt Images PROD` and `manual-receipts/prod`. Prior DEV checkpoints remain in the release logs and closed dictionary overlays. No DEV refresh was performed.
 

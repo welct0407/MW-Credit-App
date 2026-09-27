@@ -1,10 +1,12 @@
 # Environment inventory
 
+R048 DEV update (27 September 2026): OLTP **1.000124** filters Collection receipts through positive Payment Allocations to the exact displayed Todays Collection Charges. Receipt Preview is the image label, fixing manual-only gallery cards. DEV OLAP **1.000042** and SQLV52 are unchanged. Owner review and production promotion are pending. [Handover](../outputs/r048-collection-receipts/HANDOVER.md).
+
 ## Looker Studio retirement — 27 September 2026
 
 The owner decommissioned the former Data Studio / Looker Studio reporting assets after migrating to Metabase. Under `welct0407@gmail.com`, all nine owned reports (the live **Loan Reports - Mobile** and eight backups) and all seven owned data sources were moved to Trash. The owned reports and data source lists were empty afterward; all 16 named items were visible in Trash. No shared items or saved explorations were found. This is recoverable through Looker Studio Trash; older items already in Trash were left untouched. [Exact asset inventory and checks](../outputs/looker-studio-retirement-20260927/README.md). Metabase, AppSheet, PostgreSQL and their access paths were not changed by this retirement.
 
-R046/R047 promoted together on 27 September 2026: PROD OLTP **3.000252**, OLAP **1.100205**, PostgreSQL **V52**. Both apps are Deployed with zero editor issues. PROD sources, links, receipt store/folder, API enablement, scheduled guards, load/sync and changed entry points passed; original shared logos render after RC deletion. DEV remains OLTP **1.000118**, OLAP **1.000042**, V52. R048 is the sole Open release; the capture hold is released. [production verification](../outputs/r047-production/production-verification.json).
+R046/R047 promoted together on 27 September 2026: PROD OLTP **3.000252**, OLAP **1.100205**, PostgreSQL **V52**. Both apps are Deployed with zero editor issues. PROD sources, links, receipt store/folder, API enablement, scheduled guards, load/sync and changed entry points passed; original shared logos render after RC deletion. At R047 capture, DEV was OLTP **1.000118**, OLAP **1.000042**, V52; the R048 checkpoint above is current. R048 is the sole Open release; the capture hold is released. [production verification](../outputs/r047-production/production-verification.json).
 
 ## Receipt object storage — 27 September 2026
 
@@ -101,7 +103,7 @@ Latest metadata checkpoint: **24 September 2026**, from the [dictionary reconcil
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000252 (R046/R047) | database-2 | 18 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100205 (R046/R047) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000118 (R047 capture) | database-3 | 18 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000124 (R048 DEV) | database-3 | 18 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000042 (R047 capture) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:

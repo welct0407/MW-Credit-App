@@ -1,5 +1,7 @@
 # Verified and historical development differences
 
+Active R048 DEV overlays under `appsheet/r048/` narrow Submitted Receipt Payments to displayed charges and set Payments.Receipt Preview as the image label. Verified at OLTP1.000124; owner review/promotion pending. [Evidence](../../../outputs/r048-collection-receipts/HANDOVER.md).
+
 R046/R047 are promoted and closed on 27 September 2026. `appsheet/r046/`, `appsheet/r047/` and `postgresql/r047/` retain dated implementation evidence, not active feature differences. Exact accepted production objects are updated under `systems/` from targeted saved PROD readback. DEV-only bindings, themes, delivery data and manual upload folder remain intentional. [Production verification](../../../outputs/r047-production/production-verification.json).
 
 No active DEV overlay was inferred during migration. Existing workbook differences remain under [imported evidence](../imports/excel-20260923/README.md), with their original labels and values. The owner-authorized [24 September reconciliation](../../../outputs/dictionary-reconciliation-20260924/README.md) independently observed DEV and PROD and created explicit guarded deltas under `appsheet/environment/` and `postgresql/environment/`.

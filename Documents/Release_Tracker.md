@@ -6,7 +6,7 @@
 | --- | --- |
 | **Use this release for new development** | **R048 — Open** |
 | Next number, not yet open or usable | **R049 — opens only when R048 is frozen at promotion start** |
-| Current release evidence | R046/R047 Released together; PROD OLTP3.000252 / OLAP1.100205 / V52. Both editors clear, RCs deleted, capture hold released. DEV1.000118 /1.000042 retained. [Checklist](../outputs/r047-production/promotion-checklist.md). R048 Open; next R049 unchanged. |
+| Current release evidence | R046/R047 Released together; PROD OLTP3.000252 / OLAP1.100205 / V52. Both editors clear, RCs deleted, capture hold released. DEV1.000124 /1.000042; R048 charge-scoped Collection receipts implemented for review. [Checklist](../outputs/r047-production/promotion-checklist.md). R048 Open; next R049 unchanged. |
 
 Read this section before assigning any development task. All new features, fixes and refinements join the single Open release; completing a task or waiting for review does not open another number. At authorized promotion start, record the current release as Frozen with timestamp and pinned-package evidence in its row/log/checklist, switch this section to the next Open release, add its tracker row and advance the next number in the same published update. Do not freeze merely to obtain another number. Shared DEV edits resume only after the frozen package has been independently captured.
 
@@ -16,7 +16,7 @@ Rule adopted 24 September 2026: R016 was Open until the authorized 6R rolling-av
 
 | Release | Scope / dependency | Status | Latest milestone | Evidence |
 | --- | --- | --- | --- | --- |
-| R048 | New development after R047 scope freeze | Open; no feature allocated | Independent R047 capture complete; shared DEV available | — |
+| R048 | Collection receipts scoped to displayed charges; combined gallery image | Open; DEV implemented, owner review pending | DEV OLTP1.000124; both editors clear; positive/exclusion GUI checks passed; PROD unchanged | [Handover](../outputs/r048-collection-receipts/HANDOVER.md) · [Log](../Change%20Logs/CHANGE_NOTES_R048_2026-09-27.md) |
 | R047 | Collection receipts; selected-charge receiving; manual upload; labels/read-only total; ฿0 displays and accepted cosmetics | Released | PROD3.000252 /1.100205 / V52; basic validation passed, both editors clear, RCs deleted; tag R047 | [Checklist](../outputs/r047-production/promotion-checklist.md) · [Log](../Change%20Logs/CHANGE_NOTES_R047_2026-09-27.md) |
 | R046 | Receipt archive and Payment review UI | Released with R047 | Backend V50/mw_agent V4/Debian34c4133 retained; UI now PROD3.000252 /1.100205; tag R046 | [Log](../Change%20Logs/CHANGE_NOTES_R046_2026-09-27.md) |
 | R045 | Additive Forecast & Planning tab and read-only SQL providers | Released | DEV/PROD V48; tab262 and21 visuals verified; recovery22; no AppSheet change; tag R045 | [Evidence](../outputs/r045-forecast-planning/README.md) · [Log](../Change%20Logs/CHANGE_NOTES_R045_2026-09-27.md) |

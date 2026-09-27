@@ -2809,6 +2809,31 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/r048/payments.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Payments",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Receipt Preview",
+          "pointer": "/content/columns/Receipt Preview"
+        }
+      ]
+    },
+    {
+      "file": "development/appsheet/r048/submitted-receipt-payments.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "Submitted Receipt Payments",
+      "scope": "development:R048",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/environment/loan_manager_prod-relation-agent-audit-commits-5541f3ed.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
