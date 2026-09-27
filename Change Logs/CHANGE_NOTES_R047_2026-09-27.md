@@ -1,5 +1,9 @@
 # R047 — Collection borrower receipts
 
+## OLAP whole-baht formatting — 27 September 2026
+
+Owner requested fixing the disclosed dollar-sign fields with ฿ and zero decimals. Confirmed and changed seven Price fields: Payments.Amount Received and Payment Allocations' three remaining snapshots/three allocated amounts. DEV OLAP1.000042, rollback1.000041; OLTP1.000116 unchanged. Synthetic payment/allocation list and detail verified, both editors clear. No SQL/data/PROD change. Prior formatting limitation resolved in DEV. Updated exact dictionary, integrated manifest, current versions and [evidence](../outputs/r047-selected-charges/BAHT_FORMATTING.md). Git baseline47b786b; dictionary/whitespace checks and normal publication complete the batch; unrelated work preserved.
+
 ## Selected-charge DEV acceptance — 27 September 2026
 
 Owner verified and accepted Receive Selected Charges and its display/read-only-total refinements at OLTP1.000116. No known implementation blocker remains in this scope. Recorded scoped acceptance in the integrated manifest, preserving the separate receipt-upload acceptance. This status request is not production authorization. R047 stays Open; package pinning, PROD backup/baseline, V51/V52 deployment, PROD-bound RC validation/App Upgrade and closure remain promotion work. Existing OLAP currency-symbol formatting and untested phone layout/camera remain disclosed limitations, not newly imposed gates. Documentation-only from Git e90e1c10c416aa2ec27f878c301e1264cc9640fd; rollback is that revision. JSON/whitespace checked; no live audit or mutation.

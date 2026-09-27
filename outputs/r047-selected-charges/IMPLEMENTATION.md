@@ -61,4 +61,4 @@ Additional evidence: [posted OLTP payment](dev-posted-payment.png), [OLAP paymen
 
 Owner acceptance and authorized integrated RC promotion remain pending. No RC, production checklist execution, scope freeze or final R047 tag was created. At promotion, capture all integrated R046/R047 AppSheet work, pin SQL/versions, apply compatible V51 before PROD-bound source verification, and follow the single master promotion checklist.
 
-OLAP still displays a dollar symbol on some existing Payment/allocation amount fields, an earlier recorded R026 formatting limitation; numerical amounts and baht cash/repayment reconciliation are correct. This task does not claim that unrelated presentation issue is resolved. GUI verification used the current desktop interface; a separate phone-device layout test was not performed.
+The earlier Payment/allocation dollar-symbol limitation is resolved in DEV OLAP1.000042: all seven affected fields now display ฿ with zero decimals. [Correction and verification](BAHT_FORMATTING.md). GUI verification used the current desktop interface; a separate phone-device layout test was not performed.

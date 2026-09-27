@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
   "release": "R047",
-  "revision": 6,
+  "revision": 7,
   "status": "open-dev-verified-owner-review-pending",
   "scope": [
     "Collection borrower linked-payment receipts",
     "Receive Selected Charges",
-    "Manual receipt image upload on Payment create and edit"
+    "Manual receipt image upload on Payment create and edit",
+    "OLAP Payments and Payment Allocations whole-baht formatting"
   ],
   "prerequisites": [
     "R046 unpromoted AppSheet receipt UI integrated in DEV"
@@ -78,9 +79,10 @@
       "dev": {
         "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
         "internalName": "MW-OLAP-DEV-20260919-578763613",
-        "version": "1.000041",
+        "version": "1.000042",
         "rollbackVersion": "1.000039",
-        "evidence": "outputs/r047-receipt-upload/HANDOVER.md"
+        "evidence": "outputs/r047-receipt-upload/HANDOVER.md",
+        "currencyFormattingEvidence": "outputs/r047-selected-charges/BAHT_FORMATTING.md"
       },
       "rc": {
         "id": null,

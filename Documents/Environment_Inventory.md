@@ -1,5 +1,7 @@
 # Environment inventory
 
+R047 formatting checkpoint: DEV OLAP **1.000042** (rollback1.000041) corrects all seven reported Payment/allocation dollar fields to ฿ with zero decimals. OLTP1.000116 and SQL V52 unchanged. Both editors clear; synthetic receipt/allocation display verified. [Evidence](../outputs/r047-selected-charges/BAHT_FORMATTING.md).
+
 R047 charge-label refinement: DEV OLTP **1.000116** (rollback1.000112) displays charge date, residual and Loan Key, with no displayed Row ID. Current GUI card/picker verified; both editors clear, OLAP1.000041 unchanged. SQL remains V52 from the receipt-upload checkpoint; this refinement has no data/SQL/PROD change. [Evidence](../outputs/r047-selected-charges/LABEL_REFINEMENT.md).
 
 R047 current DEV checkpoint (27 September): OLTP **1.000111**, OLAP **1.000041**, database **loan_manager_dev V52**. Manual Payment receipt upload is configured alongside Receive Selected Charges and Collection receipts. Both saved editors have no issues and remain Deployed. Native create/edit/replacement uploads, actual GCS paths, financial invariance, Collection rendering and OLAP read/sync are verified; ready for owner DEV review. Manual-upload rollback: OLTP1.000109 / OLAP1.000039 and verified private pre-V52 dump. PROD remains V50; agent runtime, bucket permissions and PROD apps are unchanged. [Current handover](../outputs/r047-receipt-upload/HANDOVER.md); [prior selected-charge verification](../outputs/r047-selected-charges/IMPLEMENTATION.md).

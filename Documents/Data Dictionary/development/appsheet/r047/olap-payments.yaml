@@ -12,10 +12,14 @@
   "release": "R047"
   "status": "DEV implemented; PROD pending"
   "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
-  "version": "1.000041"
+  "version": "1.000042"
   "production_reference": "systems/appsheet/olap/tables/payments.yaml"
   "predecessor_reference": "development/appsheet/r046/olap-payments.yaml"
   "columns":
+    "Amount Received":
+      "CurrencySymbol": {"before": "$", "after": "฿"}
+      "DecimalDigits": {"before": 2, "after": 0}
+      "evidence": "outputs/r047-selected-charges/BAHT_FORMATTING.md"
     "Selected Charge IDs":
       "before":
         "state": "absent"
@@ -51,8 +55,8 @@
     "Are updates allowed?": "READ_ONLY"
     "Allocation Method type": "Text"
   "note": "Payments schema regenerated against DEV database-3. Allocation Method is already Text, so no enum change is necessary.\
-    \ Existing allocations/Repayments/cash-ledger Refs expose canonical posting results. Existing dollar-format issue on some\
-    \ OLAP payment/allocation prices remains recorded separately."
+    \ Existing allocations/Repayments/cash-ledger Refs expose canonical posting results. Payment/allocation prices now use\
+    \ Thai baht with zero decimals at DEV1.000042; see outputs/r047-selected-charges/BAHT_FORMATTING.md."
   "manual_upload_status": "Shared schema reconciled; post-upload load/sync and read-only Payment detail verified"
 "evidence":
   "/content/version":

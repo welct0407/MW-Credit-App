@@ -1,5 +1,7 @@
 # Open development differences
 
+R047 formatting checkpoint: DEV OLAP **1.000042** (rollback1.000041) corrects all seven reported Payment/allocation dollar fields to ฿ with zero decimals. OLTP1.000116 and SQL V52 unchanged. Both editors clear; synthetic receipt/allocation display verified. [Evidence](../outputs/r047-selected-charges/BAHT_FORMATTING.md).
+
 R047 selected-charge total is read-only and recalculates on selection changes at OLTP1.000116. Other amount-entry methods remain editable. [Verification](../outputs/r047-selected-charges/READONLY_TOTAL.md).
 
 R047 charge-label refinement: DEV OLTP **1.000116** (rollback1.000112) displays charge date, residual and Loan Key, with no displayed Row ID. Current GUI card/picker verified; both editors clear, OLAP1.000041 unchanged. SQL remains V52 from the receipt-upload checkpoint; this refinement has no data/SQL/PROD change. [Evidence](../outputs/r047-selected-charges/LABEL_REFINEMENT.md).

@@ -2584,6 +2584,41 @@
       ]
     },
     {
+      "file": "development/appsheet/r047/olap-payment-allocations.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "table",
+      "name": "Payment Allocations",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Interest Remaining Snapshot",
+          "pointer": "/content/columns/Interest Remaining Snapshot"
+        },
+        {
+          "subject": "Principal Remaining Snapshot",
+          "pointer": "/content/columns/Principal Remaining Snapshot"
+        },
+        {
+          "subject": "Amount Remaining Snapshot",
+          "pointer": "/content/columns/Amount Remaining Snapshot"
+        },
+        {
+          "subject": "Allocated Interest",
+          "pointer": "/content/columns/Allocated Interest"
+        },
+        {
+          "subject": "Allocated Principal",
+          "pointer": "/content/columns/Allocated Principal"
+        },
+        {
+          "subject": "Allocated Amount",
+          "pointer": "/content/columns/Allocated Amount"
+        }
+      ]
+    },
+    {
       "file": "development/appsheet/r047/olap-payments.yaml",
       "system": "appsheet",
       "component": "olap",
@@ -2592,6 +2627,10 @@
       "scope": "development:R047",
       "status": "documented",
       "lookup": [
+        {
+          "subject": "Amount Received",
+          "pointer": "/content/columns/Amount Received"
+        },
         {
           "subject": "Selected Charge IDs",
           "pointer": "/content/columns/Selected Charge IDs"
