@@ -50,7 +50,8 @@ else:
     assert metadata['package_copy_verified'] and all(active(u+'.timer')!='active' for u in units)
     assert a.commit and output('git','-C',str(repo),'rev-parse','HEAD')==a.commit
     if a.phase=='install':
-        run(python,'-m','pip','install','--no-deps','--no-build-isolation',str(repo),stdout=subprocess.DEVNULL)
+        # Build tools stay in pip's temporary isolated environment; runtime dependencies stay pinned.
+        run(python,'-m','pip','install','--no-deps',str(repo),stdout=subprocess.DEVNULL)
         run(python,'-m','unittest','discover','-s',str(repo/'tests'),'-q')
         metadata['installed_commit']=a.commit
         (backup/'deployment.json').write_text(json.dumps(metadata,indent=2))
