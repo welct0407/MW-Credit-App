@@ -1,7 +1,7 @@
 {
   "release": "R046",
   "status": "Backend deployed and verified; DEV UI validated; PROD UI intentionally deferred",
-  "scopeFrozenAt": "2026-09-27T05:35:58.976663+00:00",
+  "scopeFrozenAt": "2026-09-27T12:35:58.976663+07:00",
   "successor": "R047",
   "businessCommit": "576755ae55f89c6418e0944773196ac4e7ece892",
   "flywayManifest": "flyway-manifest.json",
@@ -22,7 +22,7 @@
   },
   "agent": {
     "installedCommit": "817c9b47a574227874cbfb407aaa08794cb50dac",
-    "archiveCutoff": "2026-09-27T05:43:10.226553+00:00",
+    "archiveCutoff": "2026-09-27T12:43:10.226553+07:00",
     "metadataGcsProbeGeneration": "1790487790144188",
     "evidence": "vm-production-verification.json",
     "debianTests": {
@@ -34,7 +34,7 @@
     "correctionRollback": "/var/lib/mw-integration-agent/rollback/receipt-evidence-20260927T055022Z"
   },
   "devApps": {
-    "date": "2026-09-27T05:35:58.976663+00:00",
+    "date": "2026-09-27T12:35:58.976663+07:00",
     "syntheticPayment": "R046-payment",
     "oltp": {
       "appId": "500b27b6-884a-41e8-a9ec-df801b0110ad",
@@ -86,5 +86,20 @@
     "No historical receipt backfill",
     "No forced real customer receipt or production financial test",
     "Private backups/credentials are outside Git; independent recovery coverage not established by push"
+  ],
+  "postDeploymentCorrections": [
+    {
+      "installedCommit": "34c413336289e116a9bca09fd12c51db716030c1",
+      "exportedMarkers": 28,
+      "businessSchemaChanged": false,
+      "evidence": "AUDIT_REPAIR.md",
+      "date": "2026-09-27",
+      "component": "receipt audit relay",
+      "reconstructedIntents": 28,
+      "healthSampleUtc": "2026-09-27T07:58:11.503429+00:00",
+      "pendingMarkers": 0,
+      "auditRelayHealth": 1,
+      "appDefinitionsChanged": false
+    }
   ]
 }

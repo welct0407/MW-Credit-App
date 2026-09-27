@@ -32,3 +32,7 @@ Business PROD48→50 from pinned AppSheet commit `576755ae55f89c6418e0944773196a
 PROD OLTP3.000249 / OLAP1.100202 remained unchanged, Deployed, no editor issues, and loaded/synced after SQL. No RC or App Upgrade. DEV OLTP1.000095 / OLAP1.000035 are validated; owner acceptance/combined app promotion remains pending. No final R046 release tag yet because the UI is deliberately unpromoted.
 
 Recovery: original private runtime copy `/var/lib/mw-integration-agent/rollback/receipt-evidence-20260927T053925Z`; correction copy `receipt-evidence-20260927T055022Z`; restored private DB backup proofs in evidence. Preserve additive SQL, captured originals and subsequent financial writes. No historical replay or forced real receipt/payment. Exact production SQL and DEV-only UI definitions are documented in the YAML dictionary and handover.
+
+## Audit relay correction — 27 September, 14:58 Bangkok
+
+Owner-authorized backend repair deployed agent `34c4133`: deterministic receipt intents and typed receipt-marker validation. Reconciled 28 missing intents with explicit retrospective events; normal relay exported all 28, then the next scheduled run succeeded with zero backlog. Monitoring exported healthy at14:58:11. Private central/business-audit restore proofs and package rollback verified. No financial records, SQL schema, AppSheet definitions, cutoffs or permissions changed. [Repair evidence and recovery](../outputs/r046-receipt-evidence/AUDIT_REPAIR.md). R046 UI promotion remains pending; R047 stays Open.
