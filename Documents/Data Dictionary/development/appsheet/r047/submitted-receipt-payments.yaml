@@ -1,193 +1,148 @@
-{
-  "format": 1,
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r047-collection-receipts/HANDOVER.md"
-  },
-  "identity": {
-    "system": "appsheet",
-    "component": "oltp",
-    "kind": "slice",
-    "name": "Submitted Receipt Payments",
-    "scope": "development:R047"
-  },
-  "content": {
-    "release": "R047",
-    "status": "DEV implemented; PROD not promoted",
-    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
-    "version": "1.000098",
-    "definition": {
-      "Slice Name": "Submitted Receipt Payments",
-      "Source Table": "Payments",
-      "Row filter condition": "AND([Status] = \"Posted\", ISNOTBLANK([Receipt Image]))",
-      "Slice Columns": [
-        "_RowNumber",
-        "Row ID",
-        "Status",
-        "Ref Borrower",
-        "Amount Received",
-        "Payment Method",
-        "Allocation Method",
-        "Bank Reference",
-        "Notes",
-        "Created By",
-        "Payment Date",
-        "Created At",
-        "Processed At",
-        "Ref Target Charge",
-        "Ref Target Loan",
-        "Planned Allocation Amount",
-        "Posted Amount",
-        "Ref Received By Cash Holder",
-        "Ref Received By Cash Account",
-        "IG Receipt ID",
-        "Receipt Image",
-        "Receipt Received At",
-        "Related Payment Allocations",
-        "Related Repayments",
-        "Eligible Charges",
-        "Eligible Outstanding",
-        "Allocation Difference",
-        "Posting Difference",
-        "Visible Allocations",
-        "Related Loans",
-        "Payment Month",
-        "Related Cash Account Statement Recents"
-      ],
-      "Slice Actions": [
-        "**auto**"
-      ],
-      "Update mode": "READ_ONLY"
-    },
-    "members": [
-      {
-        "Ordinal": 1,
-        "Column": "_RowNumber"
-      },
-      {
-        "Ordinal": 2,
-        "Column": "Row ID"
-      },
-      {
-        "Ordinal": 3,
-        "Column": "Status"
-      },
-      {
-        "Ordinal": 4,
-        "Column": "Ref Borrower"
-      },
-      {
-        "Ordinal": 5,
-        "Column": "Amount Received"
-      },
-      {
-        "Ordinal": 6,
-        "Column": "Payment Method"
-      },
-      {
-        "Ordinal": 7,
-        "Column": "Allocation Method"
-      },
-      {
-        "Ordinal": 8,
-        "Column": "Bank Reference"
-      },
-      {
-        "Ordinal": 9,
-        "Column": "Notes"
-      },
-      {
-        "Ordinal": 10,
-        "Column": "Created By"
-      },
-      {
-        "Ordinal": 11,
-        "Column": "Payment Date"
-      },
-      {
-        "Ordinal": 12,
-        "Column": "Created At"
-      },
-      {
-        "Ordinal": 13,
-        "Column": "Processed At"
-      },
-      {
-        "Ordinal": 14,
-        "Column": "Ref Target Charge"
-      },
-      {
-        "Ordinal": 15,
-        "Column": "Ref Target Loan"
-      },
-      {
-        "Ordinal": 16,
-        "Column": "Planned Allocation Amount"
-      },
-      {
-        "Ordinal": 17,
-        "Column": "Posted Amount"
-      },
-      {
-        "Ordinal": 18,
-        "Column": "Ref Received By Cash Holder"
-      },
-      {
-        "Ordinal": 19,
-        "Column": "Ref Received By Cash Account"
-      },
-      {
-        "Ordinal": 20,
-        "Column": "IG Receipt ID"
-      },
-      {
-        "Ordinal": 21,
-        "Column": "Receipt Image"
-      },
-      {
-        "Ordinal": 22,
-        "Column": "Receipt Received At"
-      },
-      {
-        "Ordinal": 23,
-        "Column": "Related Payment Allocations"
-      },
-      {
-        "Ordinal": 24,
-        "Column": "Related Repayments"
-      },
-      {
-        "Ordinal": 25,
-        "Column": "Eligible Charges"
-      },
-      {
-        "Ordinal": 26,
-        "Column": "Eligible Outstanding"
-      },
-      {
-        "Ordinal": 27,
-        "Column": "Allocation Difference"
-      },
-      {
-        "Ordinal": 28,
-        "Column": "Posting Difference"
-      },
-      {
-        "Ordinal": 29,
-        "Column": "Visible Allocations"
-      },
-      {
-        "Ordinal": 30,
-        "Column": "Related Loans"
-      },
-      {
-        "Ordinal": 31,
-        "Column": "Payment Month"
-      },
-      {
-        "Ordinal": 32,
-        "Column": "Related Cash Account Statement Recents"
-      }
-    ]
-  }
-}
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-collection-receipts/HANDOVER.md"
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "slice"
+  "name": "Submitted Receipt Payments"
+  "scope": "development:R047"
+"content":
+  "release": "R047"
+  "status": "DEV implemented; PROD not promoted"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000111"
+  "definition":
+    "Slice Name": "Submitted Receipt Payments"
+    "Source Table": "Payments"
+    "Row filter condition": "AND([Status] = \"Posted\", OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])))"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Row ID"
+    - "Status"
+    - "Ref Borrower"
+    - "Amount Received"
+    - "Payment Method"
+    - "Allocation Method"
+    - "Bank Reference"
+    - "Notes"
+    - "Created By"
+    - "Payment Date"
+    - "Created At"
+    - "Processed At"
+    - "Ref Target Charge"
+    - "Ref Target Loan"
+    - "Planned Allocation Amount"
+    - "Posted Amount"
+    - "Ref Received By Cash Holder"
+    - "Ref Received By Cash Account"
+    - "IG Receipt ID"
+    - "Receipt Image"
+    - "Receipt Received At"
+    - "Related Payment Allocations"
+    - "Related Repayments"
+    - "Eligible Charges"
+    - "Eligible Outstanding"
+    - "Allocation Difference"
+    - "Posting Difference"
+    - "Visible Allocations"
+    - "Related Loans"
+    - "Payment Month"
+    - "Related Cash Account Statement Recents"
+    - "Selected Charge IDs"
+    - "Uploaded Receipt"
+    - "Uploaded Receipt At"
+    - "Receipt Preview"
+    - "Receipt Display At"
+    "Slice Actions":
+    - "**auto**"
+    "Update mode": "READ_ONLY"
+  "members":
+  - "Ordinal": 1
+    "Column": "_RowNumber"
+  - "Ordinal": 2
+    "Column": "Row ID"
+  - "Ordinal": 3
+    "Column": "Status"
+  - "Ordinal": 4
+    "Column": "Ref Borrower"
+  - "Ordinal": 5
+    "Column": "Amount Received"
+  - "Ordinal": 6
+    "Column": "Payment Method"
+  - "Ordinal": 7
+    "Column": "Allocation Method"
+  - "Ordinal": 8
+    "Column": "Bank Reference"
+  - "Ordinal": 9
+    "Column": "Notes"
+  - "Ordinal": 10
+    "Column": "Created By"
+  - "Ordinal": 11
+    "Column": "Payment Date"
+  - "Ordinal": 12
+    "Column": "Created At"
+  - "Ordinal": 13
+    "Column": "Processed At"
+  - "Ordinal": 14
+    "Column": "Ref Target Charge"
+  - "Ordinal": 15
+    "Column": "Ref Target Loan"
+  - "Ordinal": 16
+    "Column": "Planned Allocation Amount"
+  - "Ordinal": 17
+    "Column": "Posted Amount"
+  - "Ordinal": 18
+    "Column": "Ref Received By Cash Holder"
+  - "Ordinal": 19
+    "Column": "Ref Received By Cash Account"
+  - "Ordinal": 20
+    "Column": "IG Receipt ID"
+  - "Ordinal": 21
+    "Column": "Receipt Image"
+  - "Ordinal": 22
+    "Column": "Receipt Received At"
+  - "Ordinal": 23
+    "Column": "Related Payment Allocations"
+  - "Ordinal": 24
+    "Column": "Related Repayments"
+  - "Ordinal": 25
+    "Column": "Eligible Charges"
+  - "Ordinal": 26
+    "Column": "Eligible Outstanding"
+  - "Ordinal": 27
+    "Column": "Allocation Difference"
+  - "Ordinal": 28
+    "Column": "Posting Difference"
+  - "Ordinal": 29
+    "Column": "Visible Allocations"
+  - "Ordinal": 30
+    "Column": "Related Loans"
+  - "Ordinal": 31
+    "Column": "Payment Month"
+  - "Ordinal": 32
+    "Column": "Related Cash Account Statement Recents"
+  - "Ordinal": 33
+    "Column": "Selected Charge IDs"
+  - "Ordinal": 34
+    "Column": "Uploaded Receipt"
+  - "Ordinal": 35
+    "Column": "Uploaded Receipt At"
+  - "Ordinal": 36
+    "Column": "Receipt Preview"
+  - "Ordinal": 37
+    "Column": "Receipt Display At"
+"evidence":
+  "/content/version":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/definition":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/members":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"

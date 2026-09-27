@@ -1,42 +1,42 @@
-{
-  "format": 1,
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r047-collection-receipts/HANDOVER.md"
-  },
-  "identity": {
-    "system": "appsheet",
-    "component": "oltp",
-    "kind": "view",
-    "name": "Submitted Receipts_Inline",
-    "scope": "development:R047"
-  },
-  "content": {
-    "release": "R047",
-    "status": "DEV implemented; PROD not promoted",
-    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
-    "version": "1.000098",
-    "definition": {
-      "View name": "Submitted Receipts_Inline",
-      "For this data": "Submitted Receipt Payments",
-      "View type": "deck",
-      "Position": "ref",
-      "Sort by": [
-        {
-          "Column": "Receipt Received At",
-          "Direction": "Descending"
-        }
-      ],
-      "Group by": [],
-      "Group aggregate": "NONE",
-      "Main image": "Receipt Image",
-      "Image shape": "Square Image",
-      "Primary header": "Receipt Received At",
-      "Secondary header": "Amount Received",
-      "Summary column": "**none**",
-      "Nested table column": "",
-      "Show action bar": false,
-      "Row Selected": "Open Submitted Receipt Payment"
-    }
-  }
-}
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-collection-receipts/HANDOVER.md"
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Submitted Receipts_Inline"
+  "scope": "development:R047"
+"content":
+  "release": "R047"
+  "status": "DEV implemented; PROD not promoted"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000111"
+  "definition":
+    "View name": "Submitted Receipts_Inline"
+    "For this data": "Submitted Receipt Payments"
+    "View type": "deck"
+    "Position": "ref"
+    "Sort by":
+    - "Column": "Receipt Display At"
+      "Direction": "Descending"
+    "Group by": []
+    "Group aggregate": "NONE"
+    "Main image": "Receipt Preview"
+    "Image shape": "Square Image"
+    "Primary header": "Receipt Display At"
+    "Secondary header": "Amount Received"
+    "Summary column": "**none**"
+    "Nested table column": ""
+    "Show action bar": false
+    "Row Selected": "Open Submitted Receipt Payment"
+"evidence":
+  "/content/version":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/definition":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"

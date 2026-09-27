@@ -5,3 +5,4 @@
 \ir Test-BorrowerPages.sql
 \ir Test-PrincipalDailyInterest.sql
 \ir Test-SelectedCharges.sql
+\ir Test-ReceiptUpload.sql

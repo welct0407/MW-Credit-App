@@ -1,0 +1,42 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "postgresql",
+    "component": "loan_manager_dev",
+    "kind": "routine",
+    "name": "public.payment_receipt_upload_stamp()",
+    "scope": "development:R047"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r047-receipt-upload/HANDOVER.md"
+  },
+  "content": {
+    "release": "R047",
+    "migration": "database/migrations/V52__manual_payment_receipt_upload.sql",
+    "definition": {
+      "schema": "public",
+      "name": "payment_receipt_upload_stamp",
+      "arguments": "",
+      "kind": "f",
+      "arguments_with_defaults": "",
+      "result": "trigger",
+      "definition": "CREATE OR REPLACE FUNCTION public.payment_receipt_upload_stamp()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$\nBEGIN\n NEW.\"Uploaded Receipt\":=nullif(btrim(NEW.\"Uploaded Receipt\"),'');\n IF NEW.\"Uploaded Receipt\" IS NULL THEN\n  NEW.\"Uploaded Receipt At\":=NULL;\n ELSIF TG_OP='INSERT' THEN\n  NEW.\"Uploaded Receipt At\":=clock_timestamp() AT TIME ZONE 'Asia/Bangkok';\n ELSIF NEW.\"Uploaded Receipt\" IS DISTINCT FROM OLD.\"Uploaded Receipt\" THEN\n  NEW.\"Uploaded Receipt At\":=clock_timestamp() AT TIME ZONE 'Asia/Bangkok';\n ELSE\n  NEW.\"Uploaded Receipt At\":=OLD.\"Uploaded Receipt At\";\n END IF;\n RETURN NEW;\nEND $function$\n",
+      "owner": "postgres",
+      "language": "plpgsql",
+      "volatility": "v",
+      "strict": false,
+      "security_definer": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100.0,
+      "rows": 0.0,
+      "settings": [
+        "search_path=pg_catalog"
+      ],
+      "acl": "{postgres=X/postgres}",
+      "comment": null,
+      "extension": null
+    }
+  }
+}

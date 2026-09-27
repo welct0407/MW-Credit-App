@@ -1,41 +1,101 @@
-{
-  "format": 1,
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
-  },
-  "identity": {
-    "system": "postgresql",
-    "component": "loan_manager_dev",
-    "kind": "relation",
-    "name": "public.Payments",
-    "scope": "development:R047"
-  },
-  "content": {
-    "release": "R047",
-    "migration": "database/migrations/V51__selected_charge_receiving.sql",
-    "production_reference": "systems/postgresql/relations/payments.yaml",
-    "columns": {
-      "Selected Charge IDs": {
-        "before": {
-          "state": "absent"
-        },
-        "after": {
-          "data_type": "text",
-          "is_nullable": "YES",
-          "column_default": null,
-          "purpose": "Canonical selected Charge keys; NULL for other receiving methods"
-        }
-      }
-    },
-    "triggers": {
-      "a1_selected_charge_scope": {
-        "before": {
-          "state": "absent"
-        },
-        "after": "CREATE TRIGGER a1_selected_charge_scope BEFORE INSERT OR UPDATE ON public.\"Payments\" FOR EACH ROW EXECUTE FUNCTION guard_selected_charge_scope()"
-      }
-    },
-    "data_change": "No backfill or existing financial-row change. Test fixture is synthetic DEV only."
-  }
-}
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.Payments"
+  "scope": "development:R047"
+"content":
+  "release": "R047"
+  "migration": "database/migrations/V51__selected_charge_receiving.sql"
+  "production_reference": "systems/postgresql/relations/payments.yaml"
+  "columns":
+    "Selected Charge IDs":
+      "before":
+        "state": "absent"
+      "after":
+        "data_type": "text"
+        "is_nullable": "YES"
+        "column_default": null
+        "purpose": "Canonical selected Charge keys; NULL for other receiving methods"
+    "Uploaded Receipt":
+      "before":
+        "state": "absent"
+      "after":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "Uploaded Receipt"
+        "ordinal": 23
+        "data_type": "text"
+        "type_schema": "pg_catalog"
+        "type_name": "text"
+        "not_null": false
+        "identity": ""
+        "generated": ""
+        "dimensions": 0
+        "storage": "x"
+        "compression": ""
+        "default_expression": null
+        "collation": "\"default\""
+        "acl": null
+        "comment": "Optional user-uploaded GCS image via AppSheet; agent-owned Receipt Image remains protected"
+    "Uploaded Receipt At":
+      "before":
+        "state": "absent"
+      "after":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "Uploaded Receipt At"
+        "ordinal": 24
+        "data_type": "timestamp without time zone"
+        "type_schema": "pg_catalog"
+        "type_name": "timestamp"
+        "not_null": false
+        "identity": ""
+        "generated": ""
+        "dimensions": 0
+        "storage": "p"
+        "compression": ""
+        "default_expression": null
+        "collation": null
+        "acl": null
+        "comment": "Server-maintained Asia/Bangkok time of the latest user image addition or replacement; null after removal"
+  "triggers":
+    "a1_selected_charge_scope":
+      "before":
+        "state": "absent"
+      "after": "CREATE TRIGGER a1_selected_charge_scope BEFORE INSERT OR UPDATE ON public.\"Payments\" FOR EACH ROW EXECUTE\
+        \ FUNCTION guard_selected_charge_scope()"
+    "a01_receipt_upload_stamp":
+      "before":
+        "state": "absent"
+      "after":
+        "schema": "public"
+        "relation": "Payments"
+        "name": "a01_receipt_upload_stamp"
+        "definition": "CREATE TRIGGER a01_receipt_upload_stamp BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE\
+          \ FUNCTION payment_receipt_upload_stamp()"
+        "enabled": "O"
+        "internal": false
+        "routine": "payment_receipt_upload_stamp()"
+        "deferrable": false
+        "initially_deferred": false
+        "comment": null
+  "data_change": "No backfill or existing financial-row change. Test fixture is synthetic DEV only."
+  "manual_upload_migration": "database/migrations/V52__manual_payment_receipt_upload.sql"
+"evidence":
+  "/content/columns":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/triggers":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/manual_upload_migration":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"

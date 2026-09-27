@@ -1,5 +1,17 @@
 # R047 — Collection borrower receipts
 
+## Manual Payment receipt upload — DEV checkpoint, 27 September
+
+Owner requested optional receipt upload on both create and edit, using the existing GCS bucket. Applied DEV V52 and saved OLTP1.000111 / OLAP1.000041; both Deployed editors have no issues. Added user-owned Payment image/time separately from protected agent evidence, updated Payment/Selected Charges forms and Payment detail, and combined both sources in Collection cards. Agent catalogue remains for agent intake; no agent/OCR/posting trigger is introduced for manual uploads. Existing selected-charge scope is preserved. No PROD, VM, GCS IAM or audit-relay change.
+
+Rollback: starting Git1b8081f272c900f413151c4b8e9ba0c3721797f7, OLTP1.000109 / OLAP1.000039, verified private DEV V51 dump/restore. V52 rehearsal preserved existing rows. Database CI, manual upload metadata/financial invariance and agent attachment coexistence passed; DEV Flyway validation passed. Current GUI confirms upload controls in create, edit and selected-charge forms, all cancelled. File chooser reached but extension rejected file access, so actual upload/GCS/save/replacement and post-upload OLAP read remain **unfinished**. Chrome work-profile ChatGPT extension needs Allow access to file URLs. No test financial writes or successful file upload in this component yet.
+
+Updated maintained backup/test/reconciliation/dictionary tools, scoped dictionary objects, current model/environment/development records and [detailed handover](../outputs/r047-receipt-upload/HANDOVER.md). Native storage path is not yet verified. Checkpoint is not DEV completion or promotion readiness. R047 remains Open; no RC/final tag. Unrelated risks/payment-health work is preserved.
+
+Checkpoint closure: dictionary1,311 objects validated with zero structural errors; Python syntax, JSON, handover links, immutable V52 hash and whitespace checks passed. Synthetic UI/editor screenshots reviewed. Commit/push records this incomplete but recoverable checkpoint; remaining live tests are explicit in the handover/continuation.
+
+## Prior completed R047 components
+
 27 September 2026. Owner selected option 1 (receipts linked to recorded Payments) and authorized DEV implementation. DEV OLTP **1.000098**, rollback **1.000095**. R047 stays Open for review; PROD promotion is not authorized by this turn.
 
 Added a read-only receipt Payments slice, borrower Ref list, Collection detail section, thumbnail deck and navigation action into existing Payment detail. Receipt image/time visibility supports nested read views while excluding forms. No SQL, agent, GCS, OLAP, notification or financial data change. Dependencies are the existing R046 receipt fields/native storage and Payment borrower Ref.

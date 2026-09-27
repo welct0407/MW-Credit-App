@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "identity": {
+    "system": "appsheet",
+    "component": "oltp",
+    "kind": "view",
+    "name": "Payments_Form",
+    "scope": "development:R047"
+  },
+  "verification": {
+    "status": "documented",
+    "source": "outputs/r047-receipt-upload/HANDOVER.md"
+  },
+  "content": {
+    "release": "R047",
+    "version": "1.000111",
+    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "change": "Append manual-upload fields to existing explicit order; other properties unchanged",
+    "Column order": [
+      "Ref Borrower",
+      "Payment Date",
+      "Ref Target Charge",
+      "Amount Received",
+      "Ref Received By Cash Account",
+      "Ref Received By Cash Holder",
+      "Payment Method",
+      "Bank Reference",
+      "Notes",
+      "Uploaded Receipt"
+    ]
+  }
+}

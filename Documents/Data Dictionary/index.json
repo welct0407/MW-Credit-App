@@ -2580,6 +2580,14 @@
         {
           "subject": "Selected Charge IDs",
           "pointer": "/content/columns/Selected Charge IDs"
+        },
+        {
+          "subject": "Uploaded Receipt",
+          "pointer": "/content/columns/Uploaded Receipt"
+        },
+        {
+          "subject": "Uploaded Receipt At",
+          "pointer": "/content/columns/Uploaded Receipt At"
         }
       ]
     },
@@ -2634,6 +2642,22 @@
         {
           "subject": "Eligible Charges",
           "pointer": "/content/columns/Eligible Charges"
+        },
+        {
+          "subject": "Uploaded Receipt",
+          "pointer": "/content/columns/Uploaded Receipt"
+        },
+        {
+          "subject": "Uploaded Receipt At",
+          "pointer": "/content/columns/Uploaded Receipt At"
+        },
+        {
+          "subject": "Receipt Preview",
+          "pointer": "/content/columns/Receipt Preview"
+        },
+        {
+          "subject": "Receipt Display At",
+          "pointer": "/content/columns/Receipt Display At"
         }
       ]
     },
@@ -2643,6 +2667,26 @@
       "component": "oltp",
       "kind": "action",
       "name": "Open Submitted Receipt Payment",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r047/payments-detail.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Payments_Detail",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r047/payments-form.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Payments_Form",
       "scope": "development:R047",
       "status": "documented",
       "lookup": []
@@ -3371,6 +3415,16 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r047/payment-receipt-upload-stamp.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.payment_receipt_upload_stamp()",
+      "scope": "development:R047",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r047/payments.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
@@ -3382,6 +3436,14 @@
         {
           "subject": "Selected Charge IDs",
           "pointer": "/content/columns/Selected Charge IDs"
+        },
+        {
+          "subject": "Uploaded Receipt",
+          "pointer": "/content/columns/Uploaded Receipt"
+        },
+        {
+          "subject": "Uploaded Receipt At",
+          "pointer": "/content/columns/Uploaded Receipt At"
         }
       ]
     },

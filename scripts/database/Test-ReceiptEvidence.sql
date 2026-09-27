@@ -16,8 +16,8 @@ INSERT INTO "Borrowers"("Row ID","Borrower Name","Description") VALUES('R046-bor
 INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Ref Disbursed From Cash Account")
  VALUES('R046-loan','R046-borrower',current_date-1,1000::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,10::money,'R046-lisa');
 INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES('R046-charge','R046-loan',current_date,0::money,100::money);
-INSERT INTO "Payments"("Row ID","Status","Ref Borrower","Amount Received","Payment Date","Created At","Allocation Method","Ref Target Charge","Ref Received By Cash Account","Bank Reference")
- VALUES('R046-payment','Processing','R046-borrower',25::money,current_date,current_date+time '18:23:12','Single Partial','R046-charge','R046-dad','SYNTHETIC-046');
+INSERT INTO "Payments"("Row ID","Status","Ref Borrower","Amount Received","Payment Date","Created At","Allocation Method","Ref Target Charge","Ref Received By Cash Account","Bank Reference","Uploaded Receipt")
+ VALUES('R046-payment','Processing','R046-borrower',25::money,current_date,current_date+time '18:23:12','Single Partial','R046-charge','R046-dad','SYNTHETIC-046','manual/dev/synthetic.png');
 CREATE TEMP TABLE before_receipt AS SELECT to_jsonb(p) p,
  (SELECT jsonb_agg(to_jsonb(r) ORDER BY r."Row ID") FROM "Repayments" r) repayments,
  (SELECT jsonb_agg(to_jsonb(l) ORDER BY l."Row ID") FROM "Cash Ledger" l) ledger,

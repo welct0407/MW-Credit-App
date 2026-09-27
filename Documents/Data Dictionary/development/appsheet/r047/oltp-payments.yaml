@@ -1,100 +1,160 @@
-{
-  "format": 1,
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
-  },
-  "identity": {
-    "system": "appsheet",
-    "component": "oltp",
-    "kind": "table",
-    "name": "Payments",
-    "scope": "development:R047"
-  },
-  "content": {
-    "release": "R047",
-    "status": "DEV implemented; PROD not promoted",
-    "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
-    "version": "1.000109",
-    "predecessor_reference": "development/appsheet/r046/oltp-payments.yaml",
-    "production_reference": "systems/appsheet/oltp/tables/payments.yaml",
-    "columns": {
-      "Receipt Image": {
-        "Show_If": {
-          "before": "AND(CONTEXT(\"View\") = \"Payments_Detail\", ISNOTBLANK([Receipt Image]))",
-          "after": "AND(CONTEXT(\"ViewType\") <> \"form\", ISNOTBLANK([Receipt Image]))"
-        }
-      },
-      "Receipt Received At": {
-        "Show_If": {
-          "before": "AND(CONTEXT(\"View\") = \"Payments_Detail\", ISNOTBLANK([Receipt Image]))",
-          "after": "AND(CONTEXT(\"ViewType\") <> \"form\", ISNOTBLANK([Receipt Image]))"
-        }
-      },
-      "Selected Charge IDs": {
-        "before": {
-          "state": "absent"
-        },
-        "after": {
-          "Type": "EnumList",
-          "Base type": "Ref",
-          "Referenced table name": "Charges",
-          "Item separator": " , ",
-          "Input mode": "Dropdown",
-          "Allow other values": true,
-          "Auto-complete other values": false,
-          "Show_If": "[Allocation Method] = \"Selected Charges\"",
-          "Required_If": "[Allocation Method] = \"Selected Charges\"",
-          "Editable_If": "NOT(IN([Row ID], Payments[Row ID]))",
-          "Valid_If": "IF(IN([Row ID], Payments[Row ID]), [Selected Charge IDs], ORDERBY(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], [Charge Date] <= [_THISROW].[Payment Date], [Amount Remaining] > 0)), [Charge Date], FALSE, [Row ID], FALSE))",
-          "Display name": "\"รายการที่เลือก / Selected Charges\"",
-          "Description": "\"ชำระยอดคงเหลือเต็มจำนวนของแต่ละรายการที่เลือก / Fully settle only the selected remaining balances.\"",
-          "Invalid value error": "\"เลือกรายการค้างชำระของผู้กู้รายนี้เท่านั้น / Select only this borrower’s outstanding charges dated on or before the payment date.\"",
-          "App formula": "",
-          "Initial value": "",
-          "Reset on edit?": false
-        }
-      },
-      "Allocation Method": {
-        "change": "Append Selected Charges to the existing six allowed values; existing initial Lump Sum and noneditable rule retained.",
-        "after_values": [
-          "Single Full",
-          "Single Partial",
-          "Receive All",
-          "Lump Sum",
-          "First-day Auto",
-          "Loan Close",
-          "Selected Charges"
-        ]
-      },
-      "Ref Borrower": {
-        "Editable_If": {
-          "before": "NOT(IN([Row ID], Payments[Row ID]))",
-          "after": "AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] <> \"Selected Charges\")"
-        }
-      },
-      "Amount Received": {
-        "Initial value": {
-          "before": "",
-          "after": "IF([Allocation Method] = \"Selected Charges\", SUM([Selected Charge IDs][Amount Remaining]), \"\")"
-        },
-        "Valid_If": {
-          "change": "Only added Selected Charges to the exact-full-balance list.",
-          "after": "OR(IN([Row ID], Payments[Row ID]), AND([Allocation Method] = \"Loan Close\", ISNOTBLANK([Ref Target Loan]), [Ref Target Loan].[Ref Borrowers] = [Ref Borrower], [_THIS] > 0, [_THIS] = ROUND([_THIS])), AND([_THIS] > 0, [_THIS] = ROUND([_THIS]), [_THIS] <= [Eligible Outstanding], IF(IN([Allocation Method], LIST(\"Single Full\", \"Receive All\", \"First-day Auto\", \"Loan Close\", \"Selected Charges\")), [_THIS] = [Eligible Outstanding], TRUE)))"
-        },
-        "Description": {
-          "before": "CONCATENATE(\"ยอดคงเหลือที่ชำระได้ / Current eligible outstanding: ฿ \", [Eligible Outstanding])",
-          "after": "IF(AND([Allocation Method] = \"Selected Charges\", NOT(IN([Row ID], Payments[Row ID]))), CONCATENATE(\"เลือก / Selected: \", COUNT([Selected Charge IDs]), \" | เงินต้น / Principal: ฿\", SUM([Selected Charge IDs][Principal Remaining]), \" | ดอกเบี้ย / Interest: ฿\", SUM([Selected Charge IDs][Interest Remaining]), \" | รวม / Total: ฿\", [Eligible Outstanding]), CONCATENATE(\"ยอดคงเหลือที่ชำระได้ / Current eligible outstanding: ฿ \", [Eligible Outstanding]))"
-        }
-      },
-      "Eligible Charges": {
-        "App formula": {
-          "change": "Adds selected-key and date branch; other branches preserved.",
-          "after": "IF(IN([Status], LIST(\"Processing\", \"Error\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], [Amount Remaining] > 0, IFS(IN([_THISROW].[Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge], [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = [_THISROW].[Ref Target Charge].[Ref Loans], IN([_THISROW].[Allocation Method], LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], [_THISROW].[Allocation Method] = \"Selected Charges\", AND(IN([Row ID], [_THISROW].[Selected Charge IDs]), [Charge Date] <= [_THISROW].[Payment Date]), TRUE, FALSE))), LIST())"
-        }
-      }
-    },
-    "unchanged": "Posted amount/date/method locks, initial status, key, receipt fields, cash-account defaults, notifications and backend transaction ownership.",
-    "selected_charge_evidence": "outputs/r047-selected-charges/IMPLEMENTATION.md"
-  }
-}
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Payments"
+  "scope": "development:R047"
+"content":
+  "release": "R047"
+  "status": "DEV implemented; PROD not promoted"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000111"
+  "predecessor_reference": "development/appsheet/r046/oltp-payments.yaml"
+  "production_reference": "systems/appsheet/oltp/tables/payments.yaml"
+  "columns":
+    "Receipt Image":
+      "Show_If":
+        "before": "AND(CONTEXT(\"View\") = \"Payments_Detail\", ISNOTBLANK([Receipt Image]))"
+        "after": "AND(CONTEXT(\"ViewType\") <> \"form\", ISNOTBLANK([Receipt Image]))"
+    "Receipt Received At":
+      "Show_If":
+        "before": "AND(CONTEXT(\"View\") = \"Payments_Detail\", ISNOTBLANK([Receipt Image]))"
+        "after": "AND(CONTEXT(\"ViewType\") <> \"form\", ISNOTBLANK([Receipt Image]))"
+    "Selected Charge IDs":
+      "before":
+        "state": "absent"
+      "after":
+        "Type": "EnumList"
+        "Base type": "Ref"
+        "Referenced table name": "Charges"
+        "Item separator": " , "
+        "Input mode": "Dropdown"
+        "Allow other values": true
+        "Auto-complete other values": false
+        "Show_If": "[Allocation Method] = \"Selected Charges\""
+        "Required_If": "[Allocation Method] = \"Selected Charges\""
+        "Editable_If": "NOT(IN([Row ID], Payments[Row ID]))"
+        "Valid_If": "IF(IN([Row ID], Payments[Row ID]), [Selected Charge IDs], ORDERBY(SELECT(Charges[Row ID], AND([Ref Loans].[Ref\
+          \ Borrowers] = [_THISROW].[Ref Borrower], [Charge Date] <= [_THISROW].[Payment Date], [Amount Remaining] > 0)),\
+          \ [Charge Date], FALSE, [Row ID], FALSE))"
+        "Display name": "\"รายการที่เลือก / Selected Charges\""
+        "Description": "\"ชำระยอดคงเหลือเต็มจำนวนของแต่ละรายการที่เลือก / Fully settle only the selected remaining balances.\""
+        "Invalid value error": "\"เลือกรายการค้างชำระของผู้กู้รายนี้เท่านั้น / Select only this borrower’s outstanding charges\
+          \ dated on or before the payment date.\""
+        "App formula": ""
+        "Initial value": ""
+        "Reset on edit?": false
+    "Allocation Method":
+      "change": "Append Selected Charges to the existing six allowed values; existing initial Lump Sum and noneditable rule\
+        \ retained."
+      "after_values":
+      - "Single Full"
+      - "Single Partial"
+      - "Receive All"
+      - "Lump Sum"
+      - "First-day Auto"
+      - "Loan Close"
+      - "Selected Charges"
+    "Ref Borrower":
+      "Editable_If":
+        "before": "NOT(IN([Row ID], Payments[Row ID]))"
+        "after": "AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] <> \"Selected Charges\")"
+    "Amount Received":
+      "Initial value":
+        "before": ""
+        "after": "IF([Allocation Method] = \"Selected Charges\", SUM([Selected Charge IDs][Amount Remaining]), \"\")"
+      "Valid_If":
+        "change": "Only added Selected Charges to the exact-full-balance list."
+        "after": "OR(IN([Row ID], Payments[Row ID]), AND([Allocation Method] = \"Loan Close\", ISNOTBLANK([Ref Target Loan]),\
+          \ [Ref Target Loan].[Ref Borrowers] = [Ref Borrower], [_THIS] > 0, [_THIS] = ROUND([_THIS])), AND([_THIS] > 0, [_THIS]\
+          \ = ROUND([_THIS]), [_THIS] <= [Eligible Outstanding], IF(IN([Allocation Method], LIST(\"Single Full\", \"Receive\
+          \ All\", \"First-day Auto\", \"Loan Close\", \"Selected Charges\")), [_THIS] = [Eligible Outstanding], TRUE)))"
+      "Description":
+        "before": "CONCATENATE(\"ยอดคงเหลือที่ชำระได้ / Current eligible outstanding: ฿ \", [Eligible Outstanding])"
+        "after": "IF(AND([Allocation Method] = \"Selected Charges\", NOT(IN([Row ID], Payments[Row ID]))), CONCATENATE(\"\
+          เลือก / Selected: \", COUNT([Selected Charge IDs]), \" | เงินต้น / Principal: ฿\", SUM([Selected Charge IDs][Principal\
+          \ Remaining]), \" | ดอกเบี้ย / Interest: ฿\", SUM([Selected Charge IDs][Interest Remaining]), \" | รวม / Total:\
+          \ ฿\", [Eligible Outstanding]), CONCATENATE(\"ยอดคงเหลือที่ชำระได้ / Current eligible outstanding: ฿ \", [Eligible\
+          \ Outstanding]))"
+    "Eligible Charges":
+      "App formula":
+        "change": "Adds selected-key and date branch; other branches preserved."
+        "after": "IF(IN([Status], LIST(\"Processing\", \"Error\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers]\
+          \ = [_THISROW].[Ref Borrower], [Amount Remaining] > 0, IFS(IN([_THISROW].[Allocation Method], LIST(\"Single Full\"\
+          , \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge], [_THISROW].[Allocation Method]\
+          \ = \"Loan Close\", [Ref Loans] = [_THISROW].[Ref Target Charge].[Ref Loans], IN([_THISROW].[Allocation Method],\
+          \ LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], [_THISROW].[Allocation Method]\
+          \ = \"Selected Charges\", AND(IN([Row ID], [_THISROW].[Selected Charge IDs]), [Charge Date] <= [_THISROW].[Payment\
+          \ Date]), TRUE, FALSE))), LIST())"
+    "Uploaded Receipt":
+      "before":
+        "state": "absent"
+      "after":
+        "Type": "Image"
+        "Virtual": false
+        "Show_If": "OR(CONTEXT(\"ViewType\") = \"form\", ISNOTBLANK([Uploaded Receipt]))"
+        "Editable": true
+        "Required": false
+        "Searchable": false
+        "Sensitive data": true
+        "Image/File folder path": "\"manual-receipts/dev\""
+        "Display name": "\"รูปใบเสร็จ / Upload Receipt\""
+        "Description": "\"แนบรูปใบเสร็จ (ไม่บังคับ) / Optional receipt picture.\""
+        "App formula": ""
+        "Initial value": ""
+    "Uploaded Receipt At":
+      "before":
+        "state": "absent"
+      "after":
+        "Type": "DateTime"
+        "Virtual": false
+        "Show_If": "AND(CONTEXT(\"ViewType\") <> \"form\", ISNOTBLANK([Uploaded Receipt]))"
+        "Editable": false
+        "Searchable": false
+        "App formula": ""
+        "Initial value": ""
+        "Display name": "\"เวลาอัปโหลดใบเสร็จ / Receipt Uploaded At\""
+    "Receipt Preview":
+      "before":
+        "state": "absent"
+      "after":
+        "Type": "Image"
+        "Virtual": true
+        "App formula": "IF(ISNOTBLANK([Uploaded Receipt]), [Uploaded Receipt], [Receipt Image])"
+        "Show_If": "AND(CONTEXT(\"ViewType\") <> \"form\", OR(ISNOTBLANK([Uploaded Receipt]), ISNOTBLANK([Receipt Image])))"
+        "Searchable": false
+        "Sensitive data": true
+        "Image/File folder path": "\"manual-receipts/dev\""
+    "Receipt Display At":
+      "before":
+        "state": "absent"
+      "after":
+        "Type": "DateTime"
+        "Virtual": true
+        "App formula": "IF(ISNOTBLANK([Uploaded Receipt]), [Uploaded Receipt At], [Receipt Received At])"
+        "Show_If": "AND(CONTEXT(\"ViewType\") <> \"form\", OR(ISNOTBLANK([Uploaded Receipt]), ISNOTBLANK([Receipt Image])))"
+  "unchanged": "Posted financial locks, selected-charge rules, initial status, key, agent-owned evidence protection, cash-account\
+    \ defaults, notifications and posting ownership."
+  "selected_charge_evidence": "outputs/r047-selected-charges/IMPLEMENTATION.md"
+  "manual_upload_status": "Configured; native GCS upload/save verification pending"
+"evidence":
+  "/content/version":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/columns":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/unchanged":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/manual_upload_status":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"

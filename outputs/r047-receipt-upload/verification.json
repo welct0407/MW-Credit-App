@@ -1,0 +1,35 @@
+{
+  "date": "2026-09-27",
+  "environment": "development",
+  "sql_version": 52,
+  "apps": {
+    "OLTP": {
+      "version": "1.000111",
+      "editor_issues": 0
+    },
+    "OLAP": {
+      "version": "1.000041",
+      "editor_issues": 0
+    }
+  },
+  "passed": [
+    "backup restore and migration rehearsal",
+    "database CI including manual metadata and financial invariance",
+    "agent attachment with preexisting manual image",
+    "DEV Flyway validation",
+    "optional upload visible in create/edit/selected-charge GUI forms; cancelled",
+    "existing agent receipt still visible in Collection and Payment detail"
+  ],
+  "pending": [
+    "native file upload and GCS object path",
+    "save and sync of uploaded image on existing Payment",
+    "create Payment with upload",
+    "replacement and no reposting reconciliation",
+    "manual-only and mixed Collection image navigation",
+    "OLAP post-upload read/sync"
+  ],
+  "blocker": "Work Chrome ChatGPT extension requires Allow access to file URLs for automated chooser.setFiles",
+  "prod_changed": false,
+  "gui_financial_writes": false,
+  "successful_file_upload": false
+}

@@ -1,41 +1,69 @@
-{
-  "format": 1,
-  "verification": {
-    "status": "documented",
-    "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
-  },
-  "identity": {
-    "system": "appsheet",
-    "component": "olap",
-    "kind": "table",
-    "name": "Payments",
-    "scope": "development:R047"
-  },
-  "content": {
-    "release": "R047",
-    "status": "DEV implemented; PROD pending",
-    "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
-    "version": "1.000039",
-    "production_reference": "systems/appsheet/olap/tables/payments.yaml",
-    "predecessor_reference": "development/appsheet/r046/olap-payments.yaml",
-    "columns": {
-      "Selected Charge IDs": {
-        "before": {
-          "state": "absent"
-        },
-        "after": {
-          "Type": "LongText",
-          "Show": false,
-          "Editable": false,
-          "Searchable": false,
-          "Description": "\"Selected-charge scope recorded by OLTP; review the posted payment allocations.\""
-        }
-      }
-    },
-    "unchanged": {
-      "Are updates allowed?": "READ_ONLY",
-      "Allocation Method type": "Text"
-    },
-    "note": "Payments schema regenerated against DEV database-3. Allocation Method is already Text, so no enum change is necessary. Existing allocations/Repayments/cash-ledger Refs expose canonical posting results. Existing dollar-format issue on some OLAP payment/allocation prices remains recorded separately."
-  }
-}
+"format": 1
+"verification":
+  "status": "documented"
+  "source": "outputs/r047-selected-charges/IMPLEMENTATION.md"
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "Payments"
+  "scope": "development:R047"
+"content":
+  "release": "R047"
+  "status": "DEV implemented; PROD pending"
+  "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+  "version": "1.000041"
+  "production_reference": "systems/appsheet/olap/tables/payments.yaml"
+  "predecessor_reference": "development/appsheet/r046/olap-payments.yaml"
+  "columns":
+    "Selected Charge IDs":
+      "before":
+        "state": "absent"
+      "after":
+        "Type": "LongText"
+        "Show": false
+        "Editable": false
+        "Searchable": false
+        "Description": "\"Selected-charge scope recorded by OLTP; review the posted payment allocations.\""
+    "Uploaded Receipt":
+      "before":
+        "state": "absent"
+      "after":
+        "Type": "Image"
+        "Show": false
+        "Editable": false
+        "Searchable": false
+        "Sensitive data": true
+        "Initial value": ""
+        "App formula": ""
+    "Uploaded Receipt At":
+      "before":
+        "state": "absent"
+      "after":
+        "Type": "DateTime"
+        "Show": false
+        "Editable": false
+        "Searchable": false
+        "Sensitive data": false
+        "Initial value": ""
+        "App formula": ""
+  "unchanged":
+    "Are updates allowed?": "READ_ONLY"
+    "Allocation Method type": "Text"
+  "note": "Payments schema regenerated against DEV database-3. Allocation Method is already Text, so no enum change is necessary.\
+    \ Existing allocations/Repayments/cash-ledger Refs expose canonical posting results. Existing dollar-format issue on some\
+    \ OLAP payment/allocation prices remains recorded separately."
+  "manual_upload_status": "Shared schema reconciled; post-upload read verification pending"
+"evidence":
+  "/content/version":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/columns":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
+  "/content/manual_upload_status":
+    "reference": "outputs/r047-receipt-upload/HANDOVER.md"
+    "reason": "Saved R047 manual receipt upload DEV checkpoint; storage tests pending"
+    "state": "value"
