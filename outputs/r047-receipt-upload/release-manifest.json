@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "R047",
-  "revision": 5,
+  "revision": 6,
   "status": "open-dev-verified-owner-review-pending",
   "scope": [
     "Collection borrower linked-payment receipts",
@@ -34,11 +34,12 @@
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": "1.000115",
+        "version": "1.000116",
         "rollbackVersion": "1.000109",
         "evidence": "outputs/r047-receipt-upload/HANDOVER.md",
         "labelRefinementEvidence": "outputs/r047-selected-charges/LABEL_REFINEMENT.md",
-        "loanKeyRateDisplay": "Whole percent, display only; evidence in LABEL_REFINEMENT.md"
+        "loanKeyRateDisplay": "Whole percent, display only; evidence in LABEL_REFINEMENT.md",
+        "readonlySelectedTotalEvidence": "outputs/r047-selected-charges/READONLY_TOTAL.md"
       },
       "rc": {
         "id": null,

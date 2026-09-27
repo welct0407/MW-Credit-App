@@ -12,7 +12,7 @@
   "release": "R047"
   "status": "DEV implemented; PROD not promoted"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000111"
+  "version": "1.000116"
   "predecessor_reference": "development/appsheet/r046/oltp-payments.yaml"
   "production_reference": "systems/appsheet/oltp/tables/payments.yaml"
   "columns":
@@ -64,6 +64,10 @@
         "before": "NOT(IN([Row ID], Payments[Row ID]))"
         "after": "AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] <> \"Selected Charges\")"
     "Amount Received":
+      "Editable_If":
+        "before": 'NOT(IN([Row ID], Payments[Row ID]))'
+        "after": 'AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] <> "Selected Charges")'
+        "evidence": "outputs/r047-selected-charges/READONLY_TOTAL.md"
       "Initial value":
         "before": ""
         "after": "IF([Allocation Method] = \"Selected Charges\", SUM([Selected Charge IDs][Amount Remaining]), \"\")"

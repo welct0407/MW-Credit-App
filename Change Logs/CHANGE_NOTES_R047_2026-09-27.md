@@ -1,5 +1,9 @@
 # R047 — Collection borrower receipts
 
+## Read-only selected-charge total — 27 September 2026
+
+Owner authorized locking the selection-derived total. Updated only OLTP Payments.Amount Received Editable_If to exclude Selected Charges while preserving existing-record locks. DEV1.000116, rollback1.000115, Git baseline d01982b. GUI select/clear recalculation and disabled controls passed; Lump Sum/Single Partial remain editable. All forms cancelled; both editors clear, OLAP1.000041 unchanged. No SQL/data/PROD change. Exact dictionary, evidence, current versions and manifest updated; dictionary/whitespace checks and normal publication complete the batch. [Evidence](../outputs/r047-selected-charges/READONLY_TOTAL.md).
+
 ## Loan Key rate formatting — 27 September 2026
 
 Owner requested no interest decimals in the Loan Key. OLTP1.000115 rounds only its displayed effective daily rate to a whole percentage (1.00% → 1%); stored rates/calculations unchanged. Rollback1.000114, Git baseline82dc65f. Synthetic Collection card and picker verified, form cancelled; both editors clear and OLAP1.000041 unchanged. No SQL/data/PROD change. Updated Loans DEV dictionary, label evidence, current version records and manifest; dictionary/whitespace checks and normal publication complete the batch. [Evidence](../outputs/r047-selected-charges/LABEL_REFINEMENT.md).

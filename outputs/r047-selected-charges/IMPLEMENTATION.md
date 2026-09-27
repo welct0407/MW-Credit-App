@@ -4,7 +4,7 @@
 
 ## Use and behavior
 
-In OLTP Collection, open a borrower and choose **รับชำระรายการที่เลือก / Receive Selected Charges**. Select charges in the dedicated multi-select form, review the count, principal, interest and combined remaining balance, select the receiving account and save one Payment. The borrower is fixed. Only that borrower's positive remaining charges dated on or before Payment Date qualify. Selected charges must be fully settled; the amount must exactly equal their combined residual. Unselected charges receive nothing. All six previous receiving methods remain available.
+In OLTP Collection, open a borrower and choose **รับชำระรายการที่เลือก / Receive Selected Charges**. Select charges in the dedicated multi-select form, review the count, principal, interest and combined remaining balance, select the receiving account and save one Payment. The borrower is fixed. At DEV1.000116 the selected-charge amount is read-only and recalculates when selection changes; [refinement and checks](READONLY_TOTAL.md). Only that borrower's positive remaining charges dated on or before Payment Date qualify. Selected charges must be fully settled; the amount must exactly equal their combined residual. Unselected charges receive nothing. All six previous receiving methods remain available.
 
 The form returns to Collection after saving, consistent with the existing receiving flow; open Payment detail to review posting. This is the implemented choice instead of the proposal's suggested automatic Payment-detail redirect. Selection is in the form, not checkboxes directly on the existing inline charge list.
 
