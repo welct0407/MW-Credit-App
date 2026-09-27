@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "R047",
-  "revision": 3,
+  "revision": 4,
   "status": "open-dev-verified-owner-review-pending",
   "scope": [
     "Collection borrower linked-payment receipts",
@@ -14,7 +14,8 @@
   "git": {
     "implementationCommit": "525f75eed29f9c17985dedad27b2d73c0e2e5755",
     "finalTag": null,
-    "baselineCommit": "1b8081f272c900f413151c4b8e9ba0c3721797f7"
+    "baselineCommit": "1b8081f272c900f413151c4b8e9ba0c3721797f7",
+    "labelRefinementCommit": "resolve from containing evidence commit"
   },
   "records": {
     "log": "Change Logs/CHANGE_NOTES_R047_2026-09-27.md",
@@ -33,9 +34,10 @@
       "dev": {
         "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
         "internalName": "MW-OLTP-DEV-20260919-578763613",
-        "version": "1.000111",
+        "version": "1.000114",
         "rollbackVersion": "1.000109",
-        "evidence": "outputs/r047-receipt-upload/HANDOVER.md"
+        "evidence": "outputs/r047-receipt-upload/HANDOVER.md",
+        "labelRefinementEvidence": "outputs/r047-selected-charges/LABEL_REFINEMENT.md"
       },
       "rc": {
         "id": null,

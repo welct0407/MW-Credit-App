@@ -15,7 +15,7 @@
     "release": "R047",
     "status": "DEV implemented; owner acceptance and PROD promotion pending",
     "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
-    "version": "1.000109",
+    "version": "1.000114",
     "production_reference": "systems/appsheet/oltp/tables/charges.yaml",
     "columns": {
       "Charge Selection Label": {
@@ -25,7 +25,7 @@
         "after": {
           "virtual": true,
           "Type": "Text",
-          "App formula": "CONCATENATE(TEXT([Charge Date], \"DD MMM YYYY\"), \" | Loan \", TEXT([Ref Loans].[Loan Date], \"DD MMM YYYY\"), \" | ฿\", [Amount Remaining], \" | \", [Row ID])",
+          "App formula": "CONCATENATE(TEXT([Charge Date], \"DD MMM YYYY\"), \" | ฿\", [Amount Remaining], \" | Loan \", [Ref Loans].[Loan Key])",
           "Show": true,
           "Label": true
         }
@@ -44,6 +44,12 @@
         "note": "AppSheet temporarily auto-selected this while correcting label configuration; final value false."
       }
     },
-    "impact": "One non-image label per table. Label is visible as required by AppSheet, affects OLTP charge Ref selectors and auto-labeled Collection cards. Values are current residuals, not receipt snapshots; allocations retain their original snapshot amounts. OLAP labels unchanged."
+    "impact": "One non-image label per table. Label is visible as required by AppSheet, affects OLTP charge Ref selectors and auto-labeled Collection cards. Values are current residuals, not receipt snapshots; allocations retain their original snapshot amounts. OLAP labels unchanged.",
+    "label_refinement": {
+      "rollback_version": "1.000112",
+      "date": "2026-09-27",
+      "reason": "Owner requested charge date, remaining amount, then Loan Key; remove displayed Row ID.",
+      "evidence": "outputs/r047-selected-charges/LABEL_REFINEMENT.md"
+    }
   }
 }

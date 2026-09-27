@@ -1,5 +1,9 @@
 # R047 — Collection borrower receipts
 
+## Charge label refinement — 27 September 2026
+
+Owner requested no displayed charge Row ID, Loan Key in place of loan date, and final order charge date | remaining amount | Loan Key. Updated only Charges.Charge Selection Label in DEV OLTP1.000114, from refreshed rollback1.000112; existing receipt-upload work retained. Collection card and receiving picker verified with the synthetic R046 record, then form cancelled. Both editors clear; OLAP1.000041 unchanged. No SQL/data/PROD change. Exact DEV dictionary, current environment/development/tracker records and implementation explanation updated. [Formula, evidence and rollback](../outputs/r047-selected-charges/LABEL_REFINEMENT.md). Starting Git e3881c75c8256d282a7c829a3a9182871a031ad3; unrelated untracked files preserved. Dictionary/whitespace validation precedes normal commit/push; R047 stays Open.
+
 ## Manual Payment receipt upload — DEV verified, 27 September
 
 Owner requested optional receipt upload on both create and edit, using the existing GCS bucket. Applied DEV V52 and saved OLTP1.000111 / OLAP1.000041; both Deployed editors have no issues. Added user-owned Payment image/time separately from protected agent evidence, updated Payment/Selected Charges forms and Payment detail, and combined both sources in Collection cards. Agent catalogue remains for agent intake; no agent/OCR/posting trigger is introduced for manual uploads. Existing selected-charge scope is preserved. No PROD, VM, GCS IAM or audit-relay change.

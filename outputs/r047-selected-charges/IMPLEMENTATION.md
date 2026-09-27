@@ -8,7 +8,7 @@ In OLTP Collection, open a borrower and choose **รับชำระราย�
 
 The form returns to Collection after saving, consistent with the existing receiving flow; open Payment detail to review posting. This is the implemented choice instead of the proposal's suggested automatic Payment-detail redirect. Selection is in the form, not checkboxes directly on the existing inline charge list.
 
-Charges now use a visible virtual label containing charge date, loan date, current residual and charge key. This disambiguates same-date items and also changes OLTP Ref labels/automatic Collection card labels. Posted allocation snapshots remain the authority for historical paid amounts; a label's current balance can become zero.
+Charges use a visible virtual label containing charge date, current residual and Loan Key. The owner-requested refinement at OLTP1.000114 removes the displayed row ID and replaces the loan-date segment with Loan Key; see [label refinement](LABEL_REFINEMENT.md). This affects OLTP Ref labels and automatic Collection card labels. Posted allocation snapshots remain the authority for historical paid amounts; a label's current balance can become zero.
 
 ## Saved identities and recovery
 

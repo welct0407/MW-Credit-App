@@ -1,5 +1,7 @@
 # Environment inventory
 
+R047 charge-label refinement: DEV OLTP **1.000114** (rollback1.000112) displays charge date, residual and Loan Key, with no displayed Row ID. Current GUI card/picker verified; both editors clear, OLAP1.000041 unchanged. SQL remains V52 from the receipt-upload checkpoint; this refinement has no data/SQL/PROD change. [Evidence](../outputs/r047-selected-charges/LABEL_REFINEMENT.md).
+
 R047 current DEV checkpoint (27 September): OLTP **1.000111**, OLAP **1.000041**, database **loan_manager_dev V52**. Manual Payment receipt upload is configured alongside Receive Selected Charges and Collection receipts. Both saved editors have no issues and remain Deployed. Native create/edit/replacement uploads, actual GCS paths, financial invariance, Collection rendering and OLAP read/sync are verified; ready for owner DEV review. Manual-upload rollback: OLTP1.000109 / OLAP1.000039 and verified private pre-V52 dump. PROD remains V50; agent runtime, bucket permissions and PROD apps are unchanged. [Current handover](../outputs/r047-receipt-upload/HANDOVER.md); [prior selected-charge verification](../outputs/r047-selected-charges/IMPLEMENTATION.md).
 
 R047 DEV UI checkpoint (27 September): DEV OLTP **1.000098** adds linked-payment receipt thumbnails to the Collection borrower detail; rollback1.000095. DEV OLAP observed **1.000036**, unchanged by this task. Both saved editors report no issues and both remain Deployed. No source, database, agent, GCS or PROD app change. [Current DEV handover](../outputs/r047-collection-receipts/HANDOVER.md).
