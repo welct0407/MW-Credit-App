@@ -5,13 +5,8 @@
     "source": "Simple Icons v11 product mark"
   },
   {
-    "name": "tailscale",
-    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/tailscale.svg",
-    "source": "Simple Icons v11 product mark"
-  },
-  {
-    "name": "microsoftazure",
-    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/microsoftazure.svg",
+    "name": "instagram",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/instagram.svg",
     "source": "Simple Icons v11 product mark"
   },
   {
@@ -25,43 +20,13 @@
     "source": "Simple Icons v11 product mark"
   },
   {
-    "name": "github",
-    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/github.svg",
-    "source": "Simple Icons v11 product mark"
-  },
-  {
-    "name": "instagram",
-    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/instagram.svg",
-    "source": "Simple Icons v11 product mark"
-  },
-  {
-    "name": "googlesheets",
-    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/googlesheets.svg",
-    "source": "Simple Icons v11 product mark"
-  },
-  {
-    "name": "sqlite",
-    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/sqlite.svg",
-    "source": "Simple Icons v11 product mark"
-  },
-  {
-    "name": "cloudflare",
-    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/cloudflare.svg",
-    "source": "Simple Icons v11 product mark"
-  },
-  {
-    "name": "looker",
-    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/looker.svg",
-    "source": "Simple Icons v11 product mark"
-  },
-  {
     "name": "microsoftoutlook",
     "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/microsoftoutlook.svg",
     "source": "Simple Icons v11 product mark"
   },
   {
-    "name": "googledrive",
-    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/googledrive.svg",
+    "name": "github",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/github.svg",
     "source": "Simple Icons v11 product mark"
   },
   {
@@ -70,8 +35,68 @@
     "source": "Simple Icons v11 product mark"
   },
   {
+    "name": "grafana",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/grafana.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "microsoftazure",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/microsoftazure.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "googledrive",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/googledrive.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "debian",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/debian.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "tailscale",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/tailscale.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "looker",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/looker.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "cloudflare",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/cloudflare.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "metabase",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/metabase.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "googlesheets",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/googlesheets.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "googlecloudstorage",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/googlecloudstorage.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
     "name": "flyway",
     "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/flyway.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "sqlite",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/sqlite.svg",
+    "source": "Simple Icons v11 product mark"
+  },
+  {
+    "name": "railway",
+    "url": "https://cdn.jsdelivr.net/npm/simple-icons@11/icons/railway.svg",
     "source": "Simple Icons v11 product mark"
   },
   {

@@ -45,4 +45,5 @@ Update drawings only when depicted flows/architecture change. Their interpretati
 
 - OLTP: `node scripts/build-oltp-process-diagram.cjs`; three editable pages. Historical verification: `outputs/oltp-process-diagram-20260912/`.
 - Ecosystem: `node scripts/build-loan-ecosystem.cjs` calls `build-loan-ecosystem-visual.cjs`. Embedded assets come from `outputs/loan-ecosystem-20260916/logos`; pinned sources are in its SOURCES.json. Refresh logos only when required.
+- Current ecosystem render: `outputs/loan-ecosystem-20260927/ecosystem.png` and `.svg`. The generator also embeds the two original app logos from `resources/`. The September 16 exports are historical. Regeneration overwrites the current editable file in Documents; preserve manual edits first.
 - Render changed pages with the installed draw.io export UI/CLI and check text/connectors. XML or a diagram edit does not prove runtime/business tests. No routine promotion render for unchanged diagrams.

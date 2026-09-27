@@ -19,3 +19,15 @@
 - Updated the generator entry point, added the visual generator and logo-fetch script, and revised the companion document. No data model or live-system changes and no downstream operational impact.
 - Checks: native draw.io export and visual review, embedded logo display, single-page XML, valid connector references, and staged whitespace/diff review. Owner presentation review remains available; no live app tests required.
 - Recovery: revert this redesign commit to restore the three-page edition. Publish only this task's intended files; preserve unrelated work.
+
+## Latest architecture refresh — 27 September 2026
+
+- Owner requested updating the existing diagram to the latest design. Documentation-only scope; no product release number or live changes.
+- Starting rollback commit: `2aec20bd7bc9da8458cd3756a8a3d053358fcfe3`. Existing untracked risks/payment-health artifacts were preserved. No pre-existing edit to the diagram/generator was present.
+- Replaced Looker with Metabase on Railway and its separate application PostgreSQL; added the embedded Debian chart service and direct read-only governed SQL source. Looker retirement is recorded in the current solution/environment references.
+- Replaced the active Azure/Windows partner worker with MW Integration Agent on Debian/GCE. Added official API/receipt flows, scoped reviewer SQL, Cloud SQL Auth Proxy, central `mw_agent` journals/audit, 00:15 statements and private GCS receipt images. Windows is retained as an administrative workstation, with its old partner runtime stopped.
+- Corrected DEV/PROD to separate databases on the same instance. Added Grafana Cloud/IRM, platform backup scopes, and current DEV/RC/PROD promotion context. Retained the owner's prior public-site/import confirmations and exclusion of MW AI Collection.
+- Changed the editable diagram, visual generator, logo-fetch asset list, current Solution Design diagram entry and scripts guide. Added current native exports/evidence under `outputs/loan-ecosystem-20260927`; new product marks remain with the existing shared diagram asset folder. Actual app logos come from `resources/`.
+- Checks: native draw.io PNG/SVG export, visual review, one-page XML/unique IDs/valid connectors, embedded image references, and staged diff/whitespace. Current references were used; this was not a live-service audit. No model YAML or monitoring dashboard definitions changed.
+- Status: implemented and checked; owner can review the current single-page presentation. No business transaction, message or GUI workflow test is required for this documentation-only update.
+- Rollback: revert the refresh commit, or restore only its changed diagram/generator/reference files from the starting commit. Historical exports remain intact. No live-system rollback needed. Commit/push only intended task files and verify upstream publication.
