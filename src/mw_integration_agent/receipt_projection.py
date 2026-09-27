@@ -6,6 +6,8 @@ import uuid
 from datetime import datetime, timezone
 
 from . import audit
+from . import receipt_audit
+from .state import transaction
 from .config import ConfigurationError, load_secret
 from .receipt_archive import Archive, encoded
 from .review_execution import readback
@@ -18,7 +20,11 @@ def project(config, link, asset):
     database = {'dev':'loan_manager_dev','prod':'loan_manager_prod'}[environment]
     if config.get('database_host') not in ('127.0.0.1','::1') or config.get('database_port') != 5432 or config.get('database_name') != database:
         raise ConfigurationError('UNAPPROVED_RECEIPT_DATABASE')
-    with audit.activity(config,'receipt_evidence',route='postgres',action='UPDATE',effect=True):
+    intent = receipt_audit.plan(config, link, asset)
+    with transaction(config) as central:
+        operation = receipt_audit.begin(central, config, intent)
+        audit.event(central, operation, 'dispatch_started', route='postgres', state='DISPATCHING')
+    try:
         with psycopg.connect(host=config['database_host'],port=5432,dbname=database,
              user='mw_receipt_projector',password=load_secret(config,'receipt_projector_password_file'),
              connect_timeout=10,options='-c statement_timeout=15000 -c lock_timeout=3000',
@@ -27,7 +33,13 @@ def project(config, link, asset):
                 (link['payment_id'],asset['receipt_id'],asset['object_key'],
                  datetime.fromtimestamp(json.loads(asset['source'])['captured_at'],timezone.utc),
                  Jsonb(json.loads(link['verification'])),uuid.UUID(link['link_id']),config.get('code_version','unknown'))).fetchone()[0]
+        with transaction(config) as central:
+            audit.event(central, operation, 'projection_observed', {'result': result}, 'postgres', 'COMMITTED')
         return result
+    except BaseException:
+        with transaction(config) as central:
+            audit.event(central, operation, 'projection_unknown', route='postgres', state='UNKNOWN')
+        raise
 
 
 def reconcile(config, journal, transport=project, verify=readback, storage=None):

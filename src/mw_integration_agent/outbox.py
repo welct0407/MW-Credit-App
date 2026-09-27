@@ -29,8 +29,14 @@ def relay(config):
             rows=source.execute('''SELECT change_id,schema_name::text,table_name::text,action,row_key::text,
                     before_row::text,after_row::text FROM agent_audit.row_changes WHERE operation_id=%s ORDER BY change_id''',(op,)).fetchall()
             with transaction(config,'relay') as central:
-                intent=central.execute('SELECT plan_sha256,actor_id,actor_login FROM audit.operations WHERE operation_id=%s',(op,)).fetchone()
-                if not intent or tuple(intent)!=(plan_hash,actor,login):
+                intent=central.execute('SELECT plan_sha256,actor_id,actor_login,service_name,plan,actor_kind FROM audit.operations WHERE operation_id=%s',(op,)).fetchone()
+                if intent and intent[3]=='receipt_projection':
+                    from .receipt_audit import verify_marker, ACTOR
+                    if (intent[0] != audit.digest(intent[4]) or tuple(intent[1:3]) != (actor,login)
+                            or intent[5] != ACTOR['kind']):
+                        raise ConfigurationError('OUTBOX_INTENT_MISMATCH')
+                    verify_marker(op,plan_hash,actor,login,rows,intent[4],config['database_name'])
+                elif not intent or tuple(intent[:3])!=(plan_hash,actor,login):
                     raise ConfigurationError('OUTBOX_INTENT_MISMATCH')
                 for ident,schema,table,action,key,before,after in rows:
                     decode=lambda s: json.loads(s,parse_float=lambda n:str(Decimal(n))) if s is not None else None
