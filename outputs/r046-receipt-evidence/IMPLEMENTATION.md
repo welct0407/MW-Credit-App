@@ -2,6 +2,8 @@
 
 27 September 2026. PROD SQL/agent backend is deployed and verified; DEV AppSheet is validated. The actual outcome is maintained in the [release log](../../Change%20Logs/CHANGE_NOTES_R046_2026-09-27.md) and [single checklist](promotion-checklist.md). PROD AppSheet definitions remain unchanged until the owner reviews an integrated app release containing the next feature.
 
+Historical follow-up: the owner subsequently authorized a one-time backfill on 27 September. **38 originals archived; all 27 posted historical receipts attached in PROD.** One expired unposted review remains unrecoverable. See the [backfill handover](../receipt-backfill-20260927/HANDOVER.md) for scope, verification and recovery. Statements below about no backfill describe the original R046 deployment, not this subsequent operational batch.
+
 ## Scope and flow
 
 One private GCS bucket, the existing Debian agent, the existing `mw_agent` database, and three lightweight fields on the existing Payment. There is no DEV VM/agent, second bucket or routine display copy. Existing financial posting/approval, duplicate and notification policies retain their current owners.
