@@ -1,5 +1,9 @@
 # R048 — Collection receipts, report labels and original loan interest
 
+## Owner-confirmed historical-rate correction — 28 September
+
+The owner confirmed that the last missing closed daily loan originally charged ฿400/day on ฿4,000 principal, yielding 10%. A new private PROD dump was restored and fingerprint-verified; a two-update transaction was rehearsed with all other rows unchanged. Applied the guarded correction using existing V53 logic, adding the original-basis note and stored 10%. SQL readback confirms 80/80 rates populated and unchanged principal, interest, daily amount and outstanding balance. The canonical OLTP detail/key displays 10%. App versions and SQL V53 remain unchanged. [Step-by-step evidence, private backup reference and recovery](../outputs/r048-loan-interest-correction/README.md). Earlier 79/80 counts below are dated cutover evidence.
+
 ## Original daily interest — production cutover completed 28 September
 
 Owner explicitly authorized the agreed direct-production method. Applied immutable V53 from clean pin `487a238a036853d9470fbaa08b788f2b79983440` after private backup/restore verification and a production-data rehearsal. Edited only the affected canonical app properties from OLTP3.000254 / OLAP1.100205 to **3.000257 /1.100208**; preserved the intervening OLTP owner version. Both editors clear and Deployed; live load/sync, integer Loan Key, read-only rate/details and slice membership passed. PROD backfill **79/80**: one closed daily loan lacks original basis and has no outstanding principal; left blank. No financial test writes or forced notifications. Metabase label alignment remains a separate follow-up.

@@ -1,6 +1,8 @@
 # R048 — Original daily interest production cutover
 
-Completed 28 September 2026 (Bangkok), following the owner's explicit instruction: “go ahead with the production cutover using the method we agreed.” This is the scoped direct-production exception: exact tested SQL through Flyway, then targeted edits to the existing PROD apps. No RC, App Upgrade, release freeze, successor allocation or final release tag. R048 remains Open; earlier receipt/report deliveries remain intact.
+Completed 28 September 2026 (Bangkok). The sole historical missing rate was later corrected after owner confirmation; current PROD coverage is **80/80**. [Targeted correction](../r048-loan-interest-correction/README.md). The 79/80 count below describes this cutover checkpoint.
+
+Following the owner's explicit instruction: “go ahead with the production cutover using the method we agreed.” This is the scoped direct-production exception: exact tested SQL through Flyway, then targeted edits to the existing PROD apps. No RC, App Upgrade, release freeze, successor allocation or final release tag. R048 remains Open; earlier receipt/report deliveries remain intact.
 
 ## Executed sequence
 

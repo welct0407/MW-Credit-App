@@ -1,6 +1,6 @@
 # PostgreSQL development with Flyway
 
-R048 **V53 is applied and validated in DEV and PROD**. The physical original daily integer rate is frozen at creation/backfilled from original evidence and drives daily-loan principal adjustments and forecast simulation. OLAP view is extended compatibly. PROD backfill79/80; one closed daily loan lacks original basis. V53 is immutable; next SQL change must use V54 or higher after checking current history. [Production backup, cutover, verification and recovery](../outputs/r048-loan-interest-production/README.md).
+R048 **V53 is applied and validated in DEV and PROD**. The physical original daily integer rate is frozen at creation/backfilled from original evidence and drives daily-loan principal adjustments and forecast simulation. OLAP view is extended compatibly. PROD coverage is 80/80 after the owner confirmed the final historical 10% rate; a guarded data correction used the existing V53 trigger without schema changes. [Correction evidence](../outputs/r048-loan-interest-correction/README.md). V53 is immutable; next SQL change must use V54 or higher after checking current history. [Production backup, cutover, verification and recovery](../outputs/r048-loan-interest-production/README.md).
 
 R045 V48 is applied and validated in DEV/PROD. Five additive forecast views and two pure invoker functions implement read-only schedule/scenario calculations. No source table/column, operational calculation or AppSheet binding changes. [Contract, tests and recovery](../outputs/r045-forecast-planning/IMPLEMENTATION.md).
 
