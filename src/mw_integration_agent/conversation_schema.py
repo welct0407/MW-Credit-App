@@ -6,7 +6,8 @@ from .config import ConfigurationError
 
 # Authority boundaries, not a catalogue of supported business operations.
 PROTECTED_TABLES = {'Partners', 'Cash Accounts', 'Cash Holders', 'Statistics'}
-PROTECTED_FIELDS = {'Instagram Username', 'AI Collection Enabled', 'IG Integration Enabled',
+PROTECTED_FIELDS = {'IG Receipt ID', 'Receipt Image', 'Receipt Received At',
+                    'Instagram Username', 'AI Collection Enabled', 'IG Integration Enabled',
                     'AI Reviewer', 'Login Email', 'Email', 'Language Preference'}
 ACTOR_FIELDS = {'Created By', 'Closed By', 'Updated By', 'Cancelled By', 'Voided By'}
 

@@ -156,9 +156,11 @@ def capture_conversation(config,api,master,db,conversation,enabled,cutoff,now,da
                 url=item.get('image_data',{}).get('url')
                 if not url:continue
                 key=hashlib.sha256(f"{message['id']}:{index}".encode()).hexdigest()
+                from .receipt_archive import source
                 images+=db.execute('''INSERT OR IGNORE INTO receipt_jobs
-                  (id,message_id,sender_id,url,status,created_at,result) VALUES (?,?,?,?,'PENDING',?,?)''',
-                  (key,message['id'],sender,url,now,forwarding_evidence)).rowcount
+                  (id,message_id,sender_id,url,status,created_at,result,source) VALUES (?,?,?,?,'PENDING',?,?,?)''',
+                  (key,message['id'],sender,url,now,forwarding_evidence,
+                   source('poll',message['id'],index,sender,ts,now,cid,item.get('id')))).rowcount
         if not day:db.execute('INSERT OR REPLACE INTO conversation_poll_state VALUES (?,?)',(cid,now))
     return added,images,True
 

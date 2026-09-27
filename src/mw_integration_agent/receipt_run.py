@@ -19,6 +19,8 @@ from .receipt_rules import ReceiptInvalid,borrower_for,recipients,summary,valida
 def controls(config_path,catalogue_path):
     config=load_json(config_path); validate_config(config)
     catalogue=load_json(catalogue_path); validate_catalogue(catalogue)
+    if config.get('receipt_archive_enabled') and not catalogue['services'].get('receipt_evidence',{}).get('enabled'):
+        raise ConfigurationError('RECEIPT_EVIDENCE_SERVICE_DISABLED')
     if config.get('partner_review_enabled') and not catalogue['services'].get('partner_receipt_review',{}).get('enabled'):
         raise ConfigurationError('PARTNER_REVIEW_SERVICE_DISABLED')
     for service in ('receipt_summary','signed_webhook_ingress','database_connectivity',
@@ -72,6 +74,21 @@ def conversation_identity(config,sender,api=None):
 
 
 def process(job,journal,config,master,fetch=download,extractor=extract,identity_reader=conversation_identity):
+    from .receipt_archive import Archive,required
+    archive=None
+    if required(config,job):
+        try:
+            archive=Archive(config,journal)
+            data,digest=archive.capture(job)
+            journal.image(job['id'],data,digest)
+            job.update(image=data,image_hash=digest)
+        except Exception:
+            # Archive outages never spend extraction attempts or clear source URLs.
+            import time
+            with journal.db:
+                journal.db.execute('UPDATE receipt_jobs SET retry_after=?,detail=? WHERE id=?',
+                    (time.time()+300,'RECEIPT_ARCHIVE_PENDING',job['id']))
+            return
     # Persist the attempt before external work so repeated crashes cannot retry forever.
     attempt=job['attempts']+1
     if attempt>3:
@@ -87,6 +104,7 @@ def process(job,journal,config,master,fetch=download,extractor=extract,identity_
             journal.mark(job['id'],'DUPLICATE','RECEIPT_ALREADY_PROCESSED'); return
         saved=json.loads(job.get('result') or '{}')
         value=saved.get('extraction') or extractor(config,job['image'])
+        if archive:archive.classify(job['id'],value)
         provenance={k:v for k,v in json.loads(job.get('result') or '{}').items() if k=='forwarded_borrower_id'}
         with journal.db:
             journal.db.execute('UPDATE receipt_jobs SET result=? WHERE id=?',(json.dumps({'extraction':value,'borrower':borrower,**provenance}),job['id']))
@@ -154,7 +172,11 @@ def run(config_path,catalogue_path):
             from .partner_notice import NoticeJournal,receipt_notice
             if config.get('partner_review_enabled'):
                 from .review_cycle import cycle
-                return cycle(config,journal,conversation_identity)
+                result=cycle(config,journal,conversation_identity)
+                if config.get('receipt_archive_enabled'):
+                    from .receipt_projection import reconcile
+                    result['receipt_evidence']=reconcile(config,journal)
+                return result
             # Supersede definitely unsent legacy direct-email work. SENT/UNKNOWN history stays intact.
             with journal.db:
                 journal.db.execute("UPDATE receipt_emails SET status='SUPERSEDED' WHERE status IN ('PENDING','REJECTED')")

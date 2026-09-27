@@ -49,10 +49,39 @@ def prepare(config_path,catalogue_path,borrower_id,day,message_id=None):
     borrower=borrower_for(conversation_identity(config,message['from']['id']),master['borrowers'])
     url=attachments[0].get('image_data',{}).get('url')
     if not url:raise ConfigurationError('NO_RECEIPT_IMAGE')
-    image,digest=download(url)
+    key=hashlib.sha256((message['id']+':0').encode()).hexdigest()
+    if config.get('receipt_archive_enabled'):
+        import fcntl
+        import time
+        from .receipt_archive import Archive,source
+        from .receipt_journal import ReceiptJournal
+        root=Path(config['state_directory'])
+        with (root/'receipt-worker.lock').open('a') as lock:
+            fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+            journal=ReceiptJournal(root/'receipt-processing.db',config=config)
+            try:
+                now=time.time()
+                with journal.db:
+                    journal.db.execute('''INSERT OR IGNORE INTO receipt_jobs
+                      (id,message_id,sender_id,url,status,created_at,source) VALUES (?,?,?,?,'PREPARED',?,?)''',
+                      (key,message['id'],message['from']['id'],url,now,source('operator-selected',message['id'],0,
+                       message['from']['id'],datetime.fromisoformat(message['created_time'].replace('Z','+00:00')).timestamp(),now,
+                       attachment=attachments[0].get('id'))))
+                job=dict(journal.db.execute('SELECT * FROM receipt_jobs WHERE id=?',(key,)).fetchone())
+                if not job.get('source'):
+                    captured_source=source('operator-selected',message['id'],0,message['from']['id'],
+                        datetime.fromisoformat(message['created_time'].replace('Z','+00:00')).timestamp(),now,
+                        attachment=attachments[0].get('id'))
+                    with journal.db:
+                        journal.db.execute('UPDATE receipt_jobs SET source=? WHERE id=? AND source IS NULL',(captured_source,key))
+                    job['source']=captured_source
+                # An existing job keeps its original source/capture/decision; no replay.
+                image,digest=Archive(config,journal).capture(job)
+            finally:journal.close()
+    else:
+        image,digest=download(url)
     raw=extract(config,image);receipt=validate_receipt(raw,master['accounts'])
     check_existing_payment(config,receipt,borrower)
-    key=hashlib.sha256((message['id']+':0').encode()).hexdigest()
     candidate={'job_id':key,'source':'owner-selected-instagram-history','message_id':message['id'],
                'sender_id':message['from']['id'],'image_hash':digest,'raw':raw,'receipt':receipt,'borrower':borrower}
     os.umask(0o077)

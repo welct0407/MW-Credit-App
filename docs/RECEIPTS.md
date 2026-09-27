@@ -1,3 +1,7 @@
+# Current receipt evidence — 27 September 2026
+
+The [receipt evidence implementation](RECEIPT_EVIDENCE.md) supersedes terminal-image deletion and SQLite deployment descriptions below for newly archive-enabled jobs. Production state uses `mw_agent`; normal current receipt posting/review policy is owned by [the service catalogue](../SERVICE_CATALOGUE.md) and [Partner review](PARTNER_REVIEW.md). Earlier summary-only/manual-only descriptions below are dated implementation history, not current posting policy. Original archive and metadata projection do not expand posting or messaging authority.
+
 # Current review behavior — 21 September 2026
 
 Owner correction: receipt currency defaults to THB when no currency is printed. Explicit non-THB and unreadable amount have separate review reasons. Current charge comparison sums same-day unpaid charges across loans; request text uses the AppSheet Loan Key. The shared receipt-reconsider command supports explicit correction of unexecuted cases while preserving earlier evidence and invalidating old proposals.

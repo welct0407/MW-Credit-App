@@ -17,7 +17,8 @@ from .config import ConfigurationError, load_secret
 TABLES = {
     'instagram-ingress.db': {'receipts': 'ingress_receipts', 'messages': 'ingress_messages', 'ingress_work': 'ingress_work'},
     'receipt-processing.db': {x: x for x in ('receipt_cursor','receipt_jobs','receipt_keys','receipt_emails',
-        'partner_reviews','partner_review_replies','conversation_poll_state','conversation_poll_messages','receipt_reconsiderations')},
+        'partner_reviews','partner_review_replies','conversation_poll_state','conversation_poll_messages','receipt_reconsiderations',
+        'receipt_assets','receipt_payment_links')},
     'partner-conversations.db': {'conversations':'conversations','turns':'conversation_turns','tool_calls':'conversation_tool_calls',
         **{x:x for x in ('conversation_operations','conversation_dml','conversation_dml_inserts')}},
     'partner-notices.db': {'partner_notices':'partner_notices'},

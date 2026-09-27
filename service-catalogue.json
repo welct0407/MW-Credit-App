@@ -1,7 +1,11 @@
 {
-  "revision": 22,
+  "revision": 23,
   "default_policy": "deny",
   "services": {
+    "receipt_evidence": {
+      "enabled": false,
+      "implemented": true
+    },
     "partner_receipt_review": {
       "enabled": true,
       "implemented": true

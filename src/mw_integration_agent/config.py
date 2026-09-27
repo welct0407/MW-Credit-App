@@ -35,6 +35,18 @@ def load_json(path: str | Path) -> dict[str, Any]:
 
 
 def validate_config(config: dict[str, Any]) -> None:
+    if type(config.get('receipt_archive_enabled',False)) is not bool:
+        raise ConfigurationError('receipt_archive_enabled must be boolean')
+    if config.get('receipt_archive_enabled'):
+        from datetime import datetime
+        from .receipt_storage import BUCKET
+        if config.get('receipt_bucket')!=BUCKET or config.get('receipt_environment') not in ('dev','prod'):
+            raise ConfigurationError('UNAPPROVED_RECEIPT_STORAGE')
+        try:
+            if datetime.fromisoformat(config['receipt_archive_cutoff']).tzinfo is None:raise ValueError()
+        except (KeyError,TypeError,ValueError):raise ConfigurationError('receipt_archive_cutoff required') from None
+        if type(config.get('receipt_spool_limit_bytes',536870912)) is not int or config.get('receipt_spool_limit_bytes',536870912)<12_000_000:
+            raise ConfigurationError('INVALID_RECEIPT_SPOOL_LIMIT')
     for flag,cutoff,identity in (
             ('receipt_auto_payment_enabled','receipt_auto_payment_cutoff','receipt_auto_actor_partner_id'),
             ('receipt_forwarding_enabled','receipt_forwarding_cutoff','receipt_forwarder_partner_id')):
@@ -236,7 +248,7 @@ def validate_catalogue(catalogue: dict[str, Any]) -> None:
         if name not in {"signed_webhook_ingress", "partner_authentication", "operational_data_read",
                         "database_connectivity", "persistent_codex_conversation", "partner_oltp_gui",
                         "operational_data_api", "reviewer_database_dml", "instagram_delivery", "email_fallback", "daily_briefing",
-                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review"}:
+                        "pattaya_weather", "daily_cash_statement", "receipt_summary", "conversation_poll", "partner_receipt_review", "receipt_evidence"}:
             raise ConfigurationError(f"unknown service: {name}")
         if not isinstance(service, dict):
             raise ConfigurationError(f"invalid service entry: {name}")

@@ -27,7 +27,12 @@ def run(config_path,catalogue_path,job_id):
                 raise ConfigurationError('DECIDED_REVIEW_CANNOT_BE_REOPENED')
             result=json.loads(job['result']) if job['result'] else {}
             url=None
-            if 'receipt' not in result:
+            archived=False
+            if config.get('receipt_archive_enabled'):
+                from .receipt_archive import Archive
+                asset=Archive(config,journal).get(job_id)
+                archived=bool(asset and asset['archive_state']=='ARCHIVED')
+            if 'receipt' not in result and not archived:
                 for batch in pages(Instagram(config),config['instagram_account_id']+'/conversations',
                      {'platform':'instagram','fields':'id,messages.limit(100){id,attachments}','limit':100}):
                     for conv in batch:

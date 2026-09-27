@@ -22,7 +22,7 @@ class ReceiptJournal:
           url TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'PENDING',
           attempts INTEGER NOT NULL DEFAULT 0, retry_after REAL NOT NULL DEFAULT 0,
           detail TEXT NOT NULL DEFAULT '', result TEXT, image BLOB, image_hash TEXT,
-          created_at REAL NOT NULL);
+          created_at REAL NOT NULL, source TEXT);
         CREATE INDEX IF NOT EXISTS receipt_jobs_due ON receipt_jobs(status,retry_after);
         CREATE TABLE IF NOT EXISTS receipt_keys (key TEXT PRIMARY KEY,job_id TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS receipt_emails (
@@ -30,12 +30,15 @@ class ReceiptJournal:
           status TEXT NOT NULL DEFAULT 'PENDING',attempts INTEGER NOT NULL DEFAULT 0,
           retry_after REAL NOT NULL DEFAULT 0,detail TEXT NOT NULL DEFAULT '');
         ''')
+        if 'source' not in {r[1] for r in self.db.execute('PRAGMA table_info(receipt_jobs)')}:
+            self.db.execute('ALTER TABLE receipt_jobs ADD COLUMN source TEXT')
 
     def ingest(self,ingress,cutoff):
         if is_postgres(self.db):
             return self._ingest_postgres(cutoff)
         cursor=self.db.execute('SELECT value FROM receipt_cursor WHERE id=1').fetchone()[0]
-        rows=ingress.execute('''SELECT rowid,message_id,sender_id,attachments FROM messages
+        from .receipt_archive import source
+        rows=ingress.execute('''SELECT rowid,message_id,sender_id,attachments,event_timestamp,captured_at FROM messages
             WHERE rowid>? AND event_timestamp>=? AND captured_at>=? ORDER BY rowid LIMIT 500''',(cursor,cutoff,cutoff))
         with self.db:
             for row in rows:
@@ -44,12 +47,14 @@ class ReceiptJournal:
                 for index,attachment in enumerate(attachments or [{'url':''}]):
                     key=hashlib.sha256(f"{row['message_id']}:{index}".encode()).hexdigest()
                     self.db.execute('''INSERT OR IGNORE INTO receipt_jobs
-                        (id,message_id,sender_id,url,status,created_at) VALUES (?,?,?,?,?,?)''',
+                        (id,message_id,sender_id,url,status,created_at,source) VALUES (?,?,?,?,?,?,?)''',
                         (key,row['message_id'],row['sender_id'],attachment['url'],
-                         'PENDING' if attachment['url'] else 'IGNORED',time.time()))
+                         'PENDING' if attachment['url'] else 'IGNORED',time.time(),
+                         source('webhook',row['message_id'],index,row['sender_id'],row['event_timestamp'],row['captured_at'])))
                 self.db.execute('UPDATE receipt_cursor SET value=? WHERE id=1',(row['rowid'],))
 
     def _ingest_postgres(self, cutoff):
+        from .receipt_archive import source
         with self.db:
             conn = self.db.conn
             rows = conn.execute('''SELECT m.message_id,m.sender_id,m.attachments,m.event_timestamp,m.captured_at
@@ -62,8 +67,9 @@ class ReceiptJournal:
                     for index,attachment in enumerate(json.loads(raw) or [{'url':''}]):
                         key = hashlib.sha256(f'{message_id}:{index}'.encode()).hexdigest()
                         self.db.execute('''INSERT OR IGNORE INTO receipt_jobs
-                            (id,message_id,sender_id,url,status,created_at) VALUES (?,?,?,?,?,?)''',
-                            (key,message_id,sender,attachment['url'],'PENDING' if attachment['url'] else 'IGNORED',time.time()))
+                            (id,message_id,sender_id,url,status,created_at,source) VALUES (?,?,?,?,?,?,?)''',
+                            (key,message_id,sender,attachment['url'],'PENDING' if attachment['url'] else 'IGNORED',time.time(),
+                             source('webhook',message_id,index,sender,stamp,captured)))
                     state = 'DONE'
                 conn.execute('UPDATE runtime.ingress_work SET state=%s,updated_at=clock_timestamp() WHERE message_id=%s',(state,message_id))
 

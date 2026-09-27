@@ -43,5 +43,11 @@
   "database_dml_password_file": "/etc/mw-integration-agent/secrets/reviewer-dml-password.txt",
   "receipt_auto_payment_enabled": false,
   "receipt_forwarding_enabled": false,
-  "receipt_hold_reply_cutoff": null
+  "receipt_hold_reply_cutoff": null,
+  "receipt_archive_enabled": false,
+  "receipt_archive_cutoff": null,
+  "receipt_environment": "prod",
+  "receipt_bucket": "mw-payment-receipts-prod-508610-n7",
+  "receipt_spool_limit_bytes": 536870912,
+  "receipt_projector_password_file": "/etc/mw-integration-agent/secrets/receipt-projector-password.txt"
 }

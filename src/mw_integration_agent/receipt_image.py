@@ -72,7 +72,7 @@ def canonical_image(data):
         raise ConfigurationError('RECEIPT_IMAGE_INVALID') from exc
 
 
-def download(url):
+def download_original(url):
     if not allowed_url(url):
         raise ConfigurationError('RECEIPT_URL_NOT_APPROVED')
     try:
@@ -84,7 +84,9 @@ def download(url):
             try:
                 with opener.open(request,timeout=25) as response:
                     data=response.read(12_000_001)
-                return canonical_image(data)
+                if len(data)>12_000_000:
+                    raise ConfigurationError('RECEIPT_IMAGE_TOO_LARGE')
+                return data
             except urllib.error.HTTPError as exc:
                 if exc.code not in (301,302,303,307,308):
                     raise
@@ -94,6 +96,10 @@ def download(url):
         raise
     except Exception as exc:
         raise ConfigurationError('RECEIPT_DOWNLOAD_FAILED') from exc
+
+
+def download(url):
+    return canonical_image(download_original(url))
 
 
 @audited('receipt_image_extraction',route='codex',action='PROCESS')

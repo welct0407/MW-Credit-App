@@ -134,6 +134,10 @@ def cycle(config,journal,identity_reader):
                 live=masters(config)
                 try:
                     job=db.execute('SELECT * FROM receipt_jobs WHERE id=?',(review['job_id'],)).fetchone()
+                    from .receipt_archive import required
+                    if required(config,job) and not db.execute(
+                        "SELECT 1 FROM receipt_assets WHERE job_id=? AND archive_state='ARCHIVED'",(job['id'],)).fetchone():
+                        continue
                     if automatic:
                         if not automatic_payment(config,job,proposal):continue
                         if review['deciding_partner']!=config.get('receipt_auto_actor_partner_id'):
