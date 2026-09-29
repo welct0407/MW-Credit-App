@@ -32832,7 +32832,7 @@
       "system": "metabase",
       "component": "reports.mw-credit.com",
       "kind": "question",
-      "name": "369 / Latest seven charges · oldest → newest",
+      "name": "369 / Most recent seven charge dates · oldest → newest",
       "scope": "production",
       "status": "documented",
       "lookup": []

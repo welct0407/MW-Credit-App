@@ -7825,8 +7825,9 @@
     "design_reference": "outputs/r050-borrower-lifetime/README.md"
     "added_placements": 13
     "later_detail_row_shift": 24
-    "date_contract": "Only borrower selection applies; no activity-date mapping. Latest seven eligible charges due before\
-      \ today, oldest left. Closed totals use loan_status Closed only."
+    "date_contract": "Only borrower selection applies; no activity-date mapping. Each light aggregates all eligible charges\
+      \ on one of the latest seven distinct due dates before today; calendar gaps are skipped. Closed totals use loan_status\
+      \ Closed only."
     "recovery_dashboard": 27
 "evidence":
   "/content/cash_pages":
@@ -7908,4 +7909,8 @@
   "/content/borrower_lifetime_summary":
     "reference": "outputs/r050-borrower-lifetime/saved.json"
     "reason": "R050 saved borrower lifetime metrics and seven status lights"
+    "state": "value"
+  "/content/borrower_lifetime_summary/date_contract":
+    "reference": "outputs/r050-borrower-lifetime/saved.json"
+    "reason": "Owner clarified lights represent the latest seven distinct days with charges"
     "state": "value"

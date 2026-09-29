@@ -4,7 +4,7 @@
     "system": "metabase",
     "component": "reports.mw-credit.com",
     "kind": "question",
-    "name": "369 / Latest seven charges · oldest → newest",
+    "name": "369 / Most recent seven charge dates · oldest → newest",
     "scope": "production"
   },
   "verification": {
@@ -14,8 +14,8 @@
   "content": {
     "key": "charge-lights",
     "id": 369,
-    "name": "Latest seven charges · oldest → newest",
-    "description": "Latest seven eligible individual charges due before today, ordered by due date and immutable charge ID. Overdue: current remaining >0.005; green: fully paid on time; orange: settled late. Today/future, invalid, zero and default-accounting obligations excluded. Grey means fewer than seven eligible charges. Hover a light for date, loan and amounts. No date-filter mapping.",
+    "name": "Most recent seven charge dates · oldest → newest",
+    "description": "One light for each of the latest seven distinct eligible charge due dates before today; gaps in the calendar are skipped. All eligible charges on a date are combined. Red if any remains overdue; otherwise orange if any was paid late; otherwise green if all were on time. Fewer than seven dates show fewer lights. Today/future, invalid, zero and default-accounting obligations excluded. Hover for the date’s charge counts and amounts. No activity-date mapping.",
     "display": "scatter",
     "dataset_query": {
       "stages": [
@@ -29,7 +29,7 @@
             }
           ],
           "lib/type": "mbql.stage/native",
-          "native": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), latest AS (SELECT h.*,row_number() OVER(ORDER BY h.due_date DESC,h.charge_id DESC) rn\n FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) WHERE h.history_eligible ORDER BY h.due_date DESC,h.charge_id DESC LIMIT 7)\n SELECT s.pos AS \"Position\",1 AS \"Light\",1 AS \"Size\",\n CASE WHEN h.charge_id IS NULL THEN 'No earlier charge' WHEN h.is_overdue THEN 'Overdue' WHEN h.on_time THEN 'Paid on time' ELSE 'Paid late' END AS \"Status\",\n h.due_date AS \"Charge date\",c.borrower_name||'-'||to_char(l.original_principal,'FM999,999,999,990.00')||'-'||to_char(l.loan_date,'DD/MM') AS \"Loan\",h.principal_due AS \"Principal due ฿\",h.interest_due AS \"Interest due ฿\",\n h.remaining_current AS \"Remaining ฿\",h.final_settlement_date AS \"Settlement before today\"\n FROM chosen c CROSS JOIN generate_series(1,7) s(pos) LEFT JOIN latest h ON h.rn=8-s.pos\n LEFT JOIN public.reporting_borrower_loan_facts_v1 l ON l.loan_id=h.loan_id ORDER BY s.pos"
+          "native": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), days AS (SELECT DISTINCT h.due_date\n FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id)\n WHERE h.history_eligible ORDER BY h.due_date DESC LIMIT 7), daily AS (\n SELECT h.due_date,count(*)::integer charges,\n count(*) FILTER (WHERE h.is_overdue)::integer overdue,\n count(*) FILTER (WHERE NOT h.is_overdue AND h.on_time)::integer on_time,\n count(*) FILTER (WHERE NOT h.is_overdue AND NOT h.on_time)::integer paid_late,\n sum(h.principal_due) principal_due,sum(h.interest_due) interest_due,sum(h.remaining_current) remaining\n FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id)\n JOIN days USING(due_date) WHERE h.history_eligible GROUP BY h.due_date)\n SELECT to_char(days.due_date,'DD Mon YY') AS \"Charge day\",1 AS \"Light\",1 AS \"Size\",\n CASE WHEN d.overdue>0 THEN 'Overdue'\n WHEN d.paid_late>0 THEN 'Paid late' ELSE 'Paid on time' END AS \"Status\",\n days.due_date AS \"Charge date\",coalesce(d.charges,0) AS \"Charges\",\n coalesce(d.on_time,0) AS \"Paid on time\",coalesce(d.paid_late,0) AS \"Paid late\",coalesce(d.overdue,0) AS \"Overdue charges\",\n coalesce(d.principal_due,0) AS \"Principal due ฿\",coalesce(d.interest_due,0) AS \"Interest due ฿\",\n coalesce(d.remaining,0) AS \"Remaining ฿\"\n FROM days JOIN daily d USING(due_date) ORDER BY days.due_date"
         }
       ],
       "lib/type": "mbql/query",
@@ -39,9 +39,10 @@
       "graph.show_values": false,
       "scatter.bubble": "Size",
       "graph.show_legend": true,
-      "graph.x_axis.labels_enabled": false,
+      "graph.x_axis.labels_enabled": true,
       "graph.y_axis.max": 2,
-      "graph.x_axis.axis_enabled": false,
+      "graph.x_axis.axis_enabled": true,
+      "graph.x_axis.title_text": "Charge date",
       "graph.y_axis.labels_enabled": false,
       "graph.y_axis.auto_split": false,
       "graph.metrics": [
@@ -51,17 +52,18 @@
       "graph.tooltip_columns": [
         "[\"name\",\"Status\"]",
         "[\"name\",\"Charge date\"]",
-        "[\"name\",\"Loan\"]",
+        "[\"name\",\"Charges\"]",
+        "[\"name\",\"Paid on time\"]",
+        "[\"name\",\"Paid late\"]",
+        "[\"name\",\"Overdue charges\"]",
         "[\"name\",\"Principal due ฿\"]",
         "[\"name\",\"Interest due ฿\"]",
-        "[\"name\",\"Remaining ฿\"]",
-        "[\"name\",\"Settlement before today\"]"
+        "[\"name\",\"Remaining ฿\"]"
       ],
       "graph.colors": [
         "#16A34A",
         "#F59E0B",
-        "#DC2626",
-        "#CBD5E1"
+        "#DC2626"
       ],
       "graph.series_order": null,
       "series_settings": {
@@ -73,15 +75,12 @@
         },
         "Overdue": {
           "color": "#DC2626"
-        },
-        "No earlier charge": {
-          "color": "#CBD5E1"
         }
       },
       "graph.y_axis.auto_range": false,
       "graph.x_axis.scale": "ordinal",
       "graph.dimensions": [
-        "Position",
+        "Charge day",
         "Status"
       ],
       "graph.y_axis.min": 0

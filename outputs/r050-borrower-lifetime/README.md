@@ -23,9 +23,9 @@ Closed status includes defaulted closures. Principal repaid on loans still activ
 
 ## Seven lights — question369
 
-Native scatter/bubble chart with seven equal circles, ordinal positions1–7, hidden axes and explicit colors. Ordinal X spacing prevents clipped endpoint circles. Oldest is left, newest right. Rank eligible individual charges by due_date descending, then immutable charge_id descending; take seven. Same-day charges remain individual lights, with ID used only as deterministic tie-breaker.
+Native scatter/bubble chart with up to seven equal circles, one for each of the **most recent seven distinct eligible charge due dates** before today. Calendar gaps are skipped; fewer than seven dates show fewer lights. Each light combines all eligible charges due on that date. The short date appears below the light, oldest left and newest right. The ordinal date axis keeps the endpoint circles complete. The tooltip shows the full date and daily charge counts and amounts.
 
-Existing reporting_charge_payment_health_v1.history_eligible excludes today/future, invalid, zero and default-accounting obligations. Current overdue state takes priority: red=still overdue, green=paid on time, orange=paid late. Earlier empty positions are grey when fewer than seven eligible charges exist. Tooltip includes charge date, readable loan label, principal/interest due, remaining amount and settlement before today. Current payment balances may include today's payments; historical settlement timing deliberately stops before today.
+Existing reporting_charge_payment_health_v1.history_eligible excludes today/future, invalid, zero and default-accounting obligations. Daily status takes the highest concern: red if **any** charge remains overdue; otherwise orange if **any** was paid late; otherwise green when **all** were paid on time. Tooltip includes charge count, counts by status, principal/interest due and current remaining amount. Current payment balances may include today's payments; historical settlement timing deliberately stops before today.
 
 ## Implementation and verification
 
@@ -35,13 +35,13 @@ Nine questions369–377 and four text notes add13 placements. New section spans 
 
 - [Saved definitions and placements](saved.json), [prepared definitions](plan.json), [IDs/recovery](state.json).
 - [Verification](verification.json): two borrowers × two date ranges identical, empty borrower safe, all unaffected placements preserved.
-- [Reconciliation](reconciliation.json):21 independent loan metric comparisons and21 latest-charge comparisons across three borrowers passed.
-- Chrome Wel / selected Metabase Gmail account verified. Desktop GUI verified complete seven-circle rendering with all three statuses, active and closed cohorts, and unavailable displays. Mobile layout was not tested.
+- [Reconciliation](reconciliation.json):21 independent loan metric comparisons and21 distinct charge-day comparisons across three borrowers passed.
+- Chrome Wel / selected Metabase Gmail account verified. Desktop GUI verified complete seven-circle rendering, one date below each circle, aggregate statuses, active and closed cohorts, and unavailable displays. Mobile layout was not tested.
 - Screenshots and full private recovery definitions stay outside Git under Documents/ChatGPT/AppSheet-Loan-Project/r050-borrower-lifetime.
-- The later whole-percent refinement saved the immediately preceding card definitions privately in before-whole-return.json; only questions373 and377 were edited.
+- The whole-percent refinement saved preceding card definitions privately in before-whole-return.json. The charge-day correction saved dashboard/card definitions in before-charge-days.json and copied recovery dashboard30 before the final edit. Interim date-label and calendar-day attempts have recovery copies28 and29; the final definition uses the latest seven **charged** dates.
 
 ## Recovery and handover
 
-Recovery dashboard27 and private before.json were captured before publication. Restore only tab105's affected placements after checking intervening edits; do not overwrite later unrelated report changes with a full old dashboard. Newly created questions can remain unused. Starting Git commit c0a0c755e63563aa880813b9e66fda1542726a73.
+Recovery dashboard27 and private before.json were captured before original publication. Dashboard30 and private before-charge-days.json capture the immediately preceding chart before the final seven-day correction. Restore only the affected card/note after checking intervening edits; do not overwrite later unrelated report changes with a full old dashboard. Newly created questions can remain unused. Starting Git commit c0a0c755e63563aa880813b9e66fda1542726a73.
 
 Maintained runner: scripts/metabase/BorrowerLifetimeSummary.mjs. --prepare records a baseline; --publish is a guarded one-time creation, not an idempotent replay. --refine updates this batch's definitions/layout; --verify and --reconcile run focused checks. Inspect current state and preserve a fresh rollback before future mutation. Shared R050 release scope remains Open; this scoped report publication does not close or tag that release.

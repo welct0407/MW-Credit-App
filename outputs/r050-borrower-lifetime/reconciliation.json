@@ -2,6 +2,6 @@
   "passed": true,
   "borrowers": 3,
   "metricComparisons": 21,
-  "chargeComparisons": 21,
-  "source": "Existing loan facts independently summed and existing charge health ranked; no financial rows retained"
+  "chargeDayComparisons": 21,
+  "source": "Existing loan facts independently summed; raw charge health records independently grouped over latest seven distinct eligible due dates; no financial rows retained"
 }
