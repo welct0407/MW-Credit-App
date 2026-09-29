@@ -1,5 +1,9 @@
 # R048 — Collection receipts, report labels and original loan interest
 
+## Upcoming-charge presentation refinement — 29 September
+
+Owner requested issue-only forecast messages, partner-language view title, whole-baht formatting and fixed Thai/English field/Basis text. Captured owner cosmetic baseline1.000143 and preserved it; final DEV OLTP1.000145, editor clear. Updated three table overlays, two slices, three views, current version records and implementation evidence. SQL V54 and OLAP unchanged; prior checks reused. Current GUI and exact metadata-delta checks passed; dictionary validation accompanies publication. No financial writes, source precision change or production deployment. Rollback is targeted1.000143 properties/restorable version after checking intervening work. [Detailed behavior, checks and limitations](../outputs/r048-upcoming-charges/IMPLEMENTATION.md#presentation-refinement--29-september-2026).
+
 ## Upcoming charges grouping refinement — 29 September
 
 Owner requested date then borrower grouping. Updated only Upcoming Charges by Day GroupBy to Due Date ascending, Ref Borrower ascending; retained SUM Amount Remaining. DEV OLTP1.000140 →1.000141, editor clear. Current GUI verified date totals retained and borrower subgroups; saved AppDoc confirmed exact order. SQL/OLAP unchanged; reused prior companion and calculation checks. Updated the affected DEV dictionary object/index, handover and current version records. Rollback is the prior grouping or restorable1.000140. R048 Open, PROD unchanged. [Evidence](../outputs/r048-upcoming-charges/borrower-grouping.json).

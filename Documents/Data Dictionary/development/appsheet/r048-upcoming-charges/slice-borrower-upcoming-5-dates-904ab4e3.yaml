@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+  "definition_evidence": "outputs/r048-upcoming-charges/presentation-refinement.json"
   "after":
     "state": "value"
     "value":
@@ -33,6 +33,7 @@
         - "Calculated At"
         - "Within 7 Days"
         - "Borrower Due Date Rank"
+        - "Basis Display"
         "Row filter condition": "=AND([Borrower Due Date Rank] >= 1, [Borrower Due Date Rank] <= 5, [Due Date] <= [Horizon\
           \ End], [As Of Date] = LOOKUP(\"upcoming\", \"Upcoming Charge Context\", \"Row ID\", \"As Of Date\"))"
         "Update mode": "READ_ONLY"
@@ -69,8 +70,10 @@
         "Column": "Within 7 Days"
       - "Ordinal": 14
         "Column": "Borrower Due Date Rank"
+      - "Ordinal": 15
+        "Column": "Basis Display"
   "before":
     "state": "absent"
   "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved."
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000140"
+  "version": "1.000145"

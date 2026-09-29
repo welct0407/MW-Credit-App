@@ -1,5 +1,19 @@
 # R048 — OLTP upcoming charges implementation
 
+## Presentation refinement — 29 September 2026
+
+Updated from the owner's **1.000143** cosmetic baseline to DEV OLTP **1.000145**. Preserved the owner's `far fa-calendar-alt` icon, Narrow columns and amount-first ordering in both portfolio and borrower tables, plus date/borrower grouping. Pre-edit Git33b5f038670e621037219de9de5e352bbae85271; the privately captured1.000143 metadata and restorable app version are the rollback point. Do not restore1.000141 over the owner's work.
+
+- **Issue-only messages:** Forecast Status and Upcoming Charge Note now return blank for normal coverage, auto-off plans and empty forecasts. The normal assumption/coverage/horizon note is omitted. Date mismatch shows a bilingual sync warning; partial source coverage or review-loan status shows a bilingual issue message. Existing SQL diagnostics and date caps remain unchanged. Empty values disappear in the native detail view.
+- **View title:** Upcoming Charges uses `IF(LOOKUP(USEREMAIL(), "Partners", "Login Email", "Language Preference") = "English", "Upcoming Charges", "รายการเรียกเก็บล่วงหน้า")`, matching the existing English/Thai fallback convention and preserving the owner's icon.
+- **Currency:** all three forecast Price columns display ฿ with thousands separators and **zero decimal digits**. Source precision, calculations and totals are unchanged; rounding is presentation only.
+- **Fields and Basis:** visible borrower, loan, due date, principal, interest, amount, as-of date, date range, calculation timestamp and issue labels use fixed Thai / English text. New read-only virtual `Basis Display` maps Recorded, Recorded settlement, Recorded - review status and Projected to fixed Thai / English values. Raw Basis is hidden. Both slices include the virtual field; both view orders replace Basis in place, retaining the owner's ordering. No partner lookup is used for field labels or Basis values.
+
+Current GUI verified whole-baht date totals, bilingual column labels/Projected values, the English partner's menu title, normal context-note omission and a synthetic borrower's note omission with two receipts retained. Final OLTP editor has no issues; exact before/after metadata comparison permits only the requested columns and dependent slices/views. Saved expressions cover the Thai title and issue branches; no partner preference changes or invalid financial fixtures were introduced to force them. Reused unchanged OLAP/SQL checks; no database migration or production change. R048 remains Open.
+
+[Exact refinement evidence](presentation-refinement.json) · [Synthetic note-free state](issue-only-empty-state.png). Rollback only the listed properties to1.000143 values, or restore that app version after checking intervening work. This section supersedes earlier two-decimal, routine-note and fixed bilingual menu-title decisions below.
+
+
 ## Refinement — date then borrower grouping
 
 29 September 2026: at owner request, Upcoming Charges by Day now groups first by **Due Date ascending**, then **Ref Borrower ascending**. `SUM :: Amount Remaining` remains the aggregate, providing date totals and borrower subtotals. Saved DEV OLTP **1.000141**, no editor issues. Seven displayed daily totals matched the prior view; the current GUI showed borrower subgroups after entering a date. The borrower-specific Collection preview is unchanged because it already contains one borrower. SQL V54 and OLAP1.000045 are unchanged; prior SQL/companion verification remains valid for this view-only edit.

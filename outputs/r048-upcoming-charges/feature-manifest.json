@@ -7,7 +7,7 @@
     "oltp": {
       "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
       "before": "1.000128",
-      "after": "1.000141"
+      "after": "1.000145"
     },
     "olap": {
       "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
@@ -25,5 +25,10 @@
     "before": "1.000140",
     "evidence": "borrower-grouping.json",
     "scope": "date then borrower grouping only"
+  },
+  "presentation_refinement": {
+    "owner_baseline": "1.000143",
+    "evidence": "presentation-refinement.json",
+    "sql_changed": false
   }
 }

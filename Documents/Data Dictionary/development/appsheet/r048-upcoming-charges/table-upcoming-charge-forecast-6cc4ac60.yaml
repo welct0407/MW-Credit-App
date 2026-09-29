@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+  "definition_evidence": "outputs/r048-upcoming-charges/presentation-refinement.json"
   "before":
     "state": "absent"
   "after":
@@ -119,6 +119,7 @@
           "rules":
             "Column name": "Ref Borrower"
             "Visible?": "ALWAYS"
+            "Display name": "=\"ผู้กู้ / Borrower\""
             "Type": "Ref"
             "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
               :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
@@ -165,6 +166,7 @@
           "rules":
             "Column name": "Ref Loan"
             "Visible?": "ALWAYS"
+            "Display name": "=\"สินเชื่อ / Loan\""
             "Type": "Ref"
             "Type Qualifier": "{\"ReferencedTableName\":\"Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\"\
               :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
@@ -211,6 +213,7 @@
           "rules":
             "Column name": "Due Date"
             "Visible?": "ALWAYS"
+            "Display name": "=\"วันครบกำหนด / Due Date\""
             "Type": "Date"
             "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
               :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
@@ -244,9 +247,10 @@
           "rules":
             "Column name": "Principal Remaining"
             "Visible?": "ALWAYS"
+            "Display name": "=\"เงินต้นคงเหลือ / Principal Remaining\""
             "Type": "Price"
             "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-              :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"\
+              :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"\
               Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"\
               Suggested_Values\":null}"
             "Read-Only": "Yes"
@@ -278,9 +282,10 @@
           "rules":
             "Column name": "Interest Remaining"
             "Visible?": "ALWAYS"
+            "Display name": "=\"ดอกเบี้ยคงเหลือ / Interest Remaining\""
             "Type": "Price"
             "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-              :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"\
+              :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"\
               Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"\
               Suggested_Values\":null}"
             "Read-Only": "Yes"
@@ -312,9 +317,10 @@
           "rules":
             "Column name": "Amount Remaining"
             "Visible?": "ALWAYS"
+            "Display name": "=\"ยอดคงเหลือ / Amount Remaining\""
             "Type": "Price"
             "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-              :2,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"\
+              :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"\
               Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"\
               Suggested_Values\":null}"
             "Read-Only": "Yes"
@@ -342,7 +348,7 @@
             "Key": "No"
             "Label": "No"
             "Read-only": "Yes"
-            "Hidden": "No"
+            "Hidden": "Yes"
           "rules":
             "Column name": "Basis"
             "Visible?": "ALWAYS"
@@ -351,7 +357,7 @@
               :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
               :null,\"Reset_If\":null,\"Suggested_Values\":null}"
             "Read-Only": "Yes"
-            "Hidden": "No"
+            "Hidden": "Yes"
             "Label": "No"
             "Formula version": "0"
             "Reset on edit?": "No"
@@ -362,7 +368,7 @@
             "Editable Initial Value?": "Yes"
             "Virtual?": "No"
             "LocaleName": "en-US"
-            "Searchable": "Yes"
+            "Searchable": "No"
             "Scannable": "No"
             "Sensitive data": "No"
         "As Of Date":
@@ -379,6 +385,7 @@
           "rules":
             "Column name": "As Of Date"
             "Visible?": "ALWAYS"
+            "Display name": "=\"ข้อมูล ณ วันที่ / As Of Date\""
             "Type": "Date"
             "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
               :null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
@@ -530,5 +537,42 @@
             "Searchable": "No"
             "Scannable": "No"
             "Sensitive data": "No"
+        "Basis Display":
+          "inventory":
+            "App": "OLTP"
+            "Table": "Upcoming Charge Forecast"
+            "Column": "Basis Display"
+            "Type": "Text"
+            "Virtual": "Yes"
+            "Key": "No"
+            "Label": "No"
+            "Read-only": "Yes"
+            "Hidden": "No"
+          "rules":
+            "Column name": "Basis Display"
+            "Visible?": "ALWAYS"
+            "Display name": "=\"ที่มาของรายการ / Basis\""
+            "Type": "Text"
+            "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+              :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+              :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+            "App formula": "=SWITCH([Basis], \"Recorded\", \"บันทึกแล้ว / Recorded\", \"Recorded settlement\", \"รายการชำระที่บันทึกแล้ว\
+              \ / Recorded settlement\", \"Recorded - review status\", \"บันทึกแล้ว - ตรวจสอบสถานะ / Recorded - review status\"\
+              , \"Projected\", \"คาดการณ์ / Projected\", [Basis])"
+            "Read-Only": "Yes"
+            "Hidden": "No"
+            "Label": "No"
+            "Formula version": "0"
+            "Reset on edit?": "No"
+            "System Defined?": "No"
+            "Key": "No"
+            "Part of Key?": "No"
+            "Fixed definition?": "No"
+            "Editable Initial Value?": "Yes"
+            "Virtual?": "Yes"
+            "LocaleName": "en-US"
+            "Searchable": "Yes"
+            "Scannable": "No"
+            "Sensitive data": "No"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000140"
+  "version": "1.000145"

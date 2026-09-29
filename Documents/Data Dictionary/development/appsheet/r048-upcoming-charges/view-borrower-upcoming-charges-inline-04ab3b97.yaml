@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+  "definition_evidence": "outputs/r048-upcoming-charges/presentation-refinement.json"
   "before":
     "state": "absent"
   "after":
@@ -23,15 +23,15 @@
         "Created by": "App owner"
         "View type": "table"
         "Position": "ref"
-        "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Ref Loan\",\"Amount\
-          \ Remaining\",\"Basis\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"}],\"GroupAggregate\":\"SUM\
-          \ :: Amount Remaining\",\"SortBy\":[{\"Column\":\"Ref Loan\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\":null,\"\
-          IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\"\
-          :\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        "View configuration": "{\"ColumnWidth\":\"Narrow\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Amount Remaining\"\
+          ,\"Ref Loan\",\"Basis Display\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"}],\"GroupAggregate\"\
+          :\"SUM :: Amount Remaining\",\"SortBy\":[{\"Column\":\"Ref Loan\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\"\
+          :null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"\
+          }],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
         "Visible?": "ALWAYS"
         "Icon": ""
         "Menu order": "1"
       "editor_observed":
         "For this data": "Borrower Upcoming 5 Dates"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000140"
+  "version": "1.000145"
