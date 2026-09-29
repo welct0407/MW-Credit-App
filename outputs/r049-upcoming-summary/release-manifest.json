@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "release": "R049",
+  "revision": 1,
+  "status": "open-development-complete",
+  "scope": [
+    "Summary-first upcoming charges with borrower/date drilldown in Upcoming Charges, Collection and Borrowers"
+  ],
+  "prerequisites": [],
+  "git": {
+    "implementationCommit": "45e0f3248c30e6e7bc35f98060cde619797b59d8",
+    "finalTag": null,
+    "implementationCommitNote": "SQL checkpoint; app/config closure is the Git commit containing this manifest. Not a frozen release pin."
+  },
+  "records": {
+    "log": "Change Logs/CHANGE_NOTES_R049_2026-09-29.md",
+    "delta": null,
+    "deltaHash": null,
+    "mapping": null,
+    "checklist": null,
+    "tests": "outputs/r049-upcoming-summary/HANDOVER.md",
+    "documentationChecklist": null,
+    "recovery": "outputs/r049-upcoming-summary/app-rollback.json"
+  },
+  "apps": {
+    "OLTP": {
+      "disposition": "changed",
+      "reason": "R049 summary/drilldown UI",
+      "dev": {
+        "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+        "internalName": "MW-OLTP-DEV-20260919-578763613",
+        "version": "1.000157",
+        "evidence": "outputs/r049-upcoming-summary/HANDOVER.md"
+      },
+      "rc": {
+        "id": null,
+        "internalName": null,
+        "number": null,
+        "version": null,
+        "state": "not-created",
+        "createdAt": null,
+        "frozenAt": null,
+        "mode": null,
+        "containmentEvidence": null,
+        "sourceEligibilityEvidence": null
+      },
+      "prod": {
+        "id": null,
+        "internalName": null,
+        "baselineVersion": null,
+        "preUpgradeVersion": null,
+        "postUpgradeVersion": null,
+        "rollbackVersion": null,
+        "preUpgradeAt": null,
+        "upgradedAt": null,
+        "upgradeEvidence": null
+      },
+      "captures": {
+        "dev": null,
+        "rc": null,
+        "prodBefore": null,
+        "prodAfter": null,
+        "unavailableReason": null
+      }
+    },
+    "OLAP": {
+      "disposition": "unchanged",
+      "reason": "No affected OLAP consumer",
+      "dev": {
+        "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+        "internalName": "MW-OLAP-DEV-20260919-578763613",
+        "version": "1.000045",
+        "evidence": "outputs/r049-upcoming-summary/HANDOVER.md"
+      },
+      "rc": {
+        "id": null,
+        "internalName": null,
+        "number": null,
+        "version": null,
+        "state": "not-created",
+        "createdAt": null,
+        "frozenAt": null,
+        "mode": null,
+        "containmentEvidence": null,
+        "sourceEligibilityEvidence": null
+      },
+      "prod": {
+        "id": null,
+        "internalName": null,
+        "baselineVersion": null,
+        "preUpgradeVersion": null,
+        "postUpgradeVersion": null,
+        "rollbackVersion": null,
+        "preUpgradeAt": null,
+        "upgradedAt": null,
+        "upgradeEvidence": null
+      },
+      "captures": {
+        "dev": null,
+        "rc": null,
+        "prodBefore": null,
+        "prodAfter": null,
+        "unavailableReason": null
+      }
+    }
+  },
+  "database": {
+    "engine": "PostgreSQL",
+    "migrationTool": "Flyway",
+    "disposition": "DEV applied; PROD pending",
+    "devVersion": "56",
+    "prodBeforeMigration": null,
+    "targetVersion": "56",
+    "prodBeforeAppUpgrade": null,
+    "prodAfter": null,
+    "testedCommit": "45e0f3248c30e6e7bc35f98060cde619797b59d8",
+    "runnerManifestReference": null,
+    "manifestSha256": null,
+    "migrations": [
+      {
+        "version": "56",
+        "path": "database/migrations/V56__oltp_upcoming_summary_drilldown.sql",
+        "sha256": "94bc71b29459465470c9c3c5cb9153c9cb76279b5013164d0315cb8dcf73c294"
+      }
+    ],
+    "backupEvidence": "outputs/r049-upcoming-summary/summary-development-backup.json",
+    "compatibilityEvidence": "outputs/r049-upcoming-summary/HANDOVER.md"
+  },
+  "externalDependencies": [],
+  "deploymentOrder": [],
+  "approvals": {
+    "devAcceptance": null,
+    "productionScope": null,
+    "reference": null,
+    "approvedRcVersions": null,
+    "productionWriteTests": null
+  },
+  "validation": {
+    "A_devIntegrated": "passed",
+    "B_candidateCaptured": "pending",
+    "C_databaseReady": "pending",
+    "D_rcReady": "pending",
+    "E_authorizedUpgrade": "pending",
+    "F_productionClosure": "pending"
+  },
+  "exceptions": [],
+  "rollback": {
+    "databaseStrategy": "compatible expanded schema / reviewed forward-fix",
+    "planReference": "outputs/r049-upcoming-summary/HANDOVER.md",
+    "rcRetentionDecision": null
+  },
+  "timestamps": {
+    "started": null,
+    "promoted": null,
+    "validated": null
+  },
+  "publication": {
+    "evidenceCommit": "Git commit containing this manifest; no final release tag at DEV completion",
+    "verificationReference": "Remote branch and final task report"
+  },
+  "operatingModel": {
+    "devMode": "Deployed",
+    "rcMode": "Deployed",
+    "prodMode": "Deployed",
+    "devRecipients": "DEV Partners.Email: welct0407@mw-credit.com; distinct Login Email identities",
+    "rcAndProdRecipients": "PROD Partner contacts; shared R009 expressions; restore only legacy unconverted overrides",
+    "scheduledBusinessExecution": {
+      "dev": "enabled",
+      "rc": "blocked by canonical-app guard",
+      "prod": "enabled"
+    },
+    "prodValidation": "basic App Upgrade checks; targeted expansion only"
+  }
+}

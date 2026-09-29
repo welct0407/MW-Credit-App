@@ -1,29 +1,59 @@
 # R049 — Summary-first upcoming charges
 
-Status: DEV SQL V56 applied/validated; AppSheet implementation and GUI tests blocked by disconnected browser control. No PROD change authorized or made.
+DEV implementation complete, 29 September 2026. **R049 remains Open for owner review. Production promotion is not authorized by this refinement request.**
 
-## Intended implementation
+## Saved state and recovery
 
-1. **Done:** additive V56 applied/validated in DEV after verified backup/restore and rehearsal. It adds `public.oltp_upcoming_charge_summary_v2` while preserving V1 for current PROD and rollback. Both use stable borrower/date keys; V2 covers the existing event provider's seven-day OR first-five-date union, never beyond three calendar months/max93days.
-2. Rebind the existing read-only OLTP `Upcoming Charge Summary` table from V1 to V2. Columns/types/keys remain identical; retain bilingual display names and zero-decimal currency.
-3. Cap `Borrower Upcoming Summary` to dates present for the same borrower/as-of date in `Borrower Upcoming 5 Dates`. Preserve the synced context as-of guard. This supplies Collection and Borrowers summaries.
-4. Add a read-only seven-day summary slice bounded by synced context From Date/Through Date and As Of Date. Main `Upcoming Charges` uses it, groups only by Due Date, sums Total Charge, and displays Ref Borrower then Total Charge. Retain partner-language menu display name.
-5. Add a reference table view `Upcoming Charge Details` over `Upcoming Charge Forecast`, preserving existing detail columns, bilingual titles/Basis and integer-baht formatting. A hidden row navigation action on `Upcoming Charge Summary` opens it with `LINKTOFILTEREDVIEW`, matching Ref Borrower, Due Date and As Of Date to the tapped summary. Assign this action as Row Selected in both main and summary-inline views.
-6. Remove `Upcoming Charges` from Collection detail's visible ColumnOrder, keeping `Upcoming Charges Summary` after today's charges and before receipts. Preserve issue-only note logic.
-7. Add `Upcoming Charges Summary` to the actual Borrowers detail used by the Borrowers entry point, after its first summary section and immediately before the loan list. Check whether its source slice already includes the column; add only if absent. Keep all unrelated owner cosmetics.
+- DEV OLTP `500b27b6-884a-41e8-a9ec-df801b0110ad`: **1.000157**, runnable; rollback **1.000152** recorded before editing.
+- DEV OLAP `9f3422be-bc87-4a5a-a42a-67528ee80393`: unchanged **1.000045**. Both editors report **No issues found**.
+- DEV PostgreSQL `appsheet-pg-prod-20260914` / `34.21.174.215:5432` / `loan_manager_dev`: **V56**, validated.
+- PROD unchanged: V55 / OLTP3.000260 / OLAP1.100208.
+- Starting Git `dccb28adfd2c62d9aca067521a0cbdd3fe3b1b06`; SQL checkpoint `45e0f3248c30e6e7bc35f98060cde619797b59d8`. Unrelated Metabase/Risks work is excluded.
 
-## Verification required
+Restore DEV OLTP1.000152 if app rollback is needed; V1 remains present and unchanged. V56 is additive and need not be undone for app rollback. Never edit an applied migration; any SQL correction uses a higher migration. Private DEV backup was restored and fingerprint-verified before V56 rehearsal/application. [App rollback](app-rollback.json), [database recovery evidence](summary-development-backup.json).
 
-- Disposable full migration CI plus synthetic checks: seven daily dates (especially days6/7), five borrower dates, same-date multiple loans/components, exact summary/detail equality, paid-date removal, empty summary and inclusive three-month boundary. V1 compatibility remains tested.
-- Verify DEV tuple/SSL, current Flyway version and verified backup before migration. Existing DEV financial values must remain unchanged.
-- Current GUI: main menu summary → correct borrower/date details; Collection summary → same; Borrowers summary placement → same. Back navigation, readonly behavior, bilingual labels, integer baht and unchanged limits.
-- Both DEV editors must report zero warnings/errors at completion. Capture final saved versions and targeted AppDoc definitions; maintain labeled DEV dictionary overlays and release evidence.
-- Commit/push intended sanitized files only. R049 stays Open; no new production release or tag until later scoped promotion.
+## Implemented design
 
-## Recovery / continuation
+### Providers and bounds
 
-Starting Git `dccb28adfd2c62d9aca067521a0cbdd3fe3b1b06`. Existing unrelated Metabase/Risks work is not part of this task. Only additive DEV V56 is applied at this checkpoint; both apps still use V1. Record current restorable DEV OLTP version before UI editing. The old V1 provider remains available for app rollback; never edit applied migrations.
+`public.oltp_upcoming_charge_summary_v2` retains V1's columns and stable borrower/date keys, aggregating the existing event provider's seven-day OR first-five-date union. This preserves days six/seven in the main view while keeping the borrower limit. Existing schedule simulation, recorded-charge precedence, auto-generation-disabled settlement charges and paid-date behavior are unchanged; no financial records are created.
 
-Completed evidence: [backup/restore](summary-development-backup.json), [migration](development-migrate.json), [validation](development-validate.json), [read-only saved definitions](postgresql-affected-definitions.json). Full `Test-CI.ps1` passed (exit0), including added V2 synthetic assertions and existing V1 compatibility, on 29 September 2026. Disposable diagnostics are private at `C:/Users/MWCredit/AppData/Local/AppSheetLoanTools/migration-test-a641de40493c45a0a5a6f22510939b33`. SQL dictionary overlay records DEV only. No AppSheet definition is claimed implemented.
+Existing readonly `Upcoming Charge Summary` now binds to V2 through DEV `database-3`. Its borrower reference is visible with the fixed bilingual Borrower label. Currency remains zero-decimal baht. Existing V1 is untouched for compatibility with the released app.
 
-Work Chrome profile is `mw-credit.com`, extension identity `151f9bf5-de78-4106-af6b-95dc06d36707`; transient browser IDs changed after tool reset. Owner account must be `welct0407@mw-credit.com`. The editor briefly opened successfully, then browser control disconnected. Owner reconnection is pending; no alternate profile/sign-in workaround.
+`Upcoming Summary 7 Days` is a new readonly slice, matching synced context As Of Date and inclusive From Date/Through Date (tomorrow through T+7). `Borrower Upcoming Summary` matches the synced As Of Date and only dates in `Borrower Upcoming 5 Dates` for that borrower/as-of. This yields at most five distinct future dates across all loans, within three calendar months and the existing maximum 93-day guard. All charges on the fifth date remain included.
+
+### Main Upcoming Charges
+
+The existing direct menu table uses `Upcoming Summary 7 Days`, groups **only by Due Date ascending**, and sums `Total Charge` per day. Its two columns are `Ref Borrower`, `Total Charge`, sorted by borrower. Partner-language menu naming remains unchanged. No inline charge details or context section is shown.
+
+### Shared drilldown
+
+The hidden `Open Upcoming Charge Details` action belongs to `Upcoming Charge Summary` and navigates without writes:
+
+```appsheet
+LINKTOFILTEREDVIEW("Upcoming Charge Details", AND([Ref Borrower] = [_THISROW].[Ref Borrower], [Due Date] = [_THISROW].[Due Date], [As Of Date] = [_THISROW].[As Of Date]))
+```
+
+`Upcoming Charge Details` is a reference table over **Upcoming Charge Forecast**, preserving the existing detail format: Amount Remaining, Ref Loan, Basis Display; Due Date ascending groups, SUM of Amount Remaining, loan ascending sort, Narrow width, no quick edit. Using the full bounded forecast source supports menu days six/seven as well as borrower dates. Its fixed literal display name is `"รายละเอียดเรียกเก็บล่วงหน้า / Upcoming Charges Details"`.
+
+The main table, base summary inline view and new explicit `Borrower Upcoming Summary_Inline` all use this Row Selected action. The explicit borrower inline view is necessary to keep the slice's automatic view from adding a Borrower column. It has Date/Total Charge only, ascending date sort, no grouping, and fixed bilingual Summary title. Generated summary reference action and seven-day default detail view are included in the captured change set.
+
+### Collection and Borrowers
+
+`Todays Collection Board_Detail` removes only `Upcoming Charges` from its visible column order. `Upcoming Charges Summary` follows `Todays Collection Charges`; the issue-only note and submitted receipts follow. The existing borrower-note quick edit is retained.
+
+`Visible Borrowers_Detail`, the actual Borrowers entry point, inserts `Upcoming Charges Summary` immediately **before Related Loans**, after the existing financial summary fields. The source already included the column. All other columns/cosmetics remain in their original order. Both entry points show the same Date/Total summary and open the matching details on tap.
+
+## Verification and evidence
+
+- Full disposable migration CI passed at the SQL checkpoint: V1 compatibility, V2 seven-day coverage including days six/seven, five-date limit, summary/detail equality, paid-date removal and inclusive three-month boundary. Reused because SQL and dependencies did not change during UI integration.
+- Verified DEV backup/restore, V56 rehearsal with existing public values unchanged, actual DEV migration and validation passed. [Migration](development-migrate.json), [validation](development-validate.json), [saved SQL definitions](postgresql-affected-definitions.json).
+- Current DEV GUI: main date-grouped borrower totals, Collection two-column summary, Borrowers summary before loans, all three row drilldowns, date/borrower isolation, matching amounts and back navigation passed using readonly existing data. Bilingual detail title and whole-baht display checked. No financial writes or notification tests.
+- GUI viewport showed representative dates; all seven groups were not visually enumerated. SQL synthetic tests and exact saved slice/provider definitions cover days six/seven. Collection/Borrowers behavior checks were reused through the final title-only correction; final saved version is runnable and final main drilldown title was rechecked.
+- Final saved AppDoc HTML independently parses identically to DOM extraction. Exactly **12 AppSheet objects** changed from1.000152 to1.000157; unrelated definitions are unchanged. [Object observations](app-config-observations.json), [editor-only source/title observations](view-bindings.json), [sanitized editor screenshot](upcoming-summary-editor.png).
+- Exact before/after definitions are in `Documents/Data Dictionary/development/appsheet/r049-upcoming-summary`; SQL overlay in the matching PostgreSQL development folder. Canonical PROD definitions remain unchanged. Guarded closure helper validates all overlays and regenerates the index. [Closure plan](dictionary-closure-plan.json).
+- Private AppDoc captures and GUI evidence are outside Git under `C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r049-upcoming-summary`; borrower data is not published.
+
+## Later promotion
+
+Ready for owner review; not deployed to production. R049 stays Open until separately authorized promotion begins. Use the current release's single master checklist, integrated DEV capture, compatible V56-before-app dependency order, PROD-mapped immutable RC and normal App Upgrade. Recheck current versions and intervening work at that time. No RC, freeze handoff, production write, final release tag or cleanup applies to this DEV task. OLAP, Looker, notification routing and financial logic are unchanged.

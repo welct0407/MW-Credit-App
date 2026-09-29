@@ -1,0 +1,59 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Visible Borrowers_Detail"
+  "scope": "development:R049-upcoming-summary"
+"verification":
+  "status": "documented"
+  "source": "outputs/r049-upcoming-summary/HANDOVER.md"
+"content":
+  "release": "R049"
+  "status": "DEV implemented; owner review and PROD promotion pending"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000157"
+  "before":
+    "state": "value"
+    "value":
+      "definition":
+        "View name": "Visible Borrowers_Detail"
+        "Created by": "System"
+        "View type": "detail"
+        "ActionType": "Automatic"
+        "Position": "ref"
+        "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\"\
+          :[],\"QuickEditColumns\":[],\"ColumnOrder\":[\"Borrower Name TE\",\"Creation Date\",\"Total Interest Earned\",\"\
+          Total Amount Loaned\",\"Total Number of Loans\",\"Header - Active Loans\",\"Total Outstanding Principal\",\"Active\
+          \ Loan Interest Earned\",\"Active Profit After Principal Coverage\",\"Return on Active Principal\",\"Projected Interest\
+          \ Coverage Date\",\"Header - Closed Loans\",\"Closed Loan Principle\",\"Closed Loan Interest Earned\",\"Return on\
+          \ Closed Loans\",\"Related Loans\",\"Communication Name\",\"Instagram Username\",\"AI Collection Enabled\",\"City\"\
+          ,\"Working Location\",\"Address\",\"Ref Referrer\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"\
+          DisplayMode\":\"Automatic\",\"MaxNestedRows\":20,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\",\"\
+          UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\"\
+          :[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        "Visible?": "ALWAYS"
+        "Icon": ""
+        "Menu order": "1"
+  "after":
+    "state": "value"
+    "value":
+      "definition":
+        "View name": "Visible Borrowers_Detail"
+        "Created by": "System"
+        "View type": "detail"
+        "ActionType": "Automatic"
+        "Position": "ref"
+        "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\"\
+          :[],\"QuickEditColumns\":[],\"ColumnOrder\":[\"Borrower Name TE\",\"Creation Date\",\"Total Interest Earned\",\"\
+          Total Amount Loaned\",\"Total Number of Loans\",\"Header - Active Loans\",\"Total Outstanding Principal\",\"Active\
+          \ Loan Interest Earned\",\"Active Profit After Principal Coverage\",\"Return on Active Principal\",\"Projected Interest\
+          \ Coverage Date\",\"Header - Closed Loans\",\"Closed Loan Principle\",\"Closed Loan Interest Earned\",\"Return on\
+          \ Closed Loans\",\"Upcoming Charges Summary\",\"Related Loans\",\"Communication Name\",\"Instagram Username\",\"\
+          AI Collection Enabled\",\"City\",\"Working Location\",\"Address\",\"Ref Referrer\"],\"ImageStyle\":\"Fill\",\"Layout\"\
+          :null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":20,\"SlideshowMode\":false,\"DesktopSplitMode\"\
+          :\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\"\
+          :false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        "Visible?": "ALWAYS"
+        "Icon": ""
+        "Menu order": "1"

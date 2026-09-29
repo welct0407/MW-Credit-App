@@ -1,6 +1,6 @@
 # PostgreSQL development with Flyway
 
-R049: DEV is **V56**, PROD remains **V55**. V56 adds a compatible read-only upcoming summary V2 provider; V1 is unchanged. Full CI and verified restore/rehearsal passed. AppSheet integration remains pending; do not treat the release as ready. Next migration must be V57 or higher after checking current history. [Handover and evidence](../outputs/r049-upcoming-summary/HANDOVER.md).
+R049: DEV is **V56**, PROD remains **V55**. V56 adds a compatible read-only upcoming summary V2 provider; V1 is unchanged. Full CI and verified restore/rehearsal passed. DEV OLTP1.000157 integration and summary/drilldown GUI checks passed; R049 remains Open for owner review and separately authorized promotion. Next migration must be V57 or higher after checking current history. [Handover and evidence](../outputs/r049-upcoming-summary/HANDOVER.md).
 
 R048 released at **V55** in DEV and PROD: V54 upcoming-charge adapters and V55 borrower/date summary were implemented, tested and promoted. R049's DEV-only addition is recorded above. [PROD evidence](../outputs/r048-production/README.md). [Implementation and recovery](../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
 

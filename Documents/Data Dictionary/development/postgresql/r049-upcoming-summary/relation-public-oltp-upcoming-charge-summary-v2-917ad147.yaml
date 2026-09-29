@@ -10,7 +10,7 @@
   "source": "outputs/r049-upcoming-summary/HANDOVER.md"
 "content":
   "release": "R049"
-  "status": "DEV SQL implemented; AppSheet integration pending"
+  "status": "DEV SQL and AppSheet integration implemented; PROD unchanged"
   "target": "loan_manager_dev"
   "migration": "V56"
   "definition_evidence": "outputs/r049-upcoming-summary/HANDOVER.md"

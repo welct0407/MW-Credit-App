@@ -1,6 +1,6 @@
 # Environment inventory
 
-R049 DEV checkpoint (29 September 2026): `appsheet-pg-prod-20260914` / `34.21.174.215:5432` / `loan_manager_dev` is **V56**, validated. Adds only the read-only summary V2 provider; V1 and AppSheet bindings remain unchanged. PROD remains V55. AppSheet integration is pending browser reconnection. [Handover and evidence](../outputs/r049-upcoming-summary/HANDOVER.md).
+R049 DEV checkpoint (29 September 2026): `appsheet-pg-prod-20260914` / `34.21.174.215:5432` / `loan_manager_dev` is **V56**, validated. DEV OLTP **1.000157** uses the read-only summary V2 provider with separate seven-day and five-date slices; V1 remains available. DEV OLAP is unchanged at **1.000045**. Both editors are clear. PROD remains V55 / OLTP3.000260 / OLAP1.100208; no production changes. [Handover and evidence](../outputs/r049-upcoming-summary/HANDOVER.md).
 
 R048 upcoming charges — **promoted and verified** (29 September 2026): PROD OLTP **3.000260**, OLAP unchanged **1.100208**, PostgreSQL **V55**. Normal App Upgrade used frozen PROD-mapped RC1 **1.000009** from accepted DEV OLTP1.000151 / OLAP1.000045 /V55. Seven-day Upcoming Charges and Collection summary/details passed basic PROD checks; both editors are clear and Deployed. RC1 was deleted after validation, preserving shared data/files/logo. Upcoming-charge DEV differences are closed; R049 is the sole Open release. [Promotion, evidence and recovery](../outputs/r048-production/README.md).
 
