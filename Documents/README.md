@@ -8,6 +8,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Open DEV work | [Development Changes](Development_Changes.md) |
 | Collection receipts limited to displayed charges | [R048 handover](../outputs/r048-collection-receipts/HANDOVER.md) — DEV1.000124 and direct PROD3.000253 correction verified |
 | Current identities/settings | [Environment Inventory](Environment_Inventory.md) |
+| Current Metabase tab order and retired Forecast & Partners page | [R050 navigation evidence](../outputs/r050-remove-forecast-partners/README.md) |
 | Service login account / browser profile | [Service account and browser mapping](Service_Account_Browser_Mapping.md) |
 | Business/design decisions and diagrams | [Solution Design](Solution_Design.md) |
 | Receive one payment for selected Collection charges | [R047 implementation and verification](../outputs/r047-selected-charges/IMPLEMENTATION.md) and [original design](../outputs/r047-selected-charges/HANDOVER.md) — implemented in DEV; owner review and promotion pending |

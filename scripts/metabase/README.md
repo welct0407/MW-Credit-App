@@ -1,5 +1,7 @@
 # R040 borrower lifetime display
 
+R050 legacy tab retirement: `RemoveLegacyForecastPartnersTab.mjs --prepare`, `--apply`, `--verify` removes only tab11/15 placements, renumbers Partners249/Forecast & Planning262 to11/12, and guards all other placements and filters. Recovery dashboard26 and the private full baseline precede mutation. [Evidence and recovery](../../outputs/r050-remove-forecast-partners/README.md).
+
 R048 Forecast watchlist: `RefineForecastWatchlist.mjs --prepare`, `--apply`, then `--verify` changes only question360 from Loan reference to the established readable Loan Key. It captures dashboard23 and a private question baseline before editing, then compares every returned row and the dashboard structure. [Evidence and recovery](../../outputs/r048-forecast-watchlist/README.md).
 
 R045 Forecast & Planning: `ForecastPlanning.mjs --publish` creates the tab once; `--refine --only=key,...` scopes corrections to state-owned questions; `--verify` checks saved mappings and preservation. `VerifyForecastSaved.mjs` performs 15 numerical/filter reconciliations. Four models and21 questions use V48. Never replay publication with an existing state. [Contract/recovery](../../outputs/r045-forecast-planning/IMPLEMENTATION.md).

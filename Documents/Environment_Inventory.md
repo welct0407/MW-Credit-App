@@ -1,5 +1,7 @@
 # Environment inventory
 
+R050 Metabase checkpoint (29 September 2026): dashboard3 has 12 tabs /259 placements. Legacy Forecast & Partners tab11 and its 15 placements are retired; Partners249 is now tab11 and Forecast & Planning262 tab12. Recovery dashboard26; other placements and parameters preserved. Apps and SQLV56 unchanged. [Evidence](../outputs/r050-remove-forecast-partners/README.md).
+
 R049 released (29 September 2026): `appsheet-pg-prod-20260914` / `34.21.174.215:5432` has both `loan_manager_dev` and `loan_manager_prod` at **V56**. PROD OLTP **3.000263** uses the read-only summary V2 provider on `database-2` after normal RC App Upgrade; PROD OLAP remains **1.100208**. DEV OLTP **1.000157** and OLAP **1.000045** remain on `database-3`. Both PROD editors are clear; the RC definition was deleted after validation. [Promotion](../outputs/r049-production/README.md) · [DEV handover](../outputs/r049-upcoming-summary/HANDOVER.md).
 
 R048 upcoming charges — **promoted and verified** (29 September 2026): PROD OLTP **3.000260**, OLAP unchanged **1.100208**, PostgreSQL **V55**. Normal App Upgrade used frozen PROD-mapped RC1 **1.000009** from accepted DEV OLTP1.000151 / OLAP1.000045 /V55. Seven-day Upcoming Charges and Collection summary/details passed basic PROD checks; both editors are clear and Deployed. RC1 was deleted after validation, preserving shared data/files/logo. Upcoming-charge DEV differences are closed; R049 is the sole Open release. [Promotion, evidence and recovery](../outputs/r048-production/README.md).

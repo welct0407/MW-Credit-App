@@ -83,27 +83,20 @@
     "entity_id": "HTvmH4G_pettfrl6shBpy"
     "created_at": "2026-09-24T11:35:18.286275Z"
     "updated_at": "2026-09-26T15:18:44.078815Z"
-  - "id": 11
-    "dashboard_id": 3
-    "name": "11 · Forecast & Partners"
-    "position": 10
-    "entity_id": "HpX0Vj4mHUGAPeopmzU_l"
-    "created_at": "2026-09-22T12:32:45.925957Z"
-    "updated_at": "2026-09-26T15:18:44.078815Z"
   - "id": 249
     "dashboard_id": 3
-    "name": "12 · Partners"
-    "position": 11
+    "name": "11 · Partners"
+    "position": 10
     "entity_id": "nfRoHsD0Xec0mJkhknl0y"
     "created_at": "2026-09-26T16:40:06.877891Z"
-    "updated_at": "2026-09-26T16:40:06.877891Z"
+    "updated_at": "2026-09-29T13:05:21.939292Z"
   - "id": 262
     "dashboard_id": 3
-    "name": "13 · Forecast & Planning"
-    "position": 12
+    "name": "12 · Forecast & Planning"
+    "position": 11
     "entity_id": "UZW-rsZEr0tyRL1owcEtC"
     "created_at": "2026-09-26T18:14:06.323904Z"
-    "updated_at": "2026-09-26T18:14:06.323904Z"
+    "updated_at": "2026-09-29T13:05:21.939292Z"
   "parameters":
   - "id": "overview-trend-period"
     "name": "Portfolio trend period"
@@ -1879,8 +1872,9 @@
     - "id": 182
       "name": "Who holds the business cash? · period end"
       "type": "question"
-  "unaffected_pages": "R023 preserves all placements outside retired tab7, including canonical Performance tab18; remaining\
-    \ tab order retained. Individual unrelated question definitions remain outside this scoped dictionary reconciliation."
+  "unaffected_pages": "R050 removes superseded Forecast & Partners tab11 and its 15 placements. All 259 remaining placements\
+    \ and dashboard filters are preserved. Partner249 and Forecast & Planning262 retain their IDs and appear as tabs11 and12.\
+    \ Older report changes remain in dated evidence."
   "performance_review":
     "tab_id": 18
     "status": "Owner accepted and promoted to canonical 5 · Performance (tab18); 6 · Borrowers (tab6) follows it as of R024"
@@ -7828,8 +7822,8 @@
     "reason": "Tab 9 category labels and daily income/expense comparison"
     "state": "value"
   "/content/tabs":
-    "reference": "outputs/r045-forecast-planning/README.md"
-    "reason": "R045 saved definitions and V48 live catalog"
+    "reference": "outputs/r050-remove-forecast-partners/README.md"
+    "reason": "R050 retirement of superseded Forecast & Partners tab"
     "state": "value"
   "/content/performance_review":
     "reference": "outputs/r024-20260924/README.md"
@@ -7840,8 +7834,8 @@
     "reason": "R043 canonical borrower navigation, saved definitions and hidden keys"
     "state": "value"
   "/content/unaffected_pages":
-    "reference": "outputs/r023-20260924/README.md"
-    "reason": "Canonical Performance replacement accepted by owner"
+    "reference": "outputs/r050-remove-forecast-partners/README.md"
+    "reason": "R050 retirement of superseded Forecast & Partners tab"
     "state": "value"
   "/content/collection_monitor":
     "reference": "outputs/r036-collection-status-colors/order-verification.json"
