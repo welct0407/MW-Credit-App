@@ -3979,6 +3979,16 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r049-upcoming-summary/relation-public-oltp-upcoming-charge-summary-v2-917ad147.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.oltp_upcoming_charge_summary_v2",
+      "scope": "development:R049-upcoming-summary",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/r027/oltp-borrower-payment-health-v1.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
