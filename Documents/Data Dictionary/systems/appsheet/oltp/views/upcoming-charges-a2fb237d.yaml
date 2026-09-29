@@ -14,16 +14,24 @@
     "Created by": "App owner"
     "View type": "table"
     "Position": "menu"
-    "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Amount Remaining\",\"\
-      Ref Loan\",\"Basis Display\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"},{\"Column\":\"Ref Borrower\"\
-      ,\"Order\":\"Ascending\"}],\"GroupAggregate\":\"SUM :: Amount Remaining\",\"SortBy\":[{\"Column\":\"Ref Borrower\",\"\
-      Order\":\"Ascending\"},{\"Column\":\"Ref Loan\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\"\
-      :false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"far fa-calendar-alt\",\"\
-      IconRunnerUps\":null,\"MenuOrder\":1}"
+    "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Ref Borrower\",\"Total\
+      \ Charge\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"}],\"GroupAggregate\":\"SUM :: Total Charge\"\
+      ,\"SortBy\":[{\"Column\":\"Ref Borrower\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\"\
+      :false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"Open Upcoming Charge Details\"}],\"Icon\":\"far\
+      \ fa-calendar-alt\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
     "Visible?": "ALWAYS"
     "Icon": ""
     "Menu order": "1"
   "editor_observed":
-    "For this data": "Upcoming Charges 7 Days"
+    "For this data": "Upcoming Summary 7 Days"
     "Display name": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"Upcoming\
       \ Charges\", \"รายการเรียกเก็บล่วงหน้า\")"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"
+  "/content/editor_observed":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"

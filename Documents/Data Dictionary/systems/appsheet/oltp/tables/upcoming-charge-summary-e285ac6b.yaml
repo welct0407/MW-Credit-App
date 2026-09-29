@@ -17,7 +17,7 @@
     "Shared?": "Yes"
     "Schema": "Upcoming Charge Summary_Schema"
     "Are updates allowed?": "READ_ONLY"
-    "Source Path": "oltp_upcoming_charge_summary_v1"
+    "Source Path": "oltp_upcoming_charge_summary_v2"
     "Data Source": "database-2"
     "Store for image and file capture": "_Default"
     "Column Order List":
@@ -105,10 +105,11 @@
         "Key": "No"
         "Label": "No"
         "Read-only": "Yes"
-        "Hidden": "Yes"
+        "Hidden": "No"
       "rules":
         "Column name": "Ref Borrower"
         "Visible?": "ALWAYS"
+        "Display name": "=\"ผู้กู้ / Borrower\""
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -118,7 +119,7 @@
           ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
           Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "Yes"
-        "Hidden": "Yes"
+        "Hidden": "No"
         "Label": "No"
         "Formula version": "0"
         "Reset on edit?": "No"
@@ -242,3 +243,12 @@
         "Searchable": "No"
         "Scannable": "No"
         "Sensitive data": "No"
+"evidence":
+  "/content/binding":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"
+  "/content/columns":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"

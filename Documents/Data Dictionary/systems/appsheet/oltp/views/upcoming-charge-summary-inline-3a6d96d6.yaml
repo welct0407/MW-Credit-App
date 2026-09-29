@@ -16,8 +16,13 @@
     "Position": "ref"
     "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Due Date\",\"Total Charge\"\
       ],\"GroupBy\":[],\"GroupAggregate\":\"NONE\",\"SortBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\"\
-      :null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"\
-      Icon\":\"fa-table\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+      :null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"Open Upcoming\
+      \ Charge Details\"}],\"Icon\":\"fa-table\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
     "Visible?": "ALWAYS"
     "Icon": ""
     "Menu order": "1"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"

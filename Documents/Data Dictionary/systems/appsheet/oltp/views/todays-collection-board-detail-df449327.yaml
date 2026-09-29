@@ -20,10 +20,10 @@
     "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\"\
       :[],\"QuickEditColumns\":[\"Borrower Note\"],\"ColumnOrder\":[\"Daily Collection Status - Order\",\"Borrower Reference\
       \ TE\",\"Todays Amount Due\",\"Todays Amount Collected\",\"Todays Amount Remaining\",\"Borrower Note\",\"Todays Collection\
-      \ Charges\",\"Upcoming Charges Summary\",\"Upcoming Charges\",\"Upcoming Charge Note\",\"Submitted Receipts\"],\"ImageStyle\"\
-      :\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":30,\"SlideshowMode\"\
-      :false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"\
-      IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+      \ Charges\",\"Upcoming Charges Summary\",\"Upcoming Charge Note\",\"Submitted Receipts\"],\"ImageStyle\":\"Fill\",\"\
+      Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":30,\"SlideshowMode\":false,\"\
+      DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\"\
+      :false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
     "Visible?": "ALWAYS"
     "Icon": ""
     "Menu order": "1"
@@ -96,7 +96,6 @@
         Borrower Note
         Todays Collection Charges
         Upcoming Charges Summary
-        Upcoming Charges
         Upcoming Charge Note
         Submitted Receipts
     - "choices":
@@ -217,10 +216,14 @@
     "For this data": "Todays Collection Board"
 "evidence":
   "/content/definition":
-    "reference": "outputs/r048-production/README.md"
-    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
     "state": "value"
   "/content/editor_observed":
     "reference": "outputs/r048-production/README.md"
     "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
+    "state": "value"
+  "/content/editor":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
     "state": "value"

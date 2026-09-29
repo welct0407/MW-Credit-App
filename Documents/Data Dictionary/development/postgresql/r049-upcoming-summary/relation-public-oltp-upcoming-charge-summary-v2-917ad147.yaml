@@ -10,7 +10,7 @@
   "source": "outputs/r049-upcoming-summary/HANDOVER.md"
 "content":
   "release": "R049"
-  "status": "DEV SQL and AppSheet integration implemented; PROD unchanged"
+  "status": "Promoted to PROD 2026-09-29; closed, retained as dated DEV evidence"
   "target": "loan_manager_dev"
   "migration": "V56"
   "definition_evidence": "outputs/r049-upcoming-summary/HANDOVER.md"
@@ -137,3 +137,18 @@
           "collation": null
           "acl": null
           "comment": null
+  "production_delivery":
+    "evidence": "outputs/r049-production/README.md"
+    "OLTP": "3.000263"
+    "OLAP": "1.100208 (unchanged)"
+    "PostgreSQL": "56"
+    "remaining_feature_difference": "None; environment bindings remain intentional."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"
+  "/content/production_delivery":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"

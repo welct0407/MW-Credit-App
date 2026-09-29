@@ -18,7 +18,9 @@
     - "Due Date"
     - "Total Charge"
     - "As Of Date"
-    "Row filter condition": "=[As Of Date] = LOOKUP(\"upcoming\", \"Upcoming Charge Context\", \"Row ID\", \"As Of Date\")"
+    "Row filter condition": "=AND([As Of Date] = LOOKUP(\"upcoming\", \"Upcoming Charge Context\", \"Row ID\", \"As Of Date\"\
+      ), IN([Due Date], SELECT(Borrower Upcoming 5 Dates[Due Date], AND([Ref Borrower] = [_THISROW].[Ref Borrower], [As Of\
+      \ Date] = [_THISROW].[As Of Date]))))"
     "Update mode": "READ_ONLY"
     "Source Table": "Upcoming Charge Summary"
     "Visible?": "ALWAYS"
@@ -37,3 +39,8 @@
     "Column": "Total Charge"
   - "Ordinal": 6
     "Column": "As Of Date"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"

@@ -1,0 +1,26 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Borrower Upcoming Summary_Inline"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r049-production/README.md"
+"content":
+  "definition":
+    "View name": "Borrower Upcoming Summary_Inline"
+    "Created by": "App owner"
+    "View type": "table"
+    "Position": "ref"
+    "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Due Date\",\"Total Charge\"\
+      ],\"GroupBy\":[],\"GroupAggregate\":\"NONE\",\"SortBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\"\
+      :null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"Open Upcoming\
+      \ Charge Details\"}],\"Icon\":\"far fa-calendar-alt\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+    "Visible?": "ALWAYS"
+    "Icon": ""
+    "Menu order": "1"
+  "editor_observed":
+    "For this data": "Borrower Upcoming Summary"
+    "Display name": "\"สรุปเรียกเก็บล่วงหน้า / Upcoming Charges Summary\""

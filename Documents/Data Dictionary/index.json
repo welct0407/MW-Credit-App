@@ -24440,6 +24440,26 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/oltp/actions/upcoming-charge-summary-open-upcoming-charge-details-25eafa5e.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "action",
+      "name": "Upcoming Charge Summary.Open Upcoming Charge Details",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/actions/upcoming-charge-summary-view-ref-ref-borrower-673cdf93.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "action",
+      "name": "Upcoming Charge Summary.View Ref (Ref Borrower)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/automations/editor-create-first-day-charge-17ebc297.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -25525,6 +25545,16 @@
       "component": "oltp",
       "kind": "slice",
       "name": "Upcoming Charges 7 Days",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/slices/upcoming-summary-7-days-068b939e.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "Upcoming Summary 7 Days",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -29356,6 +29386,16 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/oltp/views/borrower-upcoming-summary-inline-b615c612.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Borrower Upcoming Summary_Inline",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/views/borrowers-detail-13b7f1c6.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -30006,6 +30046,16 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/oltp/views/upcoming-charge-details-cf714eec.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Upcoming Charge Details",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/views/upcoming-charge-forecast-inline-d12686fb.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -30041,6 +30091,16 @@
       "component": "oltp",
       "kind": "view",
       "name": "Upcoming Charges Context",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/views/upcoming-summary-7-days-detail-ed37ca7c.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Upcoming Summary 7 Days_Detail",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -38853,6 +38913,37 @@
       "component": "loan_manager_prod",
       "kind": "relation",
       "name": "public.oltp_upcoming_charge_summary_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "Due Date",
+          "pointer": "/content/columns/Due Date"
+        },
+        {
+          "subject": "Total Charge",
+          "pointer": "/content/columns/Total Charge"
+        },
+        {
+          "subject": "As Of Date",
+          "pointer": "/content/columns/As Of Date"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-oltp-upcoming-charge-summary-v2-9f708108.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.oltp_upcoming_charge_summary_v2",
       "scope": "production",
       "status": "documented",
       "lookup": [

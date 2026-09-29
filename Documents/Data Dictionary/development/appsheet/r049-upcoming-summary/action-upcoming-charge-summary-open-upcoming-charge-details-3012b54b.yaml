@@ -10,7 +10,7 @@
   "source": "outputs/r049-upcoming-summary/HANDOVER.md"
 "content":
   "release": "R049"
-  "status": "DEV implemented; owner review and PROD promotion pending"
+  "status": "Promoted to PROD 2026-09-29; closed, retained as dated DEV evidence"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
   "version": "1.000157"
   "before":
@@ -36,3 +36,18 @@
         "For a record of this table": "Upcoming Charge Summary"
         "Does this action apply to the whole table?": "No"
         "Visible?": "ALWAYS"
+  "production_delivery":
+    "evidence": "outputs/r049-production/README.md"
+    "OLTP": "3.000263"
+    "OLAP": "1.100208 (unchanged)"
+    "PostgreSQL": "56"
+    "remaining_feature_difference": "None; environment bindings remain intentional."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"
+  "/content/production_delivery":
+    "reference": "outputs/r049-production/README.md"
+    "reason": "R049 normal App Upgrade to PROD3.000263; saved metadata verified"
+    "state": "value"

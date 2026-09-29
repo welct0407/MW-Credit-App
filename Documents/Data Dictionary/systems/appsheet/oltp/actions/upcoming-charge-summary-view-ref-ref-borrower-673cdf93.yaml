@@ -1,0 +1,30 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Upcoming Charge Summary.View Ref (Ref Borrower)"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r049-production/README.md"
+"content":
+  "definition":
+    "Action name": "View Ref (Ref Borrower)"
+    "Bulk action?": "No"
+    "Modifies data?": "No"
+    "Needs confirmation?": "No"
+    "Prominence": "Display_Inline"
+    "Action order": "1"
+    "With these properties": "{\"NavigateTarget\":\"CONCATENATE(\\\"#page=detail&table=Borrowers&row=\\\", ENCODEURL([Ref\
+      \ Borrower]) )\",\"Prominence\":\"Display_Inline\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\"\
+      :false,\"BulkApplicable\":false}"
+    "Do this": "NAVIGATE_APP"
+    "Attach to column": "Ref Borrower"
+    "Set this column": "Ref Borrower"
+    "Only if this condition is true": "NOT(ISBLANK([Ref Borrower]))"
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Upcoming Charge Summary"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ALWAYS"

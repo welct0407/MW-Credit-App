@@ -10,6 +10,8 @@ This folder is the maintained home for exact model and configuration documentati
 
 **Current reconciliation, 24 September 2026:** the owner authorized independent live metadata inspection of PROD/DEV OLTP, PROD/DEV OLAP and both PostgreSQL databases. Current `production` objects now contain complete captured AppDoc/catalog definitions, with editor supplements for physical sources, views, settings, access and automation. Explicit DEV deltas reconstruct the independently observed DEV state. Read the [coverage, findings and validation](../../outputs/dictionary-reconciliation-20260924/README.md) for exact coverage and limitations. `documented` describes evidence-backed content, not a claim of runtime correctness, owner acceptance or deployment readiness. Personal access identities and signed image access tokens are intentionally withheld from published evidence.
 
+**R049 production closure, 29 September:** the 12 affected OLTP objects and the V2 SQL view are documented from saved PROD AppDoc and read-only SQL metadata at OLTP3.000263/V56. Their R049 DEV overlays are closed and retained as dated evidence; environment-specific source bindings remain intentional. [Promotion evidence](../../outputs/r049-production/README.md).
+
 | Need | Start here |
 | --- | --- |
 | OLTP table, column rules and Refs | [AppSheet OLTP tables](systems/appsheet/oltp/tables/) |
