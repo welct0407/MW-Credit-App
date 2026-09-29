@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/presentation-refinement.json"
+  "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json"
   "before":
     "state": "absent"
   "after":
@@ -23,9 +23,8 @@
         "Created by": "App owner"
         "View type": "dashboard"
         "Position": "menu"
-        "View configuration": "{\"ViewEntries\":[{\"ViewName\":\"Upcoming Charges Context\",\"ViewSize\":\"Wide\"},{\"ViewName\"\
-          :\"Upcoming Charges by Day\",\"ViewSize\":\"Large\"}],\"InteractiveMode\":false,\"ShowTabs\":false,\"Events\":[],\"\
-          Icon\":\"far fa-calendar-alt\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        "View configuration": "{\"ViewEntries\":[{\"ViewName\":\"Upcoming Charges by Day\",\"ViewSize\":\"Large\"}],\"InteractiveMode\"\
+          :false,\"ShowTabs\":false,\"Events\":[],\"Icon\":\"far fa-calendar-alt\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
         "Visible?": "ALWAYS"
         "Icon": ""
         "Menu order": "1"
@@ -34,4 +33,4 @@
         "Display name": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"\
           Upcoming Charges\", \"รายการเรียกเก็บล่วงหน้า\")"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000145"
+  "version": "1.000150"

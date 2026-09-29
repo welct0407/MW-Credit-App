@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/presentation-refinement.json"
+  "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json"
   "after":
     "state": "value"
     "value":
@@ -76,4 +76,4 @@
     "state": "absent"
   "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved."
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000145"
+  "version": "1.000150"

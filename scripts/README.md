@@ -1,5 +1,7 @@
 # Project scripts and shared dependencies
 
+R048 summary: `database/Backup-UpcomingSummary.py` is the reviewed DEV V54 backup/V55 disposable restore rehearsal helper. `database/Test-UpcomingCharges.sql` now includes18 assertions, including borrower/date summary totals, capped dates, empty/prepaid cases and stable keys. [Evidence](../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
+
 R048 upcoming-charge helpers: `database/Test-UpcomingCharges.sql` runs through `Test-StatementBatch.sql` with rollback-only synthetic cases; `database/Backup-UpcomingCharges.py` is the reviewed DEV backup/restore/V54 rehearsal for the recorded V53 baseline. Review its target guards and dated assumptions before reuse. Dictionary capture/closure helpers are described in the [dictionary guide](dictionary/README.md). [Evidence](../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
 
 R048 original-rate tools: `database/Backup-OriginalDailyInterest.py` captures/restores and rehearses a DEV backup; `database/Invoke-OriginalRateFixture.ps1` manages only the named DEV synthetic fixture (seed/prepare-charge/state/retire); `dictionary/capture_r048_interest.py` reads affected DEV catalog metadata. Review their current guards before reuse; fixture creation refuses an existing fixture. `Test-OriginalDailyInterest.sql` and stored-rate forecast assertions run through `database/Test-CI.ps1`. [Evidence](../outputs/r048-loan-interest/IMPLEMENTATION.md).

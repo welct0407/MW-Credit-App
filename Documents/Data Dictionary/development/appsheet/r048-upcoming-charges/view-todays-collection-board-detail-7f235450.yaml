@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+  "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json"
   "before":
     "state": "value"
     "value":
@@ -37,14 +37,15 @@
         "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\"\
           :[],\"QuickEditColumns\":[\"Borrower Note\"],\"ColumnOrder\":[\"Daily Collection Status - Order\",\"Borrower Reference\
           \ TE\",\"Todays Amount Due\",\"Todays Amount Collected\",\"Todays Amount Remaining\",\"Borrower Note\",\"Todays\
-          \ Collection Charges\",\"Upcoming Charges\",\"Upcoming Charge Note\",\"Submitted Receipts\"],\"ImageStyle\":\"Fill\"\
-          ,\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":30,\"SlideshowMode\":false,\"\
-          DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\"\
-          :false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+          \ Collection Charges\",\"Upcoming Charges Summary\",\"Upcoming Charges\",\"Upcoming Charge Note\",\"Submitted Receipts\"\
+          ],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\"\
+          :30,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"\
+          PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\"\
+          :null,\"MenuOrder\":1}"
         "Visible?": "ALWAYS"
         "Icon": ""
         "Menu order": "1"
       "editor_observed":
         "For this data": "Todays Collection Board"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000140"
+  "version": "1.000150"

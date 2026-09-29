@@ -2936,6 +2936,16 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/r048-upcoming-charges/slice-borrower-upcoming-summary-8fbc2160.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "Borrower Upcoming Summary",
+      "scope": "development:R048-upcoming-charges",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/appsheet/r048-upcoming-charges/slice-r008-borrower-commands-c12162fa.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -3036,6 +3046,16 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/r048-upcoming-charges/table-upcoming-charge-summary-6d4334ce.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Upcoming Charge Summary",
+      "scope": "development:R048-upcoming-charges",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/appsheet/r048-upcoming-charges/view-borrower-upcoming-charges-inline-04ab3b97.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -3076,6 +3096,16 @@
       "lookup": []
     },
     {
+      "file": "development/appsheet/r048-upcoming-charges/view-oltp-upcoming-charge-summary-v1-detail-2c578ef0.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "oltp_upcoming_charge_summary_v1_Detail",
+      "scope": "development:R048-upcoming-charges",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/appsheet/r048-upcoming-charges/view-todays-collection-board-detail-7f235450.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -3091,6 +3121,16 @@
       "component": "oltp",
       "kind": "view",
       "name": "Upcoming Charge Forecast_Inline",
+      "scope": "development:R048-upcoming-charges",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/appsheet/r048-upcoming-charges/view-upcoming-charge-summary-inline-45e421ba.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Upcoming Charge Summary_Inline",
       "scope": "development:R048-upcoming-charges",
       "status": "documented",
       "lookup": []
@@ -3924,6 +3964,16 @@
       "component": "loan_manager_dev",
       "kind": "relation",
       "name": "public.oltp_upcoming_charge_events_v1",
+      "scope": "development:R048-upcoming-charges",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r048-upcoming-charges/relation-public-oltp-upcoming-charge-summary-v1-9bf35f56.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.oltp_upcoming_charge_summary_v1",
       "scope": "development:R048-upcoming-charges",
       "status": "documented",
       "lookup": []

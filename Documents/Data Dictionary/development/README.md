@@ -1,6 +1,6 @@
 # Verified and historical development differences
 
-R048 **upcoming-charge overlays are active DEV-only** under `appsheet/r048-upcoming-charges/` and `postgresql/r048-upcoming-charges/`, scope `development:R048-upcoming-charges`: 23 objects verified at OLTP1.000145 / SQL V54. These do not reopen the closed original-rate overlays. Exact expressions, keys, readonly sources, generated memberships and ordered views were captured from saved DEV metadata. [Implementation](../../../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
+R048 **upcoming-charge overlays are active DEV-only** under `appsheet/r048-upcoming-charges/` and `postgresql/r048-upcoming-charges/`, scope `development:R048-upcoming-charges`: 28 objects verified at OLTP1.000150 / SQL V55. These do not reopen the closed original-rate overlays. Exact expressions, keys, readonly sources, generated memberships and ordered views were captured from saved DEV metadata. [Implementation](../../../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
 
 R048 **original-rate overlays are closed** after the owner-authorized direct PROD cutover on 28 September 2026: V53 / OLTP3.000257 / OLAP1.100208 now match the tested DEV feature. The 13 interest overlays retain dated DEV implementation values; current production definitions are under `systems/`. Environment bindings and different missing-basis data remain intentional. [Execution and verification](../../../outputs/r048-loan-interest-production/README.md).
 

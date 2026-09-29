@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+  "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json"
   "after":
     "state": "value"
     "value":
@@ -238,4 +238,4 @@
       - "Original Daily Interest Rate"
   "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved."
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000140"
+  "version": "1.000150"

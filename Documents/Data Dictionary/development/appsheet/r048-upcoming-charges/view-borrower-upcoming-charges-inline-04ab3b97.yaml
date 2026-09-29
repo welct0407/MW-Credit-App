@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/presentation-refinement.json"
+  "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json"
   "before":
     "state": "absent"
   "after":
@@ -34,4 +34,4 @@
       "editor_observed":
         "For this data": "Borrower Upcoming 5 Dates"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000145"
+  "version": "1.000150"

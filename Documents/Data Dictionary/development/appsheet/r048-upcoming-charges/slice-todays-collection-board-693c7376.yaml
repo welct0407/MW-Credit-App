@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+  "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json"
   "after":
     "state": "value"
     "value":
@@ -52,6 +52,8 @@
         - "Related Upcoming Charge Forecasts"
         - "Upcoming Charges"
         - "Upcoming Charge Note"
+        - "Related Upcoming Charge Summarys"
+        - "Upcoming Charges Summary"
         "Row filter condition": "=ISNOTBLANK([Daily Collection Status])"
         "Update mode": "UPDATES_ONLY"
         "Source Table": "Borrowers"
@@ -125,6 +127,10 @@
         "Column": "Upcoming Charges"
       - "Ordinal": 33
         "Column": "Upcoming Charge Note"
+      - "Ordinal": 34
+        "Column": "Related Upcoming Charge Summarys"
+      - "Ordinal": 35
+        "Column": "Upcoming Charges Summary"
   "before":
     "state": "value"
     "value":
@@ -161,4 +167,4 @@
       - "Submitted Receipts"
   "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved."
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000140"
+  "version": "1.000150"

@@ -25,6 +25,9 @@ SELECT pg_temp.check_upcoming((SELECT "Displayed Dates"=0 AND "Review Loans"=0 F
 SELECT pg_temp.check_upcoming((SELECT "Recorded Only Loans"=2 FROM public.oltp_upcoming_charge_coverage_v1 WHERE "Row ID"='UF-B'),'manual-only coverage');
 SELECT pg_temp.check_upcoming(NOT EXISTS(SELECT 1 FROM public.oltp_upcoming_charge_events_v1 WHERE "Due Date"<="As Of Date" OR "Due Date">"Horizon End"),'future and horizon hard bounds');
 SELECT pg_temp.check_upcoming((SELECT count(*)=count(DISTINCT "Row ID") FROM public.oltp_upcoming_charge_events_v1),'keys unique');
+SELECT pg_temp.check_upcoming((SELECT count(*)=5 AND count(DISTINCT "Row ID")=5 FROM public.oltp_upcoming_charge_summary_v1 WHERE "Ref Borrower"='UF-B'),'summary one row per capped date');
+SELECT pg_temp.check_upcoming((SELECT "Total Charge"=320 FROM public.oltp_upcoming_charge_summary_v1 WHERE "Ref Borrower"='UF-B' AND "Due Date"=public.olap_reporting_date()+5),'summary includes every loan/component on fifth date');
+SELECT pg_temp.check_upcoming(NOT EXISTS(SELECT 1 FROM public.oltp_upcoming_charge_summary_v1 WHERE "Ref Borrower"='UF-EMPTY'),'empty forecast has no summary rows');
 -- Actual posted prepayment removes the row and shifts date rank; amounts are never subtracted twice.
 INSERT INTO public."Payments"("Row ID","Ref Borrower","Ref Received By Cash Account","Status","Amount Received","Payment Date","Allocation Method","Ref Target Charge")
 VALUES('UF-PART','UF-B','CI-DAD','Processing',50::money,public.olap_reporting_date(),'Single Partial','UF-C1');
@@ -33,6 +36,7 @@ INSERT INTO public."Payments"("Row ID","Ref Borrower","Ref Received By Cash Acco
 VALUES('UF-FULL','UF-B','CI-DAD','Processing',50::money,public.olap_reporting_date(),'Single Full','UF-C1');
 SELECT pg_temp.check_upcoming(NOT EXISTS(SELECT 1 FROM public.oltp_upcoming_charge_events_v1 WHERE "Ref Loan"='UF-L1' AND "Due Date"=public.olap_reporting_date()+1),'fully paid future charge removed');
 SELECT pg_temp.check_upcoming((SELECT "Borrower Due Date Rank"=1 FROM public.oltp_upcoming_charge_events_v1 WHERE "Ref Loan"='UF-L1' AND "Due Date"=public.olap_reporting_date()+2),'rank shifts after full prepayment');
+SELECT pg_temp.check_upcoming(NOT EXISTS(SELECT 1 FROM public.oltp_upcoming_charge_summary_v1 WHERE "Ref Borrower"='UF-B' AND "Due Date"=public.olap_reporting_date()+1),'paid date removed from summary');
 -- Isolate horizon boundary after retaining only two future recorded dates on a separate borrower.
 INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled")
 VALUES('CI-LISA','UF-L3','UF-EMPTY',public.olap_reporting_date()-1,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false);

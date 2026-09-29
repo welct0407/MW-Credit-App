@@ -12,7 +12,7 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/presentation-refinement.json"
+  "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json"
   "before":
     "state": "absent"
   "after":
@@ -23,7 +23,7 @@
         "Created by": "App owner"
         "View type": "table"
         "Position": "ref"
-        "View configuration": "{\"ColumnWidth\":\"Narrow\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Amount Remaining\"\
+        "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Amount Remaining\"\
           ,\"Ref Loan\",\"Basis Display\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"},{\"Column\":\"Ref\
           \ Borrower\",\"Order\":\"Ascending\"}],\"GroupAggregate\":\"SUM :: Amount Remaining\",\"SortBy\":[{\"Column\":\"\
           Ref Borrower\",\"Order\":\"Ascending\"},{\"Column\":\"Ref Loan\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\"\
@@ -34,5 +34,7 @@
         "Menu order": "1"
       "editor_observed":
         "For this data": "Upcoming Charges 7 Days"
+        "Display name": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"\
+          Upcoming Charges\", \"รายการเรียกเก็บล่วงหน้า\")"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000145"
+  "version": "1.000150"
