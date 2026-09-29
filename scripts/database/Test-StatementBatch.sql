@@ -8,3 +8,4 @@
 \ir Test-Forecast.sql
 \ir Test-SelectedCharges.sql
 \ir Test-ReceiptUpload.sql
+\ir Test-UpcomingCharges.sql

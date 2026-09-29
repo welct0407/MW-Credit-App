@@ -1,5 +1,11 @@
 # R048 — Collection receipts, report labels and original loan interest
 
+## Upcoming charges — DEV complete 29 September
+
+Owner authorized development as R048 after the design-only handover. Implemented the seven-day grouped menu and Collection borrower preview of five distinct future due dates within three calendar months, recorded-settlement-only for auto-off loans. Final DEV OLTP1.000140 / unchanged OLAP1.000045 / V54; both editors clear. Production unchanged; R048 remains Open.
+
+Changed V54, database backup/test helpers, targeted dictionary capture/closure helpers, 23 DEV dictionary objects/index, affected model/current-state/tooling documents and sanitized evidence. Starting Git5b12c8bc; OLTP rollback1.000128; private DEV dump restored/fingerprint-verified before migration. Full database CI, V54 migrate/validate, saved metadata validation, normal sync and current desktop/mobile/borrower/receipt GUI checks passed. No financial GUI test write. Offline/midnight transition and comparative sync latency were not measured. Detailed scope, evidence, native presentation choices, recovery and later promotion steps: [implementation](../outputs/r048-upcoming-charges/IMPLEMENTATION.md), [handover](../outputs/r048-upcoming-charges/HANDOVER.md). Owner acceptance and production promotion remain separate. Unrelated report work preserved.
+
 ## Owner-confirmed historical-rate correction — 28 September
 
 The owner confirmed that the last missing closed daily loan originally charged ฿400/day on ฿4,000 principal, yielding 10%. A new private PROD dump was restored and fingerprint-verified; a two-update transaction was rehearsed with all other rows unchanged. Applied the guarded correction using existing V53 logic, adding the original-basis note and stored 10%. SQL readback confirms 80/80 rates populated and unchanged principal, interest, daily amount and outstanding balance. The canonical OLTP detail/key displays 10%. App versions and SQL V53 remain unchanged. [Step-by-step evidence, private backup reference and recovery](../outputs/r048-loan-interest-correction/README.md). Earlier 79/80 counts below are dated cutover evidence.

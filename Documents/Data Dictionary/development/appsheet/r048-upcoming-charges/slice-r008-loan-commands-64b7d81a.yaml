@@ -1,0 +1,241 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "slice"
+  "name": "R008 Loan Commands"
+  "scope": "development:R048-upcoming-charges"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review and PROD promotion pending"
+  "target": "oltp"
+  "definition_evidence": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+  "after":
+    "state": "value"
+    "value":
+      "definition":
+        "Slice Name": "R008 Loan Commands"
+        "Slice Columns":
+        - "_RowNumber"
+        - "Row ID"
+        - "Loan Date"
+        - "Close Date"
+        - "Principal Amount"
+        - "Due Date"
+        - "Ref Borrowers"
+        - "Loan Arrangement"
+        - "Loan Status"
+        - "Loan Type"
+        - "Current Daily Interest"
+        - "Fixed Interest"
+        - "Transfer Fee"
+        - "Interest Payment Interval"
+        - "Created By"
+        - "Closed By"
+        - "Defaulted"
+        - "Default Loss Amount"
+        - "Daily Payment Amount"
+        - "Auto Charge Enabled"
+        - "Interest Schedule Anchor Date"
+        - "Ref Closing Payment"
+        - "Charge Generation Request"
+        - "Total Interest Received"
+        - "Total Principal Received"
+        - "Outstanding Principal"
+        - "Total Amount Received"
+        - "Expected Daily Interest Amount"
+        - "Ref Disbursed From Cash Account"
+        - "Payment Request Cash Account"
+        - "Payment Request Token"
+        - "Related Repayments"
+        - "Statistics Header"
+        - "Related Charges"
+        - "Loan Key"
+        - "Expected Interest This Month"
+        - "Effective Daily Interest Rate"
+        - "Principal Recovered by Interest %"
+        - "Principal Days MTD"
+        - "Borrower Name TE"
+        - "Loan Status TE"
+        - "Loan Type TE"
+        - "Loan Duration"
+        - "Last Interest Charge Date"
+        - "Accrued Interest Days"
+        - "Accrued Interest"
+        - "Borrower Name"
+        - "Related Payments"
+        - "Related Business Expenses"
+        - "Related Cash Account Statement Recents"
+        - "Original Daily Interest Rate"
+        - "Related Upcoming Charge Forecasts"
+        "Update mode": "UPDATES_ONLY"
+        "Source Table": "Loans"
+        "Visible?": "ALWAYS"
+        "Slice Actions":
+        - "**auto**"
+      "members":
+      - "Ordinal": 1
+        "Column": "_RowNumber"
+      - "Ordinal": 2
+        "Column": "Row ID"
+      - "Ordinal": 3
+        "Column": "Loan Date"
+      - "Ordinal": 4
+        "Column": "Close Date"
+      - "Ordinal": 5
+        "Column": "Principal Amount"
+      - "Ordinal": 6
+        "Column": "Due Date"
+      - "Ordinal": 7
+        "Column": "Ref Borrowers"
+      - "Ordinal": 8
+        "Column": "Loan Arrangement"
+      - "Ordinal": 9
+        "Column": "Loan Status"
+      - "Ordinal": 10
+        "Column": "Loan Type"
+      - "Ordinal": 11
+        "Column": "Current Daily Interest"
+      - "Ordinal": 12
+        "Column": "Fixed Interest"
+      - "Ordinal": 13
+        "Column": "Transfer Fee"
+      - "Ordinal": 14
+        "Column": "Interest Payment Interval"
+      - "Ordinal": 15
+        "Column": "Created By"
+      - "Ordinal": 16
+        "Column": "Closed By"
+      - "Ordinal": 17
+        "Column": "Defaulted"
+      - "Ordinal": 18
+        "Column": "Default Loss Amount"
+      - "Ordinal": 19
+        "Column": "Daily Payment Amount"
+      - "Ordinal": 20
+        "Column": "Auto Charge Enabled"
+      - "Ordinal": 21
+        "Column": "Interest Schedule Anchor Date"
+      - "Ordinal": 22
+        "Column": "Ref Closing Payment"
+      - "Ordinal": 23
+        "Column": "Charge Generation Request"
+      - "Ordinal": 24
+        "Column": "Total Interest Received"
+      - "Ordinal": 25
+        "Column": "Total Principal Received"
+      - "Ordinal": 26
+        "Column": "Outstanding Principal"
+      - "Ordinal": 27
+        "Column": "Total Amount Received"
+      - "Ordinal": 28
+        "Column": "Expected Daily Interest Amount"
+      - "Ordinal": 29
+        "Column": "Ref Disbursed From Cash Account"
+      - "Ordinal": 30
+        "Column": "Payment Request Cash Account"
+      - "Ordinal": 31
+        "Column": "Payment Request Token"
+      - "Ordinal": 32
+        "Column": "Related Repayments"
+      - "Ordinal": 33
+        "Column": "Statistics Header"
+      - "Ordinal": 34
+        "Column": "Related Charges"
+      - "Ordinal": 35
+        "Column": "Loan Key"
+      - "Ordinal": 36
+        "Column": "Expected Interest This Month"
+      - "Ordinal": 37
+        "Column": "Effective Daily Interest Rate"
+      - "Ordinal": 38
+        "Column": "Principal Recovered by Interest %"
+      - "Ordinal": 39
+        "Column": "Principal Days MTD"
+      - "Ordinal": 40
+        "Column": "Borrower Name TE"
+      - "Ordinal": 41
+        "Column": "Loan Status TE"
+      - "Ordinal": 42
+        "Column": "Loan Type TE"
+      - "Ordinal": 43
+        "Column": "Loan Duration"
+      - "Ordinal": 44
+        "Column": "Last Interest Charge Date"
+      - "Ordinal": 45
+        "Column": "Accrued Interest Days"
+      - "Ordinal": 46
+        "Column": "Accrued Interest"
+      - "Ordinal": 47
+        "Column": "Borrower Name"
+      - "Ordinal": 48
+        "Column": "Related Payments"
+      - "Ordinal": 49
+        "Column": "Related Business Expenses"
+      - "Ordinal": 50
+        "Column": "Related Cash Account Statement Recents"
+      - "Ordinal": 51
+        "Column": "Original Daily Interest Rate"
+      - "Ordinal": 52
+        "Column": "Related Upcoming Charge Forecasts"
+  "before":
+    "state": "value"
+    "value":
+      "Slice Columns":
+      - "_RowNumber"
+      - "Row ID"
+      - "Loan Date"
+      - "Close Date"
+      - "Principal Amount"
+      - "Due Date"
+      - "Ref Borrowers"
+      - "Loan Arrangement"
+      - "Loan Status"
+      - "Loan Type"
+      - "Current Daily Interest"
+      - "Fixed Interest"
+      - "Transfer Fee"
+      - "Interest Payment Interval"
+      - "Created By"
+      - "Closed By"
+      - "Defaulted"
+      - "Default Loss Amount"
+      - "Daily Payment Amount"
+      - "Auto Charge Enabled"
+      - "Interest Schedule Anchor Date"
+      - "Ref Closing Payment"
+      - "Charge Generation Request"
+      - "Total Interest Received"
+      - "Total Principal Received"
+      - "Outstanding Principal"
+      - "Total Amount Received"
+      - "Expected Daily Interest Amount"
+      - "Ref Disbursed From Cash Account"
+      - "Payment Request Cash Account"
+      - "Payment Request Token"
+      - "Related Repayments"
+      - "Statistics Header"
+      - "Related Charges"
+      - "Loan Key"
+      - "Expected Interest This Month"
+      - "Effective Daily Interest Rate"
+      - "Principal Recovered by Interest %"
+      - "Principal Days MTD"
+      - "Borrower Name TE"
+      - "Loan Status TE"
+      - "Loan Type TE"
+      - "Loan Duration"
+      - "Last Interest Charge Date"
+      - "Accrued Interest Days"
+      - "Accrued Interest"
+      - "Borrower Name"
+      - "Related Payments"
+      - "Related Business Expenses"
+      - "Related Cash Account Statement Recents"
+      - "Original Daily Interest Rate"
+  "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved."
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000140"

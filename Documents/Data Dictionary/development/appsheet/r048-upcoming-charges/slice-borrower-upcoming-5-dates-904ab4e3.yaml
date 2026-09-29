@@ -1,0 +1,76 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "slice"
+  "name": "Borrower Upcoming 5 Dates"
+  "scope": "development:R048-upcoming-charges"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+"content":
+  "release": "R048"
+  "status": "DEV implemented; owner review and PROD promotion pending"
+  "target": "oltp"
+  "definition_evidence": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+  "after":
+    "state": "value"
+    "value":
+      "definition":
+        "Slice Name": "Borrower Upcoming 5 Dates"
+        "Slice Columns":
+        - "_RowNumber"
+        - "Row ID"
+        - "Ref Borrower"
+        - "Ref Loan"
+        - "Due Date"
+        - "Principal Remaining"
+        - "Interest Remaining"
+        - "Amount Remaining"
+        - "Basis"
+        - "As Of Date"
+        - "Horizon End"
+        - "Calculated At"
+        - "Within 7 Days"
+        - "Borrower Due Date Rank"
+        "Row filter condition": "=AND([Borrower Due Date Rank] >= 1, [Borrower Due Date Rank] <= 5, [Due Date] <= [Horizon\
+          \ End], [As Of Date] = LOOKUP(\"upcoming\", \"Upcoming Charge Context\", \"Row ID\", \"As Of Date\"))"
+        "Update mode": "READ_ONLY"
+        "Source Table": "Upcoming Charge Forecast"
+        "Visible?": "ALWAYS"
+        "Slice Actions":
+        - "**auto**"
+      "members":
+      - "Ordinal": 1
+        "Column": "_RowNumber"
+      - "Ordinal": 2
+        "Column": "Row ID"
+      - "Ordinal": 3
+        "Column": "Ref Borrower"
+      - "Ordinal": 4
+        "Column": "Ref Loan"
+      - "Ordinal": 5
+        "Column": "Due Date"
+      - "Ordinal": 6
+        "Column": "Principal Remaining"
+      - "Ordinal": 7
+        "Column": "Interest Remaining"
+      - "Ordinal": 8
+        "Column": "Amount Remaining"
+      - "Ordinal": 9
+        "Column": "Basis"
+      - "Ordinal": 10
+        "Column": "As Of Date"
+      - "Ordinal": 11
+        "Column": "Horizon End"
+      - "Ordinal": 12
+        "Column": "Calculated At"
+      - "Ordinal": 13
+        "Column": "Within 7 Days"
+      - "Ordinal": 14
+        "Column": "Borrower Due Date Rank"
+  "before":
+    "state": "absent"
+  "scope_note": "Existing slice changes are appended forecast members only; filters, update modes and actions preserved."
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000140"

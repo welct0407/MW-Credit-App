@@ -1,5 +1,7 @@
 # Dictionary tooling
 
+R048 upcoming charges: `capture_r048_upcoming.py` collects only the three affected DEV SQL view definitions using the existing verified SSL metadata collector. `close_r048_upcoming.py` defaults to preview; `--apply` writes the guarded 23-object DEV overlay and index after validating independently parsed saved AppDoc HTML/DOM metadata and targeted SQL capture. These are dated OLTP1.000140/V54 closure helpers, not live app mutators or general deployment tools. Private inputs stay outside Git; only sanitized selected definitions are published. [Record](../../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
+
 The authoritative text dictionary starts at [Documents/Data Dictionary](../../Documents/Data%20Dictionary/README.md). The Excel workbook is frozen migration evidence. Ordinary dictionary read/update/validate/export commands are local. The explicitly invoked PostgreSQL capture command below is a read-only live metadata collector.
 
 ## Single-file ChatGPT export

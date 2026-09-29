@@ -1,5 +1,7 @@
 # OLTP upcoming charges — implementation handover
 
+**Implementation update — 29 September 2026:** the owner subsequently authorized R048 development. Delivered in DEV at OLTP1.000140 / OLAP1.000045 / V54. See the [current implementation handover](../r048-upcoming-charges/IMPLEMENTATION.md) for exact delivered configuration, native presentation decisions, tests and rollback. The design-only statement below records the earlier checkpoint, not current status.
+
 29 September 2026. **Design complete; implementation deferred by owner request.** No app, database, report, financial row, schedule or notification was changed. New object names below are proposed names, not existing deployed objects.
 
 ## 1. Requested result and decisions

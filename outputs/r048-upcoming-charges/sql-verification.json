@@ -1,0 +1,19 @@
+{
+  "events": {
+    "rows": 237,
+    "elapsed_ms": 219
+  },
+  "coverage": {
+    "rows": 35,
+    "elapsed_ms": 0
+  },
+  "context": {
+    "rows": 1,
+    "elapsed_ms": 94
+  },
+  "unique_keys": true,
+  "within_horizon": true,
+  "no_duplicate_simulations": true,
+  "database": "loan_manager_dev",
+  "version": 54
+}
