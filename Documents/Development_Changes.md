@@ -1,5 +1,7 @@
 # Open development differences
 
+R050 borrower lifetime summary (29 September 2026): Detail105 adds eight lifetime metrics and seven charge-status lights, questions369–377, ignoring activity dates. Closed totals use genuinely Closed loans only. Dashboard3 now has12 tabs/272 placements; recovery dashboard27. No AppSheet or SQL change. R050 remains Open. [Definitions, checks and recovery](../outputs/r050-borrower-lifetime/README.md).
+
 R050 report navigation (29 September 2026): old Forecast & Partners tab11 removed; Partners249/Forecast & Planning262 are tabs11/12. No AppSheet or DEV/PROD SQL difference. Dashboard3 has12 tabs and259 placements; backup26. [Evidence](../outputs/r050-remove-forecast-partners/README.md). R050 remains Open.
 
 R049 promoted and verified (29 September 2026): PROD OLTP **3.000263**, OLAP unchanged **1.100208**, PostgreSQL **V56**. Normal App Upgrade used frozen, production-bound RC1 **1.000006** from accepted DEV OLTP1.000157/OLAP1.000045/V56. Upcoming Charges groups borrower totals by date; Collection and Borrowers show five-date summaries with detail behind row taps, and Borrowers places its summary before loans. V1 remains compatible. PROD source mappings, three GUI paths, both-app zero-issue diagnostics and app sync passed; RC1 was deleted. R050 remains Open. [Promotion and recovery](../outputs/r049-production/README.md) · [DEV handover](../outputs/r049-upcoming-summary/HANDOVER.md).

@@ -122,3 +122,8 @@ R041 Detail presentation: grouped principal-issued/returned bars; existing OLAP-
 
 
 R042 Detail adds original Payments317 between Charges307 and Repayments306, with all payment fields and readable references. V46 supplies receipt-grain rows, including unposted states; receipt amount is distinct from allocated repayments. Loan History305 adds lifetime signed interest/original principal (red below100%, orange100–200% inclusive, green above200%); interest trend302 uses bars. [Contract](../outputs/r042-borrower-payments/README.md).
+
+
+### Borrower lifetime summary — 29 September 2026
+
+Metabase Detail105 adds a date-independent active/closed lifetime section and seven latest eligible individual charge lights, ordered oldest to newest and excluding charges due today/future. Current overdue takes priority over historical punctuality. Active return uses current outstanding principal; closed return uses original principal and interest from the same genuinely Closed loans. Existing governed providers supply balances, timing and projection; Metabase only selects, aggregates and presents them. [Exact definitions, caveats and implementation](../outputs/r050-borrower-lifetime/README.md).

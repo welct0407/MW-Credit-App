@@ -1,0 +1,342 @@
+{
+  "dashboard": 3,
+  "tab": 105,
+  "questions": [
+    {
+      "key": "charge-lights",
+      "name": "Latest seven charges · oldest → newest",
+      "display": "scatter",
+      "description": "Latest seven eligible individual charges due before today, ordered by due date and immutable charge ID. Overdue: current remaining >0.005; green: fully paid on time; orange: settled late. Today/future, invalid, zero and default-accounting obligations excluded. Grey means fewer than seven eligible charges. Hover a light for date, loan and amounts. No date-filter mapping.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), latest AS (SELECT h.*,row_number() OVER(ORDER BY h.due_date DESC,h.charge_id DESC) rn\n FROM chosen c JOIN public.reporting_charge_payment_health_v1 h USING(borrower_id) WHERE h.history_eligible ORDER BY h.due_date DESC,h.charge_id DESC LIMIT 7)\n SELECT s.pos AS \"Position\",1 AS \"Light\",1 AS \"Size\",\n CASE WHEN h.charge_id IS NULL THEN 'No earlier charge' WHEN h.is_overdue THEN 'Overdue' WHEN h.on_time THEN 'Paid on time' ELSE 'Paid late' END AS \"Status\",\n h.due_date AS \"Charge date\",c.borrower_name||'-'||to_char(l.original_principal,'FM999,999,999,990.00')||'-'||to_char(l.loan_date,'DD/MM') AS \"Loan\",h.principal_due AS \"Principal due ฿\",h.interest_due AS \"Interest due ฿\",\n h.remaining_current AS \"Remaining ฿\",h.final_settlement_date AS \"Settlement before today\"\n FROM chosen c CROSS JOIN generate_series(1,7) s(pos) LEFT JOIN latest h ON h.rn=8-s.pos\n LEFT JOIN public.reporting_borrower_loan_facts_v1 l ON l.loan_id=h.loan_id ORDER BY s.pos",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "graph.dimensions": [
+          "Position",
+          "Status"
+        ],
+        "graph.metrics": [
+          "Light"
+        ],
+        "scatter.bubble": "Size",
+        "graph.show_legend": true,
+        "graph.show_values": false,
+        "graph.x_axis.axis_enabled": false,
+        "graph.x_axis.labels_enabled": false,
+        "graph.y_axis.axis_enabled": false,
+        "graph.y_axis.labels_enabled": false,
+        "graph.x_axis.scale": "ordinal",
+        "graph.y_axis.auto_range": false,
+        "graph.y_axis.min": 0,
+        "graph.y_axis.max": 2,
+        "graph.y_axis.auto_split": false,
+        "graph.series_order": null,
+        "graph.colors": [
+          "#16A34A",
+          "#F59E0B",
+          "#DC2626",
+          "#CBD5E1"
+        ],
+        "series_settings": {
+          "Paid on time": {
+            "color": "#16A34A"
+          },
+          "Paid late": {
+            "color": "#F59E0B"
+          },
+          "Overdue": {
+            "color": "#DC2626"
+          },
+          "No earlier charge": {
+            "color": "#CBD5E1"
+          }
+        },
+        "graph.tooltip_columns": [
+          "[\"name\",\"Status\"]",
+          "[\"name\",\"Charge date\"]",
+          "[\"name\",\"Loan\"]",
+          "[\"name\",\"Principal due ฿\"]",
+          "[\"name\",\"Interest due ฿\"]",
+          "[\"name\",\"Remaining ฿\"]",
+          "[\"name\",\"Settlement before today\"]"
+        ]
+      }
+    },
+    {
+      "key": "active-principal",
+      "name": "Total outstanding principal ฿",
+      "display": "scalar",
+      "description": "Borrower lifetime/current loan groups; ignores activity dates. Active return = lifetime active-loan interest / current outstanding principal. Closed totals use only loans whose current status is Closed, including defaulted closures. Interest is gross signed receipts. Coverage date is the existing constant-daily-interest estimate; when already covered it displays the current reporting date, not a historical crossing date.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), totals AS (SELECT b.\"Total Outstanding Principal\" principal,b.\"Active Loan Interest Earned\" interest,b.\"Projected Interest Coverage Date\" coverage,\n z.principal closed_principal,z.interest closed_interest FROM chosen c JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=c.borrower_id\n CROSS JOIN LATERAL (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(original_principal IS NOT NULL) THEN sum(original_principal) END principal,\n CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END interest\n FROM public.reporting_borrower_loan_facts_v1 l WHERE l.borrower_id=c.borrower_id AND l.loan_status='Closed') z) SELECT principal AS \"Total outstanding principal ฿\" FROM totals",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Total outstanding principal ฿",
+        "column_settings": {
+          "[\"name\",\"Total outstanding principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "title": "Outstanding ฿"
+    },
+    {
+      "key": "active-interest",
+      "name": "Active loan interest earned ฿",
+      "display": "scalar",
+      "description": "Borrower lifetime/current loan groups; ignores activity dates. Active return = lifetime active-loan interest / current outstanding principal. Closed totals use only loans whose current status is Closed, including defaulted closures. Interest is gross signed receipts. Coverage date is the existing constant-daily-interest estimate; when already covered it displays the current reporting date, not a historical crossing date.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), totals AS (SELECT b.\"Total Outstanding Principal\" principal,b.\"Active Loan Interest Earned\" interest,b.\"Projected Interest Coverage Date\" coverage,\n z.principal closed_principal,z.interest closed_interest FROM chosen c JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=c.borrower_id\n CROSS JOIN LATERAL (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(original_principal IS NOT NULL) THEN sum(original_principal) END principal,\n CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END interest\n FROM public.reporting_borrower_loan_facts_v1 l WHERE l.borrower_id=c.borrower_id AND l.loan_status='Closed') z) SELECT interest AS \"Active loan interest earned ฿\" FROM totals",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Active loan interest earned ฿",
+        "column_settings": {
+          "[\"name\",\"Active loan interest earned ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "title": "Interest earned ฿"
+    },
+    {
+      "key": "active-profit",
+      "name": "Profit after principal coverage ฿",
+      "display": "scalar",
+      "description": "Borrower lifetime/current loan groups; ignores activity dates. Active return = lifetime active-loan interest / current outstanding principal. Closed totals use only loans whose current status is Closed, including defaulted closures. Interest is gross signed receipts. Coverage date is the existing constant-daily-interest estimate; when already covered it displays the current reporting date, not a historical crossing date.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), totals AS (SELECT b.\"Total Outstanding Principal\" principal,b.\"Active Loan Interest Earned\" interest,b.\"Projected Interest Coverage Date\" coverage,\n z.principal closed_principal,z.interest closed_interest FROM chosen c JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=c.borrower_id\n CROSS JOIN LATERAL (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(original_principal IS NOT NULL) THEN sum(original_principal) END principal,\n CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END interest\n FROM public.reporting_borrower_loan_facts_v1 l WHERE l.borrower_id=c.borrower_id AND l.loan_status='Closed') z) SELECT interest-principal AS \"Profit after principal coverage ฿\" FROM totals",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Profit after principal coverage ฿",
+        "column_settings": {
+          "[\"name\",\"Profit after principal coverage ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "title": "After coverage ฿"
+    },
+    {
+      "key": "active-return",
+      "name": "Return on active principal",
+      "display": "scalar",
+      "description": "Borrower lifetime/current loan groups; ignores activity dates. Active return = lifetime active-loan interest / current outstanding principal. Closed totals use only loans whose current status is Closed, including defaulted closures. Interest is gross signed receipts. Coverage date is the existing constant-daily-interest estimate; when already covered it displays the current reporting date, not a historical crossing date.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), totals AS (SELECT b.\"Total Outstanding Principal\" principal,b.\"Active Loan Interest Earned\" interest,b.\"Projected Interest Coverage Date\" coverage,\n z.principal closed_principal,z.interest closed_interest FROM chosen c JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=c.borrower_id\n CROSS JOIN LATERAL (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(original_principal IS NOT NULL) THEN sum(original_principal) END principal,\n CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END interest\n FROM public.reporting_borrower_loan_facts_v1 l WHERE l.borrower_id=c.borrower_id AND l.loan_status='Closed') z) SELECT coalesce(to_char((CASE WHEN principal>0 THEN interest/principal END)*100,'FM999999990.0')||'%','—') AS \"Return on active principal\" FROM totals",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Return on active principal",
+        "column_settings": {
+          "[\"name\",\"Return on active principal\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "title": "Return %"
+    },
+    {
+      "key": "coverage-date",
+      "name": "Projected interest coverage date",
+      "display": "scalar",
+      "description": "Borrower lifetime/current loan groups; ignores activity dates. Active return = lifetime active-loan interest / current outstanding principal. Closed totals use only loans whose current status is Closed, including defaulted closures. Interest is gross signed receipts. Coverage date is the existing constant-daily-interest estimate; when already covered it displays the current reporting date, not a historical crossing date.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), totals AS (SELECT b.\"Total Outstanding Principal\" principal,b.\"Active Loan Interest Earned\" interest,b.\"Projected Interest Coverage Date\" coverage,\n z.principal closed_principal,z.interest closed_interest FROM chosen c JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=c.borrower_id\n CROSS JOIN LATERAL (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(original_principal IS NOT NULL) THEN sum(original_principal) END principal,\n CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END interest\n FROM public.reporting_borrower_loan_facts_v1 l WHERE l.borrower_id=c.borrower_id AND l.loan_status='Closed') z) SELECT coalesce(to_char(coverage,'DD Mon YYYY'),'Not applicable') AS \"Projected interest coverage date\" FROM totals",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Projected interest coverage date",
+        "column_settings": {
+          "[\"name\",\"Projected interest coverage date\"]": {
+            "date_style": "D MMM, YYYY"
+          }
+        }
+      },
+      "title": "Coverage date"
+    },
+    {
+      "key": "closed-principal",
+      "name": "Closed loan original principal ฿",
+      "display": "scalar",
+      "description": "Borrower lifetime/current loan groups; ignores activity dates. Active return = lifetime active-loan interest / current outstanding principal. Closed totals use only loans whose current status is Closed, including defaulted closures. Interest is gross signed receipts. Coverage date is the existing constant-daily-interest estimate; when already covered it displays the current reporting date, not a historical crossing date.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), totals AS (SELECT b.\"Total Outstanding Principal\" principal,b.\"Active Loan Interest Earned\" interest,b.\"Projected Interest Coverage Date\" coverage,\n z.principal closed_principal,z.interest closed_interest FROM chosen c JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=c.borrower_id\n CROSS JOIN LATERAL (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(original_principal IS NOT NULL) THEN sum(original_principal) END principal,\n CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END interest\n FROM public.reporting_borrower_loan_facts_v1 l WHERE l.borrower_id=c.borrower_id AND l.loan_status='Closed') z) SELECT closed_principal AS \"Closed loan original principal ฿\" FROM totals",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Closed loan original principal ฿",
+        "column_settings": {
+          "[\"name\",\"Closed loan original principal ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "title": "Original principal ฿"
+    },
+    {
+      "key": "closed-interest",
+      "name": "Closed loan interest earned ฿",
+      "display": "scalar",
+      "description": "Borrower lifetime/current loan groups; ignores activity dates. Active return = lifetime active-loan interest / current outstanding principal. Closed totals use only loans whose current status is Closed, including defaulted closures. Interest is gross signed receipts. Coverage date is the existing constant-daily-interest estimate; when already covered it displays the current reporting date, not a historical crossing date.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), totals AS (SELECT b.\"Total Outstanding Principal\" principal,b.\"Active Loan Interest Earned\" interest,b.\"Projected Interest Coverage Date\" coverage,\n z.principal closed_principal,z.interest closed_interest FROM chosen c JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=c.borrower_id\n CROSS JOIN LATERAL (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(original_principal IS NOT NULL) THEN sum(original_principal) END principal,\n CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END interest\n FROM public.reporting_borrower_loan_facts_v1 l WHERE l.borrower_id=c.borrower_id AND l.loan_status='Closed') z) SELECT closed_interest AS \"Closed loan interest earned ฿\" FROM totals",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Closed loan interest earned ฿",
+        "column_settings": {
+          "[\"name\",\"Closed loan interest earned ฿\"]": {
+            "number_style": "decimal",
+            "decimals": 0,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "title": "Interest earned ฿"
+    },
+    {
+      "key": "closed-return",
+      "name": "Return on closed loans",
+      "display": "scalar",
+      "description": "Borrower lifetime/current loan groups; ignores activity dates. Active return = lifetime active-loan interest / current outstanding principal. Closed totals use only loans whose current status is Closed, including defaulted closures. Interest is gross signed receipts. Coverage date is the existing constant-daily-interest estimate; when already covered it displays the current reporting date, not a historical crossing date.",
+      "dataset_query": {
+        "database": 2,
+        "type": "native",
+        "native": {
+          "query": "WITH chosen AS (SELECT * FROM public.reporting_borrower_directory_v1 WHERE borrower_id= [[{{borrower_id}} --]] '__select_borrower__'\n), totals AS (SELECT b.\"Total Outstanding Principal\" principal,b.\"Active Loan Interest Earned\" interest,b.\"Projected Interest Coverage Date\" coverage,\n z.principal closed_principal,z.interest closed_interest FROM chosen c JOIN public.olap_borrowers_analytics b ON b.\"Row ID\"=c.borrower_id\n CROSS JOIN LATERAL (SELECT CASE WHEN count(*)=0 THEN 0 WHEN bool_and(original_principal IS NOT NULL) THEN sum(original_principal) END principal,\n CASE WHEN count(*)=0 THEN 0 WHEN bool_and(interest_received IS NOT NULL) THEN sum(interest_received) END interest\n FROM public.reporting_borrower_loan_facts_v1 l WHERE l.borrower_id=c.borrower_id AND l.loan_status='Closed') z) SELECT coalesce(to_char((CASE WHEN closed_principal>0 THEN closed_interest/closed_principal END)*100,'FM999999990.0')||'%','—') AS \"Return on closed loans\" FROM totals",
+          "template-tags": {
+            "borrower_id": {
+              "id": "bp-borrower",
+              "name": "borrower_id",
+              "display-name": "Borrower",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "visualization_settings": {
+        "scalar.field": "Return on closed loans",
+        "column_settings": {
+          "[\"name\",\"Return on closed loans\"]": {
+            "number_style": "percent",
+            "decimals": 1,
+            "number_separators": ".,",
+            "compact": false
+          }
+        }
+      },
+      "title": "Return on closed loans"
+    }
+  ],
+  "insertAt": 17,
+  "shiftRows": 24,
+  "confirmed": "Exclude today/future; genuine closed-loan cohort"
+}

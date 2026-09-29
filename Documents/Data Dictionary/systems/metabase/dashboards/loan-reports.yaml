@@ -7808,6 +7808,26 @@
             "text": |-
               ### Method
               Recorded obligations override simulated dates. Automatic schedules follow the existing loan rules; manual schedules use recorded obligations only. Closed/defaulted balances are recovery-only and excluded from forecast receipts. Percentages adjust month-end receipts on one fixed schedule; they do not model delinquency feedback. Incomplete source coverage suppresses headline projections; detail shows known subtotals. No net-profit or forecast-accuracy claim. [Cash Position](/dashboard/3?tab=14) · [Partners](/dashboard/3?tab=249)
+  "borrower_lifetime_summary":
+    "release": "R050"
+    "tab_id": 105
+    "question_ids":
+    - 369
+    - 370
+    - 371
+    - 372
+    - 373
+    - 374
+    - 375
+    - 376
+    - 377
+    "definition_reference": "outputs/r050-borrower-lifetime/saved.json"
+    "design_reference": "outputs/r050-borrower-lifetime/README.md"
+    "added_placements": 13
+    "later_detail_row_shift": 24
+    "date_contract": "Only borrower selection applies; no activity-date mapping. Latest seven eligible charges due before\
+      \ today, oldest left. Closed totals use loan_status Closed only."
+    "recovery_dashboard": 27
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -7884,4 +7904,8 @@
   "/content/forecast_planning":
     "reference": "outputs/r045-forecast-planning/README.md"
     "reason": "R045 saved definitions and V48 live catalog"
+    "state": "value"
+  "/content/borrower_lifetime_summary":
+    "reference": "outputs/r050-borrower-lifetime/saved.json"
+    "reason": "R050 saved borrower lifetime metrics and seven status lights"
     "state": "value"

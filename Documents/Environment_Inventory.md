@@ -1,5 +1,7 @@
 # Environment inventory
 
+R050 borrower lifetime summary (29 September 2026): Detail105 adds eight lifetime metrics and seven charge-status lights, questions369–377, ignoring activity dates. Closed totals use genuinely Closed loans only. Dashboard3 now has12 tabs/272 placements; recovery dashboard27. No AppSheet or SQL change. R050 remains Open. [Definitions, checks and recovery](../outputs/r050-borrower-lifetime/README.md).
+
 R050 Metabase checkpoint (29 September 2026): dashboard3 has 12 tabs /259 placements. Legacy Forecast & Partners tab11 and its 15 placements are retired; Partners249 is now tab11 and Forecast & Planning262 tab12. Recovery dashboard26; other placements and parameters preserved. Apps and SQLV56 unchanged. [Evidence](../outputs/r050-remove-forecast-partners/README.md).
 
 R049 released (29 September 2026): `appsheet-pg-prod-20260914` / `34.21.174.215:5432` has both `loan_manager_dev` and `loan_manager_prod` at **V56**. PROD OLTP **3.000263** uses the read-only summary V2 provider on `database-2` after normal RC App Upgrade; PROD OLAP remains **1.100208**. DEV OLTP **1.000157** and OLAP **1.000045** remain on `database-3`. Both PROD editors are clear; the RC definition was deleted after validation. [Promotion](../outputs/r049-production/README.md) · [DEV handover](../outputs/r049-upcoming-summary/HANDOVER.md).
