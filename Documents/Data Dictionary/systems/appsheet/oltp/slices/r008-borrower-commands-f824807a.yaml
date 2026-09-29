@@ -62,6 +62,12 @@
     - "Related Cash Account Statement Recents"
     - "Borrower Note"
     - "Borrower Activity Group"
+    - "Submitted Receipts"
+    - "Related Upcoming Charge Forecasts"
+    - "Upcoming Charges"
+    - "Upcoming Charge Note"
+    - "Upcoming Charges Summary"
+    - "Related Upcoming Charge Summarys"
     "Update mode": "UPDATES_ONLY"
     "Source Table": "Borrowers"
     "Visible?": "ALWAYS"
@@ -166,3 +172,24 @@
     "Column": "Borrower Note"
   - "Ordinal": 49
     "Column": "Borrower Activity Group"
+  - "Ordinal": 50
+    "Column": "Submitted Receipts"
+  - "Ordinal": 51
+    "Column": "Related Upcoming Charge Forecasts"
+  - "Ordinal": 52
+    "Column": "Upcoming Charges"
+  - "Ordinal": 53
+    "Column": "Upcoming Charge Note"
+  - "Ordinal": 54
+    "Column": "Upcoming Charges Summary"
+  - "Ordinal": 55
+    "Column": "Related Upcoming Charge Summarys"
+"evidence":
+  "/content/definition":
+    "reference": "outputs/r048-production/README.md"
+    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
+    "state": "value"
+  "/content/members":
+    "reference": "outputs/r048-production/README.md"
+    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
+    "state": "value"

@@ -1,0 +1,39 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "slice"
+  "name": "Borrower Upcoming Summary"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-production/README.md"
+"content":
+  "definition":
+    "Slice Name": "Borrower Upcoming Summary"
+    "Slice Columns":
+    - "_RowNumber"
+    - "Row ID"
+    - "Ref Borrower"
+    - "Due Date"
+    - "Total Charge"
+    - "As Of Date"
+    "Row filter condition": "=[As Of Date] = LOOKUP(\"upcoming\", \"Upcoming Charge Context\", \"Row ID\", \"As Of Date\")"
+    "Update mode": "READ_ONLY"
+    "Source Table": "Upcoming Charge Summary"
+    "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
+  "members":
+  - "Ordinal": 1
+    "Column": "_RowNumber"
+  - "Ordinal": 2
+    "Column": "Row ID"
+  - "Ordinal": 3
+    "Column": "Ref Borrower"
+  - "Ordinal": 4
+    "Column": "Due Date"
+  - "Ordinal": 5
+    "Column": "Total Charge"
+  - "Ordinal": 6
+    "Column": "As Of Date"

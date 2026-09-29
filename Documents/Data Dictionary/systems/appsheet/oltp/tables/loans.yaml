@@ -2016,6 +2016,49 @@
           \ Date] >= [Loan Date]), ROUND(100.0 * (([Daily Payment Amount] * (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1))\
           \ - [Principal Amount]) / (TOTALHOURS([Due Date] - [Loan Date]) / 24 + 1) / [Principal Amount])), NUMBER(\"\"))"
         "Display name": "=\"อัตราดอกเบี้ยรายวันเดิม (%) / Original Daily Interest (%)\""
+    "Related Upcoming Charge Forecasts":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Loans"
+        "Column": "Related Upcoming Charge Forecasts"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Related Upcoming Charge Forecasts"
+        "Visible?": "ALWAYS"
+        "Description": "Upcoming Charge Forecast entries that reference this entry in the Ref Loan column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Upcoming Charge\
+          \ Forecast\\\",\\\"ReferencedRootTableName\\\":\\\"Upcoming Charge Forecast\\\",\\\"ReferencedType\\\":\\\"Text\\\
+          \",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\
+          \\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"\
+          Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\
+          \\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\"\
+          :\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\
+          \":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\"\
+          :null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Upcoming Charge Forecast\", \"Ref Loan\")"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
   "editor":
     "fields":
     - "choices": []
@@ -2607,6 +2650,6 @@
           - option "- select a source -"
 "evidence":
   "/content/columns":
-    "reference": "outputs/r048-loan-interest-production/app-config-observations.json"
-    "reason": "Owner-authorized R048 manual PROD cutover; targeted saved-state closure"
+    "reference": "outputs/r048-production/README.md"
+    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
     "state": "value"

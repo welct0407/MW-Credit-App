@@ -1,5 +1,7 @@
 # R048 — OLTP upcoming charges implementation
 
+Current status: **promoted to PROD OLTP3.000260 / OLAP1.100208 unchanged / PostgreSQL55 on29 September2026**. Accepted DEV1.000151 was captured into RC1 1.000009 and promoted by normal App Upgrade. See [production record](../r048-production/README.md); the implementation history below is dated DEV evidence. No remaining upcoming-charge feature difference.
+
 ## Direct Upcoming Charges view — 29 September 2026
 
 DEV OLTP **1.000151**, rollback **1.000150**. Converted the existing menu view Upcoming Charges from dashboard to table, sourced directly from Upcoming Charges 7 Days. Removed the redundant Upcoming Charges by Day reference view. Date → borrower grouping, SUM Amount Remaining, columns, row sorts, Default width, whole-baht values, bilingual field/Basis labels, partner-language title and calendar menu icon are preserved. Collection and SQL V55 are unchanged.

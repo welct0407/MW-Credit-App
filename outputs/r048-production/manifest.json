@@ -1,6 +1,6 @@
 {
   "release": "R048",
-  "status": "Frozen for promotion",
+  "status": "Released",
   "frozen_at": "2026-09-29T06:08:53.532412+00:00",
   "implementation_commit": "47efcbf0fe59c30a152a585b94b9cfc24be3be68",
   "approval": "Owner accepted and requested promote to prod on29 September2026",
@@ -19,7 +19,18 @@
     "oltp": "Upgrade",
     "olap": "Unchanged"
   },
-  "rc": null,
+  "rc": {
+    "id": "d4bccac6-bc9d-4ba5-ad7d-200d9ba476ba",
+    "internal_name": "MW-OLTP-R048-RC1-578763613",
+    "copied_from_dev_version": "1.000151",
+    "copy_data": false,
+    "copy_files": false,
+    "state": "Deleted after successful PROD validation",
+    "version": "1.000009",
+    "frozen_at": "2026-09-29T06:37:32.437Z",
+    "branding": "PROD light/#d81b60/Rubik20; original shared Drive logo reselected because baseline signed link was broken",
+    "deleted_at": "2026-09-29T06:46:25.175Z"
+  },
   "sql_manifest": {
     "environment": "development",
     "commit": "47efcbf0fe59c30a152a585b94b9cfc24be3be68",
@@ -247,5 +258,19 @@
         "sha256": "b41d8c4dd1cf5af92e4208de019c2e64940172d054fb91ee1c0823ff01f6a13b"
       }
     ]
+  },
+  "sql_after": 55,
+  "shared_dev_capture_complete": true,
+  "prod_after": {
+    "oltp": "3.000260",
+    "olap": "1.100208",
+    "sql": 55
+  },
+  "tag": "R048",
+  "verification": "production-verification.json",
+  "backup": "production-backup.json",
+  "rollback": {
+    "oltp": "3.000257",
+    "sql": "Four additive views may remain unused; private SQL53 dump verified by restore; reconcile subsequent writes before any restore"
   }
 }

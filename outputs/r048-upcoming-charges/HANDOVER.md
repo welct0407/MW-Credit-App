@@ -1,5 +1,7 @@
 # R048 upcoming charges — handover
 
+Current status: **promoted to PROD OLTP3.000260 / OLAP1.100208 unchanged / PostgreSQL55 on29 September2026**. Accepted DEV1.000151 was captured into RC1 1.000009 and promoted by normal App Upgrade. See [production record](../r048-production/README.md); the implementation history below is dated DEV evidence. No remaining upcoming-charge feature difference.
+
 **DEV complete, 29 September 2026.** OLTP 1.000151 / OLAP unchanged 1.000045 / SQL V55. R048 remains Open; no production authorization or deployment.
 
 The [detailed implementation, verification, rollback and promotion handover](IMPLEMENTATION.md) records the delivered design. The [original design](../oltp-upcoming-charges-design-20260929/HANDOVER.md) retains the decision history. Exact saved configuration is in [app metadata](app-config-observations.json) and [SQL definitions](postgresql-affected-definitions.json).

@@ -20,9 +20,7 @@
       "scope": "recorded-production"
 "content":
   "definition":
-    "Row filter condition": "=ISNOTBLANK([Daily Collection Status])"
-    "Slice Actions":
-    - "**auto**"
+    "Slice Name": "Todays Collection Board"
     "Slice Columns":
     - "_RowNumber"
     - "Row ID"
@@ -54,10 +52,17 @@
     - "Related Cash Account Statement Recents"
     - "Borrower Note"
     - "Submitted Receipts"
-    "Slice Name": "Todays Collection Board"
-    "Source Table": "Borrowers"
+    - "Related Upcoming Charge Forecasts"
+    - "Upcoming Charges"
+    - "Upcoming Charge Note"
+    - "Related Upcoming Charge Summarys"
+    - "Upcoming Charges Summary"
+    "Row filter condition": "=ISNOTBLANK([Daily Collection Status])"
     "Update mode": "UPDATES_ONLY"
+    "Source Table": "Borrowers"
     "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
   "members":
   - "Ordinal": 1
     "Column": "_RowNumber"
@@ -119,12 +124,22 @@
     "Column": "Borrower Note"
   - "Ordinal": 30
     "Column": "Submitted Receipts"
+  - "Ordinal": 31
+    "Column": "Related Upcoming Charge Forecasts"
+  - "Ordinal": 32
+    "Column": "Upcoming Charges"
+  - "Ordinal": 33
+    "Column": "Upcoming Charge Note"
+  - "Ordinal": 34
+    "Column": "Related Upcoming Charge Summarys"
+  - "Ordinal": 35
+    "Column": "Upcoming Charges Summary"
 "evidence":
   "/content/definition":
-    "reference": "outputs/r047-production/collection-definitions.json"
-    "reason": "R046/R047 promotion; saved production object readback"
+    "reference": "outputs/r048-production/README.md"
+    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
     "state": "value"
   "/content/members":
-    "reference": "outputs/r047-production/collection-definitions.json"
-    "reason": "R046/R047 promotion; saved production object readback"
+    "reference": "outputs/r048-production/README.md"
+    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
     "state": "value"

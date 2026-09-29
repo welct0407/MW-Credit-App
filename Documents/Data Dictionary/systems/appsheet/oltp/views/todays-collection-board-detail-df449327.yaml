@@ -12,21 +12,21 @@
   "editor_source": "outputs/dictionary-reconciliation-20260924/editor-observations.json"
 "content":
   "definition":
-    "ActionType": "Automatic"
+    "View name": "Todays Collection Board_Detail"
     "Created by": "System"
-    "Icon": ""
-    "Menu order": "1"
+    "View type": "detail"
+    "ActionType": "Automatic"
     "Position": "ref"
     "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\"\
       :[],\"QuickEditColumns\":[\"Borrower Note\"],\"ColumnOrder\":[\"Daily Collection Status - Order\",\"Borrower Reference\
       \ TE\",\"Todays Amount Due\",\"Todays Amount Collected\",\"Todays Amount Remaining\",\"Borrower Note\",\"Todays Collection\
-      \ Charges\",\"Submitted Receipts\"],\"ImageStyle\":\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\"\
-      :\"Automatic\",\"MaxNestedRows\":30,\"SlideshowMode\":false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\"\
-      :true,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\"\
-      ,\"IconRunnerUps\":null,\"MenuOrder\":1}"
-    "View name": "Todays Collection Board_Detail"
-    "View type": "detail"
+      \ Charges\",\"Upcoming Charges Summary\",\"Upcoming Charges\",\"Upcoming Charge Note\",\"Submitted Receipts\"],\"ImageStyle\"\
+      :\"Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":30,\"SlideshowMode\"\
+      :false,\"DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":true,\"SortBy\":[],\"PrimarySortColumn\":null,\"\
+      IsPrimarySortDescending\":false,\"Events\":[],\"Icon\":\"fa-indent\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
     "Visible?": "ALWAYS"
+    "Icon": ""
+    "Menu order": "1"
   "editor":
     "fields":
     - "choices": []
@@ -85,50 +85,9 @@
         "text": "Automatic"
       - "checked": "true"
         "text": "Manual"
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": ""
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
+      "controls": []
       "label": "Column order"
       "text": |-
-        Column order
-        Automatically or manually order columns displayed in view. Learn more
-        Automatic
-        Manual
-        Select all
-        Move to
-        Add
-        Remove
-        ​
         Daily Collection Status - Order
         Borrower Reference TE
         Todays Amount Due
@@ -136,6 +95,10 @@
         Todays Amount Remaining
         Borrower Note
         Todays Collection Charges
+        Upcoming Charges Summary
+        Upcoming Charges
+        Upcoming Charge Note
+        Submitted Receipts
     - "choices":
       - "checked": "true"
         "text": "Automatic"
@@ -250,8 +213,14 @@
       "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
         \ app"
     "generated_source_group": "Todays Collection Board"
+  "editor_observed":
+    "For this data": "Todays Collection Board"
 "evidence":
   "/content/definition":
-    "reference": "outputs/r047-production/collection-definitions.json"
-    "reason": "R046/R047 promotion; saved production object readback"
+    "reference": "outputs/r048-production/README.md"
+    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
+    "state": "value"
+  "/content/editor_observed":
+    "reference": "outputs/r048-production/README.md"
+    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
     "state": "value"

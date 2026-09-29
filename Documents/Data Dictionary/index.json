@@ -25290,6 +25290,26 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/oltp/slices/borrower-upcoming-5-dates-f8855ce4.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "Borrower Upcoming 5 Dates",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/slices/borrower-upcoming-summary-2dc3a8e2.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "Borrower Upcoming Summary",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/slices/business-cash-held.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -25365,6 +25385,16 @@
       "component": "oltp",
       "kind": "slice",
       "name": "Todays Collection Board",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/slices/upcoming-charges-7-days-e81b436c.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "slice",
+      "name": "Upcoming Charges 7 Days",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -25587,6 +25617,26 @@
         {
           "subject": "Submitted Receipts",
           "pointer": "/content/columns/Submitted Receipts"
+        },
+        {
+          "subject": "Related Upcoming Charge Forecasts",
+          "pointer": "/content/columns/Related Upcoming Charge Forecasts"
+        },
+        {
+          "subject": "Upcoming Charges",
+          "pointer": "/content/columns/Upcoming Charges"
+        },
+        {
+          "subject": "Upcoming Charge Note",
+          "pointer": "/content/columns/Upcoming Charge Note"
+        },
+        {
+          "subject": "Upcoming Charges Summary",
+          "pointer": "/content/columns/Upcoming Charges Summary"
+        },
+        {
+          "subject": "Related Upcoming Charge Summarys",
+          "pointer": "/content/columns/Related Upcoming Charge Summarys"
         }
       ]
     },
@@ -26840,6 +26890,10 @@
         {
           "subject": "Original Daily Interest Rate",
           "pointer": "/content/columns/Original Daily Interest Rate"
+        },
+        {
+          "subject": "Related Upcoming Charge Forecasts",
+          "pointer": "/content/columns/Related Upcoming Charge Forecasts"
         }
       ]
     },
@@ -28958,6 +29012,220 @@
       ]
     },
     {
+      "file": "systems/appsheet/oltp/tables/upcoming-charge-context-7aabb7b5.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Upcoming Charge Context",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "_RowNumber",
+          "pointer": "/content/columns/_RowNumber"
+        },
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "As Of Date",
+          "pointer": "/content/columns/As Of Date"
+        },
+        {
+          "subject": "From Date",
+          "pointer": "/content/columns/From Date"
+        },
+        {
+          "subject": "Through Date",
+          "pointer": "/content/columns/Through Date"
+        },
+        {
+          "subject": "Calculated At",
+          "pointer": "/content/columns/Calculated At"
+        },
+        {
+          "subject": "Date Range",
+          "pointer": "/content/columns/Date Range"
+        },
+        {
+          "subject": "Forecast Note",
+          "pointer": "/content/columns/Forecast Note"
+        },
+        {
+          "subject": "Forecast Status",
+          "pointer": "/content/columns/Forecast Status"
+        }
+      ]
+    },
+    {
+      "file": "systems/appsheet/oltp/tables/upcoming-charge-coverage-0fad4549.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Upcoming Charge Coverage",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "_RowNumber",
+          "pointer": "/content/columns/_RowNumber"
+        },
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "As Of Date",
+          "pointer": "/content/columns/As Of Date"
+        },
+        {
+          "subject": "Horizon End",
+          "pointer": "/content/columns/Horizon End"
+        },
+        {
+          "subject": "Calculated At",
+          "pointer": "/content/columns/Calculated At"
+        },
+        {
+          "subject": "Displayed Dates",
+          "pointer": "/content/columns/Displayed Dates"
+        },
+        {
+          "subject": "Recorded Only Loans",
+          "pointer": "/content/columns/Recorded Only Loans"
+        },
+        {
+          "subject": "Review Loans",
+          "pointer": "/content/columns/Review Loans"
+        },
+        {
+          "subject": "Coverage Note",
+          "pointer": "/content/columns/Coverage Note"
+        }
+      ]
+    },
+    {
+      "file": "systems/appsheet/oltp/tables/upcoming-charge-forecast-0a305802.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Upcoming Charge Forecast",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "_RowNumber",
+          "pointer": "/content/columns/_RowNumber"
+        },
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "Ref Loan",
+          "pointer": "/content/columns/Ref Loan"
+        },
+        {
+          "subject": "Due Date",
+          "pointer": "/content/columns/Due Date"
+        },
+        {
+          "subject": "Principal Remaining",
+          "pointer": "/content/columns/Principal Remaining"
+        },
+        {
+          "subject": "Interest Remaining",
+          "pointer": "/content/columns/Interest Remaining"
+        },
+        {
+          "subject": "Amount Remaining",
+          "pointer": "/content/columns/Amount Remaining"
+        },
+        {
+          "subject": "Basis",
+          "pointer": "/content/columns/Basis"
+        },
+        {
+          "subject": "As Of Date",
+          "pointer": "/content/columns/As Of Date"
+        },
+        {
+          "subject": "Horizon End",
+          "pointer": "/content/columns/Horizon End"
+        },
+        {
+          "subject": "Calculated At",
+          "pointer": "/content/columns/Calculated At"
+        },
+        {
+          "subject": "Within 7 Days",
+          "pointer": "/content/columns/Within 7 Days"
+        },
+        {
+          "subject": "Borrower Due Date Rank",
+          "pointer": "/content/columns/Borrower Due Date Rank"
+        },
+        {
+          "subject": "Basis Display",
+          "pointer": "/content/columns/Basis Display"
+        }
+      ]
+    },
+    {
+      "file": "systems/appsheet/oltp/tables/upcoming-charge-summary-e285ac6b.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "table",
+      "name": "Upcoming Charge Summary",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "_RowNumber",
+          "pointer": "/content/columns/_RowNumber"
+        },
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "Due Date",
+          "pointer": "/content/columns/Due Date"
+        },
+        {
+          "subject": "Total Charge",
+          "pointer": "/content/columns/Total Charge"
+        },
+        {
+          "subject": "As Of Date",
+          "pointer": "/content/columns/As Of Date"
+        }
+      ]
+    },
+    {
+      "file": "systems/appsheet/oltp/views/borrower-upcoming-charges-inline-82c31093.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Borrower Upcoming Charges_Inline",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/views/borrowers-detail-13b7f1c6.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -29358,6 +29626,46 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/oltp/views/oltp-upcoming-charge-context-v1-detail-360155c6.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "oltp_upcoming_charge_context_v1_Detail",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/views/oltp-upcoming-charge-coverage-v1-detail-0b2489c9.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "oltp_upcoming_charge_coverage_v1_Detail",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/views/oltp-upcoming-charge-events-v1-detail-e64072e5.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "oltp_upcoming_charge_events_v1_Detail",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/views/oltp-upcoming-charge-summary-v1-detail-a6b54b20.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "oltp_upcoming_charge_summary_v1_Detail",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/views/partners-detail-755bb7e5.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -29563,6 +29871,46 @@
       "component": "oltp",
       "kind": "view",
       "name": "Todays Collection Board_Form",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/views/upcoming-charge-forecast-inline-d12686fb.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Upcoming Charge Forecast_Inline",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/views/upcoming-charge-summary-inline-3a6d96d6.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Upcoming Charge Summary_Inline",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/views/upcoming-charges-a2fb237d.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Upcoming Charges",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/views/upcoming-charges-context-de47ee61.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "view",
+      "name": "Upcoming Charges Context",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -38217,6 +38565,186 @@
         {
           "subject": "Amount Received",
           "pointer": "/content/columns/Amount Received"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-oltp-upcoming-charge-context-v1-dd4114ed.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.oltp_upcoming_charge_context_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "As Of Date",
+          "pointer": "/content/columns/As Of Date"
+        },
+        {
+          "subject": "From Date",
+          "pointer": "/content/columns/From Date"
+        },
+        {
+          "subject": "Through Date",
+          "pointer": "/content/columns/Through Date"
+        },
+        {
+          "subject": "Calculated At",
+          "pointer": "/content/columns/Calculated At"
+        },
+        {
+          "subject": "Date Range",
+          "pointer": "/content/columns/Date Range"
+        },
+        {
+          "subject": "Forecast Note",
+          "pointer": "/content/columns/Forecast Note"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-oltp-upcoming-charge-coverage-v1-bfb6a146.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.oltp_upcoming_charge_coverage_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "As Of Date",
+          "pointer": "/content/columns/As Of Date"
+        },
+        {
+          "subject": "Horizon End",
+          "pointer": "/content/columns/Horizon End"
+        },
+        {
+          "subject": "Calculated At",
+          "pointer": "/content/columns/Calculated At"
+        },
+        {
+          "subject": "Displayed Dates",
+          "pointer": "/content/columns/Displayed Dates"
+        },
+        {
+          "subject": "Recorded Only Loans",
+          "pointer": "/content/columns/Recorded Only Loans"
+        },
+        {
+          "subject": "Review Loans",
+          "pointer": "/content/columns/Review Loans"
+        },
+        {
+          "subject": "Coverage Note",
+          "pointer": "/content/columns/Coverage Note"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-oltp-upcoming-charge-events-v1-b5624f56.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.oltp_upcoming_charge_events_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "Ref Loan",
+          "pointer": "/content/columns/Ref Loan"
+        },
+        {
+          "subject": "Due Date",
+          "pointer": "/content/columns/Due Date"
+        },
+        {
+          "subject": "Principal Remaining",
+          "pointer": "/content/columns/Principal Remaining"
+        },
+        {
+          "subject": "Interest Remaining",
+          "pointer": "/content/columns/Interest Remaining"
+        },
+        {
+          "subject": "Amount Remaining",
+          "pointer": "/content/columns/Amount Remaining"
+        },
+        {
+          "subject": "Basis",
+          "pointer": "/content/columns/Basis"
+        },
+        {
+          "subject": "As Of Date",
+          "pointer": "/content/columns/As Of Date"
+        },
+        {
+          "subject": "Horizon End",
+          "pointer": "/content/columns/Horizon End"
+        },
+        {
+          "subject": "Calculated At",
+          "pointer": "/content/columns/Calculated At"
+        },
+        {
+          "subject": "Within 7 Days",
+          "pointer": "/content/columns/Within 7 Days"
+        },
+        {
+          "subject": "Borrower Due Date Rank",
+          "pointer": "/content/columns/Borrower Due Date Rank"
+        }
+      ]
+    },
+    {
+      "file": "systems/postgresql/relations/public-oltp-upcoming-charge-summary-v1-890a15fa.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "relation",
+      "name": "public.oltp_upcoming_charge_summary_v1",
+      "scope": "production",
+      "status": "documented",
+      "lookup": [
+        {
+          "subject": "Row ID",
+          "pointer": "/content/columns/Row ID"
+        },
+        {
+          "subject": "Ref Borrower",
+          "pointer": "/content/columns/Ref Borrower"
+        },
+        {
+          "subject": "Due Date",
+          "pointer": "/content/columns/Due Date"
+        },
+        {
+          "subject": "Total Charge",
+          "pointer": "/content/columns/Total Charge"
+        },
+        {
+          "subject": "As Of Date",
+          "pointer": "/content/columns/As Of Date"
         }
       ]
     },

@@ -1,0 +1,27 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "view"
+  "name": "Upcoming Charges Context"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r048-production/README.md"
+"content":
+  "definition":
+    "View name": "Upcoming Charges Context"
+    "Created by": "App owner"
+    "View type": "detail"
+    "ActionType": "Automatic"
+    "Position": "ref"
+    "View configuration": "{\"MainSlideshowImageColumn\":\"**auto**\",\"DetailContentColumn\":\"**none**\",\"HeaderColumns\"\
+      :[],\"QuickEditColumns\":[],\"ColumnOrder\":[\"Date Range\",\"Calculated At\",\"Forecast Status\"],\"ImageStyle\":\"\
+      Fill\",\"Layout\":null,\"UseCardLayout\":false,\"DisplayMode\":\"Automatic\",\"MaxNestedRows\":5,\"SlideshowMode\":false,\"\
+      DesktopSplitMode\":\"Split view\",\"UseDesktopMultiColumn\":false,\"SortBy\":[],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\"\
+      :false,\"Events\":[],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+    "Visible?": "ALWAYS"
+    "Icon": ""
+    "Menu order": "1"
+  "editor_observed":
+    "For this data": "Upcoming Charge Context"

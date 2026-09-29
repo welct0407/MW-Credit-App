@@ -10,7 +10,7 @@
   "source": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
 "content":
   "release": "R048"
-  "status": "Removed in DEV1.000151; table configuration moved into Upcoming Charges"
+  "status": "Promoted to PROD 2026-09-29; closed, retained as dated DEV evidence"
   "target": "oltp"
   "definition_evidence": "outputs/r048-upcoming-charges/direct-view-refinement.json"
   "before":
@@ -20,3 +20,18 @@
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
   "version": "1.000151"
   "scope_note": "Retained delta records removal of this R048-only child view; no PROD object exists."
+  "production_delivery":
+    "evidence": "outputs/r048-production/README.md"
+    "OLTP": "3.000260"
+    "OLAP": "1.100208 (unchanged)"
+    "PostgreSQL": "55"
+    "remaining_feature_difference": "None; environment bindings remain intentional."
+"evidence":
+  "/content/status":
+    "reference": "outputs/r048-production/README.md"
+    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
+    "state": "value"
+  "/content/production_delivery":
+    "reference": "outputs/r048-production/README.md"
+    "reason": "R048 normal App Upgrade to PROD3.000260; saved metadata verified"
+    "state": "value"

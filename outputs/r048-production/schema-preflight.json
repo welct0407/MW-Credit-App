@@ -1,0 +1,12 @@
+{
+  "prod_version": 53,
+  "dev_version": 55,
+  "excluded_additions": "four oltp_upcoming_charge views",
+  "existing_schema_matches": {
+    "views": true,
+    "functions": true,
+    "columns": true
+  },
+  "export": "production-schema-20260929-131031.sql",
+  "private_comparison": "r048-production/preflight-schema-private.json"
+}
