@@ -7,7 +7,7 @@
     "oltp": {
       "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
       "before": "1.000128",
-      "after": "1.000140"
+      "after": "1.000141"
     },
     "olap": {
       "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
@@ -20,5 +20,10 @@
     "sha256": "5f10fbda68c336fd02401e649dc80c56e38817ea23a55dda2495879e38e6ee02"
   },
   "production_changed": false,
-  "publication": "The containing Git commit is the evidence pin; this is not a frozen promotion manifest."
+  "publication": "The containing Git commit is the evidence pin; this is not a frozen promotion manifest.",
+  "refinement": {
+    "before": "1.000140",
+    "evidence": "borrower-grouping.json",
+    "scope": "date then borrower grouping only"
+  }
 }

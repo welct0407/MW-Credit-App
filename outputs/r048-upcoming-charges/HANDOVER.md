@@ -1,6 +1,6 @@
 # R048 upcoming charges — handover
 
-**DEV complete, 29 September 2026.** OLTP 1.000140 / OLAP unchanged 1.000045 / SQL V54. R048 remains Open; no production authorization or deployment.
+**DEV complete, 29 September 2026.** OLTP 1.000141 / OLAP unchanged 1.000045 / SQL V54. R048 remains Open; no production authorization or deployment.
 
 The [detailed implementation, verification, rollback and promotion handover](IMPLEMENTATION.md) records the delivered design. The [original design](../oltp-upcoming-charges-design-20260929/HANDOVER.md) retains the decision history. Exact saved configuration is in [app metadata](app-config-observations.json) and [SQL definitions](postgresql-affected-definitions.json).
 

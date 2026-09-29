@@ -1,5 +1,9 @@
 # R048 — Collection receipts, report labels and original loan interest
 
+## Upcoming charges grouping refinement — 29 September
+
+Owner requested date then borrower grouping. Updated only Upcoming Charges by Day GroupBy to Due Date ascending, Ref Borrower ascending; retained SUM Amount Remaining. DEV OLTP1.000140 →1.000141, editor clear. Current GUI verified date totals retained and borrower subgroups; saved AppDoc confirmed exact order. SQL/OLAP unchanged; reused prior companion and calculation checks. Updated the affected DEV dictionary object/index, handover and current version records. Rollback is the prior grouping or restorable1.000140. R048 Open, PROD unchanged. [Evidence](../outputs/r048-upcoming-charges/borrower-grouping.json).
+
 ## Upcoming charges — DEV complete 29 September
 
 Owner authorized development as R048 after the design-only handover. Implemented the seven-day grouped menu and Collection borrower preview of five distinct future due dates within three calendar months, recorded-settlement-only for auto-off loans. Final DEV OLTP1.000140 / unchanged OLAP1.000045 / V54; both editors clear. Production unchanged; R048 remains Open.

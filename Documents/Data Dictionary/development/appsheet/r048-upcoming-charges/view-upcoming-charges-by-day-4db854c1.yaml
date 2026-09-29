@@ -12,27 +12,27 @@
   "release": "R048"
   "status": "DEV implemented; owner review and PROD promotion pending"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
+  "definition_evidence": "outputs/r048-upcoming-charges/borrower-grouping.json"
   "before":
     "state": "absent"
   "after":
     "state": "value"
     "value":
       "definition":
-        "View name": "Upcoming Charges by Day"
         "Created by": "App owner"
-        "View type": "table"
-        "Position": "ref"
-        "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Ref Borrower\",\"\
-          Ref Loan\",\"Amount Remaining\",\"Basis\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"}],\"GroupAggregate\"\
-          :\"SUM :: Amount Remaining\",\"SortBy\":[{\"Column\":\"Ref Borrower\",\"Order\":\"Ascending\"},{\"Column\":\"Ref\
-          \ Loan\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\":null,\"IsPrimarySortDescending\":false,\"Events\":[{\"\
-          EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"}],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\"\
-          :1}"
-        "Visible?": "ALWAYS"
         "Icon": ""
         "Menu order": "1"
+        "Position": "ref"
+        "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Ref Borrower\",\"\
+          Ref Loan\",\"Amount Remaining\",\"Basis\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"},{\"Column\"\
+          :\"Ref Borrower\",\"Order\":\"Ascending\"}],\"GroupAggregate\":\"SUM :: Amount Remaining\",\"SortBy\":[{\"Column\"\
+          :\"Ref Borrower\",\"Order\":\"Ascending\"},{\"Column\":\"Ref Loan\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\"\
+          :null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"\
+          }],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
+        "View name": "Upcoming Charges by Day"
+        "View type": "table"
+        "Visible?": "ALWAYS"
       "editor_observed":
         "For this data": "Upcoming Charges 7 Days"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000140"
+  "version": "1.000141"

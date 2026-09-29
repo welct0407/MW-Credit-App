@@ -1,5 +1,11 @@
 # R048 — OLTP upcoming charges implementation
 
+## Refinement — date then borrower grouping
+
+29 September 2026: at owner request, Upcoming Charges by Day now groups first by **Due Date ascending**, then **Ref Borrower ascending**. `SUM :: Amount Remaining` remains the aggregate, providing date totals and borrower subtotals. Saved DEV OLTP **1.000141**, no editor issues. Seven displayed daily totals matched the prior view; the current GUI showed borrower subgroups after entering a date. The borrower-specific Collection preview is unchanged because it already contains one borrower. SQL V54 and OLAP1.000045 are unchanged; prior SQL/companion verification remains valid for this view-only edit.
+
+Rollback: remove only the second GroupBy entry, or use the recorded pre-edit restorable version1.000140 after checking intervening edits. Starting Git71b4dc623770f861df7bbf2d7a97ba44a6b12258. [Exact saved view](borrower-grouping.json) · [Screenshot](borrower-grouping.png). The original implementation checkpoint below remains dated1.000140 evidence; this refinement supersedes its single-level portfolio grouping.
+
 29 September 2026. **Implemented and verified in DEV; ready for owner review.** R048 remains Open. Production is unchanged. The owner authorized development after the original design-only handover.
 
 ## Delivered behavior
