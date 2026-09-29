@@ -1,5 +1,11 @@
 # R048 — Collection receipts, report labels and original loan interest
 
+## Direct Upcoming Charges view — 29 September 2026
+
+DEV OLTP **1.000151**, rollback **1.000150**. Converted the existing menu view Upcoming Charges from dashboard to table, sourced directly from Upcoming Charges 7 Days. Removed the redundant Upcoming Charges by Day reference view. Date → borrower grouping, SUM Amount Remaining, columns, row sorts, Default width, whole-baht values, bilingual field/Basis labels, partner-language title and calendar menu icon are preserved. Collection and SQL V55 are unchanged.
+
+Saved metadata confirms the table configuration matches the former child except the retained calendar icon. Current GUI after sync shows one Upcoming Charges heading, no dashboard wrapper, seven date totals and working date selection/borrower grouping. OLTP editor is clear; unchanged OLAP1.000045 clear evidence and SQL tests reused from the preceding refinement. [Exact evidence](../outputs/r048-upcoming-charges/direct-view-refinement.json) · [Privacy-safe saved configuration](../outputs/r048-upcoming-charges/direct-view.png). R048 stays Open, DEV complete pending owner review; no production change.
+
 ## Summary and shorter titles — 29 September 2026
 
 DEV completed at **OLTP 1.000150 / OLAP unchanged 1.000045 / SQL V55**. Baseline was owner version **1.000146**, Git `df87f27aeca0f3e61316f0cb5460e1bf391becfa`; its portfolio Default column width and cosmetics were preserved. R048 remains Open; PROD unchanged.

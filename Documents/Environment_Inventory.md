@@ -1,6 +1,6 @@
 # Environment inventory
 
-R048 upcoming charges — **DEV implementation complete, pending owner review** (29 September 2026): OLTP **1.000150**, OLAP unchanged **1.000045**, PostgreSQL **V55**. Four read-only forecast providers support the seven-day menu and borrower first-five-dates/three-month preview after today's charges. Both DEV editors clear; SQL CI and affected GUI checks passed. PROD remains3.000257 /1.100208 /V53. R048 stays Open. [Implementation and recovery](../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
+R048 upcoming charges — **DEV implementation complete, pending owner review** (29 September 2026): OLTP **1.000151**, OLAP unchanged **1.000045**, PostgreSQL **V55**. Four read-only forecast providers support the seven-day menu and borrower first-five-dates/three-month preview after today's charges. Both DEV editors clear; SQL CI and affected GUI checks passed. PROD remains3.000257 /1.100208 /V53. R048 stays Open. [Implementation and recovery](../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
 
 R048 original daily interest — **delivered to PROD by owner-authorized manual cutover** (28 September 2026): PROD OLTP **3.000257**, OLAP **1.100208**, PostgreSQL **V53**; DEV at that cutover was1.000128 /1.000045 /V53. Both PROD editors clear, canonical load/sync and read-only loan details verified. Backfill **80/80** after the owner confirmed the final historical daily rate; the focused correction added its original-basis note and stored 10% without changing posted amounts. [Correction evidence](../outputs/r048-loan-interest-correction/README.md). Original-rate feature differences are closed. Forecast watchlist original-rate integer labels are now verified; other independent report keys remain outside scope. [Evidence](../outputs/r048-forecast-original-rate/README.md). R048 stays Open under the scoped direct-cutover exception. [Ordered execution, verification and recovery](../outputs/r048-loan-interest-production/README.md).
 
@@ -109,7 +109,7 @@ Latest metadata checkpoint: **24 September 2026**, from the [dictionary reconcil
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000257 (R048 original interest) | database-2 | 18 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100208 (R048 original interest) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000150 (R048 DEV) | database-3 | 22 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000151 (R048 DEV) | database-3 | 22 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000045 (R048 DEV) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:

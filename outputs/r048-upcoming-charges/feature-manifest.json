@@ -7,7 +7,7 @@
     "oltp": {
       "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
       "before": "1.000128",
-      "after": "1.000150"
+      "after": "1.000151"
     },
     "olap": {
       "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
@@ -38,5 +38,10 @@
       "path": "database/migrations/V55__oltp_upcoming_charge_summary.sql",
       "sha256": "c6adaa0636fa83222f638df01ec45c7441216de83f57b2fcf768de1d402b53d5"
     }
+  },
+  "direct_view_refinement": {
+    "before": "1.000150",
+    "evidence": "direct-view-refinement.json",
+    "sql_changed": false
   }
 }

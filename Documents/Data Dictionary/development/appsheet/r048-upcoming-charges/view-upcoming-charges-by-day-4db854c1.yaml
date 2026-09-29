@@ -10,31 +10,13 @@
   "source": "outputs/r048-upcoming-charges/IMPLEMENTATION.md"
 "content":
   "release": "R048"
-  "status": "DEV implemented; owner review and PROD promotion pending"
+  "status": "Removed in DEV1.000151; table configuration moved into Upcoming Charges"
   "target": "oltp"
-  "definition_evidence": "outputs/r048-upcoming-charges/summary-refinement.json"
+  "definition_evidence": "outputs/r048-upcoming-charges/direct-view-refinement.json"
   "before":
     "state": "absent"
   "after":
-    "state": "value"
-    "value":
-      "definition":
-        "View name": "Upcoming Charges by Day"
-        "Created by": "App owner"
-        "View type": "table"
-        "Position": "ref"
-        "View configuration": "{\"ColumnWidth\":\"Default\",\"EnableQuickEdit\":false,\"ColumnOrder\":[\"Amount Remaining\"\
-          ,\"Ref Loan\",\"Basis Display\"],\"GroupBy\":[{\"Column\":\"Due Date\",\"Order\":\"Ascending\"},{\"Column\":\"Ref\
-          \ Borrower\",\"Order\":\"Ascending\"}],\"GroupAggregate\":\"SUM :: Amount Remaining\",\"SortBy\":[{\"Column\":\"\
-          Ref Borrower\",\"Order\":\"Ascending\"},{\"Column\":\"Ref Loan\",\"Order\":\"Ascending\"}],\"PrimarySortColumn\"\
-          :null,\"IsPrimarySortDescending\":false,\"Events\":[{\"EventType\":\"Row Selected\",\"EventAction\":\"**auto**\"\
-          }],\"Icon\":\"fa-list-ul\",\"IconRunnerUps\":null,\"MenuOrder\":1}"
-        "Visible?": "ALWAYS"
-        "Icon": ""
-        "Menu order": "1"
-      "editor_observed":
-        "For this data": "Upcoming Charges 7 Days"
-        "Display name": "IF(LOOKUP(USEREMAIL(), \"Partners\", \"Login Email\", \"Language Preference\") = \"English\", \"\
-          Upcoming Charges\", \"รายการเรียกเก็บล่วงหน้า\")"
+    "state": "absent"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000150"
+  "version": "1.000151"
+  "scope_note": "Retained delta records removal of this R048-only child view; no PROD object exists."
