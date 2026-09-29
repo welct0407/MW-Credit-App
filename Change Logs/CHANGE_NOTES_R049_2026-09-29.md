@@ -24,3 +24,7 @@ DEV OLTP rollback version **1.000152** was recorded before edits. Final saved ve
 The implementation rebinds the existing summary table, adds a seven-day slice, caps the borrower slice to five dates, adds a shared detail view/navigation action and explicit two-column borrower inline view, and adjusts Collection/Borrowers detail order. Generated reference action/detail view are included in exact DEV dictionary overlays. Production canonical definitions remain unchanged. No operational writes or notifications were triggered.
 
 Documentation closure covers tracker, environment inventory, development differences, model overview, database reference, 13 dictionary overlays/index, sanitized evidence and maintained closure helper. No OLAP, Looker, routing or deployment changes apply. R049 remains Open; no release tag or production readiness/deployment claim. See [handover](../outputs/r049-upcoming-summary/HANDOVER.md) for implementation, tests, limitations and rollback.
+
+## Production promotion authorized
+
+Owner requested promotion on 29 September 2026. Scope frozen at 2026-09-29T11:17:41.705563+00:00 using tested Git1991896, DEV OLTP1.000157/OLAP1.000045/V56. Production baseline OLTP3.000260/OLAP1.100208/V55 and verified restorable database backup recorded in [freeze pin](../outputs/r049-production/freeze-pin.json). R050 opened as sole development release; RC capture and production steps remain in the single [checklist](../outputs/r049-production/promotion-checklist.md).
