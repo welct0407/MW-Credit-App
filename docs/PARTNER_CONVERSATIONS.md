@@ -43,3 +43,5 @@ From an enabled Partner account: ask a current borrower question, then a follow-
 ## Instagram reply formatting — 27 September 2026
 
 Every new or resumed conversation receives plain-text Instagram instructions: answer first, short paragraphs, and labeled bullets per record. Markdown tables, pipe columns, code blocks and decorative Markdown are prohibited. Totals, exclusions, projections and data timestamps remain explicit; financial meaning must not be shortened away. Existing over-1,000-character email fallback remains unchanged. This prompt change does not rewrite or resend earlier replies.
+
+Standalone `review`, `reviews`, and `resend review` (case insensitive) belong to the deterministic receipt review coordinator, not a general Codex turn. Direct replies continue to belong exclusively to review handling. See [review resend](PARTNER_REVIEW.md#reviewer-requested-instagram-resend).

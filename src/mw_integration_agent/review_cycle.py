@@ -10,7 +10,7 @@ from .receipt_rules import ReceiptInvalid,BANGKOK
 from .receipt_master import masters
 from .payment_match import check
 from .partner_notice import NoticeJournal,receipt_notice
-from .partner_review import ReviewStore,request_text
+from .partner_review import ReviewStore,request_text,review_id
 from .review_proposal import facts,plan,review_posts_overpayment
 from .review_execution import add_payment,readback
 from .cash_statement import read_query
@@ -87,11 +87,20 @@ def cycle(config,journal,identity_reader):
         ingress=state_connect(root/'instagram-ingress.db',config,readonly=True)
         pass  # row format supplied by state adapter
         try:
-            events=ingress.execute("SELECT * FROM messages WHERE captured_at>=? AND reply_to<>'' " + ("AND message_id NOT IN (SELECT message_id FROM ingress_work WHERE state='REVIEW') " if state_enabled(config) else "") + "ORDER BY event_timestamp,message_id",(cutoff,)).fetchall()
+            events=ingress.execute("SELECT * FROM messages WHERE captured_at>=? AND (reply_to<>'' OR event_timestamp>=?) " + ("AND message_id NOT IN (SELECT message_id FROM ingress_work WHERE state='REVIEW') " if state_enabled(config) else "") + "ORDER BY event_timestamp,message_id",(cutoff,time.time()-86340)).fetchall()
         finally:ingress.close()
         for event in events:
             with isolated(failures,'reply'):
                 event=dict(event)
+                from .review_resend import is_command,queue
+                if is_command(event):
+                    if db.execute('SELECT 1 FROM partner_review_replies WHERE message_id=?',(event['message_id'],)).fetchone():continue
+                    if not config.get('review_resend_cutoff'):continue
+                    command_cutoff=datetime.fromisoformat(config['review_resend_cutoff']).timestamp()
+                    if min(event['captured_at'],event['event_timestamp'])<command_cutoff or not 0<=time.time()-event['event_timestamp']<86340:continue
+                    queue(db,notices,config,event,masters(config),identity_reader(config,event['sender_id']))
+                    continue
+                if not event.get('reply_to'):continue
                 notice=notices.db.execute("SELECT * FROM partner_notices WHERE message_id=? AND (event_key LIKE 'review:%' OR event_key LIKE 'receipt-held:%')",(event['reply_to'],)).fetchone()
                 if not notice:continue
                 if notice['event_key'].startswith('receipt-held:'):
@@ -147,8 +156,13 @@ def cycle(config,journal,identity_reader):
                     else:
                         matches=[p for p in reviewer_partners(live) if p['id']==review['deciding_partner'] and p['enabled'] is True]
                         if len(matches)!=1:raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
-                        sent=notices.db.execute("SELECT partner FROM partner_notices WHERE event_key=? AND partner_id=? AND ig_status='ACCEPTED'",('review:'+review['id'],review['deciding_partner'])).fetchone()
-                        if not sent or json.loads(sent[0])!=matches[0]:raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
+                        sent=notices.db.execute("SELECT partner,message_id FROM partner_notices WHERE (event_key=? OR event_key LIKE ?) AND partner_id=? AND ig_status='ACCEPTED'",('review:'+review['id'],'review:'+review['id']+':resend:%',review['deciding_partner'])).fetchall()
+                        if review['decision_message']:
+                            source=state_connect(root/'instagram-ingress.db',config,readonly=True)
+                            try:decision=source.execute('SELECT reply_to FROM messages WHERE message_id=?',(review['decision_message'],)).fetchone()
+                            finally:source.close()
+                            sent=[n for n in sent if decision and n['message_id']==decision['reply_to']]
+                        if not any(json.loads(n[0])==matches[0] for n in sent):raise ReceiptInvalid('APPROVING_PARTNER_CHANGED')
                     b=receipt_borrower(config,job,journal,live,identity_reader)
                     if b['id']!=proposal['borrower']['id']:raise ReceiptInvalid('BORROWER_CHANGED')
                     from datetime import timedelta
@@ -199,9 +213,9 @@ def cycle(config,journal,identity_reader):
             queue_holds(config,journal,notices,masters(config),identity_reader,failures)
         for notice in notices.due():
             with isolated(failures,'delivery'):
-                if not notice['event_key'].startswith(('review:','review-result:','receipt-held:','hold-reply-result:')):continue
+                if not notice['event_key'].startswith(('review:','review-result:','receipt-held:','hold-reply-result:','review-command-result:')):continue
                 live=masters(config)
-                if notice['event_key'].startswith('hold-reply-result:') and not any(
+                if notice['event_key'].startswith(('hold-reply-result:','review-command-result:')) and not any(
                     p['id']==notice['partner_id'] and p['enabled'] is True and p['id'] in live.get('reviewer_ids',[]) for p in live['partners']):
                     with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='PARTNER_DISABLED' WHERE id=?",(notice['id'],))
                     continue
@@ -219,7 +233,7 @@ def cycle(config,journal,identity_reader):
                     if notice['partner_id'] not in live.get('reviewer_ids',[]):
                         with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW',detail='NOT_AI_REVIEWER' WHERE id=?",(notice['id'],))
                         continue
-                    row=db.execute('SELECT * FROM partner_reviews WHERE id=?',(notice['event_key'][7:],)).fetchone()
+                    row=db.execute('SELECT * FROM partner_reviews WHERE id=?',(review_id(notice['event_key']),)).fetchone()
                     if not row or row['state']!='PENDING':
                         with notices.db:notices.db.execute("UPDATE partner_notices SET ig_status='REVIEW' WHERE id=?",(notice['id'],))
                         continue

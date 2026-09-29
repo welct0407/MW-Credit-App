@@ -14,7 +14,11 @@ def assess(jobs,reviews,notices,now,hold_replies=()):
     jobs={r['id']:r for r in jobs};reviews={r['id']:r for r in reviews}
     by_job={r['job_id']:r for r in reviews.values()}
     by_event={}
-    for n in notices:by_event.setdefault(n['event_key'],[]).append(n)
+    from .partner_review import review_id
+    for n in notices:
+        rid=review_id(n['event_key'])
+        key='review:'+rid if rid else n['event_key']
+        by_event.setdefault(key,[]).append(n)
     def delivered(event):
         return any(n['ig_status']=='ACCEPTED' or n['email_status']=='SENT' for n in by_event.get(event,[]))
     counts=dict(stalled_jobs=0,unnotified_holds=0,unconfirmed_postings=0,

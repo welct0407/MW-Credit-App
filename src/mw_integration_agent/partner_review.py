@@ -26,6 +26,14 @@ def authorize_reply(event,notice,partners,identity,reviewer_ids):
     return None
 
 
+def review_id(event_key):
+    parts = event_key.split(':')
+    if parts[0] == 'review' and (len(parts) == 2 or
+            (len(parts) == 4 and parts[2] == 'resend' and len(parts[3]) == 64)):
+        return parts[1]
+    return None
+
+
 class ReviewStore:
     def __init__(self,db):
         self.db=db
@@ -55,8 +63,8 @@ class ReviewStore:
         now=time.time() if now is None else now
         denied=authorize_reply(event,notice,partners,identity,reviewer_ids)
         if denied:return denied
-        key=notice['event_key'].removeprefix('review:')
-        if notice['event_key']!='review:'+key:return 'NOT_CORRELATED'
+        key=review_id(notice['event_key'])
+        if not key:return 'NOT_CORRELATED'
         p=next(p for p in partners if p['id']==notice['partner_id'])
         with self.db:
             old=self.db.execute('SELECT outcome FROM partner_review_replies WHERE message_id=?',(event['message_id'],)).fetchone()

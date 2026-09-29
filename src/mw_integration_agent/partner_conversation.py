@@ -145,7 +145,8 @@ def authenticate(config, sender, rows=None, identity_reader=conversation_identit
 def is_receipt_reply(root, event, config=None):
     # Owner policy: all direct replies belong to review handling, even when
     # the original notification is unknown, stale or already decided.
-    return bool(event.get('reply_to'))
+    from .review_resend import is_command
+    return bool(event.get('reply_to')) or is_command(event)
 
 
 def execute(event, partner, store, get_config, session_factory=CodexConversation,

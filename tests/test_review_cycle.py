@@ -34,6 +34,36 @@ class CycleTests(unittest.TestCase):
             p=patch('mw_integration_agent.review_cycle.'+target,**kwargs);setattr(self,target,p.start());self.addCleanup(p.stop)
         p=patch('mw_integration_agent.partner_notice.NoticeJournal.dispatch');self.dispatch=p.start();self.addCleanup(p.stop)
     def run_cycle(self):return cycle(self.config,self.j,lambda *_:{'id':'123','username':'borrower'})
+    def test_resend_only_accepted_notice_can_support_posting(self):
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        notices.db.execute("UPDATE partner_notices SET ig_status='UNAVAILABLE',email_status='SENT'")
+        key=notices.reserve('review:'+self.key+':resend:'+'a'*64,self.p,'resent','resent')
+        notices.db.execute("UPDATE partner_notices SET ig_status='ACCEPTED',message_id='resent' WHERE id=?",(key,))
+        notices.db.commit();notices.close()
+        self.j.db.execute("UPDATE partner_reviews SET decision_message='approval'");self.j.db.commit()
+        ingress=IngressJournal(self.root/'instagram-ingress.db')
+        ingress.db.execute("INSERT INTO messages(message_id,sender_id,event_timestamp,text,captured_at,status,reply_to) VALUES ('approval','456',0,'yes',0,'CAPTURED_NO_PROCESSING','resent')")
+        ingress.db.commit();ingress.close()
+        self.run_cycle()
+        self.assertEqual(self.add_payment.call_count,1)
+        self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'POSTED')
+
+    def test_signed_standalone_command_queues_requests_not_payment(self):
+        import time
+        self.j.db.execute("UPDATE partner_reviews SET state='PENDING'");self.j.db.commit()
+        self.config['review_resend_cutoff']='2026-01-01T00:00:00+00:00'
+        ingress=IngressJournal(self.root/'instagram-ingress.db')
+        ingress.db.execute("INSERT INTO messages(message_id,sender_id,event_timestamp,text,captured_at,status,reply_to) VALUES (?,?,?,?,?,?,?)",
+            ('command','456',time.time(),' ReViEw ',time.time(),'CAPTURED_NO_PROCESSING',''))
+        ingress.db.commit();ingress.close()
+        identity=lambda *_:{'id':'456','username':'partner'}
+        first=cycle(self.config,self.j,identity);second=cycle(self.config,self.j,identity)
+        self.assertEqual(first['failures'],[]);self.assertEqual(second['failures'],[])
+        self.add_payment.assert_not_called()
+        notices=NoticeJournal(self.root/'partner-notices.db')
+        self.assertEqual(notices.db.execute("SELECT count(*) FROM partner_notices WHERE event_key LIKE 'review:%:resend:%'").fetchone()[0],1)
+        notices.close()
+
     def test_approved_posts_once_then_result(self):
         self.run_cycle();self.run_cycle();self.assertEqual(self.add_payment.call_count,1)
         self.assertEqual(self.j.db.execute('SELECT state FROM partner_reviews').fetchone()[0],'POSTED')

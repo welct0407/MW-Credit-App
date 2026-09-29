@@ -44,6 +44,7 @@
   "receipt_auto_payment_enabled": false,
   "receipt_forwarding_enabled": false,
   "receipt_hold_reply_cutoff": null,
+  "review_resend_cutoff": null,
   "receipt_archive_enabled": false,
   "receipt_archive_cutoff": null,
   "receipt_environment": "prod",

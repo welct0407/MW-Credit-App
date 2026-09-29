@@ -46,3 +46,10 @@ class HealthTests(unittest.TestCase):
         r=dict(self.review,state='POSTED',created_at=9000)
         notices=[self.notice('review-result:r:UNKNOWN','UNKNOWN','UNKNOWN'),self.notice('review-result:r:POSTED')]
         self.assertEqual(assess([],[r],notices,self.now)['status'],1)
+
+    def test_resend_delivery_counts_without_resetting_overdue_clock(self):
+        r=dict(self.review,created_at=1)
+        n=self.notice('review:r:resend:'+'a'*64)
+        health=assess([],[r],[n],self.now)
+        self.assertEqual(health['undelivered_reviews'],0)
+        self.assertEqual(health['overdue_reviews'],1)
