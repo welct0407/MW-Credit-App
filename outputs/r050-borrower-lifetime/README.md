@@ -6,6 +6,8 @@ Published and verified on 29 September 2026 in dashboard 3, **8 · Borrower Deta
 
 All nine questions respond only to borrower selection, never Detail activity dates. Empty selection returns no financial rows. Amounts are baht; interest is gross received interest before business expenses. These are lifetime receipts/current balances, not selected-period totals.
 
+Both return cards display percentages rounded to the nearest whole percent, with no decimal places; underlying source amounts and denominators are unchanged.
+
 | Question | Metric | Definition |
 | --- | --- | --- |
 | 370 | Outstanding principal | Existing borrower Total Outstanding Principal |
@@ -36,6 +38,7 @@ Nine questions369–377 and four text notes add13 placements. New section spans 
 - [Reconciliation](reconciliation.json):21 independent loan metric comparisons and21 latest-charge comparisons across three borrowers passed.
 - Chrome Wel / selected Metabase Gmail account verified. Desktop GUI verified complete seven-circle rendering with all three statuses, active and closed cohorts, and unavailable displays. Mobile layout was not tested.
 - Screenshots and full private recovery definitions stay outside Git under Documents/ChatGPT/AppSheet-Loan-Project/r050-borrower-lifetime.
+- The later whole-percent refinement saved the immediately preceding card definitions privately in before-whole-return.json; only questions373 and377 were edited.
 
 ## Recovery and handover
 

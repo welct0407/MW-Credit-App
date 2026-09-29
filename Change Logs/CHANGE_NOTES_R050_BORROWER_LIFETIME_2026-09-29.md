@@ -10,4 +10,6 @@ Rollback: private dashboard definition captured before development; report copy 
 
 Published and verified: questions369–377, 13 placements; recovery dashboard27. Two borrowers across two date ranges were identical; empty selection returned no rows; unaffected placements were preserved. Independent reconciliation passed21 metric and21 charge comparisons. Desktop GUI confirmed seven complete circles with all three statuses and clean unavailable values. Mobile was not tested.
 
-[Implementation/formulas/recovery](../outputs/r050-borrower-lifetime/README.md). Dictionary question definitions and dashboard contract updated; environment/development/design references aligned. No AppSheet or SQL changes. R050 remains Open. Repository publication follows relevant validation.
+[Implementation/formulas/recovery](../outputs/r050-borrower-lifetime/README.md). Dictionary question definitions and dashboard contract updated; environment/development/design references aligned. No AppSheet or SQL changes. Initial publication: e5a4b25. R050 remains Open.
+
+Owner refinement, 29 September 2026: active and closed return cards373/377 display whole percentages. Saved prior card definitions privately before editing. No formula, denominator, placement or filter change. Focused saved-definition and independent calculation checks repeated; rollback restores the two saved card definitions after checking subsequent edits.
