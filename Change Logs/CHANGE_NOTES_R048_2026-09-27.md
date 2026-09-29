@@ -1,5 +1,9 @@
 # R048 — Collection receipts, report labels and original loan interest
 
+## Authorized promotion started —29 September2026
+
+Owner accepted and requested PROD promotion. R048 frozen at2026-09-29T06:08:53.532412+00:00; R049 opened in the coordinated tracker handoff. OLTP1.000151 and immutable V54/V55 pinned at47efcbf; OLAP unchanged. Rollback PROD OLTP3.000257/SQL53; restorable database backup being verified. [Single promotion checklist](../outputs/r048-production/promotion-checklist.md) owns execution and closure. Unrelated local report work preserved.
+
 ## Direct Upcoming Charges view — 29 September 2026
 
 DEV OLTP **1.000151**, rollback **1.000150**. Converted the existing menu view Upcoming Charges from dashboard to table, sourced directly from Upcoming Charges 7 Days. Removed the redundant Upcoming Charges by Day reference view. Date → borrower grouping, SUM Amount Remaining, columns, row sorts, Default width, whole-baht values, bilingual field/Basis labels, partner-language title and calendar menu icon are preserved. Collection and SQL V55 are unchanged.
