@@ -23,32 +23,37 @@
         }
       },
       "visualization_settings": {
-        "graph.dimensions": [
-          "Charge day",
-          "Status"
-        ],
+        "graph.show_values": false,
+        "scatter.bubble": "Size",
+        "graph.show_legend": true,
+        "graph.x_axis.labels_enabled": true,
+        "graph.x_axis.title_enabled": true,
+        "graph.y_axis.max": 2,
+        "graph.x_axis.axis_enabled": true,
+        "graph.x_axis.title_text": " ",
+        "graph.y_axis.labels_enabled": false,
+        "graph.y_axis.auto_split": false,
         "graph.metrics": [
           "Light"
         ],
-        "scatter.bubble": "Size",
-        "graph.show_legend": true,
-        "graph.show_values": false,
-        "graph.x_axis.axis_enabled": true,
-        "graph.x_axis.labels_enabled": true,
-        "graph.x_axis.title_text": "Charge date",
         "graph.y_axis.axis_enabled": false,
-        "graph.y_axis.labels_enabled": false,
-        "graph.x_axis.scale": "ordinal",
-        "graph.y_axis.auto_range": false,
-        "graph.y_axis.min": 0,
-        "graph.y_axis.max": 2,
-        "graph.y_axis.auto_split": false,
-        "graph.series_order": null,
+        "graph.tooltip_columns": [
+          "[\"name\",\"Status\"]",
+          "[\"name\",\"Charge date\"]",
+          "[\"name\",\"Charges\"]",
+          "[\"name\",\"Paid on time\"]",
+          "[\"name\",\"Paid late\"]",
+          "[\"name\",\"Overdue charges\"]",
+          "[\"name\",\"Principal due ฿\"]",
+          "[\"name\",\"Interest due ฿\"]",
+          "[\"name\",\"Remaining ฿\"]"
+        ],
         "graph.colors": [
           "#16A34A",
           "#F59E0B",
           "#DC2626"
         ],
+        "graph.series_order": null,
         "series_settings": {
           "Paid on time": {
             "color": "#16A34A"
@@ -60,17 +65,13 @@
             "color": "#DC2626"
           }
         },
-        "graph.tooltip_columns": [
-          "[\"name\",\"Status\"]",
-          "[\"name\",\"Charge date\"]",
-          "[\"name\",\"Charges\"]",
-          "[\"name\",\"Paid on time\"]",
-          "[\"name\",\"Paid late\"]",
-          "[\"name\",\"Overdue charges\"]",
-          "[\"name\",\"Principal due ฿\"]",
-          "[\"name\",\"Interest due ฿\"]",
-          "[\"name\",\"Remaining ฿\"]"
-        ]
+        "graph.y_axis.auto_range": false,
+        "graph.x_axis.scale": "ordinal",
+        "graph.dimensions": [
+          "Charge day",
+          "Status"
+        ],
+        "graph.y_axis.min": 0
       }
     },
     {

@@ -7829,6 +7829,31 @@
       \ on one of the latest seven distinct due dates before today; calendar gaps are skipped. Closed totals use loan_status\
       \ Closed only."
     "recovery_dashboard": 27
+  "borrower_detail_category":
+    "release": "R050"
+    "tab_id": 105
+    "question_id": 378
+    "removed_detail_placement_question": 295
+    "retained_saved_question": 295
+    "top_card_question_ids":
+    - 291
+    - 292
+    - 293
+    - 294
+    - 378
+    "top_card_widths":
+    - 5
+    - 4
+    - 5
+    - 4
+    - 6
+    "later_row_shift": -7
+    "category_source": "reporting_borrower_matrix_v3, by selected borrower_id; ignores activity dates"
+    "axis_question_id": 369
+    "axis_title": "nonbreaking space; visible date labels retained"
+    "recovery_dashboard": 31
+    "definition_reference": "outputs/r050-borrower-detail-category/saved.json"
+    "design_reference": "outputs/r050-borrower-detail-category/README.md"
 "evidence":
   "/content/cash_pages":
     "reference": "outputs/r016-20260922/statement-cleanup/README.md"
@@ -7913,4 +7938,8 @@
   "/content/borrower_lifetime_summary/date_contract":
     "reference": "outputs/r050-borrower-lifetime/saved.json"
     "reason": "Owner clarified lights represent the latest seven distinct days with charges"
+    "state": "value"
+  "/content/borrower_detail_category":
+    "reference": "outputs/r050-borrower-detail-category/README.md"
+    "reason": "R050 compact borrower category and charge-axis refinement"
     "state": "value"

@@ -40,9 +40,10 @@
       "scatter.bubble": "Size",
       "graph.show_legend": true,
       "graph.x_axis.labels_enabled": true,
+      "graph.x_axis.title_enabled": true,
       "graph.y_axis.max": 2,
       "graph.x_axis.axis_enabled": true,
-      "graph.x_axis.title_text": "Charge date",
+      "graph.x_axis.title_text": " ",
       "graph.y_axis.labels_enabled": false,
       "graph.y_axis.auto_split": false,
       "graph.metrics": [
@@ -84,6 +85,13 @@
         "Status"
       ],
       "graph.y_axis.min": 0
+    }
+  },
+  "evidence": {
+    "/content/visualization_settings": {
+      "reference": "outputs/r050-borrower-detail-category/README.md",
+      "reason": "R050 compact borrower category and charge-axis refinement",
+      "state": "value"
     }
   }
 }

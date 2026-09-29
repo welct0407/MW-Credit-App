@@ -1,6 +1,8 @@
 # Environment inventory
 
-R050 borrower lifetime summary (29 September 2026): Detail105 adds eight lifetime metrics and seven charge-status lights, questions369–377, ignoring activity dates. Closed totals use genuinely Closed loans only. Dashboard3 now has12 tabs/272 placements; recovery dashboard27. No AppSheet or SQL change. R050 remains Open. [Definitions, checks and recovery](../outputs/r050-borrower-lifetime/README.md).
+R050 borrower Detail refinement (29 September 2026): dashboard3/tab105 shows current V3 BCG category as card378 beside the four top metrics; wide current-health question295 is no longer placed on Detail but remains saved. Charge lights369 retain seven date labels without an axis name. Dashboard3 has12 tabs/272 placements; recovery dashboard31. No AppSheet or SQL change. R050 remains Open. [Definitions, checks and recovery](../outputs/r050-borrower-detail-category/README.md). Earlier lifetime publication and recovery dashboard27 are recorded below.
+
+R050 borrower lifetime summary (29 September 2026): Detail105 adds eight lifetime metrics and seven charge-status lights, questions369–377, ignoring activity dates. Closed totals use genuinely Closed loans only. Initial dashboard3 checkpoint had12 tabs/272 placements; recovery dashboard27. No AppSheet or SQL change. [Original definitions](../outputs/r050-borrower-lifetime/README.md).
 
 R050 Metabase checkpoint (29 September 2026): dashboard3 has 12 tabs /259 placements. Legacy Forecast & Partners tab11 and its 15 placements are retired; Partners249 is now tab11 and Forecast & Planning262 tab12. Recovery dashboard26; other placements and parameters preserved. Apps and SQLV56 unchanged. [Evidence](../outputs/r050-remove-forecast-partners/README.md).
 

@@ -25,6 +25,8 @@ Closed status includes defaulted closures. Principal repaid on loans still activ
 
 Native scatter/bubble chart with up to seven equal circles, one for each of the **most recent seven distinct eligible charge due dates** before today. Calendar gaps are skipped; fewer than seven dates show fewer lights. Each light combines all eligible charges due on that date. The short date appears below the light, oldest left and newest right. The ordinal date axis keeps the endpoint circles complete. The tooltip shows the full date and daily charge counts and amounts.
 
+Subsequent R050 refinement [removes the visible axis name](../r050-borrower-detail-category/README.md), while keeping every short date label.
+
 Existing reporting_charge_payment_health_v1.history_eligible excludes today/future, invalid, zero and default-accounting obligations. Daily status takes the highest concern: red if **any** charge remains overdue; otherwise orange if **any** was paid late; otherwise green when **all** were paid on time. Tooltip includes charge count, counts by status, principal/interest due and current remaining amount. Current payment balances may include today's payments; historical settlement timing deliberately stops before today.
 
 ## Implementation and verification

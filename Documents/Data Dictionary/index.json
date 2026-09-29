@@ -32568,6 +32568,16 @@
       "lookup": []
     },
     {
+      "file": "systems/metabase/questions/borrower-detail-bcg-category.yaml",
+      "system": "metabase",
+      "component": "reports.mw-credit.com",
+      "kind": "question",
+      "name": "378 / Borrower category · current BCG matrix",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/metabase/questions/borrower-health-active.yaml",
       "system": "metabase",
       "component": "reports.mw-credit.com",
