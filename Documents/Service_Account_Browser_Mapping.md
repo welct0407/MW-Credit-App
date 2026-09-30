@@ -1,27 +1,27 @@
 # Service account and browser mapping
 
-This register maps **human sign-in accounts**, not cloud service-account credentials. Account identifiers only; no passwords, tokens or recovery codes. Owner browser rule: 24 September 2026.
+This register maps **human sign-in accounts**, not cloud service-account credentials. Account identifiers only; no passwords, tokens or recovery codes. Owner browser revision: 30 September 2026; authenticated cloud browser primary, VM-01 fallback.
 
 ## Browser routing
 
-| Task's sign-in account | Browser to use |
-| --- | --- |
-| welct0407@mw-credit.com | Chrome profile signed in as welct0407@mw-credit.com |
-| welct0407@gmail.com | Chrome profile signed in as welct0407@gmail.com |
-| Any other known account | Edge, with the intended service account selected |
-| Unknown / conflicting account | Ask which account applies before account-dependent browser work |
+| Task's sign-in account | Primary cloud browser | VM-01 fallback |
+| --- | --- | --- |
+| welct0407@mw-credit.com | Authenticated session verified as welct0407@mw-credit.com | Chrome profile signed in as welct0407@mw-credit.com |
+| welct0407@gmail.com | Authenticated session verified as welct0407@gmail.com | Chrome profile signed in as welct0407@gmail.com |
+| Any other known account | Authenticated session with the intended service account selected | Edge, with the intended service account selected |
+| Unknown / conflicting account | Ask which account applies before account-dependent browser work | Same clarification required |
 
-Use the service/scope row below or the owner's explicit task instruction. Inspect available browser profiles through supported browser tools and verify the actual profile identity plus the website's selected account/tenant. Profile labels, an email recipient or an app display name alone do not establish the service account. Once verified, reuse that route unless the browser/account context changes.
+Use the service/scope row below or the owner's explicit task instruction. Prefer the available authenticated cloud browser; verify its actual session identity plus the website's selected account/tenant through supported browser tools. For VM fallback, also inspect the matching browser profile. Profile labels, an email recipient or an app display name alone do not establish the service account. Once verified, reuse that route unless the browser/account context changes. Service-specific access limitations and the cloud coding startup blocker are recorded in the [30 September readiness log](../Change%20Logs/CHANGE_NOTES_CLOUD_FIRST_READINESS_2026-09-30.md).
 
-If the required Chrome profile is closed or unavailable to the tool, request: **“Please open Chrome with the profile signed in as <required email> so I can continue <service/task>.”** Wait only on that dependent step and continue independent work. Do not use the other Chrome profile, Edge, an in-app/incognito session, or sign out/change a profile to bypass the requirement. If the needed Edge session is unavailable, ask the owner to open Edge with access to the intended account. No browser needs opening for this documentation update.
+When the cloud route is unavailable, use the verified VM fallback. If its required Chrome profile is closed or unavailable to the tool, request: **"Please open Chrome with the profile signed in as <required email> so I can continue <service/task>."** Wait only on that dependent step and continue independent work. Do not use another account/profile, Edge or an incognito session, or sign out/change a profile to bypass the required identity. If the needed Edge fallback session is unavailable, ask the owner to open Edge with access to the intended account. No browser needs opening for this documentation update.
 
 Browser routing applies to UI work. It does not require replacing a suitable API/CLI/connector with UI; use its correctly authorized identity. Account/profile mapping grants no additional permission for deployment, messages, data writes or the separately governed AI Collection project.
 
 ## Service register
 
-Accounts and authentication notes were supplied by the owner in the completed review workbook and imported on 24 September 2026. Browser routing follows the rule above; Chrome work and Chrome Gmail mean the corresponding signed-in profiles. These are confirmed assignments, not a fresh live sign-in audit.
+Accounts and authentication notes were supplied by the owner in the completed review workbook and imported on 24 September 2026. Account assignments remain unchanged. The browser column below records the VM-01 fallback; Chrome work and Chrome Gmail mean the corresponding signed-in profiles. Apply the cloud-primary routing rule above using the same account. These are confirmed assignments, not a fresh live sign-in audit of every service.
 
-| Service | Scope | Account | Browser | Authentication notes |
+| Service | Scope | Account | VM-01 fallback browser | Authentication notes |
 | --- | --- | --- | --- | --- |
 | AppSheet | PROD OLTP / Loan Manager | welct0407@mw-credit.com | Chrome work | |
 | AppSheet | PROD OLAP / Loan Business Insights | welct0407@mw-credit.com | Chrome work | |
@@ -43,4 +43,4 @@ Accounts and authentication notes were supplied by the owner in the completed re
 
 ## Maintenance
 
-This Markdown register is the single maintained execution reference; the temporary workbook was retired after verifying all 17 imported rows and their notes. AGENTS.md directs browser work here. Update confirmed account/service changes directly in this table and derive Browser using the routing rule. Split rows when environments, tenants or roles use different accounts. An explicit task account can be used immediately; record a reusable assignment only when confirmed for that service/scope. Unknown assignments require clarification; do not infer them from the provider or domain. Ordinary releases do not re-audit this register.
+This Markdown register is the single maintained execution reference; the temporary workbook was retired after verifying all 17 imported rows and their notes. AGENTS.md directs browser work here. Update confirmed account/service changes directly in this table and derive the VM-01 fallback browser using the routing rule. Split rows when environments, tenants or roles use different accounts. An explicit task account can be used immediately; record a reusable assignment only when confirmed for that service/scope. Unknown assignments require clarification; do not infer them from the provider or domain. Ordinary releases do not re-audit this register.

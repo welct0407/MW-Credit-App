@@ -1,5 +1,7 @@
 # Environment inventory
 
+30 September 2026 readiness checkpoint: the owner-authorized reversible Design Details save tests restored the exact empty values in DEV OLTP **1.000159** and DEV OLAP **1.000047**. Both reloaded editors report **No issues found**, with Save/Undo disabled. No data, bot or API configuration changed. Cloud browser routes are verified for AppSheet, Metabase, Grafana and Railway; cloud coding startup and secure cloud API credential provisioning remain unresolved. VM-01 fallback PROD Find-only API probes passed for both apps, and existing Debian SSH/service/source checks passed. This is partial readiness, not a release or full development takeover. [Evidence, limitations and assignment](../Change%20Logs/CHANGE_NOTES_CLOUD_FIRST_READINESS_2026-09-30.md).
+
 R050 borrower Detail refinement (29 September 2026): dashboard3/tab105 shows current V3 BCG category as card378 beside the four top metrics; wide current-health question295 is no longer placed on Detail but remains saved. Charge lights369 retain seven date labels without an axis name. Dashboard3 has12 tabs/272 placements; recovery dashboard31. No AppSheet or SQL change. R050 remains Open. [Definitions, checks and recovery](../outputs/r050-borrower-detail-category/README.md). Earlier lifetime publication and recovery dashboard27 are recorded below.
 
 R050 borrower lifetime summary (29 September 2026): Detail105 adds eight lifetime metrics and seven charge-status lights, questions369–377, ignoring activity dates. Closed totals use genuinely Closed loans only. Initial dashboard3 checkpoint had12 tabs/272 placements; recovery dashboard27. No AppSheet or SQL change. [Original definitions](../outputs/r050-borrower-lifetime/README.md).
@@ -117,8 +119,8 @@ Latest metadata checkpoint: **24 September 2026**, from the [dictionary reconcil
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000263 (R049 summary/drilldown) | database-2 | 22 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100208 (R048 original interest) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000157 (R049 DEV) | database-3 | 22 |
-| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000045 (R048 DEV) | database-3 | 19 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000159 (30 September readiness save/restoration) | database-3 | 22 |
+| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000047 (30 September readiness save/restoration) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
 
