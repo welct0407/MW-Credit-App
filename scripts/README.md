@@ -6,7 +6,7 @@ R048 upcoming-charge helpers: `database/Test-UpcomingCharges.sql` runs through `
 
 R048 original-rate tools: `database/Backup-OriginalDailyInterest.py` captures/restores and rehearses a DEV backup; `database/Invoke-OriginalRateFixture.ps1` manages only the named DEV synthetic fixture (seed/prepare-charge/state/retire); `dictionary/capture_r048_interest.py` reads affected DEV catalog metadata. Review their current guards before reuse; fixture creation refuses an existing fixture. `Test-OriginalDailyInterest.sql` and stored-rate forecast assertions run through `database/Test-CI.ps1`. [Evidence](../outputs/r048-loan-interest/IMPLEMENTATION.md).
 
-Maintained automation belongs in scripts/. Generated files belong in outputs/.
+Maintained automation belongs in scripts/. Generated files belong in outputs/. Cross-environment executor/tool routing and private access boundaries are maintained in [Development Workflow](../Documents/Development_Workflow.md); the Windows setup below applies to VM-01, not a new Codex Cloud container.
 
 The owner's single-file dictionary upload is a deliberate output-location exception: double-click [Export Data Dictionary.cmd](Export%20Data%20Dictionary.cmd) to generate the local, Git-ignored `Documents/Data_Dictionary_ChatGPT.md`. See the [export instructions](../Documents/Data_Dictionary_Export.md). It performs no AI/network calls or Git mutations.
 
@@ -40,7 +40,7 @@ Clone the Git repository to recover committed outputs, then rerun setup-dependen
 
 Read this section when creating, migrating or recovering credentials; ordinary tasks using an established credential do not require a storage audit. The standing external-storage rule is in [AGENTS.md](../AGENTS.md).
 
-- Store project API keys, access/refresh tokens, app secrets, private keys, recovery/encryption keys and exported authentication/session files under `C:\Users\MWCredit\Documents\ChatGPT`, preferably a project subfolder. Never store secret values under `C:\GitHub`, even in ignored files. Configuration and change logs use paths/placeholders only.
+- On VM-01, store project API keys, access/refresh tokens, app secrets, private keys, recovery/encryption keys and exported authentication/session files under `C:\Users\MWCredit\Documents\ChatGPT`, preferably a project subfolder. Never store secret values under `C:\GitHub`, even in ignored files. Configuration and change logs use paths/placeholders only.
 - On migration, update consumers and verify references without printing values. Preserve existing credentials until verified; never overwrite/regenerate a recovery key as a substitute for a lost key.
 - Leave application-managed Codex/GitHub/browser sign-in stores in place; do not relocate them as a side effect. Project-owned exports belong in the external folder.
 - Record actual credential recovery/backup coverage when credentials change. Folder existence proves no backup; database backups do not cover credentials, and the GitHub project folder is excluded from Drive.
