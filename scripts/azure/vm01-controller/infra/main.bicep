@@ -120,8 +120,8 @@ resource settings 'Microsoft.Web/sites/config@2024-04-01' = {
     VM01_CLOUD_CLIENT_ID: cloudClientId
     VM01_CLOUD_PRINCIPAL_ID: cloudPrincipalId
     VM01_STORAGE_ACCOUNT: storage.name
-    VM01_ENABLE_MUTATIONS: string(enableMutations)
-    VM01_ENABLE_OPERATION_POLLING: string(enableOperationPolling)
+    VM01_ENABLE_MUTATIONS: enableMutations ? 'true' : 'false'
+    VM01_ENABLE_OPERATION_POLLING: enableOperationPolling ? 'true' : 'false'
   }
 }
 resource auth 'Microsoft.Web/sites/config@2022-09-01' = {

@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
   "release": "R050",
-  "status": "SOURCE_ONLY_LIVE_CHANGES_NOT_APPROVED",
+  "status": "BOOTSTRAP_DEPLOYED_COMMANDS_DISABLED_AUTHENTICATED_ACCEPTANCE_PENDING",
   "repository": "welct0407/AppSheet-Loan-Project",
   "sourcePath": "scripts/azure/vm01-controller",
   "baselineCommit": "d351991d1a1c0895d4abc8f0f4ba4fa55fa7a4e5",
-  "testedCommit": "FILL_WITH_REVIEWED_GIT_COMMIT",
-  "deploymentZipSha256": "NOT_PACKAGED_FOR_LIVE_DEPLOYMENT",
+  "testedCommit": "Repaired source is pinned by the Git history of this manifest and outputs validation record",
+  "deploymentZipSha256": "aaedfe3d24e2dedfac5338b7ab03b4e9c7a6961267d068e0b7a51c43f22b180f",
   "discovery": {
     "provenance": "Parent delegated authenticated read-only Azure discovery on 2026-10-01; no Azure writes",
-    "subscriptionName": "IDEA Prod",
+    "subscriptionName": "IDEA Prod Subscription",
     "subscriptionId": "50f792fa-803e-4280-833d-1fe60fef5293",
     "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
     "vmResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
@@ -20,16 +20,19 @@
     "networking": "Existing static Standard public IP; no network changes authorized",
     "currentPowerState": "RECONFIRM_BEFORE_LIVE_OPERATION",
     "operatorObjectId": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
-    "operatorExistingRoles": ["Owner", "Global Administrator"],
+    "operatorExistingRoles": [
+      "Owner",
+      "Global Administrator"
+    ],
     "functionNameAvailableAtDiscovery": true,
     "storageNameAvailableAtDiscovery": true,
     "flexFC1Node24Memory512Supported": true,
     "flexRegionalMemoryQuotaVerified": false,
-    "microsoftAppProviderRegistration": "NotRegistered"
+    "microsoftAppProviderRegistration": "Registered"
   },
   "proposedResources": {
     "controllerResourceGroup": "rg-vm01-controller",
-    "resourceGroupNameApproved": false,
+    "resourceGroupNameApproved": true,
     "functionApp": "vm01-controller-50f792fa",
     "storageAccount": "stvm01ctl50f792fa",
     "region": "southeastasia",
@@ -45,17 +48,17 @@
     "unresolvedRecordRetention": "until explicitly reconciled; never automatically pruned",
     "auditRingEvents": 1000,
     "ingress": "Default HTTPS hostname; public sign-in assets, Entra-protected API",
-    "defaultHostname": "FILL_FROM_PROVISIONED_OUTPUT_BEFORE_SPA_REDIRECT_CONFIGURATION",
+    "defaultHostname": "vm01-controller-50f792fa.azurewebsites.net",
     "additionalPaidServices": [],
     "providerRegistrationProposal": {
       "provider": "Microsoft.App",
       "permission": "Microsoft.App/register/action",
       "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293",
-      "approved": false
+      "approved": true
     }
   },
   "runtimePermissions": {
-    "systemAssignedIdentityPrincipalId": "FILL_AFTER_APPROVED_RESOURCE_CREATION",
+    "systemAssignedIdentityPrincipalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
     "baseVmRoleName": "VM01 Power Controller",
     "baseVmRoleDefinitionAssignableScope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT",
     "baseVmRoleAssignmentScope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
@@ -66,28 +69,81 @@
       "Microsoft.Compute/virtualMachines/restart/action",
       "Microsoft.Compute/virtualMachines/deallocate/action"
     ],
-    "hostStorageRole": { "name": "Storage Blob Data Owner", "scope": "new dedicated stvm01ctl50f792fa account" },
-    "deploymentStorageRole": { "name": "Storage Blob Data Contributor", "scope": "new dedicated account/function-package container", "effectiveAuthority": "subsumed by host Owner; separate purpose enumeration" },
+    "hostStorageRole": {
+      "name": "Storage Blob Data Owner",
+      "scope": "new dedicated stvm01ctl50f792fa account"
+    },
+    "deploymentStorageRole": {
+      "name": "Storage Blob Data Contributor",
+      "scope": "new dedicated account/function-package container",
+      "effectiveAuthority": "subsumed by host Owner; separate purpose enumeration"
+    },
     "preserveExistingGrafanaPowerRole": true,
     "attachVmRoleDefault": false,
     "mutationsEnabledDefault": false,
     "ledgerAdmissionDefault": false,
     "operationPollingDefault": false,
     "operationReadProposal": "../infra/operation-read-proposal.json",
-    "operationReadGranted": false
+    "operationReadGranted": false,
+    "baseVmRoleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/637a62eb-6239-5956-958c-c11032293ebe",
+    "baseVmRoleAttached": true,
+    "mutationsEnabledCurrent": false,
+    "ledgerAdmissionCurrent": false,
+    "operationPollingCurrent": false
   },
   "entra": {
     "tenantMode": "single tenant",
     "registrations": [
-      { "name": "VM01 Controller API", "clientId": "NOT_CREATED", "requestedAccessTokenVersion": 2, "accessTokenOptionalClaims": ["idtyp"], "delegatedScopes": ["vm01.control"], "applicationRoles": ["VM01.Status", "VM01.Start", "VM01.Restart", "VM01.Deallocate"], "runtimeGraphPermissions": [] },
-      { "name": "VM01 Controller Browser", "clientId": "NOT_CREATED", "type": "SPA authorization code with PKCE", "redirectUri": "<verified default HTTPS origin>/auth/callback", "credential": "none" },
-      { "name": "VM01 Controller Codex Cloud", "clientId": "NOT_CREATED", "servicePrincipalObjectId": "NOT_CREATED", "requestedApplicationRoles": ["VM01.Status", "VM01.Start", "VM01.Restart", "VM01.Deallocate"], "azureManagementRoles": [] }
+      {
+        "name": "VM01 Controller API",
+        "clientId": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+        "requestedAccessTokenVersion": 2,
+        "accessTokenOptionalClaims": [
+          "idtyp"
+        ],
+        "delegatedScopes": [
+          "vm01.control"
+        ],
+        "applicationRoles": [
+          "VM01.Status",
+          "VM01.Start",
+          "VM01.Restart",
+          "VM01.Deallocate"
+        ],
+        "runtimeGraphPermissions": [],
+        "applicationObjectId": "9b337a81-538c-4205-a800-59c95e8cec3b",
+        "servicePrincipalObjectId": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+      },
+      {
+        "name": "VM01 Controller Browser",
+        "clientId": "c74d7869-7313-459e-93b2-50beb860812f",
+        "type": "SPA authorization code with PKCE",
+        "redirectUri": "https://vm01-controller-50f792fa.azurewebsites.net/auth/callback",
+        "credential": "none",
+        "applicationObjectId": "9469618c-7d6f-40f8-accf-726475815193",
+        "servicePrincipalObjectId": "065bf299-b083-422e-916b-a94c3f13429c"
+      },
+      {
+        "name": "VM01 Controller Codex Cloud",
+        "clientId": "af64b0c6-261c-45a0-b653-a71d382edb92",
+        "servicePrincipalObjectId": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+        "requestedApplicationRoles": [
+          "VM01.Status",
+          "VM01.Start",
+          "VM01.Restart",
+          "VM01.Deallocate"
+        ],
+        "azureManagementRoles": [],
+        "applicationObjectId": "a7f9baed-fc3c-4514-bfe8-e4436f73b202"
+      }
     ],
     "browserAllowlistedUserCandidate": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
     "browserIntendedSessionAndConsentVerified": false,
-    "apiAudience": "<API registration client ID>",
-    "scopeApplicationIdUri": "api://<API registration client ID>",
-    "applicationConsentApproved": false
+    "apiAudience": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+    "scopeApplicationIdUri": "api://f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+    "applicationConsentApproved": true,
+    "ownerOnlyDelegatedConsentVerified": true,
+    "browserSessionVerified": false
   },
   "cloudAuthentication": {
     "federationIssuerSubjectAudienceVerified": false,
@@ -101,29 +157,48 @@
   "operatorRights": {
     "existingOperatorPrivilegesVerifiedByParent": true,
     "runtimeUseOfOperatorCredential": false,
-    "requiredScopesToReview": ["new controller resource group deployment/storage role assignments", "RG-MWCREDIT custom role definition and exact VM assignment", "specific Entra registrations/consents", "Microsoft.App provider registration at subscription if required"],
+    "requiredScopesToReview": [
+      "new controller resource group deployment/storage role assignments",
+      "RG-MWCREDIT custom role definition and exact VM assignment",
+      "specific Entra registrations/consents",
+      "Microsoft.App provider registration at subscription if required"
+    ],
     "broadNewCloudRuntimeGrant": false
   },
   "cost": {
-    "targetUsdMonthly": 1,
-    "excludes": ["VM compute", "existing disks", "existing public IP/network resources"],
-    "selectedRegionQuoteVerified": false,
+    "targetUsdMonthly": 2,
+    "excludes": [
+      "VM compute",
+      "existing disks",
+      "existing public IP/network resources"
+    ],
+    "selectedRegionQuoteVerified": true,
     "subscriptionGrantEligibilityAndRemainingAllowanceVerified": false,
     "illustrativeRequestsMonthly": 10000,
-    "illustrativeComputeUsdWithoutGrantAtOneSecond": 0.134,
+    "illustrativeComputeUsdWithoutGrantAtOneSecond": 0.189,
     "illustrativeStorageUsd": 0.292,
     "hostActivityAndNetworkingMeasured": false,
-    "hardSpendingCap": false
+    "hardSpendingCap": false,
+    "planningBudgetUsdMonthlyApproved": 2,
+    "illustrativeTotalUsdWithoutGrantAtOneSecond": 0.481,
+    "illustrativeTotalUsdWithoutGrantAtFiveSeconds": 1.221
   },
   "approvalGroups": {
     "sourceCommitPushDraftPr": "AUTHORIZED_IN_PARENT_TASK; existing private AppSheet repository audience only",
     "merge": "NOT_AUTHORIZED",
-    "resourceAndProviderProvisioning": "NOT_APPROVED",
-    "entraAndBaseRbacChanges": "NOT_APPROVED",
+    "resourceAndProviderProvisioning": "APPROVED_AND_COMPLETED_DISABLED_BOOTSTRAP",
+    "entraAndBaseRbacChanges": "APPROVED_AND_COMPLETED_EXACT_SCOPES",
     "optionalOperationReadScope": "NOT_APPROVED",
     "credentialsOrSavedEnvironment": "NOT_APPROVED",
-    "deploymentAndMutationActivation": "NOT_APPROVED",
-    "livePowerTest": { "status": "NOT_APPROVED", "actionsAndCounts": [], "window": "UNSPECIFIED", "workAdmissionHold": "UNSPECIFIED", "recoveryOperator": "UNSPECIFIED" }
+    "deploymentAndMutationActivation": "DISABLED_BOOTSTRAP_DEPLOYMENT_APPROVED_AND_COMPLETED; MUTATION_ACTIVATION_NOT_APPROVED",
+    "livePowerTest": {
+      "status": "NOT_APPROVED",
+      "actionsAndCounts": [],
+      "window": "UNSPECIFIED",
+      "workAdmissionHold": "UNSPECIFIED",
+      "recoveryOperator": "UNSPECIFIED"
+    },
+    "ownerBootstrapApproval": "I approve the prepared bootstrap provisioning plan and its US$2/month planning budget, with VM commands disabled."
   },
   "acceptance": {
     "automatedEvidence": "acceptance.md",
@@ -131,6 +206,13 @@
     "externalActiveWorkCoordinationAccepted": false,
     "liveAuthenticationAndStorageVerified": false,
     "liveArmPollingVerified": false,
-    "executorReadiness": "deferred; never inferred from power running"
-  }
+    "executorReadiness": "deferred; never inferred from power running",
+    "platformAuthRejectedCallersVerified": true,
+    "publicUiAndPinnedAssetsVerified": true,
+    "hostDeploymentAndAdministratorLedgerVerified": true,
+    "allowedBrowserAndCloudStatusVerified": false,
+    "functionRuntimeVmAndLedgerAccessVerified": false
+  },
+  "deployedSourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
+  "bootstrapReceipt": "../../../../outputs/r050-vm01-controller/bootstrap/provisioning-receipt.json"
 }

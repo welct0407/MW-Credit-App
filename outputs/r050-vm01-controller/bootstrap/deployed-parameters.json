@@ -1,0 +1,50 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "southeastasia"
+    },
+    "functionAppName": {
+      "value": "vm01-controller-50f792fa"
+    },
+    "storageAccountName": {
+      "value": "stvm01ctl50f792fa"
+    },
+    "apiClientId": {
+      "value": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b"
+    },
+    "browserClientId": {
+      "value": "c74d7869-7313-459e-93b2-50beb860812f"
+    },
+    "browserUserObjectIds": {
+      "value": [
+        "8a83866b-cdcc-4f87-99be-c41e3635c73b"
+      ]
+    },
+    "expectedVmId": {
+      "value": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9"
+    },
+    "cloudClientId": {
+      "value": "af64b0c6-261c-45a0-b653-a71d382edb92"
+    },
+    "cloudPrincipalId": {
+      "value": "d01d70be-d205-4ac9-a7fc-a18dd48e0633"
+    },
+    "enableMutations": {
+      "value": false
+    },
+    "enableOperationPolling": {
+      "value": false
+    },
+    "attachVmRole": {
+      "value": false
+    },
+    "maximumInstanceCount": {
+      "value": 40
+    },
+    "httpConcurrency": {
+      "value": 4
+    }
+  }
+}

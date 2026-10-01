@@ -32,9 +32,12 @@ test('browser confirmation cancellation, same-origin auth bridge and saved-reque
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve)); origin = `http://127.0.0.1:${server.address().port}`;
   const cfg = { ...f.config, origin };
   handler = createApiHandler(cfg, f.controller, async () => ({ ver: '2.0', tid: cfg.tenantId, aud: ids.api, oid: ids.user, azp: ids.browser, scp: 'vm01.control' }));
-  const browser = await chromium.launch({ executablePath: process.env.VM01_TEST_CHROMIUM ?? '/usr/bin/chromium', headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  let browser;
   try {
+    const windows = process.platform === 'win32';
+    browser = await chromium.launch({ executablePath: process.env.VM01_TEST_CHROMIUM ?? '/usr/bin/chromium', headless: true, chromiumSandbox: windows, args: windows ? [] : ['--no-sandbox', '--disable-dev-shm-usage'] });
     const page = await browser.newPage(); const pageErrors = []; page.on('pageerror', error => pageErrors.push(error));
+    await page.addInitScript(now => { Date.now = () => now; }, f.now());
     await page.route('**/*', route => route.request().url().startsWith(origin) ? route.continue() : route.abort());
     await page.goto(origin); await page.locator('#sign-in').click(); await page.locator('[data-action=restart]').waitFor();
     await page.waitForFunction(() => !document.querySelector('[data-action=restart]').disabled);
@@ -60,5 +63,5 @@ test('browser confirmation cancellation, same-origin auth bridge and saved-reque
     await page.locator('#retry').click(); assert.equal((await retryDispatch).status(), 202); assert.equal(f.arm.calls.length, 2);
     assert.equal(await page.evaluate(() => Object.keys(localStorage).length), 0);
     assert.deepEqual(pageErrors, []); assert.deepEqual(errors, []);
-  } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }
+  } finally { try { await browser?.close(); } finally { await new Promise(resolve => server.close(resolve)); } }
 });

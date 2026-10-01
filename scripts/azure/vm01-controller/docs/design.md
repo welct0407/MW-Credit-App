@@ -6,7 +6,7 @@ Design: Astra High. Source execution: Sol6.1 High. Release: R050, remaining Open
 
 Parent discovery verified subscription `50f792fa-803e-4280-833d-1fe60fef5293`, tenant `9e29c895-606a-420b-acc2-1c24375df4d9`, resource group `RG-MWCREDIT`, VM `VM-01`, immutable `vmId` `0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9`, Southeast Asia zone1, Standard_D4as_v4, Windows11 and a127GB StandardSSD_LRS OS disk. Static Standard public IP exists; networking is outside scope.
 
-Candidate names `vm01-controller-50f792fa` and `stvm01ctl50f792fa` were available at discovery. Southeast Asia supports Flex FC1, Node24 and512MB. Availability must be reconfirmed before provisioning. Microsoft.App is NotRegistered and needs explicit registration approval; Flex regional memory quota remains unverified. Existing Grafana power-control role lacks restart and is preserved.
+The owner-approved disabled bootstrap created `vm01-controller-50f792fa` and `stvm01ctl50f792fa` in Southeast Asia with Flex FC1, Node24 and512MB. Microsoft.App is now Registered. Full regional scale quota remains unverified; the deployed bootstrap does not prove maximum-scale capacity. Existing Grafana power-control role lacks restart and was preserved. [Applied resource/identity evidence](../../../../outputs/r050-vm01-controller/bootstrap/README.md).
 
 Use one Linux Function app, Node24/TypeScript, Functions v4, Flex Consumption512MB, no always-ready instances, HTTP concurrency4 and maximum instance count40. Forty is a ceiling, not reserved or always-on capacity. All application APIs are HTTP-triggered; no permanent timers, idle shutdown, queue, database, Durable extension, APIM, Key Vault, private endpoint, NAT, extra website or Windows changes.
 
@@ -22,7 +22,7 @@ Easy Auth requires authentication with401 responses and exact static-path exclus
 
 POST requires JSON, a4KB body limit and no target fields. Foreign origins and cross-site browser metadata are rejected. Authorized originless machine calls are permitted. Mutations never use GET; no permissive CORS. Headers enforce no-store, CSP, no-referrer and no-sniff. Authentication material/error bodies are not logged. Operational records contain public request/caller/correlation identifiers and restricted approval references.
 
-Cloud federation availability is unverified. Do not assume a Codex OIDC issuer or use GCP/IAP credentials. If no supported assertion exists, separately approve a certificate credential in the established private credential mechanism, with expiry/rotation/revocation ownership. Neither credentials nor saved environments were changed in this milestone.
+Cloud federation availability is unverified. Do not assume a Codex OIDC issuer or use GCP/IAP credentials. If no supported assertion exists, separately approve a certificate credential in the established private credential mechanism, with expiry/rotation/revocation ownership. No credentials or saved Cloud environments were changed in the source milestone or disabled bootstrap; allowed Cloud token issuance/status remains pending.
 
 ## ARM boundary and asynchronous behavior
 

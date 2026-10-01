@@ -1,6 +1,6 @@
 # Project scripts and shared dependencies
 
-R050 [Azure VM-01 controller](azure/vm01-controller/README.md) owns the project control UI/API, Azure templates and approval records. Codex Cloud builds/tests with Node 24; the module guide describes its isolated test dependencies. The Windows shared runtime/junction instructions below remain applicable to VM-01. Source is undeployed; source publication grants no live Azure authority. [Evidence](../outputs/r050-vm01-controller/README.md).
+R050 [Azure VM-01 controller](azure/vm01-controller/README.md) owns the project control UI/API, Azure templates and approval records. Codex Cloud builds/tests with Node 24; the module guide describes its isolated test dependencies. The Windows shared runtime/junction instructions below remain applicable to VM-01. The separately approved disabled bootstrap is deployed; commands/admission/polling remain disabled and authenticated acceptance is pending. Source publication grants no additional live Azure authority. [Evidence](../outputs/r050-vm01-controller/README.md).
 
 R048 summary: `database/Backup-UpcomingSummary.py` is the reviewed DEV V54 backup/V55 disposable restore rehearsal helper. `database/Test-UpcomingCharges.sql` now includes18 assertions, including borrower/date summary totals, capped dates, empty/prepaid cases and stable keys. [Evidence](../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
 

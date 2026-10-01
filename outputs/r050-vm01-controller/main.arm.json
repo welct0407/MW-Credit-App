@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.47.16.16243",
-      "templateHash": "15879776494810109186"
+      "templateHash": "8518182519752059667"
     }
   },
   "parameters": {
@@ -230,8 +230,8 @@
         "VM01_CLOUD_CLIENT_ID": "[parameters('cloudClientId')]",
         "VM01_CLOUD_PRINCIPAL_ID": "[parameters('cloudPrincipalId')]",
         "VM01_STORAGE_ACCOUNT": "[parameters('storageAccountName')]",
-        "VM01_ENABLE_MUTATIONS": "[string(parameters('enableMutations'))]",
-        "VM01_ENABLE_OPERATION_POLLING": "[string(parameters('enableOperationPolling'))]"
+        "VM01_ENABLE_MUTATIONS": "[if(parameters('enableMutations'), 'true', 'false')]",
+        "VM01_ENABLE_OPERATION_POLLING": "[if(parameters('enableOperationPolling'), 'true', 'false')]"
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites', parameters('functionAppName'))]",

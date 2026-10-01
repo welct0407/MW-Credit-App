@@ -1,6 +1,6 @@
-# Azure VM-01 controller — R050 source milestone
+# Azure VM-01 controller - R050 disabled bootstrap
 
-One Azure Function serves a small browser UI and authenticated status/start/restart/deallocate endpoints for the fixed VM-01. This is source-only, with no deployed controller or authorized live Azure changes. Source belongs to AppSheet-Loan-Project under the owner's 1 October 2026 clarification; Daily-Use remains personal-use only.
+One Azure Function serves a small browser UI and authenticated status/start/restart/deallocate endpoints for the fixed VM-01. The approved disabled bootstrap is deployed at https://vm01-controller-50f792fa.azurewebsites.net from commit `e02501786af5f8a9ca7073c08244eb6afc4e08af`. Commands, ledger admission and operation polling remain disabled; allowed-caller authenticated acceptance is pending. [Applied identities, scopes and verification](../../../outputs/r050-vm01-controller/bootstrap/README.md). The current source repairs lowercase Bicep switch serialization and has not been redeployed. Source belongs to AppSheet-Loan-Project under the owner's 1 October 2026 clarification; Daily-Use remains personal-use only.
 
 The base managed-identity role has exactly five VM actions assigned only at VM-01. Asynchronous restart acceptance is **not completion**. Without separately approved operation-status read access, the controller retains a serialization latch and requires administrator reconciliation. Optional server-side polling is implemented and disabled by default.
 

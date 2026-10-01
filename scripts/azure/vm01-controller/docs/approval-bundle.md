@@ -1,6 +1,6 @@
 # Live approval bundle
 
-[approval-manifest.json](approval-manifest.json) is the concrete source of proposed resources, exact target/actions/scopes, identity changes and outstanding values. It is deliberately **not an executable authorization**: registrations, final hostname, package/commit pin, credential mechanism and regional quote still require completion. Source publication to the existing private AppSheet repository audience is authorized; merge and every live Azure stage remain unapproved.
+[approval-manifest.json](approval-manifest.json) is the concrete source of proposed resources, exact target/actions/scopes, identity changes and outstanding values. It records completed owner-approved resource/provider, Entra/base RBAC and disabled package/ledger bootstrap, plus remaining gates. Actual registrations, hostname and deployed commit/ZIP are in the [receipt](../../../../outputs/r050-vm01-controller/bootstrap/README.md). Credentials/environment, optional operation-read, mutation/admission activation and live power timing remain unapproved. Source publication to the existing private AppSheet repository audience is authorized; merge and any redeploy are not authorized by this repair task.
 
 ## Separate requested approval groups
 
@@ -10,7 +10,7 @@
 | Entra and base RBAC | Three exact single-tenant registrations, API v2/idtyp/scope/roles, approved owner object ID, exact redirect and consents; separate five-action role definition in RG-MWCREDIT and assignment only at VM-01; preserve Grafana role. |
 | Optional operation read | One separate Microsoft.Compute/locations/operations/read action; explicitly approve candidate scope and verification, or broader subscription alternative. It never joins the VM base role. |
 | Cloud credentials/environment | Real supported issuer/subject/audience, or certificate/private storage/rotation/revocation; any saved-environment change independently recorded. Never owner's Azure password or Contributor credentials. |
-| Deployment/activation | Exact reviewed commit and final ZIP SHA256, compiled template/public parameters, disabled bootstrap, status-only verification, then runtime/ledger admission switches. |
+| Deployment/activation | Disabled bootstrap from e025017 and its final ZIP is approved/completed. Allowed-caller status acceptance remains pending. Runtime mutation and ledger admission activation require separate approval. This source repair is not redeployed. |
 | Power test timing | Exact actions/counts/window, held VM task admission, saved work, independent reconnect observation, recovery operator. No general authorization to test power repeatedly. |
 
 Operator Owner/Global Administrator privileges exist per authenticated discovery; access is not authorization. Use the existing operator only for approved provisioning/consent, never pass those credentials to Cloud or the controller runtime. No broad permanent role is requested for Codex.
@@ -29,4 +29,4 @@ Complete tested Git commit, final ZIP hash, compiled ARM template hashes, public
 
 ## Budget decision
 
-The owner target is **under USD1/month excluding VM, disks and existing public IP/networking**, not a verified ceiling. With 10,000 monthly requests, 512MB and one billed second, the illustrative model is about USD0.29 with available grant or USD0.43 without; five seconds approaches USD0.95 without grant before overhead. These assumptions and Microsoft grant/storage references are in [operations](operations.md#cost-and-logs). Selected-region/offer rates, subscription eligibility/remaining shared grant, host transactions, public traffic and actual billing duration remain unverified. No hard cap or paid logging service is provisioned. Approve the verified quote/operating budget separately from source publication.
+The owner approved **US$2/month as a planning budget**, excluding VM, disks and existing public IP/networking, with commands disabled. The verified Southeast Asia planning model is approximately USD0.292 with available grant, USD0.481 without at1 billed second, or USD1.221 without at5 seconds before host/storage/network overhead. Remaining shared grant and actual overhead are unmeasured. No hard cap or paid logging service is provisioned. See [cost and logs](operations.md#cost-and-logs) and the actual bootstrap receipt.
