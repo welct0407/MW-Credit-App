@@ -2,6 +2,8 @@
 
 This file governs OLTP, OLAP and Looker Studio work in this repository. AI Collection is governed separately in `C:\GitHub\MW-AI-Collection`: read its `AGENTS.md` and `SERVICE_CATALOGUE.md` before collection work. Its catalogue is default-deny; the `collection-agent` and `mw-ai-collection` junctions here are compatibility paths, not independent runtimes.
 
+**Repository ownership — owner clarification, 1 October 2026:** all development supporting the AppSheet Loan Project belongs here, including cross-environment infrastructure/tools such as [Azure VM-01 control](scripts/azure/vm01-controller/README.md). `Daily-Use` is for the owner's personal-use work; `MW-Integration-Agent` owns its integration-agent runtime. Provider or deployment location alone does not move project development to another repository. The VM controller's source, Azure provisioning/security changes, credentials and live power-action timing have distinct authorization scopes; its five-action VM-scoped base role must not expand silently.
+
 ## Working method and task routing
 
 - Carry authorized work through implementation, relevant verification, documentation and publication. Reuse decisions and scoped authorization from the conversation; ask only for missing authorization or information that materially affects correctness, scope or recovery. Continue independent work when one path is blocked. Do not add approval gates for routine reversible choices.

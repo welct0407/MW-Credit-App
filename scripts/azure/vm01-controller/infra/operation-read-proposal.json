@@ -1,0 +1,28 @@
+{
+  "status": "PROPOSAL_ONLY_NOT_APPROVED",
+  "permission": "Microsoft.Compute/locations/operations/read",
+  "runtimeSwitch": "VM01_ENABLE_OPERATION_POLLING=false",
+  "scopeCandidates": [
+    {
+      "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT",
+      "status": "candidate_requires_approved_live_verification",
+      "basis": "Generic ARM async-operation documentation describes sufficient resource-group permissions."
+    },
+    {
+      "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293",
+      "status": "broader_candidate_requires_separate_explicit_approval",
+      "basis": "Azure Update Manager roles/permissions lists this action at Machine subscription scope."
+    }
+  ],
+  "rolePermissions": {
+    "actions": ["Microsoft.Compute/locations/operations/read"],
+    "notActions": [],
+    "dataActions": [],
+    "notDataActions": []
+  },
+  "securityImpact": "May expose operation status for other compute operations within the effective scope. Application URL validation does not reduce the underlying identity grant.",
+  "sources": [
+    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/async-operations#permission-for-tracking-async-status",
+    "https://learn.microsoft.com/en-us/azure/update-manager/roles-permissions"
+  ]
+}

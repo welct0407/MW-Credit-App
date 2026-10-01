@@ -1,0 +1,71 @@
+
+> vm01-controller@0.1.0 test
+> npm run build && node --test tests/*.test.mjs
+
+
+> vm01-controller@0.1.0 build
+> tsc && node scripts/build-web.mjs
+
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice
+✔ administration requires matching generation, disabled admission, exact operation and worker fencing (7.681352ms)
+✔ unresolved operation blocks admission and stale generation cannot enable it (1.810814ms)
+✔ operation URL validation blocks SSRF, redirects, other subscriptions/regions and arbitrary endpoints (1.80064ms)
+✔ ARM POST is sent once with no body, fixed target and manual redirects (1.905804ms)
+✔ invalid Azure response URL is not persisted or followed (0.402225ms)
+✔ optional poll verifies URL again and never follows redirects (0.687272ms)
+✔ poll handles terminal status, safe failure codes, Location 204 and forbidden reads (2.912117ms)
+✔ VM observation requires valid instance view and maps unsupported power states to unknown (1.411665ms)
+✔ ledger schema rejects lost active records, incompatible target and corrupted fields (0.510815ms)
+✔ ETag/lease fencing rejects a conflicting ledger write (0.995719ms)
+✔ configuration has no default credential fallback and rejects wrong tenant/VM or partial cloud identity (0.876803ms)
+✔ cryptographic bearer validation rejects unsigned, wrong audience/issuer and expired tokens (17.091111ms)
+✔ cookie/Function key/principal headers cannot replace a bearer token (0.595057ms)
+✔ browser uses exact object identity, delegated scope and SPA client (10.464115ms)
+✔ application caller requires explicit app identity and route role (18.635401ms)
+✔ foreign origins, form posts, GET actions and extra target fields never reach ARM (7.828298ms)
+✔ JSON body size is bounded even without content-length (2.96433ms)
+✔ authorized originless application uses JSON and same-origin browser succeeds (4.516318ms)
+✔ errors and receipts omit raw tokens, ARM error text and private operation URLs (4.165009ms)
+✔ browser confirmation cancellation, same-origin auth bridge and saved-request behavior (1976.110104ms)
+✔ restart acceptance does not become success from running, and blocks a new operation (7.05058ms)
+✔ duplicates survive restart, stale request state and changed current power state (1.317175ms)
+✔ concurrent identical submissions produce one dispatch, and same ID can retrieve its receipt (1.426494ms)
+✔ concurrent different operations cannot dispatch together (0.912994ms)
+✔ write failure before dispatch leaves no ARM effect (0.431814ms)
+✔ crash after persisted intent never replays a POST (0.967445ms)
+✔ result persistence failure retains dispatching intent and converts to unknown without replay (0.728964ms)
+✔ lease loss after persisted intent prevents dispatch and preserves the latch (0.512938ms)
+✔ unknown server/redirect responses retain serialization; definitive rejection releases it (1.760399ms)
+✔ synchronous success is recorded and duplicate does not repeat it (0.557717ms)
+✔ different request IDs from the same snapshot cannot issue two restarts after synchronous success (0.433924ms)
+✔ start and deallocate can report observed desired state without claiming restart success (0.658231ms)
+✔ stable already-satisfied actions are persisted no-ops (0.182508ms)
+✔ dangerous actions require fresh explicit work confirmation (0.35648ms)
+✔ target replacement and unknown/provisioning states disable mutation (0.753098ms)
+✔ expired request and stale state are rejected before dispatch, even after records were pruned (0.337238ms)
+✔ missing/corrupt storage and runtime/admission switches fail closed (0.832469ms)
+✔ operation receipt is private to initiating identity (0.30419ms)
+✔ polling disabled means no poll and restart remains latched (0.449832ms)
+✔ approved optional polling requires terminal success plus desired state (1.057633ms)
+✔ 403 polling pauses commands and later resumes the same operation without another POST (1.078907ms)
+✔ terminal polling refreshes VM observation before clearing restart serialization (0.444995ms)
+✔ terminal failed/canceled operation retains details and releases serialization (0.942697ms)
+✔ source infrastructure defaults are inert and preserve the exact base permission boundary (10.00647ms)
+✔ approval manifest and templates agree on discovered target, names and unresolved approvals (3.511868ms)
+ℹ tests 45
+ℹ suites 0
+ℹ pass 45
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3010.563019
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.0
+npm notice To update run: npm install -g npm@12.2.0
+npm notice

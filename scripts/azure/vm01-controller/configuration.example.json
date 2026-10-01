@@ -1,0 +1,15 @@
+{
+  "description": "Public configuration examples only. Do not add credentials or create a repository-local secret file.",
+  "VM01_TENANT_ID": "9e29c895-606a-420b-acc2-1c24375df4d9",
+  "VM01_RESOURCE_ID": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+  "VM01_EXPECTED_VM_ID": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+  "VM01_ORIGIN": "https://REQUIRES_DEFAULT_FUNCTION_HOSTNAME",
+  "VM01_API_CLIENT_ID": "REQUIRES_API_CLIENT_ID",
+  "VM01_BROWSER_CLIENT_ID": "REQUIRES_SPA_CLIENT_ID",
+  "VM01_BROWSER_USER_IDS": "8a83866b-cdcc-4f87-99be-c41e3635c73b",
+  "VM01_CLOUD_CLIENT_ID": "",
+  "VM01_CLOUD_PRINCIPAL_ID": "",
+  "VM01_STORAGE_ACCOUNT": "stvm01ctl50f792fa",
+  "VM01_ENABLE_MUTATIONS": "false",
+  "VM01_ENABLE_OPERATION_POLLING": "false"
+}

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-01T16:45:00.412548+00:00",
+  "status": "SOURCE_VALIDATED_UNDEPLOYED",
+  "baselineCommit": "d351991d1a1c0895d4abc8f0f4ba4fa55fa7a4e5",
+  "branch": "feat/vm01-controller-source",
+  "toolchain": {
+    "node": "v24.19.0",
+    "npm": "11.9.0",
+    "bicep": "0.47.16",
+    "browser": "system Chromium via playwright-core"
+  },
+  "checks": {
+    "npmTest": {
+      "total": 45,
+      "passed": 45,
+      "failed": 0,
+      "output": "tests.log"
+    },
+    "additionalIsolatedBrowserRuns": {
+      "runs": 2,
+      "passed": 2,
+      "purpose": "Verify response synchronization after observed fixture assertion race"
+    },
+    "strictTypeScript": "PASS",
+    "offlineBicepCompilation": "PASS_ZERO_DIAGNOSTICS",
+    "sourcePackageIntegrity": "PASS",
+    "sourcePackageJavascriptSyntax": "PASS",
+    "moduleJsonParsing": "PASS",
+    "localDocumentationLinks": "PASS",
+    "gitDiffWhitespace": "PASS"
+  },
+  "source": {
+    "fileCount": 43,
+    "treeSha256": "eed57f4bea90dc3ee73b0c1255bce987069c14f3477f406353a6bde76e19f2af",
+    "algorithm": "SHA256 of sorted module-relative path + NUL + file SHA256 + LF, excluding node_modules and dist"
+  },
+  "hashes": {
+    "packageLockSha256": "1206c44acaf98831b66edfb63fd5e14095787815ac1146e5c713dd7270a199db",
+    "compiledMainArmSha256": "346fc8989173b96bb8e3bcf225d9adc90bd4ef18679d362b152e207bd5f7527b",
+    "testOutputSha256": "7e5839804eb58cb076b97acd5271585de862d144f76e5edfe75350f4aa88ce8d"
+  },
+  "package": {
+    "stagedFiles": 20,
+    "productionDependenciesInstalledInStaging": false,
+    "finalDeploymentZipCreated": false,
+    "deployed": false
+  },
+  "liveWritesPerformed": false,
+  "remotePublication": "Final task response and Git history record exact remote commit/PR; not provisioning approval",
+  "cost": {
+    "targetUsdPerMonthExcludingVm": 1,
+    "illustrativeEstimateWithGrant": 0.292,
+    "illustrativeEstimateWithoutGrant": 0.426,
+    "selectedRegionQuoteVerified": false,
+    "retailApiRead": "HTTP403; access denial not bypassed"
+  }
+}
