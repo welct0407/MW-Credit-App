@@ -1,6 +1,6 @@
 # Approved Grafana bridge bootstrap — 2 October 2026
 
-Checkpoint: named resources verified; inert Cloud Run revision deployed and Ready; all three indexes READY and six TTL policies ACTIVE. Fresh-environment HTTPS health/inert-route checks passed; domain ownership read previously returned no verified domains for the fixed service account, and the separate human-owner route is blocked. Domain mapping remains absent. No functional OAuth, secret entry, dispatch, Grafana cutover or DNS change.
+Checkpoint: named resources verified; inert Cloud Run revision deployed and Ready; all three indexes READY and six TTL policies ACTIVE. Fresh-environment HTTPS health/inert-route checks passed; the owner subsequently created the custom-domain mapping and confirmed its manual DNS entry. The mapping now reports CertificatePending; custom-domain acceptance remains incomplete. No functional OAuth, secret entry, dispatch, Grafana cutover or DNS change.
 
 ## Source and authority
 
@@ -55,3 +55,23 @@ On 2 October 2026, a new saved cloud task fetched exact pin `b53f2da400b45b176da
 The separate local inert Node regression passed 1/1 in this checkout. It is local code evidence; the 13 HTTPS observations above are fresh deployed behavior. Full OAuth, MCP Events delivery and host round-trip acceptance remain inactive/unverified. No DNS, domain ownership/permissions, App Engine activation, secrets, Scheduler, live Grafana, merge or deployment action occurred.
 
 Publication check limitation: `gh pr view` and exact-pin `gh run list` were denied with `Forbidden`; no further API route or denial workaround was attempted. The last documented bridge implementation CI remains the Linux/Windows passing run at `8f97c7af864fb8cf3e31a305bc3dc45456f7e191` linked above, reused for unchanged source only. Fresh CI status and draft metadata could not be independently inspected. This task changes only focused evidence/documents, outside the bridge workflow's path filters. Normal Git publication targets the existing task branch/PR 3; remote commit verification is recorded in the task outcome.
+
+## Owner-created custom domain: certificate pending
+
+The parent reports the owner completed the Google mapping wizard and manual Cloudflare DNS-only CNAME `alerts → ghs.googlehosted.com` with TTL Auto at 21:55:56 UTC on 2 October 2026. This task did not perform or retry ownership, mapping or DNS writes. [Bounded readback](custom-domain-readback.json), observed approximately 21:57–21:58 UTC, confirms `alerts.mw-credit.com` maps to `mw-grafana-events` in the fixed project/region and returns the exact CNAME above.
+
+- `Ready=Unknown`, reason `CertificatePending`: “Waiting for certificate provisioning. You must configure your DNS records for certificate issuance to begin.” Last transition 21:51:33.818035 UTC.
+- `CertificateProvisioned=Unknown`, reason `CertificatePending`: “Certificate issuance pending.” Last transition 21:52:34.178100 UTC.
+- `DomainRoutable=True`. `Retry=True`, reason `WaitingForOperation`, last transition 21:53:55.134191 UTC; platform message specifies retry after 00:05. This is the platform's operation retry, not polling performed here.
+
+The environment's local resolver returned temporary resolution failure, so actual public CNAME/A/AAAA resolution is unverified; this does not prove faulty DNS. One normal curl HTTPS health probe returned 503 rather than 200, exit 0 and `ssl_verify_result=0`; the body was not the inert health body and was omitted. The responding layer is unconfirmed, and this result does not establish a ready origin certificate/routing path. No TLS bypass, proxy/route workaround, repeated polling or sensitive-route probes followed. Parent should coordinate a later bounded read after certificate provisioning; require `Ready=True`, ordinary TLS health 200, then inactive routes 503 before proceeding. Managed-origin 13/13 results remain separate and valid dated observations.
+
+The stable SDK domain-mapping command rejected the regional flag locally. The documented beta metadata-read command then automatically installed its missing beta component in the retained SDK. This unexpected SDK component addition is disclosed; no full tool install/lab reset or cloud settings change was performed. No denied GitHub API retry was made.
+
+### Next setup requirements from existing deployment documents (not executed)
+
+After custom-domain TLS readiness, the owner creates a Google **web** OAuth client and configures exact authorized redirect `https://alerts.mw-credit.com/oauth/google/callback`. Verify the human owner's Google subject and client ID; the deployment service account does not replace that human identity. Canonical origin is `https://alerts.mw-credit.com`, issuer `https://alerts.mw-credit.com/oauth`, MCP resource `https://alerts.mw-credit.com/mcp`; do not issue grants against the managed origin first.
+
+The owner separately runs `python3 seed-secrets.py --owner OWNER_ACCOUNT` from an interactive terminal using the documented owner route, with Node available. Enter the Google client secret only at its hidden prompt into Secret Manager stdin; no chat, relay, screen capture or command-argument entry. The seed script creates four application values in memory and outputs only version names for five dedicated containers: `mw-grafana-hmac`, `mw-grafana-state-key`, `mw-grafana-cookie-keys`, `mw-grafana-oauth-jwks`, `mw-grafana-google-client-secret`. Any existing versions, including disabled/destroyed, must be retained/recovered rather than regenerated. No secret values were read or created here.
+
+Before a separately authorized functional deployment, resolve the actual ChatGPT predefined client ID/exact redirect and verified callback hosts, owner subject, pinned secret versions and reviewed application digest in the existing service template; retain `OWNER_ENABLED=false` through configuration/acceptance. Inspect other project/inherited log sinks before real OAuth, and verify database-scoped IAM/index readiness under that later scope. Scheduler and live Grafana activation remain deferred; HMAC transfer is a later owner-only action. See [owner setup instructions](../../scripts/monitoring/grafana-mcp-bridge/deploy/OWNER_BOOTSTRAP.md#secure-interaction-and-later-deployment) and [service template](../../scripts/monitoring/grafana-mcp-bridge/deploy/service.yaml.example).
