@@ -16,7 +16,11 @@ test('source infrastructure defaults are inert and preserve the exact base permi
   assert.match(role, /scope: vm/); assert.equal(role.includes('locations/operations/read'), false);
   const main = await readFile('infra/main.bicep', 'utf8'); assert.match(main, /alwaysReady: \[\]/); assert.match(main, /instanceMemoryMB: 512/); assert.match(main, /resourceGroup\('50f792fa-803e-4280-833d-1fe60fef5293', 'RG-MWCREDIT'\)/);
   assert.equal(/Microsoft\.(Insights|OperationalInsights|Network)\//.test(main), false);
-  const proposal = JSON.parse(await readFile('infra/operation-read-proposal.json', 'utf8')); assert.equal(proposal.status, 'PROPOSAL_ONLY_NOT_APPROVED'); assert.equal(proposal.scopeCandidates.length, 2);
+  const proposal = JSON.parse(await readFile('infra/operation-read-proposal.json', 'utf8'));
+  assert.equal(proposal.status, 'APPROVED_APPLIED_READBACK_VERIFIED_EFFECTIVE_OPERATION_POLL_PENDING');
+  assert.equal(proposal.approvedScope, '/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293');
+  assert.deepEqual(proposal.rolePermissions, { actions: ['Microsoft.Compute/locations/operations/read'], notActions: [], dataActions: [], notDataActions: [] });
+  assert.equal(proposal.baseFiveActionVmRoleUnchanged, true);
 });
 test('compiled infrastructure switches initialize the runtime correctly for all boolean combinations', async () => {
   const main = await readFile('infra/main.bicep', 'utf8');
@@ -46,8 +50,12 @@ test('compiled infrastructure switches initialize the runtime correctly for all 
     assert.equal(runtime.mutationsEnabled, mutations); assert.equal(runtime.operationPollingEnabled, polling);
   }
 });
-test('approval manifest and templates agree on discovered target, names and unresolved approvals', async () => {
+test('approval manifest preserves source defaults and records the separately approved activation scope', async () => {
   const manifest = JSON.parse(await readFile('docs/approval-manifest.json', 'utf8')); const parameters = JSON.parse(await readFile('infra/parameters.example.json', 'utf8')).parameters;
   assert.equal(manifest.repository, 'welct0407/AppSheet-Loan-Project'); assert.equal(manifest.discovery.vmId, parameters.expectedVmId.value); assert.equal(manifest.proposedResources.functionApp, parameters.functionAppName.value); assert.equal(manifest.proposedResources.storageAccount, parameters.storageAccountName.value);
-  assert.equal(manifest.runtimePermissions.operationReadGranted, false); assert.equal(manifest.cloudAuthentication.credentialCreationApproved, false); assert.equal(manifest.approvalGroups.livePowerTest.status, 'NOT_APPROVED');
+  assert.equal(manifest.runtimePermissions.operationReadGranted, true);
+  assert.equal(manifest.runtimePermissions.operationReadAssignmentScope, '/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293');
+  assert.equal(manifest.cloudAuthentication.credentialCreationApproved, false);
+  assert.equal(manifest.approvalGroups.livePowerTest.status, 'APPROVED_PENDING_INDEPENDENT_RECOVERY_AND_VM_EXECUTOR_COMPLETION');
+  assert.deepEqual(manifest.approvalGroups.livePowerTest.actionsAndCounts, [{ action: 'deallocate', count: 1 }, { action: 'start', count: 1 }, { action: 'restart', count: 1 }]);
 });

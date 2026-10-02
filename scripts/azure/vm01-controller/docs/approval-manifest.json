@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": "R050",
-  "status": "ROUTING_DEPLOYED_BROWSER_STATUS_ACCEPTED_COMMANDS_DISABLED",
+  "status": "ACTIVATED_PENDING_INDEPENDENT_RECOVERY_AND_APPROVED_POWER_TEST",
   "repository": "welct0407/AppSheet-Loan-Project",
   "sourcePath": "scripts/azure/vm01-controller",
   "baselineCommit": "d351991d1a1c0895d4abc8f0f4ba4fa55fa7a4e5",
@@ -84,12 +84,16 @@
     "ledgerAdmissionDefault": false,
     "operationPollingDefault": false,
     "operationReadProposal": "../infra/operation-read-proposal.json",
-    "operationReadGranted": false,
+    "operationReadGranted": true,
     "baseVmRoleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/637a62eb-6239-5956-958c-c11032293ebe",
     "baseVmRoleAttached": true,
-    "mutationsEnabledCurrent": false,
-    "ledgerAdmissionCurrent": false,
-    "operationPollingCurrent": false
+    "mutationsEnabledCurrent": true,
+    "ledgerAdmissionCurrent": true,
+    "operationPollingCurrent": true,
+    "operationReadRoleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/a1fdc870-cc0e-5752-af1a-e065691949ad",
+    "operationReadRoleAssignmentId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleAssignments/88cf12f8-74dc-59cc-b0e0-fa22cc721bd5",
+    "operationReadAssignmentScope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293",
+    "operationReadEffectiveLiveVerification": "PENDING_REAL_APPROVED_OPERATION"
   },
   "entra": {
     "tenantMode": "single tenant",
@@ -191,19 +195,33 @@
     "merge": "NOT_AUTHORIZED",
     "resourceAndProviderProvisioning": "APPROVED_AND_COMPLETED_DISABLED_BOOTSTRAP",
     "entraAndBaseRbacChanges": "APPROVED_AND_COMPLETED_EXACT_SCOPES",
-    "optionalOperationReadScope": "NOT_APPROVED",
+    "optionalOperationReadScope": "APPROVED_AND_APPLIED_SEPARATE_ONE_ACTION_ROLE_AT_FIXED_SUBSCRIPTION",
     "credentialsOrSavedEnvironment": "NOT_APPROVED",
-    "deploymentAndMutationActivation": "DISABLED_BOOTSTRAP_AND_REVIEWED_DIAGNOSTICS_ROUTING_DEPLOYMENTS_APPROVED_AND_COMPLETED; MUTATION_ACTIVATION_NOT_APPROVED",
+    "deploymentAndMutationActivation": "PRIOR_CODE_DEPLOYMENTS_COMPLETE; MUTATION_POLLING_AND_ADMISSION_ACTIVATION_APPROVED_AND_APPLIED",
     "livePowerTest": {
-      "status": "NOT_APPROVED",
-      "actionsAndCounts": [],
-      "window": "UNSPECIFIED",
-      "workAdmissionHold": "UNSPECIFIED",
-      "recoveryOperator": "UNSPECIFIED"
+      "status": "APPROVED_PENDING_INDEPENDENT_RECOVERY_AND_VM_EXECUTOR_COMPLETION",
+      "actionsAndCounts": [
+        {
+          "action": "deallocate",
+          "count": 1
+        },
+        {
+          "action": "start",
+          "count": 1
+        },
+        {
+          "action": "restart",
+          "count": 1
+        }
+      ],
+      "window": "After VM task publication/completion and independent recovery confirmation; parent cloud browser executes",
+      "workAdmissionHold": "Owner confirmed work saved; parent must hold new VM task dispatch throughout test/reconnection",
+      "recoveryOperator": "Parent seeking owner independent Azure administrator Start confirmation; MW Credit portal Start authority unproven"
     },
     "ownerBootstrapApproval": "I approve the prepared bootstrap provisioning plan and its US$2/month planning budget, with VM commands disabled.",
     "browserAccountReplacement": "USER_APPROVED_AND_COMPLETED_EXACT_FOUR_CHANGE_SWITCH; existing Azure roles preserved; commands disabled",
-    "routingCodeOnlyDeployment": "USER_APPROVED_AFTER_ASTRA_EXTRA_HIGH_REVIEW_AND_COMPLETED; preserve security/settings and disabled gates"
+    "routingCodeOnlyDeployment": "USER_APPROVED_AFTER_ASTRA_EXTRA_HIGH_REVIEW_AND_COMPLETED; preserve security/settings and disabled gates",
+    "customDomain": "DEFERRED_BY_USER; hostname/origin/callback preserved"
   },
   "acceptance": {
     "automatedEvidence": "acceptance.md",
@@ -251,5 +269,14 @@
     "authenticatedBrowserObservedAtUtc": "2026-10-02T06:19:26Z",
     "vmPowerRequests": 0,
     "nextStageDeferred": true
+  },
+  "activation": {
+    "receipt": "../../../../outputs/r050-vm01-controller/activation/activation-receipt.json",
+    "verifiedAtUtc": "2026-10-02T06:48:49.344594+00:00",
+    "generation": 2,
+    "vmPowerRequests": 0,
+    "independentRecoveryVerified": false,
+    "livePowerTestsPerformed": false,
+    "deployedSourceUnchanged": true
   }
 }

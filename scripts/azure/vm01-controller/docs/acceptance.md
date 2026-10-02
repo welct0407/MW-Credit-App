@@ -1,6 +1,6 @@
 # R050 controller acceptance
 
-Current controller checkpoint, 2 October 2026 UTC: reviewed code-only routing source `614ea6496bcd796611080e69f8fc78276304bb8a` deployed at06:17:27 UTC; all live static assets match ZIP `1e385975602486f5c80d628916037820d2a30a7064856989c26750497870f87a`, six explicit static routes and four unchanged API routes are verified, and settings/Easy Auth/logging/roles/consent/identity/hostname/ledger bytes are preserved. Intended MW Credit authenticated Refresh status passed at06:19:26–06:19:34 UTC: running, Succeeded, fresh observation, no error, all power buttons disabled. Mutations, polling and admission remain disabled; command activation and machine-caller authentication are deferred. R050 stays Open and PR2 stays draft. [Deployment and acceptance evidence](../../../../outputs/r050-vm01-controller/status-diagnosis/routing/README.md).
+Current controller checkpoint, 2 October 2026 UTC: scoped owner approval enabled controls and the separate subscription Compute operation-status read grant. Verified at 2026-10-02T06:48:49.344594+00:00: mutations=true, polling=true, ledger admission=true at generation2, no active request or operation records. The original five-action VM role, authentication/consent/callback, hostname, logging and all other settings are unchanged. Deployed routing source remains614ea649; no code deployment or VM power action occurred. Browser status was accepted at06:19 UTC. One stop/deallocate → start → restart test is authorized, but awaits verified independent recovery and this VM executor's completion. Custom domain is deferred; direct-tool authentication remains parent-owned. R050 stays Open; PR2 stays draft. [Activation receipt and test handoff](../../../../outputs/r050-vm01-controller/activation/README.md).
 
 Source tests and separately recorded disabled-bootstrap evidence. Tests use mocked ARM, a conditional/leased in-memory Blob port, cryptographically signed isolated JWT fixtures and real headless Chromium with mocked MSAL. No Azure actions or live sign-ins are performed.
 
@@ -33,10 +33,10 @@ The supplied screenshot shows a signed-in account and red "Connection or sign-in
 
 ## Remaining live acceptance
 
-- Actual intended MW Credit browser session and authenticated status; Cloud credential/federation decision and application-token issuance/status with idtyp/roles. No supported live browser-control tool is exposed in this VM task.
-- Effective runtime managed-identity VM/ledger access and allowed/denied caller tests after RBAC propagation; the ARM assignment readback alone is not this proof.
-- Full regional scale quota, remaining shared grant and measured host/storage/network overhead under the approved US$2/month planning budget.
-- Optional operation-read scope decision and authorized real-operation status verification; operation polling remains disabled.
-- Separate mutation/admission activation approval and exact power-test timing with held work, independent reconnection and recovery operator.
+- Parent must confirm an independent Azure recovery operator can Start VM-01 if the controller fails. The cloud-browser controller session survives VM shutdown, but cannot replace that fallback. Current MW Credit portal Start permission is unproven.
+- After this VM task ends and external VM work admission is held, parent performs the approved one deallocate/start/restart sequence. Verify terminal operation status and reconnection; running alone is not executor readiness.
+- The separately approved subscription operation-status read role and true polling switch have passed configuration readback. Effective managed-identity polling of a real approved operation remains pending; no power request was sent to manufacture evidence.
+- Intended MW Credit browser status and runtime VM/ledger access passed at06:19 UTC. Former-user token denial and direct-tool/MCP authentication remain separate unfinished checks; no new credential or adapter was created.
+- Full regional scale quota, remaining shared grant and measured host/storage/network overhead remain unmeasured under the US$2/month planning budget. Custom domain is explicitly deferred.
 
-No AppSheet app, SQL, dashboard or integration-service promotion is claimed. R050 remains Open. Commands/admission/polling remain disabled; no Azure change or live sign-in/power test was performed during source repair.
+No AppSheet app, SQL, dashboard or integration-service promotion is claimed. R050 remains Open. Earlier source repair performed no live power test. Current approved activation is documented above; this executor still sent zero power requests.
