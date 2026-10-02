@@ -1,6 +1,6 @@
 # Owner bootstrap — approved bridge resources only
 
-The owner approved the named Singapore resources, limited identities/secrets, public HTTPS with application authentication, synthetic acceptance and native Preview mapping for `alerts.mw-credit.com` on 2 October 2026 at 17:14:50 UTC. The $5 monthly planning budget is not a cap; no budget alert or billing-account change is created by these scripts. Nothing has been executed in GCP by preparing this package. Existing AppSheet, Cloud SQL, VM, business integrations and Grafana IRM/mobile delivery stay untouched.
+The owner approved the named Singapore resources, limited identities/secrets, public HTTPS with application authentication, synthetic acceptance and native Preview mapping for `alerts.mw-credit.com` on 2 October 2026 at 17:14:50 UTC. The $5 monthly planning budget is not a cap; no budget alert or billing-account change is created by these scripts. Preparation itself performed no live changes. The approved 2 October execution has now provisioned the named resource bundle; see the [live bootstrap evidence](../../../../outputs/grafana-mcp-bootstrap-20261002/README.md) for exact completed phases, readbacks and remaining blockers. Existing AppSheet, Cloud SQL, VM, business integrations and Grafana IRM/mobile delivery stay untouched.
 
 ## Immediate execution handoff
 
@@ -103,3 +103,9 @@ The source code independently verifies the live active account and direct uncond
 ## Compatibility correction and recorded access findings
 
 The original pin's `gcloud logging exclusions` group was unsupported by SDK 585; the supported sink update is used now. VM-01 verified the human owner `welct0407@mw-credit.com`, project number, billing and unenforced invoker policy, and confirmed full-path `gcloud.CMD` subprocess invocation. Its approved prerequisite Resource Manager/Cloud Billing API enablement completed; the bridge remains unprovisioned in the latest handoff evidence. Cloud SDK 587 is installed but its inherited configuration has no active account/project, no named owner profile and no checked ADC file; the documented IAP helper has no generic owner-deployment route. The durable service-account route was separately approved at 18:07:29 UTC; its saved-environment update/fresh-task verification remains separate from these scripts.
+
+## SDK 587 execution correction
+
+The first approved resources run stopped after resource/IAM creation because composite-index **list** does not accept `--collection-group`. It now uses the documented `--filter=COLLECTION_GROUP:GROUP` syntax; create and field commands retain their collection-group selectors. The exact installed parser is checked before resource mutations, and the resource-plan regression protects this distinction. Confirmed partial ownership/configuration allowed a `--resume` reconciliation; no resources were deleted or recreated. [Google CLI reference](https://docs.cloud.google.com/sdk/gcloud/reference/firestore/indexes/composite/list).
+
+The first inert image build/push succeeded, but SDK image description then contacted unapproved `containeranalysis.googleapis.com` and received proxy 403. That route remains stopped. The corrected source obtains only Artifact Registry tag/version metadata through the existing approved endpoint, validates exact package/tag and digest, and makes no Container Analysis/provenance claim. See the live evidence before resuming.

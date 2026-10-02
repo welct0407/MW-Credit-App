@@ -119,7 +119,12 @@ def gcloud_output(*args, data=None):
 def check_sdk():
     help_text = run(['gcloud', 'logging', 'sinks', 'update', '--help'])
     require('--add-exclusion' in help_text, 'Installed gcloud lacks sink exclusion support')
-    print('Installed SDK supports logging sinks update --add-exclusion.')
+    # Validate this exact list syntax before provisioning; --collection-group
+    # belongs to create/field commands, not composite list in SDK 587.
+    index_help = run(['gcloud', 'firestore', 'indexes', 'composite', 'list',
+                      f'--database={DATABASE}', '--filter=COLLECTION_GROUP:deliveries', '--help'])
+    require('--filter' in index_help, 'Installed gcloud lacks composite-index filtering support')
+    print('Installed SDK supports sink exclusions and composite-index list filtering.')
 
 
 def oauth_log_exclusion():
@@ -253,7 +258,7 @@ def resources(enabled, condition, resume):
     definitions = json.loads((HERE / 'firestore-indexes.json').read_text())
     for definition in definitions['indexes']:
         group = definition['collectionGroup']
-        indexes = gc('firestore', 'indexes', 'composite', 'list', f'--database={DATABASE}', f'--collection-group={group}')
+        indexes = gc('firestore', 'indexes', 'composite', 'list', f'--database={DATABASE}', f'--filter=COLLECTION_GROUP:{group}')
         exists = any(i.get('queryScope') == definition['queryScope'] and
                      [f for f in i['fields'] if f['fieldPath'] != '__name__'] == definition['fields'] for i in indexes)
         if not exists:
@@ -269,6 +274,22 @@ def resources(enabled, condition, resume):
     print('Infrastructure created/reconciled. Index/TTL operations may still be pending. No secret values, Cloud Run revision or Scheduler job created.')
 
 
+def image_digest(tag):
+    image, tag_name = tag.rsplit(':', 1)
+    package = f'projects/{PROJECT}/locations/{REGION}/repositories/{REPOSITORY}/packages/grafana-mcp-bootstrap'
+    # The image-description command also reads optional Container Analysis
+    # provenance. Artifact Registry tag metadata alone resolves the immutable
+    # version and stays within the approved registry administration endpoint.
+    tags = gc('artifacts', 'docker', 'tags', 'list', image)
+    matches = [t for t in tags if t.get('image') == image and t.get('tag') == f'{package}/tags/{tag_name}']
+    require(len(matches) == 1, 'Expected exactly one registry tag for the bootstrap image')
+    version = matches[0].get('version', '')
+    require(version.startswith(f'{package}/versions/'), 'Registry version targets an unexpected package')
+    digest = version.removeprefix(f'{package}/versions/')
+    require(re.fullmatch(r'sha256:[a-f0-9]{64}', digest), 'Invalid registry digest')
+    return digest
+
+
 def inert():
     services = gc('run', 'services', 'list', f'--region={REGION}')
     existing = next((s for s in services if s.get('metadata', {}).get('name') == SERVICE), None)
@@ -282,9 +303,7 @@ def inert():
         gcloud_output('auth', 'configure-docker', f'{REGION}-docker.pkg.dev')
     run(['docker', 'build', '--platform=linux/amd64', '-f', str(HERE / 'bootstrap.Dockerfile'), '-t', tag, str(HERE)])
     run(['docker', 'push', tag])
-    image = gc('artifacts', 'docker', 'images', 'describe', tag)
-    digest = image['image_summary']['digest']
-    require(re.fullmatch(r'sha256:[a-f0-9]{64}', digest), 'Invalid registry digest')
+    digest = image_digest(tag)
     gc('run', 'deploy', SERVICE, f'--region={REGION}', f'--image={tag.rsplit(":", 1)[0]}@{digest}',
        f'--service-account={RUNTIME}', '--ingress=all', '--no-invoker-iam-check', '--min-instances=0', '--max-instances=2',
        '--cpu=1', '--memory=512Mi', '--concurrency=20', '--timeout=300', f'--labels=bridge={MARKER}', '--set-env-vars=OWNER_ENABLED=false')

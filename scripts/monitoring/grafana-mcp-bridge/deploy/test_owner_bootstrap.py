@@ -19,6 +19,19 @@ def empty():
 
 
 class Guards(unittest.TestCase):
+    def test_actual_index_list_syntax_is_checked_before_resource_mutations(self):
+        def help_output(argv, data=None):
+            if argv[1:4] == ['logging', 'sinks', 'update']:
+                return '--add-exclusion'
+            self.assertEqual(argv[1:5], ['firestore', 'indexes', 'composite', 'list'])
+            self.assertIn('--filter=COLLECTION_GROUP:deliveries', argv)
+            self.assertFalse(any(a.startswith('--collection-group=') for a in argv))
+            raise RuntimeError('Installed parser rejected index list')
+        with patch.object(b, 'run', side_effect=help_output), patch.object(b, 'gc') as cloud:
+            with self.assertRaisesRegex(RuntimeError, 'parser rejected'):
+                b.resources(set(b.APIS), 'exact-condition', False)
+            cloud.assert_not_called()
+
     def test_explicit_adapter_mode_rejects_human_or_windows_context(self):
         with patch.object(b, 'ADAPTER_MODE', False):
             b.OWNER = 'verified-owner@example.test'
@@ -132,8 +145,9 @@ class Guards(unittest.TestCase):
             calls.append(args)
             if args[:3] == ('run', 'services', 'list'):
                 return []
-            if args[:4] == ('artifacts', 'docker', 'images', 'describe'):
-                return {'image_summary': {'digest': digest}}
+            if args[:4] == ('artifacts', 'docker', 'tags', 'list'):
+                package = f'projects/{b.PROJECT}/locations/{b.REGION}/repositories/{b.REPOSITORY}/packages/grafana-mcp-bootstrap'
+                return [{'image': args[4], 'tag': package+'/tags/v1', 'version': package+'/versions/'+digest}]
             if args[:3] == ('run', 'services', 'describe'):
                 return {'metadata': {'annotations': {'run.googleapis.com/invoker-iam-disabled': 'true'}},
                         'spec': {'template': {'spec': {'serviceAccountName': b.RUNTIME}}},
@@ -145,6 +159,20 @@ class Guards(unittest.TestCase):
                 configure.assert_not_called()
                 self.assertEqual([c.args[0][1] for c in run.call_args_list], ['build', 'push'])
         self.assertFalse(any(c[0] == 'auth' for c in calls))
+
+    def test_registry_digest_rejects_wrong_package_duplicate_tags_and_invalid_digest(self):
+        image = f'{b.REGION}-docker.pkg.dev/{b.PROJECT}/{b.REPOSITORY}/grafana-mcp-bootstrap'
+        package = f'projects/{b.PROJECT}/locations/{b.REGION}/repositories/{b.REPOSITORY}/packages/grafana-mcp-bootstrap'
+        valid = {'image': image, 'tag': package+'/tags/v1', 'version': package+'/versions/sha256:'+'a'*64}
+        for rows in ([], [valid, valid], [{**valid, 'image': image+'-other'}],
+                     [{**valid, 'version': package+'-other/versions/sha256:'+'a'*64}],
+                     [{**valid, 'version': package+'/versions/sha256:invalid'}]):
+            with self.subTest(rows=rows), patch.object(b, 'gc', return_value=rows):
+                with self.assertRaises(RuntimeError):
+                    b.image_digest(image+':v1')
+        with patch.object(b, 'gc', return_value=[valid]) as cloud:
+            self.assertEqual(b.image_digest(image+':v1'), 'sha256:'+'a'*64)
+            cloud.assert_called_once_with('artifacts', 'docker', 'tags', 'list', image)
 
     def test_impersonation_and_credential_override_guards_remain_enforced(self):
         for name in ('CLOUDSDK_AUTH_IMPERSONATE_SERVICE_ACCOUNT', 'CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE'):
@@ -223,6 +251,10 @@ class Guards(unittest.TestCase):
         self.assertFalse(any(c[0] in ('run', 'scheduler') for c in calls))
         self.assertFalse(any('delete' in c or 'versions' in c for c in calls))
         self.assertTrue(all(f'--database={b.DATABASE}' in c for c in calls if c[0] == 'firestore'))
+        index_reads = [c for c in calls if c[:4] == ('firestore', 'indexes', 'composite', 'list')]
+        self.assertTrue(index_reads)
+        self.assertTrue(all(any(a.startswith('--filter=COLLECTION_GROUP:') for a in c)
+                            and not any(a.startswith('--collection-group=') for a in c) for c in index_reads))
 
     def test_launcher_resolves_windows_cmd_and_does_not_use_shell_true(self):
         launcher = r'C:\Program Files\Google\Cloud SDK\google-cloud-sdk\bin\gcloud.CMD'

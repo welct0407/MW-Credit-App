@@ -1,6 +1,6 @@
 # Grafana MCP Events bridge — 2 October 2026
 
-Status: **implemented and tested locally; deployment and host acceptance pending**. R050 remains the sole Open release. No deployment, infrastructure/IAM/credential creation, DNS change, Grafana routing change or external notification occurred. No live availability claim.
+Status: **named bootstrap resources verified; inert image pushed; Cloud Run deployment and functional host acceptance pending**. R050 remains Open. The owner-approved live bootstrap checkpoint below supersedes earlier preparation-only statements; no secret entry, DNS change, Grafana cutover or external notification occurred.
 
 ## Scope and authority
 
@@ -79,3 +79,11 @@ The [adapter contract](../scripts/monitoring/grafana-mcp-bridge/deploy/ADAPTER_C
 ## Explicit guarded Python/shim integration
 
 The environment editor confirmed guarded gcloud/Docker PATH shims around the full Python bootstrap. Added explicit Linux-only adapter mode for the fixed approved service identity: direct visible gcloud arguments and no configure-docker call, including when no custom executable paths are supplied. The existing Windows/human SDK route retains JSON flags-file handling and its normal Docker setup. Identity, project, direct Owner binding, no-impersonation, domain and secure-input checks remain unchanged. Local suite: 25 tests run, 24 passed and Windows-only CMD skipped; CI covers Windows and Linux platform paths. No live adapter/bootstrap or credential action ran here.
+
+## Approved live bootstrap checkpoint
+
+Fresh-task adapter proof passed and the parent authorized execution from exact draft-PR pin `c4fd3f041235790703f732386b1e93b83f269e23`. Isolated checkout `/workspace/AppSheet-Loan-Project-grafana-deploy` preserves the original work. Guarded preflight passed. Approved APIs/resource identities, Singapore Docker repository, protected Standard Native database, exact conditioned runtime role, five empty secrets and bounded accessor bindings are readback-verified. Dispatcher has no project/secret bindings; Scheduler is absent. Three composite indexes/twelve field exemptions/six TTL policies were applied; asynchronous index/TTL completion remains pending. The OAuth request-log exclusion was verified with unrelated sink fields/exclusions preserved. [Sanitized execution evidence](../outputs/grafana-mcp-bootstrap-20261002/README.md).
+
+SDK 587 rejected collection-group selection on composite **list** after partial creation. Corrected that command to the documented collection-group filter, added an installed-parser check before mutations and protected it in the resource-plan test. Ownership/configuration readback allowed a non-destructive `--resume`; reconciliation completed. The inert image then built/pushed, but SDK image description contacted unapproved Container Analysis and received proxy 403. That route remains stopped. A distinct approved Artifact Registry tag read resolved the digest; source now validates exact tag/package/version metadata without claiming provenance. Negative tests reject foreign/duplicate/malformed results. Focused Python verification: 26 passed, one Windows-only skip; inert endpoint test and actual guarded SDK checks passed. Application/dependencies and inert image source are unchanged.
+
+Code/docs/evidence publication is the next checkpoint; no corrected inert rerun occurred yet. After publication/CI, verify Cloud Run and return its bounded checkpoint before domain work. Domain ownership, DNS records, secure OAuth entry and functional synthetic host acceptance remain outstanding. No secret values, live dispatch or Grafana cutover. Rollback is the recorded source baseline; preserve the protected database/empty containers, use ownership-checked resume and never delete partial resources merely to clear a failure. No AppSheet/SQL/dashboard/model definition changed.

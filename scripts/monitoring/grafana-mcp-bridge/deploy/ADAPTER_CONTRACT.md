@@ -45,7 +45,7 @@ Use the reviewed source pin to validate exact resource names and flag values. Th
 | `services list --enabled`, `services enable` | Inventory/approved API enablement |
 | `org-policies describe constraints/run.managed.requireInvokerIam --effective` | Read policy; no policy update |
 | `iam service-accounts list/create` | Two named bridge identities |
-| `artifacts repositories list/create`, `artifacts docker images describe` | Named registry and immutable-image verification |
+| `artifacts repositories list/create`, `artifacts docker tags list` | Named registry and immutable-image verification |
 | `firestore databases list/create`, `firestore indexes composite list/create`, `firestore indexes fields update`, `firestore fields ttls update` | Named Standard database/index/TTL configuration |
 | `secrets list/describe/create/add-iam-policy-binding`, `secrets versions list/add` | Five named containers/bounded runtime access; secure seeding is separate |
 | `logging sinks describe/update _Default` | Only the named OAuth exclusion addition and preservation readback |

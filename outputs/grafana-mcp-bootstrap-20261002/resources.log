@@ -1,0 +1,62 @@
+STOP: Command failed: ['/tmp/cloud-gcloud-mxag5qvw/script-bin/gcloud', 'firestore', 'indexes', 'composite']
+ERROR: (gcloud.firestore.indexes.composite.list) unrecognized arguments: --collection-group=deliveries 
+
+To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
+
+{
+  "owner": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "ownerMember": "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "projectOwnerVerified": true,
+  "project": "clever-oasis-508610-n7",
+  "number": "737787224638",
+  "billingEnabled": true,
+  "enabledAPIs": [
+    "analyticshub.googleapis.com",
+    "bigquery.googleapis.com",
+    "bigqueryconnection.googleapis.com",
+    "bigquerydatapolicy.googleapis.com",
+    "bigquerydatatransfer.googleapis.com",
+    "bigquerymigration.googleapis.com",
+    "bigqueryreservation.googleapis.com",
+    "bigquerystorage.googleapis.com",
+    "cloudapis.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "cloudtrace.googleapis.com",
+    "compute.googleapis.com",
+    "containeranalysis.googleapis.com",
+    "dataform.googleapis.com",
+    "dataplex.googleapis.com",
+    "datastore.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "iap.googleapis.com",
+    "logging.googleapis.com",
+    "monitoring.googleapis.com",
+    "orgpolicy.googleapis.com",
+    "osconfig.googleapis.com",
+    "oslogin.googleapis.com",
+    "servicemanagement.googleapis.com",
+    "serviceusage.googleapis.com",
+    "sql-component.googleapis.com",
+    "sqladmin.googleapis.com",
+    "storage-api.googleapis.com",
+    "storage-component.googleapis.com",
+    "storage.googleapis.com",
+    "telemetry.googleapis.com"
+  ]
+}
+Installed SDK supports logging sinks update --add-exclusion.
+iam.googleapis.com: inventory read
+artifactregistry.googleapis.com: disabled; inventory pending enablement
+firestore.googleapis.com: disabled; inventory pending enablement
+secretmanager.googleapis.com: disabled; inventory pending enablement
+run.googleapis.com: disabled; inventory pending enablement
+cloudscheduler.googleapis.com: disabled; inventory pending enablement
+iam.googleapis.com: inventory read
+artifactregistry.googleapis.com: inventory read
+firestore.googleapis.com: inventory read
+secretmanager.googleapis.com: inventory read
+run.googleapis.com: inventory read
+cloudscheduler.googleapis.com: inventory read
