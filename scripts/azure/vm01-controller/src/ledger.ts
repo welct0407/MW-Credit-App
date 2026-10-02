@@ -44,6 +44,11 @@ export function validateLedger(input: unknown, config: Configuration): LedgerDat
     if (op.nextPollAt && !Number.isFinite(Date.parse(op.nextPollAt))) fail(503, 'invalid_controller_ledger');
     if (op.armOperationStatus && !['Succeeded', 'Failed', 'Canceled'].includes(op.armOperationStatus)) fail(503, 'invalid_controller_ledger');
     if (op.trackingKind && !['async', 'location'].includes(op.trackingKind)) fail(503, 'invalid_controller_ledger');
+    if (op.armRequestId !== undefined && (typeof op.armRequestId !== 'string' || !UUID.test(op.armRequestId))) fail(503, 'invalid_controller_ledger');
+    for (const value of [op.armAcceptedAt, op.armOperationStartTime, op.armOperationEndTime]) if (value !== undefined && (typeof value !== 'string' || !Number.isFinite(Date.parse(value)))) fail(503, 'invalid_controller_ledger');
+    if (op.trackingIssue !== undefined && !['missing', 'rejected'].includes(op.trackingIssue)) fail(503, 'invalid_controller_ledger');
+    if (op.trackingSource !== undefined && op.trackingSource !== 'request-id') fail(503, 'invalid_controller_ledger');
+    if (op.recoveryEvidence && (![op.recoveryEvidence.reference, op.recoveryEvidence.approvalReference].every(value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$/.test(value)) || ![op.recoveryEvidence.deallocateStartedEventId, op.recoveryEvidence.deallocateEventId, op.recoveryEvidence.deallocateCorrelationId, op.recoveryEvidence.recoveryStartedEventId, op.recoveryEvidence.recoveryStartEventId, op.recoveryEvidence.recoveryCorrelationId].every(id => typeof id === 'string' && UUID.test(id)) || ![op.recoveryEvidence.recoveryStartedAt, op.recoveryEvidence.recoveryCompletedAt].every(value => typeof value === 'string' && Number.isFinite(Date.parse(value))))) fail(503, 'invalid_controller_ledger');
     if (op.armFailureCode && !/^[A-Za-z][A-Za-z0-9_.-]{0,79}$/.test(op.armFailureCode)) fail(503, 'invalid_controller_ledger');
     if (['dispatching', 'accepted', 'accepted_unverified', 'unknown'].includes(op.phase) && data.activeRequestId !== key) fail(503, 'invalid_controller_ledger');
   }

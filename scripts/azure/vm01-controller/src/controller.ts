@@ -1,4 +1,4 @@
-import type { Action, ActionRequest, Arm, Configuration, Ledger, LedgerSession, Operation, Principal, ResponseData, VmObservation } from './types.js';
+import type { Action, ActionRequest, Arm, Configuration, Ledger, LedgerSession, Operation, PollOutcome, Principal, ResponseData, VmObservation } from './types.js';
 import { ControllerError, fail } from './errors.js';
 import { ACCEPTED_TIMEOUT_MS, RETENTION_MS, actionAvailable, digestRequest, isNoop, parseRequest, publicOperation, stateVersion, validateFreshRequest, validateObservation } from './state-machine.js';
 import { authorize } from './authorization.js';
@@ -20,15 +20,28 @@ export class Controller {
     const op = session.data.records[id]!;
     if (op.phase === 'dispatching') { op.phase = 'unknown'; op.reason = 'dispatch_outcome_unknown'; op.updatedAt = this.timestamp(); this.audit(session, op, 'unknown'); await session.save(); return observation; }
     if (!['accepted', 'accepted_unverified'].includes(op.phase)) return observation;
-    if (this.config.operationPollingEnabled && op.trackingUrl && !op.armOperationStatus && (!op.nextPollAt || Date.parse(op.nextPollAt) <= this.now())) {
+    const fallback = !op.trackingUrl && op.armStatus === 202 && op.armRequestId && op.armAcceptedAt;
+    if (this.config.operationPollingEnabled && !op.trackingUrl && !fallback && !op.armOperationStatus) {
+      op.phase = 'unknown'; op.reason = 'operation_tracking_unavailable'; op.updatedAt = this.timestamp();
+      this.audit(session, op, 'unknown'); await session.save(); return observation;
+    }
+    if (this.config.operationPollingEnabled && (op.trackingUrl || fallback) && !op.armOperationStatus && (!op.nextPollAt || Date.parse(op.nextPollAt) <= this.now())) {
       try {
-        const outcome = await this.arm.poll(op.trackingUrl, op.trackingKind);
+        let outcome: PollOutcome;
+        if (op.trackingUrl) outcome = await this.arm.poll(op.trackingUrl, op.trackingKind);
+        else {
+          const verified = await this.arm.pollRequest({ requestId: op.armRequestId!, action: op.action, submittedAt: op.createdAt, acceptedAt: op.armAcceptedAt! });
+          op.trackingSource = 'request-id'; op.armOperationStartTime = verified.startTime;
+          if (verified.endTime) op.armOperationEndTime = verified.endTime;
+          outcome = verified;
+        }
         if (outcome.status !== 'InProgress') op.armOperationStatus = outcome.status;
         if (outcome.failureCode) op.armFailureCode = outcome.failureCode;
         op.nextPollAt = new Date(this.now() + outcome.retryAfter * 1000).toISOString();
         delete op.reason;
       } catch (error) {
-        op.reason = error instanceof ControllerError && error.code === 'operation_read_not_authorized' ? 'operation_read_not_authorized' : 'operation_poll_unavailable';
+        const allowed = ['operation_read_not_authorized', 'operation_candidate_not_found', 'operation_candidate_mismatch', 'operation_receipt_invalid', 'invalid_operation_status'];
+        op.reason = error instanceof ControllerError && allowed.includes(error.code) ? error.code : 'operation_poll_unavailable';
         op.nextPollAt = new Date(this.now() + 30000).toISOString();
       }
       op.updatedAt = this.timestamp(); await session.save();
@@ -42,7 +55,7 @@ export class Controller {
       op.phase = 'rejected'; op.reason = op.armOperationStatus === 'Failed' ? 'arm_operation_failed' : 'arm_operation_canceled';
     } else if (stable && observation.powerState === desired && (op.armOperationStatus === 'Succeeded' || (op.action !== 'restart' && !this.config.operationPollingEnabled))) {
       op.phase = op.armOperationStatus === 'Succeeded' ? 'completed' : 'desired_state_observed'; delete op.reason;
-    } else if (!this.config.operationPollingEnabled && this.now() - Date.parse(op.createdAt) > ACCEPTED_TIMEOUT_MS) { op.phase = 'unknown'; op.reason = 'operation_wait_expired'; }
+    } else if ((!this.config.operationPollingEnabled || (fallback && op.reason && op.reason !== 'operation_read_not_authorized')) && this.now() - Date.parse(op.createdAt) > ACCEPTED_TIMEOUT_MS) { op.phase = 'unknown'; op.reason ??= 'operation_wait_expired'; }
     else return observation;
     if (op.phase !== 'unknown') session.data.activeRequestId = null;
     op.updatedAt = this.timestamp(); this.audit(session, op, op.phase); await session.save();
@@ -99,7 +112,10 @@ export class Controller {
         op.armStatus = result.status;
         if (result.requestId) op.armRequestId = result.requestId;
         if (result.status === 202) {
+          op.armAcceptedAt = this.timestamp();
           op.phase = action === 'restart' ? 'accepted_unverified' : 'accepted';
+          if (result.trackingIssue) op.trackingIssue = result.trackingIssue;
+          if (this.config.operationPollingEnabled && !result.trackingUrl) op.reason = result.trackingIssue === 'rejected' ? 'operation_tracking_url_rejected' : 'operation_tracking_header_missing';
           if (result.trackingUrl) op.trackingUrl = result.trackingUrl;
           if (result.trackingKind) op.trackingKind = result.trackingKind;
           op.nextPollAt = new Date(this.now() + (result.retryAfter ?? 15) * 1000).toISOString();

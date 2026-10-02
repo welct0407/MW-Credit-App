@@ -21,6 +21,9 @@ export interface Operation {
   trackingUrl?: string; nextPollAt?: string; armOperationStatus?: 'Succeeded' | 'Failed' | 'Canceled';
   approvalReference?: string;
   trackingKind?: 'async' | 'location'; armFailureCode?: string;
+  armAcceptedAt?: string; trackingIssue?: 'missing' | 'rejected';
+  trackingSource?: 'request-id'; armOperationStartTime?: string; armOperationEndTime?: string;
+  recoveryEvidence?: { reference: string; approvalReference: string; deallocateStartedEventId: string; deallocateEventId: string; deallocateCorrelationId: string; recoveryStartedEventId: string; recoveryStartEventId: string; recoveryCorrelationId: string; recoveryStartedAt: string; recoveryCompletedAt: string };
 }
 export interface LedgerData {
   schemaVersion: 1; generation: number; targetResourceId: string; expectedVmId: string;
@@ -30,7 +33,9 @@ export interface LedgerData {
 }
 export interface LedgerSession { data: LedgerData; save(): Promise<void>; assertLease(): Promise<void> }
 export interface Ledger { transaction<T>(callback: (session: LedgerSession) => Promise<T>): Promise<T> }
-export interface ArmOutcome { status: number; requestId?: string; trackingUrl?: string; trackingKind?: 'async' | 'location'; retryAfter?: number }
+export interface ArmOutcome { status: number; requestId?: string; trackingUrl?: string; trackingKind?: 'async' | 'location'; retryAfter?: number; trackingIssue?: 'missing' | 'rejected' }
 export interface PollOutcome { status: 'InProgress' | 'Succeeded' | 'Failed' | 'Canceled'; retryAfter: number; failureCode?: string }
-export interface Arm { observe(): Promise<VmObservation>; submit(action: Action): Promise<ArmOutcome>; poll(url: string, kind?: 'async' | 'location'): Promise<PollOutcome> }
+export interface DispatchReceipt { requestId: string; action: Action; submittedAt: string; acceptedAt: string }
+export interface VerifiedPollOutcome extends PollOutcome { name: string; startTime: string; endTime?: string }
+export interface Arm { observe(): Promise<VmObservation>; submit(action: Action): Promise<ArmOutcome>; poll(url: string, kind?: 'async' | 'location'): Promise<PollOutcome>; pollRequest(receipt: DispatchReceipt): Promise<VerifiedPollOutcome> }
 export interface ResponseData { status: number; body: Record<string, unknown>; retryAfter?: number }

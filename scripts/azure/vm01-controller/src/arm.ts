@@ -1,5 +1,5 @@
 import { ManagedIdentityCredential } from '@azure/identity';
-import type { Action, Arm, ArmOutcome, Configuration, PollOutcome, PowerState, VmObservation } from './types.js';
+import type { Action, Arm, ArmOutcome, Configuration, DispatchReceipt, PollOutcome, PowerState, VerifiedPollOutcome, VmObservation } from './types.js';
 import { fail } from './errors.js';
 import { UUID } from './configuration.js';
 export interface ArmCredential { getToken(scope: string): Promise<{ token: string } | null> }
@@ -45,13 +45,38 @@ export class AzureArm implements Arm {
       const candidate = response.headers.get('Azure-AsyncOperation') ?? response.headers.get('Location');
       if (candidate) {
         // Invalid response URLs are discarded; acceptance still requires reconciliation.
-        try { result.trackingUrl = validatedOperationUrl(candidate, this.config); result.trackingKind = response.headers.has('Azure-AsyncOperation') ? 'async' : 'location'; } catch { /* no raw URL persistence/logging */ }
-      }
+        try { result.trackingUrl = validatedOperationUrl(candidate, this.config); result.trackingKind = response.headers.has('Azure-AsyncOperation') ? 'async' : 'location'; } catch { result.trackingIssue = 'rejected'; }
+      } else result.trackingIssue = 'missing';
       result.retryAfter = retryAfter(response.headers.get('Retry-After'));
     }
     // Response bodies can contain credential-bearing text; deliberately do not log or return them.
     await response.body?.cancel();
     return result;
+  }
+  async pollRequest(receipt: DispatchReceipt): Promise<VerifiedPollOutcome> {
+    if (!this.config.operationPollingEnabled) fail(503, 'operation_polling_disabled');
+    const submitted = Date.parse(receipt.submittedAt), accepted = Date.parse(receipt.acceptedAt);
+    // A request UUID is only a candidate. Never infer completion from the GET status alone.
+    if (!UUID.test(receipt.requestId) || !['start', 'restart', 'deallocate'].includes(receipt.action) || !Number.isFinite(submitted) || !Number.isFinite(accepted) || accepted < submitted || accepted - submitted > 60000 || accepted > this.now() + 5000) fail(503, 'operation_receipt_invalid');
+    const subscription = this.config.resourceId.split('/')[2]!;
+    const url = validatedOperationUrl(`https://management.azure.com/subscriptions/${subscription}/providers/Microsoft.Compute/locations/southeastasia/operations/${receipt.requestId}?api-version=${this.config.apiVersion}`, this.config);
+    const response = await this.request(url, 'GET');
+    if (response.status !== 200) { await response.body?.cancel(); fail(503, response.status === 403 ? 'operation_read_not_authorized' : response.status === 404 ? 'operation_candidate_not_found' : 'operation_status_unavailable'); }
+    const body = await response.json() as Record<string, unknown>;
+    if (!body || typeof body !== 'object' || typeof body.name !== 'string' || body.name.toLowerCase() !== receipt.requestId.toLowerCase() || typeof body.startTime !== 'string' || typeof body.status !== 'string') fail(503, 'operation_candidate_mismatch');
+    const start = Date.parse(body.startTime);
+    if (!Number.isFinite(start) || start < submitted - 5000 || start > accepted + 5000) fail(503, 'operation_candidate_mismatch');
+    // If a provider includes resource identity, it must agree; unknown body text is never retained.
+    for (const field of ['targetResourceId', 'resourceId']) if (body[field] !== undefined && (typeof body[field] !== 'string' || body[field].toLowerCase() !== this.config.resourceId.toLowerCase())) fail(503, 'operation_candidate_mismatch');
+    if (body.action !== undefined && body.action !== receipt.action) fail(503, 'operation_candidate_mismatch');
+    if (body.id !== undefined && body.id !== null && (typeof body.id !== 'string' || body.id.toLowerCase() !== new URL(url).pathname.toLowerCase())) fail(503, 'operation_candidate_mismatch');
+    const terminal = ['Succeeded', 'Failed', 'Canceled'].includes(body.status);
+    if (!terminal && !['InProgress', 'Running', 'Accepted'].includes(body.status)) fail(503, 'invalid_operation_status');
+    const end = typeof body.endTime === 'string' ? Date.parse(body.endTime) : NaN;
+    if (terminal && (!Number.isFinite(end) || end < start || end > this.now() + 5000)) fail(503, 'operation_candidate_mismatch');
+    const error = body.error as { code?: unknown } | undefined;
+    const failureCode = typeof error?.code === 'string' && /^[A-Za-z][A-Za-z0-9_.-]{0,79}$/.test(error.code) ? error.code : undefined;
+    return { name: body.name, startTime: body.startTime, status: terminal ? body.status as PollOutcome['status'] : 'InProgress', retryAfter: retryAfter(response.headers.get('Retry-After')), ...(terminal ? { endTime: body.endTime as string } : {}), ...(failureCode ? { failureCode } : {}) };
   }
   async poll(value: string, kind: 'async' | 'location' = 'async'): Promise<PollOutcome> {
     if (!this.config.operationPollingEnabled) fail(503, 'operation_polling_disabled');
