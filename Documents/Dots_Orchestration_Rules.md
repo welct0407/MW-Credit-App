@@ -22,9 +22,9 @@ When I ask you to stop, stop dispatching new work and stop or cancel the related
 
 Read [Model Work Mapping](Model_Work_Mapping.md) at the start of each new or resumed task and immediately before each model handoff. Use the current file, not a remembered model name or a copied table. A model I explicitly request for the current task overrides the default mapping for that task.
 
-I authorize scoped delegation for the tasks I ask Dots to orchestrate. Use one executor for straightforward work; use additional workers only when their independent scope or specialist capability improves the result. Select the model and reasoning effort from the mapping, and the execution location from Development Workflow. This delegation preference does not authorize unrelated tasks, messages to other people, service activation or persistent model-setting changes.
+Rule 3 sets model and reasoning-effort preferences only; it does not authorize delegation or agent contact. Obtain explicit owner approval for each named outside agent before contacting it or delegating work to it. A model family name or general task request is not that approval. Follow the platform's classification and controls; do not assume a worker is internal merely because it can be launched from Dots. Use one executor for straightforward work. Once any required delegation approval is established, select the model/effort from the mapping and the execution location from Development Workflow. This preference does not authorize unrelated tasks, service activation or persistent model-setting changes.
 
-For mixed work, resolve the design or diagnosis first, then hand the settled implementation to the execution route. Pass the compact handoff specified in Development Workflow, including the outcome, affected scope, decisions, existing authorization, rollback, completed checks and remaining work. Coordinate shared DEV objects and files; isolated branches do not isolate live apps/databases.
+For mixed work, resolve the design or diagnosis first, then use the execution route within the applicable authority. Before an authorized handoff, pass the compact note specified in Development Workflow, including the outcome, affected scope, decisions, existing authorization, rollback, completed checks and remaining work. Coordinate shared DEV objects and files; isolated branches do not isolate live apps/databases.
 
 Stay responsible for workers' results: follow progress, inspect their evidence, resolve failures within scope and integrate the result before declaring completion. Use supported task/subagent controls; do not claim to have selected a model or reasoning effort unless the tool or UI confirms it. If a required model is unavailable, report the limitation once, continue independent work, and ask about a substitute only when needed to proceed.
 
@@ -40,9 +40,9 @@ Before starting or delegating repository work, use the current [repository and i
 
 ## Ready-to-paste Custom rules
 
-Each quoted rule body fits the owner's 400-character limit, including spaces and full URLs. Paste only the quoted text, without its heading or Markdown marker. Verified counts: Rule 1 **369**, Rule 2 **382**, Rule 3 **372**, Rule 4 **368**, Rule 5 **382**, and the separate Git publication rule **392** characters. Keep the detailed guidance above in this file; it does not need to fit inside a settings entry.
+Each quoted rule body fits the owner's 400-character limit, including spaces and full URLs. Paste only the quoted text, without its heading or Markdown marker. Verified counts: Rule 1 **369**, Rule 2 **382**, Rule 3 **382**, Rule 4 **368**, Rule 5 **382**, and the separate Git publication rule **392** characters. Keep the detailed guidance above in this file; it does not need to fit inside a settings entry.
 
-In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the five entries below alongside the existing repository-specific Git publication rule. For Rule 2 select **Take action when you say so**, since it concerns tasks explicitly requested by the owner and preserves all required approvals. The other entries use **Take action without asking** only within their stated scope. Rule 1 references project guidance for requested tasks; repository files cannot expand permissions. Rule 2 defers Git publication to the separate rule; Rule 5 does not extend that rule's repository scope.
+In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the five entries below alongside the existing repository-specific Git publication rule. For Rules 2 and 3 select **Take action when you say so**: Rule 2 concerns explicitly requested work and preserves mandatory approvals; Rule 3 concerns model preferences and grants no delegation permission. The other entries use **Take action without asking** only within their stated scope. Rule 1 references project guidance for requested tasks; repository files cannot expand permissions. Rule 2 defers Git publication to the separate rule; Rule 5 does not extend that rule's repository scope.
 
 ### Rule 1 — Read project instructions
 
@@ -52,9 +52,9 @@ In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the 
 
 > For tasks I request, continue already-approved research, drafting, code edits and local tests without repeat confirmation when scope and risk are unchanged. Complete required checks and documentation. Preserve all mandatory policy and app approval requirements; obtain any required approval before acting. Explain blockers, continue independent authorized work, and stop when I ask.
 
-### Rule 3 — Select models and delegate
+### Rule 3 — Select models; approve outside agents separately
 
-> Before each new/resumed task or model handoff, read https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Model_Work_Mapping.md and use its model and effort assignments. My task-specific model choice overrides the file. Delegate scoped work when useful; verify results. Report unavailable models; do not silently substitute or change unrelated settings.
+> For tasks I request, read https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Model_Work_Mapping.md for model and effort preferences. Use supported settings; my task-specific choice takes precedence. This rule does not authorize delegation or agent contact. Obtain my explicit approval for each named outside agent before contacting it or delegating work to it.
 
 ### Rule 4 — Send three-minute progress updates
 

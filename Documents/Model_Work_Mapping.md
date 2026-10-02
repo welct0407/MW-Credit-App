@@ -15,6 +15,7 @@ Owner-maintained routing preferences for Dots, effective **2 October 2026 (Asia/
 
 ## Routing decisions
 
+- This file selects model/effort preferences; it does not authorize delegation or agent contact. Obtain explicit owner approval for each named outside agent before contacting it or delegating work to it. Model names and task categories are not approval for an individual outside agent. Apply all destination-specific permission controls before dispatch.
 - An explicit owner selection for the current task takes precedence. Otherwise use the matching row. Use Execution for clear, bounded work not covered by another row; use Design when the desired behavior itself needs resolution.
 - Split phases only when useful: Design or Troubleshooting resolves the uncertainty; Execution carries out the settled work. On-call retains responsibility for incident decisions while execution can perform the authorized repair. Verification that discovers an unexplained failure routes the diagnosis to Troubleshooting.
 - Escalate when new ambiguity, conflicting evidence or repeated failed attempts requires diagnosis; do not keep retrying the same failing action. Pass existing findings so the next worker does not repeat discovery.
