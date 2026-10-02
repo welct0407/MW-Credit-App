@@ -74,7 +74,10 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
     clients:[{client_id:config.clientId,redirect_uris:[config.redirectUri],response_types:['code'],grant_types:['authorization_code','refresh_token'],token_endpoint_auth_method:'none'}],
     scopes:['openid','offline_access','mcp:events','mcp:read'],
     pkce:{required:()=>true}, // v9 supports S256 exclusively.
-    features:{devInteractions:{enabled:false},userinfo:{enabled:false},resourceIndicators:{
+    features:{devInteractions:{enabled:false},userinfo:{enabled:false},revocation:{
+      enabled:true,
+      allowedPolicy:(_ctx,client,token)=>client.clientId===config.clientId && token.clientId===client.clientId && 'accountId' in token && token.accountId===config.ownerSub,
+    },resourceIndicators:{
       enabled:true,defaultResource:()=>config.resource,useGrantedResource:()=>true,
       getResourceServerInfo:(_ctx,resource,client)=>{
         if(resource!==config.resource || client.clientId!==config.clientId)throw new errors.InvalidTarget('Resource denied');
@@ -101,8 +104,24 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
     (req as any).originalUrl=req.url;
     if(path.startsWith('/oauth/interaction/') || path==='/oauth/google/callback') {
       if(req.method!=='GET' || !(await ownerActive()))throw new SafeError('owner_denied',403);
-      const details=await provider.interactionDetails(req,res);
       if(path==='/oauth/google/callback') {
+        // The provider scopes its signed interaction cookie to /interaction/<uid>.
+        // Google cannot return to a dynamic registered URI, so bounce the unchanged
+        // code/state to that cookie path before reading/consuming browser authority.
+        const state=url.searchParams.get('state') ?? '',code=url.searchParams.get('code');
+        if(!state || !code)throw new SafeError('google_callback_invalid');
+        const saved=await store.get('googleStates/'+hash(state));
+        if(!saved || saved.expiresAt<=Date.now() || typeof saved.uid!=='string')throw new SafeError('google_state_invalid');
+        const target=new URL(config.issuer+'/interaction/'+encodeURIComponent(saved.uid)+'/google/callback');
+        target.search=new URLSearchParams({state,code}).toString();
+        res.writeHead(302,{Location:target.toString(),'Cache-Control':'no-store'});res.end();return;
+      }
+      const details=await provider.interactionDetails(req,res).catch(error=>{
+        if(error instanceof errors.SessionNotFound)throw new SafeError('interaction_session_missing');
+        throw error;
+      });
+      const interactionPath='/oauth/interaction/'+details.uid;
+      if(path===interactionPath+'/google/callback') {
         const state=url.searchParams.get('state') ?? '',code=url.searchParams.get('code');
         if(!state || !code)throw new SafeError('google_callback_invalid');
         const saved=await store.atomic(async tx=>{
@@ -115,7 +134,7 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
         if(accountId!==config.ownerSub || !(await ownerActive()))throw new SafeError('google_owner_denied',403);
         await provider.interactionFinished(req,res,{login:{accountId}},{mergeWithLastSubmission:false});return;
       }
-      if(path!=='/oauth/interaction/'+details.uid)throw new SafeError('interaction_mismatch');
+      if(path!==interactionPath)throw new SafeError('interaction_mismatch');
       if(details.prompt.name==='login') {
         const state=randomBytes(32).toString('base64url'),nonce=randomBytes(32).toString('base64url');
         const start=await upstream.begin(state,nonce);

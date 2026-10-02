@@ -2,11 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {adapterFactory,validateGoogleIdentity} from '../dist/oauth.js';
 import {MemoryStore} from '../dist/store.js';
-import {application,authorize,tokenExchange,mcpRequest,config,subscription} from './helpers.mjs';
+import {application,authorize,tokenExchange,mcpRequest,config,subscription,BrowserCookieJar,fixture,echo} from './helpers.mjs';
+import {open,seal} from '../dist/events.js';
+import {hash} from '../dist/security.js';
 
 test('OAuth metadata, real provider code/PKCE/token/refresh lifecycle and authenticated MCP events',async t=>{
   const app=await application();t.after(()=>app.close());
   const metadata=await app.call('/oauth/.well-known/openid-configuration');assert.equal(metadata.status,200);assert.equal(metadata.json().issuer,app.conf.issuer);assert.deepEqual(metadata.json().code_challenge_methods_supported,['S256']);assert.equal(metadata.json().registration_endpoint,undefined);
+  assert.equal(metadata.json().revocation_endpoint,app.conf.issuer+'/token/revocation');
   const challenge=await mcpRequest(app,'server/discover');assert.equal(challenge.status,401);assert.match(challenge.headers['www-authenticate'],/oauth-protected-resource\/mcp/);
   const grant=await authorize(app);assert.equal(grant.redirect.searchParams.get('iss'),app.conf.issuer);assert.equal(grant.redirect.searchParams.get('state'),'synthetic-client-state');assert.ok(grant.code);
   const exchange=await tokenExchange(app,grant.code,grant.verifier);assert.equal(exchange.status,200,exchange.body);const token=exchange.json();assert.ok(token.access_token);assert.ok(token.refresh_token);
@@ -15,6 +18,56 @@ test('OAuth metadata, real provider code/PKCE/token/refresh lifecycle and authen
   const sub=await mcpRequest(app,'events/subscribe',subscription(),token.access_token);assert.ok(sub.json().result?.id,sub.body);
   const health=await mcpRequest(app,'tools/call',{name:'get_bridge_health',arguments:{}},token.access_token);assert.equal(health.status,200,health.body);assert.ok(health.json().result?.content,health.body);
   const refreshed=await app.call('/oauth/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',client_id:app.conf.clientId,refresh_token:token.refresh_token,resource:app.conf.resource}).toString()});assert.equal(refreshed.status,200,refreshed.body);assert.notEqual(refreshed.json().refresh_token,token.refresh_token);
+});
+test('browser cookie jar honors path boundary, separate paths, domain, Secure and expiration',()=>{
+  const jar=new BrowserCookieJar(),origin='https://bridge.example/oauth/auth',time=1000;
+  jar.receive('interaction=one; Path=/oauth/interaction/one; Secure',origin,time);
+  jar.receive('interaction=two; Path=/oauth/interaction/two; Secure',origin,time);
+  jar.receive('domain=yes; Domain=bridge.example; Path=/; Max-Age=1',origin,time);
+  jar.receive('bad=no; Domain=attacker.example; Path=/',origin,time);
+  assert.equal(jar.header('https://bridge.example/oauth/google/callback',time),'domain=yes');
+  assert.equal(jar.header('https://bridge.example/oauth/interaction/one/google/callback',time),'interaction=one; domain=yes');
+  assert.equal(jar.header('https://bridge.example/oauth/interaction/one-more',time),'domain=yes');
+  assert.equal(jar.header('https://bridge.example/oauth/interaction/two',time),'interaction=two; domain=yes');
+  assert.equal(jar.header('http://bridge.example/oauth/interaction/one',time),'domain=yes');
+  assert.equal(jar.header('https://child.bridge.example/',time),'domain=yes');
+  assert.equal(jar.header('https://attacker.example/',time),'');
+  assert.equal(jar.header('https://bridge.example/',time+1001),'');
+});
+test('fresh Google callback bounces into signed interaction cookie scope and requires that browser before consuming state',async t=>{
+  const app=await application();t.after(()=>app.close());
+  const params=new URLSearchParams({client_id:app.conf.clientId,redirect_uri:app.conf.redirectUri,response_type:'code',scope:'mcp:events',resource:app.conf.resource,state:'synthetic-client-state',code_challenge:'A'.repeat(43),code_challenge_method:'S256'});
+  const start=await app.call('/oauth/auth?'+params);await app.follow(start.headers.location);
+  const state=app.login().state,callback='/oauth/google/callback?'+new URLSearchParams({state,code:'synthetic-owner-code'}),cookieName=app.oauth.provider.cookieName('interaction');
+  assert.equal(app.cookieJar.header(app.conf.baseUrl+callback).includes(cookieName+'='),false);
+  const bounce=await app.call(callback);assert.equal(bounce.status,302);
+  const destination=new URL(bounce.headers.location);assert.match(destination.pathname,/^\/oauth\/interaction\/[^/]+\/google\/callback$/);
+  assert.equal(app.cookieJar.header(destination).includes(cookieName+'='),true);
+  const absent=await app.call(destination.pathname+destination.search,{cookies:false});assert.equal(absent.status,400);assert.match(absent.body,/interaction_session_missing/);
+  assert.ok(await app.store.get('googleStates/'+hash(state)));
+  let response=await app.follow(bounce.headers.location);
+  for(let i=0;i<8 && !response.headers.location?.startsWith(app.conf.redirectUri);i++)response=await app.follow(response.headers.location);
+  assert.ok(new URL(response.headers.location).searchParams.get('code'));assert.equal(await app.store.get('googleStates/'+hash(state)),undefined);
+  assert.equal((await app.call(callback)).status,400);
+});
+test('HTTP refresh-token revocation checks ownership without token oracle and cancels tokens plus queued callbacks',async t=>{
+  let sends=0;const app=await application({send:async(url,body)=>JSON.parse(body).type==='verification'?echo(url,body):(sends++,{status:200,body:''})});t.after(()=>app.close());
+  const grant=await authorize(app),tokens=(await tokenExchange(app,grant.code,grant.verifier)).json();
+  const subscribe=await mcpRequest(app,'events/subscribe',subscription(),tokens.access_token);assert.ok(subscribe.json().result.id);
+  await app.bridge.ingest(fixture());assert.equal((await app.store.query('deliveries',[['state','==','pending']],10)).length,1);
+  const revoke=token=>app.call('/oauth/token/revocation',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:app.conf.clientId,token,token_type_hint:'refresh_token'}).toString()});
+  const row=(await app.store.query('oauth',[['model','==','RefreshToken']],10))[0],payload=JSON.parse(open(row.encrypted,app.conf.stateKey)),path='oauth/'+hash(app.conf.issuer+':RefreshToken:'+payload.jti);
+  for(const overrides of [{clientId:'other-client'},{accountId:'other-owner'}]){
+    await app.store.atomic(async tx=>tx.set(path,{...row,encrypted:seal(JSON.stringify({...payload,...overrides}),app.conf.stateKey)}));
+    const denied=await revoke(tokens.refresh_token);assert.equal(denied.status,200);assert.equal(denied.body,'');assert.equal(await app.store.get('revokedGrants/'+hash(payload.grantId)),undefined);
+  }
+  await app.store.atomic(async tx=>tx.set(path,row));
+  const unknown=await revoke('synthetic-unknown-token'),result=await revoke(tokens.refresh_token),repeat=await revoke(tokens.refresh_token);
+  for(const r of [unknown,result,repeat]){assert.equal(r.status,200);assert.equal(r.body,'');}
+  assert.equal((await mcpRequest(app,'events/list',{},tokens.access_token)).status,401);
+  const refresh=await app.call('/oauth/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',client_id:app.conf.clientId,refresh_token:tokens.refresh_token,resource:app.conf.resource}).toString()});
+  assert.equal(refresh.status,400);assert.equal(refresh.json().error,'invalid_grant');
+  await app.bridge.dispatch();assert.equal(sends,0);assert.equal((await app.store.query('deliveries',[],10))[0].state,'cancelled');
 });
 test('wrong PKCE, redirect, resource, unknown client and reused authorization code are rejected',async t=>{
   const app=await application();t.after(()=>app.close());

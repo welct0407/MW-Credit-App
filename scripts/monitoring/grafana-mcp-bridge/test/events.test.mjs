@@ -83,3 +83,18 @@ test('unsubscribe wins against a pending refresh challenge and expired challenge
   await assert.rejects(()=>expired.bridge.subscribe({...subscription(),ttlMs:1000}),/subscription_ttl_elapsed/);
   assert.equal((await expired.store.query('subscriptions',[],10)).length,0);
 });
+test('unsubscribe fences a delayed first challenge even without a row; later intentional subscribe succeeds without replay',async()=>{
+  let release,started,block=true,sends=0;
+  const began=new Promise(resolve=>started=resolve);
+  const s=setup(async(url,body)=>{
+    if(JSON.parse(body).type!=='verification'){sends++;return {status:200,body:''};}
+    if(block){started();await new Promise(resolve=>release=resolve);}return echo(url,body);
+  });
+  const params=subscription(),pending=s.bridge.subscribe(params);
+  await began;await s.bridge.unsubscribe({name:params.name,arguments:params.arguments,delivery:{mode:'webhook',url:params.delivery.url}});
+  release();await assert.rejects(()=>pending,/subscription_changed_retry/);
+  assert.equal((await s.store.query('subscriptions',[],10)).length,0);
+  await s.bridge.ingest(fixture());await s.bridge.dispatch();assert.equal(sends,0);
+  block=false;await s.bridge.subscribe(params);await s.bridge.dispatch();assert.equal(sends,0);
+  await s.bridge.ingest(fixture('resolved'));await s.bridge.dispatch();assert.equal(sends,1);
+});

@@ -95,7 +95,11 @@ export class Bridge {
     // Finite subscriptions only; honor short requested lifetimes without a refresh loophole.
     const ttl=params.ttlMs ?? 86400_000;
     if(!Number.isFinite(ttl) || ttl<=0) throw new SafeError('invalid_subscription_ttl');
-    const id=this.identity(params.name,filters,url), before=await this.store.get<Subscription>('subscriptions/'+id), time=this.now();
+    const id=this.identity(params.name,filters,url), time=this.now();
+    const {before,cancellation}=await this.store.atomic(async tx=>({
+      before:await tx.get<Subscription>('subscriptions/'+id),
+      cancellation:(await tx.get('subscriptionControls/'+id))?.generation ?? 0,
+    }));
     const candidate:Subscription={id,owner:this.config.ownerSub,name:params.name,filters,url,secret:seal(secret,this.config.stateKey),expiresAt:time+Math.min(ttl,86400_000),active:true,verifiedAt:time,revision:(before?.revision ?? 0)+1,deleteAfter:new Date(time+8*86400_000)};
     if(grantId)candidate.grantHash=hash(grantId);
     if(before && before.active && before.expiresAt>time && equal(open(before.secret,this.config.stateKey),secret) && before.verifiedAt>time-300_000) candidate.verifiedAt=before.verifiedAt;
@@ -113,7 +117,8 @@ export class Bridge {
       if(candidate.expiresAt<=this.now())throw new SafeError('subscription_ttl_elapsed');
       if(candidate.grantHash && await tx.get('revokedGrants/'+candidate.grantHash))throw new SafeError('grant_revoked',403);
       const current=await tx.get<Subscription>('subscriptions/'+id);
-      if((current?.revision ?? 0)!==(before?.revision ?? 0)) throw new SafeError('subscription_changed_retry',409);
+      const generation=(await tx.get('subscriptionControls/'+id))?.generation ?? 0;
+      if(generation!==cancellation || (current?.revision ?? 0)!==(before?.revision ?? 0)) throw new SafeError('subscription_changed_retry',409);
       const index=await tx.get<{ids:string[]}>('indexes/subscriptions') ?? {ids:[]};
       const retained:string[]=[];
       for(const sid of index.ids) { const sub=await tx.get<Subscription>('subscriptions/'+sid); if(sub?.active && sub.expiresAt>this.now() && (!sub.grantHash || !await tx.get('revokedGrants/'+sub.grantHash))) retained.push(sid); }
@@ -126,7 +131,14 @@ export class Bridge {
   async unsubscribe(params:{name:string;arguments:unknown;delivery:{mode:string;url:string}}) {
     if(params.name!==EVENT_NAME || params.delivery.mode!=='webhook') throw new SafeError('unsupported_event');
     const id=this.identity(params.name,normalizedFilters(params.arguments),callbackUrl(params.delivery.url,this.config.callbackHosts).toString());
-    await this.store.atomic(async tx=>{const sub=await tx.get<Subscription>('subscriptions/'+id);if(sub)tx.set('subscriptions/'+id,{...sub,active:false,revision:sub.revision+1});});
+    await this.store.atomic(async tx=>{
+      const sub=await tx.get<Subscription>('subscriptions/'+id);
+      const generation=(await tx.get('subscriptionControls/'+id))?.generation ?? 0;
+      // Keep the generation even when no subscription exists (or TTL later deletes it).
+      // A later intentional subscribe snapshots the new generation and may activate.
+      tx.set('subscriptionControls/'+id,{generation:generation+1});
+      if(sub)tx.set('subscriptions/'+id,{...sub,active:false,revision:sub.revision+1});
+    });
     return {};
   }
   async ingest(value:unknown) {

@@ -36,6 +36,7 @@ test('Google callback needs browser interaction cookie, matching single-use stat
   const params=new URLSearchParams({client_id:app.conf.clientId,redirect_uri:app.conf.redirectUri,response_type:'code',scope:'mcp:events',resource:app.conf.resource,code_challenge:'A'.repeat(43),code_challenge_method:'S256'});
   let result=await app.call('/oauth/auth?'+params);result=await app.follow(result.headers.location);assert.ok(result.headers.location.startsWith('https://accounts.example'));
   const wrong=await app.call('/oauth/google/callback?state=wrong&code=sentinel-secret');assert.equal(wrong.status,400);assert.equal(wrong.body.includes('sentinel-secret'),false);
-  const state=app.login().state;const denied=await app.call('/oauth/google/callback?'+new URLSearchParams({state,code:'wrong'}));assert.equal(denied.status,500);assert.equal(denied.body.includes('sentinel-secret'),false);
+  const state=app.login().state;const bounce=await app.call('/oauth/google/callback?'+new URLSearchParams({state,code:'wrong'}));assert.equal(bounce.status,302);
+  const denied=await app.follow(bounce.headers.location);assert.equal(denied.status,500);assert.equal(denied.body.includes('sentinel-secret'),false);
   const replay=await app.call('/oauth/google/callback?'+new URLSearchParams({state,code:'synthetic-owner-code'}));assert.equal(replay.status,400);assert.match(replay.body,/google_state_invalid/);
 });
