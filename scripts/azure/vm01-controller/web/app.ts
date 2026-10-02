@@ -1,4 +1,5 @@
 import { PublicClientApplication, BrowserCacheLocation, type AccountInfo } from '@azure/msal-browser';
+import { StatusCheckError, responseData, statusException, statusFailure } from './diagnostics.js';
 type Action = 'start' | 'restart' | 'deallocate';
 interface PublicConfig { tenantId: string; browserClientId: string; apiClientId: string; origin: string }
 interface Status { observation?: { powerState: string; provisioningState: string; observedAt: string }; stateVersion?: string; actions?: Record<Action, boolean>; operation?: { phase: string; requestId: string; action: Action; reason?: string }; error?: string }
@@ -18,8 +19,12 @@ async function token(): Promise<string> {
   catch { return (await msal.acquireTokenPopup({ account, scopes: [scope] })).accessToken; }
 }
 async function api(path: string, body?: unknown): Promise<{ status: number; data: Status }> {
-  const response = await fetch(path, { method: body ? 'POST' : 'GET', credentials: 'omit', redirect: 'error', headers: { authorization: `Bearer ${await token()}`, ...(body ? { 'content-type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
-  return { status: response.status, data: await response.json() as Status };
+  let accessToken: string;
+  try { accessToken = await token(); } catch { throw new StatusCheckError('token'); }
+  let response: Response;
+  try { response = await fetch(path, { method: body ? 'POST' : 'GET', credentials: 'omit', redirect: 'error', headers: { authorization: `Bearer ${accessToken}`, ...(body ? { 'content-type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) }); }
+  catch { throw new StatusCheckError('transport'); }
+  return { status: response.status, data: await responseData(response) as Status };
 }
 function render(data: Status): void {
   snapshot = data; disable();
@@ -41,10 +46,11 @@ async function refresh(): Promise<void> {
     const result = await api(`/api/vm01/status${id ? `?requestId=${encodeURIComponent(id)}` : ''}`);
     element('retry').hidden = !pending;
     if (result.status === 404 && pending) { message('The pending request has no stored receipt. Use its saved request to retry; do not create another action.'); disable(); return; }
+    if (result.status >= 400 || result.data.error) { snapshot = undefined; disable(); element('power').textContent = 'Unknown'; message(statusFailure(result.status, result.data.error)); return; }
     render(result.data);
     if (result.data.operation && ['completed', 'noop', 'desired_state_observed', 'rejected'].includes(result.data.operation.phase)) { sessionStorage.removeItem(pendingKey); element('retry').hidden = true; waitingSince = 0; render(result.data); }
     message(result.data.error ? 'Status is unavailable. Actions are disabled.' : result.data.operation?.phase === 'accepted_unverified' ? 'Restart was accepted. Completion needs operation-status verification or administrator reconciliation.' : '');
-  } catch { disable(); message('Connection or sign-in failed. Actions are disabled.'); }
+  } catch (error) { snapshot = undefined; disable(); element('power').textContent = 'Unknown'; message(statusException(error)); }
   finally { schedule(); }
 }
 async function confirm(action: Action): Promise<{ workSaved: true; admissionHeld: true; approvalReference: string } | undefined> {

@@ -6,6 +6,8 @@ Current browser access is assigned to **MW Credit** (`mwcredit@idea.100-5.com`, 
 
 The base managed-identity role has exactly five VM actions assigned only at VM-01. Asynchronous restart acceptance is **not completion**. Without separately approved operation-status read access, the controller retains a serialization latch and requires administrator reconciliation. Optional server-side polling is implemented and disabled by default.
 
+The source now distinguishes access-token acquisition, incomplete transport, invalid/empty HTTP responses and known JSON controller errors during status checks. HTTP failures show the status and only allowlisted public error codes; raw response bodies and authentication details are never displayed. Failed checks clear the usable snapshot, show Unknown and keep actions disabled. [2 October diagnosis, fixture tests and deployment limit](../../../outputs/r050-vm01-controller/status-diagnosis/README.md). This diagnostic change has not been deployed; authenticated live status remains unverified.
+
 - [Design and decisions](docs/design.md)
 - [Operations, activation and recovery](docs/operations.md)
 - [Acceptance evidence and remaining tests](docs/acceptance.md)
@@ -43,4 +45,4 @@ Production imports require valid public configuration. `configuration.example.js
 
 POST JSON includes `requestId` (`<13-digit Unix milliseconds>.<UUIDv4>`), `stateVersion` and `observedAt` from status. Restart/deallocate additionally require `confirmation: {workSaved: true, admissionHeld: true, approvalReference: "scoped-owner-reference"}`. New requests expire after24 hours; observations after120 seconds. Duplicate lookup precedes freshness/state checks; reuse the same ID and identical body after a timeout.
 
-Do not supply target resource IDs, ARM URLs, commands, credentials or arbitrary parameters. UI label **Stop — deallocate** means releasing compute allocation; retained disks and network resources can still incur costs. `executorReady` is always null in V1.
+Do not supply target resource IDs, ARM URLs, commands, credentials or arbitrary parameters. UI label **Stop - deallocate** means releasing compute allocation; retained disks and network resources can still incur costs. `executorReady` is always null in V1.
