@@ -22,7 +22,7 @@ const assets: Record<string, { file: string; contentType: string }> = {
   '/assets/app.js': { file: 'app.js', contentType: 'text/javascript; charset=utf-8' },
   '/assets/style.css': { file: 'style.css', contentType: 'text/css; charset=utf-8' }
 };
-app.http('vm01-static', { route: '{*path}', methods: ['GET'], authLevel: 'anonymous', handler: async request => {
+async function staticAsset(request: HttpRequest): Promise<HttpResponseInit> {
   const url = new URL(request.url);
   if (url.origin !== config.origin || (url.search && url.pathname !== '/auth/callback')) return { status: 404, headers: securityHeaders };
   if (url.pathname === '/assets/config.js') return { status: 200, headers: { ...securityHeaders, 'content-type': 'text/javascript; charset=utf-8' }, body: `window.VM01_CONFIGURATION=${JSON.stringify({ tenantId: config.tenantId, browserClientId: config.browserClientId, apiClientId: config.apiClientId, origin: config.origin })};` };
@@ -30,4 +30,9 @@ app.http('vm01-static', { route: '{*path}', methods: ['GET'], authLevel: 'anonym
   if (!asset) return { status: 404, headers: securityHeaders };
   const headers = url.pathname === '/auth/callback' ? { ...securityHeaders, 'content-security-policy': securityHeaders['content-security-policy']!.replace("frame-ancestors 'none'", "frame-ancestors 'self'") } : securityHeaders;
   return { status: 200, headers: { ...headers, 'content-type': asset.contentType }, body: await readFile(fileURLToPath(new URL(`../web/${asset.file}`, import.meta.url))) };
-} });
+}
+// The Functions host registers routes by function name, so a wildcard static
+// route can intercept the status API. Register only the public static URLs.
+for (const [index, pathname] of [...Object.keys(assets), '/assets/config.js'].entries()) {
+  app.http(`vm01-static-${index}`, { route: pathname === '/' ? '/' : pathname.slice(1), methods: ['GET'], authLevel: 'anonymous', handler: staticAsset });
+}

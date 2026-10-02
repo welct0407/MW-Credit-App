@@ -1,4 +1,6 @@
-# R050 — Azure VM-01 controller source — 1 October 2026
+# R050 - Azure VM-01 controller source - 1 October 2026
+
+Routing preparation, 2 October 2026 UTC: after the approved diagnostics deployment, the parent observed authenticated empty404 at05:55:18 UTC. Read-only live Functions metadata confirms GET wildcard vm01-static preceding vm01-status. Astra High review and a real local Functions4 host reproduce the collision; replacing the wildcard with six explicit static routes yields JSON401 bearer_token_required for anonymous local GET status, with static200, method405, unknown/query404 and CSP preserved. New real-host regression exercises dispatch. Starting source checkpoint5d0d10cb/deployed4a506465, original affected source/runtime saved task-locally. Candidate remains local pending additional routing review; no further publication/deployment, authentication/security/config/log/role change or VM power action. R050 remains Open. [Evidence and exact scope](../outputs/r050-vm01-controller/status-diagnosis/routing/README.md).
 
 Purpose: implement the agreed one-Function UI/API for authenticated status, start, restart and deallocate of the fixed VM-01. Design and independent review used Astra High; source execution/closeout used Sol6.1 High. The owner clarified that all project development belongs in AppSheet-Loan-Project, personal work in Daily-Use and integration runtime in MW-Integration-Agent. The initial source folder was relocated intact; Daily-Use was restored clean and MW-Integration-Agent is unchanged.
 
