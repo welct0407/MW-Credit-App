@@ -45,3 +45,14 @@ Four new regression tests bring the suite to 28; realistic cookie behavior also 
 File-only rollback is the recorded Git baseline/task commit, reconciled with later work. Future deployed containment/rollback is in the operating guide: pause this Scheduler/new webhook only, retain IRM, revoke owner authority, restore pinned image/config/keys with the durable database, and reconcile uncertain delivery before replay. Never regenerate the state key as recovery.
 
 Publication target is task branch `feat/grafana-mcp-events` and a draft PR against `master` for the existing audience. Inspect intended diff/secrets, use the existing authorized Git/connector route without credential creation, and verify the exact remote head and CI. The resulting commit and PR metadata/completion handoff record actual publication and check results; this source log makes no independent pre-publication success claim. No default-branch push, force-push, merge or deployment.
+
+
+## Owner bootstrap preparation
+
+Owner approved the scoped GCP bundle, public app-authenticated HTTPS, synthetic acceptance, $5 planning budget (not a cap), and native Preview alerts.mw-credit.com mapping at 17:14:50 UTC. Read-only preflight found disabled APIs and insufficient VM identity permissions; the parent browser could not reach an authenticated Console. No deployment action was taken.
+
+Added a fixed-target human-owner preflight/resource script, bounded database condition/secret access, reviewed indexes/TTL, OAuth request-log exclusion, and an inert dependency-free non-root revision for actual run.app URL and generated mapping DNS records. Scripts stop on denied reads, conflicting resources or unexpected project roles; existing database recovery requires explicit resume. Secure owner-run seeding sends generated application keys and hidden-prompt Google client secret directly to Secret Manager without values in files/arguments/output. Existing versions are never regenerated. Standardized Google secret name to mw-grafana-google-client-secret and kept owner access false in the final-origin template. Scheduler execution/live Grafana routing and business services remain inactive/unchanged.
+
+Offline guard tests cover resource conflicts, denied reads, database resume/location, safe inert reruns and domain collisions; the inert HTTP test checks every sensitive route returns 503. GitHub CI now includes these affected checks. Publication/check results are recorded in the completion handoff; scripts remain unexecuted against GCP.
+
+Bootstrap verification: six offline Python guard tests passed; TypeScript build and 29/29 Node tests passed. The pinned inert Docker image built with network disabled and its endpoint regression passed inside the non-root container with network disabled. The original package checks remain valid for unchanged application/dependency code; new CI checks verify this exact bootstrap publication.

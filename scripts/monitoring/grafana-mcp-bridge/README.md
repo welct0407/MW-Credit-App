@@ -4,6 +4,8 @@ R050 development implementation; **not deployed or connected**. This monitoring 
 
 The [design and operating guide](../../../Documents/Grafana_MCP_Events_Bridge.md) owns deployment prerequisites, OAuth, durable delivery, security, cost and recovery. `deploy/service.yaml.example` is a review template with unresolved placeholders, not an executable deployment instruction.
 
+The owner-run [phase-one bootstrap](deploy/OWNER_BOOTSTRAP.md) prepares approved resources and an inert domain/TLS revision; it is never executed by local checks.
+
 ## Local checks
 
 Requires Node 24 and npm. From this directory:
@@ -11,6 +13,7 @@ Requires Node 24 and npm. From this directory:
 ```sh
 npm ci --ignore-scripts
 npm test
+python3 deploy/test_owner_bootstrap.py
 npm audit --omit=dev --audit-level=moderate
 npm run estimate
 docker build -t mw-grafana-events:offline .
@@ -32,7 +35,7 @@ The container uses a pinned Linux amd64 Node image, a locked dependency tree and
 | `src/security.ts` | Grafana HMAC, constant-time comparison, public DNS checks, pinned HTTPS and sanitized logs |
 | `src/store.ts` | Firestore transaction adapter and isolated in-memory test store |
 | `src/config.ts`, `src/main.ts` | Canonical origin, mounted configuration, startup and shutdown |
-| `deploy/` | Review-only service settings, Firestore indexes and TTL policies |
+| `deploy/` | Owner-run bootstrap, inert revision, secure secret seeding, service template and Firestore policies |
 | `test/` | Synthetic behavior and security regression checks |
 
 The SDK is pinned to `@modelcontextprotocol/server` 2.2.0 and `/node` 2.1.0. Custom Events handlers use v2 request schemas; old v1 generic-server examples are incompatible. The server exposes only `get_bridge_health` and `get_alert_event` as read tools.

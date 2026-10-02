@@ -18,21 +18,21 @@ spec:
       containerConcurrency: 20
       timeoutSeconds: 300
       containers:
-        - image: asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/MONITORING_REPOSITORY/bridge@sha256:REVIEWED_DIGEST
+        - image: asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:REVIEWED_DIGEST
           ports: [{ containerPort: 8080 }]
           resources:
             limits: { cpu: '1', memory: 512Mi }
           startupProbe:
             tcpSocket: { port: 8080 }
           env:
-            - { name: PUBLIC_BASE_URL, value: 'https://EXACT_MANAGED_SERVICE_URL' }
-            - { name: OAUTH_ISSUER, value: 'https://EXACT_MANAGED_SERVICE_URL/oauth' }
-            - { name: MCP_RESOURCE, value: 'https://EXACT_MANAGED_SERVICE_URL/mcp' }
+            - { name: PUBLIC_BASE_URL, value: 'https://alerts.mw-credit.com' }
+            - { name: OAUTH_ISSUER, value: 'https://alerts.mw-credit.com/oauth' }
+            - { name: MCP_RESOURCE, value: 'https://alerts.mw-credit.com/mcp' }
             - { name: GCP_PROJECT, value: clever-oasis-508610-n7 }
             - { name: FIRESTORE_DATABASE, value: mw-grafana-events }
             - { name: OWNER_EMAIL, value: welct0407@mw-credit.com }
             - { name: OWNER_GOOGLE_SUB, value: VERIFIED_OWNER_SUB }
-            - { name: OWNER_ENABLED, value: 'true' }
+            - { name: OWNER_ENABLED, value: 'false' }
             - { name: CHATGPT_CLIENT_ID, value: PREDEFINED_CLIENT_ID }
             - { name: CHATGPT_REDIRECT_URI, value: EXACT_URI_FROM_PLUGIN_MANAGEMENT }
             - { name: GOOGLE_CLIENT_ID, value: APPROVED_GOOGLE_WEB_CLIENT_ID }
@@ -60,4 +60,4 @@ spec:
         - name: jwks
           secret: { secretName: mw-grafana-oauth-jwks, items: [{ key: PINNED_VERSION, path: value }] }
         - name: google
-          secret: { secretName: mw-grafana-google-client, items: [{ key: PINNED_VERSION, path: value }] }
+          secret: { secretName: mw-grafana-google-client-secret, items: [{ key: PINNED_VERSION, path: value }] }

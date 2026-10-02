@@ -1,0 +1,229 @@
+#!/usr/bin/env python3
+"""Owner-run, fixed-target bootstrap. No implicit impersonation or secret values."""
+import argparse
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+PROJECT = 'clever-oasis-508610-n7'
+NUMBER = '737787224638'
+REGION = 'asia-southeast1'
+SERVICE = DATABASE = 'mw-grafana-events'
+REPOSITORY = 'mw-monitoring'
+DOMAIN = 'alerts.mw-credit.com'
+MARKER = 'grafana-mcp-bootstrap-v1'
+RUNTIME = f'{SERVICE}@{PROJECT}.iam.gserviceaccount.com'
+DISPATCH = f'mw-grafana-dispatch@{PROJECT}.iam.gserviceaccount.com'
+SECRETS = ['mw-grafana-hmac', 'mw-grafana-state-key', 'mw-grafana-cookie-keys',
+           'mw-grafana-oauth-jwks', 'mw-grafana-google-client-secret']
+APIS = ['run.googleapis.com', 'firestore.googleapis.com', 'cloudscheduler.googleapis.com',
+        'secretmanager.googleapis.com', 'artifactregistry.googleapis.com',
+        'iam.googleapis.com', 'iamcredentials.googleapis.com', 'logging.googleapis.com']
+HERE = Path(__file__).resolve().parent
+
+
+def require(ok, message):
+    if not ok:
+        raise RuntimeError(message)
+
+
+def run(argv, data=None):
+    result = subprocess.run(argv, input=data, capture_output=True, check=False)
+    require(result.returncode == 0, f'Command failed: {argv[0:4]}\n{result.stderr.decode()}')
+    return result.stdout.decode()
+
+
+def gc(*args):
+    return json.loads(run(['gcloud', *args, f'--project={PROJECT}', f'--account={OWNER}',
+                           '--quiet', '--format=json']) or 'null')
+
+
+def choose(rows, suffix):
+    matches = [r for r in rows if r.get('name', r.get('metadata', {}).get('name', '')).split('/')[-1] == suffix]
+    require(len(matches) <= 1, f'Ambiguous existing resource: {suffix}')
+    return matches[0] if matches else None
+
+
+def baseline():
+    require(not os.environ.get('CLOUDSDK_AUTH_IMPERSONATE_SERVICE_ACCOUNT'), 'Remove impersonation override')
+    require(not os.environ.get('CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE'), 'Remove credential override')
+    require(not OWNER.endswith('.gserviceaccount.com'), 'An explicitly selected human owner account is required')
+    auth = json.loads(run(['gcloud', 'auth', 'list', '--format=json']))
+    require(any(a['account'] == OWNER and a['status'] == 'ACTIVE' for a in auth), 'Selected owner must be the active account')
+    impersonation = run(['gcloud', 'config', 'get-value', 'auth/impersonate_service_account']).strip()
+    require(impersonation in ('', '(unset)'), 'Remove configured impersonation')
+    project = gc('projects', 'describe', PROJECT)
+    require(str(project['projectNumber']) == NUMBER and project.get('lifecycleState') == 'ACTIVE', 'Wrong/inactive project')
+    billing = gc('billing', 'projects', 'describe', PROJECT)
+    require(billing.get('billingEnabled') is True, 'Billing is not enabled; do not link/change billing automatically')
+    enabled = {s['config']['name'] for s in gc('services', 'list', '--enabled')}
+    # Failure here is a blocker, never permission to disable an organization policy.
+    policy = gc('org-policies', 'describe', 'constraints/run.managed.requireInvokerIam', '--effective')
+    require(not any(r.get('enforce') for r in policy.get('spec', {}).get('rules', [])), 'Organization requires invoker IAM')
+    iam = gc('projects', 'get-iam-policy', PROJECT)
+    condition = f'resource.name=="projects/{PROJECT}/databases/{DATABASE}"'
+    for binding in iam.get('bindings', []):
+        if f'serviceAccount:{RUNTIME}' in binding.get('members', []):
+            require(binding['role'] == 'roles/datastore.user' and binding.get('condition', {}).get('expression') == condition,
+                    'Runtime already has an unexpected project role; owner review required')
+        require(f'serviceAccount:{DISPATCH}' not in binding.get('members', []), 'Dispatch already has project roles; owner review required')
+    print(json.dumps({'owner': OWNER, 'project': PROJECT, 'number': NUMBER,
+                      'billingEnabled': True, 'enabledAPIs': sorted(enabled)}, indent=2))
+    return enabled, condition
+
+
+def inventory(enabled):
+    commands = [
+        ('iam.googleapis.com', ('iam', 'service-accounts', 'list')),
+        ('artifactregistry.googleapis.com', ('artifacts', 'repositories', 'list', f'--location={REGION}')),
+        ('firestore.googleapis.com', ('firestore', 'databases', 'list')),
+        ('secretmanager.googleapis.com', ('secrets', 'list')),
+        ('run.googleapis.com', ('run', 'services', 'list', f'--region={REGION}')),
+        ('cloudscheduler.googleapis.com', ('scheduler', 'jobs', 'list', f'--location={REGION}')),
+    ]
+    rows = {}
+    for api, command in commands:
+        rows[api] = gc(*command) if api in enabled else []
+        print(f'{api}: inventory read' if api in enabled else f'{api}: disabled; inventory pending enablement')
+    return rows
+
+
+def validate(rows, resume):
+    for name in (SERVICE, 'mw-grafana-dispatch'):
+        existing = next((x for x in rows['iam.googleapis.com'] if x.get('email') == f'{name}@{PROJECT}.iam.gserviceaccount.com'), None)
+        if existing:
+            require(existing.get('displayName') == MARKER and not existing.get('disabled'), f'Conflicting identity {name}')
+    repo = choose(rows['artifactregistry.googleapis.com'], REPOSITORY)
+    if repo:
+        require(repo.get('description') == MARKER and repo.get('format') == 'DOCKER', 'Conflicting registry repository')
+    db = choose(rows['firestore.googleapis.com'], DATABASE)
+    if db:
+        require(resume, 'Existing database requires --resume after confirming this bootstrap owns it')
+        require(db.get('locationId') == REGION and db.get('type') == 'FIRESTORE_NATIVE'
+                and db.get('databaseEdition') == 'STANDARD' and db.get('deleteProtectionState') == 'DELETE_PROTECTION_ENABLED'
+                and db.get('pointInTimeRecoveryEnablement', 'POINT_IN_TIME_RECOVERY_DISABLED') == 'POINT_IN_TIME_RECOVERY_DISABLED', 'Conflicting database configuration')
+    for name in SECRETS:
+        secret = choose(rows['secretmanager.googleapis.com'], name)
+        if secret:
+            require(secret.get('labels', {}).get('bridge') == MARKER and 'automatic' in secret.get('replication', {}), f'Conflicting secret {name}')
+    service = choose(rows['run.googleapis.com'], SERVICE)
+    if service:
+        require(service.get('metadata', {}).get('labels', {}).get('bridge') == MARKER, 'Conflicting Cloud Run service')
+    job = choose(rows['cloudscheduler.googleapis.com'], 'mw-grafana-dispatch')
+    if job:
+        require(job.get('description') == MARKER and job.get('state') == 'PAUSED', 'Conflicting/active Scheduler job')
+    return db, repo
+
+
+def resources(enabled, condition, resume):
+    # Validate visible collisions before enabling APIs, then repeat after all inventory is readable.
+    validate(inventory(enabled), resume)
+    gc('services', 'enable', *APIS)
+    rows = inventory(set(APIS))
+    db, repo = validate(rows, resume)
+    for name in (SERVICE, 'mw-grafana-dispatch'):
+        if not any(x.get('email') == f'{name}@{PROJECT}.iam.gserviceaccount.com' for x in rows['iam.googleapis.com']):
+            gc('iam', 'service-accounts', 'create', name, f'--display-name={MARKER}')
+    if not repo:
+        gc('artifacts', 'repositories', 'create', REPOSITORY, '--repository-format=docker', f'--location={REGION}', f'--description={MARKER}')
+    if not db:
+        gc('firestore', 'databases', 'create', f'--database={DATABASE}', f'--location={REGION}', '--edition=standard', '--type=firestore-native', '--delete-protection')
+    gc('projects', 'add-iam-policy-binding', PROJECT, f'--member=serviceAccount:{RUNTIME}', '--role=roles/datastore.user',
+       f'--condition=expression={condition},title=mw-grafana-database,description=Bridge database only')
+    for name in SECRETS:
+        if not choose(rows['secretmanager.googleapis.com'], name):
+            gc('secrets', 'create', name, '--replication-policy=automatic', f'--labels=bridge={MARKER}')
+        gc('secrets', 'add-iam-policy-binding', name, f'--member=serviceAccount:{RUNTIME}', '--role=roles/secretmanager.secretAccessor', '--condition=None')
+    definitions = json.loads((HERE / 'firestore-indexes.json').read_text())
+    for definition in definitions['indexes']:
+        group = definition['collectionGroup']
+        indexes = gc('firestore', 'indexes', 'composite', 'list', f'--database={DATABASE}', f'--collection-group={group}')
+        exists = any(i.get('queryScope') == definition['queryScope'] and
+                     [f for f in i['fields'] if f['fieldPath'] != '__name__'] == definition['fields'] for i in indexes)
+        if not exists:
+            gc('firestore', 'indexes', 'composite', 'create', f'--database={DATABASE}', f'--collection-group={group}', '--query-scope=collection', '--async',
+               *[f'--field-config=field-path={f["fieldPath"]},order={f["order"].lower()}' for f in definition['fields']])
+    for field in definitions['fieldOverrides']:
+        gc('firestore', 'indexes', 'fields', 'update', field['fieldPath'], f'--database={DATABASE}',
+           f'--collection-group={field["collectionGroup"]}', '--disable-indexes', '--async')
+        if field.get('ttl'):
+            gc('firestore', 'fields', 'ttls', 'update', field['fieldPath'], f'--database={DATABASE}',
+               f'--collection-group={field["collectionGroup"]}', '--enable-ttl', '--async')
+    log_filter = f'logName="projects/{PROJECT}/logs/run.googleapis.com%2Frequests" AND resource.type="cloud_run_revision" AND resource.labels.service_name="{SERVICE}" AND httpRequest.requestUrl =~ "^https://[^/]+/oauth(/|[?]|$)"'
+    exclusions = gc('logging', 'exclusions', 'list')
+    exclusion = next((e for e in exclusions if e['name'] == 'mw-grafana-oauth-requests'), None)
+    if exclusion:
+        require(exclusion.get('filter') == log_filter and not exclusion.get('disabled'), 'Conflicting/disabled OAuth request-log exclusion')
+    else:
+        gc('logging', 'exclusions', 'create', 'mw-grafana-oauth-requests', f'--log-filter={log_filter}', f'--description={MARKER}')
+    print('Infrastructure created/reconciled. Index/TTL operations may still be pending. No secret values, Cloud Run revision or Scheduler job created.')
+
+
+def inert():
+    services = gc('run', 'services', 'list', f'--region={REGION}')
+    existing = next((s for s in services if s.get('metadata', {}).get('name') == SERVICE), None)
+    if existing:
+        require(existing.get('metadata', {}).get('labels', {}).get('bridge') == MARKER, 'Cloud Run name collision')
+        print(json.dumps({'runAppURL': existing['status']['url'], 'existingService': True}))
+        return  # Never roll an existing service back to bootstrap.
+    tag = f'{REGION}-docker.pkg.dev/{PROJECT}/{REPOSITORY}/grafana-mcp-bootstrap:v1'
+    run(['gcloud', 'auth', 'configure-docker', f'{REGION}-docker.pkg.dev', f'--account={OWNER}', '--quiet'])
+    run(['docker', 'build', '--platform=linux/amd64', '-f', str(HERE / 'bootstrap.Dockerfile'), '-t', tag, str(HERE)])
+    run(['docker', 'push', tag])
+    image = gc('artifacts', 'docker', 'images', 'describe', tag)
+    digest = image['image_summary']['digest']
+    require(re.fullmatch(r'sha256:[a-f0-9]{64}', digest), 'Invalid registry digest')
+    gc('run', 'deploy', SERVICE, f'--region={REGION}', f'--image={tag.rsplit(":", 1)[0]}@{digest}',
+       f'--service-account={RUNTIME}', '--ingress=all', '--no-invoker-iam-check', '--min-instances=0', '--max-instances=2',
+       '--cpu=1', '--memory=512Mi', '--concurrency=20', '--timeout=300', f'--labels=bridge={MARKER}', '--set-env-vars=OWNER_ENABLED=false')
+    deployed = gc('run', 'services', 'describe', SERVICE, f'--region={REGION}')
+    require(deployed['spec']['template']['spec']['serviceAccountName'] == RUNTIME, 'Unexpected deployed identity')
+    require(deployed['metadata'].get('annotations', {}).get('run.googleapis.com/invoker-iam-disabled') == 'true', 'Invoker IAM check not disabled')
+    print(json.dumps({'runAppURL': deployed['status']['url'], 'bootstrapImageDigest': digest}, indent=2))
+
+
+def domain():
+    verified = gc('domains', 'list-user-verified')
+    require(any((v if isinstance(v, str) else v.get('id')) == 'mw-credit.com' for v in verified), 'Owner must verify mw-credit.com in Search Console first')
+    service = gc('run', 'services', 'describe', SERVICE, f'--region={REGION}')
+    require(service['metadata'].get('labels', {}).get('bridge') == MARKER, 'Unexpected target service')
+    mappings = gc('beta', 'run', 'domain-mappings', 'list', f'--region={REGION}')
+    existing = next((m for m in mappings if m.get('metadata', {}).get('name') == DOMAIN), None)
+    if existing:
+        require(existing.get('spec', {}).get('routeName') == SERVICE, 'Domain already targets another service')
+    else:
+        gc('beta', 'run', 'domain-mappings', 'create', f'--region={REGION}', f'--service={SERVICE}', f'--domain={DOMAIN}')
+    mapping = gc('beta', 'run', 'domain-mappings', 'describe', f'--region={REGION}', f'--domain={DOMAIN}')
+    print(json.dumps({'domain': DOMAIN, 'resourceRecords': mapping.get('status', {}).get('resourceRecords', []),
+                      'conditions': mapping.get('status', {}).get('conditions', [])}, indent=2))
+
+
+def main():
+    global OWNER
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('phase', choices=['preflight', 'resources', 'inert', 'domain'])
+    parser.add_argument('--owner', required=True, help='Confirmed human Google owner account, never a credential')
+    parser.add_argument('--resume', action='store_true', help='Owner confirms existing named database was created by this bootstrap')
+    args = parser.parse_args()
+    OWNER = args.owner
+    enabled, condition = baseline()
+    if args.phase == 'preflight':
+        validate(inventory(enabled), args.resume)
+        print('Read-only preflight passed. No infrastructure changed.')
+    elif args.phase == 'resources':
+        resources(enabled, condition, args.resume)
+    elif args.phase == 'inert':
+        inert()
+    else:
+        domain()
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (RuntimeError, KeyError, ValueError) as error:
+        print(f'STOP: {error}', file=sys.stderr)
+        sys.exit(1)

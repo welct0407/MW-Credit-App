@@ -20,13 +20,16 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: '24' }
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: python3 deploy/test_owner_bootstrap.py
       - run: npm test
       - run: npm audit --omit=dev --audit-level=moderate
       - run: npm run estimate
       - run: docker build --progress=plain -t mw-grafana-events:ci .
+      - run: docker build --progress=plain -f deploy/bootstrap.Dockerfile -t mw-grafana-bootstrap:ci deploy
       - name: Verify packaged runtime without external network
         run: >-
           docker run --rm --network none
           --mount type=bind,src="$PWD/test",dst=/app/test,readonly
           --mount type=bind,src="$PWD/tools",dst=/app/tools,readonly
+          --mount type=bind,src="$PWD/deploy",dst=/app/deploy,readonly
           mw-grafana-events:ci node --test test/*.test.mjs

@@ -1,6 +1,6 @@
 # Grafana → ChatGPT/Dots event bridge
 
-**Status, 2 October 2026:** R050 source implementation and synthetic tests, awaiting draft review and separately authorized deployment. Nothing is live or connected. A callback HTTP success alone will not establish a usable host integration; acceptance requires plugin connection and a synthetic event round trip through the intended ChatGPT/Dots automation.
+**Status, 2 October 2026:** R050 source implementation and synthetic tests, implementation checked; owner approved the scoped deployment bundle at 17:14:50 UTC; execution awaits a supported human-owner bootstrap route. Nothing is live or connected. A callback HTTP success alone will not establish a usable host integration; acceptance requires plugin connection and a synthetic event round trip through the intended ChatGPT/Dots automation.
 
 Source: [bridge package](../scripts/monitoring/grafana-mcp-bridge/README.md). Evidence: [implementation checks and cost inputs](../outputs/grafana-mcp-bridge-20261002/README.md). Existing [monitoring operations](Resource_Monitoring.md) retain ownership of Grafana rules and mobile IRM delivery. Azure VM power control remains in its existing browser controller; there are no MCP power tools here.
 
@@ -19,7 +19,7 @@ flowchart LR
   G --> I[Existing IRM mobile delivery retained]
 ```
 
-Use one service `mw-grafana-events`, one named Firestore database and one one-minute Scheduler job in `asia-southeast1`. Scheduler drains persisted work; it does not poll Grafana. Normal callback latency is approximately 0–60 seconds plus processing/cold start time. No Cloud Tasks, VM agent, load balancer or domain changes are included. This is resource-monitoring scope in AppSheet-Loan-Project; MW-Integration-Agent business workers are untouched.
+Use one service `mw-grafana-events`, one named Firestore database and one one-minute Scheduler job in `asia-southeast1`. Scheduler drains persisted work; it does not poll Grafana. Normal callback latency is approximately 0–60 seconds plus processing/cold start time. No Cloud Tasks, VM agent or load balancer is included. Native Preview domain mapping for alerts.mw-credit.com is approved. This is resource-monitoring scope in AppSheet-Loan-Project; MW-Integration-Agent business workers are untouched.
 
 Read-only target evidence identified project `clever-oasis-508610-n7` (`737787224638`) and existing VM `vm-mw-credit-agent`, zone `asia-southeast1-a`. New Cloud Run/Firestore availability, enabled APIs, organization policies, IAM scopes, billing balances and registry suitability have not been verified. No credentials were created or changed.
 
@@ -115,6 +115,11 @@ For containment, pause the bridge Scheduler and disable/remove only the newly ad
 
 For revision rollback, restore the known image digest and canonical configuration with retained pinned secret versions and the same durable database/state key. Validate schema/index compatibility and owner authority before resuming. Do not delete the database, secret versions or durable outbox as part of routine rollback. No live rollback is needed for this source-only change; revert its task commit after checking later work.
 
-Recognizable DNS is a follow-up. The canonical origin/issuer/resource are configurable together. Native Cloud Run domain mapping in this region remains Preview with documented production caveats; a plain DNS CNAME does not create verified TLS/routing. Review [domain options](https://cloud.google.com/run/docs/mapping-custom-domains) and cost before selecting mapping or a load balancer. No DNS/TLS/LB resource is authorized here.
+Recognizable DNS is a follow-up. The canonical origin/issuer/resource are configurable together. Native Cloud Run domain mapping in this region remains Preview with documented production caveats; a plain DNS CNAME does not create verified TLS/routing. Review [domain options](https://cloud.google.com/run/docs/mapping-custom-domains) and cost before selecting mapping or a load balancer. The owner approved native Preview mapping for alerts.mw-credit.com at 17:14:50 UTC. Cloudflare entry remains manual; no load balancer is approved. See the [owner bootstrap](../scripts/monitoring/grafana-mcp-bridge/deploy/OWNER_BOOTSTRAP.md) for exact phases, conflict checks and generated DNS-record capture.
 
 A later migration must verify domain ownership/TLS/routing first, update the upstream Google callback and allowlist, then change origin/issuer/resource together. The ChatGPT-owned redirect remains unchanged unless its actual management configuration changes. Old issuer/audience tokens and browser sessions will require reauthorization; connect/refresh new subscriptions and disable/drain old ones deliberately to avoid double delivery. Keep the previous host/revision/configuration and state key available for rollback until acceptance is complete.
+
+
+## Approved owner bootstrap, 2 October 2026
+
+The [owner instructions and scripts](../scripts/monitoring/grafana-mcp-bridge/deploy/OWNER_BOOTSTRAP.md) separate read-only preflight, named infrastructure, an inert revision for actual URL/TLS mapping, and optional secure owner-run secret seeding. They have not been executed against GCP. The current VM API identity lacks bootstrap authority; parent browser Console access also failed. No alternative identity was silently used. The canonical secret name is `mw-grafana-google-client-secret`; the runtime template starts with owner access disabled and the final alerts.mw-credit.com issuer. Application deployment, exact live IAM/configuration validation and synthetic host acceptance remain pending.
