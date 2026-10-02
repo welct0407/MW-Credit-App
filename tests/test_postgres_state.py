@@ -95,6 +95,23 @@ class PostgreSQLStateTests(unittest.TestCase):
         self.assertEqual(first.db.execute('SELECT subject FROM partner_notices WHERE id=?',(key,)).fetchone()[0],'receipt')
         self.assertEqual(second.db.execute('SELECT ig_status FROM partner_notices WHERE id=?',(key,)).fetchone()[0],'PENDING')
 
+    def test_notice_deferral_preserves_payload_outcome_and_other_stream(self):
+        first=NoticeJournal('partner-notices.db',self.config)
+        second=NoticeJournal('conversation-notices.db',self.config)
+        self.addCleanup(first.close);self.addCleanup(second.close)
+        partner={'id':self.key}
+        key=first.reserve(self.key,partner,'synthetic','immutable body')
+        second.reserve(self.key,partner,'synthetic conversation','other stream')
+        with first.db:
+            first.db.execute("UPDATE partner_notices SET ig_status='UNKNOWN',email_status='REJECTED',attempts=1,detail='synthetic failure' WHERE id=?",(key,))
+        before=dict(first.db.execute('SELECT * FROM partner_notices WHERE id=?',(key,)).fetchone())
+        first.defer(key)
+        after=dict(first.db.execute('SELECT * FROM partner_notices WHERE id=?',(key,)).fetchone())
+        self.assertGreater(after.pop('retry_after'),time.time())
+        before.pop('retry_after');self.assertEqual(after,before)
+        self.assertNotIn(key,{r['id'] for r in first.due()})
+        self.assertIn(key,{r['id'] for r in second.due()})
+
     def test_memory_reviews_delivery_and_lazy_tables(self):
         store=ConversationStore('partner-conversations.db',self.config)
         store.bind(self.key,'thread-'+self.key)

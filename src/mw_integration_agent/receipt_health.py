@@ -52,9 +52,11 @@ def assess(jobs,reviews,notices,now,hold_replies=()):
         if not review or review['state']!=state or now-review['created_at']<=300:continue
         counts['failed_notifications']+=sum(n['ig_status']!='ACCEPTED' and n['email_status']!='SENT' and
                n.get('detail')!='PARTNER_DISABLED' for n in items)
-    status=2 if any(counts.values()) else 1
+    # Optional result delivery remains visible without declaring intake/posting
+    # broken. Required review/hold attention and uncertain money stay degraded.
+    status=2 if any(v for k,v in counts.items() if k!='failed_notifications') else 1
     waiting=[j for j in jobs.values() if j['status'] in ('PENDING','VALIDATED')]
-    return {'status':status,**counts,
+    return {'status':status,'notification_status':2 if counts['failed_notifications'] else 1,**counts,
             'pending_images':sum(j['status']=='PENDING' for j in jobs.values()),
             'validated_receipts':sum(j['status']=='VALIDATED' for j in jobs.values()),
             'held_receipts':sum(j['status']=='REVIEW' for j in jobs.values()),

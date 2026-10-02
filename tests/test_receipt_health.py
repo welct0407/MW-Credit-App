@@ -39,7 +39,10 @@ class HealthTests(unittest.TestCase):
     def test_failed_partner_result_is_detected_despite_other_success(self):
         r=dict(self.review,state='POSTED',created_at=9000)
         notices=[self.notice('review-result:r:POSTED'),self.notice('review-result:r:POSTED','UNKNOWN','UNKNOWN')]
-        self.assertGreater(assess([],[r],notices,self.now)['failed_notifications'],0)
+        health=assess([],[r],notices,self.now)
+        self.assertEqual(health['failed_notifications'],1)
+        self.assertEqual(health['notification_status'],2)
+        self.assertEqual(health['status'],1)
         notices[1]['email_status']='SENT'
         self.assertEqual(assess([],[r],notices,self.now)['status'],1)
     def test_superseded_error_notice_does_not_mask_completed_payment(self):

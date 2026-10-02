@@ -54,7 +54,10 @@ class GraphEmail:
             import fcntl
             try:
                 with self._oauth_path().open('r+') as lock:
-                    fcntl.flock(lock,fcntl.LOCK_EX)
+                    # Notification workers must never wait indefinitely behind another
+                    # OAuth refresh. Nothing has been sent; the existing bounded
+                    # definite-rejection retry policy can try again later.
+                    fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
                     return self._token_locked()
             except OSError as exc:
                 raise EmailRejected('Email authorization unavailable') from exc
