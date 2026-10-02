@@ -1,6 +1,6 @@
 # Grafana MCP Events bridge — 2 October 2026
 
-Status: **approved resources verified; inert Cloud Run revision deployed/Ready; functional HTTP/domain/host acceptance blocked or pending**. R050 remains Open. The owner-approved live bootstrap checkpoint below supersedes earlier preparation-only statements; no secret entry, DNS change, Grafana cutover or external notification occurred.
+Status: **approved resources verified; inert Cloud Run revision deployed/Ready; managed-host HTTPS health/inert behavior verified; domain mapping and functional host acceptance blocked or pending**. R050 remains Open. The owner-approved live bootstrap checkpoint below supersedes earlier preparation-only statements; no secret entry, DNS change, Grafana cutover or external notification occurred.
 
 ## Scope and authority
 
@@ -91,3 +91,9 @@ Corrected code/docs/evidence were published at `8f97c7af864fb8cf3e31a305bc3dc454
 ## Bounded domain prerequisite and eligibility result
 
 The parent clarified that the existing bootstrap/domain approval covers the prerequisite API. Enabled only `appengine.googleapis.com` using the fixed supported adapter; operation completed and ENABLED readback verified. Repeated `domains list-user-verified` succeeded with `[]`: codex-cloud has no verified domains and is not eligible to map `alerts.mw-credit.com`. Mapping work stops for the existing human-owner route after independent Search Console ownership verification. No App Engine application, ownership delegation, access grant, mapping/DNS record, Cloudflare change or HTTP retry occurred. Secrets remain empty, Scheduler absent and inert revision unchanged. [Current bounded result and exact operation/readback](../outputs/grafana-mcp-bootstrap-20261002/domain-result.json). This supersedes the earlier SERVICE_DISABLED eligibility blocker without changing earlier evidence. Only task evidence/change record is published in this step; no source changes or new CI requirements beyond publication verification.
+
+## Fresh saved-environment HTTPS verification
+
+Fetched exact published pin `b53f2da400b45b176da234513532859c45a31e17` in an isolated checkout; preserved original checkout. Parent-supplied catalog `cecfgver_6ac01bc5269c819a97a926a88189ddff` includes separately approved exact service/custom-domain host additions. Actual managed-host curl checks passed **13/13** with ordinary TLS verification, no credentials or request bodies: GET health 200, protected-resource/OAuth/MCP/Grafana/dispatch and POST health inactive 503. Adapter auth metadata and Cloud Run service/revision reads confirmed the fixed identity, expected Ready revision, 100% traffic and exact expected digest. Local inert regression separately passed 1/1. [Fresh evidence and limits](../outputs/grafana-mcp-bootstrap-20261002/README.md#fresh-saved-environment-http-verification).
+
+No deployment/config/security changes or additional denial workaround. Domain mapping remains absent; the blocked VM human-owner action was not retried. Full OAuth/MCP delivery is inactive. GitHub API PR/CI reads returned Forbidden, preventing fresh independent CI/draft-state verification; normal Git publication remains the scoped path for evidence on the existing branch/PR. No default-branch push, merge or deployment.

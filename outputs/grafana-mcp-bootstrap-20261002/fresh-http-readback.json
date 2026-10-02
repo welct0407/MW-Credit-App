@@ -1,0 +1,143 @@
+{
+  "observedAtUtc": "2026-10-02T21:07:31.744878+00:00",
+  "catalogVersionProvided": "cecfgver_6ac01bc5269c819a97a926a88189ddff",
+  "sourcePin": "b53f2da400b45b176da234513532859c45a31e17",
+  "origin": "https://mw-grafana-events-pvrgvyg3oq-as.a.run.app",
+  "normalTlsVerification": true,
+  "credentialsSubmitted": false,
+  "requestBodiesSubmitted": false,
+  "redirectsFollowed": false,
+  "results": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "expectedStatus": 200,
+      "httpStatus": 200,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"bootstrap\"}",
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/.well-known/oauth-protected-resource",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/.well-known/oauth-protected-resource/mcp",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/oauth/.well-known/openid-configuration",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/oauth/auth",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/oauth/token",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/oauth/token/revocation",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/mcp",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/grafana",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/internal/dispatch",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/oauth",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/oauth/google/callback",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/health",
+      "expectedStatus": 503,
+      "httpStatus": 503,
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    }
+  ],
+  "allPassed": true
+}
