@@ -1,0 +1,119 @@
+# Grafana → ChatGPT/Dots event bridge
+
+**Status, 2 October 2026:** R050 source implementation and synthetic tests, awaiting draft review and separately authorized deployment. Nothing is live or connected. A callback HTTP success alone will not establish a usable host integration; acceptance requires plugin connection and a synthetic event round trip through the intended ChatGPT/Dots automation.
+
+Source: [bridge package](../scripts/monitoring/grafana-mcp-bridge/README.md). Evidence: [implementation checks and cost inputs](../outputs/grafana-mcp-bridge-20261002/README.md). Existing [monitoring operations](Resource_Monitoring.md) retain ownership of Grafana rules and mobile IRM delivery. Azure VM power control remains in its existing browser controller; there are no MCP power tools here.
+
+## Architecture and ownership
+
+```mermaid
+flowchart LR
+  G[Grafana additive webhook] -->|timestamped raw-body HMAC| R[Cloud Run /grafana]
+  R -->|atomic event and outbox| F[(Dedicated Firestore database)]
+  S[Cloud Scheduler once per minute] -->|Google OIDC| D[Cloud Run /internal/dispatch]
+  F --> D
+  D -->|signed HTTPS, durable retry| H[ChatGPT / Dots MCP Events callback]
+  O[Owner Google login] --> A[Cloud Run OAuth + PKCE]
+  A --> M[Cloud Run /mcp]
+  M -->|verified subscriptions and filters| F
+  G --> I[Existing IRM mobile delivery retained]
+```
+
+Use one service `mw-grafana-events`, one named Firestore database and one one-minute Scheduler job in `asia-southeast1`. Scheduler drains persisted work; it does not poll Grafana. Normal callback latency is approximately 0–60 seconds plus processing/cold start time. No Cloud Tasks, VM agent, load balancer or domain changes are included. This is resource-monitoring scope in AppSheet-Loan-Project; MW-Integration-Agent business workers are untouched.
+
+Read-only target evidence identified project `clever-oasis-508610-n7` (`737787224638`) and existing VM `vm-mw-credit-agent`, zone `asia-southeast1-a`. New Cloud Run/Firestore availability, enabled APIs, organization policies, IAM scopes, billing balances and registry suitability have not been verified. No credentials were created or changed.
+
+## Protocol and authentication
+
+The bridge implements [MCP Events](https://developers.openai.com/plugins/build/mcp-events) for protocol `2026-07-28`: `server/discover` advertises `events`, then `events/list`, `events/subscribe` and `events/unsubscribe` operate over `/mcp`. SDK v2 requires `Mcp-Method`, `Mcp-Protocol-Version`, protocol metadata, and `Mcp-Name` for tool calls. Events are custom schema handlers on the current pinned SDK.
+
+The simplest implemented owner-only path is a reachable HTTPS Cloud Run service with application OAuth. The downstream OAuth server uses `oidc-provider`; only one predefined ChatGPT public client and its exact registered redirect are accepted. Authorization code + S256 PKCE is required. Google login is upstream, with separate state, nonce, PKCE, verified Google ID token and an exact immutable owner `sub` plus verified email. An internal Workspace consent app or owner-only testing configuration must be reviewed with the actual account. No API key, service-account grant, dynamic client registration or arbitrary redirect is offered to ChatGPT. See [OpenAI plugin authentication](https://developers.openai.com/plugins/build/auth).
+
+Cloud Run IAM-only authentication expects a Google ID token rather than this OAuth access token; internal ingress cannot be reached directly by ChatGPT. IAP custom-client interoperability with this host remains unproven. The example therefore disables the invoker IAM check and authenticates each sensitive endpoint in the application; approving a public service is an explicit deployment/security decision.
+
+| Route | Method / authentication | Purpose |
+| --- | --- | --- |
+| `/health` | GET, public | Minimal process health; no configuration or counters |
+| `/.well-known/oauth-protected-resource[/mcp]` | GET, public | Canonical resource and authorization server metadata |
+| `/oauth/*` | OAuth protocol / owner Google browser session | Metadata, authorization, token, upstream callback; no open client onboarding |
+| `/mcp` | MCP, bearer access token with owner, client, audience, scope and live grant checks | Events and two read-only tools |
+| `/grafana` | POST, Grafana timestamp + raw-body SHA-256 HMAC | Accept alert transitions into durable storage |
+| `/internal/dispatch` | POST, verified Google OIDC token, exact Scheduler email/audience | Bounded outbox drain |
+
+Access tokens last five minutes, authorization codes 60 seconds, interactions ten minutes, owner sessions one day, grants/rotating refresh tokens up to 30 days. `mcp:events` gates Events operations; `mcp:read` gates tools. Each subscription is bound to its authorizing grant. Grant revocation creates a 90-day tombstone, invalidates token use and cancels queued callbacks. `control/owner.enabled=false` or `OWNER_ENABLED=false` blocks owner activity; token refresh also checks this control. The last pre-send check is the revocation boundary: HTTPS already in flight cannot be recalled.
+
+Only a preverified exact callback-host allowlist is permitted. Retrieve the actual callback hostname from approved host/plugin setup metadata; never guess it or approve a wildcard. The callback must use HTTPS/443, have no userinfo/fragment, and resolve exclusively to public unicast addresses. Every verification/delivery resolves DNS afresh and pins an approved address while checking TLS against the original hostname. Special-use, mapped and transition addresses, mixed public/private responses and redirects are rejected. A single absolute ten-second timeout covers DNS and HTTPS; response bodies are capped at 8 KiB.
+
+## Persistence and delivery behavior
+
+`grafana.alert.transition` supports exact `alert_names`, `components` and `statuses` arrays. Filters are sorted/deduplicated before hashing subscription identity. Signed verification sends a random challenge and requires the same challenge in a 2xx JSON response. Same-identity/same-key verification is cached for five minutes; changing the signing key verifies again and dual-signs for five minutes. Durable subscription keys and OAuth state/tokens are encrypted with AES-256-GCM.
+
+Subscriptions have a finite default/maximum 24-hour lifetime and honor shorter requested lifetimes. The host must refresh before `refreshBefore`; a null request gets the finite default. Up to eight active subscriptions are allowed. Unsubscribe is idempotent. Optimistic revision checks prevent concurrent refresh from undoing an unsubscribe. Replay cursors are unsupported; neither a new subscription nor refresh backfills old events.
+
+Grafana ingress accepts at most 50 alerts and 256 KiB per request. `truncatedAlerts>0` is rejected to avoid silently omitting instances. Grafana must send resolved notifications; leave Max Alerts at zero (unlimited) and reconcile grouping so actual requests stay inside these bounds. A new additive integration must preserve current IRM/mobile delivery. The existing guide's nine-rule count and later backup-rule addition need reconciliation against a fresh live export before any routing change.
+
+Event identity includes source, fingerprint, canonical start time, status and resolved end time. Changing a firing reminder's end time does not create another event; resolution and later recurrence remain distinct. In one Firestore transaction, a new event and all matching deliveries are inserted, with at most 450 writes (50 events × nine records). Concurrent duplicate ingress creates no duplicate outbox entry. A retry after retention can create the same event again; the 30-day deduplication window is finite.
+
+Payloads contain only source, fingerprint, alert name, component, status, start/end time, a summary capped at 1,000 characters and an optional dashboard URL restricted to `https://monitor.mw-credit.com`. Labels, raw annotations, Grafana body and credentials are not copied wholesale. Summaries remain untrusted external content; downstream instructions must treat them as data and must not authorize arbitrary commands from an alert.
+
+Each Scheduler run claims at most 20 deliveries sequentially, using a 30-second lease and random fencing token. Stable event ID and serialized body survive retries; Standard Webhooks signatures/timestamps are renewed. An old worker cannot overwrite a newer claim's result. Network errors, 408, 429 and 5xx retry after exponential backoff starting at 60 seconds with jitter, capped at one hour. Other 4xx are terminal; 410 also disables the corresponding unchanged subscription. Retry budget is 12 claims or 24 hours. Expired, unsubscribed or revoked subscriptions cancel queued sends. Delivery is **at least once**, potentially out of order: downstream must deduplicate by event ID. A crash after host acceptance but before the stored acknowledgment can duplicate a send.
+
+The bridge treats any 2xx as accepted, even when the host executes asynchronously. Host action success and owner-visible notification are separate acceptance evidence. Do not automatically replay failed/dead-letter records; inspect authority, age and prior host acceptance before an explicitly authorized recovery.
+
+Apply [index/TTL definitions](../scripts/monitoring/grafana-mcp-bridge/deploy/firestore-indexes.json) to the chosen database after approval. Events retain 30 days, deliveries 31 days, subscription records eight days and grant-revocation tombstones 90 days. OAuth/state records have record-specific expiries. TTL deletion is asynchronous; application expiration checks enforce authority independently. Sensitive payload fields are exempted from automatic indexes. Native Firestore transaction reads are staged before writes; a real database/index smoke test remains required.
+
+## Runtime configuration and secrets
+
+`PUBLIC_BASE_URL` must be the actual HTTPS origin without path/query. `OAUTH_ISSUER=origin/oauth` and `MCP_RESOURCE=origin/mcp` must agree. Set verified owner Google subject/email, the predefined ChatGPT client ID/exact redirect, Google OAuth client ID, exact callback hosts, fixed Grafana source ID, selected project/database and dedicated Scheduler email. The [service example](../scripts/monitoring/grafana-mcp-bridge/deploy/service.yaml.example) shows required names and unresolved placeholders.
+
+Mount five pinned Secret Manager versions; all actual creation/configuration is a later approved operation:
+
+| Secret file variable | Format / handling |
+| --- | --- |
+| `GRAFANA_SECRETS_FILE` | JSON array of one or two strong HMAC secret strings; overlaps old/new Grafana signing during rotation |
+| `STATE_KEY_FILE` | Canonical base64 of 32 random bytes; encrypts persistent OAuth and callback secrets |
+| `COOKIE_KEYS_FILE` | JSON array of one to three strong keys, newest first; retain prior keys across session rotation |
+| `OAUTH_JWKS_FILE` | Private signing JWKS with stable key IDs and supported signing algorithms; retain verification overlap |
+| `GOOGLE_CLIENT_SECRET_FILE` | Google web OAuth client secret |
+
+Create keys through the approved secret-management route, never repository files, command output or chat. Use runtime workload ADC; do not generate a service-account JSON key. Pin secret versions and image digest for recovery. **Replacing the state encryption key without migrating existing ciphertext loses durable authorization/callback secrets.** Its rotation needs a separately reviewed migration/recovery plan; cookie/JWKS rings and Grafana HMAC rotation do not migrate the state key.
+
+Minimum runtime IAM must be reviewed against the actual named database: read/write only this bridge database, access only its five secrets, and no Azure/AppSheet/Cloud SQL administration. Verify database-level IAM/conditions are supported and effective before granting access; do not silently replace them with broad project-wide grants. The separate Scheduler identity needs no datastore/secret access. Its token audience must equal `origin/internal/dispatch`, and the app verifies its exact email. Builder/deployer permissions are separate from runtime permissions.
+
+The application logs only allowlisted event names and numeric counts/statuses, never tokens, bodies, callback URLs or exception details. **Cloud Run platform request logs can include OAuth callback query codes/state.** Before real OAuth, configure and verify a Cloud Logging exclusion for `/oauth` request logs (or an equivalent approved redaction route). Application log redaction cannot sanitize platform logs. Keep operational logging for ingress/drain and review retention/billing. Provider debug logging must remain off.
+
+## Cost model
+
+Run `npm run estimate` using the [editable assumptions](../scripts/monitoring/grafana-mcp-bridge/tools/cost-assumptions.json). [Saved output](../outputs/grafana-mcp-bridge-20261002/cost-estimate.json) models 30 days, 1,000 transitions, two subscriptions, 10% retries, 43,200 Scheduler ticks, 0.2-second empty ticks/ingress, 0.5-second callbacks, 30 cold starts, 1 vCPU/0.5 GiB, 0.1 GiB stored data and five active secret versions. These timings are estimates, not Cloud Run measurements.
+
+| Scenario | Calculated incremental USD/month |
+| --- | ---: |
+| Listed account-level allowances still available; named Firestore database paid | 0.048277 |
+| Listed allowances exhausted | 0.905874 |
+
+The named database pays reads/writes/storage; only eligible default databases get Firestore free quotas, with daily reset and burst caveats. TTL deletes remain billable. Scheduler charges per job, not per execution: one job can consume a remaining free slot or cost $0.10/month under these inputs. The model includes durable retries, mounts, image storage, builds, logs and estimated Internet egress. US$1–5/month is a contingency budget, not a promised bill, minimum or ceiling. Bursty alerts, retries/cold starts, duplicate ingress and OAuth activity can exceed this sample.
+
+The target region is `asia-southeast1`; the listed USD rates are reference/default table inputs, **not confirmed Singapore prices**. Rates are editable review inputs checked against [Cloud Run](https://cloud.google.com/run/pricing), [Firestore](https://cloud.google.com/firestore/pricing), [Scheduler](https://cloud.google.com/scheduler/pricing), [Secret Manager](https://cloud.google.com/secret-manager/pricing), [Cloud Build](https://cloud.google.com/build/pricing), [Artifact Registry](https://cloud.google.com/artifact-registry/pricing) and [Logging](https://cloud.google.com/stackdriver/pricing) tables. Confirm Singapore selection, database edition/storage, destination-dependent egress and actual remaining allowances using the billing calculator before approving deployment. Cloud Build free capacity is promotional and machine/pool-specific. Domain, load balancer, backups/PITR, paid dashboard plan and ChatGPT/Dots execution charges are excluded. A load balancer would materially change this low-cost design and needs separate approval.
+
+## Deployment and acceptance, after explicit authority
+
+Deployment is pending; these steps define the concrete future approval scope, not current authority.
+
+1. Review the tested source commit, exact-head CI, image digest, cost inputs and rollback. Inspect actual target project/region, APIs, organization policy, existing services/database/registry, billing/budget and current Grafana route/rule export. Preserve a current configuration backup. Reconcile any newly changed target state.
+2. Approve the named resources: `mw-grafana-events` Cloud Run in `asia-southeast1`, dedicated named Firestore database/location plus indexes/TTL, registry/build destination, runtime and Scheduler identities with bounded IAM, five secret versions, Google OAuth web client/owner consent, request-log exclusion, one-minute Scheduler job, app-authenticated public ingress and maximum two Cloud Run instances. Database PITR/backups and budget alerts are optional priced additions requiring explicit scope.
+3. Provision only the approved resources. Obtain the actual generated managed `run.app` origin from Cloud Run output; do not construct or guess it. If an inert initial revision is needed to obtain the origin, include that revision in approval. Resolve the template, canonical issuer/resource, Google upstream callback `origin/oauth/google/callback`, Scheduler audience and owner/client identities against that origin before enabling real login. Keep traffic/dispatch and the new Grafana integration inactive until configuration is verified.
+4. Build for Linux amd64 with the pinned base/dependencies; scan and push to the approved registry. Deploy the exact immutable image and pinned secret versions. Validate service account, invoker-check setting, canonical host, non-root execution, min instances zero, max two, 1 vCPU/512 MiB, concurrency 20, request timeout 300 seconds and Logging exclusion. Test actual Firestore transaction/index behavior and TTL configuration without publishing notifications.
+5. Configure one Scheduler POST `{}` every minute in `Etc/UTC`, region `asia-southeast1`, exact OIDC service-account email/audience and attempt deadline 240 seconds. Bound its retry policy and confirm overlapping attempts are fenced. Twenty ten-second callbacks fit within the network portion of this deadline; storage latency and cold starts still require observation.
+6. With separately approved host connection, configure the plugin against `origin/mcp` using the exact registered client/redirect and verified callback-host allowlist. Verify owner Google login, token refresh, discovery, Events list/subscribe/unsubscribe, filter matching, refresh expiry and both read tools. Native host currently shows connected Gmail/GitHub events only; this custom bridge must connect successfully before native discovery can see it.
+7. Only with explicit synthetic-notification authority, perform a signed synthetic firing/resolved event round trip and verify the intended ChatGPT/Dots automation action, idempotency, retries and owner-visible outcome. An offline test or host 2xx is insufficient. Capture sanitized evidence, then approve additive Grafana webhook routing on a fresh export while preserving existing IRM/mobile delivery. Use Grafana SHA-256 HMAC with timestamp header; verify raw-body signing format and the two configured headers against its current UI. Never disable its existing IRM integration to install this one.
+8. Observe empty Scheduler drain cost, callback latency, backlog/retry exhaustion and expiry/refresh. `get_bridge_health` caps each count at 100 and is not a complete backlog metric. Review actual Firestore/Cloud Run billing after a representative interval before adjusting limits or adding queues. Record deployment/acceptance in the same change log and live inventory only once verified.
+
+## Recovery and hostname follow-up
+
+For containment, pause the bridge Scheduler and disable/remove only the newly added Grafana webhook integration; preserve the IRM contact point/routes. Disable the owner control/config and revoke affected grants when needed. In-flight delivery can complete. Record uncertain host acknowledgments before any replay.
+
+For revision rollback, restore the known image digest and canonical configuration with retained pinned secret versions and the same durable database/state key. Validate schema/index compatibility and owner authority before resuming. Do not delete the database, secret versions or durable outbox as part of routine rollback. No live rollback is needed for this source-only change; revert its task commit after checking later work.
+
+Recognizable DNS is a follow-up. The canonical origin/issuer/resource are configurable together. Native Cloud Run domain mapping in this region remains Preview with documented production caveats; a plain DNS CNAME does not create verified TLS/routing. Review [domain options](https://cloud.google.com/run/docs/mapping-custom-domains) and cost before selecting mapping or a load balancer. No DNS/TLS/LB resource is authorized here.
+
+A later migration must verify domain ownership/TLS/routing first, update the upstream Google callback and allowlist, then change origin/issuer/resource together. The ChatGPT-owned redirect remains unchanged unless its actual management configuration changes. Old issuer/audience tokens and browser sessions will require reauthorization; connect/refresh new subscriptions and disable/drain old ones deliberately to avoid double delivery. Keep the previous host/revision/configuration and state key available for rollback until acceptance is complete.

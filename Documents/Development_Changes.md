@@ -1,5 +1,7 @@
 # Open development differences
 
+R050 Grafana MCP Events bridge (2 October 2026): isolated monitoring source implements owner-only Google-backed OAuth/PKCE, authenticated MCP Events, filtered subscriptions, atomic transition deduplication/outbox and durable signed callback retries. Synthetic local checks pass; cloud deployment, IAM/secrets, Grafana additive routing and ChatGPT/Dots connection/round-trip acceptance are pending separate authority. Existing IRM/mobile alerts, Azure browser controller, AppSheet and SQL remain untouched. R050 remains Open. [Design/operations](Grafana_MCP_Events_Bridge.md) · [Evidence](../outputs/grafana-mcp-bridge-20261002/README.md).
+
 R050 Detail refinement (29 September 2026): current governed BCG category is compact card378 alongside the four top metrics; wide Current health question295 placement removed while the saved question remains. Seven lights369 retain dates but have no visible axis name. Dashboard3 remains12 tabs/272 placements; recovery dashboard31. No AppSheet or SQL change. R050 remains Open. [Evidence](../outputs/r050-borrower-detail-category/README.md).
 
 R050 borrower lifetime summary (29 September 2026): Detail105 added eight lifetime metrics and seven charge-status lights, questions369–377, ignoring activity dates. Closed totals use genuinely Closed loans only. Initial dashboard3 checkpoint had12 tabs/272 placements; recovery dashboard27. No AppSheet or SQL change. [Original definitions](../outputs/r050-borrower-lifetime/README.md).

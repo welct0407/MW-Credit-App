@@ -1,0 +1,32 @@
+name: Grafana MCP bridge
+on:
+  push:
+    branches: ['**']
+    paths: ['scripts/monitoring/grafana-mcp-bridge/**', '.github/workflows/grafana-mcp-bridge.yml']
+  pull_request:
+    paths: ['scripts/monitoring/grafana-mcp-bridge/**', '.github/workflows/grafana-mcp-bridge.yml']
+permissions:
+  contents: read
+jobs:
+  offline-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: scripts/monitoring/grafana-mcp-bridge
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: '24' }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - run: npm audit --omit=dev --audit-level=moderate
+      - run: npm run estimate
+      - run: docker build --progress=plain -t mw-grafana-events:ci .
+      - name: Verify packaged runtime without external network
+        run: >-
+          docker run --rm --network none
+          --mount type=bind,src="$PWD/test",dst=/app/test,readonly
+          --mount type=bind,src="$PWD/tools",dst=/app/tools,readonly
+          mw-grafana-events:ci node --test test/*.test.mjs

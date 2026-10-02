@@ -1,5 +1,7 @@
 # Centralized resource monitoring
 
+**Source-only extension, 2 October 2026:** the [Grafana MCP Events bridge](Grafana_MCP_Events_Bridge.md) implements authenticated ChatGPT/Dots subscriptions, filtering and durable signed retries. It is not deployed, connected or added to Grafana. Current IRM/mobile alert delivery remains intact. The linked guide owns the proposed GCP service, security/deployment prerequisites, cost model and rollback.
+
 Receipt monitoring activated 25 September: the [implementation handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md) is implemented in the existing collector, eight Payment processing visuals and existing Debian IRM rule. See [implementation evidence](../outputs/receipt-monitoring-20260925/README.md).
 
 For an explanation of every visual on both pages, see the maintained [Dashboard visual guide](Resource_Monitoring_Dashboard_Guide.md). Update that guide with every dashboard change; this document owns operational setup/access/recovery details.
