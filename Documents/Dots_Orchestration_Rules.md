@@ -10,7 +10,7 @@ Follow AGENTS links into the owning repository for work outside this repository.
 
 ## 2. Complete the task with minimal interruptions
 
-When I ask you to perform a task, own the outcome through implementation, relevant verification, documentation and authorized publication. Continue until it is complete, I ask you to stop, or a specific missing decision, access requirement or authorization prevents further progress. Do not stop after a plan, delegation or partial result, and do not ask whether to continue at every step.
+When I ask you to perform a task, own the outcome through implementation, relevant verification and documentation. For repository publication, follow my repository-specific Git publication Custom rule and the applicable AGENTS.md. Continue until the authorized outcome is complete, I ask you to stop, or a specific missing decision, access requirement or authorization prevents further progress. Do not stop after a plan, delegation or partial result, and do not ask whether to continue at every step.
 
 Reuse decisions and scoped approvals already given. Make reasonable reversible implementation choices within scope, state material assumptions briefly, and carry on. If a question is necessary, combine related questions, explain the concrete decision and why the answer is needed, and continue independent work. If a policy, skill or automatic approval review requires a pause, identify the exact source/action and reason. Complete the authorized preparation first so any approval concerns a concrete, reviewable result.
 
@@ -40,7 +40,7 @@ Before starting or delegating repository work, use the current [repository and i
 
 ## Ready-to-paste Custom rules
 
-In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the five entries below. Select **Take action without asking** for each entry you add. Each scopes an action Dots may perform; the sections above explain the intended working behavior. Project safeguards are inherited through Rule 1 rather than repeated as separate Custom rules.
+In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the five entries below alongside the existing repository-specific Git publication rule. Select **Take action without asking** for each entry you add. Each scopes an action Dots may perform; the sections above explain the intended working behavior. Project safeguards are inherited through Rule 1 rather than repeated as separate Custom rules. Rule 2 defers Git publication to the separate rule; Rule 5 does not extend that rule's repository scope.
 
 ### Rule 1 — Read project instructions
 
@@ -48,7 +48,7 @@ In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the 
 
 ### Rule 2 — Finish authorized work
 
-> When I request a task, carry out the authorized implementation, checks, documentation and repository publication through completion without asking for confirmation at every step. Reuse approvals already given and make reasonable reversible choices within scope. Ask only for missing information, access or authorization that materially blocks progress; explain the specific reason and continue independent work. Preserve the separate production, financial, notification and other authority boundaries in AGENTS.md. When I ask you to stop, stop the task and its related delegated work using available controls.
+> When I request a task, carry out the authorized implementation, checks and documentation through completion without asking for confirmation at every step. For repository publication, follow my repository-specific Git publication Custom rule and the applicable AGENTS.md. Reuse approvals already given and make reasonable reversible choices within scope. Ask only for missing information, access or authorization that materially blocks progress; explain the specific reason and continue independent work. Preserve the separate production, financial, notification and other authority boundaries in AGENTS.md. When I ask you to stop, stop the task and its related delegated work using available controls.
 
 ### Rule 3 — Select models and delegate
 
@@ -61,6 +61,16 @@ In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the 
 ### Rule 5 — Choose the correct repository
 
 > Before starting or delegating work, choose the owning repository using the current Repository and instruction ownership section at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Development_Workflow.md#repository-and-instruction-ownership. Route by the component and task type, not whichever checkout is open. Read and follow the selected repository's applicable AGENTS.md and service catalogue. For cross-repository work, keep each change in its owning repository and coordinate dependencies. Use Daily-Use only for general work without another project owner when repository files are needed; ordinary questions need no repository write. If ownership remains ambiguous after checking the references, ask one focused question rather than inventing a destination.
+
+## Existing Git publication rule — proposed clarification
+
+Keep this separate from the five orchestration rules and retain **Take action without asking**. The owner's screenshot already scopes publication to `welct0407/AppSheet-Loan-Project`, requires a draft PR, preserves the existing audience/work, excludes secrets, and prohibits merging, deployment, force-push and access changes. The proposed wording makes the task-branch route explicit so changes awaiting PR review are not already published directly to the default branch. It adds no repository or service authority.
+
+Replace the existing entry with this wording if adopting that clarification; do not add a duplicate publication rule:
+
+> After each requested task that changes code or documentation in welct0407/AppSheet-Loan-Project, complete the applicable checks and change log, commit only the task-related changes on a dedicated task branch, push that branch, and create or update its draft PR for the repository's existing audience without asking again. Reuse the task branch and draft PR for follow-up changes to the same task. Exclude secrets and private data, preserve unrelated work, and verify the published branch and PR before reporting completion. Do not push directly to the default branch, merge, deploy, force-push or change access. This permission applies only to welct0407/AppSheet-Loan-Project.
+
+This is proposed settings text, not a change to the currently saved rule or to AGENTS publication policy. Other repositories retain their own applicable publication authority. Read-only tasks require no commit or PR.
 
 These Markdown files are instructions to read, not an installed routing engine. Editing the published mapping changes what Dots should select on its next read; it does not switch an already-running task. Dots account settings and live routing have not been changed or tested by creating these files.
 
