@@ -2,7 +2,7 @@
 
 ## Scope and purpose
 
-The owner requested project-aware Dots rules, completion without step-by-step confirmations, editable model/work assignments and progress updates every three minutes for longer tasks, then clarified the Personalization > Custom rules destination and requested other useful proposals. Design, troubleshooting and on-call support use Astra Extra High; execution uses Sol 6.1 High. This is governance/documentation work; no product release number or live app/database/service change is required.
+The owner requested project-aware Dots rules, completion without step-by-step confirmations, editable model/work assignments and progress updates every three minutes for longer tasks, then clarified the Personalization > Custom rules destination and requested other useful proposals. Current assignments after the same-day owner refinement are Astra High for design, troubleshooting and on-call support; Sol 6.1 High for execution; and Sol 6.1 Medium for verification and documentation/routine analysis. This is governance/documentation work; no product release number or live app/database/service change is required.
 
 ## Baseline and rollback
 
@@ -34,3 +34,9 @@ Repository-routing refinement: 71 relative link targets in the four affected doc
 Publication target is the branch's configured `origin/master`, using a normal fast-forward push with remote commit verification. The task result records the verified publication commit. No force-push or release tag is appropriate for this governance change.
 
 Remaining activation check: save the five current entries in ChatGPT Personalization > Custom rules, then observe a future task using the current repository/model mappings and progress cadence. This is not claimed as installed or runtime-tested behavior.
+
+## Model effort refinement — 2 October 2026
+
+Starting commit/rollback reference: `53b0d59416119d0e9f2577755ada5ff0f2931147`. At the owner's request, lower the three Astra categories from Extra High (`xhigh`) to High (`high`), and lower Verification and Documentation and routine analysis from Sol 6.1 High (`high`) to Medium (`medium`). Execution remains Sol 6.1 High. Update both the readable labels and tool values; remove the mapping's obsolete historical preference sentence. Only the mapping and this log change; unrelated local work is preserved. Revert this scoped documentation commit for rollback.
+
+Validation passed: the saved six-row table matches the requested efforts, labels and tool values agree, the reviewed diff preserves model IDs and the execution assignment, and Git whitespace checks pass. The published mapping applies on Dots' next read; no active model, account setting or service configuration is changed.

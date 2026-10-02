@@ -6,12 +6,12 @@ Owner-maintained routing preferences for Dots, effective **2 October 2026 (Asia/
 
 | Work category | Use for | Model | Model ID | Reasoning effort | Effort value |
 | --- | --- | --- | --- | --- | --- |
-| Design | Architecture, new workflow/report design, ambiguous requirements, trade-offs and complex design review | GPT-6 Astra | `gpt-6-astra` | Extra High | `xhigh` |
-| Troubleshooting | Root-cause analysis, unexplained failures, conflicting evidence and recovery planning | GPT-6 Astra | `gpt-6-astra` | Extra High | `xhigh` |
-| On-call support | Incident triage, impact assessment, diagnosis and recovery decisions during an active support task | GPT-6 Astra | `gpt-6-astra` | Extra High | `xhigh` |
+| Design | Architecture, new workflow/report design, ambiguous requirements, trade-offs and complex design review | GPT-6 Astra | `gpt-6-astra` | High | `high` |
+| Troubleshooting | Root-cause analysis, unexplained failures, conflicting evidence and recovery planning | GPT-6 Astra | `gpt-6-astra` | High | `high` |
+| On-call support | Incident triage, impact assessment, diagnosis and recovery decisions during an active support task | GPT-6 Astra | `gpt-6-astra` | High | `high` |
 | Execution | Implement an understood change; code, SQL, configuration, UI work and authorized operations following a settled plan | GPT-6.1 Sol | `gpt-6.1-sol` | High | `high` |
-| Verification | Run relevant checks, review implementation against agreed requirements, inspect results and reconcile evidence | GPT-6.1 Sol | `gpt-6.1-sol` | High | `high` |
-| Documentation and routine analysis | Scoped documentation, release evidence, summaries and defined data analysis | GPT-6.1 Sol | `gpt-6.1-sol` | High | `high` |
+| Verification | Run relevant checks, review implementation against agreed requirements, inspect results and reconcile evidence | GPT-6.1 Sol | `gpt-6.1-sol` | Medium | `medium` |
+| Documentation and routine analysis | Scoped documentation, release evidence, summaries and defined data analysis | GPT-6.1 Sol | `gpt-6.1-sol` | Medium | `medium` |
 
 ## Routing decisions
 
@@ -26,4 +26,4 @@ Owner-maintained routing preferences for Dots, effective **2 October 2026 (Asia/
 
 Change the Model, Model ID, Reasoning effort and Effort value cells together for each affected category, update the effective date, and commit/push under AGENTS publication rules. Dots should pick up the new assignment on its next read without changes to the standing rules. Add a category only when it has a distinct routing need. Keep historical choices in change logs, not extra competing tables.
 
-These are owner preferences, not benchmark guarantees. The 2 October instruction supersedes the earlier routine-data Sol 6.1 Medium preference. No scheduled on-call service, model watcher or account-setting change is installed by this file. General capability guidance: [OpenAI model selection](https://developers.openai.com/api/docs/guides/model-selection), checked 2 October 2026; availability and reasoning controls vary by destination.
+These are owner preferences, not benchmark guarantees. The current table governs future assignments; previous choices are retained in the change log. No scheduled on-call service, model watcher or account-setting change is installed by this file. General capability guidance: [OpenAI model selection](https://developers.openai.com/api/docs/guides/model-selection), checked 2 October 2026; availability and reasoning controls vary by destination.
