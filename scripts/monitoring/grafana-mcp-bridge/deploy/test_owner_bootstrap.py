@@ -19,6 +19,26 @@ def empty():
 
 
 class Guards(unittest.TestCase):
+    def test_explicit_adapter_mode_rejects_human_or_windows_context(self):
+        with patch.object(b, 'ADAPTER_MODE', False):
+            b.OWNER = 'verified-owner@example.test'
+            with self.assertRaisesRegex(RuntimeError, 'requires Linux'):
+                b.configure_adapter(True)
+            b.OWNER = b.APPROVED_DEPLOYER
+            with patch.object(b.os, 'name', 'nt'):
+                with self.assertRaisesRegex(RuntimeError, 'requires Linux'):
+                    b.configure_adapter(True)
+
+    @unittest.skipIf(os.name == 'nt', 'Linux guarded PATH shims')
+    def test_explicit_shim_mode_sends_direct_flags_without_custom_launcher(self):
+        b.OWNER = b.APPROVED_DEPLOYER
+        with patch.object(b, 'ADAPTER_MODE', True), patch.object(b, 'GCLOUD_EXECUTABLE', None), patch.object(b, 'run', return_value='{}') as run:
+            b.gc('projects', 'get-iam-policy', b.PROJECT)
+        argv = run.call_args.args[0]
+        self.assertIn('--account='+b.APPROVED_DEPLOYER, argv)
+        self.assertIn('--project='+b.PROJECT, argv)
+        self.assertFalse(any(a.startswith('--flags-file') for a in argv))
+
     def baseline_fixture(self, owner, *, active=None, project_number=None, project_id=None, bindings=None):
         b.OWNER = owner
         member = ('serviceAccount:' if owner.endswith('.gserviceaccount.com') else 'user:') + owner
@@ -119,10 +139,11 @@ class Guards(unittest.TestCase):
                         'spec': {'template': {'spec': {'serviceAccountName': b.RUNTIME}}},
                         'status': {'url': 'https://actual.example.run.app'}}
             return None
-        with patch.object(b, 'DOCKER_EXECUTABLE', '/reviewed/docker-adapter'), patch.object(b, 'gc', side_effect=gc), patch.object(b, 'run', return_value='') as run, patch.object(b, 'gcloud_output') as configure:
-            b.inert()
-            configure.assert_not_called()
-            self.assertEqual([c.args[0][1] for c in run.call_args_list], ['build', 'push'])
+        for shim, executable in [(False, '/reviewed/docker-adapter'), (True, None)]:
+            with self.subTest(shim_mode=shim), patch.object(b, 'ADAPTER_MODE', shim), patch.object(b, 'DOCKER_EXECUTABLE', executable), patch.object(b.shutil, 'which', return_value='/reviewed/docker-shim'), patch.object(b, 'gc', side_effect=gc), patch.object(b, 'run', return_value='') as run, patch.object(b, 'gcloud_output') as configure:
+                b.inert()
+                configure.assert_not_called()
+                self.assertEqual([c.args[0][1] for c in run.call_args_list], ['build', 'push'])
         self.assertFalse(any(c[0] == 'auth' for c in calls))
 
     def test_impersonation_and_credential_override_guards_remain_enforced(self):

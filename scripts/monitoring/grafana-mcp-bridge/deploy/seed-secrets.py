@@ -19,8 +19,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--owner', required=True, help='Verified human owner or the explicitly approved fixed deployment service account')
     parser.add_argument('--gcloud-executable', help='Reviewed SDK launcher or approved saved-environment adapter path')
+    parser.add_argument('--adapter-mode', action='store_true', help='Approved Linux fixed-identity Python/shim mode; secure credential entry stays required')
     args = parser.parse_args()
     bootstrap.OWNER = args.owner
+    bootstrap.configure_adapter(args.adapter_mode)
     bootstrap.configure_gcloud(args.gcloud_executable)
     bootstrap.baseline()
     for name in bootstrap.SECRETS:

@@ -22,6 +22,7 @@ DISPATCH = f'mw-grafana-dispatch@{PROJECT}.iam.gserviceaccount.com'
 APPROVED_DEPLOYER = f'codex-cloud@{PROJECT}.iam.gserviceaccount.com'
 GCLOUD_EXECUTABLE = None
 DOCKER_EXECUTABLE = None
+ADAPTER_MODE = False
 SECRETS = ['mw-grafana-hmac', 'mw-grafana-state-key', 'mw-grafana-cookie-keys',
            'mw-grafana-oauth-jwks', 'mw-grafana-google-client-secret']
 APIS = ['run.googleapis.com', 'firestore.googleapis.com', 'cloudscheduler.googleapis.com',
@@ -57,6 +58,13 @@ def configure_docker(executable):
         DOCKER_EXECUTABLE = None
 
 
+def configure_adapter(enabled):
+    global ADAPTER_MODE
+    require(not enabled or (os.name != 'nt' and OWNER == APPROVED_DEPLOYER),
+            'Adapter mode requires Linux and the explicitly approved fixed deployment identity')
+    ADAPTER_MODE = bool(enabled)
+
+
 def principal_member(account):
     if account.endswith('.gserviceaccount.com'):
         require(account == APPROVED_DEPLOYER, 'Only the explicitly approved fixed deployment service account is allowed')
@@ -86,7 +94,7 @@ def gc(*args):
 
 def gcloud_output(*args, data=None):
     common = (f'--project={PROJECT}', f'--account={OWNER}', '--quiet', '--format=json')
-    if os.name != 'nt' and GCLOUD_EXECUTABLE:
+    if ADAPTER_MODE or (os.name != 'nt' and GCLOUD_EXECUTABLE):
         # The reviewed Linux adapter validates every visible argument itself.
         # exec argv needs no shell quoting and does not hide flags in a file.
         return run(['gcloud', *args, *common], data=data)
@@ -270,7 +278,7 @@ def inert():
         return  # Never roll an existing service back to bootstrap.
     tag = f'{REGION}-docker.pkg.dev/{PROJECT}/{REPOSITORY}/grafana-mcp-bootstrap:v1'
     require(DOCKER_EXECUTABLE or shutil.which('docker') is not None, 'Docker unavailable; complete the approved Docker setup before inert deployment')
-    if not DOCKER_EXECUTABLE:
+    if not ADAPTER_MODE and not DOCKER_EXECUTABLE:
         gcloud_output('auth', 'configure-docker', f'{REGION}-docker.pkg.dev')
     run(['docker', 'build', '--platform=linux/amd64', '-f', str(HERE / 'bootstrap.Dockerfile'), '-t', tag, str(HERE)])
     run(['docker', 'push', tag])
@@ -309,10 +317,12 @@ def main():
     parser.add_argument('--owner', required=True, help='Verified human project owner or the explicitly approved fixed codex-cloud service account')
     parser.add_argument('--gcloud-executable', help='Reviewed existing SDK launcher or approved saved-environment adapter path; identity guards remain enforced')
     parser.add_argument('--docker-executable', help='Reviewed Docker/private-auth adapter accepting normal Docker arguments; avoids configure-docker in generic gcloud')
+    parser.add_argument('--adapter-mode', action='store_true', help='Approved Linux Python/shim mode: visible gcloud argv and private Docker auth, fixed deployment identity only')
     parser.add_argument('--resume', action='store_true', help='Owner confirms existing named database was created by this bootstrap')
     args = parser.parse_args()
     OWNER = args.owner
     principal_member(OWNER)  # Reject other service identities even in check-sdk.
+    configure_adapter(args.adapter_mode)
     configure_gcloud(args.gcloud_executable)
     configure_docker(args.docker_executable)
     if args.phase == 'check-sdk':

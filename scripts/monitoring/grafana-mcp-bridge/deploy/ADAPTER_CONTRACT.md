@@ -4,7 +4,16 @@ This is an integration specification, not an adapter implementation or permissio
 
 ## Invocation and identity proof
 
-The gcloud adapter is an existing reviewed executable accepting normal gcloud arguments. Source selects it with `--gcloud-executable ACTUAL_REVIEWED_PATH`. On Linux the bootstrap sends direct argument arrays with `shell=False`, so the adapter's `--flags-file` ban can remain. Windows SDK launchers retain JSON flags files. Every API invocation carries these matching selectors:
+The editor's reviewed Python mode supplies guarded `gcloud` and `docker` PATH shims for the full script. Invoke the bootstrap inside that mode with `--adapter-mode` and the fixed approved `--owner`. The source rejects adapter mode on Windows or with a human/other identity. Example script arguments inside the editor-provided guarded context:
+
+```sh
+python3 owner-bootstrap.py preflight --adapter-mode \
+  --owner codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com
+```
+
+This mode sends visible Linux gcloud argv and skips `gcloud auth configure-docker` because the guarded Docker shim already owns private authentication. Account/project/Owner/no-impersonation verification remains mandatory. The normal human Windows SDK route keeps JSON flags files and its ordinary Docker configure step.
+
+The alternative explicit gcloud adapter is an existing reviewed executable accepting normal gcloud arguments. Source selects it with `--gcloud-executable ACTUAL_REVIEWED_PATH`. On Linux the bootstrap sends direct argument arrays with `shell=False`, so the adapter's `--flags-file` ban can remain. Windows SDK launchers retain JSON flags files. Every API invocation carries these matching selectors:
 
 ```text
 --account=codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com
@@ -48,13 +57,13 @@ Domain work additionally uses `domains list-user-verified` and `beta run domain-
 
 ## Docker adapter
 
-Source selects a reviewed Docker wrapper with `--docker-executable ACTUAL_REVIEWED_DOCKER_PATH`; it accepts ordinary Docker argv:
+In explicit adapter mode the guarded Docker PATH shim is used directly. Alternatively, source selects a reviewed Docker wrapper with `--docker-executable ACTUAL_REVIEWED_DOCKER_PATH`; it accepts ordinary Docker argv:
 
 ```text
 build --platform=linux/amd64 -f <pinned source>/bootstrap.Dockerfile -t asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap:v1 <pinned source>/deploy
 push asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap:v1
 ```
 
-The wrapper owns its private temporary credential helper/config for the whole Docker command and removes it afterward. SDK/helper credentials must stay inside its private process/file boundary. The bootstrap does not inspect helper responses or tokens. With this wrapper supplied, it does **not** request `gcloud auth configure-docker` through the generic adapter. The normal SDK/Docker route continues to use that standard SDK command.
+The wrapper owns its private temporary credential helper/config for the whole Docker command and removes it afterward. SDK/helper credentials must stay inside its private process/file boundary. The bootstrap does not inspect helper responses or tokens. With adapter mode or this wrapper supplied, it does **not** request `gcloud auth configure-docker` through the generic adapter. The normal SDK/Docker route continues to use that standard SDK command.
 
 Before execution, the editor must supply the actual executable paths and prove both wrappers in a fresh selected environment. A successful source/CI test does not establish adapter or live-cloud acceptance.
