@@ -1,6 +1,6 @@
 # Grafana MCP Events bridge
 
-R050 development implementation; **bootstrap resources provisioned; application not deployed or connected**. [Live bootstrap checkpoint](../../../outputs/grafana-mcp-bootstrap-20261002/README.md). This monitoring component belongs to AppSheet-Loan-Project. It does not control Azure VMs or replace the existing Grafana IRM/mobile route.
+R050 development implementation; **bootstrap resources and inert revision deployed; functional application not deployed or connected**. [Live bootstrap checkpoint](../../../outputs/grafana-mcp-bootstrap-20261002/README.md). This monitoring component belongs to AppSheet-Loan-Project. It does not control Azure VMs or replace the existing Grafana IRM/mobile route.
 
 The [design and operating guide](../../../Documents/Grafana_MCP_Events_Bridge.md) owns deployment prerequisites, OAuth, durable delivery, security, cost and recovery. `deploy/service.yaml.example` is a review template with unresolved placeholders, not an executable deployment instruction.
 

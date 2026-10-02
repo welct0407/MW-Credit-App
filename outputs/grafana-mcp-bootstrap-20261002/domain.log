@@ -1,0 +1,66 @@
+STOP: Command failed: ['/tmp/cloud-gcloud-7duprccb/script-bin/gcloud', 'domains', 'list-user-verified', '--project=clever-oasis-508610-n7']
+ERROR: (gcloud.domains.list-user-verified) [codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com] does not have permission to access apps instance [clever-oasis-508610-n7] (or it may not exist): App Engine Admin API has not been used in project 737787224638 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/appengine.googleapis.com/overview?project=737787224638 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry. This command is authenticated as codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com which is the active account specified by the [core/account] property.
+App Engine Admin API has not been used in project 737787224638 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/appengine.googleapis.com/overview?project=737787224638 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+Google developers console API activation
+https://console.developers.google.com/apis/api/appengine.googleapis.com/overview?project=737787224638
+- '@type': type.googleapis.com/google.rpc.ErrorInfo
+  domain: googleapis.com
+  metadata:
+    activationUrl: https://console.developers.google.com/apis/api/appengine.googleapis.com/overview?project=737787224638
+    consumer: projects/737787224638
+    containerInfo: '737787224638'
+    service: appengine.googleapis.com
+    serviceTitle: App Engine Admin API
+  reason: SERVICE_DISABLED
+
+{
+  "owner": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "ownerMember": "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "projectOwnerVerified": true,
+  "project": "clever-oasis-508610-n7",
+  "number": "737787224638",
+  "billingEnabled": true,
+  "enabledAPIs": [
+    "analyticshub.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "bigquery.googleapis.com",
+    "bigqueryconnection.googleapis.com",
+    "bigquerydatapolicy.googleapis.com",
+    "bigquerydatatransfer.googleapis.com",
+    "bigquerymigration.googleapis.com",
+    "bigqueryreservation.googleapis.com",
+    "bigquerystorage.googleapis.com",
+    "cloudapis.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "cloudscheduler.googleapis.com",
+    "cloudtrace.googleapis.com",
+    "compute.googleapis.com",
+    "containeranalysis.googleapis.com",
+    "containerregistry.googleapis.com",
+    "dataform.googleapis.com",
+    "dataplex.googleapis.com",
+    "datastore.googleapis.com",
+    "firebaserules.googleapis.com",
+    "firestore.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "iap.googleapis.com",
+    "logging.googleapis.com",
+    "monitoring.googleapis.com",
+    "orgpolicy.googleapis.com",
+    "osconfig.googleapis.com",
+    "oslogin.googleapis.com",
+    "pubsub.googleapis.com",
+    "run.googleapis.com",
+    "secretmanager.googleapis.com",
+    "servicemanagement.googleapis.com",
+    "serviceusage.googleapis.com",
+    "sql-component.googleapis.com",
+    "sqladmin.googleapis.com",
+    "storage-api.googleapis.com",
+    "storage-component.googleapis.com",
+    "storage.googleapis.com",
+    "telemetry.googleapis.com"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "identity": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "project": "clever-oasis-508610-n7",
+  "projectNumber": "737787224638",
+  "command": "gcloud domains list-user-verified",
+  "service": "appengine.googleapis.com",
+  "errorReason": "SERVICE_DISABLED",
+  "eligibility": "unverified",
+  "mappingAttempted": false,
+  "dnsResourceRecordsGenerated": false,
+  "apiEnabledDuringCheck": false,
+  "domainOwnershipDelegated": false,
+  "cloudflareChanged": false
+}
