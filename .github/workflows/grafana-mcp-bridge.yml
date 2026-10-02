@@ -33,3 +33,14 @@ jobs:
           --mount type=bind,src="$PWD/tools",dst=/app/tools,readonly
           --mount type=bind,src="$PWD/deploy",dst=/app/deploy,readonly
           mw-grafana-events:ci node --test test/*.test.mjs
+  windows-bootstrap:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: scripts/monitoring/grafana-mcp-bridge
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with: { persist-credentials: false }
+      - name: Verify Windows CMD launcher and bootstrap guards
+        run: python deploy/test_owner_bootstrap.py

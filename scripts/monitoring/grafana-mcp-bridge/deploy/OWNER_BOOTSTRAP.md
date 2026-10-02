@@ -15,6 +15,7 @@ Target: **clever-oasis-508610-n7**, project number **737787224638**. Replace `OW
 
 ```sh
 cd AppSheet-Loan-Project/scripts/monitoring/grafana-mcp-bridge/deploy
+python3 owner-bootstrap.py check-sdk --owner OWNER_ACCOUNT
 python3 owner-bootstrap.py preflight --owner OWNER_ACCOUNT
 python3 owner-bootstrap.py resources --owner OWNER_ACCOUNT
 ```
@@ -28,9 +29,17 @@ gcloud services enable cloudresourcemanager.googleapis.com cloudbilling.googleap
 
 This does not link billing or grant permissions. If billing/project/IAM/policy reads are denied, stop and return the **sanitized error and account email only**. The executor's existing VM identity lacks bootstrap authority; do not rerun these steps under it. If a prior attempt created the named database, first confirm ownership/configuration, then add `--resume` to preflight/resources. Other same-name resource collisions require matching bootstrap markers and configuration; they are never overwritten automatically. Partial creation is retained on failure, not deleted.
 
+On Windows, use the verified installed Python executable (`python` if that is its confirmed name). The script resolves `gcloud` to the full launcher path, including `gcloud.CMD`, and passes complex flag values through temporary JSON files. These files contain configuration only; secret values remain on stdin. The installed CLI must support `logging sinks update --add-exclusion`; `resources` checks its actual help before mutations. A separate read-only installed-SDK parser check is available:
+
+```sh
+python3 check_sdk_compatibility.py --sdk-root VERIFIED_EXISTING_SDK_ROOT
+```
+
+The SDK root is the existing installation directory containing `bin/gcloud` or `bin/gcloud.cmd` and `lib/googlecloudsdk`; do not install another SDK to run this check. It verifies the actual SDK parser preserves the database condition and OAuth filter and accepts the JSON flags-file help invocation without calling APIs.
+
 ## What the first step creates
 
-`resources` enables Run, Firestore, Scheduler, Secret Manager, Artifact Registry, IAM, IAM Credentials and Logging APIs. It creates two dedicated service accounts, Docker repository `mw-monitoring`, Standard Native database `mw-grafana-events` in Singapore with deletion protection, the committed composite indexes/index exemptions/TTL policies, five **empty** automatically replicated secret containers, and the narrowly filtered OAuth request-log exclusion. Google-managed service agents may be provisioned by API enablement. No Cloud Build project/service account, public IAM member, service-account key, backup/PITR or unrelated resource is added.
+`resources` enables Run, Firestore, Scheduler, Secret Manager, Artifact Registry, IAM, IAM Credentials and Logging APIs. It creates two dedicated service accounts, Docker repository `mw-monitoring`, Standard Native database `mw-grafana-events` in Singapore with deletion protection, the committed composite indexes/index exemptions/TTL policies, five **empty** automatically replicated secret containers, and the narrowly filtered OAuth request-log exclusion on the existing `_Default` sink. It adds only `mw-grafana-oauth-requests`, preserves the sink filter/destination and unrelated exclusions, and verifies readback. A conflicting/disabled named exclusion stops execution. Before real OAuth, inspect other project/inherited sinks so request URLs are not retained through another route; the bootstrap does not alter those sinks. Google-managed service agents may be provisioned by API enablement. No Cloud Build project/service account, public IAM member, service-account key, backup/PITR or unrelated resource is added.
 
 The runtime receives `roles/datastore.user` with this exact project-policy condition:
 
@@ -44,7 +53,7 @@ Secret naming is consistent throughout this package: **`mw-grafana-google-client
 
 ## Obtain the actual URL and DNS records
 
-After infrastructure succeeds, Cloud Shell needs Docker (linux/amd64), Python 3, current gcloud and access to the pinned Node base image. This command builds a tiny dependency-free, non-root inert image locally, pushes it to the approved repository, resolves its registry digest, and deploys by that digest:
+After infrastructure succeeds, the execution environment needs a supported working Docker Linux/amd64 engine, Python 3, current gcloud and access to the pinned Node base image. Installing a Docker client alone does not establish Linux build support. VM-01 is checking the approved installation separately; this script neither installs Docker nor changes virtualization/reboot settings. This command builds a tiny dependency-free, non-root inert image locally, pushes it to the approved repository, resolves its registry digest, and deploys by that digest:
 
 ```sh
 python3 owner-bootstrap.py inert --owner OWNER_ACCOUNT
@@ -94,3 +103,8 @@ gcloud iam service-accounts add-iam-policy-binding \
 ```
 
 These optional grants are **not executed by the bootstrap**. No project-wide Run admin, secret access, project IAM administration, Scheduler administration or service-account key is required for that deployer. The supported authentication route must still be established separately; the current IAP-only helper is not a generic gcloud route. The authorized executor can also deploy the final revision within the established owner session without these grants. Do not broaden roles to work around a denial.
+
+
+## Compatibility correction and recorded access findings
+
+The original pin's `gcloud logging exclusions` group was unsupported by SDK 585; the supported sink update is used now. VM-01 verified the human owner `welct0407@mw-credit.com`, project number, billing and unenforced invoker policy, and confirmed full-path `gcloud.CMD` subprocess invocation. Its approved prerequisite Resource Manager/Cloud Billing API enablement completed; the bridge remains unprovisioned in the latest handoff evidence. Cloud SDK 587 is installed but its inherited configuration has no active account/project, no named owner profile and no checked ADC file; the documented IAP helper has no generic owner-deployment route. A future cloud owner login requires separate scoped approval and secure consent/credential handling, and is not performed by these scripts.

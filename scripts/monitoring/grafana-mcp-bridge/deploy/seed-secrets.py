@@ -42,11 +42,11 @@ def main():
             javascript = "const c=require('node:crypto'); const {privateKey}=c.generateKeyPairSync('rsa',{modulusLength:2048}); const k=privateKey.export({format:'jwk'}); k.kid=c.randomUUID(); k.use='sig'; k.alg='RS256'; process.stdout.write(JSON.stringify({keys:[k]}));"
             data = subprocess.run(['node', '-e', javascript], capture_output=True, check=True).stdout
         # No secret in argv, environment, filesystem, exception messages or normal output.
-        result = subprocess.run(['gcloud', 'secrets', 'versions', 'add', name, '--data-file=-',
-                                 f'--project={bootstrap.PROJECT}', f'--account={args.owner}', '--quiet',
-                                 '--format=value(name)'], input=data, capture_output=True)
-        bootstrap.require(result.returncode == 0, f'Secret version addition failed for {name}; inspect owner Console without printing secret contents')
-        print(result.stdout.decode().strip())  # Version resource name only.
+        try:
+            result = json.loads(bootstrap.gcloud_output('secrets', 'versions', 'add', name, '--data-file=-', data=data))
+        except RuntimeError:
+            raise RuntimeError(f'Secret version addition failed for {name}; inspect owner Console without printing secret contents') from None
+        print(result['name'])  # Version resource name only.
         del data
     print('Retain the version numbers for the runtime template. Do not retrieve/transmit values through agents.')
 

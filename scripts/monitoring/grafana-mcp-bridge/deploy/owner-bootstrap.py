@@ -5,8 +5,10 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 
 PROJECT = 'clever-oasis-508610-n7'
 NUMBER = '737787224638'
@@ -31,14 +33,72 @@ def require(ok, message):
 
 
 def run(argv, data=None):
-    result = subprocess.run(argv, input=data, capture_output=True, check=False)
-    require(result.returncode == 0, f'Command failed: {argv[0:4]}\n{result.stderr.decode()}')
+    if argv[0] == 'gcloud':
+        executable = shutil.which('gcloud')
+        require(executable is not None, 'gcloud launcher was not found on PATH')
+        argv = [executable, *argv[1:]]
+    try:
+        result = subprocess.run(argv, input=data, capture_output=True, check=False,
+                                env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
+    except OSError as error:
+        raise RuntimeError(f'Cannot launch {argv[0]}: {error}') from error
+    require(result.returncode == 0, f'Command failed: {argv[0:4]}\n{result.stderr.decode(errors="replace")}')
     return result.stdout.decode()
 
 
 def gc(*args):
-    return json.loads(run(['gcloud', *args, f'--project={PROJECT}', f'--account={OWNER}',
-                           '--quiet', '--format=json']) or 'null')
+    return json.loads(gcloud_output(*args) or 'null')
+
+
+def gcloud_output(*args, data=None):
+    # gcloud.CMD can introduce Windows shell parsing even with shell=False.
+    # Only simple positional identifiers and one filename cross that boundary.
+    # All flag values (including CEL, regex, %, quotes and repeated flags) stay
+    # in an SDK-supported JSON flags file. This file never contains secrets.
+    positional, flags = [], []
+    for arg in (*args, f'--project={PROJECT}', f'--account={OWNER}', '--quiet', '--format=json'):
+        if arg.startswith('--'):
+            key, separator, value = arg.partition('=')
+            flags.append({key: value if separator else None})
+        else:
+            require(re.fullmatch(r'[A-Za-z0-9_@./:()-]+', arg) is not None, 'Unsafe positional CLI argument')
+            positional.append(arg)
+    with tempfile.TemporaryDirectory(prefix='mw-grafana-flags-') as directory:
+        path = Path(directory) / 'flags.json'
+        path.write_text(json.dumps(flags), encoding='utf-8')
+        return run(['gcloud', *positional, f'--flags-file={path}'], data=data)
+
+
+def check_sdk():
+    help_text = run(['gcloud', 'logging', 'sinks', 'update', '--help'])
+    require('--add-exclusion' in help_text, 'Installed gcloud lacks sink exclusion support')
+    print('Installed SDK supports logging sinks update --add-exclusion.')
+
+
+def oauth_log_exclusion():
+    log_filter = f'logName="projects/{PROJECT}/logs/run.googleapis.com%2Frequests" AND resource.type="cloud_run_revision" AND resource.labels.service_name="{SERVICE}" AND httpRequest.requestUrl =~ "^https://[^/]+/oauth(/|[?]|$)"'
+    name = 'mw-grafana-oauth-requests'
+    before = gc('logging', 'sinks', 'describe', '_Default')
+    exclusions = before.get('exclusions', [])
+    matching = [e for e in exclusions if e['name'] == name]
+    require(len(matching) <= 1, 'Duplicate OAuth request-log exclusion')
+    if matching:
+        require(matching[0].get('filter') == log_filter and not matching[0].get('disabled'),
+                'Conflicting/disabled OAuth request-log exclusion')
+        return
+    gc('logging', 'sinks', 'update', '_Default',
+       f'--add-exclusion=name={name},description={MARKER},filter={log_filter}')
+    after = gc('logging', 'sinks', 'describe', '_Default')
+    added = [e for e in after.get('exclusions', []) if e['name'] == name]
+    require(len(added) == 1 and added[0].get('filter') == log_filter and not added[0].get('disabled'),
+            'OAuth exclusion readback failed')
+    # Server timestamps can change. All unrelated configuration must survive.
+    ignored = {'exclusions', 'createTime', 'updateTime'}
+    require({k: v for k, v in before.items() if k not in ignored} ==
+            {k: v for k, v in after.items() if k not in ignored}, 'Unrelated sink configuration changed; stop for reconciliation')
+    require(sorted(exclusions, key=lambda e: e['name']) ==
+            sorted([e for e in after.get('exclusions', []) if e['name'] != name], key=lambda e: e['name']),
+            'Unrelated sink exclusions changed; stop for reconciliation')
 
 
 def choose(rows, suffix):
@@ -119,6 +179,7 @@ def validate(rows, resume):
 
 
 def resources(enabled, condition, resume):
+    check_sdk()  # Actual installed CLI help, before any API enablement/mutation.
     # Validate visible collisions before enabling APIs, then repeat after all inventory is readable.
     validate(inventory(enabled), resume)
     gc('services', 'enable', *APIS)
@@ -152,13 +213,7 @@ def resources(enabled, condition, resume):
         if field.get('ttl'):
             gc('firestore', 'fields', 'ttls', 'update', field['fieldPath'], f'--database={DATABASE}',
                f'--collection-group={field["collectionGroup"]}', '--enable-ttl', '--async')
-    log_filter = f'logName="projects/{PROJECT}/logs/run.googleapis.com%2Frequests" AND resource.type="cloud_run_revision" AND resource.labels.service_name="{SERVICE}" AND httpRequest.requestUrl =~ "^https://[^/]+/oauth(/|[?]|$)"'
-    exclusions = gc('logging', 'exclusions', 'list')
-    exclusion = next((e for e in exclusions if e['name'] == 'mw-grafana-oauth-requests'), None)
-    if exclusion:
-        require(exclusion.get('filter') == log_filter and not exclusion.get('disabled'), 'Conflicting/disabled OAuth request-log exclusion')
-    else:
-        gc('logging', 'exclusions', 'create', 'mw-grafana-oauth-requests', f'--log-filter={log_filter}', f'--description={MARKER}')
+    oauth_log_exclusion()
     print('Infrastructure created/reconciled. Index/TTL operations may still be pending. No secret values, Cloud Run revision or Scheduler job created.')
 
 
@@ -170,7 +225,8 @@ def inert():
         print(json.dumps({'runAppURL': existing['status']['url'], 'existingService': True}))
         return  # Never roll an existing service back to bootstrap.
     tag = f'{REGION}-docker.pkg.dev/{PROJECT}/{REPOSITORY}/grafana-mcp-bootstrap:v1'
-    run(['gcloud', 'auth', 'configure-docker', f'{REGION}-docker.pkg.dev', f'--account={OWNER}', '--quiet'])
+    require(shutil.which('docker') is not None, 'Docker unavailable; complete the approved Docker setup before inert deployment')
+    gcloud_output('auth', 'configure-docker', f'{REGION}-docker.pkg.dev')
     run(['docker', 'build', '--platform=linux/amd64', '-f', str(HERE / 'bootstrap.Dockerfile'), '-t', tag, str(HERE)])
     run(['docker', 'push', tag])
     image = gc('artifacts', 'docker', 'images', 'describe', tag)
@@ -204,11 +260,14 @@ def domain():
 def main():
     global OWNER
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('phase', choices=['preflight', 'resources', 'inert', 'domain'])
+    parser.add_argument('phase', choices=['check-sdk', 'preflight', 'resources', 'inert', 'domain'])
     parser.add_argument('--owner', required=True, help='Confirmed human Google owner account, never a credential')
     parser.add_argument('--resume', action='store_true', help='Owner confirms existing named database was created by this bootstrap')
     args = parser.parse_args()
     OWNER = args.owner
+    if args.phase == 'check-sdk':
+        check_sdk()
+        return
     enabled, condition = baseline()
     if args.phase == 'preflight':
         validate(inventory(enabled), args.resume)

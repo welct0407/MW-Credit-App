@@ -56,3 +56,12 @@ Added a fixed-target human-owner preflight/resource script, bounded database con
 Offline guard tests cover resource conflicts, denied reads, database resume/location, safe inert reruns and domain collisions; the inert HTTP test checks every sensitive route returns 503. GitHub CI now includes these affected checks. Publication/check results are recorded in the completion handoff; scripts remain unexecuted against GCP.
 
 Bootstrap verification: six offline Python guard tests passed; TypeScript build and 29/29 Node tests passed. The pinned inert Docker image built with network disabled and its endpoint regression passed inside the non-root container with network disabled. The original package checks remain valid for unchanged application/dependency code; new CI checks verify this exact bootstrap publication.
+
+
+## SDK/Windows compatibility correction
+
+VM-01's actual SDK585 rejected the original Logging command group, and bare gcloud subprocess invocation failed with WinError2. Replaced that group with named `_Default` sink exclusion add/readback, preserving all unrelated configuration; added resolved launcher paths, temporary JSON flags files for complex/repeated values, UTF-8 subprocess output and shared Secret Manager stdin handling. Docker remains the build/push route. No new publishing tools, credentials or live operations were used here.
+
+Expanded offline regression coverage for launcher resolution, Windows CMD handling, exact flag preservation/temporary cleanup, exclusion idempotency/conflicts and readback. The Windows CI job exercises a real temporary CMD launcher. Read-only checks against installed SDK587's actual help/parser confirmed named sink exclusion support, JSON flags files and exact CEL/filter preservation. VM585 help support was independently verified by the deployment executor. Authentication findings distinguish the installed cloud SDK's empty profile/absent ADC from the IAP helper and verified VM owner CLI; no cloud login was initiated.
+
+Correction verification: 14 Python guard tests passed locally with the one Windows-only CMD test skipped on Linux; the actual installed SDK587 parser/help checks and the new check-sdk entry point passed without API requests. Windows CI will exercise all 14, including the actual CMD launcher. Application/dependency source is unchanged; existing application checks are reused locally and rerun by exact-publication CI.
