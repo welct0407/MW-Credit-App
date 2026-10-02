@@ -1,5 +1,7 @@
 # R050 VM-01 controller evidence
 
+Current controller checkpoint, 2 October 2026 UTC: owner-approved code-only diagnostics deployed from `4a506465f96b5d8eaa78ed6bf723da6de12bb740`; all live assets match the reviewed ZIP and access settings, logging, identity/roles, consent, hostname and ledger bytes are unchanged. Mutations, polling and admission remain disabled. Authenticated status remains pending; R050 stays Open and PR2 stays draft. Earlier e025017/source-not-redeployed statements below are historical checkpoints. [Deployment receipt and tests](status-diagnosis/README.md).
+
 The owner-approved disabled bootstrap is deployed from e025017. The current source repairs Bicep boolean serialization and fixture portability; it has not been redeployed. R050 remains Open. The owner approved US$2/month as a planning budget, not an enforced cap.
 
 The approved 2 October browser account switch is applied: MW Credit replaces the owner in both controller allowlists and user-specific consent. [Current switch evidence and focused source checks](account-switch/README.md). Authenticated API acceptance remains pending. The previous [source validation](validation.json) is the ab4fb7c repair checkpoint; the switch has its own evidence and source hash.

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "release": "R050",
-  "status": "BOOTSTRAP_DEPLOYED_BROWSER_ACCOUNT_SWITCHED_AUTHENTICATED_ACCEPTANCE_PENDING",
+  "status": "DIAGNOSTICS_DEPLOYED_AUTHENTICATED_ACCEPTANCE_PENDING",
   "repository": "welct0407/AppSheet-Loan-Project",
   "sourcePath": "scripts/azure/vm01-controller",
   "baselineCommit": "d351991d1a1c0895d4abc8f0f4ba4fa55fa7a4e5",
   "testedCommit": "Repaired source is pinned by the Git history of this manifest and outputs validation record",
-  "deploymentZipSha256": "aaedfe3d24e2dedfac5338b7ab03b4e9c7a6961267d068e0b7a51c43f22b180f",
+  "deploymentZipSha256": "13bf7c630d59aab77779b42af02d7eca41d06a2e7dbb42dd2cef6a783cd11ba9",
   "discovery": {
     "provenance": "Parent delegated authenticated read-only Azure discovery on 2026-10-01; no Azure writes",
     "subscriptionName": "IDEA Prod Subscription",
@@ -220,7 +220,19 @@
     "replacementAuthenticatedStatusVerified": false,
     "formerUserAuthenticatedTokenDenialVerified": false
   },
-  "deployedSourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
+  "deployedSourceCommit": "4a506465f96b5d8eaa78ed6bf723da6de12bb740",
   "bootstrapReceipt": "../../../../outputs/r050-vm01-controller/bootstrap/provisioning-receipt.json",
-  "accountSwitchReceipt": "../../../../outputs/r050-vm01-controller/account-switch/receipt.json"
+  "accountSwitchReceipt": "../../../../outputs/r050-vm01-controller/account-switch/receipt.json",
+  "previousDeployedSourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
+  "previousDeploymentZipSha256": "aaedfe3d24e2dedfac5338b7ab03b4e9c7a6961267d068e0b7a51c43f22b180f",
+  "diagnosticDeployment": {
+    "approval": "Direct user approval for reviewed code-only package; preserve access and disabled controls",
+    "receipt": "../../../../outputs/r050-vm01-controller/status-diagnosis/deployment-receipt.json",
+    "deployedAtUtc": "2026-10-02T05:44:22.4645622Z",
+    "codeDeploymentId": "de3d4a0f-20eb-4716-9d4d-86bb46530a7d",
+    "assetHashesVerified": true,
+    "settingsAccessRolesConsentLoggingLedgerPreserved": true,
+    "authenticatedStatusVerified": false,
+    "vmPowerRequests": 0
+  }
 }

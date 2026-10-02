@@ -1,5 +1,7 @@
 # R050 controller acceptance
 
+Current controller checkpoint, 2 October 2026 UTC: owner-approved code-only diagnostics deployed from `4a506465f96b5d8eaa78ed6bf723da6de12bb740`; all live assets match the reviewed ZIP and access settings, logging, identity/roles, consent, hostname and ledger bytes are unchanged. Mutations, polling and admission remain disabled. Authenticated status remains pending; R050 stays Open and PR2 stays draft. Earlier e025017/source-not-redeployed statements below are historical checkpoints. [Deployment receipt and tests](../../../../outputs/r050-vm01-controller/status-diagnosis/README.md).
+
 Source tests and separately recorded disabled-bootstrap evidence. Tests use mocked ARM, a conditional/leased in-memory Blob port, cryptographically signed isolated JWT fixtures and real headless Chromium with mocked MSAL. No Azure actions or live sign-ins are performed.
 
 Latest VM-01 local result: **46 tests passed** with Node24.19.0/npm11.6.1 and fresh sandboxed Edge154.0.4258.48. TypeScript strict build and bundled app/redirect bridge pass. Bicep CLI0.47.16 compiles main.bicep, including the exact-VM role module, without diagnostics. Infrastructure-policy and source-package checks pass; command output and hashes are recorded in [task evidence](../../../../outputs/r050-vm01-controller/README.md).

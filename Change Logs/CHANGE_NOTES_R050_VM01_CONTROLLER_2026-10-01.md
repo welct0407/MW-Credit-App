@@ -1,4 +1,4 @@
-# R050 - Azure VM-01 controller source - 1 October 2026
+# R050 — Azure VM-01 controller source — 1 October 2026
 
 Purpose: implement the agreed one-Function UI/API for authenticated status, start, restart and deallocate of the fixed VM-01. Design and independent review used Astra High; source execution/closeout used Sol6.1 High. The owner clarified that all project development belongs in AppSheet-Loan-Project, personal work in Daily-Use and integration runtime in MW-Integration-Agent. The initial source folder was relocated intact; Daily-Use was restored clean and MW-Integration-Agent is unchanged.
 
@@ -12,12 +12,12 @@ Changed references: repository ownership/workflow, maintained scripts guide, R05
 
 Validation: 45 tests, including real Chromium with isolated MSAL/ARM fixtures; strict TypeScript; offline Bicep build; staged source-package integrity and documentation/JSON checks. Exact command output and hashes are retained in the evidence. This validates source behavior, not live Easy Auth, Entra issuance, Azure host/storage, permission propagation or VM reconnection.
 
-Live blockers: [approval bundle](../scripts/azure/vm01-controller/docs/approval-bundle.md) and [manifest](../scripts/azure/vm01-controller/docs/approval-manifest.json) separate resource/provider, Entra/base RBAC, optional operation-read, credentials/environment, deployment/activation and power-test timing approvals. Regional quote/quota/grant eligibility and Cloud authentication mechanism remain unresolved. The under-USD1 goal is a target; USD0.29-0.43 is an illustrative unverified-rate estimate before overhead. No Azure provisioning, security changes, credential creation, Windows changes or live power actions were performed.
+Live blockers: [approval bundle](../scripts/azure/vm01-controller/docs/approval-bundle.md) and [manifest](../scripts/azure/vm01-controller/docs/approval-manifest.json) separate resource/provider, Entra/base RBAC, optional operation-read, credentials/environment, deployment/activation and power-test timing approvals. Regional quote/quota/grant eligibility and Cloud authentication mechanism remain unresolved. The under-USD1 goal is a target; USD0.29–0.43 is an illustrative unverified-rate estimate before overhead. No Azure provisioning, security changes, credential creation, Windows changes or live power actions were performed.
 
 Publication: commit/push and draft PR to the existing private AppSheet repository are explicitly authorized by the parent task. Merge is not authorized. Publication identity/remote verification is recorded in the final task response; Git history pins this checked source milestone.
 
 
-## 1 October 2026 (UTC) - disabled bootstrap and source repair
+## 1 October 2026 (UTC) — disabled bootstrap and source repair
 
 The owner directly approved the prepared bootstrap provisioning plan and US$2/month planning budget with VM commands disabled. Infrastructure deployment vm01-bootstrap-e025017 and exact VM-role deployment vm01-controller-base-role-e025017 succeeded; pinned code e025017 was published through the supported Flex endpoint using existing Entra authentication. The CLI's separate host-key health helper was replaced with read-only deployment status/public HTTP checks. No publishing credential or host key was retrieved.
 
@@ -42,3 +42,5 @@ The four approved changes completed: create exact replacement Principal `vm01.co
 ## 2 October 2026 (UTC) - status diagnostics repair
 
 Astra Extra High passed the narrow browser diagnostic repair. The user explicitly approved publishing it to existing draft PR2 and code-only deployment to the existing controller, preserving access/settings/roles and all disabled power gates. Strict TypeScript, bundling and 14/14 synthetic browser checks passed, including the shared-api confirmation and saved-request/idempotency regression. [Patch, candidate manifest and deployment evidence](../outputs/r050-vm01-controller/status-diagnosis/README.md). No merge or power operation is authorized. Publication/deployment outcome is recorded in that evidence; approval alone is not an applied-state claim.
+
+Direct user approval resolved publication review: source commit `4a506465f96b5d8eaa78ed6bf723da6de12bb740` and all nine intended blobs were verified remotely. Approved ZIP SHA256 `13bf7c630d59aab77779b42af02d7eca41d06a2e7dbb42dd2cef6a783cd11ba9` deployed successfully at 05:44:22 UTC, deployment `de3d4a0f-20eb-4716-9d4d-86bb46530a7d`. All five static assets match ZIP bytes; public config/security headers and empty anonymous401 are verified. Full app settings, Easy Auth/logging hashes, controller roles, consent, identity, hostname and ledger bytes compare unchanged. Disabled power gates remain intact, no VM power request occurred, and authenticated status remains pending. Updated owning controller records and environment/differences/tracker checkpoints; original bootstrap artifacts are intact and no AppSheet/SQL/report/model fact changed. R050 remains Open; PR2 remains draft; no merge.

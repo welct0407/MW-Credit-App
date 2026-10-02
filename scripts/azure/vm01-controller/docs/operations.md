@@ -1,5 +1,7 @@
 # Operations and recovery
 
+Current controller checkpoint, 2 October 2026 UTC: owner-approved code-only diagnostics deployed from `4a506465f96b5d8eaa78ed6bf723da6de12bb740`; all live assets match the reviewed ZIP and access settings, logging, identity/roles, consent, hostname and ledger bytes are unchanged. Mutations, polling and admission remain disabled. Authenticated status remains pending; R050 stays Open and PR2 stays draft. Earlier e025017/source-not-redeployed statements below are historical checkpoints. [Deployment receipt and tests](../../../../outputs/r050-vm01-controller/status-diagnosis/README.md).
+
 The owner-approved disabled bootstrap is deployed from e025017; [receipt and verification](../../../../outputs/r050-vm01-controller/bootstrap/README.md) record the actual applied scopes and identities. Commands/admission/polling remain disabled. The current source repairs lowercase switch serialization but is not redeployed. This runbook grants no remaining credential, polling, activation or power-test authority; those specific gates are retained in the filled [approval manifest](approval-manifest.json) and [approval bundle](approval-bundle.md).
 
 ## Approved preparation and deployment order
