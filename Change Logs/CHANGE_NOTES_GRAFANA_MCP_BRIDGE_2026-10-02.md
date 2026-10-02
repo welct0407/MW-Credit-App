@@ -1,6 +1,6 @@
 # Grafana MCP Events bridge — 2 October 2026
 
-Status: **approved resources verified; inert Cloud Run revision deployed/Ready; managed-host HTTPS health/inert behavior verified; domain mapping and functional host acceptance blocked or pending**. R050 remains Open. The owner-approved live bootstrap checkpoint below supersedes earlier preparation-only statements; no secret entry, DNS change, Grafana cutover or external notification occurred.
+Status: **approved resources verified; inert Cloud Run revision deployed/Ready; managed-host HTTPS health/inert behavior verified; custom-domain certificate/HTTPS inert behavior verified; functional host acceptance pending**. R050 remains Open. The owner-approved live bootstrap checkpoint below supersedes earlier preparation-only statements; no secret entry, DNS change, Grafana cutover or external notification occurred.
 
 ## Scope and authority
 
@@ -101,3 +101,7 @@ No deployment/config/security changes or additional denial workaround. Domain ma
 ## Owner-created custom domain readback — certificate pending
 
 Parent reports owner completed mapping/manual DNS at 21:55:56 UTC. Bounded fixed-project/region metadata read confirms `alerts.mw-credit.com → mw-grafana-events` and returned CNAME `alerts → ghs.googlehosted.com.`; Ready and CertificateProvisioned remain Unknown/CertificatePending, DomainRoutable True. Local resolver failed temporarily; one normal TLS health probe returned 503 rather than expected 200. Actual public DNS and custom-origin certificate/routing acceptance are not established; no repeated probes or sensitive-route checks. [Exact conditions, diagnostics and next OAuth/secret requirements](../outputs/grafana-mcp-bootstrap-20261002/README.md#owner-created-custom-domain-certificate-pending). No cloud/DNS/ownership/security/config changes or denied GitHub API retries. The retained SDK unexpectedly auto-installed its missing beta component while executing the documented regional metadata command; no full install/reset. Secret/OAuth/Scheduler/Grafana setup was documented only, not executed.
+
+## Final custom-domain certificate and HTTPS acceptance
+
+Bounded 23:15 UTC verification confirms mapping/certificate Ready=True since 22:48:15.986705 UTC. Custom-domain checks passed **13/13** with normal TLS: GET health 200/bootstrap and 12 inactive-route checks 503/inactive. Fixed adapter reconfirmed active identity, exact unchanged revision/digest and 100% traffic. [Final sanitized evidence](../outputs/grafana-mcp-bootstrap-20261002/README.md#final-custom-domain-readiness-and-inert-https-acceptance). Parent-inspected 22:31 UTC screenshot separately establishes saved Cloudflare DNS-only CNAME configuration; independent public DNS querying remains unavailable, with no failed-route retry. No source/deployment/config/DNS/security changes or credentials/payloads. OAuth/secrets/Scheduler/Grafana activation remain unexecuted and functional delivery acceptance pending. Existing denied GitHub API was not retried; final evidence/docs use normal publication to the existing task branch/PR.

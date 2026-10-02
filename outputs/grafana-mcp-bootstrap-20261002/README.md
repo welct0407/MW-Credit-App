@@ -1,6 +1,6 @@
 # Approved Grafana bridge bootstrap — 2 October 2026
 
-Checkpoint: named resources verified; inert Cloud Run revision deployed and Ready; all three indexes READY and six TTL policies ACTIVE. Fresh-environment HTTPS health/inert-route checks passed; the owner subsequently created the custom-domain mapping and confirmed its manual DNS entry. The mapping now reports CertificatePending; custom-domain acceptance remains incomplete. No functional OAuth, secret entry, dispatch, Grafana cutover or DNS change.
+Checkpoint: named resources verified; inert Cloud Run revision deployed and Ready; all three indexes READY and six TTL policies ACTIVE. Fresh-environment HTTPS health/inert-route checks passed; the owner subsequently created the custom-domain mapping and confirmed its manual DNS entry. The mapping and certificate are now Ready; verified custom-domain health/inert-route checks passed 13/13. Functional OAuth/MCP delivery remains inactive. No functional OAuth, secret entry, dispatch, Grafana cutover or DNS change.
 
 ## Source and authority
 
@@ -58,6 +58,8 @@ Publication check limitation: `gh pr view` and exact-pin `gh run list` were deni
 
 ## Owner-created custom domain: certificate pending
 
+Dated pending checkpoint; superseded by the final readiness evidence below.
+
 The parent reports the owner completed the Google mapping wizard and manual Cloudflare DNS-only CNAME `alerts → ghs.googlehosted.com` with TTL Auto at 21:55:56 UTC on 2 October 2026. This task did not perform or retry ownership, mapping or DNS writes. [Bounded readback](custom-domain-readback.json), observed approximately 21:57–21:58 UTC, confirms `alerts.mw-credit.com` maps to `mw-grafana-events` in the fixed project/region and returns the exact CNAME above.
 
 - `Ready=Unknown`, reason `CertificatePending`: “Waiting for certificate provisioning. You must configure your DNS records for certificate issuance to begin.” Last transition 21:51:33.818035 UTC.
@@ -75,3 +77,15 @@ After custom-domain TLS readiness, the owner creates a Google **web** OAuth clie
 The owner separately runs `python3 seed-secrets.py --owner OWNER_ACCOUNT` from an interactive terminal using the documented owner route, with Node available. Enter the Google client secret only at its hidden prompt into Secret Manager stdin; no chat, relay, screen capture or command-argument entry. The seed script creates four application values in memory and outputs only version names for five dedicated containers: `mw-grafana-hmac`, `mw-grafana-state-key`, `mw-grafana-cookie-keys`, `mw-grafana-oauth-jwks`, `mw-grafana-google-client-secret`. Any existing versions, including disabled/destroyed, must be retained/recovered rather than regenerated. No secret values were read or created here.
 
 Before a separately authorized functional deployment, resolve the actual ChatGPT predefined client ID/exact redirect and verified callback hosts, owner subject, pinned secret versions and reviewed application digest in the existing service template; retain `OWNER_ENABLED=false` through configuration/acceptance. Inspect other project/inherited log sinks before real OAuth, and verify database-scoped IAM/index readiness under that later scope. Scheduler and live Grafana activation remain deferred; HMAC transfer is a later owner-only action. See [owner setup instructions](../../scripts/monitoring/grafana-mcp-bridge/deploy/OWNER_BOOTSTRAP.md#secure-interaction-and-later-deployment) and [service template](../../scripts/monitoring/grafana-mcp-bridge/deploy/service.yaml.example).
+
+## Final custom-domain readiness and inert HTTPS acceptance
+
+On 2 October 2026 at approximately 23:15 UTC, the bounded follow-up read confirmed `Ready=True` and `CertificateProvisioned=True`, both transitioned at **22:48:15.986705 UTC**; `DomainRoutable=True`. Mapping `alerts.mw-credit.com` still targets `mw-grafana-events` in `clever-oasis-508610-n7`, `asia-southeast1`, and returns `CNAME alerts → ghs.googlehosted.com.` The earlier challenge visibility/provisioning diagnostic cleared without any executor DNS, ownership, security or runtime change.
+
+[Final sanitized readback](custom-domain-ready-readback.json): **13/13 deployed HTTPS checks passed** at `https://alerts.mw-credit.com` with normal TLS verification (`ssl_verify_result=0`), no redirect following, credentials, cookies, query parameters or request bodies. GET health returned 200 and `{"status":"bootstrap"}`. The same 12 protected-resource/OAuth/MCP/Grafana/dispatch/POST-health checks used for the managed host returned 503 and `{"status":"inactive"}`. This is actual custom-domain deployed behavior, separate from local tests.
+
+The fixed adapter reconfirmed the active codex-cloud identity, Ready service revision `mw-grafana-events-00001-rnj`, 100% traffic and unchanged expected immutable digest `sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154`. No deployment or source change occurred.
+
+DNS configuration evidence is separately attributed: the parent inspected all 12 records in the owner's 22:31 UTC Cloudflare screenshot and confirmed a single correct alerts CNAME, DNS-only grey cloud, TTL Auto and no visible conflicting alerts/CAA record. This executor did not receive the screenshot pixels or establish an independent authoritative/public DNS query result. Google certificate readiness and successful normal custom-domain HTTPS establish the current certificate/routing outcome; they do not constitute a full DNS zone audit. No failed public DNS routes were retried.
+
+Full OAuth/MCP Events delivery and host round-trip remain inactive/unverified. The documented next owner OAuth/secret requirements above are unchanged and were not executed; Scheduler and live Grafana activation remain deferred. R050 stays Open. This final publication changes only evidence/current status documents on the existing task branch for draft PR 3. GitHub API access remains denied and was not retried; fresh CI/draft-state inspection remains unavailable. Source and workflow files are unchanged, so prior source CI is reused as dated evidence only.
