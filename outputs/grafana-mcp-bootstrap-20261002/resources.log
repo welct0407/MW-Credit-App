@@ -1,5 +1,5 @@
 STOP: Command failed: ['/tmp/cloud-gcloud-mxag5qvw/script-bin/gcloud', 'firestore', 'indexes', 'composite']
-ERROR: (gcloud.firestore.indexes.composite.list) unrecognized arguments: --collection-group=deliveries 
+ERROR: (gcloud.firestore.indexes.composite.list) unrecognized arguments: --collection-group=deliveries
 
 To search the help text of gcloud commands, run:
   gcloud help -- SEARCH_TERMS
