@@ -5,6 +5,8 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Need | Reference |
 | --- | --- |
 | Dots Browser, Codex Cloud, VM-01 and Debian responsibilities / handoffs | [Development Workflow](Development_Workflow.md) — authoritative routing, access boundaries and confirmed/pending proof |
+| Dots completion, confirmations, delegation and progress updates | [Dots Orchestration Rules](Dots_Orchestration_Rules.md) — standing instructions and setup text |
+| Which model and reasoning effort to use for each kind of work | [Model Work Mapping](Model_Work_Mapping.md) — owner-editable defaults read before task dispatch |
 | Which release to use for new development / status | [Current development release](Release_Tracker.md#current-development-release) and tracker history |
 | Open DEV work | [Development Changes](Development_Changes.md) |
 | Collection receipts limited to displayed charges | [R048 handover](../outputs/r048-collection-receipts/HANDOVER.md) — DEV1.000124 and direct PROD3.000253 correction verified |

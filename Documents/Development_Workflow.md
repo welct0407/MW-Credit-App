@@ -12,7 +12,7 @@ Current arrangement: **1 October 2026 (UTC)**. This is the authoritative cross-e
 | VM-01 (Windows) | Run local Windows tools, account-bound browser sessions and exceptional access tasks, including the currently chosen Cloudflare route. | Use a coordinated VM-01 task with the same scope and target identity. Preserve its existing checkout/work. Do not reactivate the paused Windows partner worker or duplicate Debian schedules. |
 | Debian VM | Persistent integration services, chart service, health collection and controlled deployment/operations target. | Changes use the owning repository's catalogue, tested package, scoped authorization and recovery procedure. Do not run a second production worker in Codex Cloud or VM-01. |
 
-Use **Astra Extra High** for this architecture/documentation assignment, as requested. Routine data tasks may use **Sol 6.1 Medium** under the owner's explicit preference; do not silently change another task's or the persistent services' model settings. Use one agent unless independent delegation is requested.
+Model selection follows the current [Model Work Mapping](Model_Work_Mapping.md), under the owner's **2 October 2026** instructions. [Dots Orchestration Rules](Dots_Orchestration_Rules.md) owns completion, confirmation, scoped delegation and three-minute progress-update behavior. Read the mapping before each new/resumed task or model handoff; an explicit task-level model request takes precedence. Keep unrelated chats and persistent service settings unchanged. Execution locations and access boundaries remain governed by this document.
 
 ## Repository and instruction ownership
 
