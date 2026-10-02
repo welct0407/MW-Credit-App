@@ -4,7 +4,7 @@ Owner instructions: **2 October 2026 (Asia/Bangkok)**. These rules govern Dots c
 
 ## 1. Use the current project instructions
 
-For project or ecosystem work, read the current `AGENTS.md` in [AppSheet-Loan-Project](https://github.com/welct0407/AppSheet-Loan-Project/blob/master/AGENTS.md), then the task/continuation note and only the references relevant to the request. On VM-01 the checkout is `C:\GitHub\AppSheet-Loan-Project`; in Codex Cloud it is `/workspace/AppSheet-Loan-Project`. Confirm the actual checkout and revision before relying on it. Use the accessible published repository when local files are unavailable; never assume the cloud can read a Windows path.
+For project or ecosystem work, read and follow the current `AGENTS.md` in [AppSheet-Loan-Project](https://github.com/welct0407/AppSheet-Loan-Project/blob/master/AGENTS.md), then the task/continuation note and only the references relevant to the request. Treat the current owning instructions as authoritative rather than remembered or outdated copies. On VM-01 the checkout is `C:\GitHub\AppSheet-Loan-Project`; in Codex Cloud it is `/workspace/AppSheet-Loan-Project`. Confirm the actual checkout and revision before relying on it. Use the accessible published repository when local files are unavailable; never assume the cloud can read a Windows path.
 
 Follow AGENTS links into the owning repository for work outside this repository. In particular, AI Collection requires its own AGENTS and default-deny service catalogue. Project context does not grant service authority. Treat dated logs as evidence, not current instructions. Reuse valid context and checks; do not load the whole ecosystem for each task.
 
@@ -34,13 +34,17 @@ For work continuing beyond three minutes, send a brief update by the three-minut
 
 Use the current Dots conversation for these updates. They are progress messages, not repeated approval requests. Choose bounded waits that let you report on time where supported; if a tool blocks updates, report promptly when control returns and disclose the delay. Do not create a recurring schedule or send external messages merely to meet this cadence. Stop periodic updates when the task finishes or I stop it; more frequent platform-required updates take precedence.
 
+## 5. Choose the owning repository
+
+Before starting or delegating repository work, use the current [repository and instruction ownership table](Development_Workflow.md#repository-and-instruction-ownership). Choose by the component being changed, not the currently open checkout or the computer running it. Read the destination's applicable instructions and catalogue. For work spanning repositories, assign each change to its owner and include dependencies and revisions in the handoff. Routine questions need no repository write. Keep the task-to-repository mapping in Development Workflow so it can change without copying a second inventory into these rules.
+
 ## Ready-to-paste Custom rules
 
-In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the four requested entries below. Five additional proposed entries follow. Select **Take action without asking** for each entry you add. Each scopes an action Dots may perform; the sections above explain the intended working behavior. The proposed entries make existing AGENTS practices explicit without adding new approval gates.
+In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the five entries below. Select **Take action without asking** for each entry you add. Each scopes an action Dots may perform; the sections above explain the intended working behavior. Project safeguards are inherited through Rule 1 rather than repeated as separate Custom rules.
 
 ### Rule 1 — Read project instructions
 
-> For AppSheet Loan Project and related ecosystem work, consult the current AGENTS.md at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/AGENTS.md before acting. Follow its routing to the owning repository and read only the references relevant to my task. Reuse valid context and evidence instead of repeating broad discovery. The detailed orchestration rules are at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Dots_Orchestration_Rules.md.
+> For AppSheet Loan Project and related ecosystem work, read and follow the current AGENTS.md at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/AGENTS.md, including its task-specific references and owning-repository instructions. Treat the current owning instructions as authoritative; do not rely on remembered or outdated copies. Read only what the task needs and reuse valid evidence. The detailed orchestration rules are at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Dots_Orchestration_Rules.md.
 
 ### Rule 2 — Finish authorized work
 
@@ -54,27 +58,9 @@ In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the 
 
 > During any requested task lasting longer than three minutes, post a concise progress update in our current Dots conversation by the three-minute mark and at least every three minutes thereafter, including while workers are running or you are waiting. State completed work, current activity, the next step and any blocker. Report completion, failure or a needed decision immediately. These are status updates, not requests for permission. Stop them when the task finishes or I stop it. Do not create a recurring schedule or send external messages for these updates.
 
-## Additional proposed Custom rules
+### Rule 5 — Choose the correct repository
 
-### Rule 5 — Verify before reporting success
-
-> Verify the requested outcome using checks relevant to the change and read back saved or applied results. Reuse passing evidence while it remains valid. Distinguish planned, attempted, applied and verified work; a worker's success message alone is not proof. Finish with the outcome, important checks, result links and any unresolved limitation. Do not claim completion while required work remains.
-
-### Rule 6 — Preserve work and recovery
-
-> Before changing an asset, establish the rollback point required by its owning instructions once per coherent change batch. Preserve unrelated edits and concurrent work. Prefer simple, reversible changes and isolate repository edits when necessary. Complete required change logs and commit/push intended checked files under the existing repository publication permission; verify the remote result before claiming publication. Do not overwrite other work or rewrite Git history.
-
-### Rule 7 — Use tools and context efficiently
-
-> Use the maintained tools, APIs and execution routes appropriate to the task. Use the current GUI where the project requires workflow tests. Read only affected instructions and references, batch independent reads, and reuse confirmed identities and valid evidence until a relevant change invalidates them. Expand investigation or testing for a concrete dependency, failure or uncertainty. Avoid repeated discovery, unchanged polling, unnecessary agents and unrelated audits; finish once the relevant requirements and checks are satisfied.
-
-### Rule 8 — Carry complete handoffs and reconcile uncertain actions
-
-> When delegating or resuming work, pass a concise handoff containing the requested outcome, owning repository and revision, affected targets, decisions and authorization already given, rollback references, completed checks and the next action. Coordinate ownership of shared files, DEV apps and databases. After a timeout or unknown write result, reconcile the actual state before retrying so financial changes and notifications are not duplicated. Resolve blockers within existing authority and ask me only when a specific missing decision or permission is necessary.
-
-### Rule 9 — Use the correct account and protect private data
-
-> Before service operations, confirm the intended account, tenant and DEV/PROD target against the project's owning references; reuse that verification until the context changes or evidence suggests drift. Keep credentials outside repositories and pass secret references rather than values. Use the minimum necessary data and sanitized evidence in logs, Git and handoffs. Do not copy borrower documents, bank details or unrestricted production data into published artifacts or broaden access as a workaround.
+> Before starting or delegating work, choose the owning repository using the current Repository and instruction ownership section at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Development_Workflow.md#repository-and-instruction-ownership. Route by the component and task type, not whichever checkout is open. Read and follow the selected repository's applicable AGENTS.md and service catalogue. For cross-repository work, keep each change in its owning repository and coordinate dependencies. Use Daily-Use only for general work without another project owner when repository files are needed; ordinary questions need no repository write. If ownership remains ambiguous after checking the references, ask one focused question rather than inventing a destination.
 
 These Markdown files are instructions to read, not an installed routing engine. Editing the published mapping changes what Dots should select on its next read; it does not switch an already-running task. Dots account settings and live routing have not been changed or tested by creating these files.
 

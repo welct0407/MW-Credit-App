@@ -8,16 +8,18 @@ The owner requested project-aware Dots rules, completion without step-by-step co
 
 Original checkout: `master` at `d351991d1a1c0895d4abc8f0f4ba4fa55fa7a4e5`. Preserve its unrelated modified `scripts/metabase/PartnersTab.mjs` and untracked risks-redesign, R026/R048 output and partner-share work. GitHub had advanced to `1c76dbfc2bce6222695e110ee47966496a3b9288`; the affected existing documents are unchanged between those commits.
 
-Work is isolated in `C:\GitHub\AppSheet-Loan-Project-dots-rules`, branch `codex/dots-orchestration-rules`, based on that latest commit and tracking `origin/master`. Git's repository ownership check requires a per-command `safe.directory` for the original owner-shared checkout; no global Git trust settings were changed. The managed-worktree helper encountered the same ownership check; the standard Git worktree command succeeded with the exact per-command repository exception.
+Initial work was isolated in `C:\GitHub\AppSheet-Loan-Project-dots-rules`, branch `codex/dots-orchestration-rules`, based on that latest commit and tracking `origin/master`. It was published as `cba8445c6501037c034db934c882d08a0da48628`, fast-forwarded into the original checkout with all 12 existing modified/untracked files hash-verified unchanged, and the clean temporary worktree was removed. Git's repository ownership check requires a per-command `safe.directory` for the original owner-shared checkout; no global Git trust settings were changed. The managed-worktree helper encountered the same ownership check; the standard Git worktree command succeeded with the exact per-command repository exception.
+
+The same-day repository-routing refinement starts from `cba8445c6501037c034db934c882d08a0da48628`, isolated in `C:\GitHub\AppSheet-Loan-Project-dots-routing` on `codex/dots-repository-routing`, tracking `origin/master`. The owner identified the five extra proposals as redundant with AGENTS and requested task-to-repository routing. The rules now retain the original four, strengthen Rule 1 to read and follow current owning instructions, and use Rule 5 for repository selection. The earlier five overlapping proposals are removed.
 
 Rollback: revert this documentation commit normally, preserving subsequent work. No live asset backup is needed for file-only edits.
 
 ## Changed files and decisions
 
-- `Documents/Dots_Orchestration_Rules.md`: current AGENTS entry point, owning-repository boundaries, completion and approval reuse, scoped delegation, worker follow-through/stop handling, three-minute updates and four requested ready-to-paste Personalization > Custom rules entries. Five additional proposed entries cover verification, recovery/preservation, efficiency, handoffs/uncertain-result reconciliation, and account/data protection; these restate existing project practices without expanding authority.
+- `Documents/Dots_Orchestration_Rules.md`: five ready-to-paste Personalization > Custom rules entries covering current AGENTS, completion/approval reuse, model delegation, three-minute updates and repository selection. Existing project safeguards are inherited through Rule 1.
 - `Documents/Model_Work_Mapping.md`: owner-editable work categories, exact model/effort identifiers, fresh-read and publication behavior, task overrides, escalation and unsupported-control handling.
 - `AGENTS.md`: discoverability and standing scope for the requested Dots delegation; existing live-service and release boundaries remain in force.
-- `Documents/Development_Workflow.md`: replace the dated assignment-specific Astra and routine-data Sol Medium text with a link to the current mapping. Execution locations and access remain unchanged.
+- `Documents/Development_Workflow.md`: replace dated model preferences with the current mapping link; clarify the existing repository table as the single task-to-repository map. Route loan apps/reporting and chart/monitoring source to AppSheet-Loan-Project, integration code/services to MW-Integration-Agent, general repository work to Daily-Use, and AI Collection to its separately governed repository. Cross-repository work stays with each component owner. Execution access and production authority remain unchanged.
 - `Documents/README.md`: navigation entries for both new documents.
 - This log: scope, baseline, rollback and validation/activation status.
 
@@ -27,6 +29,8 @@ The mapping is an instruction source, not a routing daemon or configuration auto
 
 Documentation implementation and saved-file review are complete. Validation passed: 100 local Markdown link targets resolve; all six mapping rows have the expected table shape; Git whitespace checks pass; all AGENTS sections from project release tracking onward are unchanged. The six intended Markdown files contain no credentials or private business data. The isolated worktree preserves the original checkout's unrelated work. No live GUI/SQL tests apply to this file-only change.
 
+Repository-routing refinement: 71 relative link targets in the four affected documents resolve, both new anchor references and the repository table shape pass, and exactly five Custom rules remain. Saved diff/whitespace review passed. The existing workflow/AGENTS establish component ownership; the local Daily-Use README still contains only its title. No cross-repository file, model assignment, AGENTS safeguard or live runtime is changed by this refinement.
+
 Publication target is the branch's configured `origin/master`, using a normal fast-forward push with remote commit verification. The task result records the verified publication commit. No force-push or release tag is appropriate for this governance change.
 
-Remaining activation check: save the requested entries and any selected proposals in ChatGPT Personalization > Custom rules, then observe a future task using the current mapping and progress cadence. This is not claimed as installed or runtime-tested behavior.
+Remaining activation check: save the five current entries in ChatGPT Personalization > Custom rules, then observe a future task using the current repository/model mappings and progress cadence. This is not claimed as installed or runtime-tested behavior.
