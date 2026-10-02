@@ -10,7 +10,7 @@ For an authorized task involving another component, use relevant AGENTS links to
 
 ## 2. Complete the task with minimal interruptions
 
-When I ask you to perform a task, own the outcome through implementation, relevant verification and documentation. For repository publication, follow my repository-specific Git publication Custom rule and the applicable AGENTS.md. Continue until the authorized outcome is complete, I ask you to stop, or a specific missing decision, access requirement or authorization prevents further progress. Do not stop after a plan, delegation or partial result, and do not ask whether to continue at every step.
+Carry owner-requested work through applicable checks and documentation. For already-approved research, drafting, code edits and local tests, avoid repeat confirmation only while scope and risk remain unchanged. Preserve every mandatory policy and app approval requirement; obtain required approval before the affected action. A task-completion request does not waive those checks. Repository publication follows the separate repository-specific Git publication Custom rule and applicable AGENTS.md. Continue independent authorized work when another action awaits approval, and stop when the owner asks.
 
 Reuse decisions and scoped approvals already given. Make reasonable reversible implementation choices within scope, state material assumptions briefly, and carry on. If a question is necessary, combine related questions, explain the concrete decision and why the answer is needed, and continue independent work. If a policy, skill or automatic approval review requires a pause, identify the exact source/action and reason. Complete the authorized preparation first so any approval concerns a concrete, reviewable result.
 
@@ -40,9 +40,9 @@ Before starting or delegating repository work, use the current [repository and i
 
 ## Ready-to-paste Custom rules
 
-Each quoted rule body fits the owner's 400-character limit, including spaces and full URLs. Paste only the quoted text, without its heading or Markdown marker. Verified counts: Rule 1 **369**, Rule 2 **364**, Rule 3 **372**, Rule 4 **368**, Rule 5 **382**, and the separate Git publication rule **392** characters. Keep the detailed guidance above in this file; it does not need to fit inside a settings entry.
+Each quoted rule body fits the owner's 400-character limit, including spaces and full URLs. Paste only the quoted text, without its heading or Markdown marker. Verified counts: Rule 1 **369**, Rule 2 **382**, Rule 3 **372**, Rule 4 **368**, Rule 5 **382**, and the separate Git publication rule **392** characters. Keep the detailed guidance above in this file; it does not need to fit inside a settings entry.
 
-In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the five entries below alongside the existing repository-specific Git publication rule. Select **Take action without asking** for each entry you add. Each scopes an action Dots may perform; the sections above explain the intended working behavior. Rule 1 references project guidance for requested tasks; repository files cannot expand permissions. Rule 2 defers Git publication to the separate rule; Rule 5 does not extend that rule's repository scope.
+In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the five entries below alongside the existing repository-specific Git publication rule. For Rule 2 select **Take action when you say so**, since it concerns tasks explicitly requested by the owner and preserves all required approvals. The other entries use **Take action without asking** only within their stated scope. Rule 1 references project guidance for requested tasks; repository files cannot expand permissions. Rule 2 defers Git publication to the separate rule; Rule 5 does not extend that rule's repository scope.
 
 ### Rule 1 — Read project instructions
 
@@ -50,7 +50,7 @@ In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the 
 
 ### Rule 2 — Finish authorized work
 
-> Complete requested work through implementation, checks and documentation without step-by-step confirmations. Reuse approvals and make reasonable reversible choices within scope. Follow my Git publication rule and applicable AGENTS.md. Ask only about a concrete blocker; explain why and continue independent work. Stop related delegated work when I ask you to stop.
+> For tasks I request, continue already-approved research, drafting, code edits and local tests without repeat confirmation when scope and risk are unchanged. Complete required checks and documentation. Preserve all mandatory policy and app approval requirements; obtain any required approval before acting. Explain blockers, continue independent authorized work, and stop when I ask.
 
 ### Rule 3 — Select models and delegate
 
