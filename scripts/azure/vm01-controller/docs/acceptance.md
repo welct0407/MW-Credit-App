@@ -21,9 +21,15 @@ Astra review found three safety bugs and two integration defects: unchanged gene
 
 The owner-approved infrastructure, exact Entra/base RBAC, original pinned code and disabled ledger are deployed. HTTPS/Easy Auth configuration, exact callback, public UI/config and pinned assets were verified; anonymous, malformed-token and spoofed-identity status requests401. Host/deployment storage and operator ledger read/write were exercised. Actual identities/scopes and hashes are in [bootstrap evidence](../../../../outputs/r050-vm01-controller/bootstrap/README.md). Source repair after that checkpoint has not been redeployed.
 
+## Browser-account switch - 2 October 2026 (UTC)
+
+The owner approved switching to MW Credit. Exact replacement-specific `vm01.control` consent, runtime browser allowlist and Easy Auth principal replacement were applied; the former controller consent was removed after both allowlists passed readback. Azure RBAC, Cloud roles/identity, managed identity, other authentication/settings, hostname/callback and ledger byte hash compare unchanged. Both switches and ledger admission remain disabled. [Sanitized account-switch evidence](../../../../outputs/r050-vm01-controller/account-switch/README.md).
+
+The supplied screenshot shows a signed-in account and red "Connection or sign-in failed. Actions are disabled." This is incomplete authenticated API acceptance. The UI catch-all does not establish an RBAC cause. Public200/anonymous401 checks prove only those behaviors; no replacement user token was obtained, no authenticated status success or former-user authenticated token rejection is claimed.
+
 ## Remaining live acceptance
 
-- Actual intended owner browser session and authenticated status; Cloud credential/federation decision and application-token issuance/status with idtyp/roles. No supported live browser-control tool is exposed in this VM task.
+- Actual intended MW Credit browser session and authenticated status; Cloud credential/federation decision and application-token issuance/status with idtyp/roles. No supported live browser-control tool is exposed in this VM task.
 - Effective runtime managed-identity VM/ledger access and allowed/denied caller tests after RBAC propagation; the ARM assignment readback alone is not this proof.
 - Full regional scale quota, remaining shared grant and measured host/storage/network overhead under the approved US$2/month planning budget.
 - Optional operation-read scope decision and authorized real-operation status verification; operation polling remains disabled.

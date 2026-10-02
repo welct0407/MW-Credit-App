@@ -1,5 +1,7 @@
 # Environment inventory
 
+Current controller browser account (2 October 2026 UTC): enabled Entra Member MW Credit, `mwcredit@idea.100-5.com`, object ID `fa56579a-7b3a-493a-9eb1-d36671a60b32`. Both allowlists and exact Principal consent are verified, former controller consent removed. Existing VM Administrator Login and all controller/Cloud/managed-identity Azure roles remain unchanged. Authenticated status remains pending; power controls remain disabled. [Switch evidence](../outputs/r050-vm01-controller/account-switch/README.md).
+
 R050 VM-01 controller disabled bootstrap (1 October 2026 (UTC)): `vm01-controller-50f792fa` at https://vm01-controller-50f792fa.azurewebsites.net in `rg-vm01-controller`, Southeast Asia; Node24 Flex512MB with no always-ready capacity, dedicated `stvm01ctl50f792fa`, system identity and exact VM-only five-action RBAC. The deployed code pin is e025017; commands/admission/polling are disabled. Existing VM disk/network/Grafana role and Windows settings were preserved. Authenticated browser/Cloud status, credentials/environment and activation/power tests remain pending. [Actual IDs, approved scopes and verification](../outputs/r050-vm01-controller/bootstrap/README.md). Source repair is not a redeploy.
 
 

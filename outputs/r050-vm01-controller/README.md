@@ -2,6 +2,8 @@
 
 The owner-approved disabled bootstrap is deployed from e025017. The current source repairs Bicep boolean serialization and fixture portability; it has not been redeployed. R050 remains Open. The owner approved US$2/month as a planning budget, not an enforced cap.
 
+The approved 2 October browser account switch is applied: MW Credit replaces the owner in both controller allowlists and user-specific consent. [Current switch evidence and focused source checks](account-switch/README.md). Authenticated API acceptance remains pending. The previous [source validation](validation.json) is the ab4fb7c repair checkpoint; the switch has its own evidence and source hash.
+
 - [Controller source and commands](../../scripts/azure/vm01-controller/README.md)
 - [Design](../../scripts/azure/vm01-controller/docs/design.md), [acceptance](../../scripts/azure/vm01-controller/docs/acceptance.md), [operations](../../scripts/azure/vm01-controller/docs/operations.md)
 - [Filled approval manifest](../../scripts/azure/vm01-controller/docs/approval-manifest.json) and [reserved approval gates](../../scripts/azure/vm01-controller/docs/approval-bundle.md)

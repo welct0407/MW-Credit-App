@@ -1,5 +1,7 @@
 # Approved disabled bootstrap — 1 October 2026 (UTC)
 
+This is the original bootstrap checkpoint. Its owner-specific browser consent/allowlist was superseded by the [approved MW Credit account switch](../account-switch/README.md) on 2 October 2026 (UTC); original receipt, parameters, journal and deployed hashes remain unchanged.
+
 The owner directly approved the prepared bootstrap and US$2/month planning budget with VM commands disabled. Infrastructure deployment `vm01-bootstrap-e025017` and exact VM-role deployment `vm01-controller-base-role-e025017` succeeded. Flex package deployment `a3b2fec5-75bc-4d86-ac41-c9b195fb44d5` is complete/active with status4. Live UI: https://vm01-controller-50f792fa.azurewebsites.net.
 
 - [Full nonsecret receipt and approved identities/scopes](provisioning-receipt.json)

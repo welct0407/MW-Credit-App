@@ -5,7 +5,7 @@ The owner-approved disabled bootstrap is deployed from e025017; [receipt and ver
 ## Approved preparation and deployment order
 
 1. Confirm tenant/subscription, VM identity, current state, current name availability, provider registration and quota. Reuse verified discovery until evidence changes. Operator has Owner/Global Admin per parent discovery; those user privileges never become Cloud runtime credentials.
-2. Obtain scoped approval for resource creation/provider registration, the exact Entra configuration/consents and storage roles. Create registrations only after that approval; API uses v2 tokens and access-token optional claim idtyp. Browser owner object ID is a candidate until actual intended session/consent is confirmed. No personal password is collected.
+2. Obtain scoped approval for resource creation/provider registration, the exact Entra configuration/consents and storage roles. Create registrations only after that approval; API uses v2 tokens and access-token optional claim idtyp. The current browser principal is MW Credit (`fa56579a-7b3a-493a-9eb1-d36671a60b32`), with exact user-specific consent and both allowlists verified; intended browser session/API acceptance remains pending. No personal password is collected.
 3. Compile/review Bicep and exact public parameters. `main.bicep` initially sets attachVmRole=false, enableMutations=false and enableOperationPolling=false. Provision into a dedicated approved controller RG. Review actual default hostname before registering the exact SPA callback; modern Azure hostnames need not be `<app>.azurewebsites.net`.
 4. Verify Easy Auth and HTTPS configuration before code receives any VM power role. Package built source with locked production dependencies, exclude test/admin tooling/private state, record ZIP hash and deploy the exact pin using the approved Azure mechanism. Flex uses its deployment blob; do not assume zip-deploy/SCM behavior without checking the chosen supported CLI.
 5. Bootstrap the ledger through the separately authorized administrator CLI identity. Example after approved configuration: `npm run bootstrap -- --approved --evidence <approval-reference>`. It creates disabled admission, cannot overwrite existing state and does not submit a VM action. Operator needs the dedicated storage data permissions.
@@ -15,6 +15,10 @@ The owner-approved disabled bootstrap is deployed from e025017; [receipt and ver
 9. Obtain an exact separate timing/count/action approval before any VM power test. Hold all new VM work, save work and retain a recovery operator/session. Confirm deallocate then start/reconnect only when that exact sequence is authorized. Power state is not executor readiness.
 
 Optional `npm run preflight -- --azure-read` performs one fixed-target read using the administrator's Azure CLI credential. Ordinary `npm run preflight` validates public configuration offline. Do not print tokens, account-export files or unrestricted configuration from an Azure CLI profile.
+
+## Browser access replacement
+
+The approved switch is applied and independently read back. Use the current `browserUserObjectIds` deployment example and [account-switch receipt](../../../../outputs/r050-vm01-controller/account-switch/README.md); original bootstrap parameters remain immutable historical evidence. Do not restore the former owner allowlist/consent to troubleshoot sign-in. Verify replacement authenticated status and former-user denial separately with power controls disabled. Readback success proves configuration, not a successful API sign-in. No code redeploy accompanied this switch.
 
 ## Unknown outcomes and reconciliation
 

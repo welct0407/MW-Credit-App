@@ -1,0 +1,61 @@
+{
+  "atUtc": "2026-10-02T00:48:00.562640+00:00",
+  "readOnlyDiscoveryBeforeSwitch": true,
+  "identity": {
+    "accountEnabled": true,
+    "creationType": null,
+    "displayName": "MW Credit",
+    "externalUserState": null,
+    "externalUserStateChangeDateTime": null,
+    "id": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+    "identities": [
+      {
+        "issuer": "zhcyideagmail.onmicrosoft.com",
+        "issuerAssignedId": "mwcredit@idea.100-5.com",
+        "signInType": "userPrincipalName"
+      }
+    ],
+    "mail": "welct0407@mw-credit.com",
+    "onPremisesSyncEnabled": null,
+    "otherMails": [],
+    "userPrincipalName": "mwcredit@idea.100-5.com",
+    "userType": "Member"
+  },
+  "visibleAzureAssignments": [
+    {
+      "condition": null,
+      "id": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01/providers/Microsoft.Authorization/roleAssignments/fc32abef-0386-4b3d-b092-6f1ae6676697",
+      "principalId": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+      "principalType": "User",
+      "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/1c0163c0-47e6-4577-8991-ea5c82e286e4",
+      "roleDefinitionName": "Virtual Machine Administrator Login",
+      "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01"
+    }
+  ],
+  "directoryActiveAssignments": [],
+  "transitiveMemberships": [],
+  "ownedObjects": [],
+  "browserEnterpriseApp": {
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#servicePrincipals(id,appId,displayName,accountEnabled,appRoleAssignmentRequired)/$entity",
+    "accountEnabled": true,
+    "appId": "c74d7869-7313-459e-93b2-50beb860812f",
+    "appRoleAssignmentRequired": false,
+    "displayName": "VM01 Controller Browser",
+    "id": "065bf299-b083-422e-916b-a94c3f13429c"
+  },
+  "apiEnterpriseApp": {
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#servicePrincipals(id,appId,displayName,accountEnabled,appRoleAssignmentRequired)/$entity",
+    "accountEnabled": true,
+    "appId": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+    "appRoleAssignmentRequired": false,
+    "displayName": "VM01 Controller API",
+    "id": "334488ef-db87-49e1-af98-27b0b2f31dc2"
+  },
+  "visibilityLimits": {
+    "directoryPim": "403: existing CLI delegated token lacks RoleAssignmentSchedule/RoleEligibilitySchedule read scopes",
+    "groupPim": "403: existing CLI delegated token lacks PrivilegedEligibilitySchedule.Read.AzureADGroup or equivalent",
+    "azurePim": "400 AadPremiumLicenseRequired; no eligibility claim"
+  },
+  "vmContributorObserved": false,
+  "privilegesChanged": false
+}

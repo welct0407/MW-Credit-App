@@ -58,3 +58,7 @@ Restart/deallocate require confirmation of saved work and held new VM tasks. V1 
 - [Entra application authorization](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad)
 - [MSAL5 redirect bridge](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/redirect-bridge.md)
 - [Blob concurrency](https://learn.microsoft.com/en-us/azure/storage/blobs/concurrency-manage)
+
+## Current browser principal
+
+The approved 2 October 2026 (UTC) account switch uses MW Credit (`mwcredit@idea.100-5.com`, `fa56579a-7b3a-493a-9eb1-d36671a60b32`) for browser controller access. Exact Principal delegated consent and both independent allowlists replace the former owner; Cloud and managed identity boundaries are preserved. The account already has Virtual Machine Administrator Login at VM-01; no VM Contributor was observed and no Azure role was changed. Active directory/group/ownership reads returned empty; PIM visibility was limited by existing CLI scopes and licensing, so comprehensive least privilege is not claimed. [Current readback and acceptance limits](../../../../outputs/r050-vm01-controller/account-switch/README.md).

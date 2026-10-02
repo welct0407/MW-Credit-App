@@ -2,6 +2,8 @@
 
 [approval-manifest.json](approval-manifest.json) is the concrete source of proposed resources, exact target/actions/scopes, identity changes and outstanding values. It records completed owner-approved resource/provider, Entra/base RBAC and disabled package/ledger bootstrap, plus remaining gates. Actual registrations, hostname and deployed commit/ZIP are in the [receipt](../../../../outputs/r050-vm01-controller/bootstrap/README.md). Credentials/environment, optional operation-read, mutation/admission activation and live power timing remain unapproved. Source publication to the existing private AppSheet repository audience is authorized; merge and any redeploy are not authorized by this repair task.
 
+The user subsequently approved switching browser access to MW Credit (`mwcredit@idea.100-5.com`). Its user-specific consent and both allowlists are verified; the old controller consent is retired. Existing Azure roles and all disabled controls are preserved. [Applied switch](../../../../outputs/r050-vm01-controller/account-switch/README.md). This approval covers no domain, code deployment, credentials, new Azure role or power action.
+
 ## Separate requested approval groups
 
 | Group | Concrete effects to approve |

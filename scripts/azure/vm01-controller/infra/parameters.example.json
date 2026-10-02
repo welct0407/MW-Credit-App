@@ -7,7 +7,7 @@
     "storageAccountName": { "value": "stvm01ctl50f792fa" },
     "apiClientId": { "value": "REQUIRES_API_REGISTRATION_CLIENT_ID" },
     "browserClientId": { "value": "REQUIRES_SPA_REGISTRATION_CLIENT_ID" },
-    "browserUserObjectIds": { "value": ["8a83866b-cdcc-4f87-99be-c41e3635c73b"] },
+    "browserUserObjectIds": { "value": ["fa56579a-7b3a-493a-9eb1-d36671a60b32"] },
     "expectedVmId": { "value": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9" },
     "cloudClientId": { "value": "" },
     "cloudPrincipalId": { "value": "" },
