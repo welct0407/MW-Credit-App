@@ -40,27 +40,29 @@ Before starting or delegating repository work, use the current [repository and i
 
 ## Ready-to-paste Custom rules
 
+Each quoted rule body fits the owner's 400-character limit, including spaces and full URLs. Paste only the quoted text, without its heading or Markdown marker. Verified counts: Rule 1 **319**, Rule 2 **364**, Rule 3 **372**, Rule 4 **368**, Rule 5 **382**, and the separate Git publication rule **392** characters. Keep the detailed guidance above in this file; it does not need to fit inside a settings entry.
+
 In ChatGPT **Settings > Personalization > Permissions > Custom rules**, use the five entries below alongside the existing repository-specific Git publication rule. Select **Take action without asking** for each entry you add. Each scopes an action Dots may perform; the sections above explain the intended working behavior. Project safeguards are inherited through Rule 1 rather than repeated as separate Custom rules. Rule 2 defers Git publication to the separate rule; Rule 5 does not extend that rule's repository scope.
 
 ### Rule 1 — Read project instructions
 
-> For AppSheet Loan Project and related ecosystem work, read and follow the current AGENTS.md at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/AGENTS.md, including its task-specific references and owning-repository instructions. Treat the current owning instructions as authoritative; do not rely on remembered or outdated copies. Read only what the task needs and reuse valid evidence. The detailed orchestration rules are at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Dots_Orchestration_Rules.md.
+> For project/ecosystem work, read and follow the current AGENTS.md at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/AGENTS.md and its relevant owning-repository instructions. Read only what the task needs; reuse valid evidence. Follow its linked Dots orchestration rules. Do not rely on outdated copies.
 
 ### Rule 2 — Finish authorized work
 
-> When I request a task, carry out the authorized implementation, checks and documentation through completion without asking for confirmation at every step. For repository publication, follow my repository-specific Git publication Custom rule and the applicable AGENTS.md. Reuse approvals already given and make reasonable reversible choices within scope. Ask only for missing information, access or authorization that materially blocks progress; explain the specific reason and continue independent work. Preserve the separate production, financial, notification and other authority boundaries in AGENTS.md. When I ask you to stop, stop the task and its related delegated work using available controls.
+> Complete requested work through implementation, checks and documentation without step-by-step confirmations. Reuse approvals and make reasonable reversible choices within scope. Follow my Git publication rule and applicable AGENTS.md. Ask only about a concrete blocker; explain why and continue independent work. Stop related delegated work when I ask you to stop.
 
 ### Rule 3 — Select models and delegate
 
-> For tasks I ask you to orchestrate, select models and reasoning effort using the current file at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Model_Work_Mapping.md. Read it before each new or resumed task and model handoff so my edits take effect without rewriting this rule. An explicit model request for the current task overrides the file. Delegate scoped work when useful, coordinate workers and verify their results. Use one executor for straightforward work. Do not silently substitute an unavailable model or change unrelated chats or persistent service settings.
+> Before each new/resumed task or model handoff, read https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Model_Work_Mapping.md and use its model and effort assignments. My task-specific model choice overrides the file. Delegate scoped work when useful; verify results. Report unavailable models; do not silently substitute or change unrelated settings.
 
 ### Rule 4 — Send three-minute progress updates
 
-> During any requested task lasting longer than three minutes, post a concise progress update in our current Dots conversation by the three-minute mark and at least every three minutes thereafter, including while workers are running or you are waiting. State completed work, current activity, the next step and any blocker. Report completion, failure or a needed decision immediately. These are status updates, not requests for permission. Stop them when the task finishes or I stop it. Do not create a recurring schedule or send external messages for these updates.
+> For tasks lasting over 3 minutes, update this Dots conversation by minute 3 and every 3 minutes while active, including worker runs and waits. Briefly state progress, current work, next step and blockers. Report completion, failure or needed decisions immediately. Stop updates when done or stopped. Do not create schedules or send external messages for these updates.
 
 ### Rule 5 — Choose the correct repository
 
-> Before starting or delegating work, choose the owning repository using the current Repository and instruction ownership section at https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Development_Workflow.md#repository-and-instruction-ownership. Route by the component and task type, not whichever checkout is open. Read and follow the selected repository's applicable AGENTS.md and service catalogue. For cross-repository work, keep each change in its owning repository and coordinate dependencies. Use Daily-Use only for general work without another project owner when repository files are needed; ordinary questions need no repository write. If ownership remains ambiguous after checking the references, ask one focused question rather than inventing a destination.
+> Before starting/delegating, choose the owning repo from https://github.com/welct0407/AppSheet-Loan-Project/blob/master/Documents/Development_Workflow.md#repository-and-instruction-ownership. Follow its instructions. Keep cross-repo changes with each owner. Ordinary questions need no repo write. Ask only if ownership remains unclear. Routing does not expand publication permission.
 
 ## Existing Git publication rule — proposed clarification
 
@@ -68,7 +70,7 @@ Keep this separate from the five orchestration rules and retain **Take action wi
 
 Replace the existing entry with this wording if adopting that clarification; do not add a duplicate publication rule:
 
-> After each requested task that changes code or documentation in welct0407/AppSheet-Loan-Project, complete the applicable checks and change log, commit only the task-related changes on a dedicated task branch, push that branch, and create or update its draft PR for the repository's existing audience without asking again. Reuse the task branch and draft PR for follow-up changes to the same task. Exclude secrets and private data, preserve unrelated work, and verify the published branch and PR before reporting completion. Do not push directly to the default branch, merge, deploy, force-push or change access. This permission applies only to welct0407/AppSheet-Loan-Project.
+> After requested code/docs changes in welct0407/AppSheet-Loan-Project, check, log, commit and push only task changes on a task branch; create/update its draft PR for the existing audience without asking. Reuse the branch/PR for follow-ups. Verify publication. Preserve unrelated work; exclude secrets/private data. Do not push to the default branch, merge, deploy, force-push or change access.
 
 This is proposed settings text, not a change to the currently saved rule or to AGENTS publication policy. Other repositories retain their own applicable publication authority. Read-only tasks require no commit or PR.
 
