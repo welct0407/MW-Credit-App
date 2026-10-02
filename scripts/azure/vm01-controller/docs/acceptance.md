@@ -1,10 +1,12 @@
 # R050 controller acceptance
 
-Current controller checkpoint, 2 October 2026 UTC: owner-approved code-only diagnostics deployed from `4a506465f96b5d8eaa78ed6bf723da6de12bb740`; all live assets match the reviewed ZIP and access settings, logging, identity/roles, consent, hostname and ledger bytes are unchanged. Mutations, polling and admission remain disabled. Authenticated status remains pending; R050 stays Open and PR2 stays draft. Earlier e025017/source-not-redeployed statements below are historical checkpoints. [Deployment receipt and tests](../../../../outputs/r050-vm01-controller/status-diagnosis/README.md).
+Current controller checkpoint, 2 October 2026 UTC: reviewed code-only routing source `614ea6496bcd796611080e69f8fc78276304bb8a` deployed at06:17:27 UTC; all live static assets match ZIP `1e385975602486f5c80d628916037820d2a30a7064856989c26750497870f87a`, six explicit static routes and four unchanged API routes are verified, and settings/Easy Auth/logging/roles/consent/identity/hostname/ledger bytes are preserved. Intended MW Credit authenticated Refresh status passed at06:19:26–06:19:34 UTC: running, Succeeded, fresh observation, no error, all power buttons disabled. Mutations, polling and admission remain disabled; command activation and machine-caller authentication are deferred. R050 stays Open and PR2 stays draft. [Deployment and acceptance evidence](../../../../outputs/r050-vm01-controller/status-diagnosis/routing/README.md).
 
 Source tests and separately recorded disabled-bootstrap evidence. Tests use mocked ARM, a conditional/leased in-memory Blob port, cryptographically signed isolated JWT fixtures and real headless Chromium with mocked MSAL. No Azure actions or live sign-ins are performed.
 
-Latest VM-01 local result: **46 tests passed** with Node24.19.0/npm11.6.1 and fresh sandboxed Edge154.0.4258.48. TypeScript strict build and bundled app/redirect bridge pass. Bicep CLI0.47.16 compiles main.bicep, including the exact-VM role module, without diagnostics. Infrastructure-policy and source-package checks pass; command output and hashes are recorded in [task evidence](../../../../outputs/r050-vm01-controller/README.md).
+Current routing validation: strict TypeScript, bundling and23/23 focused tests pass, including the real Functions host, browser diagnostics, existing browser behavior and authorization checks. The real-host test passed again after test-port hardening. Astra Extra High passed the final diff. Parent cloud-browser Refresh status with the intended MW Credit session passed at06:19:26–06:19:34 UTC on2 October2026; no error and all power buttons disabled. [Routing test and acceptance evidence](../../../../outputs/r050-vm01-controller/status-diagnosis/routing/README.md).
+
+Earlier full-suite repair checkpoint: **46 tests passed** with Node24.19.0/npm11.6.1 and fresh sandboxed Edge154.0.4258.48. TypeScript strict build and bundled app/redirect bridge passed. Bicep CLI0.47.16 compiled main.bicep and the exact-VM role module without diagnostics. This retained evidence does not claim a full-suite repeat for routing.
 
 ## Coverage
 
@@ -21,7 +23,7 @@ Astra review found three safety bugs and two integration defects: unchanged gene
 
 ## Verified disabled-bootstrap checkpoint
 
-The owner-approved infrastructure, exact Entra/base RBAC, original pinned code and disabled ledger are deployed. HTTPS/Easy Auth configuration, exact callback, public UI/config and pinned assets were verified; anonymous, malformed-token and spoofed-identity status requests401. Host/deployment storage and operator ledger read/write were exercised. Actual identities/scopes and hashes are in [bootstrap evidence](../../../../outputs/r050-vm01-controller/bootstrap/README.md). Source repair after that checkpoint has not been redeployed.
+Historical bootstrap acceptance: owner-approved infrastructure, exact Entra/base RBAC, original pinned code and disabled ledger were deployed. HTTPS/Easy Auth configuration, callback, public UI/config and pinned assets were verified; anonymous, malformed-token and spoofed-identity status requests401. Host/deployment storage and operator ledger read/write were exercised. Actual identities/scopes and hashes remain in [bootstrap evidence](../../../../outputs/r050-vm01-controller/bootstrap/README.md). Subsequent diagnostic and routing deployments above changed code only; Bicep source repair remains template-only.
 
 ## Browser-account switch - 2 October 2026 (UTC)
 

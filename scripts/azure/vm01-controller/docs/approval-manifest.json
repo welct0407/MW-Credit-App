@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "release": "R050",
-  "status": "DIAGNOSTICS_DEPLOYED_AUTHENTICATED_ACCEPTANCE_PENDING",
+  "status": "ROUTING_DEPLOYED_BROWSER_STATUS_ACCEPTED_COMMANDS_DISABLED",
   "repository": "welct0407/AppSheet-Loan-Project",
   "sourcePath": "scripts/azure/vm01-controller",
   "baselineCommit": "d351991d1a1c0895d4abc8f0f4ba4fa55fa7a4e5",
-  "testedCommit": "Repaired source is pinned by the Git history of this manifest and outputs validation record",
-  "deploymentZipSha256": "13bf7c630d59aab77779b42af02d7eca41d06a2e7dbb42dd2cef6a783cd11ba9",
+  "testedCommit": "614ea6496bcd796611080e69f8fc78276304bb8a",
+  "deploymentZipSha256": "1e385975602486f5c80d628916037820d2a30a7064856989c26750497870f87a",
   "discovery": {
     "provenance": "Parent delegated authenticated read-only Azure discovery on 2026-10-01; no Azure writes",
     "subscriptionName": "IDEA Prod Subscription",
@@ -138,11 +138,11 @@
       }
     ],
     "browserAllowlistedUserCandidate": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
-    "browserIntendedSessionAndConsentVerified": false,
+    "browserIntendedSessionAndConsentVerified": true,
     "apiAudience": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
     "scopeApplicationIdUri": "api://f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
     "applicationConsentApproved": true,
-    "browserSessionVerified": false,
+    "browserSessionVerified": true,
     "browserSignInUserPrincipalName": "mwcredit@idea.100-5.com",
     "browserUserSpecificDelegatedConsentVerified": true,
     "originalOwnerControllerConsentRemoved": true,
@@ -193,7 +193,7 @@
     "entraAndBaseRbacChanges": "APPROVED_AND_COMPLETED_EXACT_SCOPES",
     "optionalOperationReadScope": "NOT_APPROVED",
     "credentialsOrSavedEnvironment": "NOT_APPROVED",
-    "deploymentAndMutationActivation": "DISABLED_BOOTSTRAP_DEPLOYMENT_APPROVED_AND_COMPLETED; MUTATION_ACTIVATION_NOT_APPROVED",
+    "deploymentAndMutationActivation": "DISABLED_BOOTSTRAP_AND_REVIEWED_DIAGNOSTICS_ROUTING_DEPLOYMENTS_APPROVED_AND_COMPLETED; MUTATION_ACTIVATION_NOT_APPROVED",
     "livePowerTest": {
       "status": "NOT_APPROVED",
       "actionsAndCounts": [],
@@ -202,25 +202,29 @@
       "recoveryOperator": "UNSPECIFIED"
     },
     "ownerBootstrapApproval": "I approve the prepared bootstrap provisioning plan and its US$2/month planning budget, with VM commands disabled.",
-    "browserAccountReplacement": "USER_APPROVED_AND_COMPLETED_EXACT_FOUR_CHANGE_SWITCH; existing Azure roles preserved; commands disabled"
+    "browserAccountReplacement": "USER_APPROVED_AND_COMPLETED_EXACT_FOUR_CHANGE_SWITCH; existing Azure roles preserved; commands disabled",
+    "routingCodeOnlyDeployment": "USER_APPROVED_AFTER_ASTRA_EXTRA_HIGH_REVIEW_AND_COMPLETED; preserve security/settings and disabled gates"
   },
   "acceptance": {
     "automatedEvidence": "acceptance.md",
     "baseAsyncRestartManualReconciliationAccepted": false,
     "externalActiveWorkCoordinationAccepted": false,
-    "liveAuthenticationAndStorageVerified": false,
+    "liveAuthenticationAndStorageVerified": true,
     "liveArmPollingVerified": false,
     "executorReadiness": "deferred; never inferred from power running",
     "platformAuthRejectedCallersVerified": true,
     "publicUiAndPinnedAssetsVerified": true,
     "hostDeploymentAndAdministratorLedgerVerified": true,
     "allowedBrowserAndCloudStatusVerified": false,
-    "functionRuntimeVmAndLedgerAccessVerified": false,
+    "functionRuntimeVmAndLedgerAccessVerified": true,
     "browserAccountConfigurationVerified": true,
-    "replacementAuthenticatedStatusVerified": false,
-    "formerUserAuthenticatedTokenDenialVerified": false
+    "replacementAuthenticatedStatusVerified": true,
+    "formerUserAuthenticatedTokenDenialVerified": false,
+    "allowedBrowserStatusVerified": true,
+    "allowedCloudStatusVerified": false,
+    "verificationBoundary": "Intended MW Credit browser GET status accepted via live UI; Cloud caller and former-user token rejection remain pending; no VM power test"
   },
-  "deployedSourceCommit": "4a506465f96b5d8eaa78ed6bf723da6de12bb740",
+  "deployedSourceCommit": "614ea6496bcd796611080e69f8fc78276304bb8a",
   "bootstrapReceipt": "../../../../outputs/r050-vm01-controller/bootstrap/provisioning-receipt.json",
   "accountSwitchReceipt": "../../../../outputs/r050-vm01-controller/account-switch/receipt.json",
   "previousDeployedSourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
@@ -234,5 +238,18 @@
     "settingsAccessRolesConsentLoggingLedgerPreserved": true,
     "authenticatedStatusVerified": false,
     "vmPowerRequests": 0
+  },
+  "routingDeployment": {
+    "sourceCommit": "614ea6496bcd796611080e69f8fc78276304bb8a",
+    "zipSha256": "1e385975602486f5c80d628916037820d2a30a7064856989c26750497870f87a",
+    "receipt": "../../../../outputs/r050-vm01-controller/status-diagnosis/routing/deployment-receipt.json",
+    "deployedAtUtc": "2026-10-02T06:17:27.5613525Z",
+    "codeDeploymentId": "3cd691db-ae08-4a68-95d2-e4e44a1e54fe",
+    "liveRoutesAndAssetsVerified": true,
+    "settingsAccessRolesConsentLoggingLedgerPreserved": true,
+    "authenticatedBrowserStatusVerified": true,
+    "authenticatedBrowserObservedAtUtc": "2026-10-02T06:19:26Z",
+    "vmPowerRequests": 0,
+    "nextStageDeferred": true
   }
 }
