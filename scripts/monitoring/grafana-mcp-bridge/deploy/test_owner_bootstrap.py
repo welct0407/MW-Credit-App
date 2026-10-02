@@ -19,6 +19,127 @@ def empty():
 
 
 class Guards(unittest.TestCase):
+    def baseline_fixture(self, owner, *, active=None, project_number=None, project_id=None, bindings=None):
+        b.OWNER = owner
+        member = ('serviceAccount:' if owner.endswith('.gserviceaccount.com') else 'user:') + owner
+        def run(argv, data=None):
+            return json.dumps([{'account': active or owner, 'status': 'ACTIVE'}]) if argv[1:3] == ['auth', 'list'] else '(unset)'
+        def gc(*args):
+            if args[:2] == ('projects', 'describe'):
+                return {'projectId': project_id or b.PROJECT, 'projectNumber': project_number or b.NUMBER, 'lifecycleState': 'ACTIVE'}
+            if args[:3] == ('billing', 'projects', 'describe'):
+                return {'billingEnabled': True}
+            if args[:2] == ('services', 'list'):
+                return []
+            if args[:2] == ('org-policies', 'describe'):
+                return {'spec': {'rules': [{'enforce': False}]}}
+            if args[:2] == ('projects', 'get-iam-policy'):
+                return {'bindings': bindings if bindings is not None else [{'role': 'roles/owner', 'members': [member]}]}
+            self.fail(f'Unexpected operation {args}')
+        return run, gc
+
+    def test_approved_service_account_and_human_owner_use_correct_iam_member(self):
+        for owner, member in [(b.APPROVED_DEPLOYER, 'serviceAccount:'+b.APPROVED_DEPLOYER),
+                              ('verified-owner@example.test', 'user:verified-owner@example.test')]:
+            run, gc = self.baseline_fixture(owner)
+            with self.subTest(owner=owner), patch.dict(os.environ, {}, clear=True), patch.object(b, 'run', side_effect=run), patch.object(b, 'gc', side_effect=gc):
+                b.baseline()
+                self.assertEqual(b.principal_member(owner), member)
+
+    def test_other_service_account_is_rejected_before_any_cli_call(self):
+        b.OWNER = 'other@'+b.PROJECT+'.iam.gserviceaccount.com'
+        with patch.dict(os.environ, {}, clear=True), patch.object(b, 'run') as run:
+            with self.assertRaisesRegex(RuntimeError, 'approved fixed'):
+                b.baseline()
+            run.assert_not_called()
+
+    def test_wrong_active_account_or_project_stops_read_only_baseline(self):
+        for overrides, error in [({'active': 'wrong@example.test'}, 'active account'),
+                                 ({'project_number': '123'}, 'Wrong/inactive project'),
+                                 ({'project_id': 'another-project'}, 'Wrong/inactive project')]:
+            run, gc = self.baseline_fixture(b.APPROVED_DEPLOYER, **overrides)
+            with self.subTest(error=error), patch.dict(os.environ, {}, clear=True), patch.object(b, 'run', side_effect=run), patch.object(b, 'gc', side_effect=gc):
+                with self.assertRaisesRegex(RuntimeError, error):
+                    b.baseline()
+
+    def test_owner_binding_requires_selected_principal_type_role_and_no_condition(self):
+        for binding in [
+            {'role': 'roles/owner', 'members': ['user:'+b.APPROVED_DEPLOYER]},
+            {'role': 'roles/editor', 'members': ['serviceAccount:'+b.APPROVED_DEPLOYER]},
+            {'role': 'roles/owner', 'members': ['serviceAccount:'+b.APPROVED_DEPLOYER], 'condition': {'expression': 'true'}},
+        ]:
+            run, gc = self.baseline_fixture(b.APPROVED_DEPLOYER, bindings=[binding])
+            with self.subTest(binding=binding), patch.dict(os.environ, {}, clear=True), patch.object(b, 'run', side_effect=run), patch.object(b, 'gc', side_effect=gc):
+                with self.assertRaisesRegex(RuntimeError, 'unconditional project Owner'):
+                    b.baseline()
+
+    def test_configured_adapter_changes_launcher_only(self):
+        with tempfile.TemporaryDirectory() as directory, patch.object(b, 'GCLOUD_EXECUTABLE', None):
+            adapter = Path(directory)/'reviewed-adapter'
+            adapter.write_text('synthetic fixture')
+            adapter.chmod(0o700)
+            b.configure_gcloud(str(adapter))
+            result = subprocess.CompletedProcess([], 0, b'{}', b'')
+            with patch.object(b.subprocess, 'run', return_value=result) as run:
+                b.run(['gcloud', 'auth', 'list', '--format=json'])
+                self.assertEqual(run.call_args.args[0], [str(adapter.resolve()), 'auth', 'list', '--format=json'])
+            # A configured launcher never authorizes an arbitrary service account.
+            with self.assertRaisesRegex(RuntimeError, 'approved fixed'):
+                b.principal_member('other@project.iam.gserviceaccount.com')
+
+    def test_project_owner_without_verified_domain_stops_before_mapping(self):
+        with patch.object(b, 'gc', return_value=[]) as command:
+            with self.assertRaisesRegex(RuntimeError, 'verify mw-credit.com'):
+                b.domain()
+            self.assertEqual(command.call_count, 1)
+
+    @unittest.skipIf(os.name == 'nt', 'Linux adapter argument contract')
+    def test_linux_adapter_receives_visible_exact_flags_and_pinned_selectors(self):
+        b.OWNER = b.APPROVED_DEPLOYER
+        condition = 'expression=resource.name=="projects/p/databases/bridge",title=Bridge'
+        with patch.object(b, 'GCLOUD_EXECUTABLE', '/reviewed/adapter'), patch.object(b, 'run', return_value='{}') as command:
+            b.gcloud_output('projects', 'get-iam-policy', b.PROJECT, '--condition='+condition)
+        argv = command.call_args.args[0]
+        self.assertIn('--condition='+condition, argv)
+        self.assertIn('--account='+b.APPROVED_DEPLOYER, argv)
+        self.assertIn('--project='+b.PROJECT, argv)
+        self.assertFalse(any(a.startswith('--flags-file') for a in argv))
+
+    def test_docker_auth_adapter_is_used_without_gcloud_auth_configuration(self):
+        digest = 'sha256:'+'a'*64
+        calls = []
+        def gc(*args):
+            calls.append(args)
+            if args[:3] == ('run', 'services', 'list'):
+                return []
+            if args[:4] == ('artifacts', 'docker', 'images', 'describe'):
+                return {'image_summary': {'digest': digest}}
+            if args[:3] == ('run', 'services', 'describe'):
+                return {'metadata': {'annotations': {'run.googleapis.com/invoker-iam-disabled': 'true'}},
+                        'spec': {'template': {'spec': {'serviceAccountName': b.RUNTIME}}},
+                        'status': {'url': 'https://actual.example.run.app'}}
+            return None
+        with patch.object(b, 'DOCKER_EXECUTABLE', '/reviewed/docker-adapter'), patch.object(b, 'gc', side_effect=gc), patch.object(b, 'run', return_value='') as run, patch.object(b, 'gcloud_output') as configure:
+            b.inert()
+            configure.assert_not_called()
+            self.assertEqual([c.args[0][1] for c in run.call_args_list], ['build', 'push'])
+        self.assertFalse(any(c[0] == 'auth' for c in calls))
+
+    def test_impersonation_and_credential_override_guards_remain_enforced(self):
+        for name in ('CLOUDSDK_AUTH_IMPERSONATE_SERVICE_ACCOUNT', 'CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE'):
+            run, gc = self.baseline_fixture(b.APPROVED_DEPLOYER)
+            with self.subTest(override=name), patch.dict(os.environ, {name: 'synthetic-override'}, clear=True), patch.object(b, 'run', side_effect=run) as command:
+                with self.assertRaises(RuntimeError):
+                    b.baseline()
+                command.assert_not_called()
+        run, gc = self.baseline_fixture(b.APPROVED_DEPLOYER)
+        def impersonated(argv, data=None):
+            return run(argv, data) if argv[1:3] == ['auth', 'list'] else 'other@project.iam.gserviceaccount.com'
+        with patch.dict(os.environ, {}, clear=True), patch.object(b, 'run', side_effect=impersonated), patch.object(b, 'gc') as cloud:
+            with self.assertRaisesRegex(RuntimeError, 'configured impersonation'):
+                b.baseline()
+            cloud.assert_not_called()
+
     def test_resource_collisions_stop(self):
         rows = empty()
         rows['run.googleapis.com'] = [{'metadata': {'name': b.SERVICE, 'labels': {}}}]

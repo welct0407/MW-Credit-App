@@ -4,20 +4,29 @@ The owner approved the named Singapore resources, limited identities/secrets, pu
 
 ## Immediate execution handoff
 
-The authorized executor should open Google Cloud Shell through the existing **human owner session**, using the approved VM-01 browser fallback when the cloud browser is unavailable. The user has asked the executor to run this work; these are operator instructions, not a request for the user to execute scripts. Obtain the exact reviewed commit given in the handoff; use a clean checkout, not an existing dirty business checkout. Do not create keys, reuse the limited VM service identity, change browser profiles or grant an alternative identity broader access. Verify the signed-in owner account against the project/browser mapping, then confirm the account and project against the Console project selector if available:
+The authorized executor may use the verified human owner session or the newly approved fixed service identity `codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com`. The saved-environment adapter must first pass the separately coordinated fresh-environment proof; no bootstrap is run during this source correction. The user has asked the executor to run this work; these are operator instructions, not a request for the user to execute scripts. Obtain the exact reviewed commit given in the handoff; use a clean checkout, not an existing dirty business checkout. Use the approved identity and established credential route; these scripts do not create keys or grant deployment authority. Verify the signed-in owner account against the project/browser mapping, then confirm the account and project against the Console project selector if available:
 
 ```sh
 gcloud auth list --filter=status:ACTIVE --format='value(account)'
 gcloud config get-value project
 ```
 
-Target: **clever-oasis-508610-n7**, project number **737787224638**. Replace `OWNER_ACCOUNT` below with the confirmed human account email; it is not a password or token. These commands use explicit account/project selection and refuse impersonation. A read failure stops the script; do not expand permissions automatically.
+Target: **clever-oasis-508610-n7**, project number **737787224638**. Replace `OWNER_ACCOUNT` below with the verified human email or the exact approved service identity; it is not a password or token. The selected account must be active, have a direct unconditional `roles/owner` binding on this project, and match the correct IAM principal type (`user:` for humans; `serviceAccount:` for the fixed service identity). Every other service account is rejected. These commands use explicit account/project selection and refuse impersonation. A read failure stops the script; do not expand permissions automatically.
 
 ```sh
 cd AppSheet-Loan-Project/scripts/monitoring/grafana-mcp-bridge/deploy
 python3 owner-bootstrap.py check-sdk --owner OWNER_ACCOUNT
 python3 owner-bootstrap.py preflight --owner OWNER_ACCOUNT
 python3 owner-bootstrap.py resources --owner OWNER_ACCOUNT
+```
+
+
+For the saved-environment route, append `--gcloud-executable REVIEWED_ADAPTER_PATH` to every command and `--docker-executable REVIEWED_DOCKER_ADAPTER_PATH` for inert image build/push. The exact required interface is in [the adapter contract](ADAPTER_CONTRACT.md). The path must identify the actual reviewed executable reported by the environment editor; do not guess it or replace the adapter with an unreviewed credential script. It changes only the launcher. A configured Linux launcher receives visible argv with exact matching account/project selectors; its flags-file ban remains intact. The reviewed Docker wrapper owns private registry authentication, so generic gcloud need not permit configure-docker. Active-account, project ID/number, Owner binding, impersonation and credential-override checks still run. The bootstrap does not alter the saved environment or copy credentials. Example after fresh-environment proof:
+
+```sh
+python3 owner-bootstrap.py preflight \
+  --owner codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com \
+  --gcloud-executable REVIEWED_ADAPTER_PATH
 ```
 
 If the preflight reports a disabled prerequisite read API, the approved owner may enable **only** these prerequisite APIs and rerun preflight:
@@ -27,7 +36,7 @@ gcloud services enable cloudresourcemanager.googleapis.com cloudbilling.googleap
   --project=clever-oasis-508610-n7 --account=OWNER_ACCOUNT
 ```
 
-This does not link billing or grant permissions. If billing/project/IAM/policy reads are denied, stop and return the **sanitized error and account email only**. The executor's existing VM identity lacks bootstrap authority; do not rerun these steps under it. If a prior attempt created the named database, first confirm ownership/configuration, then add `--resume` to preflight/resources. Other same-name resource collisions require matching bootstrap markers and configuration; they are never overwritten automatically. Partial creation is retained on failure, not deleted.
+This does not link billing or grant permissions. If billing/project/IAM/policy reads are denied, stop and return the **sanitized error and account email only**. The existing attached integration VM identity remains outside this deployment route. Do not substitute another identity after a denied operation. If a prior attempt created the named database, first confirm ownership/configuration, then add `--resume` to preflight/resources. Other same-name resource collisions require matching bootstrap markers and configuration; they are never overwritten automatically. Partial creation is retained on failure, not deleted.
 
 On Windows, use the verified installed Python executable (`python` if that is its confirmed name). The script resolves `gcloud` to the full launcher path, including `gcloud.CMD`, and passes complex flag values through temporary JSON files. These files contain configuration only; secret values remain on stdin. The installed CLI must support `logging sinks update --add-exclusion`; `resources` checks its actual help before mutations. A separate read-only installed-SDK parser check is available:
 
@@ -53,7 +62,7 @@ Secret naming is consistent throughout this package: **`mw-grafana-google-client
 
 ## Obtain the actual URL and DNS records
 
-After infrastructure succeeds, the execution environment needs a supported working Docker Linux/amd64 engine, Python 3, current gcloud and access to the pinned Node base image. Installing a Docker client alone does not establish Linux build support. VM-01 is checking the approved installation separately; this script neither installs Docker nor changes virtualization/reboot settings. This command builds a tiny dependency-free, non-root inert image locally, pushes it to the approved repository, resolves its registry digest, and deploys by that digest:
+After infrastructure succeeds, the execution environment needs a supported working Docker Linux/amd64 engine, Python 3, current gcloud and access to the pinned Node base image. Installing a Docker client alone does not establish Linux build support. VM-01 reported its Azure SKU cannot support the required nested virtualization, so its Docker installation is paused. Codex Cloud already has working Linux Docker; this script neither installs Docker nor changes virtualization/reboot settings. This command builds a tiny dependency-free, non-root inert image locally, pushes it to the approved repository, resolves its registry digest, and deploys by that digest:
 
 ```sh
 python3 owner-bootstrap.py inert --owner OWNER_ACCOUNT
@@ -61,13 +70,13 @@ python3 owner-bootstrap.py inert --owner OWNER_ACCOUNT
 
 It creates `mw-grafana-events` with min 0/max 2, 1 vCPU/512 MiB, concurrency 20, timeout 300 and public ingress with the invoker-IAM check disabled. It has **no secrets or functional OAuth/MCP/Grafana/dispatch endpoints**: only `/health` responds 200; all other routes return 503. The output captures the actual `status.url`; no `run.app` hostname is constructed. An existing marked service is reported without redeployment. This initial revision is covered by the approved bridge provisioning scope. Do not connect the plugin to it.
 
-Verify `mw-credit.com` ownership in **the same human account's** [Search Console](https://search.google.com/search-console/welcome). If needed, the owner supplies Google's generated verification TXT to Cloudflare. Confirm `alerts` is unused there. Then:
+Project Owner does not establish Search Console ownership. Verify `mw-credit.com` ownership for the exact actor performing mapping in [Search Console](https://search.google.com/search-console/welcome). If needed, the owner supplies Google's generated verification TXT to Cloudflare. Confirm `alerts` is unused there. Then:
 
 ```sh
 python3 owner-bootstrap.py domain --owner OWNER_ACCOUNT
 ```
 
-Native mapping's Preview/production limitations were accepted; no load balancer is provisioned. The script checks verified ownership, rejects an existing mapping to another service, creates the approved mapping without force override, and prints actual `status.resourceRecords` and certificate conditions. Give the returned **type/name/value** records to the user for manual Cloudflare entry with proxy **DNS only**. Empty records mean pending generation; rerun `domain` later to read the same mapping. Never guess a CNAME, overwrite an unrelated record, change Cloudflare credentials, or disable HTTPS zone-wide. Existing CAA must allow `pki.goog` and `letsencrypt.org`; investigate narrowly scoped ACME interception if certificate issuance stalls. [Google's domain instructions](https://docs.cloud.google.com/run/docs/mapping-custom-domains).
+Native mapping's Preview/production limitations were accepted; no load balancer is provisioned. If the deployment service account is not verified, stop this phase and use the separately verified human-owner mapping route. Do not add a Search Console owner automatically. The script checks verified ownership, rejects an existing mapping to another service, creates the approved mapping without force override, and prints actual `status.resourceRecords` and certificate conditions. Give the returned **type/name/value** records to the user for manual Cloudflare entry with proxy **DNS only**. Empty records mean pending generation; rerun `domain` later to read the same mapping. Never guess a CNAME, overwrite an unrelated record, change Cloudflare credentials, or disable HTTPS zone-wide. Existing CAA must allow `pki.goog` and `letsencrypt.org`; investigate narrowly scoped ACME interception if certificate issuance stalls. [Google's domain instructions](https://docs.cloud.google.com/run/docs/mapping-custom-domains).
 
 Wait for mapping `Ready=True` and verify TLS at `https://alerts.mw-credit.com/health` before runtime OAuth. Final issuer remains `https://alerts.mw-credit.com/oauth`, MCP resource `/mcp`, and Google registered redirect `/oauth/google/callback` on that origin. Do not issue grants against `run.app` and migrate them later.
 
@@ -85,26 +94,12 @@ Before replacing the inert revision, reconcile the service template with verifie
 
 Scheduler creation is deliberately deferred: a job can execute immediately after creation, so it must not target an inert/unconfigured revision. Once safe, the owner creates `mw-grafana-dispatch` as POST `{}` once per minute in `Etc/UTC`, with the dedicated dispatch identity, exact `https://alerts.mw-credit.com/internal/dispatch` OIDC audience, 240-second deadline and no scheduler-level retries, then pauses it before synthetic activation. Cloud Scheduler's managed service agent retains its standard service-agent role; never grant that role to the caller. Confirm exact deployed configuration before resuming. This script creates **no running dispatch or live Grafana route**.
 
-If subsequent deployment is delegated to the existing `codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com`, the owner must approve and apply only:
+## Approved deployment actor
 
-```sh
-gcloud artifacts repositories add-iam-policy-binding mw-monitoring --location=asia-southeast1 \
-  --member=serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com \
-  --role=roles/artifactregistry.writer --project=clever-oasis-508610-n7 --account=OWNER_ACCOUNT
+At 18:07:29 UTC on 2 October 2026, the owner explicitly approved project Owner for the fixed `codex-cloud` service identity and its durable selected-environment configuration, after disclosure of IAM/delete/spend rights and access inherited by credential holders. The VM executor reports applying and reading back the `roles/owner` binding on this project while preserving other IAM/audit settings. This supersedes the earlier optional proposal for narrow deployer roles; no extra deployer grants are created by the bootstrap. The runtime and Scheduler identities still receive only their original bounded permissions.
 
-gcloud run services add-iam-policy-binding mw-grafana-events --region=asia-southeast1 \
-  --member=serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com \
-  --role=roles/run.admin --project=clever-oasis-508610-n7 --account=OWNER_ACCOUNT
-
-gcloud iam service-accounts add-iam-policy-binding \
-  mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com \
-  --member=serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com \
-  --role=roles/iam.serviceAccountUser --project=clever-oasis-508610-n7 --account=OWNER_ACCOUNT
-```
-
-These optional grants are **not executed by the bootstrap**. No project-wide Run admin, secret access, project IAM administration, Scheduler administration or service-account key is required for that deployer. The supported authentication route must still be established separately; the current IAP-only helper is not a generic gcloud route. The authorized executor can also deploy the final revision within the established owner session without these grants. Do not broaden roles to work around a denial.
-
+The source code independently verifies the live active account and direct unconditional Owner binding before provisioning. The saved-environment credential adapter is maintained in a separate task and must be proved in a fresh environment before bootstrap. Existing Vault credentials are reused there; this repository neither stores them nor implements that adapter. Secure Google-client-secret entry remains a separate interaction. A service-account deployment actor does not change the bridge's human Google owner/OAuth identity.
 
 ## Compatibility correction and recorded access findings
 
-The original pin's `gcloud logging exclusions` group was unsupported by SDK 585; the supported sink update is used now. VM-01 verified the human owner `welct0407@mw-credit.com`, project number, billing and unenforced invoker policy, and confirmed full-path `gcloud.CMD` subprocess invocation. Its approved prerequisite Resource Manager/Cloud Billing API enablement completed; the bridge remains unprovisioned in the latest handoff evidence. Cloud SDK 587 is installed but its inherited configuration has no active account/project, no named owner profile and no checked ADC file; the documented IAP helper has no generic owner-deployment route. A future cloud owner login requires separate scoped approval and secure consent/credential handling, and is not performed by these scripts.
+The original pin's `gcloud logging exclusions` group was unsupported by SDK 585; the supported sink update is used now. VM-01 verified the human owner `welct0407@mw-credit.com`, project number, billing and unenforced invoker policy, and confirmed full-path `gcloud.CMD` subprocess invocation. Its approved prerequisite Resource Manager/Cloud Billing API enablement completed; the bridge remains unprovisioned in the latest handoff evidence. Cloud SDK 587 is installed but its inherited configuration has no active account/project, no named owner profile and no checked ADC file; the documented IAP helper has no generic owner-deployment route. The durable service-account route was separately approved at 18:07:29 UTC; its saved-environment update/fresh-task verification remains separate from these scripts.

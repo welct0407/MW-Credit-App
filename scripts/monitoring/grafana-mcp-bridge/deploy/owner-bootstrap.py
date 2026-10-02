@@ -19,6 +19,9 @@ DOMAIN = 'alerts.mw-credit.com'
 MARKER = 'grafana-mcp-bootstrap-v1'
 RUNTIME = f'{SERVICE}@{PROJECT}.iam.gserviceaccount.com'
 DISPATCH = f'mw-grafana-dispatch@{PROJECT}.iam.gserviceaccount.com'
+APPROVED_DEPLOYER = f'codex-cloud@{PROJECT}.iam.gserviceaccount.com'
+GCLOUD_EXECUTABLE = None
+DOCKER_EXECUTABLE = None
 SECRETS = ['mw-grafana-hmac', 'mw-grafana-state-key', 'mw-grafana-cookie-keys',
            'mw-grafana-oauth-jwks', 'mw-grafana-google-client-secret']
 APIS = ['run.googleapis.com', 'firestore.googleapis.com', 'cloudscheduler.googleapis.com',
@@ -32,11 +35,42 @@ def require(ok, message):
         raise RuntimeError(message)
 
 
+def configure_gcloud(executable):
+    global GCLOUD_EXECUTABLE
+    if executable:
+        path = Path(executable).expanduser().resolve()
+        require(path.is_file() and (os.name == 'nt' or os.access(path, os.X_OK)),
+                'Configured gcloud executable/adapter is missing or not executable')
+        GCLOUD_EXECUTABLE = str(path)
+    else:
+        GCLOUD_EXECUTABLE = None
+
+
+def configure_docker(executable):
+    global DOCKER_EXECUTABLE
+    if executable:
+        path = Path(executable).expanduser().resolve()
+        require(path.is_file() and (os.name == 'nt' or os.access(path, os.X_OK)),
+                'Configured Docker executable/adapter is missing or not executable')
+        DOCKER_EXECUTABLE = str(path)
+    else:
+        DOCKER_EXECUTABLE = None
+
+
+def principal_member(account):
+    if account.endswith('.gserviceaccount.com'):
+        require(account == APPROVED_DEPLOYER, 'Only the explicitly approved fixed deployment service account is allowed')
+        return f'serviceAccount:{account}'
+    return f'user:{account}'
+
+
 def run(argv, data=None):
     if argv[0] == 'gcloud':
-        executable = shutil.which('gcloud')
+        executable = GCLOUD_EXECUTABLE or shutil.which('gcloud')
         require(executable is not None, 'gcloud launcher was not found on PATH')
         argv = [executable, *argv[1:]]
+    elif argv[0] == 'docker' and DOCKER_EXECUTABLE:
+        argv = [DOCKER_EXECUTABLE, *argv[1:]]
     try:
         result = subprocess.run(argv, input=data, capture_output=True, check=False,
                                 env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
@@ -51,12 +85,17 @@ def gc(*args):
 
 
 def gcloud_output(*args, data=None):
+    common = (f'--project={PROJECT}', f'--account={OWNER}', '--quiet', '--format=json')
+    if os.name != 'nt' and GCLOUD_EXECUTABLE:
+        # The reviewed Linux adapter validates every visible argument itself.
+        # exec argv needs no shell quoting and does not hide flags in a file.
+        return run(['gcloud', *args, *common], data=data)
     # gcloud.CMD can introduce Windows shell parsing even with shell=False.
     # Only simple positional identifiers and one filename cross that boundary.
     # All flag values (including CEL, regex, %, quotes and repeated flags) stay
     # in an SDK-supported JSON flags file. This file never contains secrets.
     positional, flags = [], []
-    for arg in (*args, f'--project={PROJECT}', f'--account={OWNER}', '--quiet', '--format=json'):
+    for arg in (*args, *common):
         if arg.startswith('--'):
             key, separator, value = arg.partition('=')
             flags.append({key: value if separator else None})
@@ -110,13 +149,14 @@ def choose(rows, suffix):
 def baseline():
     require(not os.environ.get('CLOUDSDK_AUTH_IMPERSONATE_SERVICE_ACCOUNT'), 'Remove impersonation override')
     require(not os.environ.get('CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE'), 'Remove credential override')
-    require(not OWNER.endswith('.gserviceaccount.com'), 'An explicitly selected human owner account is required')
+    member = principal_member(OWNER)
     auth = json.loads(run(['gcloud', 'auth', 'list', '--format=json']))
     require(any(a['account'] == OWNER and a['status'] == 'ACTIVE' for a in auth), 'Selected owner must be the active account')
     impersonation = run(['gcloud', 'config', 'get-value', 'auth/impersonate_service_account']).strip()
     require(impersonation in ('', '(unset)'), 'Remove configured impersonation')
     project = gc('projects', 'describe', PROJECT)
-    require(str(project['projectNumber']) == NUMBER and project.get('lifecycleState') == 'ACTIVE', 'Wrong/inactive project')
+    require(project.get('projectId') == PROJECT and str(project['projectNumber']) == NUMBER
+            and project.get('lifecycleState') == 'ACTIVE', 'Wrong/inactive project')
     billing = gc('billing', 'projects', 'describe', PROJECT)
     require(billing.get('billingEnabled') is True, 'Billing is not enabled; do not link/change billing automatically')
     enabled = {s['config']['name'] for s in gc('services', 'list', '--enabled')}
@@ -124,13 +164,17 @@ def baseline():
     policy = gc('org-policies', 'describe', 'constraints/run.managed.requireInvokerIam', '--effective')
     require(not any(r.get('enforce') for r in policy.get('spec', {}).get('rules', [])), 'Organization requires invoker IAM')
     iam = gc('projects', 'get-iam-policy', PROJECT)
+    require(any(binding.get('role') == 'roles/owner' and not binding.get('condition')
+                and member in binding.get('members', []) for binding in iam.get('bindings', [])),
+            'Selected principal lacks a direct unconditional project Owner binding')
     condition = f'resource.name=="projects/{PROJECT}/databases/{DATABASE}"'
     for binding in iam.get('bindings', []):
         if f'serviceAccount:{RUNTIME}' in binding.get('members', []):
             require(binding['role'] == 'roles/datastore.user' and binding.get('condition', {}).get('expression') == condition,
                     'Runtime already has an unexpected project role; owner review required')
         require(f'serviceAccount:{DISPATCH}' not in binding.get('members', []), 'Dispatch already has project roles; owner review required')
-    print(json.dumps({'owner': OWNER, 'project': PROJECT, 'number': NUMBER,
+    print(json.dumps({'owner': OWNER, 'ownerMember': member, 'projectOwnerVerified': True,
+                      'project': PROJECT, 'number': NUMBER,
                       'billingEnabled': True, 'enabledAPIs': sorted(enabled)}, indent=2))
     return enabled, condition
 
@@ -225,8 +269,9 @@ def inert():
         print(json.dumps({'runAppURL': existing['status']['url'], 'existingService': True}))
         return  # Never roll an existing service back to bootstrap.
     tag = f'{REGION}-docker.pkg.dev/{PROJECT}/{REPOSITORY}/grafana-mcp-bootstrap:v1'
-    require(shutil.which('docker') is not None, 'Docker unavailable; complete the approved Docker setup before inert deployment')
-    gcloud_output('auth', 'configure-docker', f'{REGION}-docker.pkg.dev')
+    require(DOCKER_EXECUTABLE or shutil.which('docker') is not None, 'Docker unavailable; complete the approved Docker setup before inert deployment')
+    if not DOCKER_EXECUTABLE:
+        gcloud_output('auth', 'configure-docker', f'{REGION}-docker.pkg.dev')
     run(['docker', 'build', '--platform=linux/amd64', '-f', str(HERE / 'bootstrap.Dockerfile'), '-t', tag, str(HERE)])
     run(['docker', 'push', tag])
     image = gc('artifacts', 'docker', 'images', 'describe', tag)
@@ -261,10 +306,15 @@ def main():
     global OWNER
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('phase', choices=['check-sdk', 'preflight', 'resources', 'inert', 'domain'])
-    parser.add_argument('--owner', required=True, help='Confirmed human Google owner account, never a credential')
+    parser.add_argument('--owner', required=True, help='Verified human project owner or the explicitly approved fixed codex-cloud service account')
+    parser.add_argument('--gcloud-executable', help='Reviewed existing SDK launcher or approved saved-environment adapter path; identity guards remain enforced')
+    parser.add_argument('--docker-executable', help='Reviewed Docker/private-auth adapter accepting normal Docker arguments; avoids configure-docker in generic gcloud')
     parser.add_argument('--resume', action='store_true', help='Owner confirms existing named database was created by this bootstrap')
     args = parser.parse_args()
     OWNER = args.owner
+    principal_member(OWNER)  # Reject other service identities even in check-sdk.
+    configure_gcloud(args.gcloud_executable)
+    configure_docker(args.docker_executable)
     if args.phase == 'check-sdk':
         check_sdk()
         return

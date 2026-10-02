@@ -17,9 +17,11 @@ spec.loader.exec_module(bootstrap)
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--owner', required=True)
+    parser.add_argument('--owner', required=True, help='Verified human owner or the explicitly approved fixed deployment service account')
+    parser.add_argument('--gcloud-executable', help='Reviewed SDK launcher or approved saved-environment adapter path')
     args = parser.parse_args()
     bootstrap.OWNER = args.owner
+    bootstrap.configure_gcloud(args.gcloud_executable)
     bootstrap.baseline()
     for name in bootstrap.SECRETS:
         metadata = bootstrap.gc('secrets', 'describe', name)
