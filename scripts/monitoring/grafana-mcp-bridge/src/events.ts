@@ -4,6 +4,7 @@ import { z } from 'zod';
 import type { Config } from './config.js';
 import { callbackUrl, canonical, equal, hash, SafeError, type CallbackTransport } from './security.js';
 import type { Document, Store } from './store.js';
+import { createRejectedHostCapture } from './callback-host-diagnostic.js';
 
 export const EVENT_NAME = 'grafana.alert.transition';
 export const Filters = z.object({
@@ -76,7 +77,10 @@ export function normalizeGrafana(value:unknown,source:string,now:number):EventRe
 }
 
 export class Bridge {
-  constructor(readonly store:Store, readonly config:Config, readonly send:CallbackTransport, readonly now=()=>Date.now(),readonly jitter=()=>Math.random()) {}
+  private readonly captureRejectedHost:ReturnType<typeof createRejectedHostCapture>;
+  constructor(readonly store:Store, readonly config:Config, readonly send:CallbackTransport, readonly now=()=>Date.now(),readonly jitter=()=>Math.random()) {
+    this.captureRejectedHost=createRejectedHostCapture(config.captureRejectedCallbackHost===true && config.callbackHosts.length===0);
+  }
   async ownerActive() { return this.config.ownerEnabled && (await this.store.get('control/owner'))?.enabled !== false; }
   identity(name:string,filters:FiltersType,url:string) { return 'sub_'+hash(canonical([this.config.ownerSub,name,filters,url])); }
   headers(id:string,subscription:Subscription,body:string,time=this.now()) {
@@ -88,7 +92,12 @@ export class Bridge {
   async subscribe(params: {name:string; arguments:unknown; delivery:{mode:string;url:string;secret:string};ttlMs?:number|null;cursor?:string|null}, grantId?:string) {
     if(!(await this.ownerActive())) throw new SafeError('owner_revoked',403);
     if(params.name!==EVENT_NAME || params.delivery.mode!=='webhook' || params.cursor) throw new SafeError('unsupported_event_or_replay');
-    const filters=normalizedFilters(params.arguments), url=callbackUrl(params.delivery.url,this.config.callbackHosts).toString();
+    const filters=normalizedFilters(params.arguments);let url:string;
+    try {url=callbackUrl(params.delivery.url,this.config.callbackHosts).toString();}
+    catch(error) {
+      if(error instanceof SafeError && error.reason==='callback_not_allowed' && this.config.callbackHosts.length===0)this.captureRejectedHost(params.arguments,params.delivery.url);
+      throw error;
+    }
     const secret=params.delivery.secret;
     const keyLength=Buffer.from(secret.slice(6),'base64').length;
     if(!/^whsec_[A-Za-z0-9+/]+={0,2}$/.test(secret) || keyLength<24 || keyLength>64 || Buffer.from(secret.slice(6),'base64').toString('base64')!==secret.slice(6)) throw new SafeError('invalid_signing_secret');

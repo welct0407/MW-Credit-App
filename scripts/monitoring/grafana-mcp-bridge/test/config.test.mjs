@@ -14,6 +14,10 @@ test('configuration binds canonical OAuth/resource URLs and reads only mounted s
     for(const [name,value] of Object.entries(secrets)){const path=join(dir,name);writeFileSync(path,value,{mode:0o600});env[name+'_FILE']=path;}
     const actual=loadConfig(env);assert.equal(actual.issuer,c.issuer);assert.equal(actual.resource,c.resource);assert.deepEqual(actual.stateKey,c.stateKey);assert.equal(actual.clientId,'https://chatgpt.com/oauth/client.json');assert.equal(actual.clientMetadataDocument,true);
     for(const value of [undefined,'','   '])assert.deepEqual(loadConfig({...env,CALLBACK_HOSTS:value}).callbackHosts,[]);
+    assert.equal(actual.captureRejectedCallbackHost,false);
+    assert.equal(loadConfig({...env,CAPTURE_REJECTED_CALLBACK_HOST:'true'}).captureRejectedCallbackHost,true);
+    assert.equal(loadConfig({...env,CAPTURE_REJECTED_CALLBACK_HOST:'false'}).captureRejectedCallbackHost,false);
+    assert.throws(()=>loadConfig({...env,CAPTURE_REJECTED_CALLBACK_HOST:'sentinel-secret'}),/invalid_callback_capture_flag/);
     for(const overrides of [{PUBLIC_BASE_URL:'http://bridge.example'},{PUBLIC_BASE_URL:c.baseUrl+'/other'},{OAUTH_ISSUER:'https://old.example/oauth'},{MCP_RESOURCE:'https://old.example/mcp'},{CHATGPT_REDIRECT_URI:'https://attacker.example/callback'},{CHATGPT_REDIRECT_URI:c.redirectUri+'?next=evil'},{CHATGPT_CLIENT_ID:'arbitrary'},{CALLBACK_HOSTS:'*.example'},{CALLBACK_HOSTS:'callbacks.example,'},{STATE_KEY_FILE:undefined,STATE_KEY:secrets.STATE_KEY}])assert.throws(()=>loadConfig({...env,...overrides}));
     writeFileSync(env.STATE_KEY_FILE,secrets.STATE_KEY+'!');assert.throws(()=>loadConfig(env),/invalid_state_key/);
   } finally {rmSync(dir,{recursive:true,force:true});}

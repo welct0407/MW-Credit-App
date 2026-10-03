@@ -8,6 +8,7 @@ export interface Config {
   ownerSub: string; ownerEmail: string; ownerEnabled: boolean; clientId: string; redirectUri: string; clientMetadataDocument?: boolean;
   googleClientId: string; googleClientSecret: string; googleRedirectUri: string;
   schedulerEmail: string; schedulerAudience: string; callbackHosts: string[]; sourceId: string;
+  captureRejectedCallbackHost?: boolean;
   grafanaSecrets: string[]; stateKey: Buffer; cookieKeys: string[]; jwks: {keys: any[]};
 }
 const secretFile = (env: NodeJS.ProcessEnv, name: string) => {
@@ -33,6 +34,7 @@ export function loadConfig(env = process.env): Config {
   const callbacks = env.CALLBACK_HOSTS?.trim() ?? '';
   const callbackHosts = callbacks ? callbacks.split(',').map(s=>s.trim()) : [];
   if (callbackHosts.some(h => !/^[a-z0-9.-]+$/.test(h) || h.includes('..'))) throw new SafeError('invalid_callback_hosts');
+  if(env.CAPTURE_REJECTED_CALLBACK_HOST!==undefined && !['true','false'].includes(env.CAPTURE_REJECTED_CALLBACK_HOST))throw new SafeError('invalid_callback_capture_flag');
   const encodedStateKey = secretFile(env,'STATE_KEY');
   const stateKey = Buffer.from(encodedStateKey,'base64');
   if (stateKey.length !== 32 || stateKey.toString('base64') !== encodedStateKey) throw new SafeError('invalid_state_key');
@@ -45,6 +47,6 @@ export function loadConfig(env = process.env): Config {
     clientId:CHATGPT_CLIENT_ID, clientMetadataDocument:true, redirectUri, googleClientId:required('GOOGLE_CLIENT_ID'),
     googleClientSecret:secretFile(env,'GOOGLE_CLIENT_SECRET'), googleRedirectUri:baseUrl+'/oauth/google/callback',
     schedulerEmail:required('SCHEDULER_EMAIL'), schedulerAudience:baseUrl+'/internal/dispatch',
-    callbackHosts, sourceId:required('GRAFANA_SOURCE_ID'), grafanaSecrets, stateKey, cookieKeys, jwks,
+    callbackHosts, captureRejectedCallbackHost:env.CAPTURE_REJECTED_CALLBACK_HOST==='true', sourceId:required('GRAFANA_SOURCE_ID'), grafanaSecrets, stateKey, cookieKeys, jwks,
   };
 }
