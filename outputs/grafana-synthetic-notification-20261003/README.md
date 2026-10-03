@@ -1,4 +1,16 @@
-# Grafana test ingress accepted; paused dispatch blocked — 3 October 2026
+# Grafana-to-Dots synthetic notification verified — 3 October 2026
+
+## End-to-end notification verified
+
+Parent explicitly authorized the equivalent supported flow for the same approved single test: verify safe annual schedule, temporarily enable, request one run, immediately pause in cleanup, reconcile. The prior RunJob request was definitively rejected before an attempt; it did not deliver. Fresh safe projections reconfirmed the exact same sole pending event/delivery, attempt0, active matching subscription and no unrelated work. No second Grafana event was sent.
+
+Resume and describe verified ENABLED with unchanged `0 0 1 1 *` / `Etc/UTC`, **scheduleTime 2027-01-01T00:00:00Z** and zero retries. Exactly one new RunJob request began at **11:05:22 UTC**, returned success at **11:05:25 UTC**, and cleanup immediately paused the job; independent readback verified PAUSED. Cloud Run confirms dispatch POST **HTTP 200** at **11:05:26.190126 UTC** and `dispatch_completed` **count 1** at **11:05:27.679335 UTC**. Final Firestore projection verifies exactly one delivery **delivered**, **attempt 1**, **reason http_200**, **leaseUntil 0**, with **zero pending deliveries** and no unrelated work. The first local post-dispatch decoder lacked Firestore doubleValue handling for jittered nextAt; correcting only evidence parsing reused the saved projected response. No operation or send was repeated.
+
+Parent independently reports the matching **automations.mcp_event** arrived in Dots at **11:05:48 UTC**, and user-facing test notification was sent at **11:06:05 UTC**. Matching event: `evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b`, name `grafana.alert.transition`, alert `MW Grafana Bridge Synthetic Test`, firing, source `olivecrab1199`, timestamp `2026-10-03T10:55:20.394Z`, fingerprint `72559b4a57b93157`. This parent observation establishes actual end-to-end receipt beyond callback HTTP acceptance. [Exact execution, masked readbacks and parent receipt provenance](ui-test-dispatch.json).
+
+Final GCP Scheduler remains **PAUSED**, annual schedule/zero retries unchanged. The distinct ChatGPT synthetic webhook automation **`6ac0d235a960819184f5ab616a6acf0f` remains enabled under its persistent-trigger instruction**, per parent; this executor made no host automation changes. Final Cloud Run metadata verifies unchanged Ready revision `mw-grafana-events-00009-487`, 100% traffic and the same runtime identity. No runtime/IAM/credential/schedule/retry/Grafana live-policy change, fixture injection, duplicate delivery or further run occurred. Protected fields were excluded server-side; credential values, signing keys, raw callback URLs and raw bodies were never read.
+
+Readback assertions, safe-projection/credential-pattern checks and documentation diff checks passed. Source is unchanged; no source regression was repeated. Rollback remains containment with the Scheduler paused and durable delivered state retained; never reset/replay this event/outbox. R050 remains Open. Test-only scope is complete; **live cutover is separate**: review the intended additive Grafana policy/contact-point routing, recovery export, target recipients and exact cadence, then obtain activation authority before changing the job's annual schedule to production cadence/resuming it. Existing IRM/mobile routes remain preserved; no live cutover was performed.
 
 ## Actual Grafana UI test — ingress accepted, RunJob rejected
 
