@@ -1,5 +1,7 @@
 # Contained Grafana bridge application deployment — 3 October 2026
 
+**Historical contained-deployment checkpoint:** the later approved [owner-only authentication activation](../grafana-owner-activation-20261003/README.md) now serves revision `00003-rdr`. This document preserves the earlier disabled-owner deployment evidence.
+
 Owner approval at 04:38:18 UTC authorized application deployment on the existing service, with owner access disabled and callback delivery denied. The subsequent recovery handoff explicitly authorized the traffic switch and inert rollback if acceptance failed. **Application runtime/metadata acceptance passed; real OAuth, host connection and end-to-end alerts remain inactive/unverified.** R050 remains Open.
 
 ## Actual deployment and recovery

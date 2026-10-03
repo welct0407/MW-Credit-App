@@ -1,0 +1,15 @@
+{
+  "format": "Agent Plugins 1.0",
+  "schemaValidation": "official plugin.schema.json and mcp.schema.json; Draft202012Validator passed",
+  "schemaSource": "https://agent-plugins.org/schemas/1.0.0/",
+  "archive": "mw-grafana-events.zip",
+  "sha256": "f19e7cd2c698f53ba2fd757230329f398d2e1dbd50565cf74eab44e1ae82f9ce",
+  "bytes": 1960,
+  "entries": [
+    "mw-grafana-events/README.md",
+    "mw-grafana-events/mcp.json",
+    "mw-grafana-events/plugin.json"
+  ],
+  "privateAccountUpload": "not performed; parent owns upload and secure consent",
+  "authenticatedToolDiscovery": "pending secure owner consent"
+}
