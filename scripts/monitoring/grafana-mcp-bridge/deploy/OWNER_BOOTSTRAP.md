@@ -82,6 +82,12 @@ Wait for mapping `Ready=True` and verify TLS at `https://alerts.mw-credit.com/he
 
 ## Secure interaction and later deployment
 
+For the owner who has already entered Google client-secret version 1 in Console,
+use the [standalone Cloud Shell handoff](CLOUD_SHELL_SEEDING.md) for the four missing
+application keys. It validates all tools/metadata first, preserves Google version 1
+and every existing version, requires owner-terminal confirmation, and performs no
+deployment. The instructions below retain the original human-terminal route.
+
 This is **not required for the immediate infrastructure/DNS step**. Once the owner creates the Google web OAuth client, enters the exact callback and has its secret, the owner may run this separately in an interactive terminal with Node available. A fallback executor must not capture or relay an existing Google client secret; use the owner's direct secure entry into the target:
 
 ```sh
