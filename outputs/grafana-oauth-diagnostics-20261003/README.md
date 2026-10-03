@@ -1,5 +1,25 @@
 # OAuth callback diagnosis — 3 October 2026
 
+**Decisive fresh-attempt result:** the 08:09:25 UTC reported Connect attempt
+produced `oauth_google_exchange_invalid_client` at 08:09:07.570881 UTC, followed
+by HTTP 502. The parent verified the browser response
+`google_sign_in_exchange_failed`. Google rejected client authentication at its
+code-to-token exchange; ID-token verification and bridge grant creation were
+not reached. [Exact sanitized record](fresh-connect-invalid-client.json).
+
+The deployed Google client ID and `mw-grafana-google-client-secret:1` reference
+match the expected configuration. Google documents `invalid_client` as an
+incorrect client secret and directs checking the ID/secret pair
+([official documentation](https://developers.google.com/identity/protocols/oauth2/web-server#errors)).
+No payload was read, and no credential was rotated or replaced. Metadata cannot
+prove that the mounted value matches the current web client's secret. Reconcile
+that existing pair through the approved secure credential workflow before another
+Connect attempt. This finding does not justify new scopes/userinfo, weakened
+PKCE/state checks, IAM changes or event activation. **Authentication remains
+unfixed; no further deployment was made for this configuration finding.**
+
+The remainder records the earlier diagnostic investigation and deployment.
+
 **Authentication is unresolved.** The production callback returned generic 500s
 at 07:47:19 and 07:49:15 UTC. The original handler discarded the exception and
 logged only `request_failed`/500. [Bounded observations](failure-observations.json)
