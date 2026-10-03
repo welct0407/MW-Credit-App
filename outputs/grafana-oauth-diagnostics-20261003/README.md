@@ -1,5 +1,7 @@
 # OAuth callback diagnosis — 3 October 2026
 
+**Follow-up:** the user securely saved corrected secret version 2; [contained mount repair](../grafana-google-secret-repair-20261003/README.md) is Ready on `00006-qm4`. This historical diagnostic result remains valid; authentication awaits fresh Connect.
+
 **Decisive fresh-attempt result:** the 08:09:25 UTC reported Connect attempt
 produced `oauth_google_exchange_invalid_client` at 08:09:07.570881 UTC, followed
 by HTTP 502. The parent verified the browser response
