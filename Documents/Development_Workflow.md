@@ -1,8 +1,8 @@
 # Development workflow and execution responsibilities
 
-Established arrangement: **1 October 2026 (UTC)**; capability review updated **3 October 2026 (UTC), draft pending owner review**. This is the authoritative cross-environment routing and handoff reference linked from [AGENTS.md](../AGENTS.md). It supplements, rather than replaces, the project's approval, release, financial-integrity and recovery controls. The [release workflow](Release_Workflow.md) owns promotion mechanics; its single filled checklist remains the execution record. Account assignments remain in the [service register](Service_Account_Browser_Mapping.md).
+Established arrangement: **1 October 2026 (UTC)**; capability review updated **3 October 2026 (UTC), accepted by the owner at 15:50 UTC**. This is the authoritative cross-environment routing and handoff reference linked from [AGENTS.md](../AGENTS.md). It supplements, rather than replaces, the project's approval, release, financial-integrity and recovery controls. The [release workflow](Release_Workflow.md) owns promotion mechanics; its single filled checklist remains the execution record. Account assignments remain in the [service register](Service_Account_Browser_Mapping.md).
 
-**Review summary:** the 3 October additions below consolidate the completed owner review into this existing reference. They record owner decisions and bounded evidence, pending approval of the document; they do not activate new policy. Review item 1 (VM browser access) is owner-closed; item 2 (Cloud parity) is complete to the agreed scope, not universal equal-rights proof. Item 3 (automatic VM idle/start policy) remains design pending and is not enabled. The existing AGENTS link suffices; no new AGENTS rule is introduced.
+**Review summary:** the 3 October additions below consolidate the completed owner review into this existing reference. The owner accepted the matrix and authorized its merge into master at **15:50 UTC on 3 October**. It records owner decisions and bounded evidence; acceptance grants no additional operational authority. Review item 1 (VM browser access) is owner-closed; item 2 (Cloud parity) is complete to the agreed scope, not universal equal-rights proof. Item 3 (automatic VM idle/start policy) remains design pending and is not enabled. The existing AGENTS link suffices; no new AGENTS rule is introduced.
 
 ## Responsibilities and routing
 
@@ -110,7 +110,7 @@ If Cloud startup, IAP or a helper fails, preserve sanitized failure evidence and
 
 **Evidence provenance:** the matrix uses the sanitized **3 October 2026 owner review handoff**, recorded in the [3 October change log](../Change%20Logs/CHANGE_NOTES_ECOSYSTEM_EXECUTOR_MATRIX_2026-10-03.md), plus the owning repository references linked below. This documentation task did not repeat live audits. “Verified 3 October” means a completed check supplied in that handoff, with scope stated in the row; “repository evidence” and “owner choice” are separate labels. The [30 September readiness log](../Change%20Logs/CHANGE_NOTES_CLOUD_FIRST_READINESS_2026-09-30.md) and [1 October workflow log](../Change%20Logs/CHANGE_NOTES_DEVELOPMENT_WORKFLOW_2026-10-01.md) remain historical evidence, superseded only within the newer verified scope. No borrower details, financial values, private evidence paths or raw execution output are published here.
 
-### Service and task executor matrix — draft pending owner review
+### Service and task executor matrix
 
 An **executor** performs a task; a **runtime host** runs the persistent service; a **plugin identity** authenticates a connector. These are distinct. Dots plugin success does not establish Codex Cloud CLI installation or authentication. Human browser accounts remain in the service register; model choices remain in Model Work Mapping.
 
@@ -139,7 +139,7 @@ An **executor** performs a task; a **runtime host** runs the persistent service;
 - **Review item 1 — owner-closed:** direct local Work provides the manual VM browser fallback. Delegated browser control and automatic local-session messaging remain unproven; no explanation of their cause is asserted.
 - **Review item 2 — complete to the owner's agreed scope:** reviewed Cloud backend access, bounded SQL/API and narrow recovery evidence, intentional local-tool exceptions and Dots plugin routes suffice for this parity review. This does not certify identical rights/tools across environments or every deployment/recovery path.
 - **Review item 3 — design pending:** automatic VM idle/start policy is not enabled. Include manual local Work sessions in busy-state design and preserve the working SSO controller.
-- **Document acceptance pending:** owner review of this draft matrix. Existing production/service controls remain in force; approval of this document alone grants no operational permission.
+- **Document accepted — 3 October, 15:50 UTC:** the owner instructed “merge it into master then.” Existing production/service controls remain in force; document acceptance grants no additional operational permission. Review item 3 remains on hold until the owner proceeds.
 
 The historical small end-to-end DEV Cloud development/deploy/rollback exercise and full disaster-recovery coverage are not newly demonstrated here. They are limitations for a future operation that needs them, not additional gates reopening the accepted parity review. Follow the affected runbook and obtain only the missing scoped evidence/authorization for that operation. Existing monitoring/runbook text that describes Dots delivery as owner-reported predates the verified 3 October bridge evidence above; only that delivery checkpoint is superseded.
 
