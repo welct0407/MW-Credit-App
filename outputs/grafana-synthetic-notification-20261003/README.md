@@ -1,4 +1,32 @@
-# Synthetic subscription verified; notification execution blocked — 3 October 2026
+# Synthetic subscription verified; Scheduler configured and paused — 3 October 2026
+
+## Paused Scheduler ready — 10:51:28 UTC
+
+The owner approved the supported test-only Grafana/Scheduler setup through execution; this continuation configures only the Scheduler and holds execution for parent coordination. The guarded `/workspace/.setup/cloud-gcloud` adapter uses existing `codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com` in project `clever-oasis-508610-n7` (`737787224638`). Clean branch baseline: `9f7de89c3c166969a981274ff0cf6d9414fa5429`. Project/region/job describe and list confirmed absence before creation; no duplicate was created. Current AGENTS, ownership workflow, model mapping and affected deploy references were read; neither repository nor workspace `.agents/skills` exists in this checkout.
+
+The existing caller has a direct unconditional project `roles/owner` binding. Google's [Scheduler permission table](https://docs.cloud.google.com/iam/docs/roles-permissions/cloudscheduler) and [service-account permission table](https://docs.cloud.google.com/iam/docs/roles-permissions/iam#iam.serviceAccounts.actAs) establish that this role includes create/get/list/update/pause/run/delete and `iam.serviceAccounts.actAs` on the existing same-project dispatcher. Its enabled metadata and the managed agent `service-737787224638@gcp-sa-cloudscheduler.iam.gserviceaccount.com` with unconditional `roles/cloudscheduler.serviceAgent` were verified. Create, pause and readback succeeded, proving exercised permissions. Policy Troubleshooter's read was proxy-blocked at its exact host; no bypass, grant, API enablement or denied-route retry occurred. Unused run/delete/update permissions are role-derived, not exercised; no effective-permission simulation is claimed. Predefined-role describe is incompatible with the adapter's fixed project selector; grantable-role BASIC metadata omits permissions, so that omission is not a denial.
+
+Installed SDK 587 and the [create command](https://docs.cloud.google.com/sdk/gcloud/reference/scheduler/jobs/create/http) expose no paused-creation option. Created using future annual schedule **`0 0 1 1 *`**, **`Etc/UTC`**, next due 1 January 2027 if active, then immediately paused. At **10:51:25 UTC** pause succeeded; at **10:51:28 UTC** independent describe verified:
+
+| Field | Verified value |
+| --- | --- |
+| Job | `projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch` |
+| State | `PAUSED` |
+| Target and audience | `https://alerts.mw-credit.com/internal/dispatch` |
+| OIDC client identity | `mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com` |
+| Method/body/content type | POST / `{}` (base64 `e30=`) / `application/json` |
+| Attempt deadline | `240s` |
+| Retry count/duration | 0 / `0s` (zero retryCount omitted by API as default) |
+| Prior attempt | `lastAttemptTime` absent; no manual run requested |
+
+[Sanitized exact preflight, create, pause and readback](scheduler-setup.json). Source confirms audience plus exact verified email checks. Bounded Cloud Run metadata immediately before setup reconfirmed Ready revision `mw-grafana-events-00009-487`, 100% traffic and the existing runtime identity; this task performed no runtime, credential, IAM, Grafana or notification operation. Callback host/capture and secret pins are reused from the unchanged approved revision, not re-read as payloads. Application tests were not rerun because source/runtime is unchanged; readback assertions and `git diff --check` validate this configuration/evidence batch.
+
+**Ready for the parent-coordinated test, not executed.** Parent confirms Grafana ingress and reconciles the exact synthetic event/pending deliveries before authorizing the single on-demand run. Dispatch drains eligible outbox work, so unrelated pending work must be excluded/reconciled first. Leave this job paused and do not resume its schedule for the test. Production minute-by-minute activation needs separate authority and a schedule update. Browser contact-point/automation state is parent-owned and was not independently inspected here.
+
+Rollback for this new resource: keep paused, or after exact identity/configuration verification delete only `mw-grafana-dispatch` through the guarded adapter to restore the confirmed absent baseline. Never replay uncertain delivery by deleting/restoring outbox state. Repository rollback is a normal revert of this documentation/evidence batch after checking later work. R050 remains Open; no promotion/default-branch push/merge.
+
+## Earlier 10:17 UTC checkpoint — before Scheduler approval/setup
+
 
 The parent reported synthetic automation creation succeeded at 10:00:26 UTC. Bounded revision `mw-grafana-events-00009-487` logs show `events/subscribe` success at **10:00:25.548096 UTC**. The pinned source returns success after signed callback challenge echo verification and durable subscription persistence. Previous denied attempts could not populate the five-minute verification cache. This establishes callback verification and subscription acceptance, not notification delivery. [Sanitized subscription evidence](subscription-evidence.json).
 
