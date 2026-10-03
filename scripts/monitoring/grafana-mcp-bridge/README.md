@@ -1,6 +1,6 @@
 # Grafana MCP Events bridge
 
-R050 development implementation; **contained application revision 00002-nrg deployed/Ready, owner disabled and callbacks deny-all; native CIMD/metadata acceptance passed; real OAuth/host/events acceptance remains pending**. [Contained deployment](../../../outputs/grafana-contained-20261003/README.md). [Live bootstrap checkpoint](../../../outputs/grafana-mcp-bootstrap-20261002/README.md). This monitoring component belongs to AppSheet-Loan-Project. It does not control Azure VMs or replace the existing Grafana IRM/mobile route.
+R050 development implementation; **contained diagnostic revision 00007-4zn is Ready at 100% traffic; owner-only OAuth is Connected, and host tool/event discovery verification awaits browser Refresh tools**. Callbacks remain deny-all and Scheduler/Grafana inactive. [Current diagnostics and rollback](../../../outputs/grafana-rpc-diagnostics-20261003/README.md). This monitoring component belongs to AppSheet-Loan-Project; existing Grafana IRM/mobile delivery retains its current configuration.
 
 The [design and operating guide](../../../Documents/Grafana_MCP_Events_Bridge.md) owns deployment prerequisites, OAuth, durable delivery, security, cost and recovery. `deploy/service.yaml.example` is a review template with unresolved placeholders, not an executable deployment instruction.
 
