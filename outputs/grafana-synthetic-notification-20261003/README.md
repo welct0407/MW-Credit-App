@@ -1,4 +1,22 @@
-# Synthetic subscription verified; Scheduler configured and paused — 3 October 2026
+# Grafana test ingress accepted; paused dispatch blocked — 3 October 2026
+
+## Actual Grafana UI test — ingress accepted, RunJob rejected
+
+Parent reports exactly one custom Grafana test sent at **10:55:17 UTC**, with alert name `MW Grafana Bridge Synthetic Test` and summary `Controlled Grafana-to-Dots notification test; no real incident.` Cloud Run on unchanged revision `00009-487` confirms POST `/grafana` **202** at 10:55:20.453722 UTC and `grafana_accepted` **count 1** at 10:55:20.687525 UTC.
+
+Before dispatch, server-side Firestore masks through the unchanged guarded adapter's installed `gcloud meta apis methods call` read only safe event/delivery/subscription fields. No secret, signing key, callback URL, raw body, token output or credential payload was read. Bounded collection listings had no next-page token and showed exactly one actual event and one pending delivery, with no unrelated events or pending deliveries. Event name/source/firing status/summary/creation time matched the actual Grafana UI test. Its active, unexpired subscription has the exact synthetic alert filter; delivery attempt and lease were zero. The actual event is **`evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b`**, distinct from the unused prebuilt fixture. No fixture was injected.
+
+At **10:59:43 UTC**, exactly one authorized normal Scheduler run request was attempted. Google rejected it before dispatch:
+
+```text
+FAILED_PRECONDITION: spanner.RunInTransaction: generic::failed_precondition: Job.state must be ENABLED for RunJob.
+```
+
+Post-request reconciliation verifies the same sole delivery remains **pending, attempt 0, leaseUntil 0**; job remains **PAUSED**, with no `lastAttemptTime` and no `dispatch_completed` log. No resume, second run request or notification send occurred. [Sanitized exact projections, one rejected request and reconciliation](ui-test-execution.json).
+
+**Execution blocked by the current hold on resuming the job.** The concrete next action requires parent authorization to temporarily enable this exact job with its already verified annual safety schedule (next due 1 January 2027), request one new run, and immediately pause and reconcile. No automatic recurrence is due in the current window, but enabling still changes the explicitly held job state; this executor did not do it. Reconcile the same event/delivery and unrelated pending work again before that action. Do not send another Grafana test or substitute/replay the unused fixture. Actual Dots notification/task acceptance remains untested; callback acceptance cannot be inferred from successful ingress.
+
+Runtime/config/IAM/credentials/live Grafana policy remain unchanged. Readback assertions and `git diff --check` verify this evidence-only batch; no source tests repeated. R050 remains Open.
 
 ## Paused Scheduler ready — 10:51:28 UTC
 
