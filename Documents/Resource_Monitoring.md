@@ -61,7 +61,7 @@ Edit or pause rules under [Alert rules](https://monitor.mw-credit.com/alerting/l
 
 ### Dots incident response — 3 October 2026
 
-The owner reports that Dots is configured to receive Grafana alerts across the entire monitored ecosystem, including infrastructure, databases, networking, integrations, applications, reporting and external dependencies. The requested diagnosis, bounded automatic worker restart/retry, verification and owner-reporting policy is maintained in [Dots alert response](Dots_Orchestration_Rules.md#6-respond-to-grafana-alerts). Use each affected service's owning runbook and execution route. This documentation records the owner's report and response instruction; it does not verify delivery or change alert/contact-point definitions. Unknown financial or delivery outcomes remain reconciliation-only under the owning service catalogue.
+The owner reports that Dots is configured to receive Grafana alerts across the entire monitored ecosystem, including Azure, GCP, Railway and other providers; VMs, containers, databases, storage, networks, integrations, applications, reporting and external dependencies. These examples do not limit coverage to a fixed provider or resource list. The requested diagnosis, bounded automatic worker restart/retry, verification and owner-reporting policy is maintained in [Dots alert response](Dots_Orchestration_Rules.md#6-respond-to-grafana-alerts). Use each affected service's owning runbook and execution route. This documentation records the owner's report and response instruction; it does not verify delivery or change alert/contact-point definitions. Unknown financial or delivery outcomes remain reconciliation-only under the owning service catalogue.
 
 ## Verified limits (22 September 2026)
 
