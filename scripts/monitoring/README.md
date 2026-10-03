@@ -71,3 +71,13 @@ The four Live tiles and PITR share Grafana-managed rule `MW | Metabase component
 `receipt-pipeline.jq` aligns queue fields with fresh status; `receipt-trend.jq` inserts null gaps; `group-scanning.jq` emits the Group scanning status and same-sample last-completion epoch in milliseconds for the two-value Stat tile; `debian-alert.jq` is the existing Debian rule selector. The completion field uses Grafana's `time:DD MMM HH:mm` custom unit in the dashboard's Singapore timezone, with an Unavailable override for missing/stale timing. Update the named rule in the UI, not a duplicate rule. The latter's no-data/error policies must remain Alerting, four-minute pending and direct MW Performance IRM contact. Canonical files contain no secrets or borrower data.
 
 Tests: bundled Python `-m unittest discover -s scripts/monitoring -p test_debian_health.py`; `test_receipt_queries.py` requires jq (available on Debian); `node scripts/monitoring/test_payment_dashboard.cjs` checks preservation/idempotence and stage fields. Synthetic fixtures are never sent to live monitoring or business APIs.
+
+### Receipt notification health correction — 2 October 2026
+
+Worker revision 25 separates optional result delivery from receipt processing health. `failed_notifications` remains the retained unresolved delivery count; `notification_status` separately reports its health. Optional Partner-result failures do not degrade `receipts`; stalled intake, required review/hold attention and uncertain posting still do. Keep the Notification failures panel and its counts visible. Neither green processing status nor acknowledgement means delivered.
+
+Canonical replacement description for existing Debian rule `afz3o5cmmfabkb` (description only; selector, labels, thresholds and contact unchanged):
+
+> Monitors 12 Debian components. Receipt health includes worker availability, stalled intake, required review/hold attention and unconfirmed posting. Optional Partner-result notification failures remain visible separately and do not degrade receipt processing. Receipts and polling alert for missing, stale, invalid or Unknown telemetry. Four-minute pending period; existing no-data/error and contact settings remain unchanged.
+
+The description and panel text need a scoped update from a fresh live Grafana definition; this source correction does not claim that UI metadata has been saved. Parent browser verification at 09:13:58 UTC on 2 October reported Pipeline Healthy, Receipts green, all 12 component instances Normal, processing queues zero, retained completed total 56 and Partner-result failures 2, with fresh 09:11:21 telemetry. Those failure records were preserved.
