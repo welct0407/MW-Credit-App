@@ -1,6 +1,6 @@
 # Grafana MCP Events bridge
 
-R050 development implementation; **contained diagnostic revision 00007-4zn is Ready at 100% traffic; owner-only OAuth is Connected, and live discovery returned two tools/one event; host catalog exposure remains pending**. Callbacks remain deny-all and Scheduler/Grafana inactive. [Current diagnostics and rollback](../../../outputs/grafana-rpc-diagnostics-20261003/README.md). This monitoring component belongs to AppSheet-Loan-Project; existing Grafana IRM/mobile delivery retains its current configuration.
+R050 development implementation; **temporary hostname-capture revision 00008-6r2 is Ready at 100% traffic for one controlled synthetic retry**. Owner-only auth, original callback denial and event discovery are preserved. Google secret2/otherfour1 remain pinned, callbacks deny-all and Scheduler/Grafana inactive. [Current diagnostic and rollback](../../../outputs/grafana-callback-host-diagnostic-20261003/README.md).
 
 The [design and operating guide](../../../Documents/Grafana_MCP_Events_Bridge.md) owns deployment prerequisites, OAuth, durable delivery, security, cost and recovery. `deploy/service.yaml.example` is a review template with unresolved placeholders, not an executable deployment instruction.
 
