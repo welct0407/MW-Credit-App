@@ -2,6 +2,7 @@ import Provider, { errors, type AdapterPayload, type Configuration } from 'oidc-
 import { OAuth2Client, type TokenPayload } from 'google-auth-library';
 import { randomBytes } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { CHATGPT_CLIENT_ID, CHATGPT_REDIRECT_URI, metadataFetch } from './cimd.js';
 import type { Config } from './config.js';
 import type { Store } from './store.js';
 import { open, seal } from './events.js';
@@ -68,13 +69,18 @@ export function googleLogin(config:Config):GoogleLogin {
   };
 }
 
-export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<boolean>,upstream:GoogleLogin=googleLogin(config)) {
+export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<boolean>,upstream:GoogleLogin=googleLogin(config),fetchMetadata:typeof fetch=metadataFetch()) {
+  if(config.clientMetadataDocument && (config.clientId!==CHATGPT_CLIENT_ID || config.redirectUri!==CHATGPT_REDIRECT_URI))throw new SafeError('invalid_chatgpt_client_pin');
   const options:Configuration={
     adapter:adapterFactory(store,config.stateKey,config.issuer), jwks:config.jwks,
-    clients:[{client_id:config.clientId,redirect_uris:[config.redirectUri],response_types:['code'],grant_types:['authorization_code','refresh_token'],token_endpoint_auth_method:'none'}],
+    fetch:fetchMetadata, fetchResponseBodyLimits:{'client_id metadata document':8192}, clientAuthMethods:['none'],
+    clients:config.clientMetadataDocument ? [] : [{client_id:config.clientId,redirect_uris:[config.redirectUri],response_types:['code'],grant_types:['authorization_code','refresh_token'],token_endpoint_auth_method:'none'}],
     scopes:['openid','offline_access','mcp:events','mcp:read'],
     pkce:{required:()=>true}, // v9 supports S256 exclusively.
-    features:{devInteractions:{enabled:false},userinfo:{enabled:false},revocation:{
+    features:{clientIdMetadataDocument:{enabled:config.clientMetadataDocument ?? false,ack:'draft-02',
+      allowFetch:(_ctx,id)=>id===CHATGPT_CLIENT_ID,
+      allowClient:(_ctx,client)=>client.clientId===CHATGPT_CLIENT_ID && client.tokenEndpointAuthMethod==='none' && client.redirectUris?.length===1 && client.redirectUris[0]===CHATGPT_REDIRECT_URI,
+      cacheDuration:{min:30,max:300}},registration:{enabled:false},devInteractions:{enabled:false},userinfo:{enabled:false},revocation:{
       enabled:true,
       allowedPolicy:(_ctx,client,token)=>client.clientId===config.clientId && token.clientId===client.clientId && 'accountId' in token && token.accountId===config.ownerSub,
     },resourceIndicators:{

@@ -14,6 +14,8 @@ Requires Node 24 and npm. From this directory:
 npm ci --ignore-scripts
 npm test
 python3 deploy/test_owner_bootstrap.py
+python3 deploy/test_cloud_shell_seed.py
+python3 deploy/test_cloud_shell_google_identity.py
 npm audit --omit=dev --audit-level=moderate
 npm run estimate
 docker build -t mw-grafana-events:offline .
@@ -30,6 +32,7 @@ The container uses a pinned Linux amd64 Node image, a locked dependency tree and
 | File | Responsibility |
 | --- | --- |
 | `src/app.ts` | HTTP routing, app authentication, MCP 2.0 custom Events handlers and read tools |
+| `src/cimd.ts` | Exact official ChatGPT metadata/client/redirect pins, bounded TLS fetch and method intersection |
 | `src/oauth.ts` | Owner Google login, PKCE OAuth server, encrypted persistent grants/tokens and revocation |
 | `src/events.ts` | Filtering, subscription verification/refresh, transition deduplication, atomic outbox and retry leases |
 | `src/security.ts` | Grafana HMAC, constant-time comparison, public DNS checks, pinned HTTPS and sanitized logs |
@@ -39,3 +42,5 @@ The container uses a pinned Linux amd64 Node image, a locked dependency tree and
 | `test/` | Synthetic behavior and security regression checks |
 
 The SDK is pinned to `@modelcontextprotocol/server` 2.2.0 and `/node` 2.1.0. Custom Events handlers use v2 request schemas; old v1 generic-server examples are incompatible. The server exposes only `get_bridge_health` and `get_alert_event` as read tools.
+
+Production configuration uses the pinned ChatGPT CIMD URL and platform redirect. An empty callback allowlist permits staged OAuth startup while denying every subscription. [Current preparation evidence](../../../outputs/grafana-cimd-20261003/README.md) distinguishes mocked native-provider acceptance from the proxy-blocked live metadata GET. [Human subject helper](deploy/CLOUD_SHELL_GOOGLE_IDENTITY.md) is a standalone file tested only with mocks. The inert live service remains unchanged.

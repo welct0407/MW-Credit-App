@@ -1,5 +1,7 @@
 # Grafana MCP Events bridge — 2 October 2026
 
+3 October CIMD follow-up: user approval at 04:02:15 UTC covers narrowly pinned ChatGPT client metadata and standalone human-only Google identity preparation. Native provider support verified at locked 9.12.2; RFC 9207 success/error, S256, exact resource/client, revocation and empty callback denial covered by offline checks. Public metadata GET hit proxy CONNECT 403; no workaround or network change. No live helper, deployment or activation. [Focused evidence](../outputs/grafana-cimd-20261003/README.md).
+
 3 October follow-up: prepared a [standalone owner Cloud Shell application-key seeder](../scripts/monitoring/grafana-mcp-bridge/deploy/CLOUD_SHELL_SEEDING.md), preserving the owner-entered Google version 1, with full preflight/terminal confirmation, version-race/partial-failure stops and stdin-only transfers. **No real key generation or upload occurred.** New mocked suite 16/16 passed; existing bootstrap suite 26 passed/one Windows-only skip. [Preparation evidence](../outputs/grafana-cloud-shell-seeding-20261003/README.md). Deployment and OAuth/Scheduler/Grafana activation remain separate.
 
 Status: **approved resources verified; inert Cloud Run revision deployed/Ready; managed-host HTTPS health/inert behavior verified; custom-domain certificate/HTTPS inert behavior verified; functional host acceptance pending**. R050 remains Open. The owner-approved live bootstrap checkpoint below supersedes earlier preparation-only statements; no secret entry, DNS change, Grafana cutover or external notification occurred.

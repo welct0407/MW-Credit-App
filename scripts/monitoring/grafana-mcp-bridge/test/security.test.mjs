@@ -27,3 +27,9 @@ test('structured logger drops sensitive fields rather than printing exceptions',
   try{logEvent('test',{status:200,url:'sentinel-secret',token:'sentinel-secret',body:'sentinel-secret'});}finally{process.stdout.write=old;}
   assert.equal(output.includes('sentinel-secret'),false);assert.equal(JSON.parse(output).status,200);
 });
+test('empty callback allowlist denies before DNS or outbound delivery',async()=>{
+  let resolves=0,sends=0;
+  const transport=safeCallback([],async()=>{resolves++;return [{address:'8.8.8.8',family:4}];},async()=>{sends++;return {status:200,body:''};});
+  await assert.rejects(()=>transport('https://callbacks.example/events','synthetic',{}),/callback_not_allowed/);
+  assert.equal(resolves,0);assert.equal(sends,0);
+});

@@ -56,7 +56,7 @@ export class BrowserCookieJar {
   }
 }
 export async function application(deps={}) {
-  const conf=config(),store=new MemoryStore();
+  const conf={...config(),...deps.config},store=new MemoryStore();
   let lastLogin;
   const google={
     begin:async (state,nonce)=>{lastLogin={state,nonce};return {url:'https://accounts.example/login?state='+state,verifier:'synthetic-google-verifier'};},

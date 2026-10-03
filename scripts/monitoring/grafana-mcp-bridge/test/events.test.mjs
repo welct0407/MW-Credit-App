@@ -98,3 +98,10 @@ test('unsubscribe fences a delayed first challenge even without a row; later int
   block=false;await s.bridge.subscribe(params);await s.bridge.dispatch();assert.equal(sends,0);
   await s.bridge.ingest(fixture('resolved'));await s.bridge.dispatch();assert.equal(sends,1);
 });
+test('empty allowlist rejects subscription before reading signing secret or persisting state',async()=>{
+  let sends=0,secretReads=0;const conf=config();conf.callbackHosts=[];
+  const store=new MemoryStore(),bridge=new Bridge(store,conf,async()=>{sends++;throw Error('must not send');});
+  const params=subscription();Object.defineProperty(params.delivery,'secret',{get(){secretReads++;throw Error('must not read');}});
+  await assert.rejects(()=>bridge.subscribe(params),/callback_not_allowed/);
+  assert.equal(sends,0);assert.equal(secretReads,0);assert.equal((await store.query('subscriptions',[],10)).length,0);
+});

@@ -33,11 +33,11 @@ spec:
             - { name: OWNER_EMAIL, value: welct0407@mw-credit.com }
             - { name: OWNER_GOOGLE_SUB, value: VERIFIED_OWNER_SUB }
             - { name: OWNER_ENABLED, value: 'false' }
-            - { name: CHATGPT_CLIENT_ID, value: PREDEFINED_CLIENT_ID }
-            - { name: CHATGPT_REDIRECT_URI, value: EXACT_URI_FROM_PLUGIN_MANAGEMENT }
+            - { name: CHATGPT_CLIENT_ID, value: 'https://chatgpt.com/oauth/client.json' }
+            - { name: CHATGPT_REDIRECT_URI, value: 'https://chatgpt.com/connector_platform_oauth_redirect' }
             - { name: GOOGLE_CLIENT_ID, value: APPROVED_GOOGLE_WEB_CLIENT_ID }
             - { name: SCHEDULER_EMAIL, value: mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com }
-            - { name: CALLBACK_HOSTS, value: VERIFIED_CHATGPT_CALLBACK_HOSTS }
+            - { name: CALLBACK_HOSTS, value: '' }
             - { name: GRAFANA_SOURCE_ID, value: olivecrab1199 }
             - { name: GRAFANA_SECRETS_FILE, value: /secrets/grafana/value }
             - { name: STATE_KEY_FILE, value: /secrets/state/value }

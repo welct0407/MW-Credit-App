@@ -36,9 +36,9 @@ function rpc<T>(fn:()=>Promise<T>):Promise<T> {
     throw new ProtocolError(-32603,'bridge_operation_failed');
   });
 }
-export function createApp(config:Config,store:Store,send:CallbackTransport,dependencies:{google?:GoogleLogin;scheduler?:SchedulerVerifier;now?:()=>number}={}) {
+export function createApp(config:Config,store:Store,send:CallbackTransport,dependencies:{google?:GoogleLogin;scheduler?:SchedulerVerifier;now?:()=>number;metadataFetch?:typeof fetch}={}) {
   const bridge=new Bridge(store,config,send,dependencies.now);
-  const oauth=createOAuth(config,store,()=>bridge.ownerActive(),dependencies.google);
+  const oauth=createOAuth(config,store,()=>bridge.ownerActive(),dependencies.google,dependencies.metadataFetch);
   const mcp=createMcpHandler(()=>{
     const server=new McpServer({name:'mw-grafana-events',version:'0.1.0'},{capabilities:{events:{}}} as any);
     server.server.setRequestHandler('events/list',{params:z.object({cursor:z.string().nullable().optional()}).strict()},async()=>({events:[{

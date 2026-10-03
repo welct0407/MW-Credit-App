@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
 import { SafeError } from './security.js';
+import { CHATGPT_CLIENT_ID, CHATGPT_REDIRECT_URI } from './cimd.js';
 
 export interface Config {
   baseUrl: string; issuer: string; resource: string; projectId: string; databaseId: string;
-  ownerSub: string; ownerEmail: string; ownerEnabled: boolean; clientId: string; redirectUri: string;
+  ownerSub: string; ownerEmail: string; ownerEnabled: boolean; clientId: string; redirectUri: string; clientMetadataDocument?: boolean;
   googleClientId: string; googleClientSecret: string; googleRedirectUri: string;
   schedulerEmail: string; schedulerAudience: string; callbackHosts: string[]; sourceId: string;
   grafanaSecrets: string[]; stateKey: Buffer; cookieKeys: string[]; jwks: {keys: any[]};
@@ -25,10 +26,12 @@ export function loadConfig(env = process.env): Config {
   const resource = env.MCP_RESOURCE ?? baseUrl + '/mcp';
   // Routing and metadata must agree; hostname migration changes all three together.
   if (issuer !== baseUrl+'/oauth' || resource !== baseUrl+'/mcp') throw new SafeError('canonical_url_mismatch');
-  const redirectUri = required('CHATGPT_REDIRECT_URI');
-  const redirect = new URL(redirectUri);
-  if (redirect.origin !== 'https://chatgpt.com' || redirect.search || redirect.hash || !/^\/connector\/(oauth\/[A-Za-z0-9_-]+)$|^\/connector_platform_oauth_redirect$/.test(redirect.pathname)) throw new SafeError('invalid_chatgpt_redirect');
-  const callbackHosts = required('CALLBACK_HOSTS').split(',').map(s=>s.trim());
+  // Production supports only the official stable ChatGPT CIMD identity.
+  if ((env.CHATGPT_CLIENT_ID && env.CHATGPT_CLIENT_ID !== CHATGPT_CLIENT_ID) ||
+      (env.CHATGPT_REDIRECT_URI && env.CHATGPT_REDIRECT_URI !== CHATGPT_REDIRECT_URI)) throw new SafeError('invalid_chatgpt_client_pin');
+  const redirectUri = CHATGPT_REDIRECT_URI;
+  const callbacks = env.CALLBACK_HOSTS?.trim() ?? '';
+  const callbackHosts = callbacks ? callbacks.split(',').map(s=>s.trim()) : [];
   if (callbackHosts.some(h => !/^[a-z0-9.-]+$/.test(h) || h.includes('..'))) throw new SafeError('invalid_callback_hosts');
   const encodedStateKey = secretFile(env,'STATE_KEY');
   const stateKey = Buffer.from(encodedStateKey,'base64');
@@ -39,7 +42,7 @@ export function loadConfig(env = process.env): Config {
   return {
     baseUrl, issuer, resource, projectId:required('GCP_PROJECT'), databaseId:required('FIRESTORE_DATABASE'),
     ownerSub:required('OWNER_GOOGLE_SUB'), ownerEmail:required('OWNER_EMAIL'), ownerEnabled:env.OWNER_ENABLED !== 'false',
-    clientId:required('CHATGPT_CLIENT_ID'), redirectUri, googleClientId:required('GOOGLE_CLIENT_ID'),
+    clientId:CHATGPT_CLIENT_ID, clientMetadataDocument:true, redirectUri, googleClientId:required('GOOGLE_CLIENT_ID'),
     googleClientSecret:secretFile(env,'GOOGLE_CLIENT_SECRET'), googleRedirectUri:baseUrl+'/oauth/google/callback',
     schedulerEmail:required('SCHEDULER_EMAIL'), schedulerAudience:baseUrl+'/internal/dispatch',
     callbackHosts, sourceId:required('GRAFANA_SOURCE_ID'), grafanaSecrets, stateKey, cookieKeys, jwks,
