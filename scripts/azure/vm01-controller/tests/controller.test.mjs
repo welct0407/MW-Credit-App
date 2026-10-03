@@ -125,3 +125,19 @@ test('terminal polling refreshes VM observation before clearing restart serializ
 test('terminal failed/canceled operation retains details and releases serialization', async () => {
   for (const status of ['Failed', 'Canceled']) { const f = fixture({ operationPollingEnabled: true }); await f.controller.action(browser, 'restart', f.request()); f.advance(16000); f.arm.pollOutcome = { status, retryAfter: 15, failureCode: 'OperationNotAllowed' }; await f.controller.status(browser); const op = Object.values(f.port.data.records)[0]; assert.equal(op.phase, 'rejected'); assert.equal(op.armOperationStatus, status); assert.equal(op.armFailureCode, 'OperationNotAllowed'); assert.equal(f.port.data.activeRequestId, null); }
 });
+
+test('approval reference boundaries reject invalid confirmations before ledger access or ARM dispatch', async () => {
+  const invalid = ['', 'Sentinel_ffde07affe9081919268d1a79ca36d2c; vm01-20261003', 'a b', '.a', 'a'.repeat(129), 'a\n', 'a\r\n', 'é', 'a!b'];
+  for (const reference of invalid) {
+    const f = fixture(); const before = f.port.text; f.port.failAcquire = true;
+    const request = f.request({ confirmation: { workSaved: true, admissionHeld: true, approvalReference: reference } });
+    await assert.rejects(f.controller.action(browser, 'deallocate', request), error => error.status === 400 && error.code === 'invalid_confirmation');
+    assert.equal(f.port.text, before); assert.equal(f.port.writes, 0); assert.equal(f.arm.calls.length, 0);
+  }
+  for (const reference of ['a', 'a'.repeat(128), 'A0_.:/-9', 'Sentinel_ffde07affe9081919268d1a79ca36d2c']) {
+    const f = fixture();
+    const request = f.request({ confirmation: { workSaved: true, admissionHeld: true, approvalReference: reference } });
+    await f.controller.action(browser, 'deallocate', request); await f.controller.action(browser, 'deallocate', request);
+    assert.equal(f.arm.calls.length, 1);
+  }
+});

@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { fail } from './errors.js';
+import { validApprovalReference } from './confirmation.js';
 import type { Action, ActionRequest, Configuration, LedgerData, Operation, VmObservation } from './types.js';
 export const MAX_OBSERVATION_AGE_MS = 120000;
 export const MAX_NEW_REQUEST_AGE_MS = 86400000;
@@ -28,7 +29,7 @@ export function parseRequest(input: unknown): ActionRequest {
   const result: ActionRequest = { requestId: body.requestId, stateVersion: body.stateVersion, observedAt: body.observedAt };
   if (body.confirmation !== undefined) {
     const confirmation = body.confirmation as Record<string, unknown>;
-    if (!confirmation || typeof confirmation !== 'object' || Array.isArray(confirmation) || Object.keys(confirmation).some(k => !['workSaved', 'admissionHeld', 'approvalReference'].includes(k)) || confirmation.workSaved !== true || confirmation.admissionHeld !== true || typeof confirmation.approvalReference !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$/.test(confirmation.approvalReference)) fail(400, 'invalid_confirmation');
+    if (!confirmation || typeof confirmation !== 'object' || Array.isArray(confirmation) || Object.keys(confirmation).some(k => !['workSaved', 'admissionHeld', 'approvalReference'].includes(k)) || confirmation.workSaved !== true || confirmation.admissionHeld !== true || !validApprovalReference(confirmation.approvalReference)) fail(400, 'invalid_confirmation');
     result.confirmation = { workSaved: true, admissionHeld: true, approvalReference: confirmation.approvalReference };
   }
   return result;
