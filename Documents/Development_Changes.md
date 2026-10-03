@@ -189,3 +189,8 @@ R040 report-only refinement delivered: Detail monthly punctuality chart304 and s
 
 
 R041 report-only Detail presentation delivered; no AppSheet or PostgreSQL DEV/PROD difference introduced. R042 is the sole Open release. [Evidence](../outputs/r041-borrower-detail/README.md).
+
+
+## Final live route verification and exact cleanup — 3 October 2026
+
+Saved additive Grafana route and UI cleanup are parent observations; safe GCP readbacks independently establish sole callback host/capturefalse, exact ten-name firing/resolved subscription, zero pending work, and recent natural Scheduler200/count0. Owner-approved second-webhook-only outside-filter test sent once11:54:10 UTC: one matching event, ingress202, no matching production outbox/no notification. Earlier browser-blocked attempt made no send; no executor send/manual run/resend. Exact permanent orphan bootstrap d7e7c7b... deletion separately approved: fresh untagged/reference checks, exact metadata NOT_FOUND, sibling tagged v1 image/all nine revisions preserved. No runtime, credentials, IAM, rule conditions or mobile route changed. Canonical cloud app connection confirmation remains parent-owned. [Final evidence/recovery](../outputs/grafana-live-activation-20261003/README.md). R050 stays Open; scoped existing feature branch/draft PR3 publication only. Configuration/readback/preservation and diff checks passed; source tests unchanged, not repeated.

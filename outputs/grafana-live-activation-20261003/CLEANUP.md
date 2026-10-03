@@ -1,6 +1,6 @@
 # Bridge troubleshooting cleanup inventory — 3 October 2026
 
-Read-only inventory requested after live GCP activation. Scope is this bridge's Cloud Run revisions, bridge-named Run/Scheduler jobs and its two exact Artifact Registry packages. [Exact metadata evidence](cleanup-inventory.json). No object was deleted and no source/runtime/secret setting was changed. Parent owns duplicate plugin-wrapper and unused Grafana test-contact-point cleanup after live verification.
+Historical read-only inventory requested after live GCP activation. Scope is this bridge's Cloud Run revisions, bridge-named Run/Scheduler jobs and its two exact Artifact Registry packages. [Exact metadata evidence](cleanup-inventory.json). No object was deleted during that original inventory. The later separately approved exact deletion is recorded below. Parent owns duplicate plugin-wrapper and unused Grafana test-contact-point cleanup after live verification.
 
 ## Specific candidate requiring exact deletion approval
 
@@ -28,3 +28,11 @@ Current hostname capture is already disabled on unchanged approved revision 0000
 ## Parent-owned cleanup and activation boundary
 
 Parent identifies redundant wrapper `plugins_6ac0a359d8b0819199175c9cf34d6661` (keep canonical cloud plugin), and an unused Grafana test contact point to remove after the live route is verified. This executor did not inspect/uninstall either UI object. Parent reports same host automation 6ac0d235a960819184f5ab616a6acf0f updated to PerformanceAlertNotifications at 11:20:44 UTC with ten existing Performance2m alert names and firing/resolved filters. The additive webhook in existing MWPerformanceIRM is prepared but not saved, awaiting secure owner HMAC entry; original IRM integration MWPerformanceMonitoring remains preserved. These are parent observations, not independent GCP or browser checks.
+
+## Completed exact owner-approved cleanup
+
+Parent verified the saved **MW Performance IRM** contact point at 11:44–11:46 UTC: ten Performance 2m rules still use it, original **MW Performance Monitoring** IRM/mobile integration is preserved, and second Webhook posts to `https://alerts.mw-credit.com/grafana` with owner-entered HMAC, signature/timestamp headers and resolved notifications enabled. Rule conditions and routing targets are unchanged. Native host readback confirms enabled Performance Alert Notifications; independent safe Firestore masks verify exactly ten alert names and firing/resolved, one active subscription and two inactive old synthetic subscriptions. Parent removed only unused synthetic contact point at11:47:48 and redundant wrapper via UI at11:48:33–11:48:51; canonical cloud app retained, connection confirmation remains parent-owned.
+
+Earlier browser-blocked extra test made **no send**. Subsequent exact owner approval preceded one webhook-only synthetic test at11:54:10 (Grafana UI success11:54:25), using `MW Grafana Bridge Live Route Check` outside the ten production names. [Bounded independent verification](live-route-test.json) proves one matching sanitized event, `/grafana` HTTP202, no matching production outbox/no notification, and normal natural empty minute dispatch. No executor send, manual run or resend. Prior actual end-to-end host notification remains proven separately. Fresh safe environment readback confirms sole callback host `connectors.api.openai.com` and capture false; immutable current revision remains00009/100%.
+
+Owner approved exact orphan bootstrap digest deletion. Fresh checks proved untagged and unreferenced by all nine bridge revisions/no bridge jobs; deletion completed, exact version metadata NOT_FOUND, sibling v1/ac81052e and all revisions preserved. [Exact deletion/preservation evidence](exact-image-deletion.json). All application images, rollback revisions, secrets and durable state retained. Registry deletion is permanent; metadata in Git does not restore image bytes.
