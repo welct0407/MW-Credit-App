@@ -1,6 +1,6 @@
 # Grafana MCP Events bridge
 
-R050 development implementation; **bootstrap resources and inert revision deployed; functional application not deployed or connected**. [Live bootstrap checkpoint](../../../outputs/grafana-mcp-bootstrap-20261002/README.md). This monitoring component belongs to AppSheet-Loan-Project. It does not control Azure VMs or replace the existing Grafana IRM/mobile route.
+R050 development implementation; **contained application revision 00002-nrg deployed/Ready, owner disabled and callbacks deny-all; native CIMD/metadata acceptance passed; real OAuth/host/events acceptance remains pending**. [Contained deployment](../../../outputs/grafana-contained-20261003/README.md). [Live bootstrap checkpoint](../../../outputs/grafana-mcp-bootstrap-20261002/README.md). This monitoring component belongs to AppSheet-Loan-Project. It does not control Azure VMs or replace the existing Grafana IRM/mobile route.
 
 The [design and operating guide](../../../Documents/Grafana_MCP_Events_Bridge.md) owns deployment prerequisites, OAuth, durable delivery, security, cost and recovery. `deploy/service.yaml.example` is a review template with unresolved placeholders, not an executable deployment instruction.
 
@@ -45,4 +45,4 @@ The container uses a pinned Linux amd64 Node image, a locked dependency tree and
 
 The SDK is pinned to `@modelcontextprotocol/server` 2.2.0 and `/node` 2.1.0. Custom Events handlers use v2 request schemas; old v1 generic-server examples are incompatible. The server exposes only `get_bridge_health` and `get_alert_event` as read tools.
 
-Production configuration uses the pinned ChatGPT CIMD URL and platform redirect. An empty callback allowlist permits staged OAuth startup while denying every subscription. [Current preparation evidence](../../../outputs/grafana-cimd-20261003/README.md) distinguishes mocked native-provider acceptance from the proxy-blocked live metadata GET. [Human subject helper](deploy/CLOUD_SHELL_GOOGLE_IDENTITY.md) is a standalone file tested only with mocks. The inert live service remains unchanged.
+Production configuration uses the pinned ChatGPT CIMD URL and platform redirect. An empty callback allowlist permits staged OAuth startup while denying every subscription. [Current preparation evidence](../../../outputs/grafana-cimd-20261003/README.md) distinguishes mocked native-provider acceptance from the proxy-blocked live metadata GET. [Human subject helper](deploy/CLOUD_SHELL_GOOGLE_IDENTITY.md) is a standalone file tested only with mocks. The contained application now serves traffic; the inert revision is retained for rollback. See the contained deployment evidence above for current live state.

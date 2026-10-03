@@ -1,0 +1,192 @@
+{
+  "health": {
+    "status": 200,
+    "tlsVerifyResult": 0,
+    "body": {
+      "status": "ok"
+    },
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  "protectedResource": {
+    "status": 200,
+    "tlsVerifyResult": 0,
+    "body": {
+      "resource": "https://alerts.mw-credit.com/mcp",
+      "authorization_servers": [
+        "https://alerts.mw-credit.com/oauth"
+      ],
+      "scopes_supported": [
+        "mcp:events",
+        "mcp:read"
+      ]
+    },
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  "protectedResourceMcp": {
+    "status": 200,
+    "tlsVerifyResult": 0,
+    "body": {
+      "resource": "https://alerts.mw-credit.com/mcp",
+      "authorization_servers": [
+        "https://alerts.mw-credit.com/oauth"
+      ],
+      "scopes_supported": [
+        "mcp:events",
+        "mcp:read"
+      ]
+    },
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  "authorizationMetadata": {
+    "status": 200,
+    "tlsVerifyResult": 0,
+    "body": {
+      "authorization_endpoint": "https://alerts.mw-credit.com/oauth/auth",
+      "claims_parameter_supported": false,
+      "claims_supported": [
+        "sub",
+        "sid",
+        "auth_time",
+        "iss"
+      ],
+      "code_challenge_methods_supported": [
+        "S256"
+      ],
+      "end_session_endpoint": "https://alerts.mw-credit.com/oauth/session/end",
+      "grant_types_supported": [
+        "implicit",
+        "authorization_code",
+        "refresh_token"
+      ],
+      "issuer": "https://alerts.mw-credit.com/oauth",
+      "jwks_uri": "https://alerts.mw-credit.com/oauth/jwks",
+      "authorization_response_iss_parameter_supported": true,
+      "response_modes_supported": [
+        "form_post",
+        "fragment",
+        "query"
+      ],
+      "response_types_supported": [
+        "code id_token",
+        "code",
+        "id_token",
+        "none"
+      ],
+      "scopes_supported": [
+        "openid",
+        "offline_access",
+        "mcp:events",
+        "mcp:read"
+      ],
+      "subject_types_supported": [
+        "public"
+      ],
+      "token_endpoint_auth_methods_supported": [
+        "none"
+      ],
+      "token_endpoint": "https://alerts.mw-credit.com/oauth/token",
+      "id_token_signing_alg_values_supported": [
+        "RS256"
+      ],
+      "pushed_authorization_request_endpoint": "https://alerts.mw-credit.com/oauth/request",
+      "request_uri_parameter_supported": false,
+      "dpop_signing_alg_values_supported": [
+        "ES256",
+        "Ed25519",
+        "EdDSA"
+      ],
+      "revocation_endpoint": "https://alerts.mw-credit.com/oauth/token/revocation",
+      "client_id_metadata_document_supported": true,
+      "claim_types_supported": [
+        "normal"
+      ]
+    },
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    }
+  },
+  "nativeCimdPkceError": {
+    "status": 303,
+    "tlsVerifyResult": 0,
+    "body": "Redirecting to https://chatgpt.com/connector_platform_oauth_redirect?error=invalid_request&amp;error_description=not+supported+value+of+code_challenge_method&amp;state=contained-public-metadata-check&",
+    "headers": {
+      "location": "https://chatgpt.com/connector_platform_oauth_redirect?error=invalid_request&error_description=not+supported+value+of+code_challenge_method&state=contained-public-metadata-check&iss=https%3A%2F%2Falerts.mw-credit.com%2Foauth",
+      "content-type": "text/html; charset=utf-8"
+    }
+  },
+  "ownerDisabledToken": {
+    "status": 403,
+    "tlsVerifyResult": 0,
+    "body": {
+      "error": "access_denied"
+    },
+    "headers": {
+      "content-type": "application/json; charset=utf-8"
+    }
+  },
+  "ownerDisabledInteraction": {
+    "status": 403,
+    "tlsVerifyResult": 0,
+    "body": {
+      "error": "owner_denied"
+    },
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  "ownerDisabledGoogleCallback": {
+    "status": 403,
+    "tlsVerifyResult": 0,
+    "body": {
+      "error": "owner_denied"
+    },
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  "mcpUnauthenticated": {
+    "status": 401,
+    "tlsVerifyResult": 0,
+    "body": {
+      "error": "unauthorized"
+    },
+    "headers": {
+      "content-type": "application/json",
+      "www-authenticate": "Bearer resource_metadata=\"https://alerts.mw-credit.com/.well-known/oauth-protected-resource/mcp\", scope=\"mcp:events mcp:read\""
+    }
+  },
+  "dispatchUnauthenticated": {
+    "status": 401,
+    "tlsVerifyResult": 0,
+    "body": {
+      "error": "scheduler_unauthorized"
+    },
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  "grafanaUnsigned": {
+    "status": 401,
+    "tlsVerifyResult": 0,
+    "body": {
+      "error": "invalid_grafana_timestamp"
+    },
+    "headers": {
+      "content-type": "application/json"
+    }
+  },
+  "dcrAbsent": {
+    "status": 404,
+    "tlsVerifyResult": 0,
+    "body": "Not Found",
+    "headers": {
+      "content-type": "text/plain; charset=utf-8"
+    }
+  }
+}

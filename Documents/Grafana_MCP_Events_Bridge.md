@@ -1,6 +1,6 @@
 # Grafana → ChatGPT/Dots event bridge
 
-**Status, 2 October 2026:** R050 source implementation and synthetic tests, implementation checked; owner approved the scoped deployment bundle at 17:14:50 UTC; execution awaits fresh-environment proof of the approved fixed service-account deployment route. Nothing is live or connected. A callback HTTP success alone will not establish a usable host integration; acceptance requires plugin connection and a synthetic event round trip through the intended ChatGPT/Dots automation.
+**Status, 3 October 2026:** 3 October contained application deployment: revision `mw-grafana-events-00002-nrg` is Ready at 100% traffic with five version-1 mounts, `OWNER_ENABLED=false` and empty deny-all callbacks. Native Cloud Run CIMD/discovery and owner-disabled HTTPS checks passed 12/12; inert revision `00001-rnj` is retained for rollback. Real OAuth/host/events acceptance remains inactive; inherited sink visibility and runtime datastore enforcement remain real-auth prerequisites. [Deployment/recovery evidence](../outputs/grafana-contained-20261003/README.md). R050 remains Open.
 
 Source: [bridge package](../scripts/monitoring/grafana-mcp-bridge/README.md). Evidence: [implementation checks and cost inputs](../outputs/grafana-mcp-bridge-20261002/README.md). Existing [monitoring operations](Resource_Monitoring.md) retain ownership of Grafana rules and mobile IRM delivery. Azure VM power control remains in its existing browser controller; there are no MCP power tools here.
 
