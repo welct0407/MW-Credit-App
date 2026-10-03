@@ -16,8 +16,10 @@ The outgoing JSON/SSE observer logs only `mcp_rpc_result`, a fixed allowlisted m
 
 Baseline revision `mw-grafana-events-00006-qm4` remains Ready with its original image and working Google-secret-2 configuration. If rollback is required, restore 100% traffic to that exact revision through the existing fixed GCP adapter; do not rotate credentials or change callbacks.
 
-## Host verification still pending
+## Live server discovery passes; host catalog exposure pending
 
 [Prior connection/refresh evidence](prior-discovery-evidence.json) shows three authenticated MCP HTTP 200 responses in each window and no OAuth/MCP adapter error events. The owner-reported host was Connected but had no available tools. Local pinned-source discovery advertised tools/events, `tools/list` returned two tools and `events/list` returned one event. HTTP 200 alone could not distinguish success from a JSON-RPC error.
 
 After the browser Refresh tools, read only the new revision's `mcp_rpc_result` entries, projecting timestamp plus the permitted fields. A successful two-tool/one-event result with a still-empty host catalog points to a host ingestion gap; a numeric RPC error identifies a server/protocol diagnosis target. Do not make speculative protocol changes. Callback hostnames remain deliberately unobservable; callback activation requires separately verified host metadata and authority. Scheduler/Grafana/event round-trip acceptance is outside this contained diagnostic step. R050 remains Open.
+
+The parent-triggered Refresh tools at **08:56:16 UTC** produced [three successful live RPC results](refresh-085616.json): `server/discover` at 08:56:21.605018, `tools/list` at 08:56:21.898254 with two tools, and `events/list` at 08:56:21.960060 with one event. No RPC error code appeared in these results. This closes the live server discovery gap. The parent UI was still pending at its handoff; final host catalog exposure is not independently verified. If it remains empty, the remaining diagnosis belongs to host ingestion/catalog exposure. No speculative protocol change is supported.
