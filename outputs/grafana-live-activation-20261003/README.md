@@ -1,0 +1,25 @@
+# Approved live Scheduler activation — 3 October 2026
+
+Owner explicitly approved activating notifications for existing performance alerts while retaining mobile alerts, one-minute dispatch and firing/resolved notifications only, without automatic remediation. This executor owns the GCP Scheduler portion; parent owns Grafana UI routing and host automation filters. No parent UI result is inferred from Scheduler readiness.
+
+## Applied configuration
+
+Existing job `projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch` is **ENABLED**, schedule **`* * * * *`**, timezone **`Asia/Singapore`**, independently verified at **11:21:03 UTC**. Prior baseline was **PAUSED**, annual schedule `0 0 1 1 *` / `Etc/UTC`, backed up in the exact operation evidence before mutation. Clean branch/source baseline: `379aba00b4596dd4f557a52b31b9c14542c106c6`.
+
+Target remains POST `{}` (base64 `e30=`), content type application/json, to `https://alerts.mw-credit.com/internal/dispatch`. Existing OIDC identity `mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com` and exact endpoint audience are unchanged. Deadline remains **240 seconds**; Scheduler retry count **0** and max retry duration **0s**, with the complete retry configuration unchanged. HTTP target, deadline, retry configuration and description were compared equal before/after. The retained description is historical test/setup text; actual behavior is established by schedule/state readback.
+
+The guarded `/workspace/.setup/cloud-gcloud` adapter uses existing fixed `codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com`. Updated only schedule/timezone while PAUSED, verified preservation, resumed, then independently verified ENABLED. There was **no manual run or synthetic resend**, IAM grant, secret/credential read, runtime deployment/config change or parent UI action. Cloud Run baseline readback verifies unchanged Ready revision `mw-grafana-events-00009-487`, 100% traffic and existing runtime identity. Callback host/capture and five secret pins are reused from that unchanged verified revision; no payload read.
+
+[Exact sanitized baseline/update/resume/readbacks](scheduler-activation.json). Current AGENTS, repository/ownership workflow, model mapping and relevant release procedure were reread; workspace/repository `.agents/skills` remain absent. This is bounded operational activation of the existing deployed bridge; no AppSheet/SQL package, RC, full-release freeze/number handoff, release tag or default-branch publication is included. R050 and other task work remain preserved.
+
+## Scheduled execution verification
+
+The first natural tick reached the unchanged revision at **11:22:00.819571 UTC**, returned **HTTP 200**, and logged `dispatch_completed` **count 0** at **11:22:00.895996 UTC**. Scheduler `AttemptFinished` independently recorded **HTTP 200** at **11:22:03.442438 UTC**. Bounded observation also captured the subsequent 11:23 tick with HTTP200/count0. Final job readback remains ENABLED with correct minute schedule/timezone and success status. No manual run or synthetic resend was requested; these were natural empty outbox drains. Relevant configuration/preservation assertions and diff checks passed; unchanged source tests were not rerun. Parent manages Grafana/host activation separately; live alert routing/delivery is not established by empty ticks. Earlier [end-to-end synthetic acceptance](../grafana-synthetic-notification-20261003/README.md#end-to-end-notification-verified) is valid and was not repeated.
+
+## Rollback
+
+For authorized containment/recovery, pause only `mw-grafana-dispatch` through the same adapter; verify PAUSED. While paused, update schedule back to `0 0 1 1 *` and timezone `Etc/UTC`, and verify original target/OIDC/deadline/retry fields against saved baseline. Do not restore queues or delete delivered state; in-flight accepted delivery may complete. Coordinate only the newly added Grafana route with parent, preserving existing mobile/IRM routes and host persistent triggers. No rollback was performed on this successful configuration update. Repo recovery is a scoped normal revert after checking later work.
+
+## Parent UI checkpoint and cleanup inventory
+
+Parent reports the existing host automation `6ac0d235a960819184f5ab616a6acf0f` was updated at 11:20:44 UTC to PerformanceAlertNotifications, filtered to ten existing Performance2m alert names plus firing/resolved. Parent prepared the additive webhook in MWPerformanceIRM while preserving MWPerformanceMonitoring; secure owner HMAC entry and Save remain pending. No live Grafana save is claimed here. Parent owns redundant wrapper/test-contact-point cleanup. [Scoped cloud/source cleanup inventory and exact candidate](CLEANUP.md): one untagged bootstrap digest is unreferenced by the inventoried bridge revisions; current/rollback revisions/images, all secrets and durable state are retained. No deletion or source/runtime cleanup was performed; exact destructive actions await scoped approval.
