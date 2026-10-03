@@ -25,6 +25,8 @@ Tests use synthetic credentials, in-memory storage, simulated DNS/callbacks and 
 
 `tools/cost-assumptions.json` contains editable USD workload/rate inputs. `node tools/estimate-cost.mjs [path-to-assumptions.json]` emits reproducible scenarios. It does not inspect billing or measure Cloud Run latency.
 
+For the saved Codex Cloud environment, dependency downloads use its existing proxy. Supply standard Docker proxy build arguments and the existing public trust certificate with `--secret id=build-ca,src=<existing NODE_EXTRA_CA_CERTS path>`. The optional BuildKit CA mount applies only to dependency installation, remains out of image layers/runtime trust, and keeps TLS verification enabled. When the proxy hostname is unavailable in build DNS, map that same hostname to its address returned by the host resolver for this invocation; do not change network policy or bypass a denial. Builds without that mount use their normal system trust.
+
 The container uses a pinned Linux amd64 Node image, a locked dependency tree and the non-root `node` user. No credentials or local environment files are copied. Runtime configuration is validated at startup; secrets come only from mounted files. The process uses workload ADC for Firestore and Google public signing keys for token verification.
 
 ## Source map
