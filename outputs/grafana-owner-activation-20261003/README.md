@@ -1,5 +1,7 @@
 # Owner-only authentication activation — 3 October 2026
 
+**Current follow-up:** owner sign-in fails in the real callback flow. [Diagnostic revision 00004-cff](../grafana-oauth-diagnostics-20261003/README.md) is serving; authentication is not yet fixed. The package below is reconciled to the parent-verified 0.1.1 cloud binding.
+
 The owner approved this authentication/private-connection stage at 06:26 UTC.
 The parent separately supplied successful human-owner organization sink reads:
 three sinks, only one aggregated `includeChildren` sink, filtered to Cloud Audit
@@ -41,35 +43,23 @@ Ready. For the scoped rollback, route traffic back using the existing adapter:
 /workspace/.setup/cloud-gcloud gcloud -- run services update-traffic mw-grafana-events --region=asia-southeast1 --to-revisions=mw-grafana-events-00002-nrg=100
 ```
 
-## Private plugin package for parent upload
+## Private cloud plugin source reconciliation
 
-[mw-grafana-events.zip](mw-grafana-events.zip) contains exactly:
+The parent verified the existing private app registration and plugin release
+`pluginrel_6ac0b48291e8819199551306c78a187f` (0.1.1). The required app binding is
+`asdk_app_6ac0b2c350fc8191b08fbc67fca9696e`; plugin identity is unchanged.
+Raw portable MCP configuration previously supplied a desktop-only connection.
+The revised [source](mw-grafana-events/) and [archive](mw-grafana-events.zip) now
+match the parent-approved cloud binding, preserving all listing metadata and
+the default prompt. This executor did not change the account plugin.
 
-```text
-mw-grafana-events/README.md
-mw-grafana-events/mcp.json
-mw-grafana-events/plugin.json
-```
+The archive contains `.app.json`, `.mcp.json`, `.codex-plugin/plugin.json`,
+`plugin.json`, `mcp.json` and `README.md` under one `mw-grafana-events/` directory.
+Both MCP configurations have empty `mcpServers`; both manifests reference the
+verified required app. See [package verification](plugin-package-verification.json)
+for hashes/schema checks and [package README](mw-grafana-events/README.md) for
+exact current behavior. The cloud listing/Apps 1/Connect checks are parent-supplied
+evidence. Authentication and authenticated MCP acceptance remain unresolved.
 
-[Package verification](plugin-package-verification.json) records archive size,
-SHA-256, entries and successful validation against the official Agent Plugins
-1.0 manifest/MCP schemas. [Manifest source](mw-grafana-events/plugin.json) uses the
-private listing **MW Grafana Events**. [MCP source](mw-grafana-events/mcp.json)
-declares only the verified `streamable-http` endpoint
-`https://alerts.mw-credit.com/mcp`; it contains no authentication headers, app IDs,
-secrets, owner identifiers or guessed callback destinations.
-
-The parent must retrieve the published source/archive into **its own workspace**
-before private upload. The child task's temporary path is not a shared path.
-If rebuilding from source, ZIP the single `mw-grafana-events/` directory with
-these three files. Upload through the supported private-plugin account flow
-using the parent's actual local archive path. Then let the owner complete Google
-consent in the host's secure connection flow. No account plugin was created by
-this executor; no placeholder or duplicate plugin was created.
-
-Authenticated live MCP discovery and read-only tool acceptance remain pending
-that consent. Tool names `get_bridge_health` and `get_alert_event` were checked
-against the source, not discovered using a live grant. Host callback metadata,
-subscription/delivery checks and Scheduler/Grafana activation remain a separate
-stage. No event callback is guessed or permitted here. R050 remains Open and
-PR 3 remains draft.
+Keep callback hosts empty, event subscriptions denied, Scheduler absent and
+Grafana unchanged. R050 remains Open; PR 3 remains draft.
