@@ -2,7 +2,7 @@
 
 The Payment processing group is live below the overview (25 September). It implements the [monitoring handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md); see the stage-by-stage guide below.
 
-Last updated: **25 September 2026**. Covers the maintained Performance and Cost definitions, including compact status tiles and OpenAI incident hover details. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details.
+Last updated: **3 October 2026** (documentation reconciliation of recorded alert additions and receipt semantics; no live dashboard change). Covers the maintained Performance and Cost definitions, including compact status tiles and OpenAI incident hover details. This is the user guide; [Resource Monitoring](Resource_Monitoring.md) owns setup, access, collection, recovery and configuration details. Dots follows the [alert troubleshooting runbook](Grafana_Alert_Troubleshooting_Runbook.md) for incident response.
 
 - [Open Performance](https://monitor.mw-credit.com/d/mw-resource-performance)
 - [Open Cost](https://monitor.mw-credit.com/d/mw-resource-cost)
@@ -15,7 +15,7 @@ Performance's large CPU/RAM numbers show the **last available sample in the sele
 
 Availability lights describe current health at refresh time. They are not uptime percentages or incident history. Most depend on Debian telemetry; the external webhook and OpenAI provider checks do not. Historical date ranges can exclude recent Debian samples and produce Unknown; use a range ending at now for operational checks. OpenAI always retrieves the current published status, regardless of the selected historical range.
 
-Percent/count/throughput labels generally use whole numbers. Fractional CPU cores, GB and money retain useful precision. A red reference line marks a documented capacity/configuration limit, not a universal warning threshold. Green CPU/RAM chart styling does not by itself certify healthy operation. Nine active Performance alert rules send mobile push through IRM; three of them evaluate multiple separately labeled tile conditions. Alerts do not alter chart values or add threshold lines.
+Percent/count/throughput labels generally use whole numbers. Fractional CPU cores, GB and money retain useful precision. A red reference line marks a documented capacity/configuration limit, not a universal warning threshold. Green CPU/RAM chart styling does not by itself certify healthy operation. Ten Performance alert rules are documented with mobile push through IRM, including the 26 September backup addition; four evaluate multiple separately labeled tile conditions. Alerts do not alter chart values or add threshold lines.
 
 ## Performance — alerts linked to visuals
 
@@ -25,7 +25,8 @@ The following rules evaluate every two minutes with a rolling ten-minute query w
 |---|---|---|---|
 | 51 | External webhook DEGRADED or DOWN (at least one fresh region failed) | 10 min | Requires all three regional reports within 12 minutes; stale or missing checks stay Unknown and do not page. |
 | 52, 53, 56, 57, 60–67 | See the Debian component mapping below | 4 min | Each component has its own alert instance; fresh Down/Degraded pages. Receipts and polling also page for missing, stale or invalid/Unknown telemetry. Fresh intentional Paused does not. |
-| 80–83 | Metabase platform, application DB, reporting DB and Charts | 4 min | Four separate instances in one rule; fresh Down or Degraded pages. Unknown, missing and stale telemetry do not trigger a new page. |
+| 80–83, 86 | Metabase platform, application DB, reporting DB, Charts and PITR | 4 min | Five separate instances in one rule; fresh Down or Degraded pages. Unknown, missing and stale telemetry do not trigger a new page. |
+| 84, 85 | Metabase scheduled Daily/Weekly backups | 4 min | Separate instances; missing schedule or overdue scheduled snapshot pages, with first-run grace. See the Metabase traffic-light thresholds below. |
 | 54, 55 | Published ChatGPT or Codex status DEGRADED or DOWN | 10 min | Separate alert instance per product; a non-operational component or active incident in its current product group pages. Unrecognized/missing source data stays Unknown. |
 | 50, 34 | Cloud SQL backend count above **160** | 10 min | Early warning at 80% of configured 200. The red chart line still marks 200; reserved PostgreSQL slots lower ordinary-client capacity. |
 | 4, 31 | Cloud SQL CPU above **85%** | 10 min | Five-minute mean; 85% is an operational warning, while the chart's 100% line is capacity. |
@@ -51,7 +52,7 @@ Panel IDs below are maintenance references, unique **within each page**. Names r
 | 74 | METABASE · PLATFORM | Platform and application database, right side of row 3. |
 | 75 | METABASE · REPORTING | Reporting connection and custom Charts service, right side of row 4. |
 
-These seven labels are vertically centered in slim strips. The values in the 20 small status/data tiles are horizontally centered beneath their labels. Component icons are Unicode pictograms, not official vendor logos. The four expandable detail headers identify Azure VM-01 (ID 10), the GCP Debian VM (20), shared Cloud SQL (30), and Railway production (40); they organize charts and do not report health themselves.
+These seven labels are vertically centered in slim strips. The values in the 23 small status/data tiles are horizontally centered beneath their labels, including the later Metabase Recovery additions. Component icons are Unicode pictograms, not official vendor logos. The four expandable detail headers identify Azure VM-01 (ID 10), the GCP Debian VM (20), shared Cloud SQL (30), and Railway production (40); they organize charts and do not report health themselves.
 
 ## Performance — CPU and RAM overview
 
@@ -266,7 +267,7 @@ Twenty-three tiles fit into the existing two availability rows: the original fou
 
 The four **Live** checks run concurrently from Debian about every two minutes. Green means the expected result within five seconds; amber means a passing probe took longer than five seconds; red means a failed/unexpected response or network timeout. Five seconds is an operational warning, not a provider limit. Probe credentials/rate failures (401/403/429) and unexpected probe errors are Unknown. Missing telemetry or telemetry older than six minutes is also Unknown. HTTP 202 for a completed Metabase query is normal. Live hover shows the check, result category, HTTP code, duration and observed time in Singapore. The two backup lights query Railway directly; the PITR light uses Debian telemetry. Clicking opens the respective service. A listed snapshot and a healthy PITR archive do **not** verify that a restore succeeds.
 
-The four Live tiles and PITR tile share `MW | Metabase component unhealthy`; Daily and Weekly share `MW | Metabase scheduled backup unhealthy`. Each rule evaluates its components separately every two minutes and sends firing/resolved notifications through the existing IRM phone route after a four-minute pending period. Fresh Down/Degraded starts an alert; a backup schedule missing/overdue starts an alert after the first-run grace. Missing/stale PITR telemetry or Unknown does not start a new alert; query errors keep the previous rule state, so inspect rule health if collection stops. A Debian outage makes Live and PITR Unknown even if Metabase remains available. The Metabase addition preserved the established eight rules. The subsequent receipt monitoring change below updates the Debian rule without adding another rule.
+The four Live tiles and PITR tile share `MW | Metabase component unhealthy`; Daily and Weekly share `MW | Metabase scheduled backup unhealthy`. Each rule evaluates its components separately every two minutes and sends firing/resolved notifications through the existing IRM phone route after a four-minute pending period. Fresh Down/Degraded starts an alert; a backup schedule missing/overdue starts an alert after the first-run grace. Missing/stale PITR telemetry or Unknown does not start a new alert; query errors keep the previous rule state, so inspect rule health if collection stops. A Debian outage makes Live and PITR Unknown even if Metabase remains available. The Metabase Live rule preserved the established eight rules; the later backup rule brings the documented total to ten. The subsequent receipt monitoring change below updates the Debian rule without adding another rule.
 
 
 ## Payment processing — Instagram to recorded payment
@@ -286,7 +287,7 @@ This second group follows the overview and precedes infrastructure charts. Eight
 
 Queue values must share the newest status sample timestamp. Missing, invalid, mismatched, paused, older-than-six-minute or more-than-two-minute-future samples show **Unavailable**, never a healthy zero. Invalid health shows Unknown. Current cards follow the selected range; a historical range excluding fresh samples is unavailable, as each description explains. Use a range ending now. Provider/query failures display an error rather than fabricated counts.
 
-Stalled work: PENDING/VALIDATED older than ten minutes, REVIEW_REQUESTED without a proposal older than five minutes, or APPROVED older than ten minutes. Missing hold/review/result delivery becomes unhealthy after five minutes. PENDING review older than two hours is overdue. POSTING/UNKNOWN is unhealthy immediately, subject to collection and the alert's four-minute pending period. Ages use existing creation timestamps, not exact time in each sub-stage. Already notified manual holds alone do not degrade health.
+Stalled work: PENDING/VALIDATED older than ten minutes, REVIEW_REQUESTED without a proposal older than five minutes, or APPROVED older than ten minutes. Missing required hold/review delivery becomes unhealthy after five minutes. Since worker revision 25 (2 October), optional Partner-result delivery failures remain visible in panel 107 but do not degrade receipt processing; green Receipts does not prove all confirmations were delivered. The [operating correction](Resource_Monitoring.md#receipt-processing-versus-optional-notification-health--2-october-2026) records pending live text alignment. PENDING review older than two hours is overdue. POSTING/UNKNOWN is unhealthy immediately, subject to collection and the alert's four-minute pending period. Ages use existing creation timestamps, not exact time in each sub-stage. Already notified manual holds alone do not degrade health.
 
 The existing Debian rule, evaluated every two minutes with four-minute pending, carries these findings to **MW Performance IRM**. Missing/stale/Unknown receipt or polling telemetry also alerts; no-data and execution errors enter Alerting. Other Debian components retain fresh Down/Degraded checks. Intentional fresh Paused does not page. Monitoring only observes: it never posts, approves, replays or clears business work.
 
