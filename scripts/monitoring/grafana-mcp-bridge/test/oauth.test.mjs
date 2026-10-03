@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {adapterFactory,validateGoogleIdentity} from '../dist/oauth.js';
+import {adapterFactory,validateGoogleIdentity,googleLogin} from '../dist/oauth.js';
+import {OAuth2Client} from 'google-auth-library';
 import {MemoryStore} from '../dist/store.js';
 import {application,authorize,tokenExchange,mcpRequest,config,subscription,BrowserCookieJar,fixture,echo} from './helpers.mjs';
 import {open,seal} from '../dist/events.js';
@@ -90,4 +91,45 @@ test('Google owner check rejects wrong subject/email/unverified identity or nonc
   const conf=config(),payload={sub:conf.ownerSub,email:conf.ownerEmail,email_verified:true,nonce:'nonce'};
   assert.equal(validateGoogleIdentity(payload,conf,'nonce'),conf.ownerSub);
   for(const p of [{...payload,sub:'attacker'},{...payload,email:'attacker@example.com'},{...payload,email_verified:false},{...payload,nonce:'other'},undefined])assert.throws(()=>validateGoogleIdentity(p,conf,'nonce'));
+});
+
+test('Google exchange diagnostics allow only fixed categories and never expose upstream payloads',async t=>{
+  const marker='sentinel-private-code-cookie-token-url';let output='';
+  const originalWrite=process.stdout.write.bind(process.stdout);
+  t.mock.method(process.stdout,'write',(chunk,...args)=>{if(typeof chunk==='string' && chunk.startsWith('{"event":')){output+=chunk;return true;}return originalWrite(chunk,...args);});
+  const getToken=t.mock.method(OAuth2Client.prototype,'getToken');
+  for(const [upstream,expected] of [['invalid_client','invalid_client'],['invalid_grant','invalid_grant'],[marker,'unexpected']]) {
+    getToken.mock.mockImplementation(async()=>{throw Object.assign(new Error(marker),{response:{data:{error:upstream,error_description:marker}},config:{url:marker,headers:{cookie:marker}}});});
+    await assert.rejects(()=>googleLogin(config()).complete(marker,marker,marker),error=>error.reason==='google_sign_in_exchange_failed' && error.status===502);
+    assert.ok(output.includes('oauth_google_exchange_'+expected));
+  }
+  assert.equal(output.includes(marker),false);
+});
+
+test('Google ID-token verification failure stays closed with credential-free diagnostics',async t=>{
+  const marker='sentinel-private-id-token';let output='';
+  const originalWrite=process.stdout.write.bind(process.stdout);
+  t.mock.method(process.stdout,'write',(chunk,...args)=>{if(typeof chunk==='string' && chunk.startsWith('{"event":')){output+=chunk;return true;}return originalWrite(chunk,...args);});
+  t.mock.method(OAuth2Client.prototype,'getToken',async()=>({tokens:{id_token:marker}}));
+  t.mock.method(OAuth2Client.prototype,'verifyIdToken',async()=>{throw new Error(marker);});
+  await assert.rejects(()=>googleLogin(config()).complete('synthetic','synthetic','synthetic'),error=>error.reason==='google_sign_in_verify_failed' && error.status===502);
+  assert.ok(output.includes('oauth_google_verify_unexpected'));assert.equal(output.includes(marker),false);
+});
+
+test('full advertised OIDC and MCP scope set completes the synthetic provider flow',async t=>{
+  const app=await application();t.after(()=>app.close());
+  const grant=await authorize(app,{scope:'openid offline_access mcp:events mcp:read'});
+  const response=await tokenExchange(app,grant.code,grant.verifier);
+  assert.equal(response.status,200);assert.ok(response.json().id_token);assert.ok(response.json().refresh_token);
+});
+
+test('interaction storage failure identifies its phase without leaking exception details',async t=>{
+  const app=await application();t.after(()=>app.close());let output='';
+  const originalWrite=process.stdout.write.bind(process.stdout);
+  t.mock.method(process.stdout,'write',(chunk,...args)=>{if(typeof chunk==='string' && chunk.startsWith('{"event":')){output+=chunk;return true;}return originalWrite(chunk,...args);});
+  t.mock.method(app.store,'get',async()=>{throw Object.assign(new Error('sentinel-private-storage-context'),{code:7});});
+  const response=await app.call('/oauth/interaction/synthetic');
+  assert.equal(response.status,500);assert.deepEqual(response.json(),{error:'request_failed'});
+  assert.ok(output.includes('oauth_owner_check_datastore_permission'));
+  assert.equal(output.includes('sentinel-private-storage-context'),false);
 });

@@ -8,6 +8,25 @@ import type { Store } from './store.js';
 import { open, seal } from './events.js';
 import { equal, hash, logEvent, SafeError } from './security.js';
 
+// Never log an exception, message, response body, URL or token. Only these
+// fixed categories may distinguish upstream rejection from local failures.
+function oauthFailureCategory(error:unknown) {
+  const value=error as {code?:unknown;response?:{data?:{error?:unknown}}}|undefined;
+  const upstream=value?.response?.data?.error;
+  if(upstream==='invalid_client' || upstream==='invalid_grant' || upstream==='invalid_request')return upstream;
+  if(value?.code===7)return 'datastore_permission';
+  if(value?.code===9)return 'datastore_precondition';
+  if(value?.code==='ENOTFOUND' || value?.code==='EAI_AGAIN' || value?.code==='ETIMEDOUT' || value?.code==='ECONNRESET')return 'network';
+  return 'unexpected';
+}
+async function googleStep<T>(stage:'exchange'|'verify',operation:()=>Promise<T>):Promise<T> {
+  try {return await operation();}
+  catch(error) {
+    logEvent('oauth_google_'+stage+'_'+oauthFailureCategory(error));
+    throw new SafeError('google_sign_in_'+stage+'_failed',502);
+  }
+}
+
 /** Encrypted durable adapter. IDs/indexes are hashes; token values never appear as document IDs. */
 export function adapterFactory(store:Store,key:Buffer,issuer:string,now=()=>Date.now()) {
   return class Adapter {
@@ -61,9 +80,9 @@ export function googleLogin(config:Config):GoogleLogin {
       return {url:client.generateAuthUrl({scope:['openid','email'],state,nonce,code_challenge:pkce.codeChallenge,code_challenge_method:'S256' as any,prompt:'select_account'}),verifier:pkce.codeVerifier};
     },
     async complete(code,verifier,nonce) {
-      const {tokens}=await client.getToken({code,codeVerifier:verifier,redirect_uri:config.googleRedirectUri});
+      const {tokens}=await googleStep('exchange',()=>client.getToken({code,codeVerifier:verifier,redirect_uri:config.googleRedirectUri}));
       if(!tokens.id_token)throw new SafeError('google_missing_id_token');
-      const ticket=await client.verifyIdToken({idToken:tokens.id_token,audience:config.googleClientId});
+      const ticket=await googleStep('verify',()=>client.verifyIdToken({idToken:tokens.id_token!,audience:config.googleClientId}));
       return validateGoogleIdentity(ticket.getPayload(),config,nonce);
     },
   };
@@ -106,11 +125,15 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
     await next();
   });
   const route=async (req:IncomingMessage,res:ServerResponse,path:string,url:URL)=>{
+    let stage:'provider'|'owner_check'|'callback_state'|'interaction_lookup'|'state_consume'|'google_complete'|'login_finish'|'google_begin'|'state_save'|'grant_save'|'consent_finish'='provider';
+    try {
     (req as any).baseUrl='/oauth';
     (req as any).originalUrl=req.url;
     if(path.startsWith('/oauth/interaction/') || path==='/oauth/google/callback') {
+      stage='owner_check';
       if(req.method!=='GET' || !(await ownerActive()))throw new SafeError('owner_denied',403);
       if(path==='/oauth/google/callback') {
+        stage='callback_state';
         // The provider scopes its signed interaction cookie to /interaction/<uid>.
         // Google cannot return to a dynamic registered URI, so bounce the unchanged
         // code/state to that cookie path before reading/consuming browser authority.
@@ -122,6 +145,7 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
         target.search=new URLSearchParams({state,code}).toString();
         res.writeHead(302,{Location:target.toString(),'Cache-Control':'no-store'});res.end();return;
       }
+      stage='interaction_lookup';
       const details=await provider.interactionDetails(req,res).catch(error=>{
         if(error instanceof errors.SessionNotFound)throw new SafeError('interaction_session_missing');
         throw error;
@@ -130,24 +154,30 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
       if(path===interactionPath+'/google/callback') {
         const state=url.searchParams.get('state') ?? '',code=url.searchParams.get('code');
         if(!state || !code)throw new SafeError('google_callback_invalid');
+        stage='state_consume';
         const saved=await store.atomic(async tx=>{
           const row=await tx.get('googleStates/'+hash(state));
           if(!row || row.expiresAt<=Date.now() || row.uid!==details.uid)throw new SafeError('google_state_invalid');
           tx.delete('googleStates/'+hash(state));return row;
         });
         const login=JSON.parse(open(saved.encrypted,config.stateKey));
+        stage='google_complete';
         const accountId=await upstream.complete(code,login.verifier,login.nonce);
         if(accountId!==config.ownerSub || !(await ownerActive()))throw new SafeError('google_owner_denied',403);
+        stage='login_finish';
         await provider.interactionFinished(req,res,{login:{accountId}},{mergeWithLastSubmission:false});return;
       }
       if(path!==interactionPath)throw new SafeError('interaction_mismatch');
       if(details.prompt.name==='login') {
         const state=randomBytes(32).toString('base64url'),nonce=randomBytes(32).toString('base64url');
+        stage='google_begin';
         const start=await upstream.begin(state,nonce);
+        stage='state_save';
         await store.atomic(async tx=>{tx.set('googleStates/'+hash(state),{uid:details.uid,encrypted:seal(JSON.stringify({nonce,verifier:start.verifier}),config.stateKey),expiresAt:Date.now()+600_000,deleteAfter:new Date(Date.now()+86400_000)});});
         res.writeHead(302,{Location:start.url,'Cache-Control':'no-store'});res.end();return;
       }
       if(details.prompt.name==='consent' && details.session?.accountId===config.ownerSub) {
+        stage='grant_save';
         const grant=details.grantId ? await provider.Grant.find(details.grantId) : new provider.Grant({accountId:config.ownerSub,clientId:config.clientId});
         if(!grant)throw new SafeError('grant_missing');
         const missing=details.prompt.details;
@@ -158,6 +188,7 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
           grant.addResourceScope(resource,scopes as string[]);
         }
         const grantId=await grant.save();
+        stage='consent_finish';
         await provider.interactionFinished(req,res,{consent:{grantId}},{mergeWithLastSubmission:true});return;
       }
       throw new SafeError('unsupported_interaction');
@@ -165,6 +196,10 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
     // Provider is mounted at /oauth; preserve originalUrl for correct issuer routing.
     const original=req.url;req.url=req.url!.slice('/oauth'.length) || '/';
     try {await provider.callback()(req,res);} finally {req.url=original;}
+    } catch(error) {
+      if(!(error instanceof SafeError))logEvent('oauth_'+stage+'_'+oauthFailureCategory(error));
+      throw error;
+    }
   };
   const authenticate=async (header:string|undefined,scope:string)=>{
     if(!(await ownerActive()) || !header?.startsWith('Bearer '))throw new SafeError('unauthorized',401);

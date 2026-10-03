@@ -1,9 +1,4 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
-  "mcpServers": {
-    "mw-grafana-events": {
-      "type": "streamable-http",
-      "url": "https://alerts.mw-credit.com/mcp"
-    }
-  }
+  "mcpServers": {}
 }

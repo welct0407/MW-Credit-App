@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "mw-grafana-events",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Private owner-authenticated connection to MW Credit Grafana alert history and bridge health. Event delivery requires separate approved activation.",
   "author": {
     "name": "MW Credit"
@@ -18,7 +18,8 @@
           "Interactive"
         ],
         "defaultPrompt": "Check the monitoring bridge health and help me inspect a known alert event."
-      }
+      },
+      "apps": "./.app.json"
     }
   }
 }
