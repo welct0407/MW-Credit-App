@@ -1,5 +1,8 @@
 # Open development differences
 
+3 October organization logging check: the exact user-approved read-only adapter correction passed 30 offline tests and reached the Logging API, which denied `logging.sinks.list` on organization `594773370606`. No sink configurations were returned; ancestor retention remains unknown and real owner auth remains inactive. No IAM/network/runtime change or bypass followed. [Result and bounded reproduction patch](../outputs/grafana-contained-20261003/adapter-org-sink-fix/README.md).
+
+
 3 October bounded runtime verification: the single synthetic non-issued revocation probe returned HTTP 200/empty body with verified TLS, establishing source-backed named-Firestore read acceptance. Owner remains disabled and callbacks deny-all; cross-database empirical denial is not applicable to the single-database inventory. Organization non-intercepting sink evidence remains pending before real auth. [Result and rationale](../outputs/grafana-contained-20261003/README.md#single-bounded-runtime-read--3-october-0513-utc).
 
 3 October contained application deployment: revision `mw-grafana-events-00002-nrg` is Ready at 100% traffic with five version-1 mounts, `OWNER_ENABLED=false` and empty deny-all callbacks. Native Cloud Run CIMD/discovery and owner-disabled HTTPS checks passed 12/12; inert revision `00001-rnj` is retained for rollback. Real OAuth/host/events acceptance remains inactive; runtime named-database reads pass the bounded synthetic probe; organization non-intercepting sink evidence remains a real-auth prerequisite. [Deployment/recovery evidence](../outputs/grafana-contained-20261003/README.md). R050 remains Open.
