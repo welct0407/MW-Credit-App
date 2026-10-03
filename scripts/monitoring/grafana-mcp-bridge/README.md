@@ -1,6 +1,6 @@
 # Grafana MCP Events bridge
 
-R050 development implementation; **temporary hostname-capture revision 00008-6r2 is Ready at 100% traffic for one controlled synthetic retry**. Owner-only auth, original callback denial and event discovery are preserved. Google secret2/otherfour1 remain pinned, callbacks deny-all and Scheduler/Grafana inactive. [Current diagnostic and rollback](../../../outputs/grafana-callback-host-diagnostic-20261003/README.md).
+R050 development implementation; **revision 00009-487 is Ready at 100% traffic with approved exact callback host connectors.api.openai.com and temporary hostname capture disabled**. Immutable image, owner-only auth and five secret pins are preserved. Parent synthetic-only subscription/one notification acceptance is pending; Scheduler and live Grafana routing are unchanged. [Current approval and rollback](../../../outputs/grafana-callback-approval-20261003/README.md).
 
 The [design and operating guide](../../../Documents/Grafana_MCP_Events_Bridge.md) owns deployment prerequisites, OAuth, durable delivery, security, cost and recovery. `deploy/service.yaml.example` is a review template with unresolved placeholders, not an executable deployment instruction.
 
