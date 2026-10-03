@@ -8,6 +8,7 @@ import { Bridge, EVENT_NAME, Filters, Payload, type EventRecord } from './events
 import { createOAuth, type GoogleLogin } from './oauth.js';
 import { hash, logEvent, SafeError, verifyGrafana, type CallbackTransport } from './security.js';
 import type { Store } from './store.js';
+import { observeRpcResponse } from './rpc-diagnostics.js';
 
 export async function body(req:IncomingMessage,max=262144):Promise<Buffer> {
   const chunks:Buffer[]=[];let size=0;
@@ -60,7 +61,8 @@ export function createApp(config:Config,store:Store,send:CallbackTransport,depen
     }));
     return server;
   },{legacy:'reject',maxRequestBodySize:262144,onerror:()=>logEvent('mcp_error')});
-  const adapter=toNodeHandler(mcp,{maxRequestBodySize:262144,onerror:()=>logEvent('mcp_adapter_error')});
+  const observedMcp:typeof mcp={...mcp,fetch:async(request,options)=>observeRpcResponse(request.headers.get('mcp-method'),await mcp.fetch(request,options))};
+  const adapter=toNodeHandler(observedMcp,{maxRequestBodySize:262144,onerror:()=>logEvent('mcp_adapter_error')});
   const verifyScheduler=dependencies.scheduler ?? schedulerVerifier(config);
   const handler=async(req:IncomingMessage,res:ServerResponse)=>{
     try {
