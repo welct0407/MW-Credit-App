@@ -35,7 +35,7 @@ class Tests(unittest.TestCase):
 
     def test_success_only_public_identity_fields(self):
         obj, calls = self.identity()
-        with patch.dict(m.os.environ, {}, clear=True), patch.object(m.shutil, 'which', return_value='/synthetic/gcloud'):
+        with patch.object(m.os, 'name', 'posix'), patch.dict(m.os.environ, {}, clear=True), patch.object(m.shutil, 'which', return_value='/synthetic/gcloud'):
             result = obj.verify()
         self.assertEqual(result, {k: GOOD[k] for k in ('sub', 'email', 'email_verified')})
         self.assertNotIn(TOKEN, json.dumps(result)+repr(calls))
@@ -43,22 +43,28 @@ class Tests(unittest.TestCase):
     def test_wrong_active_or_impersonation_stops_before_token(self):
         for active, imp in [('other@example.com', '(unset)'), (m.OWNER, 'service@example.com')]:
             obj, calls = self.identity(active, imp)
-            with patch.dict(m.os.environ, {}, clear=True), patch.object(m.shutil, 'which', return_value='gcloud'):
+            with patch.object(m.os, 'name', 'posix'), patch.dict(m.os.environ, {}, clear=True), patch.object(m.shutil, 'which', return_value='gcloud'):
                 with self.assertRaises(m.Stop): obj.verify()
             self.assertFalse(any('print-access-token' in c for c in calls))
 
     def test_credential_overrides_stop(self):
         for name in ['CLOUDSDK_AUTH_IMPERSONATE_SERVICE_ACCOUNT', 'CLOUDSDK_AUTH_ACCESS_TOKEN', 'GOOGLE_APPLICATION_CREDENTIALS']:
             obj, calls = self.identity()
-            with patch.dict(m.os.environ, {name: 'synthetic'}, clear=True):
+            with patch.object(m.os, 'name', 'posix'), patch.dict(m.os.environ, {name: 'synthetic'}, clear=True):
                 with self.assertRaises(m.Stop): obj.verify()
             self.assertEqual(calls, [])
 
     def test_invalid_owner_claims_stop(self):
         for payload in [{**GOOD, 'sub': ''}, {**GOOD, 'sub': 'unsafe\n'}, {**GOOD, 'email': 'other@example.com'}, {**GOOD, 'email_verified': False}, {**GOOD, 'email_verified': 'true'}, []]:
             obj, _ = self.identity(payload=payload)
-            with patch.dict(m.os.environ, {}, clear=True), patch.object(m.shutil, 'which', return_value='gcloud'):
+            with patch.object(m.os, 'name', 'posix'), patch.dict(m.os.environ, {}, clear=True), patch.object(m.shutil, 'which', return_value='gcloud'):
                 with self.assertRaises(m.Stop): obj.verify()
+
+    def test_non_linux_stops_before_any_credential_command(self):
+        obj, calls = self.identity()
+        with patch.object(m.os, 'name', 'nt'):
+            with self.assertRaises(m.Stop): obj.verify()
+        self.assertEqual(calls, [])
 
     def test_command_captures_and_never_replays_sdk_token(self):
         obj = m.Identity();obj.gcloud = '/synthetic/gcloud'
