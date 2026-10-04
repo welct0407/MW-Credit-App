@@ -1,4 +1,6 @@
-# Concrete rollout scope — approval pending
+# Concrete rollout scope — telemetry approved; IRM alerts uncreated
+
+Owner approved the scoped existing Cloud Run telemetry rollout at15:58 UTC on4 October2026. This covers the image/monitoring flag, exact Firestore index, monitoring-only metadata and missing runtime Metric Writer permission. The eight proposed alerts/contact/routing changes are expressly excluded: leave them uncreated. The approval does not authorize subscription/filter/credential/network or VM power changes. Historical proposal text below is design evidence; this approval boundary governs execution.
 
 ## Parent live inspection inputs
 
