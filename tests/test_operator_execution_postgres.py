@@ -46,11 +46,12 @@ class DurableOperatorPostgres(unittest.TestCase):
             self.assertEqual(oe.observe(config,request)['state'],'COMMITTED')
             with self.assertRaisesRegex(ConfigurationError,'BUSINESS_COMMIT_EXISTS'):
                 oe.prepare(config,request)
+            running_id=uuid.uuid4()
             with psycopg.connect(**base,dbname='mw_agent') as c:
                 intent=c.execute('SELECT plan_sha256,actor_id,actor_login,service_name,plan,actor_kind FROM audit.operations WHERE operation_id=%s',(request['operation_id'],)).fetchone()
                 self.assertEqual(c.execute("SELECT count(*) FROM audit.events WHERE operation_id=%s AND event_kind='operator_commit_observed'",(request['operation_id'],)).fetchone()[0],1)
                 c.execute('''INSERT INTO runtime.job_runs(run_id,operation_id,service_name,started_at,finished_at,state,summary) VALUES (%s,%s,'audit-relay',now()-interval '5 seconds',now(),'FAILED','{"exit_code":2}')''',(uuid.uuid4(),request['operation_id']))
-                c.execute('''INSERT INTO runtime.job_runs(run_id,operation_id,service_name,started_at,state) VALUES (%s,%s,'audit-relay',now(),'RUNNING')''',(uuid.uuid4(),request['operation_id']))
+                c.execute('''INSERT INTO runtime.job_runs(run_id,operation_id,service_name,started_at,state) VALUES (%s,%s,'audit-relay',now(),'RUNNING')''',(running_id,request['operation_id']))
             marker=oe.marker(config,request['operation_id'])
             oe.verify_marker(marker,intent)
             with self.assertRaisesRegex(ConfigurationError,'CANONICAL_MISMATCH'):
@@ -72,6 +73,7 @@ class DurableOperatorPostgres(unittest.TestCase):
                 actual=dict(request,operation_id=str(uuid.uuid4()),payment=receipt['Row ID'],receipt=receipt,moves=moves)
             oe.prepare(config,actual)
             with psycopg.connect(**base,dbname='loan_manager_prod') as c:
+                c.execute('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
                 self.assertEqual(c.execute('SELECT public.reallocate_payment_interest_audited(%s,%s)',(actual['operation_id'],audit.canonical(actual))).fetchone()[0],'applied')
             self.assertEqual(oe.observe(config,actual)['state'],'COMMITTED')
             outbox.relay(config);outbox.relay(config)
@@ -91,3 +93,5 @@ class DurableOperatorPostgres(unittest.TestCase):
                 c.execute('SET default_transaction_read_only=on')
                 with self.assertRaises(psycopg.errors.ReadOnlySqlTransaction):
                     c.execute("DELETE FROM agent_audit.commits WHERE false")
+            with psycopg.connect(**base,dbname='mw_agent') as c:
+                c.execute("UPDATE runtime.job_runs SET state='INTERRUPTED',finished_at=now() WHERE run_id=%s",(running_id,))
