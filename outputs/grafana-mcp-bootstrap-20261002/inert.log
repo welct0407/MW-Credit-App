@@ -1,0 +1,60 @@
+STOP: Command failed: ['/tmp/cloud-gcloud-y5s_b1h1/script-bin/gcloud', 'artifacts', 'docker', 'images']
+ERROR: gcloud crashed (ProxyError): HTTPSConnectionPool(host='containeranalysis.googleapis.com', port=443): Max retries exceeded with url: /v1/projects/clever-oasis-508610-n7/occurrences?alt=json&filter=%28%28kind+%3D+%22BUILD%22%29+OR+%28kind+%3D+%22SBOM_REFERENCE%22%29%29+AND+%28%28resourceUrl+%3D+%22https%3A%2F%2Fasia-southeast1-docker.pkg.dev%2Fclever-oasis-508610-n7%2Fmw-monitoring%2Fgrafana-mcp-bootstrap%40sha256%3Ad7e7c7b322c2497896239b5007d12f20e5d7c07cbad9e024e28cbf67098b4d26%22%29+OR+%28resourceUrl+%3D+%22asia-southeast1-docker.pkg.dev%2Fclever-oasis-508610-n7%2Fmw-monitoring%2Fgrafana-mcp-bootstrap%40sha256%3Ad7e7c7b322c2497896239b5007d12f20e5d7c07cbad9e024e28cbf67098b4d26%22%29%29&pageSize=1000 (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))
+
+If you would like to report this issue, please run the following command:
+  gcloud feedback
+
+To check gcloud for common problems, please run the following command:
+  gcloud info --run-diagnostics
+
+{
+  "owner": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "ownerMember": "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "projectOwnerVerified": true,
+  "project": "clever-oasis-508610-n7",
+  "number": "737787224638",
+  "billingEnabled": true,
+  "enabledAPIs": [
+    "analyticshub.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "bigquery.googleapis.com",
+    "bigqueryconnection.googleapis.com",
+    "bigquerydatapolicy.googleapis.com",
+    "bigquerydatatransfer.googleapis.com",
+    "bigquerymigration.googleapis.com",
+    "bigqueryreservation.googleapis.com",
+    "bigquerystorage.googleapis.com",
+    "cloudapis.googleapis.com",
+    "cloudbilling.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "cloudscheduler.googleapis.com",
+    "cloudtrace.googleapis.com",
+    "compute.googleapis.com",
+    "containeranalysis.googleapis.com",
+    "containerregistry.googleapis.com",
+    "dataform.googleapis.com",
+    "dataplex.googleapis.com",
+    "datastore.googleapis.com",
+    "firebaserules.googleapis.com",
+    "firestore.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "iap.googleapis.com",
+    "logging.googleapis.com",
+    "monitoring.googleapis.com",
+    "orgpolicy.googleapis.com",
+    "osconfig.googleapis.com",
+    "oslogin.googleapis.com",
+    "pubsub.googleapis.com",
+    "run.googleapis.com",
+    "secretmanager.googleapis.com",
+    "servicemanagement.googleapis.com",
+    "serviceusage.googleapis.com",
+    "sql-component.googleapis.com",
+    "sqladmin.googleapis.com",
+    "storage-api.googleapis.com",
+    "storage-component.googleapis.com",
+    "storage.googleapis.com",
+    "telemetry.googleapis.com"
+  ]
+}

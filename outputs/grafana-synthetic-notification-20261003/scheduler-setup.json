@@ -1,0 +1,240 @@
+{
+  "started_at": "2026-10-03T10:50:42.619331+00:00",
+  "source_commit": "9f7de89c3c166969a981274ff0cf6d9414fa5429",
+  "caller": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "project": "clever-oasis-508610-n7",
+  "region": "asia-southeast1",
+  "operations": [
+    {
+      "at": "2026-10-03T10:50:51.284081+00:00",
+      "arguments": [
+        "projects",
+        "describe",
+        "clever-oasis-508610-n7",
+        "--format=json(projectId,projectNumber,lifecycleState)"
+      ],
+      "exit_code": 0,
+      "result": {
+        "lifecycleState": "ACTIVE",
+        "projectId": "clever-oasis-508610-n7",
+        "projectNumber": "737787224638"
+      }
+    },
+    {
+      "at": "2026-10-03T10:50:53.127612+00:00",
+      "arguments": [
+        "projects",
+        "get-iam-policy",
+        "clever-oasis-508610-n7",
+        "--flatten=bindings",
+        "--filter=bindings.members:(serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com serviceAccount:service-737787224638@gcp-sa-cloudscheduler.iam.gserviceaccount.com)",
+        "--format=json(bindings)"
+      ],
+      "exit_code": 0,
+      "result": [
+        {
+          "bindings": {
+            "members": [
+              "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com"
+            ],
+            "role": "projects/clever-oasis-508610-n7/roles/codexCloudVmLookup"
+          }
+        },
+        {
+          "bindings": {
+            "members": [
+              "serviceAccount:service-737787224638@gcp-sa-cloudscheduler.iam.gserviceaccount.com"
+            ],
+            "role": "roles/cloudscheduler.serviceAgent"
+          }
+        },
+        {
+          "bindings": {
+            "members": [
+              "serviceAccount:codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+              "user:welct0407@mw-credit.com"
+            ],
+            "role": "roles/owner"
+          }
+        }
+      ]
+    },
+    {
+      "at": "2026-10-03T10:50:55.062267+00:00",
+      "arguments": [
+        "iam",
+        "service-accounts",
+        "describe",
+        "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "--format=json(name,email,disabled)"
+      ],
+      "exit_code": 0,
+      "result": {
+        "email": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "name": "projects/clever-oasis-508610-n7/serviceAccounts/mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+      }
+    },
+    {
+      "at": "2026-10-03T10:51:02.749632+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "describe",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "ERROR: (gcloud.scheduler.jobs.describe) NOT_FOUND: Job not found. This command is authenticated as codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com which is the active account specified by the [core/account] property."
+    },
+    {
+      "at": "2026-10-03T10:51:05.534032+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "list",
+        "--location=asia-southeast1",
+        "--format=json(name,state)"
+      ],
+      "exit_code": 0,
+      "result": []
+    },
+    {
+      "at": "2026-10-03T10:51:22.198272+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "create",
+        "http",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--schedule=0 0 1 1 *",
+        "--time-zone=Etc/UTC",
+        "--uri=https://alerts.mw-credit.com/internal/dispatch",
+        "--http-method=POST",
+        "--message-body={}",
+        "--headers=Content-Type=application/json",
+        "--oidc-service-account-email=mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com",
+        "--oidc-token-audience=https://alerts.mw-credit.com/internal/dispatch",
+        "--attempt-deadline=240s",
+        "--max-retry-attempts=0",
+        "--max-retry-duration=0s",
+        "--description=Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "attemptDeadline": "240s",
+        "description": "Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "httpTarget": {
+          "body": "e30=",
+          "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Google-Cloud-Scheduler"
+          },
+          "httpMethod": "POST",
+          "oidcToken": {
+            "audience": "https://alerts.mw-credit.com/internal/dispatch",
+            "serviceAccountEmail": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+          },
+          "uri": "https://alerts.mw-credit.com/internal/dispatch"
+        },
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "schedule": "0 0 1 1 *",
+        "scheduleTime": "2027-01-01T00:00:00Z",
+        "state": "ENABLED",
+        "status": {
+          "code": -1
+        },
+        "timeZone": "Etc/UTC",
+        "userUpdateTime": "2026-10-03T10:51:21.517517Z"
+      }
+    },
+    {
+      "at": "2026-10-03T10:51:25.076363+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "pause",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": [],
+      "stderr": "Job has been paused."
+    },
+    {
+      "at": "2026-10-03T10:51:28.059654+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "describe",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "attemptDeadline": "240s",
+        "description": "Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "httpTarget": {
+          "body": "e30=",
+          "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Google-Cloud-Scheduler"
+          },
+          "httpMethod": "POST",
+          "oidcToken": {
+            "audience": "https://alerts.mw-credit.com/internal/dispatch",
+            "serviceAccountEmail": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+          },
+          "uri": "https://alerts.mw-credit.com/internal/dispatch"
+        },
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "schedule": "0 0 1 1 *",
+        "state": "PAUSED",
+        "status": {
+          "code": -1
+        },
+        "timeZone": "Etc/UTC",
+        "userUpdateTime": "2026-10-03T10:51:24.754652Z"
+      }
+    }
+  ],
+  "manual_run_requested": false,
+  "permission_verification": {
+    "method": "Live unconditional project Owner binding plus official permission tables; create/pause/readback prove exercised operations.",
+    "scheduler_permissions": [
+      "cloudscheduler.jobs.create",
+      "cloudscheduler.jobs.get",
+      "cloudscheduler.jobs.list",
+      "cloudscheduler.jobs.update",
+      "cloudscheduler.jobs.pause",
+      "cloudscheduler.jobs.run",
+      "cloudscheduler.jobs.delete"
+    ],
+    "service_account_permission": "iam.serviceAccounts.actAs",
+    "references": [
+      "https://docs.cloud.google.com/iam/docs/roles-permissions/cloudscheduler",
+      "https://docs.cloud.google.com/iam/docs/roles-permissions/iam#iam.serviceAccounts.actAs"
+    ],
+    "limitations": "Policy Troubleshooter read blocked by proxy CONNECT 403 at policytroubleshooter.googleapis.com; no bypass or retry. Fixed-project adapter prevents predefined roles describe; queryGrantableRoles returns BASIC metadata without includedPermissions. No effective-permission simulation or unused run/delete/update permission exercise."
+  },
+  "completed_at": "2026-10-03T10:51:28.060211+00:00",
+  "verified_state": "PAUSED",
+  "last_attempt_time_present": false
+}

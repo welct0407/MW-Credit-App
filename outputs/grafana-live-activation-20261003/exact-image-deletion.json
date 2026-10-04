@@ -1,0 +1,301 @@
+{
+  "operations": [
+    {
+      "at": "2026-10-03T11:57:53.080474+00:00",
+      "arguments": [
+        "run",
+        "revisions",
+        "list",
+        "--service=mw-grafana-events",
+        "--region=asia-southeast1",
+        "--format=json(metadata.name,status.imageDigest)"
+      ],
+      "exit_code": 0,
+      "result": [
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00009-487"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:e24d97a0f726e9e0eda116cea4bc5392adedc432a5f89db4628ebe1fe4690b3f"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00008-6r2"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:e24d97a0f726e9e0eda116cea4bc5392adedc432a5f89db4628ebe1fe4690b3f"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00007-4zn"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:aa05ca2fb15d7be2e127644a17a53a8ab7c7783a16b4f00361e64cac275c67b1"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00006-qm4"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:6856cbfa15e5ec46d6c13dcfe0e66e4945a320ef82a9b1d9d380f1590a8ea27e"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00005-nt4"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:6856cbfa15e5ec46d6c13dcfe0e66e4945a320ef82a9b1d9d380f1590a8ea27e"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00004-cff"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:6856cbfa15e5ec46d6c13dcfe0e66e4945a320ef82a9b1d9d380f1590a8ea27e"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00003-rdr"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:a6cc1bb7bec5fe088f6da3ea30e38f74657be15f8c4a2e72d0a242e63267c9e6"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00002-nrg"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:a6cc1bb7bec5fe088f6da3ea30e38f74657be15f8c4a2e72d0a242e63267c9e6"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00001-rnj"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap@sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154"
+          }
+        }
+      ],
+      "diagnostic": ""
+    },
+    {
+      "at": "2026-10-03T11:57:56.165651+00:00",
+      "arguments": [
+        "run",
+        "jobs",
+        "list",
+        "--region=asia-southeast1",
+        "--filter=name~mw-grafana",
+        "--format=json(name,region)"
+      ],
+      "exit_code": 0,
+      "result": [],
+      "diagnostic": "WARNING: The following filter keys were not present in any resource : name"
+    },
+    {
+      "at": "2026-10-03T11:57:59.627867+00:00",
+      "arguments": [
+        "artifacts",
+        "docker",
+        "images",
+        "list",
+        "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap",
+        "--include-tags",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": [
+        {
+          "createTime": "2026-10-02T19:14:13.749791Z",
+          "metadata": {
+            "buildTime": "2026-10-02T19:05:03.929511501Z",
+            "imageSizeBytes": "81376303",
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-monitoring/dockerImages/grafana-mcp-bootstrap@sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154"
+          },
+          "package": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap",
+          "tags": [
+            "v1"
+          ],
+          "updateTime": "2026-10-02T19:14:13.749791Z",
+          "version": "sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154"
+        },
+        {
+          "createTime": "2026-10-02T19:05:35.354335Z",
+          "metadata": {
+            "buildTime": "2026-10-02T19:05:03.929511501Z",
+            "imageSizeBytes": "81376303",
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-monitoring/dockerImages/grafana-mcp-bootstrap@sha256:d7e7c7b322c2497896239b5007d12f20e5d7c07cbad9e024e28cbf67098b4d26"
+          },
+          "package": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap",
+          "tags": [],
+          "updateTime": "2026-10-02T19:14:13.749791Z",
+          "version": "sha256:d7e7c7b322c2497896239b5007d12f20e5d7c07cbad9e024e28cbf67098b4d26"
+        }
+      ],
+      "diagnostic": "Listing items under project clever-oasis-508610-n7, location asia-southeast1, repository mw-monitoring."
+    },
+    {
+      "at": "2026-10-03T11:58:07.437818+00:00",
+      "arguments": [
+        "artifacts",
+        "docker",
+        "images",
+        "delete",
+        "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap@sha256:d7e7c7b322c2497896239b5007d12f20e5d7c07cbad9e024e28cbf67098b4d26",
+        "--quiet"
+      ],
+      "exit_code": 0,
+      "result": null,
+      "diagnostic": "Digests:\n- asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap@sha256:d7e7c7b322c2497896239b5007d12f20e5d7c07cbad9e024e28cbf67098b4d26\nDelete request issued.\nWaiting for operation [projects/clever-oasis-508610-n7/locations/asia-southeast1/operations/0c8d3d82-164b-4888-8031-5e679a6efaec] to complete...\n...........done."
+    },
+    {
+      "at": "2026-10-03T11:58:11.621103+00:00",
+      "arguments": [
+        "artifacts",
+        "docker",
+        "images",
+        "list",
+        "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap",
+        "--include-tags",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": [
+        {
+          "createTime": "2026-10-02T19:14:13.749791Z",
+          "metadata": {
+            "buildTime": "2026-10-02T19:05:03.929511501Z",
+            "imageSizeBytes": "81376303",
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-monitoring/dockerImages/grafana-mcp-bootstrap@sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154"
+          },
+          "package": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap",
+          "tags": [
+            "v1"
+          ],
+          "updateTime": "2026-10-02T19:14:13.749791Z",
+          "version": "sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154"
+        }
+      ],
+      "diagnostic": "Listing items under project clever-oasis-508610-n7, location asia-southeast1, repository mw-monitoring."
+    },
+    {
+      "at": "2026-10-03T11:58:15.038866+00:00",
+      "arguments": [
+        "artifacts",
+        "versions",
+        "describe",
+        "sha256:d7e7c7b322c2497896239b5007d12f20e5d7c07cbad9e024e28cbf67098b4d26",
+        "--package=grafana-mcp-bootstrap",
+        "--repository=mw-monitoring",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 1,
+      "result": null,
+      "diagnostic": "ERROR: (gcloud.artifacts.versions.describe) NOT_FOUND: Requested entity was not found. This command is authenticated as codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com which is the active account specified by the [core/account] property."
+    },
+    {
+      "at": "2026-10-03T11:58:18.621121+00:00",
+      "arguments": [
+        "run",
+        "revisions",
+        "list",
+        "--service=mw-grafana-events",
+        "--region=asia-southeast1",
+        "--format=json(metadata.name,status.imageDigest)"
+      ],
+      "exit_code": 0,
+      "result": [
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00009-487"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:e24d97a0f726e9e0eda116cea4bc5392adedc432a5f89db4628ebe1fe4690b3f"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00008-6r2"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:e24d97a0f726e9e0eda116cea4bc5392adedc432a5f89db4628ebe1fe4690b3f"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00007-4zn"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:aa05ca2fb15d7be2e127644a17a53a8ab7c7783a16b4f00361e64cac275c67b1"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00006-qm4"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:6856cbfa15e5ec46d6c13dcfe0e66e4945a320ef82a9b1d9d380f1590a8ea27e"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00005-nt4"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:6856cbfa15e5ec46d6c13dcfe0e66e4945a320ef82a9b1d9d380f1590a8ea27e"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00004-cff"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:6856cbfa15e5ec46d6c13dcfe0e66e4945a320ef82a9b1d9d380f1590a8ea27e"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00003-rdr"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:a6cc1bb7bec5fe088f6da3ea30e38f74657be15f8c4a2e72d0a242e63267c9e6"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00002-nrg"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:a6cc1bb7bec5fe088f6da3ea30e38f74657be15f8c4a2e72d0a242e63267c9e6"
+          }
+        },
+        {
+          "metadata": {
+            "name": "mw-grafana-events-00001-rnj"
+          },
+          "status": {
+            "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap@sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154"
+          }
+        }
+      ],
+      "diagnostic": ""
+    }
+  ],
+  "preconditions_verified": true,
+  "deleted_only_exact_digest": true,
+  "sibling_images_tags_and_all_revisions_preserved": true,
+  "owner_approval": "Parent relayed explicit owner approve both: exact orphan image deletion and parent-only webhook test."
+}

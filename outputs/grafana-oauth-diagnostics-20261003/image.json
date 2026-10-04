@@ -1,0 +1,5 @@
+{
+  "sourceCommit": "93f07ae11a6040e21e0ae7ab4ce14e3808c06e11",
+  "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:6856cbfa15e5ec46d6c13dcfe0e66e4945a320ef82a9b1d9d380f1590a8ea27e",
+  "tag": "oauth-diagnostics-20261003"
+}
