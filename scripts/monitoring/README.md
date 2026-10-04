@@ -83,3 +83,8 @@ Canonical replacement description for existing Debian rule `afz3o5cmmfabkb` (des
 > Monitors 12 Debian components. Receipt health includes worker availability, stalled intake, required review/hold attention and unconfirmed posting. Optional Partner-result notification failures remain visible separately and do not degrade receipt processing. Receipts and polling alert for missing, stale, invalid or Unknown telemetry. Four-minute pending period; existing no-data/error and contact settings remain unchanged.
 
 The description and panel text need a scoped update from a fresh live Grafana definition; this source correction does not claim that UI metadata has been saved. Parent browser verification at 09:13:58 UTC on 2 October reported Pipeline Healthy, Receipts green, all 12 component instances Normal, processing queues zero, retained completed total 56 and Partner-result failures 2, with fresh 09:11:21 telemetry. Those failure records were preserved.
+
+
+## Pending R050 audit relay health
+
+The candidate collector requires the matching MW `relay_health` module before deployment. It uses completed outcome/backlog evidence with the existing `audit_relay` component label and exports bounded numeric diagnostics through the existing worker metric. Missing inspection fails DOWN. Units, dashboards and alert selectors stay unchanged. See [R050 checks and rollout/rollback](../../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Current live timer/result behavior remains the baseline until a separately approved rollout.

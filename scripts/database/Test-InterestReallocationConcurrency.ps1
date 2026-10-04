@@ -12,7 +12,10 @@ $fixture=$fixture.Replace('\ir Test-CashAccountFixtures.sql','').Replace('CREATE
 $fixture | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
 if($LASTEXITCODE){throw 'Reallocation concurrency fixture failed'}
 $call=@'
-SELECT public.reallocate_payment_interest('00000000-0057-4000-8000-000000000099','IR57-P',receipt,moves,'synthetic contention','synthetic-v57') FROM public.ir57_con_request;
+SELECT public.reallocate_payment_interest_audited('00000000-0057-4000-8000-000000000099',jsonb_build_object(
+ 'kind','interest-reallocation-v2','operation_id','00000000-0057-4000-8000-000000000099','database','loan_manager_prod',
+ 'payment','IR57-P','receipt',receipt,'moves',moves,'reason','synthetic contention','code_version','synthetic-v58',
+ 'actor_id','synthetic-operator','actor_login','synthetic-operator','authorization_reference','synthetic-approval')::text) FROM public.ir57_con_request;
 '@
 $locks=@(
  @{sql='SELECT pg_advisory_xact_lock(9162026,2);';error='Cash pool is busy'},
@@ -73,7 +76,7 @@ $verify | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d pos
 if($LASTEXITCODE){throw 'Committed readback failed'}
 $denied=@'
 SET SESSION AUTHORIZATION ir57_restricted;
-SELECT public.reallocate_payment_interest('00000000-0057-4000-8000-000000000099','IR57-P','{}','[]','synthetic','test');
+SELECT public.reallocate_payment_interest_audited('00000000-0057-4000-8000-000000000099','{}');
 '@
 $result=$denied | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres 2>&1
 if($LASTEXITCODE -eq 0 -or ($result -join "`n") -notmatch 'permission denied for function'){throw 'Restricted role reached admin correction'}
