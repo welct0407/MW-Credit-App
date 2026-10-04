@@ -17,7 +17,15 @@ try {
     const owner=config.ownerEnabled&&(await store.get('control/owner'))?.enabled!==false;
     const snapshot=await inspectMonitoring(store,owner,now,now);
     const client=await auth!.getClient();
-    await client.request({url:'https://monitoring.googleapis.com/v3/projects/'+config.projectId+'/timeSeries',method:'POST',data:monitoringSeries(snapshot,config.projectId,now),timeout:10000});
+    const body=monitoringSeries(snapshot,config.projectId,now);
+    try{
+      await client.request({url:'https://monitoring.googleapis.com/v3/projects/'+config.projectId+'/timeSeries',method:'POST',data:body,timeout:10000});
+      logEvent('monitoring_exported',{count:body.timeSeries.length});
+    }catch(error){
+      const status=(error as {response?:{status?:number}})?.response?.status;
+      logEvent('monitoring_export_failed',{status:Number.isInteger(status)?status!:0});
+      throw new Error();
+    }
   }:undefined;
   const app=createApp(config,store,safeCallback(config.callbackHosts),{monitor});
   const port=Number(process.env.PORT ?? 8080);
