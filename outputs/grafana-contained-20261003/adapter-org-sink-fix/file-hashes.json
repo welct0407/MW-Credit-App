@@ -1,0 +1,14 @@
+{
+  "cloud-gcloud": {
+    "before": "dc86327298b2a49aaba9797b12973f26a8438a903f894e71c04f9e3fca71c206",
+    "after": "a597447b1fe1152aa3e3c1e6306fcc886e40edb9567f548dd02a0ebad0494189"
+  },
+  "test_gcloud_adapter.py": {
+    "before": "0aa3a07a9bd31c881e31cf5bb2fbf617c6e44d7c7dc4c9e2346b833cadb8dc96",
+    "after": "6228c978e25f6871882dcac4865aaceca700de9d94c5d54c97deb936a3eb48d2"
+  },
+  "GCLOUD-ADAPTER.md": {
+    "before": "e08ed43e67a0b0eb6ed37143ac0c16b10c0c9fb7ca07f275a6d24c0d481bbabf",
+    "after": "62a9b44b2b93a1cabad7d3540f6a2696f5cf8dbbd4f53318f3cdb69886364e5d"
+  }
+}

@@ -1,0 +1,300 @@
+{
+  "sourceCommit": "614ea6496bcd796611080e69f8fc78276304bb8a",
+  "zipSha256": "1e385975602486f5c80d628916037820d2a30a7064856989c26750497870f87a",
+  "approval": "Parent transcript evidence: user Yes to exact routing publication/deployment after Astra Extra High passed; preserve authentication/access/settings and disabled power gates",
+  "vmPowerRequests": 0,
+  "authenticatedStatus": "PASS_INTENDED_BROWSER_UI_STATUS",
+  "before": {
+    "atUtc": "2026-10-02T06:15:48.913955+00:00",
+    "allAppSettingsSha256": "6eb50fe6f9960ed3e799719ecdf84220de101c4caf4e688d4455f9cd858ecd78",
+    "publicSettings": {
+      "VM01_TENANT_ID": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "VM01_RESOURCE_ID": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "VM01_EXPECTED_VM_ID": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "VM01_ORIGIN": "https://vm01-controller-50f792fa.azurewebsites.net",
+      "VM01_API_CLIENT_ID": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+      "VM01_BROWSER_CLIENT_ID": "c74d7869-7313-459e-93b2-50beb860812f",
+      "VM01_BROWSER_USER_IDS": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+      "VM01_CLOUD_CLIENT_ID": "af64b0c6-261c-45a0-b653-a71d382edb92",
+      "VM01_CLOUD_PRINCIPAL_ID": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "VM01_STORAGE_ACCOUNT": "stvm01ctl50f792fa",
+      "VM01_ENABLE_MUTATIONS": "false",
+      "VM01_ENABLE_OPERATION_POLLING": "false"
+    },
+    "easyAuthSha256": "f9ef2eea6b7016c988d1c510434a4aab23cec6ad69fed76f999e5d44273b7170",
+    "loggingConfigurationSha256": "6b62b15998bd1c306528a4832d5a19ce86da05f0d58f7dd0d916c398fc1637c0",
+    "controllerRolesSha256": "fd29cab90c49006f64af44793479ff7a63bf36aca171300d3671feecfe3a3a6b",
+    "browserConsentSha256": "6c22624a3dc1e1822b835dd927ad396b8832d575b03973a88dcfa68398d9852a",
+    "siteIdentity": {
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "type": "SystemAssigned"
+    },
+    "hostname": "vm01-controller-50f792fa.azurewebsites.net",
+    "ledgerSha256": "7a30cccc554904aabc9ffa35de116d634f85dcb88ea3d3eb1fb46eea0eb788a4",
+    "ledgerSummary": {
+      "generation": 1,
+      "admissionEnabled": false,
+      "activeRequestId": null
+    },
+    "recordCount": 0,
+    "auditCount": 0
+  },
+  "stage": "DEPLOYED_ROUTES_ASSETS_PRESERVATION_AND_BROWSER_STATUS_VERIFIED",
+  "codeDeployment": {
+    "id": "3cd691db-ae08-4a68-95d2-e4e44a1e54fe",
+    "status": 4,
+    "complete": true,
+    "active": true,
+    "received_time": "2026-10-02T06:16:24.0210348Z",
+    "end_time": "2026-10-02T06:17:27.5613525Z",
+    "deployer": "az_cli"
+  },
+  "after": {
+    "atUtc": "2026-10-02T06:17:44.529996+00:00",
+    "allAppSettingsSha256": "6eb50fe6f9960ed3e799719ecdf84220de101c4caf4e688d4455f9cd858ecd78",
+    "publicSettings": {
+      "VM01_TENANT_ID": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "VM01_RESOURCE_ID": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "VM01_EXPECTED_VM_ID": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "VM01_ORIGIN": "https://vm01-controller-50f792fa.azurewebsites.net",
+      "VM01_API_CLIENT_ID": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+      "VM01_BROWSER_CLIENT_ID": "c74d7869-7313-459e-93b2-50beb860812f",
+      "VM01_BROWSER_USER_IDS": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+      "VM01_CLOUD_CLIENT_ID": "af64b0c6-261c-45a0-b653-a71d382edb92",
+      "VM01_CLOUD_PRINCIPAL_ID": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "VM01_STORAGE_ACCOUNT": "stvm01ctl50f792fa",
+      "VM01_ENABLE_MUTATIONS": "false",
+      "VM01_ENABLE_OPERATION_POLLING": "false"
+    },
+    "easyAuthSha256": "f9ef2eea6b7016c988d1c510434a4aab23cec6ad69fed76f999e5d44273b7170",
+    "loggingConfigurationSha256": "6b62b15998bd1c306528a4832d5a19ce86da05f0d58f7dd0d916c398fc1637c0",
+    "controllerRolesSha256": "fd29cab90c49006f64af44793479ff7a63bf36aca171300d3671feecfe3a3a6b",
+    "browserConsentSha256": "6c22624a3dc1e1822b835dd927ad396b8832d575b03973a88dcfa68398d9852a",
+    "siteIdentity": {
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "type": "SystemAssigned"
+    },
+    "hostname": "vm01-controller-50f792fa.azurewebsites.net",
+    "ledgerSha256": "7a30cccc554904aabc9ffa35de116d634f85dcb88ea3d3eb1fb46eea0eb788a4",
+    "ledgerSummary": {
+      "generation": 1,
+      "admissionEnabled": false,
+      "activeRequestId": null
+    },
+    "recordCount": 0,
+    "auditCount": 0
+  },
+  "preserved": [
+    "allAppSettingsSha256",
+    "publicSettings",
+    "easyAuthSha256",
+    "loggingConfigurationSha256",
+    "controllerRolesSha256",
+    "browserConsentSha256",
+    "siteIdentity",
+    "hostname",
+    "ledgerSha256",
+    "ledgerSummary",
+    "recordCount",
+    "auditCount"
+  ],
+  "httpVerification": [
+    {
+      "path": "/",
+      "status": 200,
+      "sha256": "1070134427a7b5bcc53fbbbf672ac08d0ab187b72e957c15494e34cc597a3938",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/auth/callback",
+      "status": 200,
+      "sha256": "107708c30dc08008f941797a6274fd3b67c68d390a0b8d40e602110e38943b23",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/assets/app.js",
+      "status": 200,
+      "sha256": "5ffc9e443461e8922fea9309e4148e9c48cd2212712ba8998b51a2edb226a533",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/assets/style.css",
+      "status": 200,
+      "sha256": "7a1647e628312659027058cd17cb985efaf01cd87c2531f187e5ff24d7f4d00d",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/assets/auth-callback.js",
+      "status": 200,
+      "sha256": "2cfc502448319fbec39fd4c4fa3e321f97707d8ba25bc6037e59836174aff26f",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/assets/config.js",
+      "status": 200,
+      "matchesPreservedPublicConfiguration": true
+    },
+    {
+      "path": "/api/vm01/status",
+      "caller": "anonymous",
+      "status": 401,
+      "contentType": null,
+      "bodyBytes": 0
+    }
+  ],
+  "completedAtUtc": "2026-10-02T06:17:48.778634+00:00",
+  "liveFunctionRegistrations": [
+    {
+      "name": "vm01-deallocate",
+      "route": "api/vm01/deallocate",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "OPTIONS",
+        "HEAD"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net/api/vm01/deallocate"
+    },
+    {
+      "name": "vm01-restart",
+      "route": "api/vm01/restart",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "OPTIONS",
+        "HEAD"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net/api/vm01/restart"
+    },
+    {
+      "name": "vm01-start",
+      "route": "api/vm01/start",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "OPTIONS",
+        "HEAD"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net/api/vm01/start"
+    },
+    {
+      "name": "vm01-static-0",
+      "route": "/",
+      "methods": [
+        "GET"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net//"
+    },
+    {
+      "name": "vm01-static-1",
+      "route": "auth/callback",
+      "methods": [
+        "GET"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net/auth/callback"
+    },
+    {
+      "name": "vm01-static-2",
+      "route": "assets/auth-callback.js",
+      "methods": [
+        "GET"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net/assets/auth-callback.js"
+    },
+    {
+      "name": "vm01-static-3",
+      "route": "assets/app.js",
+      "methods": [
+        "GET"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net/assets/app.js"
+    },
+    {
+      "name": "vm01-static-4",
+      "route": "assets/style.css",
+      "methods": [
+        "GET"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net/assets/style.css"
+    },
+    {
+      "name": "vm01-static-5",
+      "route": "assets/config.js",
+      "methods": [
+        "GET"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net/assets/config.js"
+    },
+    {
+      "name": "vm01-status",
+      "route": "api/vm01/status",
+      "methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "OPTIONS",
+        "HEAD"
+      ],
+      "authLevel": "anonymous",
+      "invokeUrlTemplate": "https://vm01-controller-50f792fa.azurewebsites.net/api/vm01/status"
+    }
+  ],
+  "liveRoutingMetadataVerified": true,
+  "authenticatedBrowserAcceptance": {
+    "result": "PASS_INTENDED_BROWSER_AUTHENTICATED_STATUS",
+    "observedAtUtc": "2026-10-02T06:19:26Z",
+    "verifiedThroughUtc": "2026-10-02T06:19:34Z",
+    "provenance": "Parent Dots cloud browser, tab9; signed in with intended MW Credit account and clicked Refresh status",
+    "userPrincipalName": "mwcredit@idea.100-5.com",
+    "controllerOrigin": "https://vm01-controller-50f792fa.azurewebsites.net",
+    "deployedSourceCommit": "614ea6496bcd796611080e69f8fc78276304bb8a",
+    "deploymentZipSha256": "1e385975602486f5c80d628916037820d2a30a7064856989c26750497870f87a",
+    "observations": {
+      "powerState": "running",
+      "provisioningState": "Succeeded",
+      "freshObservationDisplayed": true,
+      "errorDisplayed": false,
+      "allPowerButtonsDisabled": true
+    },
+    "timeEvidence": "Use parent UTC observation06:19:26; browser displayed local11:19:26PM, not a UTC timestamp",
+    "verificationBoundary": "Intended signed-in browser status end-to-end accepted through UI; no raw network HTTP status or token inspected",
+    "vmPowerRequests": 0,
+    "nextStage": "User deferred command activation and machine-caller authentication; neither performed",
+    "remainingGates": [
+      "Cloud caller credentials/environment and acceptance",
+      "former-user authenticated token rejection",
+      "optional operation-read approval",
+      "command/admission/polling activation",
+      "explicit live power timing/counts and recovery"
+    ]
+  },
+  "ledgerAfterBrowserAcceptanceSha256": "7a30cccc554904aabc9ffa35de116d634f85dcb88ea3d3eb1fb46eea0eb788a4",
+  "sourceCiEvidence": {
+    "statuses": 0,
+    "checkRuns": 0,
+    "pullRequestWorkflowRuns": 0,
+    "workflowScope": "database/**, scripts/database/** and .github/workflows/database.yml; controller paths excluded"
+  }
+}

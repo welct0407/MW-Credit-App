@@ -1,0 +1,148 @@
+{
+  "sourceCommit": "4a506465f96b5d8eaa78ed6bf723da6de12bb740",
+  "zipSha256": "13bf7c630d59aab77779b42af02d7eca41d06a2e7dbb42dd2cef6a783cd11ba9",
+  "approval": "Direct user approval: publish reviewed diagnostics fix to draft PR2 and deploy reviewed code-only package; keep access settings and power controls unchanged",
+  "vmPowerRequests": 0,
+  "authenticatedStatus": "NOT_TESTED",
+  "before": {
+    "atUtc": "2026-10-02T05:42:23.100007+00:00",
+    "allAppSettingsSha256": "6eb50fe6f9960ed3e799719ecdf84220de101c4caf4e688d4455f9cd858ecd78",
+    "publicSettings": {
+      "VM01_TENANT_ID": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "VM01_RESOURCE_ID": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "VM01_EXPECTED_VM_ID": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "VM01_ORIGIN": "https://vm01-controller-50f792fa.azurewebsites.net",
+      "VM01_API_CLIENT_ID": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+      "VM01_BROWSER_CLIENT_ID": "c74d7869-7313-459e-93b2-50beb860812f",
+      "VM01_BROWSER_USER_IDS": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+      "VM01_CLOUD_CLIENT_ID": "af64b0c6-261c-45a0-b653-a71d382edb92",
+      "VM01_CLOUD_PRINCIPAL_ID": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "VM01_STORAGE_ACCOUNT": "stvm01ctl50f792fa",
+      "VM01_ENABLE_MUTATIONS": "false",
+      "VM01_ENABLE_OPERATION_POLLING": "false"
+    },
+    "easyAuthSha256": "f9ef2eea6b7016c988d1c510434a4aab23cec6ad69fed76f999e5d44273b7170",
+    "loggingConfigurationSha256": "6b62b15998bd1c306528a4832d5a19ce86da05f0d58f7dd0d916c398fc1637c0",
+    "controllerRolesSha256": "fd29cab90c49006f64af44793479ff7a63bf36aca171300d3671feecfe3a3a6b",
+    "browserConsentSha256": "6c22624a3dc1e1822b835dd927ad396b8832d575b03973a88dcfa68398d9852a",
+    "siteIdentity": {
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "type": "SystemAssigned"
+    },
+    "hostname": "vm01-controller-50f792fa.azurewebsites.net",
+    "ledgerSha256": "7a30cccc554904aabc9ffa35de116d634f85dcb88ea3d3eb1fb46eea0eb788a4",
+    "ledgerSummary": {
+      "generation": 1,
+      "admissionEnabled": false,
+      "activeRequestId": null
+    },
+    "recordCount": 0,
+    "auditCount": 0
+  },
+  "stage": "DEPLOYED_ASSETS_AND_PRESERVATION_VERIFIED_AUTHENTICATED_STATUS_PENDING",
+  "codeDeployment": {
+    "id": "de3d4a0f-20eb-4716-9d4d-86bb46530a7d",
+    "status": 4,
+    "complete": true,
+    "active": true,
+    "received_time": "2026-10-02T05:43:18.7349116Z",
+    "end_time": "2026-10-02T05:44:22.4645622Z",
+    "deployer": "az_cli"
+  },
+  "after": {
+    "atUtc": "2026-10-02T05:44:40.981935+00:00",
+    "allAppSettingsSha256": "6eb50fe6f9960ed3e799719ecdf84220de101c4caf4e688d4455f9cd858ecd78",
+    "publicSettings": {
+      "VM01_TENANT_ID": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "VM01_RESOURCE_ID": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+      "VM01_EXPECTED_VM_ID": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+      "VM01_ORIGIN": "https://vm01-controller-50f792fa.azurewebsites.net",
+      "VM01_API_CLIENT_ID": "f8fc0efe-38ac-489a-b2b4-98d1afc9505b",
+      "VM01_BROWSER_CLIENT_ID": "c74d7869-7313-459e-93b2-50beb860812f",
+      "VM01_BROWSER_USER_IDS": "fa56579a-7b3a-493a-9eb1-d36671a60b32",
+      "VM01_CLOUD_CLIENT_ID": "af64b0c6-261c-45a0-b653-a71d382edb92",
+      "VM01_CLOUD_PRINCIPAL_ID": "d01d70be-d205-4ac9-a7fc-a18dd48e0633",
+      "VM01_STORAGE_ACCOUNT": "stvm01ctl50f792fa",
+      "VM01_ENABLE_MUTATIONS": "false",
+      "VM01_ENABLE_OPERATION_POLLING": "false"
+    },
+    "easyAuthSha256": "f9ef2eea6b7016c988d1c510434a4aab23cec6ad69fed76f999e5d44273b7170",
+    "loggingConfigurationSha256": "6b62b15998bd1c306528a4832d5a19ce86da05f0d58f7dd0d916c398fc1637c0",
+    "controllerRolesSha256": "fd29cab90c49006f64af44793479ff7a63bf36aca171300d3671feecfe3a3a6b",
+    "browserConsentSha256": "6c22624a3dc1e1822b835dd927ad396b8832d575b03973a88dcfa68398d9852a",
+    "siteIdentity": {
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+      "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "type": "SystemAssigned"
+    },
+    "hostname": "vm01-controller-50f792fa.azurewebsites.net",
+    "ledgerSha256": "7a30cccc554904aabc9ffa35de116d634f85dcb88ea3d3eb1fb46eea0eb788a4",
+    "ledgerSummary": {
+      "generation": 1,
+      "admissionEnabled": false,
+      "activeRequestId": null
+    },
+    "recordCount": 0,
+    "auditCount": 0
+  },
+  "preserved": [
+    "allAppSettingsSha256",
+    "publicSettings",
+    "easyAuthSha256",
+    "loggingConfigurationSha256",
+    "controllerRolesSha256",
+    "browserConsentSha256",
+    "siteIdentity",
+    "hostname",
+    "ledgerSha256",
+    "ledgerSummary",
+    "recordCount",
+    "auditCount"
+  ],
+  "httpVerification": [
+    {
+      "path": "/",
+      "status": 200,
+      "sha256": "1070134427a7b5bcc53fbbbf672ac08d0ab187b72e957c15494e34cc597a3938",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/auth/callback",
+      "status": 200,
+      "sha256": "107708c30dc08008f941797a6274fd3b67c68d390a0b8d40e602110e38943b23",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/assets/app.js",
+      "status": 200,
+      "sha256": "5ffc9e443461e8922fea9309e4148e9c48cd2212712ba8998b51a2edb226a533",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/assets/style.css",
+      "status": 200,
+      "sha256": "7a1647e628312659027058cd17cb985efaf01cd87c2531f187e5ff24d7f4d00d",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/assets/auth-callback.js",
+      "status": 200,
+      "sha256": "2cfc502448319fbec39fd4c4fa3e321f97707d8ba25bc6037e59836174aff26f",
+      "matchesReviewedZip": true
+    },
+    {
+      "path": "/assets/config.js",
+      "status": 200,
+      "matchesPreservedPublicConfiguration": true
+    },
+    {
+      "path": "/api/vm01/status",
+      "caller": "anonymous",
+      "status": 401,
+      "contentType": null,
+      "bodyBytes": 0
+    }
+  ],
+  "completedAtUtc": "2026-10-02T05:44:41.671272+00:00"
+}

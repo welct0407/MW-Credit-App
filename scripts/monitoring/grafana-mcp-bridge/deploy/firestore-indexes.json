@@ -1,0 +1,32 @@
+{
+  "indexes": [
+    { "collectionGroup": "deliveries", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "state", "order": "ASCENDING" },
+      { "fieldPath": "nextAt", "order": "ASCENDING" }
+    ] },
+    { "collectionGroup": "oauth", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "model", "order": "ASCENDING" },
+      { "fieldPath": "issuerHash", "order": "ASCENDING" },
+      { "fieldPath": "uid", "order": "ASCENDING" }
+    ] },
+    { "collectionGroup": "oauth", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "model", "order": "ASCENDING" },
+      { "fieldPath": "issuerHash", "order": "ASCENDING" },
+      { "fieldPath": "userCode", "order": "ASCENDING" }
+    ] }
+  ],
+  "fieldOverrides": [
+    { "collectionGroup": "events", "fieldPath": "deleteAfter", "ttl": true, "indexes": [] },
+    { "collectionGroup": "deliveries", "fieldPath": "deleteAfter", "ttl": true, "indexes": [] },
+    { "collectionGroup": "subscriptions", "fieldPath": "deleteAfter", "ttl": true, "indexes": [] },
+    { "collectionGroup": "oauth", "fieldPath": "deleteAfter", "ttl": true, "indexes": [] },
+    { "collectionGroup": "googleStates", "fieldPath": "deleteAfter", "ttl": true, "indexes": [] },
+    { "collectionGroup": "revokedGrants", "fieldPath": "deleteAfter", "ttl": true, "indexes": [] },
+    { "collectionGroup": "events", "fieldPath": "body", "indexes": [] },
+    { "collectionGroup": "events", "fieldPath": "data", "indexes": [] },
+    { "collectionGroup": "oauth", "fieldPath": "encrypted", "indexes": [] },
+    { "collectionGroup": "subscriptions", "fieldPath": "secret", "indexes": [] },
+    { "collectionGroup": "subscriptions", "fieldPath": "oldSecret", "indexes": [] },
+    { "collectionGroup": "googleStates", "fieldPath": "encrypted", "indexes": [] }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "approval": "user go ahead to exact callback host, capture off, synthetic-only subscription and one end-to-end notification test",
+  "exactCallbackHost": "connectors.api.openai.com",
+  "captureFlag": false,
+  "scopeExecutedHere": "existing service config update and readiness checks only; parent creates subscription after handoff",
+  "preserved": [
+    "immutable image",
+    "owner restrictions",
+    "Google secret version 2",
+    "other four version 1",
+    "IAM/network/ingress settings"
+  ],
+  "excluded": [
+    "Scheduler changes",
+    "live Grafana routing changes",
+    "secret payload reads",
+    "full callback URLs"
+  ],
+  "rollback": "mw-grafana-events-00008-6r2"
+}

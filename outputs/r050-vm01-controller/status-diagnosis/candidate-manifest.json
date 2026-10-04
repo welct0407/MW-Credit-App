@@ -1,0 +1,40 @@
+{
+  "candidateStatus": "LOCAL_TESTED_UNPUBLISHED_NOT_APPROVED_FOR_DEPLOYMENT",
+  "sourceParentCommit": "ea347606a87ff0ea45772b478801d80d16fa7955",
+  "deployedSourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
+  "sourceHashes": {
+    "web/app.ts": "6586f4d12cfcb993ce013835b3f339ded021d2e4b142c1afa989e308a37c2ab8",
+    "web/diagnostics.ts": "4fe0c694c856f5b9d597f1429b44900eaaa22c2f126eccf72327f8cabf920d15",
+    "tests/status-diagnostics.test.mjs": "f9985044be350968b0ea20e3115bd44f7a8ec237b64b0ba516df1c723768c78f",
+    "README.md": "0e440556d437b2a7df504b3ca662ca080820ee91c12597de32d3cd076d3c502c"
+  },
+  "runtimeChangesVersusDeployedZip": [
+    {
+      "path": "dist/web/app.js",
+      "change": "modified",
+      "sha256": "5ffc9e443461e8922fea9309e4148e9c48cd2212712ba8998b51a2edb226a533",
+      "originalSha256": "7d6fdb93d58cdcd5ca777aa817d3b358778fcb9b4dc757c9f0e5ff2449720600"
+    },
+    {
+      "path": "dist/web/diagnostics.js",
+      "change": "added",
+      "sha256": "b586fc52b17baf5f0691f3d42aab25340acb1d4832bafae85fdcfec1171c911b"
+    }
+  ],
+  "productionDependenciesReusedFromOriginalZip": 9726,
+  "productionDependencyInstallPerformed": false,
+  "hostConfigurationUnchanged": true,
+  "runtimeSettingsSecurityOrInfrastructureChanges": [],
+  "validation": {
+    "strictTypeScript": "PASS",
+    "browserBundling": "PASS",
+    "browserChecksPassed": 14,
+    "browserChecksFailed": 0,
+    "authenticatedLiveStatus": "NOT_TESTED"
+  },
+  "zip": {
+    "path": "vm01-controller-status-diagnostics-local.zip",
+    "sha256": "13bf7c630d59aab77779b42af02d7eca41d06a2e7dbb42dd2cef6a783cd11ba9",
+    "bytes": 15878636
+  }
+}

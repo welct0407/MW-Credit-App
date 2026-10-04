@@ -1,0 +1,11 @@
+import { mkdir, cp, writeFile, readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+await mkdir('dist/package', { recursive: true });
+await cp('dist/src', 'dist/package/dist/src', { recursive: true });
+await cp('dist/web', 'dist/package/dist/web', { recursive: true });
+await cp('host.json', 'dist/package/host.json');
+await cp('package-lock.json', 'dist/package/package-lock.json');
+const source = JSON.parse(await readFile('package.json', 'utf8'));
+const deploy = { ...source, scripts: {}, devDependencies: {} };
+await writeFile('dist/package/package.json', JSON.stringify(deploy, null, 2) + '\n');
+await writeFile('dist/package/SOURCE_MANIFEST.json', JSON.stringify({ warning: 'Source-only staging. Install locked production dependencies and hash the final ZIP before deployment.', packageLockSha256: createHash('sha256').update(await readFile('package-lock.json')).digest('hex') }, null, 2) + '\n');

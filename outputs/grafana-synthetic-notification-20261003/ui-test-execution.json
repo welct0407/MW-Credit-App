@@ -1,0 +1,426 @@
+{
+  "parent_reported_test_sent_at": "2026-10-03T10:55:17Z",
+  "parent_reported_test_automation": "6ac0d235a960819184f5ab616a6acf0f",
+  "source_commit": "b1d25f1d1257b6bbb9918d85209b875ab43bfef1",
+  "operations": [
+    {
+      "at": "2026-10-03T10:59:28.680172+00:00",
+      "arguments": [
+        "meta",
+        "apis",
+        "methods",
+        "call",
+        "--collection=firestore.projects.databases.documents",
+        "--api-version=v1",
+        "--raw",
+        "list",
+        "--parent=projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents",
+        "--collectionId=deliveries",
+        "--mask_fieldPaths=id,eventId,subscriptionId,state,attempt,createdAt,nextAt,leaseUntil,reason",
+        "--pageSize=21",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "documents": [
+          {
+            "createTime": "2026-10-03T10:55:20.679975Z",
+            "fields": {
+              "attempt": {
+                "integerValue": "0"
+              },
+              "createdAt": {
+                "integerValue": "1791024920462"
+              },
+              "eventId": {
+                "stringValue": "evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b"
+              },
+              "id": {
+                "stringValue": "2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4"
+              },
+              "leaseUntil": {
+                "integerValue": "0"
+              },
+              "nextAt": {
+                "integerValue": "1791024920462"
+              },
+              "state": {
+                "stringValue": "pending"
+              },
+              "subscriptionId": {
+                "stringValue": "sub_edf9871eca4720006edbe54f7ef51d0cb65bc3b0401b3a42fcb00e3a62165634"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/deliveries/2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4",
+            "updateTime": "2026-10-03T10:55:20.679975Z"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-10-03T10:59:31.469727+00:00",
+      "arguments": [
+        "meta",
+        "apis",
+        "methods",
+        "call",
+        "--collection=firestore.projects.databases.documents",
+        "--api-version=v1",
+        "--raw",
+        "get",
+        "--name=projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/events/evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b",
+        "--mask_fieldPaths=id,timestamp,createdAt,data.source,data.alert_name,data.component,data.status,data.starts_at,data.summary",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "createTime": "2026-10-03T10:55:20.679975Z",
+        "fields": {
+          "createdAt": {
+            "integerValue": "1791024920462"
+          },
+          "data": {
+            "mapValue": {
+              "fields": {
+                "alert_name": {
+                  "stringValue": "MW Grafana Bridge Synthetic Test"
+                },
+                "component": {
+                  "nullValue": null
+                },
+                "source": {
+                  "stringValue": "olivecrab1199"
+                },
+                "starts_at": {
+                  "stringValue": "2026-10-03T10:55:20.394Z"
+                },
+                "status": {
+                  "stringValue": "firing"
+                },
+                "summary": {
+                  "stringValue": "Controlled Grafana-to-Dots notification test; no real incident."
+                }
+              }
+            }
+          },
+          "id": {
+            "stringValue": "evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b"
+          },
+          "timestamp": {
+            "stringValue": "2026-10-03T10:55:20.394Z"
+          }
+        },
+        "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/events/evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b",
+        "updateTime": "2026-10-03T10:55:20.679975Z"
+      }
+    },
+    {
+      "at": "2026-10-03T10:59:34.356248+00:00",
+      "arguments": [
+        "meta",
+        "apis",
+        "methods",
+        "call",
+        "--collection=firestore.projects.databases.documents",
+        "--api-version=v1",
+        "--raw",
+        "list",
+        "--parent=projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents",
+        "--collectionId=events",
+        "--mask_fieldPaths=id,createdAt,data.alert_name,data.status",
+        "--pageSize=21",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "documents": [
+          {
+            "createTime": "2026-10-03T10:55:20.679975Z",
+            "fields": {
+              "createdAt": {
+                "integerValue": "1791024920462"
+              },
+              "data": {
+                "mapValue": {
+                  "fields": {
+                    "alert_name": {
+                      "stringValue": "MW Grafana Bridge Synthetic Test"
+                    },
+                    "status": {
+                      "stringValue": "firing"
+                    }
+                  }
+                }
+              },
+              "id": {
+                "stringValue": "evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/events/evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b",
+            "updateTime": "2026-10-03T10:55:20.679975Z"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-10-03T10:59:37.303868+00:00",
+      "arguments": [
+        "meta",
+        "apis",
+        "methods",
+        "call",
+        "--collection=firestore.projects.databases.documents",
+        "--api-version=v1",
+        "--raw",
+        "get",
+        "--name=projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/subscriptions/sub_edf9871eca4720006edbe54f7ef51d0cb65bc3b0401b3a42fcb00e3a62165634",
+        "--mask_fieldPaths=id,name,filters,active,expiresAt,revision,verifiedAt",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "createTime": "2026-10-03T10:41:56.837847Z",
+        "fields": {
+          "active": {
+            "booleanValue": true
+          },
+          "expiresAt": {
+            "integerValue": "1791110516211"
+          },
+          "filters": {
+            "mapValue": {
+              "fields": {
+                "alert_names": {
+                  "arrayValue": {
+                    "values": [
+                      {
+                        "stringValue": "MW Grafana Bridge Synthetic Test"
+                      }
+                    ]
+                  }
+                },
+                "statuses": {
+                  "arrayValue": {
+                    "values": [
+                      {
+                        "stringValue": "firing"
+                      },
+                      {
+                        "stringValue": "resolved"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "id": {
+            "stringValue": "sub_edf9871eca4720006edbe54f7ef51d0cb65bc3b0401b3a42fcb00e3a62165634"
+          },
+          "name": {
+            "stringValue": "grafana.alert.transition"
+          },
+          "revision": {
+            "integerValue": "1"
+          },
+          "verifiedAt": {
+            "integerValue": "1791024116211"
+          }
+        },
+        "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/subscriptions/sub_edf9871eca4720006edbe54f7ef51d0cb65bc3b0401b3a42fcb00e3a62165634",
+        "updateTime": "2026-10-03T10:41:56.837847Z"
+      }
+    },
+    {
+      "at": "2026-10-03T10:59:40.302076+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "describe",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "attemptDeadline": "240s",
+        "description": "Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "httpTarget": {
+          "body": "e30=",
+          "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Google-Cloud-Scheduler"
+          },
+          "httpMethod": "POST",
+          "oidcToken": {
+            "audience": "https://alerts.mw-credit.com/internal/dispatch",
+            "serviceAccountEmail": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+          },
+          "uri": "https://alerts.mw-credit.com/internal/dispatch"
+        },
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "schedule": "0 0 1 1 *",
+        "state": "PAUSED",
+        "status": {
+          "code": -1
+        },
+        "timeZone": "Etc/UTC",
+        "userUpdateTime": "2026-10-03T10:51:24.754652Z"
+      }
+    },
+    {
+      "at": "2026-10-03T10:59:43.081716+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "run",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "ERROR: (gcloud.scheduler.jobs.run) FAILED_PRECONDITION: spanner.RunInTransaction: generic::failed_precondition: Job.state must be ENABLED for RunJob."
+    },
+    {
+      "at": "2026-10-03T11:00:45.221078+00:00",
+      "arguments": [
+        "meta",
+        "apis",
+        "methods",
+        "call",
+        "--collection=firestore.projects.databases.documents",
+        "--api-version=v1",
+        "--raw",
+        "list",
+        "--parent=projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents",
+        "--collectionId=deliveries",
+        "--mask_fieldPaths=id,eventId,subscriptionId,state,attempt,createdAt,nextAt,leaseUntil,reason",
+        "--pageSize=21",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "documents": [
+          {
+            "createTime": "2026-10-03T10:55:20.679975Z",
+            "fields": {
+              "attempt": {
+                "integerValue": "0"
+              },
+              "createdAt": {
+                "integerValue": "1791024920462"
+              },
+              "eventId": {
+                "stringValue": "evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b"
+              },
+              "id": {
+                "stringValue": "2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4"
+              },
+              "leaseUntil": {
+                "integerValue": "0"
+              },
+              "nextAt": {
+                "integerValue": "1791024920462"
+              },
+              "state": {
+                "stringValue": "pending"
+              },
+              "subscriptionId": {
+                "stringValue": "sub_edf9871eca4720006edbe54f7ef51d0cb65bc3b0401b3a42fcb00e3a62165634"
+              }
+            },
+            "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/documents/deliveries/2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4",
+            "updateTime": "2026-10-03T10:55:20.679975Z"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-10-03T11:00:48.068295+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "describe",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json(name,state,status,lastAttemptTime,retryConfig)"
+      ],
+      "exit_code": 0,
+      "result": {
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "state": "PAUSED",
+        "status": {
+          "code": -1
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T11:00:49.948688+00:00",
+      "arguments": [
+        "logging",
+        "read",
+        "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-grafana-events\" AND resource.labels.revision_name=\"mw-grafana-events-00009-487\" AND timestamp>=\"2026-10-03T10:54:30Z\" AND timestamp<=\"2026-10-03T11:01:00Z\" AND (jsonPayload.event=\"grafana_accepted\" OR jsonPayload.event=\"dispatch_completed\" OR httpRequest.requestUrl=\"https://alerts.mw-credit.com/grafana\" OR httpRequest.requestUrl=\"https://alerts.mw-credit.com/internal/dispatch\")",
+        "--limit=20",
+        "--format=json(timestamp,jsonPayload.event,jsonPayload.count,httpRequest.status,httpRequest.requestMethod)"
+      ],
+      "exit_code": 0,
+      "result": [
+        {
+          "jsonPayload": {
+            "count": 1,
+            "event": "grafana_accepted"
+          },
+          "timestamp": "2026-10-03T10:55:20.687525Z"
+        },
+        {
+          "httpRequest": {
+            "requestMethod": "POST",
+            "status": 202
+          },
+          "timestamp": "2026-10-03T10:55:20.453722Z"
+        }
+      ]
+    }
+  ],
+  "run_requests": 1,
+  "actual_dots_notification_confirmed": false,
+  "pre_dispatch_verified": {
+    "eventId": "evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b",
+    "deliveryId": "2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4",
+    "subscriptionId": "sub_edf9871eca4720006edbe54f7ef51d0cb65bc3b0401b3a42fcb00e3a62165634",
+    "pending_deliveries": 1,
+    "unrelated_events": 0,
+    "unrelated_pending_deliveries": 0,
+    "attempt": 0,
+    "subscription_active": true,
+    "scheduler_state": "PAUSED"
+  },
+  "run_request_started_at": "2026-10-03T10:59:40.303189+00:00",
+  "post_request_delivery": {
+    "state": "pending",
+    "attempt": 0,
+    "leaseUntil": 0,
+    "pending_deliveries": 1,
+    "eventId": "evt_effa6bb773905446a52783d146ad0f8446e0072c1dd121759d4965d5eadc062b",
+    "deliveryId": "2ef196e010977b6c4869139066ff2211fcbbeb95b76440384fd7fba9bd9bb3b4"
+  },
+  "execution_result": "BLOCKED_FAILED_PRECONDITION_JOB_MUST_BE_ENABLED",
+  "run_retried": false,
+  "required_next_action": "Parent must explicitly authorize temporary ENABLED state on the already verified annual safety schedule, then one new run and immediate pause; current instruction prohibits resuming. Reconcile again first. No change made.",
+  "scheduler_remains_paused": true,
+  "last_attempt_time_present": false,
+  "dispatch_completion_logs": 0
+}

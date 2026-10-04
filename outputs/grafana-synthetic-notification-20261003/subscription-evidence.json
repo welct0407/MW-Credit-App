@@ -1,0 +1,12 @@
+{
+  "revision": "mw-grafana-events-00009-487",
+  "parentReportedCreationCompletedUtc": "2026-10-03T10:00:26Z",
+  "rpc": {
+    "timestamp": "2026-10-03T10:00:25.548096Z",
+    "method": "events/subscribe",
+    "success": true
+  },
+  "sourceBackedConclusion": "subscribe success follows signed callback challenge echo verification and durable subscription persistence; prior denied attempts did not create a cached subscription",
+  "noUrlOrSigningSecretRead": true,
+  "notificationDelivered": false
+}

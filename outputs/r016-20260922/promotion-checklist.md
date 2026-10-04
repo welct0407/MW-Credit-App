@@ -1,5 +1,12 @@
 # R016 — Metabase migration promotion checklist
 
+## Repository reconciliation — 4 October 2026
+
+Read-only retained evidence supersedes the stale original-Performance replacement decision: R023 explicitly records owner acceptance, removal of old tab7 and completed verification. Do not repeat that retirement. R017/R018 record incorporated R016 reporting dependencies; the historical R016 V39 package is not the current production SQL baseline. No repository or remote R016 tag was found by exact tag lookup.
+
+Whole-R016 acceptance remains separately unrecorded, and retained evidence does not independently establish retirement of the temporary Metabase migration API key. The 22 September owner rule retained that key until full migration closure. This task authorizes no credential mutation or deletion; do not infer revocation from Looker Studio Trash retirement or later report releases. Final R016 closure/tag cannot be asserted from the available evidence. Historical rows below retain their original dates and completed checks; their pending original-Performance decision is superseded only by R023.
+
+
 Template revision: 2026-09-21. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Release_Workflow.md); exceptions: [Recovery](../../Documents/Release_Recovery_Runbook.md).
 
 ## 2R snapshot report part 2 closure — 23 September 2026

@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VM-01 control</title><link rel="stylesheet" href="/assets/style.css"><script src="/assets/config.js" defer></script><script src="/assets/app.js" type="module"></script></head>
+<body><main><p class="eyebrow">MW CREDIT · AZURE</p><h1>VM-01</h1><p>Start the Windows workspace or safely end its compute allocation.</p>
+<button id="sign-in">Sign in with Microsoft</button><button id="sign-out" hidden>Sign out</button><p id="identity"></p>
+<section id="control" hidden><div class="state"><span id="power">Checking…</span><span id="observed"></span></div><p id="provisioning"></p><p>Executor readiness: <strong>not verified</strong></p>
+<p id="operation" role="status"></p><div class="actions"><button data-action="start" disabled>Start</button><button data-action="restart" disabled>Restart</button><button data-action="deallocate" class="destructive" disabled>Stop — deallocate</button></div>
+<p class="note">Deallocation interrupts work and releases compute allocation. Retained disks and other resources may still incur charges.</p><button id="refresh">Refresh status</button><button id="retry" hidden>Check saved request status</button><p id="polling-note" role="status"></p></section>
+<p id="message" role="alert"></p>
+<p id="action-message" role="alert"></p>
+<dialog id="confirm"><form method="dialog"><h2 id="confirm-title">Confirm interruption</h2><p>Hold new VM tasks before continuing.</p><label><input id="saved" type="checkbox"> Work is saved and interruption is authorized.</label><label><input id="held" type="checkbox"> New VM work is held until this action is resolved.</label><label>Approval reference <input id="approval" maxlength="128" autocomplete="off" aria-describedby="approval-help" required></label><p id="approval-help">Use one reference, up to 128 characters: letters, numbers, underscore, period, colon, slash or hyphen. Start with a letter or number; no spaces or semicolons.</p><div class="actions"><button value="cancel" formnovalidate>Cancel</button><button id="confirm-submit" value="confirm" disabled>Confirm action</button></div></form></dialog>
+</main></body></html>

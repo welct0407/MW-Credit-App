@@ -1,0 +1,19 @@
+Candidate verification, 2026-10-02 UTC
+Node24.19.0; Functions Core Tools4.15.2; local Functions runtime4.1053.200.26403.
+Strict TypeScript compile: exit0.
+Browser bundle build: exit0.
+Focused node --test run from controller directory:
+  tests/functions-host.test.mjs
+  tests/status-diagnostics.test.mjs
+  tests/browser.test.mjs
+  tests/authorization-http.test.mjs
+Tests23; pass23; fail0; skipped0; duration11817.451ms.
+After Astra's available-port hardening, real-host test rerun:
+Tests1; pass1; fail0; skipped0; duration4259.8553ms.
+Original baseline: GETstatus empty404; POSTstatus and GETactions JSON405.
+Candidate: GETstatus/query JSON401 bearer_token_required; POSTstatus/GETactions JSON405.
+Six static URLs200, callback self frame-ancestors, asset queries/unknown404.
+Initial root-directory invocation: browser fixture builds failed to resolve web/app.ts.
+Corrected controller-directory invocation above passed; no production code change was needed.
+Ephemeral external localhost certificate/password removed after tests.
+No token acquisition, ARM/storage operation, live deployment or security/config/log change.
