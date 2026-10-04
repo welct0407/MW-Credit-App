@@ -1,0 +1,36 @@
+{
+  "status": "APPROVED_APPLIED_READBACK_VERIFIED_EFFECTIVE_OPERATION_POLL_PENDING",
+  "permission": "Microsoft.Compute/locations/operations/read",
+  "runtimeSwitch": "VM01_ENABLE_OPERATION_POLLING=true",
+  "scopeCandidates": [
+    {
+      "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT",
+      "status": "not_selected_or_granted",
+      "basis": "Generic ARM async-operation documentation describes sufficient resource-group permissions."
+    },
+    {
+      "scope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293",
+      "status": "approved_and_applied_separate_role; effective live poll pending",
+      "basis": "Azure Update Manager roles/permissions lists this action at Machine subscription scope."
+    }
+  ],
+  "rolePermissions": {
+    "actions": [
+      "Microsoft.Compute/locations/operations/read"
+    ],
+    "notActions": [],
+    "dataActions": [],
+    "notDataActions": []
+  },
+  "securityImpact": "May expose operation status for other compute operations within the effective scope. Application URL validation does not reduce the underlying identity grant.",
+  "sources": [
+    "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/async-operations#permission-for-tracking-async-status",
+    "https://learn.microsoft.com/en-us/azure/update-manager/roles-permissions"
+  ],
+  "approvedScope": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293",
+  "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+  "roleDefinitionId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleDefinitions/a1fdc870-cc0e-5752-af1a-e065691949ad",
+  "roleAssignmentId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/providers/Microsoft.Authorization/roleAssignments/88cf12f8-74dc-59cc-b0e0-fa22cc721bd5",
+  "baseFiveActionVmRoleUnchanged": true,
+  "evidence": "../../../../outputs/r050-vm01-controller/activation/README.md"
+}

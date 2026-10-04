@@ -1,0 +1,23 @@
+# R050 - VM01 Cloud application certificate - 4 October 2026 UTC
+
+Owner approved certificate and Personal Vault setup for the existing VM01 Controller Codex Cloud application with its four existing roles, then explicitly approved replacing the initial 90-day certificate with one two-year certificate. The replacement is now registered and the old registration removed. Shutdown remains explicitly ON HOLD. No power request, controller deployment, controller configuration, role/consent or browser-access change was performed.
+
+## Current certificate and evidence
+
+Application client `af64b0c6-261c-45a0-b653-a71d382edb92`, application object `a7f9baed-fc3c-4514-bfe8-e4436f73b202`, principal `d01d70be-d205-4ac9-a7fc-a18dd48e0633`, tenant `9e29c895-606a-420b-acc2-1c24375df4d9`. Initial documentation baseline `07c8a21f337b04c128d138cd4b16679a244b0f45`; replacement baseline `c621c773623938385f965602f79063e457fb7257`. The same isolated task branch records both operations and preserves other controller work.
+
+[Current sanitized receipt](../outputs/r050-vm01-controller/cloud-certificate/registration-20261004.json) records fingerprints, validity, key ID and private local paths, never key material or tokens. The replacement is RSA-3072, self-signed SHA-256, digital-signature use, PKCS#8 PEM private key. Valid **2026-10-04 05:38:02 UTC through 2028-10-04 05:38:02 UTC**. Current key ID `3dc9228b-f87d-4bba-837c-16a6ac04653a`; SHA-1 thumbprint `2DCB559323F40445A04238B12E324DF2C67979AC`.
+
+The dedicated directory under the established owner credential location was reverified outside Git. Its inheritance is disabled; only AzureAD\MWCredit, VM-01\ideaadmin and SYSTEM have access. The replacement private file's inherited permissions were independently verified against those three identities. Existing parent permissions were not modified. Before generation, no 2year replacement artifacts or matching registered replacement existed. Exclusive new file creation and a durable generation-intent record prevent blind duplicate generation. A local sign/verify challenge and key-pair match passed. Public DER bytes, fingerprint, validity and key ID match Microsoft Graph readback exactly.
+
+Only keyCredentials was patched using the [Microsoft Graph application update API](https://learn.microsoft.com/en-us/graph/api/application-update?view=graph-rest-1.0). The new public certificate was appended while preserving the old entry, then independently verified at 05:38:03 UTC. Only afterward was old key ID `cb0bf063-6202-4c9c-83d6-0ba70b09002b` removed. Final readback at 05:38:04 UTC confirms exactly one registered certificate and absence of the old key. All unrelated credentials, selected other application properties, service principal settings and four effective API role assignments were preserved. No private key was transmitted.
+
+The initial 90-day certificate was generated at 04:43:13 UTC and registered at 04:44:17 UTC, thumbprint `97FC04F50F819DA8042B95982E9EB0698D03C021`, expiry 2027-01-02 04:43:13 UTC. Its registration is now retired; its private local files and public baseline evidence remain intact for recovery/history. Use only the new `vm01-cloud-client-2year.private.pem` for Vault handoff. Initial sanitized evidence remains in Git history at the replacement baseline commit.
+
+## Handoff, recovery and remaining verification
+
+Owner must enter the replacement private PEM directly into Personal Vault scoped only to the AppSheet-Loan-Project Cloud environment. Do not put it in chat, logs, Git or a tool response. The separate Cloud helper task owns Vault binding and status-only end-to-end verification. Neither Vault entry nor token acquisition/controller API success is claimed here. No live power test is authorized while the hold persists.
+
+Recovery coverage currently consists of the private local originals; Git publication covers only sanitized evidence. Preserve originals pending verified Vault handoff. Renewal is needed before the new expiry; no rotation automation was created. Public baseline metadata and operation-intent receipts are retained privately. To revoke the replacement, remove only key ID `3dc9228b-f87d-4bba-837c-16a6ac04653a`, preserving other credentials. Recovery of the superseded registration can use its retained public certificate if separately authorized. Previously issued token expiry must be considered after credential removal.
+
+Files updated: this existing log and current JSON receipt. Status: two-year replacement and retirement of the 90-day registration complete; owner Vault entry, Cloud consumption and unattended invocation verification pending. R050 remains Open. No controller implementation, data-model, AppSheet, database or report change.

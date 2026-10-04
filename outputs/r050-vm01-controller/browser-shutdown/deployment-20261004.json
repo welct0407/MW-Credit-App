@@ -1,0 +1,126 @@
+{
+  "stage": "DEPLOYED_READBACK_VERIFIED",
+  "approval": "Owner approved deploying VM-01 shutdown reliability repairs on 4 October 2026; no power test",
+  "sourceCommit": "41e927ae565f414938627deea645aae90a1abff8",
+  "candidatePackageSha256": "8a2ab3fcf8ac57534c94aaaed645fba629cd5402a734ddb150d6f8f71648a07c",
+  "baselineRuntimeSource": "00884cc74aea80629211ce1a86e5a3333f7abf2d",
+  "before": {
+    "atUtc": "2026-10-04T02:48:43.808305+00:00",
+    "settingsSha256": "4ab19a54aebde3051f8da1217fcb621f7d82317f67f00ee550b590e743f50709",
+    "authSha256": "f9ef2eea6b7016c988d1c510434a4aab23cec6ad69fed76f999e5d44273b7170",
+    "loggingSha256": "6b62b15998bd1c306528a4832d5a19ce86da05f0d58f7dd0d916c398fc1637c0",
+    "managedIdentityRolesSha256": "4e4e123a7dfc0ba037186311c41d98dc2312d4c3735d9e5b536ee7d1f84c552a",
+    "browserSha256": "e143943447ac67aab7b0193dc36e7aab56a033192171c3b7b19a0d3dfaf53929",
+    "browserConsentSha256": "33978c0d77183c7190db5c415201c6a93d9389f40f709e983bdb34c9799f5078",
+    "ledgerSha256": "b799d5d11e723d04a86b88e7b9142b1c5adcf89796b8ddb95b524d5506ba547e",
+    "generation": 12,
+    "activeRequestId": null,
+    "admissionEnabled": true,
+    "identity": {
+      "type": "SystemAssigned",
+      "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586"
+    },
+    "hostNames": [
+      "vm01-controller-50f792fa.azurewebsites.net",
+      "vmcontroller.mw-credit.com"
+    ],
+    "origin": "https://vmcontroller.mw-credit.com",
+    "websiteMutations": "true",
+    "operationPolling": "true"
+  },
+  "beforeLedgerSha256": "b799d5d11e723d04a86b88e7b9142b1c5adcf89796b8ddb95b524d5506ba547e",
+  "vmPowerRequests": 0,
+  "ledgerWrites": 0,
+  "settingsMutations": 0,
+  "deployment": {
+    "id": "daf64045-4519-49bb-96bf-48c7ed3ef3c8",
+    "status": 4,
+    "complete": true,
+    "active": true,
+    "received_time": "2026-10-04T02:49:00.6063679Z",
+    "end_time": "2026-10-04T02:50:05.5146825Z"
+  },
+  "codeDeployedAtUtc": "2026-10-04T02:50:12.365878+00:00",
+  "verifiedAtUtc": "2026-10-04T02:50:30.395509+00:00",
+  "after": {
+    "atUtc": "2026-10-04T02:50:30.395523+00:00",
+    "settingsSha256": "4ab19a54aebde3051f8da1217fcb621f7d82317f67f00ee550b590e743f50709",
+    "authSha256": "f9ef2eea6b7016c988d1c510434a4aab23cec6ad69fed76f999e5d44273b7170",
+    "loggingSha256": "6b62b15998bd1c306528a4832d5a19ce86da05f0d58f7dd0d916c398fc1637c0",
+    "managedIdentityRolesSha256": "4e4e123a7dfc0ba037186311c41d98dc2312d4c3735d9e5b536ee7d1f84c552a",
+    "browserSha256": "e143943447ac67aab7b0193dc36e7aab56a033192171c3b7b19a0d3dfaf53929",
+    "browserConsentSha256": "33978c0d77183c7190db5c415201c6a93d9389f40f709e983bdb34c9799f5078",
+    "ledgerSha256": "b799d5d11e723d04a86b88e7b9142b1c5adcf89796b8ddb95b524d5506ba547e",
+    "generation": 12,
+    "activeRequestId": null,
+    "admissionEnabled": true,
+    "identity": {
+      "type": "SystemAssigned",
+      "tenantId": "9e29c895-606a-420b-acc2-1c24375df4d9",
+      "principalId": "a671b605-43e5-4878-b3cb-b7b6bf2ce586"
+    },
+    "hostNames": [
+      "vm01-controller-50f792fa.azurewebsites.net",
+      "vmcontroller.mw-credit.com"
+    ],
+    "origin": "https://vmcontroller.mw-credit.com",
+    "websiteMutations": "true",
+    "operationPolling": "true"
+  },
+  "afterLedgerSha256": "b799d5d11e723d04a86b88e7b9142b1c5adcf89796b8ddb95b524d5506ba547e",
+  "assets": [
+    {
+      "path": "/",
+      "status": 200,
+      "packageBytesMatch": true
+    },
+    {
+      "path": "/auth/callback",
+      "status": 200,
+      "packageBytesMatch": true
+    },
+    {
+      "path": "/assets/app.js",
+      "status": 200,
+      "packageBytesMatch": true
+    },
+    {
+      "path": "/assets/style.css",
+      "status": 200,
+      "packageBytesMatch": true
+    },
+    {
+      "path": "/assets/auth-callback.js",
+      "status": 200,
+      "packageBytesMatch": true
+    },
+    {
+      "path": "/assets/config.js",
+      "status": 200,
+      "canonicalOrigin": true
+    }
+  ],
+  "anonymousStatus": 401,
+  "functionNames": [
+    "vm01-deallocate",
+    "vm01-restart",
+    "vm01-start",
+    "vm01-static-0",
+    "vm01-static-1",
+    "vm01-static-2",
+    "vm01-static-3",
+    "vm01-static-4",
+    "vm01-static-5",
+    "vm01-status"
+  ],
+  "vmObservation": {
+    "identityMatched": true,
+    "location": "southeastasia",
+    "powerState": [
+      "PowerState/running"
+    ],
+    "provisioningState": "Succeeded"
+  },
+  "authenticatedBrowserCheck": "Pending independent parent check"
+}

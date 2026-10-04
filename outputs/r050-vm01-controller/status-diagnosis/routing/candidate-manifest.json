@@ -1,0 +1,45 @@
+{
+  "candidateStatus": "LOCAL_TESTED_REVIEWED_NOT_PUBLISHED_OR_DEPLOYED",
+  "sourceParentCommit": "5d0d10cb4f7fbf50053d125dab58fae02fab3913",
+  "currentlyDeployedSourceCommit": "4a506465f96b5d8eaa78ed6bf723da6de12bb740",
+  "parentPackageSha256": "13bf7c630d59aab77779b42af02d7eca41d06a2e7dbb42dd2cef6a783cd11ba9",
+  "scope": "Replace overlapping GET static wildcard with six exact static routes; no other runtime changes",
+  "sourceHashes": {
+    "src/functions.ts": "d310222854ae0994be02a41188d45cf06c044d817dacfb1ec287d733ae0202e6",
+    "tests/functions-host.test.mjs": "692da0ab543dfb66e0bdcc5f3ee7da1de1b0debedd73cdbcc81e89823f401a51"
+  },
+  "runtimeChanges": [
+    {
+      "path": "dist/src/functions.js",
+      "sha256": "e19dc08d91224df8d3f96a13fd09d0e705079616f0bc2f88f4a1d5a29775c97d"
+    }
+  ],
+  "validation": {
+    "strictTypeScript": "PASS",
+    "bundle": "PASS",
+    "focusedSuite": {
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0
+    },
+    "realHostAfterPortHardening": "PASS",
+    "authenticatedLiveCandidateStatus": "PENDING_AFTER_REVIEWED_DEPLOYMENT"
+  },
+  "preserved": [
+    "authentication",
+    "API methods",
+    "VM power controls",
+    "logging",
+    "host configuration",
+    "dependencies",
+    "browser bundle",
+    "storage ledger"
+  ],
+  "productionDependenciesReused": 9726,
+  "packageSha256": "1e385975602486f5c80d628916037820d2a30a7064856989c26750497870f87a",
+  "packageBytes": 15876399,
+  "zipComparisonChangedEntries": [
+    "dist/src/functions.js",
+    "SOURCE_MANIFEST.json"
+  ]
+}

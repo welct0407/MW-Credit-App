@@ -1,0 +1,21 @@
+
+
+Azure Functions Core Tools
+Core Tools Version:       4.15.2+007886fd6e869a96595c7fd7788d90397588725b (64-bit)
+Function Runtime Version: 4.1053.200.26403
+
+[2026-10-02T06:05:25.233Z] Worker process started and initialized.
+
+Functions:
+
+	vm01-deallocate: [GET,POST,PUT,DELETE,PATCH,OPTIONS,HEAD] https://localhost:7193/api/vm01/deallocate
+
+	vm01-restart: [GET,POST,PUT,DELETE,PATCH,OPTIONS,HEAD] https://localhost:7193/api/vm01/restart
+
+	vm01-start: [GET,POST,PUT,DELETE,PATCH,OPTIONS,HEAD] https://localhost:7193/api/vm01/start
+
+	vm01-static: [GET] https://localhost:7193/{*path}
+
+	vm01-status: [GET,POST,PUT,DELETE,PATCH,OPTIONS,HEAD] https://localhost:7193/api/vm01/status
+
+For detailed output, run func with --verbose flag.

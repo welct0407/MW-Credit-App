@@ -1,0 +1,11 @@
+{
+  "atUtc": "2026-10-02T08:25:32.464366+00:00",
+  "mode": "verify-only",
+  "exitCode": 0,
+  "proofSha256": "f3851f03750d0772ad3916cf6596b11679441475adac985cf2fecfe42dcbe602",
+  "output": "Read-only evidence verification passed. No ledger lease/write, deployment, setting change or power action performed.",
+  "error": "",
+  "vmPowerRequests": 0,
+  "ledgerWrites": 0,
+  "configurationWrites": 0
+}

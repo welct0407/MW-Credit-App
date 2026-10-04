@@ -1,5 +1,7 @@
 # Release tracker
 
+R050 controller code checkpoint, 4 October 2026 UTC: owner-approved browser shutdown reliability repairs are deployed from source `41e927ae565f414938627deea645aae90a1abff8`, package SHA256 `8a2ab3fcf8ac57534c94aaaed645fba629cd5402a734ddb150d6f8f71648a07c`. Live readback preserved generation12 and all completed receipts; parent authenticated UI check remains pending. [Evidence](../outputs/r050-vm01-controller/browser-shutdown/README.md). R050 remains Open; draft PR6 is unmerged.
+
 ## Current development release
 
 | Start-of-work lookup | Value |

@@ -1,0 +1,20 @@
+{
+  "properties": {
+    "roleName": "VM01 Operation Status Reader",
+    "description": "Separately approved Compute asynchronous operation-status read at the fixed subscription; no VM actions.",
+    "type": "CustomRole",
+    "permissions": [
+      {
+        "actions": [
+          "Microsoft.Compute/locations/operations/read"
+        ],
+        "notActions": [],
+        "dataActions": [],
+        "notDataActions": []
+      }
+    ],
+    "assignableScopes": [
+      "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293"
+    ]
+  }
+}
