@@ -9935,41 +9935,68 @@
               },
               "fieldConfig": {
                 "defaults": {
-                  "mappings": [
-                    {
-                      "type": "value",
-                      "options": {
-                        "0": {
-                          "text": "Down",
-                          "color": "red"
-                        },
-                        "1": {
-                          "text": "Healthy",
-                          "color": "green"
-                        },
-                        "2": {
-                          "text": "Degraded",
-                          "color": "orange"
-                        },
-                        "3": {
-                          "text": "Paused",
-                          "color": "blue"
-                        },
-                        "4": {
-                          "text": "Unknown",
-                          "color": "gray"
-                        }
-                      }
-                    }
-                  ],
+                  "mappings": [],
                   "noValue": "Unknown",
-                  "decimals": 0
+                  "decimals": 0,
+                  "unit": "short",
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
                 },
                 "overrides": [
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "Pending deliveries"
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Status$"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Down",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "Healthy",
+                                "color": "green"
+                              },
+                              "2": {
+                                "text": "Degraded",
+                                "color": "orange"
+                              },
+                              "3": {
+                                "text": "Paused",
+                                "color": "blue"
+                              },
+                              "4": {
+                                "text": "Unknown",
+                                "color": "gray"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "unit",
+                        "value": "none"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "thresholds"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Pending deliveries$"
                     },
                     "properties": [
                       {
@@ -9995,8 +10022,8 @@
                   },
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "Oldest pending"
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Oldest pending$"
                     },
                     "properties": [
                       {
@@ -10163,41 +10190,68 @@
               },
               "fieldConfig": {
                 "defaults": {
-                  "mappings": [
-                    {
-                      "type": "value",
-                      "options": {
-                        "0": {
-                          "text": "Down",
-                          "color": "red"
-                        },
-                        "1": {
-                          "text": "Healthy",
-                          "color": "green"
-                        },
-                        "2": {
-                          "text": "Degraded",
-                          "color": "orange"
-                        },
-                        "3": {
-                          "text": "Paused",
-                          "color": "blue"
-                        },
-                        "4": {
-                          "text": "Unknown",
-                          "color": "gray"
-                        }
-                      }
-                    }
-                  ],
+                  "mappings": [],
                   "noValue": "Unknown",
-                  "decimals": 0
+                  "decimals": 0,
+                  "unit": "short",
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
                 },
                 "overrides": [
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "Active expected"
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Status$"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Down",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "Healthy",
+                                "color": "green"
+                              },
+                              "2": {
+                                "text": "Degraded",
+                                "color": "orange"
+                              },
+                              "3": {
+                                "text": "Paused",
+                                "color": "blue"
+                              },
+                              "4": {
+                                "text": "Unknown",
+                                "color": "gray"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "unit",
+                        "value": "none"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "thresholds"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Active expected$"
                     },
                     "properties": [
                       {
@@ -10223,8 +10277,8 @@
                   },
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "Expected"
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Expected$"
                     },
                     "properties": [
                       {
@@ -10391,41 +10445,68 @@
               },
               "fieldConfig": {
                 "defaults": {
-                  "mappings": [
-                    {
-                      "type": "value",
-                      "options": {
-                        "0": {
-                          "text": "Down",
-                          "color": "red"
-                        },
-                        "1": {
-                          "text": "Healthy",
-                          "color": "green"
-                        },
-                        "2": {
-                          "text": "Degraded",
-                          "color": "orange"
-                        },
-                        "3": {
-                          "text": "Paused",
-                          "color": "blue"
-                        },
-                        "4": {
-                          "text": "Unknown",
-                          "color": "gray"
-                        }
-                      }
-                    }
-                  ],
+                  "mappings": [],
                   "noValue": "Unknown",
-                  "decimals": 0
+                  "decimals": 0,
+                  "unit": "short",
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
                 },
                 "overrides": [
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "Subscription remaining"
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Status$"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Down",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "Healthy",
+                                "color": "green"
+                              },
+                              "2": {
+                                "text": "Degraded",
+                                "color": "orange"
+                              },
+                              "3": {
+                                "text": "Paused",
+                                "color": "blue"
+                              },
+                              "4": {
+                                "text": "Unknown",
+                                "color": "gray"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "unit",
+                        "value": "none"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "thresholds"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Subscription remaining$"
                     },
                     "properties": [
                       {
@@ -10451,8 +10532,8 @@
                   },
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "Grant remaining"
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Grant remaining$"
                     },
                     "properties": [
                       {
@@ -10586,41 +10667,68 @@
               },
               "fieldConfig": {
                 "defaults": {
-                  "mappings": [
-                    {
-                      "type": "value",
-                      "options": {
-                        "0": {
-                          "text": "Down",
-                          "color": "red"
-                        },
-                        "1": {
-                          "text": "Healthy",
-                          "color": "green"
-                        },
-                        "2": {
-                          "text": "Degraded",
-                          "color": "orange"
-                        },
-                        "3": {
-                          "text": "Paused",
-                          "color": "blue"
-                        },
-                        "4": {
-                          "text": "Unknown",
-                          "color": "gray"
-                        }
-                      }
-                    }
-                  ],
+                  "mappings": [],
                   "noValue": "Unknown",
-                  "decimals": 0
+                  "decimals": 0,
+                  "unit": "short",
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
                 },
                 "overrides": [
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "Terminal failures · retained"
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Status$"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Down",
+                                "color": "red"
+                              },
+                              "1": {
+                                "text": "Healthy",
+                                "color": "green"
+                              },
+                              "2": {
+                                "text": "Degraded",
+                                "color": "orange"
+                              },
+                              "3": {
+                                "text": "Paused",
+                                "color": "blue"
+                              },
+                              "4": {
+                                "text": "Unknown",
+                                "color": "gray"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "unit",
+                        "value": "none"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "thresholds"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": "^(?:[A-Z] )?Terminal failures · retained$"
                     },
                     "properties": [
                       {

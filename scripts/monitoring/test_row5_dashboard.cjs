@@ -18,6 +18,28 @@ for(const fmt of ['dashboard','editor-resource'])for(const page of ['performance
  const bad=structuredClone(before);if(bad.spec)bad.spec.timeSettings.timezone='UTC';else bad.timezone='UTC';
  assert.throws(()=>patch(bad,page,{azureVmMetricsUrl}),/timezone/);
 }
+// Mixed stat panels must never apply health mappings to counts/seconds,
+// including Grafana query-prefixed display names observed in live QA.
+const presentation=patch(JSON.parse(fs.readFileSync(root+'performance-dashboard.json')),'performance');
+const fieldOptions=(p,name)=>{
+ const resolved=structuredClone(p.fieldConfig.defaults);
+ for(const o of p.fieldConfig.overrides)if(o.matcher.id==='byRegexp'&&new RegExp(o.matcher.options).test(name))
+  for(const property of o.properties)resolved[property.id]=property.value;
+ return resolved;
+};
+for(const id of [123,125,126,127]){
+ const p=presentation.panels.find(x=>x.id===id);
+ assert.deepEqual(p.fieldConfig.defaults.mappings,[],'numeric defaults unmapped');
+ for(const name of ['Status','A Status']){
+  const c=fieldOptions(p,name);assert.equal(c.mappings[0].options[0].text,'Down');assert.equal(c.mappings[0].options[4].text,'Unknown');
+ }
+ for(const q of p.targets.slice(1))for(const name of [q.columns[0].text,q.refId+' '+q.columns[0].text]){
+  const c=fieldOptions(p,name);assert.deepEqual(c.mappings,[],'zero must remain numeric: '+name);
+  assert.equal(c.unit,/pending_seconds|seconds_remaining/.test(decodeURIComponent(q.url))?'s':'short','prefix-compatible unit: '+name);
+  assert.equal(c.noValue,'Unknown');assert.equal(c.color.fixedColor,'blue');
+ }
+}
+for(const id of [121,122])assert.equal(presentation.panels.find(x=>x.id===id).fieldConfig.defaults.mappings[0].options[0].text,'Down','status-only panels unchanged');
 // Optional fresh LIVE v2 exports: prove removing only this task additions restores exact input.
 if(process.argv.length>2){
  const [perfPath,costPath]=process.argv.slice(2);if(!perfPath||!costPath)throw Error('Provide both live exports');
