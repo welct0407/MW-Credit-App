@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { AzureArm, validatedOperationUrl } from '../dist/src/arm.js';
+import { AzureArm, trackingRejectionReason, validatedOperationUrl } from '../dist/src/arm.js';
 import { validateLedger } from '../dist/src/ledger.js';
 import { bootstrapLedger } from '../dist/src/state-machine.js';
 import { configuration, TARGET_RESOURCE_ID, TARGET_TENANT_ID } from '../dist/src/configuration.js';
@@ -18,6 +18,27 @@ test('ARM POST is sent once with no body, fixed target and manual redirects', as
 test('invalid Azure response URL is not persisted or followed', async () => {
   let calls = 0; const arm = new AzureArm(config, credential, async () => { calls++; return new Response(null, { status: 202, headers: { 'Azure-AsyncOperation': 'https://evil.invalid?secret=x', Location: trackingUrl } }); });
   const outcome = await arm.submit('restart'); assert.equal(outcome.status, 202); assert.equal(outcome.trackingUrl, undefined); assert.equal(calls, 1);
+  assert.equal(outcome.trackingRejectedHeader, 'async'); assert.equal(outcome.trackingRejectionReason, 'authority');
+  assert.equal(JSON.stringify(outcome).includes('SECRET'), false);
+});
+test('rejected tracking links yield bounded reason codes without widening accepted URLs', async () => {
+  const cases = [
+    ['not a URL', 'malformed'],
+    [trackingUrl.replace('https:', 'http:'), 'authority'],
+    [trackingUrl.replace('management.azure.com', 'management.azure.com.evil.invalid'), 'authority'],
+    [trackingUrl.replace(ids.operation, '%2F' + ids.operation), 'encoded'],
+    [trackingUrl.replace('southeastasia', 'eastus'), 'path'],
+    [trackingUrl.replace(ids.operation, 'not-a-guid'), 'operation_id'],
+    [trackingUrl + '&secret=private', 'query']
+  ];
+  for (const [url, reason] of cases) {
+    assert.throws(() => validatedOperationUrl(url, config));
+    assert.equal(trackingRejectionReason(url, config), reason);
+    const arm = new AzureArm(config, credential, async () => new Response(null, { status: 202, headers: { Location: url } }));
+    const result = await arm.submit('deallocate');
+    assert.equal(result.trackingRejectedHeader, 'location'); assert.equal(result.trackingRejectionReason, reason);
+    assert.equal(result.trackingUrl, undefined); assert.equal(JSON.stringify(result).includes('secret'), false);
+  }
 });
 test('optional poll verifies URL again and never follows redirects', async () => {
   let calls = 0; const arm = new AzureArm({ ...config, operationPollingEnabled: true }, credential, async (_, init) => { calls++; assert.equal(init.method, 'GET'); assert.equal(init.redirect, 'manual'); return new Response(null, { status: 302, headers: { location: 'https://evil.invalid' } }); });

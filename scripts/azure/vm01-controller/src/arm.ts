@@ -1,5 +1,5 @@
 import { ManagedIdentityCredential } from '@azure/identity';
-import type { Action, Arm, ArmOutcome, Configuration, DispatchReceipt, PollOutcome, PowerState, VerifiedPollOutcome, VmObservation } from './types.js';
+import type { Action, Arm, ArmOutcome, Configuration, DispatchReceipt, PollOutcome, PowerState, TrackingRejectionReason, VerifiedPollOutcome, VmObservation } from './types.js';
 import { fail } from './errors.js';
 import { UUID } from './configuration.js';
 export interface ArmCredential { getToken(scope: string): Promise<{ token: string } | null> }
@@ -12,6 +12,18 @@ export function validatedOperationUrl(value: string, config: Configuration): str
   const operationId = url.pathname.slice(prefix.length);
   if (url.protocol !== 'https:' || url.hostname !== 'management.azure.com' || url.port || url.username || url.password || url.hash || !url.pathname.startsWith(prefix) || !UUID.test(operationId) || url.searchParams.size !== 1 || !/^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get('api-version') ?? '') || value.includes('%')) fail(503, 'invalid_operation_url');
   return url.href;
+}
+// Only a fixed category is retained. Never persist the provider's rejected URL or query.
+export function trackingRejectionReason(value: string, config: Configuration): TrackingRejectionReason {
+  let url: URL;
+  try { url = new URL(value); } catch { return 'malformed'; }
+  if (url.protocol !== 'https:' || url.hostname !== 'management.azure.com' || url.port || url.username || url.password || url.hash) return 'authority';
+  if (value.includes('%')) return 'encoded';
+  const subscription = config.resourceId.split('/')[2]!;
+  const prefix = `/subscriptions/${subscription}/providers/Microsoft.Compute/locations/southeastasia/operations/`;
+  if (!url.pathname.startsWith(prefix)) return 'path';
+  if (!UUID.test(url.pathname.slice(prefix.length))) return 'operation_id';
+  return 'query';
 }
 export function retryAfter(value: string | null): number {
   return value && /^\d+$/.test(value) ? Math.max(15, Math.min(300, Number(value))) : 15;
@@ -45,7 +57,8 @@ export class AzureArm implements Arm {
       const candidate = response.headers.get('Azure-AsyncOperation') ?? response.headers.get('Location');
       if (candidate) {
         // Invalid response URLs are discarded; acceptance still requires reconciliation.
-        try { result.trackingUrl = validatedOperationUrl(candidate, this.config); result.trackingKind = response.headers.has('Azure-AsyncOperation') ? 'async' : 'location'; } catch { result.trackingIssue = 'rejected'; }
+        try { result.trackingUrl = validatedOperationUrl(candidate, this.config); result.trackingKind = response.headers.has('Azure-AsyncOperation') ? 'async' : 'location'; }
+        catch { result.trackingIssue = 'rejected'; result.trackingRejectedHeader = response.headers.has('Azure-AsyncOperation') ? 'async' : 'location'; result.trackingRejectionReason = trackingRejectionReason(candidate, this.config); }
       } else result.trackingIssue = 'missing';
       result.retryAfter = retryAfter(response.headers.get('Retry-After'));
     }

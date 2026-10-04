@@ -21,3 +21,13 @@ Verified byte equality for all six shared files and exhaustive path scope agains
 Post-integration aggregate validation: `npm run check` and `npm test` passed again: **82 total, 81 passed, zero failed, one optional Functions-host test skipped**. The full aggregate includes all affected real-browser/controller cases. [Check output](integration-check.log) · [Full test output](integration-tests.log). Existing limitations remain unchanged.
 
 The repository's only Actions workflow is path-filtered to database/tooling changes; no controller CI workflow is configured. Remote head, same draft PR and GitHub mergeability/status readback are returned in the task handoff after normal publication. This is task-branch integration only, not a PR merge or deployment.
+
+## Approved 4 October deployment candidate
+
+Owner approved deployment of the shutdown reliability repairs. Read-only reconciliation of the 3 October deallocation and 4 October start established both completed successfully through the existing fixed-target request-ID fallback; the ledger is generation 12 with no active request. Both records report a rejected tracking URL. The original response headers were discarded, so their exact mismatch cannot be claimed. No operation was replayed or performed for this diagnosis.
+
+The added diagnostic records only `async` or `location` plus one fixed rejection reason: `malformed`, `authority`, `encoded`, `path`, `operation_id`, or `query`. It stores no rejected URL or query. The accepted URL rules, request-ID fallback, VM action gates and ledger history are unchanged. The browser now explains that Azure accepted an action while fallback verification remains pending. The original approval validation, persistent notices and status-only saved check remain included.
+
+Strict TypeScript and [the full controller suite](tests-20261004.log) pass: **85 total, 84 passed, zero failed, one optional Functions-host test skipped**. Tests cover malicious URLs, bounded diagnostics, verified fallback completion, one dispatch per request and real headless Edge browser behavior. The test PFX needed for the optional Functions host case was not provided; the package inspection independently checks every archive entry.
+
+[Candidate manifest](candidate-20261004.json) records the exact ZIP SHA256, accepted browser baseline, changed compiled files, unchanged production dependencies and package metadata checks. The package contains no cancelled MCP module. This source checkpoint precedes live deployment; a separate receipt records the applied state.

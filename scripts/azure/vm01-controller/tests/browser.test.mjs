@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { withBrowser, check, confirmAction, pending } from './browser-fixture.mjs';
 import { APPROVAL_REFERENCE_PATTERN, validApprovalReference } from '../dist/src/confirmation.js';
+import { ids } from './helpers.mjs';
 
 test('browser confirmation cancellation, same-origin auth bridge and saved-request behavior', async () => {
   await withBrowser(async ({ page, f, origin, requests }) => {
@@ -52,10 +53,30 @@ test('HTML Unicode-sets validation agrees with the API and blocks compound refer
     assert.equal(await page.locator('#approval').getAttribute('pattern'), APPROVAL_REFERENCE_PATTERN);
     assert.equal(requests.filter(r => r.method === 'POST').length, 0); assert.equal(f.arm.calls.length, 0);
     await page.locator('#approval').fill('Sentinel_ffde07affe9081919268d1a79ca36d2c');
+    const dispatch = page.waitForResponse(response => new URL(response.url()).pathname === '/api/vm01/deallocate' && response.request().method() === 'POST');
     await page.locator('#confirm-submit').click();
+    assert.equal((await dispatch).status(), 200);
     await page.waitForFunction(() => sessionStorage.getItem('vm01-pending-request') === null && document.querySelector('#power').textContent === 'running');
     assert.equal(f.arm.calls.length, 1);
   });
+});
+
+test('rejected tracking link explains accepted fallback and status checks never repeat the power POST', async () => {
+  await withBrowser(async ({ page, f, requests }) => {
+    f.arm.outcome = { status: 202, requestId: ids.operation, trackingIssue: 'rejected', trackingRejectedHeader: 'location', trackingRejectionReason: 'path', retryAfter: 15 };
+    f.arm.pollRequest = async receipt => ({ name: receipt.requestId, startTime: receipt.submittedAt, endTime: new Date(f.now()).toISOString(), status: 'Succeeded', retryAfter: 15 });
+    await confirmAction(page);
+    await page.waitForFunction(() => document.querySelector('#operation').textContent.includes('verifying its result using the saved request ID'));
+    assert.match(await page.locator('#operation').textContent(), /Azure accepted the action/);
+    assert.equal(requests.filter(r => r.method === 'POST').length, 1);
+    await check(page);
+    assert.equal(requests.filter(r => r.method === 'POST').length, 1);
+    f.observation.powerState = 'deallocated'; f.advance(16000);
+    await check(page);
+    await page.waitForFunction(() => sessionStorage.getItem('vm01-pending-request') === null);
+    assert.equal(f.port.data.activeRequestId, null);
+    assert.equal(f.arm.calls.length, 1);
+  }, { operationPollingEnabled: true });
 });
 
 test('400 pre-dispatch error remains actionable after immediate refresh and reload', async () => {

@@ -22,6 +22,7 @@ export interface Operation {
   approvalReference?: string;
   trackingKind?: 'async' | 'location'; armFailureCode?: string;
   armAcceptedAt?: string; trackingIssue?: 'missing' | 'rejected';
+  trackingRejectedHeader?: 'async' | 'location'; trackingRejectionReason?: TrackingRejectionReason;
   trackingSource?: 'request-id'; armOperationStartTime?: string; armOperationEndTime?: string;
   recoveryEvidence?: { reference: string; approvalReference: string; deallocateStartedEventId: string; deallocateEventId: string; deallocateCorrelationId: string; recoveryStartedEventId: string; recoveryStartEventId: string; recoveryCorrelationId: string; recoveryStartedAt: string; recoveryCompletedAt: string };
 }
@@ -33,7 +34,8 @@ export interface LedgerData {
 }
 export interface LedgerSession { data: LedgerData; save(): Promise<void>; assertLease(): Promise<void> }
 export interface Ledger { transaction<T>(callback: (session: LedgerSession) => Promise<T>): Promise<T> }
-export interface ArmOutcome { status: number; requestId?: string; trackingUrl?: string; trackingKind?: 'async' | 'location'; retryAfter?: number; trackingIssue?: 'missing' | 'rejected' }
+export type TrackingRejectionReason = 'malformed' | 'authority' | 'encoded' | 'path' | 'operation_id' | 'query';
+export interface ArmOutcome { status: number; requestId?: string; trackingUrl?: string; trackingKind?: 'async' | 'location'; retryAfter?: number; trackingIssue?: 'missing' | 'rejected'; trackingRejectedHeader?: 'async' | 'location'; trackingRejectionReason?: TrackingRejectionReason }
 export interface PollOutcome { status: 'InProgress' | 'Succeeded' | 'Failed' | 'Canceled'; retryAfter: number; failureCode?: string }
 export interface DispatchReceipt { requestId: string; action: Action; submittedAt: string; acceptedAt: string }
 export interface VerifiedPollOutcome extends PollOutcome { name: string; startTime: string; endTime?: string }

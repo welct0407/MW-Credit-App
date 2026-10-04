@@ -51,9 +51,10 @@ function render(data: Status): void {
   const op = data.operation;
   const unresolved = op && !terminal(op.phase);
   const description = op ? `${op.action}: ${op.phase.replaceAll('_', ' ')}${op.reason ? ` (${op.reason.replaceAll('_', ' ')})` : ''}` : '';
+  const fallback = op?.reason === 'operation_tracking_url_rejected' || op?.reason === 'operation_tracking_header_missing';
   const off = data.observation?.powerState === 'deallocated' && data.observation.provisioningState === 'Succeeded';
   element('operation').textContent = unresolved
-    ? `${description}. ${off ? 'VM power is deallocated; the operation receipt is still pending verification.' : 'The operation receipt is still pending verification.'} Keep new VM work held. Check status or ask the controller administrator to reconcile; do not send another power action.`
+    ? `${description}. ${fallback ? 'Azure accepted the action; the controller is verifying its result using the saved request ID. ' : ''}${off ? 'VM power is deallocated; the operation receipt is still pending verification.' : 'The operation receipt is still pending verification.'} Keep new VM work held. Check status or ask the controller administrator to reconcile; do not send another power action.`
     : description;
   if (!busy && !unresolved && !sessionStorage.getItem(pendingKey)) buttons.forEach(button => { button.disabled = data.actions?.[button.dataset.action as Action] !== true; });
 }

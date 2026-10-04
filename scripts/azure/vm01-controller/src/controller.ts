@@ -115,6 +115,10 @@ export class Controller {
           op.armAcceptedAt = this.timestamp();
           op.phase = action === 'restart' ? 'accepted_unverified' : 'accepted';
           if (result.trackingIssue) op.trackingIssue = result.trackingIssue;
+          if (result.trackingIssue === 'rejected') {
+            if (result.trackingRejectedHeader) op.trackingRejectedHeader = result.trackingRejectedHeader;
+            if (result.trackingRejectionReason) op.trackingRejectionReason = result.trackingRejectionReason;
+          }
           if (this.config.operationPollingEnabled && !result.trackingUrl) op.reason = result.trackingIssue === 'rejected' ? 'operation_tracking_url_rejected' : 'operation_tracking_header_missing';
           if (result.trackingUrl) op.trackingUrl = result.trackingUrl;
           if (result.trackingKind) op.trackingKind = result.trackingKind;

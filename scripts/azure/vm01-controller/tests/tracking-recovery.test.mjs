@@ -52,7 +52,22 @@ test('missing and rejected response headers persist only safe diagnostic categor
     const arm = new AzureArm(config, credential, async () => new Response(null, { status: 202, headers }));
     const result = await arm.submit('deallocate');
     assert.equal(result.trackingIssue, issue); assert.equal(result.trackingUrl, undefined); assert.equal(JSON.stringify(result).includes('SECRET'), false);
+    if (issue === 'rejected') { assert.equal(result.trackingRejectedHeader, 'async'); assert.equal(result.trackingRejectionReason, 'authority'); }
   }
+});
+test('accepted rejection diagnostics survive ledger validation and fallback completion without a second POST', async () => {
+  const f = fallbackFixture(), request = f.request();
+  f.arm.outcome = { ...f.arm.outcome, trackingIssue: 'rejected', trackingRejectedHeader: 'location', trackingRejectionReason: 'path' };
+  await f.controller.action(browser, 'deallocate', request);
+  let op = f.port.data.records[request.requestId];
+  assert.equal(op.trackingRejectedHeader, 'location'); assert.equal(op.trackingRejectionReason, 'path');
+  assert.equal(JSON.stringify(op).includes('https://'), false);
+  f.observation.powerState = 'deallocated'; f.advance(16000);
+  const result = await f.controller.status(browser, request.requestId);
+  assert.equal(result.body.operation.phase, 'completed');
+  op = f.port.data.records[request.requestId]; assert.equal(op.trackingRejectionReason, 'path');
+  await f.controller.action(browser, 'deallocate', request);
+  assert.deepEqual(f.arm.calls, ['deallocate']);
 });
 
 function fallbackFixture() {
