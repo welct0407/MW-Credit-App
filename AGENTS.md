@@ -29,3 +29,9 @@ This repository is the Linux-native integration-agent runtime for Debian 13 on G
 - Infrastructure creation does not enable business services. Systemd units are installed disabled until the owner authorizes a specific activation.
 - Snapshot schedules protect disks, not full instance configuration or external services. Keep build/configuration reproducible in Git and keep credentials in a separately verified recovery path.
 - Repository publication, VM creation, package installation, authentication setup, webhook cutover, and business activation are distinct stages.
+
+## Reviewed branch cleanup
+
+After verified merge or closure, clean up finished task head branches within the owner's scoped approval. First read fresh remote branches and PRs, check stacked PR/base dependencies and active workers, and preserve unique useful evidence in the owning task documents. Keep default branches and active work. Delete a head only after its completed status, exact SHA, durable history/evidence preservation and normal GitHub restoration path are verified; closure alone does not prove recoverability. Retain abandoned branches with unique history until recovery is established or the owner explicitly approves that exact irreversible deletion. Verify and record the final remote inventory.
+
+Use `delete_branch_on_merge=true` where explicitly approved, verify the saved setting, and report failures. Automatic deletion does not replace dependency/evidence checks. This workflow grants no broader standing permission, force-push, tag deletion, access or credential changes, production deployment, or irreversible unique-history deletion.
