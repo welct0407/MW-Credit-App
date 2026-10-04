@@ -9,3 +9,4 @@
 \ir Test-SelectedCharges.sql
 \ir Test-ReceiptUpload.sql
 \ir Test-UpcomingCharges.sql
+\ir Test-InterestReallocation.sql
