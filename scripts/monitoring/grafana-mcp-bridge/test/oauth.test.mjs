@@ -47,7 +47,12 @@ test('fresh Google callback bounces into signed interaction cookie scope and req
   const absent=await app.call(destination.pathname+destination.search,{cookies:false});assert.equal(absent.status,400);assert.match(absent.body,/interaction_session_missing/);
   assert.ok(await app.store.get('googleStates/'+hash(state)));
   let response=await app.follow(bounce.headers.location);
-  for(let i=0;i<8 && !response.headers.location?.startsWith(app.conf.redirectUri);i++)response=await app.follow(response.headers.location);
+  for(let i=0;i<8 && !response.headers.location?.startsWith(app.conf.redirectUri);i++) {
+    if(response.status===200 && response.body.includes('name="csrf"')) {
+      const csrf=response.body.match(/name="csrf" value="([A-Za-z0-9_-]+)"/)[1],action=response.body.match(/action="([^"]+)"/)[1];
+      response=await app.call(action,{method:'POST',headers:{Origin:app.conf.baseUrl,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({csrf,decision:'session'}).toString()});
+    } else response=await app.follow(response.headers.location);
+  }
   assert.ok(new URL(response.headers.location).searchParams.get('code'));assert.equal(await app.store.get('googleStates/'+hash(state)),undefined);
   assert.equal((await app.call(callback)).status,400);
 });

@@ -77,7 +77,7 @@ export async function application(deps={}) {
   const follow=location=>call(new URL(location,conf.baseUrl).pathname+new URL(location,conf.baseUrl).search);
   return {...app,conf,store,call,follow,cookieJar,login:()=>lastLogin,close:async()=>{await app.mcp.close();await new Promise(r=>app.server.close(r));}};
 }
-export async function authorize(app,options={},endpoint=app.conf.issuer+'/auth') {
+export async function authorize(app,options={},endpoint=app.conf.issuer+'/auth',decision) {
   const verifier='synthetic-pkce-verifier-012345678901234567890123456789', {createHash}=await import('node:crypto');
   const params=new URLSearchParams({client_id:app.conf.clientId,redirect_uri:app.conf.redirectUri,response_type:'code',scope:'mcp:events mcp:read',resource:app.conf.resource,state:'synthetic-client-state',code_challenge:createHash('sha256').update(verifier).digest('base64url'),code_challenge_method:'S256',...options});
   const target=new URL(endpoint);
@@ -88,7 +88,7 @@ export async function authorize(app,options={},endpoint=app.conf.issuer+'/auth')
     if(!location && res.status===200 && res.body.includes('name="csrf"')) {
       const csrf=res.body.match(/name="csrf" value="([A-Za-z0-9_-]+)"/)[1];
       const interaction=res.body.match(/action="([^"]+)"/)[1];
-      res=await app.call(interaction,{method:'POST',headers:{Origin:app.conf.baseUrl,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({csrf,decision:'allow'}).toString()});continue;
+      res=await app.call(interaction,{method:'POST',headers:{Origin:app.conf.baseUrl,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({csrf,decision:decision ?? (options.scope?.includes('offline_access') && (options.prompt==='consent' || target.searchParams.get('prompt')==='consent') ? 'allow' : 'session')}).toString()});continue;
     }
     if(!location)throw new Error('OAuth flow stopped: '+res.status+' '+res.body);
     if(location.startsWith(app.conf.redirectUri))return {code:new URL(location).searchParams.get('code'),verifier,response:res,redirect:new URL(location)};
