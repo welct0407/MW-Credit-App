@@ -1,6 +1,8 @@
-# VM-01 browser shutdown source repair — 3 October 2026 UTC
+# VM-01 browser shutdown repair and deployment - 4 October 2026 UTC
 
-Source-only repair on `fix/vm01-browser-shutdown`, starting at accepted browser-only `00884cc74aea80629211ce1a86e5a3333f7abf2d`. No cancelled MCP source, unavailable V2 source, live operation or deployment is included. Parent handles deployment authority and outstanding evidence separately.
+**Current deployed state:** source `41e927ae565f414938627deea645aae90a1abff8`, package SHA256 `8a2ab3fcf8ac57534c94aaaed645fba629cd5402a734ddb150d6f8f71648a07c`, Azure deployment `daf64045-4519-49bb-96bf-48c7ed3ef3c8` complete and active at 02:50:05 UTC. [Sanitized deployment receipt](deployment-20261004.json) records the exact before/after checks. Full ledger is unchanged at generation12 with no active request; both prior operation receipts are preserved. Live website assets match the ZIP, ten browser functions are registered, and settings, EasyAuth, API, roles, Cloud caller, domain and logging compare unchanged. The fixed VM was running/Succeeded at readback. No VM power operation occurred during this repair. Parent authenticated browser acceptance remains pending.
+
+The original 3 October source-only repair on `fix/vm01-browser-shutdown` started at accepted browser-only `00884cc74aea80629211ce1a86e5a3333f7abf2d`. No cancelled MCP source, unavailable V2 source or new power operation is included. The owner later approved and this task completed the code-only deployment above.
 
 Behavior: one shared full-value approval-reference validator with a valid HTML v pattern; actionable action notices persist across refresh and same-tab reload; pending requests survive authentication/conflict/server/transport uncertainty; saved checks perform status GETs only; matching terminal receipts reconcile local pending state; deallocated power and receipt verification are presented independently; existing polling pause is explained. All URL/receipt/security and server dispatch/deduplication checks remain unchanged.
 

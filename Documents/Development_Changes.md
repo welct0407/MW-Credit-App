@@ -1,5 +1,7 @@
 # Open development differences
 
+R050 VM-01 browser controller (4 October 2026): approved shutdown reliability repairs are deployed at the existing website from source `41e927ae565f414938627deea645aae90a1abff8`; no AppSheet, SQL or report change. Bounded rejected-header diagnostics and clearer pending verification preserve the existing request-ID fallback and all operation records. Server/package checks pass; parent authenticated browser recheck remains pending. R050 stays Open and PR6 draft. [Evidence](../outputs/r050-vm01-controller/browser-shutdown/README.md).
+
 R050 Detail refinement (29 September 2026): current governed BCG category is compact card378 alongside the four top metrics; wide Current health question295 placement removed while the saved question remains. Seven lights369 retain dates but have no visible axis name. Dashboard3 remains12 tabs/272 placements; recovery dashboard31. No AppSheet or SQL change. R050 remains Open. [Evidence](../outputs/r050-borrower-detail-category/README.md).
 
 R050 borrower lifetime summary (29 September 2026): Detail105 added eight lifetime metrics and seven charge-status lights, questions369–377, ignoring activity dates. Closed totals use genuinely Closed loans only. Initial dashboard3 checkpoint had12 tabs/272 placements; recovery dashboard27. No AppSheet or SQL change. [Original definitions](../outputs/r050-borrower-lifetime/README.md).
