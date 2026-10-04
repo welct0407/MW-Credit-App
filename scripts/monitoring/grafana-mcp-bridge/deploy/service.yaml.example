@@ -1,0 +1,63 @@
+# REVIEW TEMPLATE ONLY. No deployment command is run by this package.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: mw-grafana-events
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/invoker-iam-disabled: 'true'
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: '0'
+        autoscaling.knative.dev/maxScale: '2'
+        run.googleapis.com/cpu-throttling: 'true'
+    spec:
+      serviceAccountName: mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com
+      containerConcurrency: 20
+      timeoutSeconds: 300
+      containers:
+        - image: asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:REVIEWED_DIGEST
+          ports: [{ containerPort: 8080 }]
+          resources:
+            limits: { cpu: '1', memory: 512Mi }
+          startupProbe:
+            tcpSocket: { port: 8080 }
+          env:
+            - { name: PUBLIC_BASE_URL, value: 'https://alerts.mw-credit.com' }
+            - { name: OAUTH_ISSUER, value: 'https://alerts.mw-credit.com/oauth' }
+            - { name: MCP_RESOURCE, value: 'https://alerts.mw-credit.com/mcp' }
+            - { name: GCP_PROJECT, value: clever-oasis-508610-n7 }
+            - { name: FIRESTORE_DATABASE, value: mw-grafana-events }
+            - { name: OWNER_EMAIL, value: welct0407@mw-credit.com }
+            - { name: OWNER_GOOGLE_SUB, value: VERIFIED_OWNER_SUB }
+            - { name: OWNER_ENABLED, value: 'false' }
+            - { name: CHATGPT_CLIENT_ID, value: 'https://chatgpt.com/oauth/client.json' }
+            - { name: CHATGPT_REDIRECT_URI, value: 'https://chatgpt.com/connector_platform_oauth_redirect' }
+            - { name: GOOGLE_CLIENT_ID, value: APPROVED_GOOGLE_WEB_CLIENT_ID }
+            - { name: SCHEDULER_EMAIL, value: mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com }
+            - { name: CALLBACK_HOSTS, value: '' }
+            - { name: GRAFANA_SOURCE_ID, value: olivecrab1199 }
+            - { name: GRAFANA_SECRETS_FILE, value: /secrets/grafana/value }
+            - { name: STATE_KEY_FILE, value: /secrets/state/value }
+            - { name: COOKIE_KEYS_FILE, value: /secrets/cookies/value }
+            - { name: OAUTH_JWKS_FILE, value: /secrets/jwks/value }
+            - { name: GOOGLE_CLIENT_SECRET_FILE, value: /secrets/google/value }
+          volumeMounts:
+            - { name: grafana, mountPath: /secrets/grafana }
+            - { name: state, mountPath: /secrets/state }
+            - { name: cookies, mountPath: /secrets/cookies }
+            - { name: jwks, mountPath: /secrets/jwks }
+            - { name: google, mountPath: /secrets/google }
+      volumes:
+        - name: grafana
+          secret: { secretName: mw-grafana-hmac, items: [{ key: PINNED_VERSION, path: value }] }
+        - name: state
+          secret: { secretName: mw-grafana-state-key, items: [{ key: PINNED_VERSION, path: value }] }
+        - name: cookies
+          secret: { secretName: mw-grafana-cookie-keys, items: [{ key: PINNED_VERSION, path: value }] }
+        - name: jwks
+          secret: { secretName: mw-grafana-oauth-jwks, items: [{ key: PINNED_VERSION, path: value }] }
+        - name: google
+          secret: { secretName: mw-grafana-google-client-secret, items: [{ key: PINNED_VERSION, path: value }] }

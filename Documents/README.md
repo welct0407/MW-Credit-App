@@ -35,6 +35,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Correct app logos / restoration | [Logo resources](../resources/README.md) |
 | How to read every resource dashboard visual | [Resource Monitoring Dashboard Guide](Resource_Monitoring_Dashboard_Guide.md) |
 | Resource monitoring setup, access and recovery | [Resource Monitoring](Resource_Monitoring.md) |
+| Grafana events → ChatGPT/Dots bridge, OAuth, retries and deployment prerequisites | [Grafana MCP Events Bridge](Grafana_MCP_Events_Bridge.md) — deployed bridge, verified notification acceptance, current configuration and recovery evidence |
 | Dots troubleshooting steps for configured Grafana alerts | [Grafana Alert Troubleshooting Runbook](Grafana_Alert_Troubleshooting_Runbook.md) — triage, per-alert diagnosis, bounded recovery, escalation and verification |
 | Dated changes/tests/decisions | [Change Logs](../Change%20Logs/) |
 | Dormant analysis/export pilot | [Feature reference](reference/Daily_Loan_Analysis_Automation.md) |

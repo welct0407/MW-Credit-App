@@ -1,0 +1,15 @@
+{
+  "bindings": [
+    {
+      "condition": {
+        "description": "Bridge database only",
+        "expression": "resource.name==\"projects/clever-oasis-508610-n7/databases/mw-grafana-events\"",
+        "title": "mw-grafana-database"
+      },
+      "members": [
+        "serviceAccount:mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com"
+      ],
+      "role": "roles/datastore.user"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "apps": {
+    "mw-grafana-events": {
+      "id": "asdk_app_6ac0b2c350fc8191b08fbc67fca9696e",
+      "required": true
+    }
+  }
+}

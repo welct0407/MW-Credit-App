@@ -1,0 +1,42 @@
+{
+  "passedChecks": 5,
+  "checks": {
+    "health": {
+      "path": "/health",
+      "method": "GET",
+      "status": 200,
+      "tlsVerifyResult": 0
+    },
+    "protectedResource": {
+      "path": "/.well-known/oauth-protected-resource",
+      "method": "GET",
+      "status": 200,
+      "tlsVerifyResult": 0
+    },
+    "protectedResourceMcp": {
+      "path": "/.well-known/oauth-protected-resource/mcp",
+      "method": "GET",
+      "status": 200,
+      "tlsVerifyResult": 0
+    },
+    "authorizationMetadata": {
+      "path": "/oauth/.well-known/openid-configuration",
+      "method": "GET",
+      "status": 200,
+      "tlsVerifyResult": 0
+    },
+    "unauthenticatedMcp": {
+      "path": "/mcp",
+      "method": "POST",
+      "status": 401,
+      "tlsVerifyResult": 0,
+      "wwwAuthenticate": "Bearer resource_metadata=\"https://alerts.mw-credit.com/.well-known/oauth-protected-resource/mcp\", scope=\"mcp:events mcp:read\""
+    }
+  },
+  "tls": "verified",
+  "redirectsFollowed": false,
+  "cookiesRetainedOrSent": false,
+  "GoogleLoginOrConsentCompleted": false,
+  "OAuthGrantOrTokenCreated": false,
+  "eventSubscriptionOrDeliveryAttempted": false
+}

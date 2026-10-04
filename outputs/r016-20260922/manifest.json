@@ -30,8 +30,7 @@
     "Borrower daily balance history unavailable in existing source; no new schema authorized",
     "Lisa personal Google sign-in remains unconfirmed",
     "Migration-key revocation and final R016 acceptance/closure",
-    "Owner review of completed 2R snapshot design",
-    "Owner decision on original Performance replacement/retirement"
+    "Owner review of completed 2R snapshot design"
   ],
   "appsheet": {
     "olap": "unchanged",
@@ -223,5 +222,13 @@
     "browser": "performance-redesign/rolling-browser-verification.json",
     "contract": "performance-redesign/ROLLING_IMPLEMENTATION.md",
     "database_changes": false
+  },
+  "closeout_reconciliation_20261004": {
+    "report_delivery": "R017/R018 retained evidence",
+    "performance_replacement": "Accepted and completed under R023; no repeat retirement",
+    "whole_release_acceptance": "Not separately established in retained evidence",
+    "migration_key_retirement": "Not independently established; no credential mutation authorized",
+    "R016_remote_tag": "Absent at exact read-only lookup",
+    "historical_manifest": "Earlier definitions/counts/pins below are dated R016 checkpoint evidence"
   }
 }

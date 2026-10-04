@@ -1,0 +1,259 @@
+{
+  "observedAtUtc": "2026-10-02T23:16:13.980441+00:00",
+  "origin": "https://alerts.mw-credit.com",
+  "health": {
+    "observedAtUtc": "2026-10-02T23:15:30.957864+00:00",
+    "url": "https://alerts.mw-credit.com/health",
+    "curlExit": 0,
+    "httpStatus": "200",
+    "tlsVerifyResult": "0",
+    "body": "{\"status\":\"bootstrap\"}",
+    "error": "",
+    "pass": true
+  },
+  "mapping": {
+    "metadata": {
+      "name": "alerts.mw-credit.com"
+    },
+    "spec": {
+      "routeName": "mw-grafana-events"
+    },
+    "status": {
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-02T22:48:15.986705Z",
+          "status": "True",
+          "type": "Ready"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T22:48:15.986705Z",
+          "status": "True",
+          "type": "CertificateProvisioned"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T21:51:33.818035Z",
+          "status": "True",
+          "type": "DomainRoutable"
+        }
+      ],
+      "mappedRouteName": "mw-grafana-events",
+      "resourceRecords": [
+        {
+          "name": "alerts",
+          "rrdata": "ghs.googlehosted.com.",
+          "type": "CNAME"
+        }
+      ]
+    }
+  },
+  "normalTlsVerification": true,
+  "credentialsSubmitted": false,
+  "requestBodiesSubmitted": false,
+  "redirectsFollowed": false,
+  "inactiveRoutes": [
+    {
+      "method": "GET",
+      "path": "/.well-known/oauth-protected-resource",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/.well-known/oauth-protected-resource/mcp",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/oauth/.well-known/openid-configuration",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "GET",
+      "path": "/oauth/auth",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/oauth/token",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/oauth/token/revocation",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/mcp",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/grafana",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/internal/dispatch",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/oauth",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/oauth/google/callback",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    },
+    {
+      "method": "POST",
+      "path": "/health",
+      "expectedStatus": 503,
+      "httpStatus": "503",
+      "curlExit": 0,
+      "tlsVerifyResult": "0",
+      "body": "{\"status\":\"inactive\"}",
+      "pass": true
+    }
+  ],
+  "allPassed": true,
+  "dnsEvidence": {
+    "source": "parent pixel inspection of user Cloudflare screenshot at 22:31 UTC",
+    "recordsShown": 12,
+    "cname": "alerts.mw-credit.com -> ghs.googlehosted.com",
+    "proxy": "DNS only",
+    "ttl": "Auto",
+    "conflictingAlertsRecordVisible": false,
+    "caaRecordVisible": false,
+    "independentPublicDnsQueryVerified": false
+  },
+  "activeAccount": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "serviceReadback": {
+    "status": {
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-02T19:14:31.046818Z",
+          "status": "True",
+          "type": "Ready"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T19:14:24.201528Z",
+          "status": "True",
+          "type": "ConfigurationsReady"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T19:14:30.990082Z",
+          "status": "True",
+          "type": "RoutesReady"
+        }
+      ],
+      "latestReadyRevisionName": "mw-grafana-events-00001-rnj",
+      "traffic": [
+        {
+          "latestRevision": true,
+          "percent": 100,
+          "revisionName": "mw-grafana-events-00001-rnj"
+        }
+      ],
+      "url": "https://mw-grafana-events-pvrgvyg3oq-as.a.run.app"
+    }
+  },
+  "revisionReadback": {
+    "metadata": {
+      "name": "mw-grafana-events-00001-rnj"
+    },
+    "status": {
+      "conditions": [
+        {
+          "lastTransitionTime": "2026-10-02T19:14:29.661205Z",
+          "message": "Deploying revision succeeded in 7.4s.",
+          "status": "True",
+          "type": "Ready"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T19:14:29.756676Z",
+          "severity": "Info",
+          "status": "True",
+          "type": "Active"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T19:14:29.594692Z",
+          "message": "Containers became healthy.",
+          "status": "True",
+          "type": "ContainerHealthy"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T19:14:24.087861Z",
+          "message": "Container image import completed in 1.27s.",
+          "status": "True",
+          "type": "ContainerReady"
+        },
+        {
+          "lastTransitionTime": "2026-10-02T19:14:28.803322Z",
+          "message": "Provisioning imported containers completed in 4.71s. Checking container health. This will wait for up to 4m for the configured startup probe, including an initial delay of 0s.",
+          "status": "True",
+          "type": "ResourcesAvailable"
+        }
+      ],
+      "imageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap@sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154"
+    }
+  },
+  "startingTaskCommit": "b17c1522406c84f0298cb8dd0833180dbf85aed4",
+  "expectedDeploymentMatches": true
+}

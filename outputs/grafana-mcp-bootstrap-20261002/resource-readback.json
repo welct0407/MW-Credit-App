@@ -1,0 +1,195 @@
+{
+  "project": "clever-oasis-508610-n7",
+  "region": "asia-southeast1",
+  "database": "mw-grafana-events",
+  "dedicatedProjectRoles": {
+    "mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com": [
+      {
+        "role": "roles/datastore.user",
+        "condition": {
+          "description": "Bridge database only",
+          "expression": "resource.name==\"projects/clever-oasis-508610-n7/databases/mw-grafana-events\"",
+          "title": "mw-grafana-database"
+        }
+      }
+    ],
+    "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com": []
+  },
+  "databaseConfiguration": {
+    "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events",
+    "locationId": "asia-southeast1",
+    "databaseEdition": "STANDARD",
+    "type": "FIRESTORE_NATIVE",
+    "deleteProtectionState": "DELETE_PROTECTION_ENABLED",
+    "pointInTimeRecoveryEnablement": "POINT_IN_TIME_RECOVERY_DISABLED"
+  },
+  "repository": {
+    "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-monitoring",
+    "format": "DOCKER",
+    "description": "grafana-mcp-bootstrap-v1"
+  },
+  "secrets": [
+    {
+      "name": "mw-grafana-hmac",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    },
+    {
+      "name": "mw-grafana-state-key",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    },
+    {
+      "name": "mw-grafana-cookie-keys",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    },
+    {
+      "name": "mw-grafana-oauth-jwks",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    },
+    {
+      "name": "mw-grafana-google-client-secret",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    }
+  ],
+  "indexes": [
+    {
+      "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/deliveries/indexes/CICAgOjXh4EK",
+      "state": "CREATING",
+      "fields": [
+        {
+          "fieldPath": "state",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "nextAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/oauth/indexes/CICAgJiUpoMK",
+      "state": "CREATING",
+      "fields": [
+        {
+          "fieldPath": "model",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "issuerHash",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "uid",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/oauth/indexes/CICAgJim14AK",
+      "state": "CREATING",
+      "fields": [
+        {
+          "fieldPath": "model",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "issuerHash",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "userCode",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "collectionGroup": "events",
+      "field": "deleteAfter",
+      "indexesDisabled": true,
+      "ttlState": "CREATING"
+    },
+    {
+      "collectionGroup": "deliveries",
+      "field": "deleteAfter",
+      "indexesDisabled": true,
+      "ttlState": "CREATING"
+    },
+    {
+      "collectionGroup": "subscriptions",
+      "field": "deleteAfter",
+      "indexesDisabled": true,
+      "ttlState": "CREATING"
+    },
+    {
+      "collectionGroup": "oauth",
+      "field": "deleteAfter",
+      "indexesDisabled": true,
+      "ttlState": "CREATING"
+    },
+    {
+      "collectionGroup": "googleStates",
+      "field": "deleteAfter",
+      "indexesDisabled": true,
+      "ttlState": "CREATING"
+    },
+    {
+      "collectionGroup": "revokedGrants",
+      "field": "deleteAfter",
+      "indexesDisabled": true,
+      "ttlState": "CREATING"
+    },
+    {
+      "collectionGroup": "events",
+      "field": "body",
+      "indexesDisabled": true,
+      "ttlState": null
+    },
+    {
+      "collectionGroup": "events",
+      "field": "data",
+      "indexesDisabled": true,
+      "ttlState": null
+    },
+    {
+      "collectionGroup": "oauth",
+      "field": "encrypted",
+      "indexesDisabled": true,
+      "ttlState": null
+    },
+    {
+      "collectionGroup": "subscriptions",
+      "field": "secret",
+      "indexesDisabled": true,
+      "ttlState": null
+    },
+    {
+      "collectionGroup": "subscriptions",
+      "field": "oldSecret",
+      "indexesDisabled": true,
+      "ttlState": null
+    },
+    {
+      "collectionGroup": "googleStates",
+      "field": "encrypted",
+      "indexesDisabled": true,
+      "ttlState": null
+    }
+  ],
+  "oauthRequestLogExclusion": {
+    "description": "grafana-mcp-bootstrap-v1",
+    "filter": "logName=\"projects/clever-oasis-508610-n7/logs/run.googleapis.com%2Frequests\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-grafana-events\" AND httpRequest.requestUrl =~ \"^https://[^/]+/oauth(/|[?]|$)\"",
+    "name": "mw-grafana-oauth-requests"
+  },
+  "scheduler": "absent"
+}
