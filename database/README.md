@@ -173,3 +173,8 @@ V17 and V18 are applied and validated in Dev only. V17 rejects new Loans inserts
 ### Pending R050 operator/relay hardening
 
 The durable canonical operator executor (V58) and completed-job/backlog relay health are published in task branches; V58 is applied/verified in shared DEV, while the production runtime/collector/database are **unchanged by this task**. Current live behavior above remains the baseline. See the [R050 scope, checks and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Deployment must pin the matching MW runtime modules before switching the collector or operator SQL entry point.
+
+
+### Approved Cloud V58 runner
+
+`python scripts/database/Invoke-CloudFlyway.py prepare --release-file <private-new-json> --validation-reference <actual-evidence>` performs DEV validate/info checks and captures the clean commit and full migration hashes. `check` requires the same release file plus actual `--approval-reference` and verified `--backup-reference`, validates production and permits only pending V58 without writes. `apply` repeats those guards, runs Flyway migrate, then validate/info. The operator independently verifies approval and restorable backup evidence; reference strings alone are not authorization or recovery proof. Files are private, outside Git. The adapter is specific to the reviewed existing helper and its owned IAP/SSH loopback route; public targets, ambient Flyway overrides and helper changes fail closed. Existing Windows/direct SSL-required execution is unchanged. See the [approved transport exception and checks](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md#cloud-production-runner-portability--approved-4-october-2026).
