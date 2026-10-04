@@ -116,6 +116,14 @@ test('receipt lookup rejects absent or mismatched receipts; renewal output conta
   const soon = fixture({ dependencies: { loadCredential: () => ({ privateKey, thumbprint, expiresAt: now + 29 * 86400000 }) } });
   assert.equal((await soon.client.status()).certificate.renewalDue, true);
 });
+test('certificate lifetime is not capped or pinned to the earlier registration', async () => {
+  const expiresAt = Date.parse('2028-10-04T00:00:00Z');
+  const f = fixture({ dependencies: { loadCredential: () => ({ privateKey, thumbprint: 'replacement-mock-thumbprint', expiresAt }) } });
+  const result = await f.client.status();
+  assert.equal(result.certificate.expiresAt, '2028-10-04T00:00:00.000Z'); assert.equal(result.certificate.renewalDue, false);
+  const header = JSON.parse(Buffer.from(f.calls[0].init.body.get('client_assertion').split('.')[0], 'base64url'));
+  assert.equal(header['x5t#S256'], 'replacement-mock-thumbprint');
+});
 test('a timed-out request aborts at the fixed deadline with sanitized failure and no retry', async () => {
   let calls = 0; let aborted = false;
   const f = fixture({ dependencies: { fetch: async (_url, init) => {
