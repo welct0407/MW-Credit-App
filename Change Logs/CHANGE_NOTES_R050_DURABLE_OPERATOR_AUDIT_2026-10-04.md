@@ -23,6 +23,10 @@ Expected disruption: stop only the relay timer, drain its current run with a 120
 
 Restore the prior collector and matching package backup/checksums and original timer state. Leave durable central intents and source/export audit evidence intact. V58 is an immutable applied migration: do not edit it or remove its history. Prefer stopping use of the new operator executor and a reviewed forward corrective migration; do not restore the legacy operator write route automatically. Any restoration of legacy SQL privileges/entry points requires separate scoped owner approval. UNKNOWN/DISPATCHING operations remain reconciliation-only throughout rollback. No replay, payment/send, power action or shutdown-hold change is part of rollout or rollback.
 
+## Source publication
+
+AppSheet implementation commit `a88531107b3238cb0c5262952d7dffaf6f1d4ed7` is published on `fix/r050-durable-operator-audit` in [draft PR #8](https://github.com/welct0407/AppSheet-Loan-Project/pull/8), stacked on V57 [PR #7](https://github.com/welct0407/AppSheet-Loan-Project/pull/7). Matching tested MW runtime commit `10d58d0d1c67b3e8d6bc6503aadac2e026d5b9fc` is preserved locally on `fix/durable-operator-audit-health`; its upstream publication needs separate repository-specific authorization. No merge or deployment occurred.
+
 ## Remaining work
 
 The AppSheet draft targets the V57 prerequisite branch (PR #7), leaving that existing work unchanged. Complete normal review and shared DEV validation before production readiness; obtain separate production rollout authorization. MW publication is withheld under the latest task boundary pending explicit repository-specific authorization. No readiness or deployment claim is made.
