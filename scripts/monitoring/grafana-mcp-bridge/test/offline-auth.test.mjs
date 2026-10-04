@@ -297,3 +297,14 @@ test('consent form preserves a canonical browser Origin without accepting null o
   assert.equal((await submit(app,page)).status,303);
   assert.equal((await payloads(app,'Grant')).length,1);assert.equal((await payloads(app,'OwnerConsent')).length,1);
 });
+
+
+test('consent CSP permits self and only the configured pinned callback, retaining other restrictions',async t=>{
+  const app=await application();t.after(()=>app.close());const page=await consentPage(app,{scope:'mcp:events mcp:read'});
+  const csp=page.res.headers['content-security-policy'];
+  assert.deepEqual(csp.split(';').map(s=>s.trim()).filter(Boolean),["default-src 'none'","form-action 'self' "+app.conf.redirectUri,"frame-ancestors 'none'","base-uri 'none'"]);
+  assert.equal(csp.includes('*'),false);
+  const params=new URLSearchParams({client_id:app.conf.clientId,redirect_uri:'https://unknown.example/return',response_type:'code',scope:'mcp:read',resource:app.conf.resource,code_challenge:'A'.repeat(43),code_challenge_method:'S256'});
+  assert.equal((await app.call('/oauth/auth?'+params)).status,400);
+  assert.equal((await payloads(app,'Grant')).length,0);
+});
