@@ -7,7 +7,7 @@ After the completed runtime rollout, the owner directly approved AppSheet PR3/6/
 Documentation conflicts retain both accepted Grafana/controller evidence and the completed audit rollout, including R016 reconciliation. Tested audit source is unchanged from pin `1ecbb109c6e9ee5393622453d042c6391b48dbc4`; Database migrations CI run37189395555 succeeded. Closeout checks: executor7, Cloud Flyway10, collector20 and MW relay-health8 tests passed. Retained fresh PostgreSQL300/real two-database integration evidence is reused because its source is unchanged. Existing shutdown hold and all branches remain.
 
 
-Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
+Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../Documents/Release_Workflow.md); exceptions: [Recovery](../../Documents/Release_Recovery_Runbook.md).
 
 ## Continue here
 
@@ -62,9 +62,9 @@ Triggers: exact model/formula changes → dictionary; changed behavior/relations
 
 | Document | Disposition | Updated section / evidence |
 | --- | --- | --- |
-| [Release Tracker](../../../Documents/Release_Tracker.md) | Updated | Current deployment/freeze entry; owning R050 log |
-| [Environment Inventory](../../../Documents/Environment_Inventory.md) | Updated | Current deployment/freeze entry; owning R050 log |
-| [Development Changes](../../../Documents/Development_Changes.md) | Updated | Current deployment/freeze entry; owning R050 log |
+| [Release Tracker](../../Documents/Release_Tracker.md) | Updated | Current deployment/freeze entry; owning R050 log |
+| [Environment Inventory](../../Documents/Environment_Inventory.md) | Updated | Current deployment/freeze entry; owning R050 log |
+| [Development Changes](../../Documents/Development_Changes.md) | Updated | Current deployment/freeze entry; owning R050 log |
 | Grafana alert runbook / Resource Monitoring / Dashboard Guide | Updated | Deployed completion/backlog semantics, unchanged component/rule identities |
 | database README / R050 change log | Updated | DEV/PROD V58, exact source pins, tests, measured pause and recovery |
 | MW PostgreSQL operating reference / change log | Updated | Matching deployed modules and verified natural-run evidence |
