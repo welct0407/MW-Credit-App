@@ -1,6 +1,6 @@
 # Grafana MCP Events bridge
 
-Current R051 telemetry: owner-approved revision00015-qcs/100%, three natural export ticks verified16:44–16:46 UTC. Existing owner access/Scheduler/subscriptions preserved; eight IRM alerts uncreated. [Current evidence and remaining dashboard/expected-membership handoff](../../../outputs/grafana-row5-vm01-20261004/README.md).
+Current R051 telemetry: owner-approved revision00015-qcs/100%, three natural export ticks verified16:44–16:46 UTC. Existing owner access/Scheduler/subscriptions preserved; eight IRM alerts uncreated. [Live dashboards and remaining expected-membership work](../../../outputs/grafana-row5-vm01-20261004/README.md).
 
 **Final live checkpoint, 3 October 2026:** Parent verified saved additive HMAC Webhook in MW Performance IRM, preserving original IRM/mobile integration and all ten rule conditions/targets. Exact ten-name firing/resolved filter independently verified; natural minute dispatch succeeds. Parent-only outside-filter test accepted202, one event and no production outbox. Unused synthetic contact point/redundant wrapper removed by parent; exact approved orphan bootstrap image deleted with sibling/rollback preservation. Current revision00009/100%, sole callback host and capture false freshly verified. Canonical app connection confirmation remains parent-owned. [Final evidence and recovery](../../../outputs/grafana-live-activation-20261003/README.md).
 

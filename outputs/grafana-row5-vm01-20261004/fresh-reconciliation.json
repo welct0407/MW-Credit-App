@@ -22,8 +22,9 @@
     "patch_bytes": 475018,
     "patch_sha256": "eb99ad1b604519674081a0c95e9ee9027ce279546ee24a17fde1fdd91e64e755",
     "exact_preservation_test": "PASS after removing only added elements/items",
-    "live_save": "not performed",
-    "folder_annotation_present": false
+    "live_save": "Parent saved and verified generation33/resourceVersion2106799088514420736",
+    "folder_annotation_present": false,
+    "live_acceptance_evidence": "live-acceptance.json; whole spec matches intended except four empty mappings arrays omitted"
   },
   "cost": {
     "backup_bytes": 138044,
@@ -38,10 +39,11 @@
     "new_elements": [
       "panel-110"
     ],
-    "patch_bytes": 145496,
-    "patch_sha256": "4470010fd011dc4b5b254f9f8321740e090396c62cbdf632be514f08c5aa4133",
+    "patch_bytes": 145529,
+    "patch_sha256": "524c0481d5680f92f9d7908519daadd6c8e73027421f2aab3145acb9fb875a61",
     "exact_preservation_test": "PASS after removing only added elements/items",
-    "live_save": "parent saved existing UID/folder; corrected numeric preview verified, final corrected save/readback parent-owned",
-    "folder_annotation_present": false
+    "live_save": "Parent corrected plain selectors, saved and visually verified chart; same UID/folder/timezone",
+    "folder_annotation_present": false,
+    "final_full_object_verification": "Denied twice; final Cost object equality not established"
   }
 }

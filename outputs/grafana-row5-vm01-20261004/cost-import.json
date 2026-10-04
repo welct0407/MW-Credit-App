@@ -3486,7 +3486,7 @@
         "spec": {
           "id": 110,
           "title": "VM-01 · observed running & available hours by day",
-          "description": "row5-bridge-vm01-v1 · Passive Azure VmAvailabilityMetric, PT1M Average. Singapore calendar days; selected partial days are clipped. Observed hours are a lower bound when coverage has gaps. Null is unknown, including portal/CLI deallocation; never treated as off. Zero is unavailable, not proof of deallocation. Not billable allocated hours or exact power-state runtime. Retention 93 days; select at most 31 days per request. Minute resolution; transitions inside a bucket are averaged. Live source/query verification pending.",
+          "description": "row5-bridge-vm01-v1 · Passive Azure VmAvailabilityMetric, PT1M Average. Singapore calendar days; selected partial days are clipped. Observed hours are a lower bound when coverage has gaps. Null is unknown, including portal/CLI deallocation; never treated as off. Zero is unavailable, not proof of deallocation. Not billable allocated hours or exact power-state runtime. Retention 93 days; select at most 31 days per request. Minute resolution; transitions inside a bucket are averaged. Live source/query verified 2026-10-04; missing coverage remains Unknown.",
           "links": [],
           "data": {
             "kind": "QueryGroup",

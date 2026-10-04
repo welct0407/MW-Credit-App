@@ -1,0 +1,47 @@
+{
+  "reported_by": "parent authenticated browser worker; delegated acceptance message",
+  "date": "2026-10-04",
+  "performance": {
+    "uid": "mw-resource-performance",
+    "generation": 33,
+    "resourceVersion": "2106799088514420736",
+    "updated_utc": "2026-10-04T17:30:19Z",
+    "elements": 69,
+    "change_since_generation32": "Only fieldConfig in panels123/125/126/127",
+    "whole_spec_verification": "Matches intended spec except omission of four empty mappings arrays",
+    "other_panels_layout_preferences": "unchanged",
+    "live_status": {
+      "availability": "Healthy",
+      "dispatch": "Healthy",
+      "outbox": "Healthy",
+      "continuity": "Healthy",
+      "pending_count": 0,
+      "oldest_pending_seconds": 0,
+      "retained_failed_count": 0,
+      "subscription": "Unknown",
+      "renewal": "Unknown"
+    },
+    "unknown_reason": "Exact expected membership pending verification; not fabricated"
+  },
+  "cost": {
+    "uid": "mw-resource-cost",
+    "saved_and_visually_verified": true,
+    "same_uid_folder_timezone": true,
+    "timezone": "Asia/Singapore",
+    "numeric_selectors": "Plain output field names, type number",
+    "bars": "Green observed available hours / gray unknown hours",
+    "displayed_window_dependent_hours": {
+      "2026-10-01": 12.78,
+      "2026-10-02": 23.52,
+      "2026-10-03": 24,
+      "2026-10-04": 10.04,
+      "2026-10-05": "partial day Unknown"
+    },
+    "description_suffix": "Live source/query verified 2026-10-04; missing coverage remains Unknown.",
+    "final_code_export_verification": "Denied twice; no final full-object equality claim",
+    "verification_limit": "Saved chart visually verified; displayed values depend on selected time window and are observed estimates"
+  },
+  "alerts_created": 0,
+  "expected_membership": "Parent native read-only worker investigating through GCP UI; not yet verified or seeded",
+  "executor_effects_this_update": "Source/docs/evidence only; no merge, deployment or browser write"
+}

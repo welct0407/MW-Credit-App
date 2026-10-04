@@ -1,4 +1,6 @@
-# Browser handoff — fresh live reconciliation
+# Browser handoff — completed dashboard saves; expected membership pending
+
+**Current acceptance:** both dashboard saves are complete. See [live-acceptance.json](live-acceptance.json): Performance generation33, corrected numeric/status fields verified; Cost corrected plain selectors and saved chart visually verified. Final Cost code export was denied twice, so do not claim final Cost full-object equality. Historical preparation/repair instructions below describe completed stages; do not re-import their old envelopes. Remaining work is exact expected membership through the existing owner document route. Eight IRM alerts stay uncreated.
 
 ## Dashboard files and safe saved-state route
 
