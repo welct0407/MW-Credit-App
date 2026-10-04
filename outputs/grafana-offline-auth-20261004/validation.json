@@ -1,5 +1,5 @@
 {
-  "status": "live_native_connection_accepted_pending_interval_continuity_and_merge_authorization",
+  "status": "live_native_acceptance_and_interval_continuity_observed_pending_merge_authorization",
   "baseline": "2c849c65214e837f097a7ac9da282d852f86d11c",
   "branch": "fix/grafana-two-year-offline",
   "tests": {
@@ -53,5 +53,7 @@
   "consent_form_action_exact_pinned_callback": true,
   "native_connection_accepted": true,
   "native_health_at": "2026-10-04T12:22:48Z",
-  "access_token_interval_continuity": "pending_parent_read"
+  "access_token_interval_continuity": "continued_native_access_observed",
+  "continuity_health_at": "2026-10-04T12:28:40Z",
+  "continuity_elapsed_seconds": 352
 }

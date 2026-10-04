@@ -16,7 +16,20 @@
   "native_connection_accepted": true,
   "exact_live_grant_expiry_verified": false,
   "live_refresh_session_independence_verified": false,
-  "access_token_interval_continuity": "pending_parent_read",
+  "access_token_interval_continuity": "continued_native_access_observed",
   "new_executor_grants_created": false,
-  "subscriptions_changed": false
+  "subscriptions_changed": false,
+  "continuity_health_at": "2026-10-04T12:28:40Z",
+  "continuity_health_source": "parent_native_get_bridge_health",
+  "continuity_elapsed_seconds": 352,
+  "continuity_owner_enabled": true,
+  "continuity_counts": {
+    "pending": 0,
+    "failed": 0,
+    "delivered": 9,
+    "cancelled": 0
+  },
+  "continuity_counts_cap": 100,
+  "continuity_proves_exact_live_grant_expiry": false,
+  "continuity_proves_session_independence": false
 }
