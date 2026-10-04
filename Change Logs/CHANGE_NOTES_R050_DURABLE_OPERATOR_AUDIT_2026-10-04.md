@@ -1,6 +1,6 @@
 # R050 — Durable operator intent and truthful relay health
 
-Status: production SQL/runtime/collector deployment applied and verified under scoped owner approval. DEV and PROD are V58. R050 is Frozen; final release closure awaits parent Grafana/PROD editor evidence and publication/tag. V57 and the retrospective recovery are unchanged. No production financial request was executed.
+Status: production SQL/runtime/collector deployment applied and verified under scoped owner approval. DEV and PROD are V58. R050 is Frozen; scoped audit closeout is complete with parent PROD/Grafana evidence. Full-batch release/tag closure is not claimed; parent explicitly holds merge/tag. V57 and the retrospective recovery are unchanged. No production financial request was executed.
 
 The supported Cloud operator executor prepares canonical central intent, commits it and independently reads it back before opening the business write connection. V58 adds the audited entry point and disables the legacy six-argument entry point. The source marker hashes the exact canonical UTF-8 text. Duplicate operations and uncertain payment scopes prohibit another dispatch. Transport failure is observed through the source marker and never automatically retried. PostgreSQL administrators remain trusted: the SQL function cannot independently prove a commit in another database; the supported executor enforces that order.
 
@@ -29,7 +29,7 @@ AppSheet implementation commit `a88531107b3238cb0c5262952d7dffaf6f1d4ed7` is pub
 
 ## Remaining work
 
-Production technical rollout is verified. Parent owns Grafana resolution and required PROD app diagnostics/load evidence for final R050 closure. Both draft PRs remain unmerged. See the production deployment section below; earlier sections retain their dated pre-deployment evidence.
+Production technical rollout and parent PROD/Grafana closeout are verified; the scoped audit task is complete. Full R050 release closure remains separate; no merge/tag is requested. Both draft PRs remain unmerged. See the production deployment section below; earlier sections retain their dated pre-deployment evidence.
 
 ## Shared DEV validation — 4 October 2026
 
@@ -70,3 +70,11 @@ Installed exactly `operator_execution.py`, `relay_health.py` and `outbox.py`; re
 Natural relay runs at 08:20:11, 08:20:43, 08:21:15, 08:21:47, 08:22:18, 08:22:50 and 08:23:21 completed successfully. The 08:22:21 and 08:24:39 UTC natural collector samples exported successfully: all 12 monitored components Healthy; relay completed_success=1, backlog=0, missing_intents=0, inspection_failed=0. Independent source readback verified the original recovered operation's marker/effects/export acknowledgement fingerprints unchanged. No payment correction, receipt replay, message send, forced worker run, access change or power action was used for validation. Optional receipt notifications remain independently degraded (two existing failed notifications), while processing status is Healthy; no replay was attempted.
 
 The journal records the relay timer stop at 08:15:44 UTC and restart at 08:20:10 UTC: the measured pause was about 4 minutes 26 seconds, longer than the earlier few-cycle estimate. Monitoring reported audit_relay DOWN at 08:17:49 and 08:20:05 while paused, then Healthy after natural completion. Business workers retained their prior activation state. Shutdown hold remains. Parent owns Grafana rule/resolved-delivery and required PROD editor/load checks. The full R050 batch is not declared Released, and no release tag/merge was performed. Source pins above remain the applied versions; later commits publish evidence only.
+
+## Parent final browser verification — 4 October 2026, 08:32–08:33 UTC
+
+Parent/Dots supplied final read-only cloud-browser evidence using the same verified `welct0407@mw-credit.com` session as DEV. PROD OLTP `93844270-6aa5-420b-a960-bcdf08abd357` showed saved version **3.000263**, Deployed, Save disabled and no editor configuration warnings/errors shown; its dashboard loaded real data successfully. PROD OLAP `e74dd368-654f-44d7-bccf-83cf361d1cdb` showed saved version **1.100208**, Deployed, Save disabled and no editor configuration warnings/errors shown; Analytics loaded successfully. These are parent-observed browser results, not independent browser inspection by this executor. No app mutation occurred.
+
+Grafana Debian rule `afz3o5cmmfabkb` was **Normal**, with all 12 instances Normal including `audit_relay`, at 08:32:30 UTC. At 08:33 UTC the rule remained Normal with its last evaluation 27 seconds earlier, providing successive post-rollout evaluations alongside the natural healthy exports above. Latest visible notification was **Resolved at 14:30:02+08 / 06:30:02 UTC**, from the earlier incident recovery. No new firing notification during the maintenance interval was visible; no post-rollout resolved delivery is claimed or test notification forced.
+
+**Scoped audit incident/permanent-fix task complete; recovered condition verified.** Runtime/SQL/collector checks, original evidence preservation, natural completions, two healthy exports and parent PROD/Grafana closeout all passed. The two pre-existing optional notification failures remain separately documented; no replay attempted. Owner/parent explicitly requests no merge, tag or further release-number changes. R050 remains Frozen, R051 Open; this task does not declare the full R050 batch Released. Final sanitized evidence is published on the existing task branches with verified `welct0407` author/committer identity. Shutdown hold remains; identity setup and cleanup are parent-owned follow-on work.
