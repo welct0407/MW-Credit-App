@@ -39,3 +39,8 @@ Schema sources: `database/migrations/` (central immutable history), business R01
 # Receipt evidence extension — 27 September 2026
 
 Independent central migration V4 is applied in `mw_agent`: immutable receipt source/asset/link metadata is separate from business Flyway V49/V50. Login `mw_receipt_projector` can execute only the guarded attachment function in the business databases; it has no direct Payments UPDATE. Original pictures stay in private GCS. [State, retries, deployment and recovery](RECEIPT_EVIDENCE.md). Existing journal generation, proxy, financial integrity triggers and audit relay are unchanged.
+
+
+## Pending durable operator execution and relay inspection
+
+The candidate `operator_execution` module commits canonical intent and independently reads it back before the AppSheet Cloud executor dispatches approved V58 SQL. Repeated/uncertain requests are reconciliation-only. `relay_health.inspect` reads completed relay outcomes and bounded pending-marker evidence; RUNNING cannot erase a completed failure. No new scheduled service or mw_agent migration is required. These changes are tested locally, not deployed or published to the MW upstream. Preserve the retrospective operator reconciliation above. See [candidate checks and rollout/rollback](../Change%20Logs/CHANGE_NOTES_DURABLE_OPERATOR_AUDIT_HEALTH_2026-10-04.md).
