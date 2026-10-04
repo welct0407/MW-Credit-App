@@ -13,8 +13,12 @@ function patch(input,page,options={}){
  const mappings=[{type:'value',options:Object.fromEntries(['Down','Healthy','Degraded','Paused','Unknown'].map((text,i)=>[i,{text,color:['red','green','orange','blue','gray'][i]}]))}];
  const panel=(id,title,type,description,targets=[],options={},defaults={})=>({id,title,type,description:MARK+' · '+description,targets,transformations:[],options,fieldConfig:{defaults,overrides:[]}});
  const inline=(id,title,text)=>panel(id,title,'text',text,[],{mode:'markdown',content:text});
- const positions=[];const added=[];
+ const positions=[];const added=[];let lightPrototype;
+ const lightLabels={121:'Bridge availability',122:'Dispatch completion'};
  if(page==='performance'){
+  const reference=all.find(p=>p.id===51);
+  if(v2){if(reference?.vizConfig?.group!=='stat')throw Error('Missing existing Webhook traffic-light prototype');lightPrototype=copy(reference.vizConfig);}
+  else{if(reference?.type!=='stat')throw Error('Missing existing Webhook traffic-light prototype');lightPrototype={options:copy(reference.options),fieldConfig:copy(reference.fieldConfig)};}
   added.push(inline(120,'GRAFANA → DOTS · BRIDGE','Availability · dispatch · durable outbox. Independent IRM rule installation pending approval.'));
   added.push(inline(124,'SUBSCRIPTION · AUTH · DELIVERY','Expected subscriptions · renewal authority · delivery continuity. Expected state remains Unknown until verified.'));
   for(const [id,title,key] of [[121,'Bridge availability','availability'],[122,'Dispatch completion','dispatch'],[123,'Outbox age','outbox'],[125,'Expected subscriptions','subscription'],[126,'Renewal / grant authority','renewal'],[127,'Delivery continuity','continuity']]){
@@ -26,6 +30,12 @@ function patch(input,page,options={}){
    const target={refId:'A',datasource:{type:DS,uid:'mw-gcp-monitoring'},type:'json',source:'url',parser:'jq-backend',format:'table',url:'https://monitoring.googleapis.com/v3/projects/clever-oasis-508610-n7/timeSeries?filter='+encodeURIComponent(filter)+'&interval.startTime=${__timeFrom:date:iso}&interval.endTime=${__timeTo:date:iso}&pageSize=100000',url_options:{method:'GET'},root_selector:selector,columns:[{text:'Status',selector:'Status',type:'number'}]};
    added.push(panel(id,title,'stat','Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Subscription/renewal is Unknown until expected membership and grant metadata are verified. Continuity reports retained failure/backlog status; it does not prove owner-visible receipt.',[target],{colorMode:'value',graphMode:'none',justifyMode:'center',orientation:'horizontal',textMode:'value',reduceOptions:{calcs:['last'],fields:'',values:false}},mixed?{mappings:[],noValue:'Unknown',decimals:0,unit:'short',color:{mode:'fixed',fixedColor:'blue'}}:{mappings,noValue:'Unknown',decimals:0}));
    if(mixed)added[added.length-1].fieldConfig.overrides.push({matcher:{id:'byRegexp',options:'^(?:[A-Z] )?Status$'},properties:[{id:'mappings',value:mappings},{id:'unit',value:'none'},{id:'color',value:{mode:'thresholds'}}]});
+  }
+  // Copy the existing traffic-light visualization exactly; preserve each query.
+  for(const id of [121,122]){
+   const p=added.find(p=>p.id===id),style=v2?lightPrototype.spec:lightPrototype;
+   p.title='';p.options=copy(style.options);p.fieldConfig=copy(style.fieldConfig);
+   p.fieldConfig.defaults.displayName=lightLabels[id];
   }
   // Numeric detail fields keep queue age/count and authority deadlines visible.
   for(const [id,field,label,unit] of [[123,'pending_count','Pending deliveries','short'],[123,'oldest_pending_seconds','Oldest pending','s'],[125,'active_expected_count','Active expected','short'],[125,'expected_count','Expected','short'],[126,'subscription_seconds_remaining','Subscription remaining','s'],[126,'grant_seconds_remaining','Grant remaining','s'],[127,'failed_count','Terminal failures · retained','short']]){
@@ -58,7 +68,14 @@ function patch(input,page,options={}){
   const fresh=items.filter(x=>!reserved.includes(Number(x.spec.element.name.replace('panel-',''))));
   if(page==='performance'&&fresh.some(x=>x.spec.y+x.spec.height>17))throw Error('Fresh overview extends into proposed row5; reconcile layout');
   if(page==='cost')positions.push([110,0,Math.max(0,...fresh.map(x=>x.spec.y+x.spec.height)),24,8]);
-  for(const p of added)spec.elements['panel-'+p.id]=toV2(p);
+  for(const p of added){
+   const converted=toV2(p);
+   if(page==='performance'&&[121,122].includes(p.id)){
+    converted.spec.vizConfig=copy(lightPrototype);
+    converted.spec.vizConfig.spec.fieldConfig.defaults.displayName=lightLabels[p.id];
+   }
+   spec.elements['panel-'+p.id]=converted;
+  }
   row.spec.layout.spec.items=[...fresh,...positions.map(([id,x,y,width,height])=>({kind:'GridLayoutItem',spec:{x,y,width,height,element:{kind:'ElementReference',name:'panel-'+id}}}))];
  }else{
   const already=spec.panels.some(p=>reserved.includes(p.id));

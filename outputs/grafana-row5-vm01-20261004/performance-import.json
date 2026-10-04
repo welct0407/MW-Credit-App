@@ -9608,7 +9608,7 @@
         "kind": "Panel",
         "spec": {
           "id": 121,
-          "title": "Bridge availability",
+          "title": "",
           "description": "row5-bridge-vm01-v1 · Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Subscription/renewal is Unknown until expected membership and grant metadata are verified. Continuity reports retained failure/backlog status; it does not prove owner-visible receipt.",
           "links": [],
           "data": {
@@ -9662,47 +9662,80 @@
                 "colorMode": "value",
                 "graphMode": "none",
                 "justifyMode": "center",
-                "orientation": "horizontal",
-                "textMode": "value",
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom"
+                },
+                "orientation": "vertical",
+                "percentChangeColorMode": "standard",
                 "reduceOptions": {
                   "calcs": [
-                    "last"
+                    "lastNotNull"
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "showPercentChange": false,
+                "text": {
+                  "titleSize": 12,
+                  "valueSize": 36
+                },
+                "textMode": "value_and_name",
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                },
+                "wideLayout": true
               },
               "fieldConfig": {
                 "defaults": {
+                  "displayName": "Bridge availability",
+                  "unit": "none",
+                  "decimals": 2,
                   "mappings": [
                     {
                       "type": "value",
                       "options": {
                         "0": {
-                          "text": "Down",
+                          "text": "🔴",
                           "color": "red"
                         },
                         "1": {
-                          "text": "Healthy",
+                          "text": "🟢",
                           "color": "green"
                         },
                         "2": {
-                          "text": "Degraded",
+                          "text": "🟠",
                           "color": "orange"
                         },
                         "3": {
-                          "text": "Paused",
+                          "text": "🔵",
                           "color": "blue"
                         },
                         "4": {
-                          "text": "Unknown",
+                          "text": "⚪",
                           "color": "gray"
                         }
                       }
                     }
                   ],
-                  "noValue": "Unknown",
-                  "decimals": 0
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "gray"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "⚪"
                 },
                 "overrides": []
               }
@@ -9714,7 +9747,7 @@
         "kind": "Panel",
         "spec": {
           "id": 122,
-          "title": "Dispatch completion",
+          "title": "",
           "description": "row5-bridge-vm01-v1 · Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Subscription/renewal is Unknown until expected membership and grant metadata are verified. Continuity reports retained failure/backlog status; it does not prove owner-visible receipt.",
           "links": [],
           "data": {
@@ -9768,47 +9801,80 @@
                 "colorMode": "value",
                 "graphMode": "none",
                 "justifyMode": "center",
-                "orientation": "horizontal",
-                "textMode": "value",
+                "legend": {
+                  "calcs": [
+                    "lastNotNull",
+                    "max"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom"
+                },
+                "orientation": "vertical",
+                "percentChangeColorMode": "standard",
                 "reduceOptions": {
                   "calcs": [
-                    "last"
+                    "lastNotNull"
                   ],
                   "fields": "",
                   "values": false
-                }
+                },
+                "showPercentChange": false,
+                "text": {
+                  "titleSize": 12,
+                  "valueSize": 36
+                },
+                "textMode": "value_and_name",
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                },
+                "wideLayout": true
               },
               "fieldConfig": {
                 "defaults": {
+                  "displayName": "Dispatch completion",
+                  "unit": "none",
+                  "decimals": 2,
                   "mappings": [
                     {
                       "type": "value",
                       "options": {
                         "0": {
-                          "text": "Down",
+                          "text": "🔴",
                           "color": "red"
                         },
                         "1": {
-                          "text": "Healthy",
+                          "text": "🟢",
                           "color": "green"
                         },
                         "2": {
-                          "text": "Degraded",
+                          "text": "🟠",
                           "color": "orange"
                         },
                         "3": {
-                          "text": "Paused",
+                          "text": "🔵",
                           "color": "blue"
                         },
                         "4": {
-                          "text": "Unknown",
+                          "text": "⚪",
                           "color": "gray"
                         }
                       }
                     }
                   ],
-                  "noValue": "Unknown",
-                  "decimals": 0
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "gray"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "noValue": "⚪"
                 },
                 "overrides": []
               }

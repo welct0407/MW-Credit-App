@@ -39,7 +39,22 @@ for(const id of [123,125,126,127]){
   assert.equal(c.noValue,'Unknown');assert.equal(c.color.fixedColor,'blue');
  }
 }
-for(const id of [121,122])assert.equal(presentation.panels.find(x=>x.id===id).fieldConfig.defaults.mappings[0].options[0].text,'Down','status-only panels unchanged');
+for(const id of [121,122]){
+ const tile=presentation.panels.find(x=>x.id===id),ref=presentation.panels.find(x=>x.id===51);
+ const fields=structuredClone(ref.fieldConfig);fields.defaults.displayName=id===121?'Bridge availability':'Dispatch completion';
+ assert.equal(tile.title,'');assert.deepEqual(tile.options,ref.options);assert.deepEqual(tile.fieldConfig,fields);
+ assert.deepEqual(Object.values(tile.fieldConfig.defaults.mappings[0].options).map(v=>v.text),['🔴','🟢','🟠','🔵','⚪']);
+ assert.equal(tile.fieldConfig.defaults.noValue,'⚪');
+}
+const liveStyle=JSON.parse(fs.readFileSync(root+'performance-editor-resource.json'));
+const styled=patch(liveStyle,'performance');
+for(const id of [121,122]){
+ const expected=structuredClone(liveStyle.spec.elements['panel-51'].spec.vizConfig);
+ expected.spec.fieldConfig.defaults.displayName=id===121?'Bridge availability':'Dispatch completion';
+ assert.deepEqual(styled.spec.elements['panel-'+id].spec.vizConfig,expected,'entire existing v2 visualization copied');
+ assert.equal(styled.spec.elements['panel-'+id].spec.title,'');
+}
+
 // Optional fresh LIVE v2 exports: prove removing only this task additions restores exact input.
 if(process.argv.length>2){
  const [perfPath,costPath]=process.argv.slice(2);if(!perfPath||!costPath)throw Error('Provide both live exports');
