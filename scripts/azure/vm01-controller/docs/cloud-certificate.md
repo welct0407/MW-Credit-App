@@ -38,6 +38,10 @@ The parent coordinates **one VM worker as the sole generator and registrar**. Cl
 
 Both values are delivered directly to the owner's task process. This is managed credential delivery, **not nonexportable key storage**. The helper reads them only when explicitly invoked, parses/signs in memory, does not write key/token files and does not export tokens. Ordinary repository tests do not read these variables. Network substitution placeholders cannot sign an assertion locally.
 
+**4 October formatting compatibility:** the helper also accepts a single-line PEM whose line breaks became ASCII spaces or tabs. It requires one exact matching BEGIN/END block, canonical padded base64 and one complete DER SEQUENCE, with no leading or extra material. It rejects escaped newlines, BOM, wrong labels, duplicate blocks, invalid base64 and trailing DER bytes. Normalization occurs only in memory; Vault entries and credential material are unchanged. Key strength, certificate validity and key/certificate matching checks still apply.
+
+Fresh runtime validation after this fix: both variables present; both normalize and parse; key/certificate match; public SHA1 matches `2DCB559323F40445A04238B12E324DF2C67979AC`; expiry matches `2028-10-04T05:38:02Z`. The status attempt stops with `token_transport_failed`. A credential-free diagnostic POST to the same fixed Entra token endpoint classifies the transport as proxy-related HTTP 403 (`UND_ERR_ABORTED`); no raw error or response was emitted. Authenticated status remains unverified, and the parent must review the saved network allowlist for `login.microsoftonline.com:443` through the authorized environment route. No proxy bypass, environment/security/credential change or power operation was performed. This fresh result supersedes the earlier local PEM-format failure only; shutdown remains on hold.
+
 | Permitted HTTPS destination | Exact request |
 | --- | --- |
 | `login.microsoftonline.com:443` | POST `/9e29c895-606a-420b-acc2-1c24375df4d9/oauth2/v2.0/token` |

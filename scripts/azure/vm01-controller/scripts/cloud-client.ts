@@ -31,16 +31,37 @@ function record(value: unknown): Record<string, unknown> | undefined {
 function timestamp(value: unknown): value is string {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value) && Number.isFinite(Date.parse(value));
 }
+export function normalizeCredentialPem(value: string, label: 'PRIVATE KEY' | 'CERTIFICATE'): string {
+  // Accept only one exact block, with ASCII whitespace where PEM line breaks belong.
+  // Never decode escaped newlines, guess labels, strip extra material or change Vault values.
+  if (value.length > 16384) throw new CloudClientError('credential_invalid');
+  const match = new RegExp(`^-----BEGIN ${label}-----[ \\t\\r\\n]+([A-Za-z0-9+/= \\t\\r\\n]+)[ \\t\\r\\n]+-----END ${label}-----[ \\t\\r\\n]*$(?![\\s\\S])`).exec(value);
+  if (!match) throw new CloudClientError('credential_invalid');
+  const body = match[1]!.replace(/[ \t\r\n]/g, '');
+  if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$(?![\s\S])/.test(body) || !body || Buffer.from(body, 'base64').toString('base64') !== body) throw new CloudClientError('credential_invalid');
+  // Both allowed formats contain one DER SEQUENCE; reject ignored trailing bytes.
+  const der = Buffer.from(body, 'base64');
+  const lengthBytes = der[1]! & 0x7f;
+  let contentLength = der[1]!; let offset = 2;
+  if (der[1]! & 0x80) {
+    if (lengthBytes < 1 || lengthBytes > 2 || der.length < 2 + lengthBytes || der[2] === 0) throw new CloudClientError('credential_invalid');
+    contentLength = der.readUIntBE(2, lengthBytes); offset += lengthBytes;
+    if (contentLength < 128) throw new CloudClientError('credential_invalid');
+  }
+  if (der[0] !== 0x30 || contentLength + offset !== der.length) throw new CloudClientError('credential_invalid');
+  return `-----BEGIN ${label}-----\n${body.match(/.{1,64}/g)!.join('\n')}\n-----END ${label}-----\n`;
+}
 export function loadCertificateCredential(env: NodeJS.ProcessEnv, now: number): Credential {
   const keyPem = env[PRIVATE_KEY_VARIABLE]; const certPem = env[CERTIFICATE_VARIABLE];
   if (!keyPem || !certPem) throw new CloudClientError('credential_unavailable');
   try {
-    if (keyPem.length > 16384 || certPem.length > 16384 || !/^-----BEGIN PRIVATE KEY-----\r?\n/.test(keyPem) || !/^-----BEGIN CERTIFICATE-----\r?\n/.test(certPem)) throw new Error();
-    const certificate = new X509Certificate(certPem);
+    const normalizedKey = normalizeCredentialPem(keyPem, 'PRIVATE KEY');
+    const normalizedCert = normalizeCredentialPem(certPem, 'CERTIFICATE');
+    const certificate = new X509Certificate(normalizedCert);
     const startsAt = Date.parse(certificate.validFrom); const expiresAt = Date.parse(certificate.validTo);
     if (!Number.isFinite(startsAt) || !Number.isFinite(expiresAt)) throw new Error();
     if (startsAt > now || expiresAt <= now + 300000) throw new CloudClientError('certificate_not_current');
-    const privateKey = createPrivateKey({ key: keyPem, format: 'pem', type: 'pkcs8' });
+    const privateKey = createPrivateKey({ key: normalizedKey, format: 'pem', type: 'pkcs8' });
     if (privateKey.asymmetricKeyType !== 'rsa' || (privateKey.asymmetricKeyDetails?.modulusLength ?? 0) < 3072 || !certificate.checkPrivateKey(privateKey)) throw new Error();
     return { privateKey, expiresAt, thumbprint: createHash('sha256').update(certificate.raw).digest('base64url') };
   } catch (error) {

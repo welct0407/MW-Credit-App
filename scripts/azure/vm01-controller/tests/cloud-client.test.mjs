@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateKeyPairSync, verify, constants, X509Certificate } from 'node:crypto';
+import { generateKeyPairSync, verify, constants, X509Certificate, createPrivateKey, createPublicKey } from 'node:crypto';
 import { rootCertificates } from 'node:tls';
 import { spawnSync } from 'node:child_process';
-import { createCloudClient, CloudClientError, loadCertificateCredential, parseStatusArguments, CLOUD_CLIENT_ID, CLOUD_TOKEN_URL, CLOUD_STATUS_URL, CLOUD_SCOPE, PRIVATE_KEY_VARIABLE, CERTIFICATE_VARIABLE } from '../dist/scripts/cloud-client.js';
+import { createCloudClient, CloudClientError, loadCertificateCredential, normalizeCredentialPem, parseStatusArguments, CLOUD_CLIENT_ID, CLOUD_TOKEN_URL, CLOUD_STATUS_URL, CLOUD_SCOPE, PRIVATE_KEY_VARIABLE, CERTIFICATE_VARIABLE } from '../dist/scripts/cloud-client.js';
 
 // Ephemeral mock signing keys only. No certificate is generated or registered.
 const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 3072 });
@@ -84,6 +84,27 @@ test('missing, malformed, mismatched and noncurrent certificate material fails l
   assert.throws(() => loadCertificateCredential(env, Date.parse(certificate.validTo)), sanitized('certificate_not_current'));
   const f = fixture({ dependencies: { loadCredential: () => { throw new Error('DO_NOT_RETURN'); } } });
   await assert.rejects(f.client.status(), sanitized('credential_invalid')); assert.equal(f.calls.length, 0);
+});
+test('PEM normalization preserves mock key and public certificate across newlines and spaces', () => {
+  const key = privateKey.export({ format: 'pem', type: 'pkcs8' });
+  const certificate = rootCertificates[0];
+  for (const convert of [value => value, value => value.replace(/\n/g, '\r\n'), value => value.trim().replace(/\n/g, ' '), value => value.replace(/\n/g, '\t')]) {
+    const normalizedKey = normalizeCredentialPem(convert(key), 'PRIVATE KEY');
+    const normalizedCert = normalizeCredentialPem(convert(certificate), 'CERTIFICATE');
+    assert.deepEqual(createPublicKey(createPrivateKey(normalizedKey)).export({ format: 'der', type: 'spki' }), publicKey.export({ format: 'der', type: 'spki' }));
+    assert.deepEqual(new X509Certificate(normalizedCert).raw, new X509Certificate(certificate).raw);
+  }
+});
+test('ambiguous PEM, malformed base64 and extra DER material fail locally without leaking input', async () => {
+  const key = privateKey.export({ format: 'pem', type: 'pkcs8' });
+  const wrap = body => `-----BEGIN PRIVATE KEY----- ${body} -----END PRIVATE KEY-----`;
+  const der = privateKey.export({ format: 'der', type: 'pkcs8' });
+  for (const value of [key + 'DO_NOT_RETURN', 'DO_NOT_RETURN' + key, key + key, key.replace('PRIVATE KEY', 'RSA PRIVATE KEY'), key.replace(/\n/g, '\\n'), '\ufeff' + key, wrap('AAA!'), wrap('AB=='), wrap('AAAA='), wrap(''), wrap(Buffer.concat([der, Buffer.from([0])]).toString('base64')), wrap('MIAAAA=='), 'x'.repeat(16385)]) {
+    assert.throws(() => normalizeCredentialPem(value, 'PRIVATE KEY'), sanitized('credential_invalid'));
+    let calls = 0;
+    const client = createCloudClient({ [PRIVATE_KEY_VARIABLE]: value, [CERTIFICATE_VARIABLE]: rootCertificates[0] }, { now: () => now, fetch: async () => { calls++; throw new Error('DO_NOT_RETURN'); } });
+    await assert.rejects(client.status(), sanitized('credential_invalid')); assert.equal(calls, 0);
+  }
 });
 test('redirects, rejected auth and token transport failures expose no raw details and never reach status', async t => {
   for (const [name, token, code, httpStatus] of [
