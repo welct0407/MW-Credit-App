@@ -39,5 +39,11 @@
   "external_connections": false,
   "synthetic_owner_and_google_login": true,
   "tls_fixture": "localhost ephemeral certificate accepted only in isolated test browser",
-  "actual_owner_request_headers_observed": false
+  "actual_owner_request_headers_observed": false,
+  "tested_source_commit": "7f20b22e5f353ea62b2669f57d9a2d39a6338752",
+  "runtime_image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:53a04f0f1c0ea9a029ee64d46f12f760d3d335833bb2eb927ae784b78fb2e73d",
+  "tests": {
+    "local_passed": 69,
+    "packaged_passed": 69
+  }
 }
