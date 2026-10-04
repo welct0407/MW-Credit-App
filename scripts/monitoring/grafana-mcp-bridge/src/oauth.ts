@@ -8,6 +8,10 @@ import type { Store } from './store.js';
 import { open, seal } from './events.js';
 import { equal, hash, logEvent, SafeError } from './security.js';
 
+export const OFFLINE_AUTHORIZATION_SECONDS=730*86400; // Conservative two-year maximum.
+const SESSION_AUTHORIZATION_SECONDS=30*86400;
+const REVOCATION_RETENTION_MS=(OFFLINE_AUTHORIZATION_SECONDS+86400)*1000;
+
 // Never log an exception, message, response body, URL or token. Only these
 // fixed categories may distinguish upstream rejection from local failures.
 function oauthFailureCategory(error:unknown) {
@@ -46,20 +50,25 @@ export function adapterFactory(store:Store,key:Buffer,issuer:string,now=()=>Date
     async find(id:string) {return this.decode(await store.get(this.path(id)));}
     async findByUid(uid:string) {return this.decode((await store.query('oauth',[['model','==',this.model],['issuerHash','==',hash(issuer)],['uid','==',hash(uid)]],1))[0]);}
     async findByUserCode(code:string) {return this.decode((await store.query('oauth',[['model','==',this.model],['issuerHash','==',hash(issuer)],['userCode','==',hash(code)]],1))[0]);}
-    async destroy(id:string) {await store.atomic(async tx=>{tx.delete(this.path(id));if(this.model==='Grant')tx.set('revokedGrants/'+hash(id),{deleteAfter:new Date(now()+90*86400_000)});});}
+    async destroy(id:string) {await store.atomic(async tx=>{tx.delete(this.path(id));if(this.model==='Grant')tx.set('revokedGrants/'+hash(id),{deleteAfter:new Date(now()+REVOCATION_RETENTION_MS)});});}
     async consume(id:string) {
-      await store.atomic(async tx=>{
+      const reused=await store.atomic(async tx=>{
         const row=await tx.get(this.path(id));
         if(!row || row.expiresAt<=now())throw new errors.InvalidGrant('Grant expired');
         const payload=JSON.parse(open(row.encrypted,key));
-        if(payload.consumed)throw new errors.InvalidGrant('Grant already consumed');
+        if(payload.consumed) {
+          if(this.model==='RefreshToken' && payload.grantId)tx.set('revokedGrants/'+hash(payload.grantId),{deleteAfter:new Date(now()+REVOCATION_RETENTION_MS)});
+          return true;
+        }
         payload.consumed=Math.floor(now()/1000);
         tx.set(this.path(id),{...row,encrypted:seal(JSON.stringify(payload),key)});
+        return false;
       });
+      if(reused)throw new errors.InvalidGrant('Grant already consumed');
     }
     async revokeByGrantId(grantId:string) {
       // A tombstone also blocks tokens concurrently stored after revocation.
-      await store.atomic(async tx=>{tx.set('revokedGrants/'+hash(grantId),{deleteAfter:new Date(now()+90*86400_000)});});
+      await store.atomic(async tx=>{tx.set('revokedGrants/'+hash(grantId),{deleteAfter:new Date(now()+REVOCATION_RETENTION_MS)});});
     }
   };
 }
@@ -113,7 +122,15 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
     interactions:{url:(_ctx,interaction)=>config.issuer+'/interaction/'+interaction.uid},
     findAccount:async (_ctx,id)=> id===config.ownerSub && await ownerActive() ? {accountId:id,claims:async()=>({sub:id})} : undefined,
     issueRefreshToken:()=>true,rotateRefreshToken:true,
-    ttl:{AccessToken:300,AuthorizationCode:60,Interaction:600,Session:86400,Grant:30*86400,RefreshToken:30*86400},
+    ttl:{AccessToken:300,AuthorizationCode:60,Interaction:600,Session:86400,
+      Grant:(_ctx,grant)=>grant.getOIDCScope().split(' ').includes('offline_access') ? OFFLINE_AUTHORIZATION_SECONDS : SESSION_AUTHORIZATION_SECONDS,
+      // Rotation never starts another two years; both grant and original token bound it.
+      RefreshToken:(ctx,token)=>Math.max(1,Math.min(
+        (token.iiat ?? token.iat ?? 0)+(token.scopes.has('offline_access') ? OFFLINE_AUTHORIZATION_SECONDS : SESSION_AUTHORIZATION_SECONDS)-Math.floor(Date.now()/1000),
+        ctx.oidc.entities.Grant?.remainingTTL ?? SESSION_AUTHORIZATION_SECONDS,
+        ctx.oidc.entities.RotatedRefreshToken?.remainingTTL ?? Infinity,
+      )),
+    },
     renderError:(ctx)=>{ctx.type='text/plain';ctx.body='Authorization failed. Restart connection.';},
   };
   const provider=new Provider(config.issuer,options);
@@ -131,7 +148,7 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
     (req as any).originalUrl=req.url;
     if(path.startsWith('/oauth/interaction/') || path==='/oauth/google/callback') {
       stage='owner_check';
-      if(req.method!=='GET' || !(await ownerActive()))throw new SafeError('owner_denied',403);
+      if((req.method!=='GET' && !(req.method==='POST' && path.endsWith('/consent'))) || !(await ownerActive()))throw new SafeError('owner_denied',403);
       if(path==='/oauth/google/callback') {
         stage='callback_state';
         // The provider scopes its signed interaction cookie to /interaction/<uid>.
@@ -167,7 +184,8 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
         stage='login_finish';
         await provider.interactionFinished(req,res,{login:{accountId}},{mergeWithLastSubmission:false});return;
       }
-      if(path!==interactionPath)throw new SafeError('interaction_mismatch');
+      if(path!==interactionPath && path!==interactionPath+'/consent')throw new SafeError('interaction_mismatch');
+      if(path.endsWith('/consent') && details.prompt.name!=='consent')throw new SafeError('interaction_mismatch');
       if(details.prompt.name==='login') {
         const state=randomBytes(32).toString('base64url'),nonce=randomBytes(32).toString('base64url');
         stage='google_begin';
@@ -177,9 +195,35 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
         res.writeHead(302,{Location:start.url,'Cache-Control':'no-store'});res.end();return;
       }
       if(details.prompt.name==='consent' && details.session?.accountId===config.ownerSub) {
+        const requested=new Set(String(details.params.scope ?? '').split(' '));
+        if(requested.has('offline_access')) {
+          if(path===interactionPath && req.method==='GET') {
+            const csrf=randomBytes(32).toString('base64url');
+            await store.atomic(async tx=>tx.set('googleStates/'+hash('offline-consent:'+details.uid),{csrfHash:hash(csrf),expiresAt:Date.now()+600_000,deleteAfter:new Date(Date.now()+86400_000)}));
+            res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Content-Security-Policy':"default-src 'none'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'"});
+            res.end('<!doctype html><html lang="en"><meta charset="utf-8"><title>Authorize monitoring access</title><h1>Authorize ChatGPT monitoring access</h1><p>Allow ChatGPT to read this bridge and receive the monitoring events you select for up to two years (730 days), even after you sign out of this browser. You can revoke this authorization earlier. Subscriptions still require renewal every 24 hours.</p><form method="post" action="'+interactionPath+'/consent"><input type="hidden" name="csrf" value="'+csrf+'"><button name="decision" value="allow">Allow two-year access</button><button name="decision" value="deny">Cancel</button></form></html>');return;
+          }
+          if(path!==interactionPath+'/consent' || req.method!=='POST' || req.headers.origin!==config.baseUrl || req.headers['content-type']!=='application/x-www-form-urlencoded')throw new SafeError('offline_consent_required',403);
+          const chunks:Buffer[]=[];let size=0;
+          for await(const chunk of req) {size+=chunk.length;if(size>1024)throw new SafeError('invalid_consent',400);chunks.push(chunk);}
+          const form=new URLSearchParams(Buffer.concat(chunks).toString('utf8')),decision=form.get('decision');
+          if(!['allow','deny'].includes(decision ?? '') || [...form.keys()].sort().join(',')!=='csrf,decision')throw new SafeError('invalid_consent',400);
+          await store.atomic(async tx=>{
+            const saved=await tx.get('googleStates/'+hash('offline-consent:'+details.uid));
+            if(!saved || saved.expiresAt<=Date.now() || !equal(saved.csrfHash,hash(form.get('csrf') ?? '')))throw new SafeError('invalid_consent',403);
+            tx.delete('googleStates/'+hash('offline-consent:'+details.uid));
+          });
+          if(decision==='deny') {await provider.interactionFinished(req,res,{error:'access_denied',error_description:'Owner declined offline authorization'},{mergeWithLastSubmission:false});return;}
+        } else if(req.method!=='GET' || path!==interactionPath)throw new SafeError('interaction_mismatch');
         stage='grant_save';
-        const grant=details.grantId ? await provider.Grant.find(details.grantId) : new provider.Grant({accountId:config.ownerSub,clientId:config.clientId});
+        let grant=details.grantId ? await provider.Grant.find(details.grantId) : new provider.Grant({accountId:config.ownerSub,clientId:config.clientId});
         if(!grant)throw new SafeError('grant_missing');
+        // An explicitly consented upgrade creates a new grant; existing deadlines stay fixed.
+        if(requested.has('offline_access') && !grant.getOIDCScope().split(' ').includes('offline_access')) {
+          grant=new provider.Grant({accountId:config.ownerSub,clientId:config.clientId});
+          grant.addOIDCScope([...requested].filter(scope=>scope==='openid' || scope==='offline_access'));
+          grant.addResourceScope(config.resource,[...requested].filter(scope=>scope==='mcp:events' || scope==='mcp:read'));
+        }
         const missing=details.prompt.details;
         if(missing.missingOIDCScope)grant.addOIDCScope(missing.missingOIDCScope as string[]);
         if(missing.missingOIDCClaims)grant.addOIDCClaims(missing.missingOIDCClaims as string[]);
@@ -204,8 +248,10 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
   const authenticate=async (header:string|undefined,scope:string)=>{
     if(!(await ownerActive()) || !header?.startsWith('Bearer '))throw new SafeError('unauthorized',401);
     const token=await provider.AccessToken.find(header.slice(7));
-    if(!token || token.isExpired || token.accountId!==config.ownerSub || token.clientId!==config.clientId || token.aud!==config.resource || !token.scope?.split(' ').includes(scope) || !await provider.Grant.find(token.grantId))throw new SafeError('unauthorized',401);
-    return {token:header.slice(7),clientId:config.clientId,scopes:token.scope.split(' '),expiresAt:token.exp,extra:{owner:config.ownerSub,grantId:token.grantId}};
+    if(!token || token.isExpired || token.accountId!==config.ownerSub || token.clientId!==config.clientId || token.aud!==config.resource || !token.scope?.split(' ').includes(scope))throw new SafeError('unauthorized',401);
+    const grant=await provider.Grant.find(token.grantId);
+    if(!grant || grant.isExpired)throw new SafeError('unauthorized',401);
+    return {token:header.slice(7),clientId:config.clientId,scopes:token.scope.split(' '),expiresAt:token.exp,extra:{owner:config.ownerSub,grantId:token.grantId,grantExpiresAt:grant.exp! * 1000}};
   };
   return {provider,route,authenticate};
 }

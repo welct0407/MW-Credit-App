@@ -1,0 +1,15 @@
+{
+  "status": "source_candidate_not_deployed",
+  "baseline": "2c849c65214e837f097a7ac9da282d852f86d11c",
+  "branch": "fix/grafana-two-year-offline",
+  "tests": {"passed": 57, "failed": 0},
+  "production_dependency_vulnerabilities": 0,
+  "offline_authorization_max_seconds": 63072000,
+  "access_token_seconds": 300,
+  "subscription_max_seconds": 86400,
+  "revocation_tombstone_seconds": 63158400,
+  "live_changes": false,
+  "native_host_offline_consent": "pending_secure_owner_reconnect",
+  "actual_live_token_scope_session_binding": "unverified_encrypted_payload",
+  "fresh_subscription_metadata": "blocked_firestore_403_over_iap"
+}

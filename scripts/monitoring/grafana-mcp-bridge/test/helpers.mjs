@@ -56,7 +56,7 @@ export class BrowserCookieJar {
   }
 }
 export async function application(deps={}) {
-  const conf={...config(),...deps.config},store=new MemoryStore();
+  const conf={...config(),...deps.config},store=deps.store ?? new MemoryStore();
   let lastLogin;
   const google={
     begin:async (state,nonce)=>{lastLogin={state,nonce};return {url:'https://accounts.example/login?state='+state,verifier:'synthetic-google-verifier'};},
@@ -83,6 +83,11 @@ export async function authorize(app,options={}) {
   let res=await app.call('/oauth/auth?'+params);
   for(let i=0;i<10;i++){
     const location=res.headers.location;
+    if(!location && res.status===200 && res.body.includes('name="csrf"')) {
+      const csrf=res.body.match(/name="csrf" value="([A-Za-z0-9_-]+)"/)[1];
+      const interaction=res.body.match(/action="([^"]+)"/)[1];
+      res=await app.call(interaction,{method:'POST',headers:{Origin:app.conf.baseUrl,'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({csrf,decision:'allow'}).toString()});continue;
+    }
     if(!location)throw new Error('OAuth flow stopped: '+res.status+' '+res.body);
     if(location.startsWith(app.conf.redirectUri))return {code:new URL(location).searchParams.get('code'),verifier,response:res,redirect:new URL(location)};
     if(location.startsWith('https://accounts.example/'))res=await app.call('/oauth/google/callback?'+new URLSearchParams({state:app.login().state,code:'synthetic-owner-code'}));

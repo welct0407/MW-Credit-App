@@ -48,7 +48,9 @@ export function createApp(config:Config,store:Store,send:CallbackTransport,depen
     server.server.setRequestHandler('events/subscribe',{params:z.object({name:z.string(),arguments:Filters,delivery:z.object({mode:z.literal('webhook'),url:z.string().max(2048),secret:z.string().max(128)}).strict(),ttlMs:z.number().positive().nullable().optional(),cursor:z.string().nullable().optional()}).strict()},(params,ctx)=>rpc(async()=>{
       const grantId=ctx.http?.authInfo?.extra?.grantId;
       if(typeof grantId!=='string')throw new SafeError('missing_subscription_authority');
-      return bridge.subscribe(params,grantId);
+      const grantExpiresAt=ctx.http?.authInfo?.extra?.grantExpiresAt;
+      if(typeof grantExpiresAt!=='number' || !Number.isFinite(grantExpiresAt))throw new SafeError('missing_subscription_authority');
+      return bridge.subscribe(params,grantId,grantExpiresAt);
     }));
     server.server.setRequestHandler('events/unsubscribe',{params:z.object({name:z.string(),arguments:Filters,delivery:z.object({mode:z.literal('webhook'),url:z.string().max(2048)}).strict()}).strict()},params=>rpc(()=>bridge.unsubscribe(params)));
     server.registerTool('get_bridge_health',{description:'Read bridge delivery counts and owner access state. Counts are capped at 100 records per state.',inputSchema:z.object({}).strict(),annotations:{readOnlyHint:true,destructiveHint:false,openWorldHint:false}},async()=>rpc(async()=>{
@@ -75,7 +77,7 @@ export function createApp(config:Config,store:Store,send:CallbackTransport,depen
       res.setHeader('Referrer-Policy','no-referrer');
       if(path==='/health' && req.method==='GET') {json(res,200,{status:'ok'});return;}
       if((path==='/.well-known/oauth-protected-resource' || path==='/.well-known/oauth-protected-resource/mcp') && req.method==='GET') {
-        json(res,200,{resource:config.resource,authorization_servers:[config.issuer],scopes_supported:['mcp:events','mcp:read']});return;
+        json(res,200,{resource:config.resource,authorization_servers:[config.issuer],scopes_supported:['mcp:events','mcp:read','offline_access']});return;
       }
       if(path.startsWith('/oauth/') || path==='/oauth') {await oauth.route(req,res,path,url);return;}
       if(path==='/mcp') {

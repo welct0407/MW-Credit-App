@@ -89,7 +89,7 @@ export class Bridge {
     if(subscription.oldSecret && (subscription.rotateUntil ?? 0)>time) signature+=' '+new Webhook(open(subscription.oldSecret,this.config.stateKey)).sign(id,date,body);
     return {'Content-Type':'application/json','webhook-id':id,'webhook-timestamp':String(Math.floor(time/1000)),'webhook-signature':signature,'X-MCP-Subscription-Id':subscription.id};
   }
-  async subscribe(params: {name:string; arguments:unknown; delivery:{mode:string;url:string;secret:string};ttlMs?:number|null;cursor?:string|null}, grantId?:string) {
+  async subscribe(params: {name:string; arguments:unknown; delivery:{mode:string;url:string;secret:string};ttlMs?:number|null;cursor?:string|null}, grantId?:string,grantExpiresAt=Infinity) {
     if(!(await this.ownerActive())) throw new SafeError('owner_revoked',403);
     if(params.name!==EVENT_NAME || params.delivery.mode!=='webhook' || params.cursor) throw new SafeError('unsupported_event_or_replay');
     const filters=normalizedFilters(params.arguments);let url:string;
@@ -109,7 +109,8 @@ export class Bridge {
       before:await tx.get<Subscription>('subscriptions/'+id),
       cancellation:(await tx.get('subscriptionControls/'+id))?.generation ?? 0,
     }));
-    const candidate:Subscription={id,owner:this.config.ownerSub,name:params.name,filters,url,secret:seal(secret,this.config.stateKey),expiresAt:time+Math.min(ttl,86400_000),active:true,verifiedAt:time,revision:(before?.revision ?? 0)+1,deleteAfter:new Date(time+8*86400_000)};
+    if(grantExpiresAt<=time)throw new SafeError('grant_expired',403);
+    const candidate:Subscription={id,owner:this.config.ownerSub,name:params.name,filters,url,secret:seal(secret,this.config.stateKey),expiresAt:Math.min(time+Math.min(ttl,86400_000),grantExpiresAt),active:true,verifiedAt:time,revision:(before?.revision ?? 0)+1,deleteAfter:new Date(time+8*86400_000)};
     if(grantId)candidate.grantHash=hash(grantId);
     if(before && before.active && before.expiresAt>time && equal(open(before.secret,this.config.stateKey),secret) && before.verifiedAt>time-300_000) candidate.verifiedAt=before.verifiedAt;
     else {
