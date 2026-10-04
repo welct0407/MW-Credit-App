@@ -1,5 +1,5 @@
 {
-  "status": "callback_policy_repair_live_public_checks_passed_pending_native_owner_acceptance",
+  "status": "live_native_connection_accepted_pending_interval_continuity_and_merge_authorization",
   "baseline": "2c849c65214e837f097a7ac9da282d852f86d11c",
   "branch": "fix/grafana-two-year-offline",
   "tests": {
@@ -12,7 +12,7 @@
   "subscription_max_seconds": 86400,
   "revocation_tombstone_seconds": 63158400,
   "live_changes": true,
-  "native_host_offline_consent": "pending_fresh_owner_flow_after_verified_cross_origin_callback_repair",
+  "native_host_offline_consent": "native_authorization_accepted_live_duration_and_session_binding_unverified",
   "actual_live_token_scope_session_binding": "unverified_encrypted_payload",
   "fresh_subscription_metadata": "blocked_firestore_403_over_iap",
   "traffic_changed": true,
@@ -50,5 +50,8 @@
   "browser_callback_regression_passed": true,
   "browser_callback_scenarios": 8,
   "production_callback_policy_approval": true,
-  "consent_form_action_exact_pinned_callback": true
+  "consent_form_action_exact_pinned_callback": true,
+  "native_connection_accepted": true,
+  "native_health_at": "2026-10-04T12:22:48Z",
+  "access_token_interval_continuity": "pending_parent_read"
 }
