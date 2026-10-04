@@ -1,5 +1,5 @@
 {
-  "status": "callback_policy_candidate_approved_packaging_pending",
+  "status": "callback_policy_repair_live_public_checks_passed_pending_native_owner_acceptance",
   "baseline": "2c849c65214e837f097a7ac9da282d852f86d11c",
   "branch": "fix/grafana-two-year-offline",
   "tests": {
@@ -12,23 +12,23 @@
   "subscription_max_seconds": 86400,
   "revocation_tombstone_seconds": 63158400,
   "live_changes": true,
-  "native_host_offline_consent": "pending_after_cross_origin_callback_repair",
+  "native_host_offline_consent": "pending_fresh_owner_flow_after_verified_cross_origin_callback_repair",
   "actual_live_token_scope_session_binding": "unverified_encrypted_payload",
   "fresh_subscription_metadata": "blocked_firestore_403_over_iap",
   "traffic_changed": true,
   "existing_grants_extended": false,
   "packaged_tests": {
-    "passed": 69,
+    "passed": 70,
     "failed": 0,
     "external_network": "none"
   },
-  "staged_revision": "mw-grafana-events-00013-2gx",
+  "staged_revision": "mw-grafana-events-00014-s6x",
   "staged_traffic_percent": 0,
-  "owner_reconnect_ready": false,
-  "live_revision": "mw-grafana-events-00013-2gx",
+  "owner_reconnect_ready": true,
+  "live_revision": "mw-grafana-events-00014-s6x",
   "live_traffic_percent": 100,
-  "source_commit": "7f20b22e5f353ea62b2669f57d9a2d39a6338752",
-  "immutable_image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:53a04f0f1c0ea9a029ee64d46f12f760d3d335833bb2eb927ae784b78fb2e73d",
+  "source_commit": "fd2ab22b7556143973538181ee639e675c7a1d43",
+  "immutable_image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:97cdf2fd8620353039b9ee1cd50566ceada01157383dc8653f1a77d61b8456c4",
   "public_checks_passed": 20,
   "server_controlled_duration_consent": true,
   "session_independent_policy": "verified_encrypted_consent_bound_to_owner_client_resource_grant_and_fixed_deadline",
@@ -38,7 +38,7 @@
   "ingress_preserved": true,
   "secret_mount_references_preserved": true,
   "logging_exclusions_preserved": true,
-  "rollback_revision": "mw-grafana-events-00012-w4h",
+  "rollback_revision": "mw-grafana-events-00013-2gx",
   "synthetic_live_grants_created": false,
   "subscriptions_recreated": false,
   "runtime_nonroot_uid": 1000,
@@ -49,5 +49,6 @@
   "failed_consent_guard_writes_new_grant": false,
   "browser_callback_regression_passed": true,
   "browser_callback_scenarios": 8,
-  "production_callback_policy_approval": true
+  "production_callback_policy_approval": true,
+  "consent_form_action_exact_pinned_callback": true
 }
