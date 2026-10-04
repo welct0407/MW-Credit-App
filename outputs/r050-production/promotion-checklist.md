@@ -1,5 +1,12 @@
 # R050 promotion checklist
 
+## Coordinated repository closeout — 4 October 2026
+
+After the completed runtime rollout, the owner directly approved AppSheet PR3/6/7/8 and MW PR1 merges plus sanitized completion descriptions. This supersedes the earlier source-merge hold below; full R050 batch release/tag remains separate. PR8 now targets master after its immutable V57 prerequisite PR7, preserving the exact applied V57/V58 migration bytes and existing operation evidence. Source merging performs no deployment, migration application, financial operation, message replay, credential/access change or power action.
+
+Documentation conflicts retain both accepted Grafana/controller evidence and the completed audit rollout, including R016 reconciliation. Tested audit source is unchanged from pin `1ecbb109c6e9ee5393622453d042c6391b48dbc4`; Database migrations CI run37189395555 succeeded. Closeout checks: executor7, Cloud Flyway10, collector20 and MW relay-health8 tests passed. Retained fresh PostgreSQL300/real two-database integration evidence is reused because its source is unchanged. Existing shutdown hold and all branches remain.
+
+
 Template revision: 2026-09-24. **Single master:** `scripts/releases/templates/promotion-checklist.md`. Create one release copy under outputs; fill that copy throughout development/promotion. Do not maintain an Excel checklist or separate document checklist. Implementation detail: [Release Workflow](../../../Documents/Release_Workflow.md); exceptions: [Recovery](../../../Documents/Release_Recovery_Runbook.md).
 
 ## Continue here
