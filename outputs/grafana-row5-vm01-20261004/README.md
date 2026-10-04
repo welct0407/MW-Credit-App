@@ -1,7 +1,7 @@
 # R051 — row 5 bridge monitoring and daily VM-01 chart checkpoint
 
-Status: **local implementation checkpoint; not live, not committed/pushed, no PR yet**.
-Parent requested checkpoint before continuing. Starting commit: `2e56498dddac2709434301a34625cb32b3774730`; clean starting tree. Task branch: `feat/grafana-row5-vm01-uptime`.
+Status: **source published in draft [PR12](https://github.com/welct0407/AppSheet-Loan-Project/pull/12); no live dashboard/instrumentation/alert changes**.
+Parent requested an initial checkpoint, then resumed independent local implementation. Starting commit: `2e56498dddac2709434301a34625cb32b3774730`; clean starting tree. Task branch: `feat/grafana-row5-vm01-uptime`.
 
 ## Verified evidence and availability
 
@@ -28,7 +28,7 @@ Parent requested checkpoint before continuing. Starting commit: `2e56498dddac270
 4. **Approval required before effects** if no existing telemetry: deploy the reviewed collector/Cloud Run revision; create/export the named numeric custom metric with agreed resource/field schema, monitoring-only Firestore/log read permissions if absent; any IAM/credential/network changes require exact separately reviewed scope. No such permission or deployment has been applied.
 5. **Approval required for independent IRM alert installation/contact/filter effects** beyond dashboard presentation. Proposed thresholds: dispatch miss>5min sustained2min; oldest pending>5min sustained5min warning/>15min urgent; expected subscription zero5min; renewal deadline within1h without advancement; normal5min access token not failure; 730-day grant ceiling. Do not subscribe bridge alerts to their own failing route without scope confirmation; existing ten-rule filters untouched. Final rule JSON still needs preparation/verification against fresh rule exports and agreed telemetry.
 6. Update canonical builder integration and reproduce maintained definitions after live reconciliation; finish operating reference/visual guide, meaningful selector tests and live panel query/UI verification. The added guide section is explicitly Proposed. Release tracker scope update remains pending.
-7. Finish log, review staged diff, `git-identity.py check`, commit/push intended files, create draft PR as welct0407; do not merge. Connector profile verified nickname `welct0407`/email `welct0407@gmail.com`. gh API `/user` returned Forbidden; no credential workaround attempted. Global Git identity repair succeeded via approved escalation after normal filesystem write was denied.
+7. Source publication completed in draft PR12; live reconciliation/log closure remains pending. Keep changes draft and do not merge. Connector profile verified nickname `welct0407`/email `welct0407@gmail.com`. gh API `/user` returned Forbidden; no credential workaround attempted. Global Git identity repair succeeded via approved escalation after normal filesystem write was denied.
 
 Rollback: no live mutation needs rollback. Discard/revert only this task's intended files after preserving needed work. Preserve baseline definitions, provider/runtime settings, queues and all financial/business state.
 
@@ -41,3 +41,7 @@ New optional `grafana-mcp-bridge/src/monitoring.ts` and scoped hooks in app/main
 Official Activity Log documentation was freshly read: default control-plane collection,90day retention,3–20min latency and supported resourceUri/time filters. No actual Azure availability/activity response has reached this executor yet. Activity helper counts only completed success records, dedups operation/correlation and keeps initial/restart gaps unknown; it is evidence support, not an exact running-hours claim. Parent confirmed current live Performance visual order matches four summary/status bands then Payment processing before provider details; JSON placement still requires its fresh export. Parent IG own-message cancellation does not cancel this Grafana task.
 
 Source publication will be a draft PR; no merge or production effects. R051 tracker and operating/visual references are updated only for this labeled proposed scope. Full consultation remains unavailable.
+
+## Verified source publication
+
+Draft [PR12](https://github.com/welct0407/AppSheet-Loan-Project/pull/12) was created by verified actor welct0407 at15:40:10 UTC. Source implementation commit `d010c282043041718da675e12663c1c8aa729e57` is verified on remote branch `feat/grafana-row5-vm01-uptime`; author and committer both welct0407<welct0407@gmail.com>. Publication/evidence follow-up is on the same branch. No merge. No actual Azure data response, private LIVE dashboard backup, monitoring deployment or IRM/filter write has been performed by this executor. Parent resumes from the exact queries/proposal above.
