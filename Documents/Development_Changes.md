@@ -1,5 +1,8 @@
 # Open development differences
 
+**4 October 2026 — R050 operator audit hardening:** shared `loan_manager_dev` advanced from V57 to V58 under scoped owner approval and validated. SQL routines only; no AppSheet table/column metadata or definition change. Synthetic SQL regressions rolled back and all 12 checked business/audit snapshots were preserved. Both DEV editor diagnostics remain for parent/Dots Browser; dated versions below are not freshly verified. Production database and Debian package/collector were not changed by this task. [Checks, source drafts and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md).
+
+
 R050 Detail refinement (29 September 2026): current governed BCG category is compact card378 alongside the four top metrics; wide Current health question295 placement removed while the saved question remains. Seven lights369 retain dates but have no visible axis name. Dashboard3 remains12 tabs/272 placements; recovery dashboard31. No AppSheet or SQL change. R050 remains Open. [Evidence](../outputs/r050-borrower-detail-category/README.md).
 
 R050 borrower lifetime summary (29 September 2026): Detail105 added eight lifetime metrics and seven charge-status lights, questions369–377, ignoring activity dates. Closed totals use genuinely Closed loans only. Initial dashboard3 checkpoint had12 tabs/272 placements; recovery dashboard27. No AppSheet or SQL change. [Original definitions](../outputs/r050-borrower-lifetime/README.md).

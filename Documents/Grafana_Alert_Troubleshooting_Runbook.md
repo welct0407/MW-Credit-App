@@ -218,4 +218,4 @@ Update the affected alert rows/procedures when their owning configuration docume
 
 ### Pending R050 operator/relay hardening
 
-The durable canonical operator executor (V58) and completed-job/backlog relay health are implemented in a task branch, **not deployed**. Current live behavior above remains the baseline. See the [R050 scope, checks and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Deployment must pin the matching MW runtime modules before switching the collector or operator SQL entry point.
+The durable canonical operator executor (V58) and completed-job/backlog relay health are published in task branches; V58 is applied/verified in shared DEV, while the production runtime/collector/database are **unchanged by this task**. Current live behavior above remains the baseline. See the [R050 scope, checks and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Deployment must pin the matching MW runtime modules before switching the collector or operator SQL entry point.
