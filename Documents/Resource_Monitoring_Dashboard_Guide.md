@@ -293,3 +293,8 @@ The existing Debian rule, evaluated every two minutes with four-minute pending, 
 
 
 25 September worker revision22: a current AI Reviewer can directly reply **Reject** or **No** (case insensitive) to a held-receipt notification. The dismissed receipt leaves Manual holds after the next sample; history is retained. Existing `failed_notifications`/Partner results also counts missing or undelivered hold-reply acknowledgements to the deciding reviewer. This uses the original receipt age threshold, so an old hold's acknowledgement can briefly be pending until dispatch completes. No metric, panel or alert configuration changed.
+
+
+### Pending R050 operator/relay hardening
+
+The durable canonical operator executor (V58) and completed-job/backlog relay health are implemented in a task branch, **not deployed**. Current live behavior above remains the baseline. See the [R050 scope, checks and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Deployment must pin the matching MW runtime modules before switching the collector or operator SQL entry point.

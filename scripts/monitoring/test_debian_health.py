@@ -59,4 +59,25 @@ class ReceiptSnapshotTests(unittest.TestCase):
     def test_service_failure_cannot_be_hidden_by_healthy_queue(self):
         self.assertEqual(health.receipt_snapshot({'receipt_summary_enabled':True},Mock(return_value=0),Mock(return_value=self.values))['status'],0)
 
+class RelaySnapshotTests(unittest.TestCase):
+    def setUp(self):
+        self.values={'status':1,'completed_at':990,'completed_success':1,'backlog':0,
+                     'oldest_unexported_seconds':0,'missing_intents':0,'running':0,'inspection_failed':0}
+    def test_running_systemd_success_cannot_hide_previous_failure(self):
+        self.values.update(status=0,completed_success=0,running=1)
+        result=health.relay_snapshot({},Mock(return_value=1),Mock(return_value=self.values))
+        self.assertEqual(result['status'],0)
+    def test_valid_completed_success_and_empty_backlog_are_healthy(self):
+        self.assertEqual(health.relay_snapshot({},Mock(return_value=1),Mock(return_value=self.values))['status'],1)
+    def test_backlog_degradation_survives_running_service(self):
+        self.values.update(status=2,backlog=1,oldest_unexported_seconds=200,running=1)
+        self.assertEqual(health.relay_snapshot({},Mock(return_value=1),Mock(return_value=self.values))['status'],2)
+    def test_failed_missing_or_invalid_inspection_fails_closed(self):
+        for inspector in (Mock(side_effect=RuntimeError()),Mock(return_value={}),
+                          Mock(return_value=dict(self.values,backlog=-1))):
+            self.assertEqual(health.relay_snapshot({},Mock(return_value=1),inspector),{'status':0,'inspection_failed':1})
+    def test_disabled_timer_or_failed_properties_cannot_be_hidden(self):
+        self.assertEqual(health.relay_snapshot({},Mock(return_value=0),Mock(return_value=self.values))['status'],0)
+        self.assertEqual(health.relay_snapshot({},Mock(side_effect=RuntimeError()),Mock(return_value=self.values))['status'],0)
+
 if __name__=='__main__': unittest.main()

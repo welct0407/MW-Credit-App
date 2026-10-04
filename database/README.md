@@ -168,3 +168,8 @@ Official references: [Flyway OSS installation](https://documentation.red-gate.co
 ## R002 development V17–V18 — 16 September 2026
 
 V17 and V18 are applied and validated in Dev only. V17 rejects new Loans inserts exceeding contributed capital less outstanding principal, using canonical loan/repayment amounts and a cross-table advisory try-lock. Full gross principal is checked; retained profit is excluded. Existing edits/withdrawals are not capped; concurrent writes can receive a retry error. V18 adds the one-row read-only Loan Form Context view with capital, principal, available capacity and current role A/B ratios. OLTP uses it for pre-save validation and a capacity hint; historical share calculations remain unchanged. No new base table/column or backfill. SQL tests: `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-R002.sql -R002Concurrency`, against the runner's isolated local PostgreSQL only. Both-app navigation and form warning boundaries passed the current GUI; persisted-GUI/mobile/offline and owner acceptance remain separate. [R002 evidence and coordinated rollback](../Change%20Logs/CHANGE_NOTES_R002_2026-09-16.md). Do not edit applied migrations or promote without owner approval.
+
+
+### Pending R050 operator/relay hardening
+
+The durable canonical operator executor (V58) and completed-job/backlog relay health are implemented in a task branch, **not deployed**. Current live behavior above remains the baseline. See the [R050 scope, checks and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Deployment must pin the matching MW runtime modules before switching the collector or operator SQL entry point.

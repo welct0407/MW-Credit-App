@@ -214,3 +214,8 @@ Next: <specific recommendation or exact decision needed; recovery reference>
 This runbook consolidates the [operating reference](Resource_Monitoring.md), [visual guide](Resource_Monitoring_Dashboard_Guide.md), [original alert evidence](../Change%20Logs/CHANGE_NOTES_RESOURCE_MONITORING_ALERTS_2026-09-23.md), [Metabase backup/PITR addition](../Change%20Logs/CHANGE_NOTES_METABASE_RECOVERY_MONITORING_2026-09-26.md) and [receipt notification correction](../scripts/monitoring/README.md#receipt-notification-health-correction--2-october-2026). Later dated additions supersede the earlier nine-rule/four-Metabase-component summaries. Thresholds are operational warnings, not newly imposed provider limits.
 
 Update the affected alert rows/procedures when their owning configuration documentation changes. Keep source definitions, account mapping, current model preferences and recovery commands in their owning references; do not build another credential inventory or deployment procedure here. This document creates no monitor, live rule change, production authorization or claim of a successful recovery drill.
+
+
+### Pending R050 operator/relay hardening
+
+The durable canonical operator executor (V58) and completed-job/backlog relay health are implemented in a task branch, **not deployed**. Current live behavior above remains the baseline. See the [R050 scope, checks and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Deployment must pin the matching MW runtime modules before switching the collector or operator SQL entry point.

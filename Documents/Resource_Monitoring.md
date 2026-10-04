@@ -152,3 +152,8 @@ Worker revision22 (25 September) adds direct-reply hold dismissal and acknowledg
 ## Receipt processing versus optional notification health — 2 October 2026
 
 [Worker revision 25](https://github.com/welct0407/MW-Integration-Agent/commit/db52cc267f3585d3a43b19b12d55bd795006fcc6) separates optional result notification failures from processing health. The existing Notification failures card retains `failed_notifications`; required review delivery, unnotified holds, stalled intake and uncertain posting still degrade processing. Green Receipts is not evidence that every confirmation was delivered. The maintained dashboard builder and [canonical alert description](../scripts/monitoring/README.md#receipt-notification-health-correction--2-october-2026) now reflect this policy. Live alert/panel text correction remains pending; queries, alert thresholds and contact routing are unchanged.
+
+
+### Pending R050 operator/relay hardening
+
+The durable canonical operator executor (V58) and completed-job/backlog relay health are implemented in a task branch, **not deployed**. Current live behavior above remains the baseline. See the [R050 scope, checks and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Deployment must pin the matching MW runtime modules before switching the collector or operator SQL entry point.
