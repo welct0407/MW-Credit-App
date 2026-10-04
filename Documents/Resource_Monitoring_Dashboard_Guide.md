@@ -122,7 +122,7 @@ An inactive required timer or failed process result is Down. Exceeding these tim
 |---|---|---|
 | 50 | 🛢 SQL / 200 | Numeric connection count, not a light. Last interval-average backend count summed across the shared Cloud SQL instance. **200** is the configured `max_connections` limit verified on 22 September 2026; the number turns red at that limit. Reserved PostgreSQL slots reduce ordinary-client capacity, and averaged samples may hide brief peaks. The sparkline shows the selected-period trend. |
 | 65 | 🗄 Database | Debian's Cloud SQL auth proxy is active and read-only `SELECT 1` succeeds against both agent-state and business-reporting database connections. This checks access, not query performance, data correctness or every database/table. |
-| 66 | 📋 Audit relay | Audit-relay timer and last process result: up to 3 minutes idle or running. It does not establish that the audit/business backlog is empty. |
+| 66 | 📋 Audit relay | Required timer plus latest completed job and bounded backlog/central-intent inspection. RUNNING cannot clear a completed failure; missing completion/inspection failure or missing intent >30 sec is Down. Successful completion, running duration or backlog age >180 sec is Degraded. Numeric evidence reports backlog/oldest age/missing intents; no borrower/payment labels. |
 | 67 | ⚙ Codex ready | Local Codex executable responds and login-status succeeds using the configured runtime home. It sends no model prompt and proves neither inference success nor available quota. The disabled browser worker remains disabled. |
 
 ## Performance — detailed charts

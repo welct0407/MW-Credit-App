@@ -1,6 +1,8 @@
 # PostgreSQL development with Flyway
 
-R049: DEV and PROD are **V56**. V56 adds a compatible read-only upcoming summary V2 provider; V1 is unchanged. Full CI and verified DEV/PROD restore rehearsals passed. The pinned migration applied to PROD before normal App Upgrade to OLTP3.000263, and post-migration validation passed. Next migration must be V57 or higher after checking current history. [Production evidence](../outputs/r049-production/README.md) · [DEV handover](../outputs/r049-upcoming-summary/HANDOVER.md).
+Current 4 October 2026: DEV and PROD are **V58**, checksum `1886180782`; V57 remains `-211958320`. V58 hardens canonical operator dispatch; production readback and Flyway validation passed. Check actual history before assigning V59 or later.
+
+Historical R049 checkpoint: DEV and PROD were **V56**. V56 adds a compatible read-only upcoming summary V2 provider; V1 is unchanged. Full CI and verified DEV/PROD restore rehearsals passed. The pinned migration applied to PROD before normal App Upgrade to OLTP3.000263, and post-migration validation passed. Next migration must be V57 or higher after checking current history. [Production evidence](../outputs/r049-production/README.md) · [DEV handover](../outputs/r049-upcoming-summary/HANDOVER.md).
 
 R048 released at **V55** in DEV and PROD: V54 upcoming-charge adapters and V55 borrower/date summary were implemented, tested and promoted. R049's compatible V56 addition is recorded above. [R048 evidence](../outputs/r048-production/README.md) · [Implementation and recovery](../outputs/r048-upcoming-charges/IMPLEMENTATION.md).
 
@@ -170,10 +172,9 @@ Official references: [Flyway OSS installation](https://documentation.red-gate.co
 V17 and V18 are applied and validated in Dev only. V17 rejects new Loans inserts exceeding contributed capital less outstanding principal, using canonical loan/repayment amounts and a cross-table advisory try-lock. Full gross principal is checked; retained profit is excluded. Existing edits/withdrawals are not capped; concurrent writes can receive a retry error. V18 adds the one-row read-only Loan Form Context view with capital, principal, available capacity and current role A/B ratios. OLTP uses it for pre-save validation and a capacity hint; historical share calculations remain unchanged. No new base table/column or backfill. SQL tests: `scripts/database/Test-Migrations.ps1 -TestSqlFile scripts/database/Test-R002.sql -R002Concurrency`, against the runner's isolated local PostgreSQL only. Both-app navigation and form warning boundaries passed the current GUI; persisted-GUI/mobile/offline and owner acceptance remain separate. [R002 evidence and coordinated rollback](../Change%20Logs/CHANGE_NOTES_R002_2026-09-16.md). Do not edit applied migrations or promote without owner approval.
 
 
-### Pending R050 operator/relay hardening
+### Deployed R050 operator/relay hardening — 4 October 2026
 
-The durable canonical operator executor (V58) and completed-job/backlog relay health are published in task branches; V58 is applied/verified in shared DEV, while the production runtime/collector/database are **unchanged by this task**. Current live behavior above remains the baseline. See the [R050 scope, checks and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md). Deployment must pin the matching MW runtime modules before switching the collector or operator SQL entry point.
-
+DEV and PROD are V58. Matching MW modules at `0aaedf13` and the collector from AppSheet pin `f63d2c8` are installed; natural relay completions and fresh numeric health export verified Healthy with zero backlog/missing intents. RUNNING cannot erase a completed failure. Missing completion or inspection failure is DOWN; completed success/run/backlog older than 180 seconds is DEGRADED; missing central intents older than 30 seconds are DOWN (oldest 20 candidates bounded). Existing component labels and Grafana rule identities are unchanged. The legacy operator SQL route denies dispatch; use only the approved canonical executor and reconcile uncertain outcomes without replay. See [scope, verified deployment and rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md).
 
 ### Approved Cloud V58 runner
 
