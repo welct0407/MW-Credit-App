@@ -26,3 +26,11 @@ Parent passive Azure metricDefinitions HTTP200 verified VmAvailabilityMetric Ave
 3. Eight IRM alerts/contact/routing remain uncreated by explicit owner instruction. Independent paging is not enabled by these dashboard additions. Any later alert activation requires its own exact approved scope.
 
 Rollback uses retained00014-s6x traffic and captured pre-change configuration through the established adapter; do not delete queues/grants/events or monitoring history. No VM operation is part of recovery.
+
+## Cost numeric-column repair
+
+Parent browser found panel110 “No numeric fields found” after saving the existing Cost UID/folder. Exact Azure URL/jq probe returned rows when columns were inferred. Root cause was prepared explicit numeric selectors using bracket notation; Infinity JQ transforms the root, then its jsonframer uses GJSON column paths. Correct selectors are plain output keys `Observed available hours`, `Unknown hours`, `Coverage percent`, all type `number`; Day stays `Day`/string. Source correction changes no Azure query, jq calculation, units, timezone, unknown behavior or other panel. Regression checks bind every explicit selector to actual generated jq keys and preserve numeric/null values; fresh original-object preservation/idempotence passes.
+
+Parent browser independently confirmed the corrected preview returns numeric daily rows (Oct1≈12.78,Oct2≈23.52,Oct3≈24,Oct4≈10.04; partialOct5 unknown in that selected window). These are time-window-dependent observed estimates, not fixed fixture/runtime totals. Browser worker owns the corrected save/readback; executor performed no browser overwrite or backend deployment. Do not re-import the pre-save envelope over newer live dashboard state.
+
+Primary source: https://github.com/grafana/infinity-libs/blob/main/lib/go/jsonframer/jsonframer.go (`getColumnValuesFromResponseString` calls `gjson.Get(value.Raw,col.Selector)` after the root transformation).

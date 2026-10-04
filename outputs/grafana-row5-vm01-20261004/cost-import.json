@@ -3522,17 +3522,17 @@
                           },
                           {
                             "text": "Observed available hours",
-                            "selector": "[\"Observed available hours\"]",
+                            "selector": "Observed available hours",
                             "type": "number"
                           },
                           {
                             "text": "Unknown hours",
-                            "selector": "[\"Unknown hours\"]",
+                            "selector": "Unknown hours",
                             "type": "number"
                           },
                           {
                             "text": "Coverage percent",
-                            "selector": "[\"Coverage percent\"]",
+                            "selector": "Coverage percent",
                             "type": "number"
                           }
                         ]

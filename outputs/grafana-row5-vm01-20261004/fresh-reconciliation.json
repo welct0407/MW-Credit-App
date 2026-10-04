@@ -38,10 +38,10 @@
     "new_elements": [
       "panel-110"
     ],
-    "patch_bytes": 145514,
-    "patch_sha256": "6d57a1996ac13b5afcaf496229eec43d9cc78465edf1af5f05cfa1c6e0484ec2",
+    "patch_bytes": 145496,
+    "patch_sha256": "4470010fd011dc4b5b254f9f8321740e090396c62cbdf632be514f08c5aa4133",
     "exact_preservation_test": "PASS after removing only added elements/items",
-    "live_save": "not performed",
+    "live_save": "parent saved existing UID/folder; corrected numeric preview verified, final corrected save/readback parent-owned",
     "folder_annotation_present": false
   }
 }

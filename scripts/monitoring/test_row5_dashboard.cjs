@@ -48,6 +48,16 @@ const from=Date.parse('2026-10-03T15:59:00Z'),to=from+120000;
 const selector=fs.readFileSync('scripts/monitoring/azure-daily-availability.jq','utf8').replace('__FROM_MS__',String(from)).replace('__TO_MS__',String(to));
 const run=(data,sel=selector)=>JSON.parse(execFileSync('jq',['-c',sel],{input:JSON.stringify({interval:"PT1M",value:[{name:{value:'VmAvailabilityMetric'},timeseries:[{data}]}]})}));
 const rows=run([{timeStamp:'2026-10-03T15:59:00Z',average:1},{timeStamp:'2026-10-03T16:00:00Z',average:null}]);
+// Infinity JQ root results still use GJSON column selectors: plain object keys,
+// not jq/JSONPath bracket notation. Check against actual generated output keys.
+const columnCost=patch(JSON.parse(fs.readFileSync(root+'cost-dashboard.json')),'cost',{azureVmMetricsUrl:JSON.parse(fs.readFileSync(root+'performance-dashboard.json')).panels.find(p=>p.id===11).targets[0].url});
+const columns=columnCost.panels.find(p=>p.id===110).targets[0].columns;
+for(const c of columns){
+ assert(Object.hasOwn(rows[0],c.selector),'column extracts an actual jq output key: '+c.selector);
+ assert.equal(c.type,c.selector==='Day'?'string':'number');
+ if(c.type==='number')assert.equal(typeof rows[0][c.selector],'number');
+}
+assert.equal(rows[1][columns[1].selector],null,'unknown availability remains null through explicit column mapping');
 assert.equal(rows[0].Day,'2026-10-03');assert.equal(rows[1].Day,'2026-10-04');assert.equal(rows[0]['Observed available hours'],1/60);assert.equal(rows[1]['Observed available hours'],null);assert.equal(rows[1]['Unknown hours'],1/60);
 assert.equal(run([{timeStamp:'2026-10-03T15:59:00Z',average:0}])[0]['Observed available hours'],0);
 assert.equal(run([{timeStamp:'2026-10-03T15:59:00Z',average:0.5}])[0]['Observed available hours'],1/120);

@@ -58,7 +58,7 @@
                   "showLineNumbers": false,
                   "showMiniMap": false
                 },
-                "content": "**Azure USD · GCP SGD · Railway USD** | Azure/GCP: selected dates. Railway: current billing cycle. Costs are delayed and provisional. Refresh hourly; frequent manual refreshes can reach provider limits.",
+                "content": "**Azure USD \u00b7 GCP SGD \u00b7 Railway USD** | Azure/GCP: selected dates. Railway: current billing cycle. Costs are delayed and provisional. Refresh hourly; frequent manual refreshes can reach provider limits.",
                 "mode": "markdown"
               }
             },
@@ -231,7 +231,7 @@
           "description": "Actual cost for rg-mwcredit and rg-backup. Includes retained disks, VM-related services and backup. Source cost data is not a final invoice.",
           "id": 101,
           "links": [],
-          "title": "Azure · daily resource detail (USD)",
+          "title": "Azure \u00b7 daily resource detail (USD)",
           "vizConfig": {
             "group": "table",
             "kind": "VizConfig",
@@ -355,7 +355,7 @@
           "description": "",
           "id": 102,
           "links": [],
-          "title": "Azure · selected-range cost",
+          "title": "Azure \u00b7 selected-range cost",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -493,7 +493,7 @@
           "description": "",
           "id": 103,
           "links": [],
-          "title": "Azure · daily cost",
+          "title": "Azure \u00b7 daily cost",
           "vizConfig": {
             "group": "timeseries",
             "kind": "VizConfig",
@@ -664,7 +664,7 @@
           "description": "",
           "id": 104,
           "links": [],
-          "title": "Azure · cost by resource (USD)",
+          "title": "Azure \u00b7 cost by resource (USD)",
           "vizConfig": {
             "group": "table",
             "kind": "VizConfig",
@@ -1056,7 +1056,7 @@
           "description": "One stacked bar: Azure and Railway USD multiplied by the latest ECB USD/SGD reference via Frankfurter; GCP uses net SGD after credits. Azure/GCP follow the date picker; Railway covers its current billing cycle. Missing GCP is not zero: the displayed bar is incomplete until all sources are available. Reference conversion is indicative, not an invoice settlement rate.",
           "id": 2,
           "links": [],
-          "title": "Platform breakdown · SGD",
+          "title": "Platform breakdown \u00b7 SGD",
           "vizConfig": {
             "group": "barchart",
             "kind": "VizConfig",
@@ -1293,7 +1293,7 @@
           "description": "Dedicated detailed export. Initial delivery/backfill is asynchronous. Null amounts mean pending or unavailable, never zero. Credits are negative; Net = Gross + Credits. Dates grouped in Asia/Singapore. Restricted to the AppSheet project; query capped at 100 MB billed.",
           "id": 201,
           "links": [],
-          "title": "GCP · daily resource detail",
+          "title": "GCP \u00b7 daily resource detail",
           "vizConfig": {
             "group": "table",
             "kind": "VizConfig",
@@ -1429,7 +1429,7 @@
           "description": "",
           "id": 202,
           "links": [],
-          "title": "GCP · before credits (SGD)",
+          "title": "GCP \u00b7 before credits (SGD)",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -1566,7 +1566,7 @@
           "description": "",
           "id": 203,
           "links": [],
-          "title": "GCP · credits (SGD)",
+          "title": "GCP \u00b7 credits (SGD)",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -1703,7 +1703,7 @@
           "description": "",
           "id": 204,
           "links": [],
-          "title": "GCP · net cost (SGD)",
+          "title": "GCP \u00b7 net cost (SGD)",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -1944,7 +1944,7 @@
           "description": "Daily ECB reference conversion, not transaction-date FX. Native-currency cost details remain below. Railway cycle is independent of the date picker; GCP status is live query coverage, not a static setup note.",
           "id": 3,
           "links": [],
-          "title": "Conversion and coverage · missing platform means incomplete total",
+          "title": "Conversion and coverage \u00b7 missing platform means incomplete total",
           "vizConfig": {
             "group": "table",
             "kind": "VizConfig",
@@ -2114,7 +2114,7 @@
           "description": "",
           "id": 301,
           "links": [],
-          "title": "Railway · billing period and accrued usage",
+          "title": "Railway \u00b7 billing period and accrued usage",
           "vizConfig": {
             "group": "table",
             "kind": "VizConfig",
@@ -2224,7 +2224,7 @@
           "description": "",
           "id": 302,
           "links": [],
-          "title": "Railway · accrued resource usage",
+          "title": "Railway \u00b7 accrued resource usage",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -2378,7 +2378,7 @@
           "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage are shown below.",
           "id": 4,
           "links": [],
-          "title": "TOTAL · SGD",
+          "title": "TOTAL \u00b7 SGD",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -2506,7 +2506,7 @@
           "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage are shown below.",
           "id": 5,
           "links": [],
-          "title": "Azure · SGD",
+          "title": "Azure \u00b7 SGD",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -2618,7 +2618,7 @@
           "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage are shown below.",
           "id": 6,
           "links": [],
-          "title": "GCP · SGD",
+          "title": "GCP \u00b7 SGD",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -2730,7 +2730,7 @@
           "description": "SGD amount from the shared stacked-bar results. Total sums available platforms only: if a platform shows No data, total is partial. Azure/GCP use selected dates; Railway uses its billing cycle. Conversion and coverage are shown below.",
           "id": 7,
           "links": [],
-          "title": "Railway · SGD",
+          "title": "Railway \u00b7 SGD",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -2797,7 +2797,7 @@
       "panel-206": {
         "kind": "Panel",
         "spec": {
-          "title": "GCP · daily cost and credits (SGD)",
+          "title": "GCP \u00b7 daily cost and credits (SGD)",
           "description": "Daily gross charges, negative credits and net cost by Singapore usage date. Credits can offset the full gross amount. The chart follows the selected range; recent exported billing may be delayed.",
           "data": {
             "kind": "QueryGroup",
@@ -2951,7 +2951,7 @@
       "panel-207": {
         "kind": "Panel",
         "spec": {
-          "title": "GCP · by resource (SGD)",
+          "title": "GCP \u00b7 by resource (SGD)",
           "description": "Selected-range net cost by service and reported resource. Unallocated / service-level rows reflect source attribution gaps; credits are included.",
           "data": {
             "kind": "QueryGroup",
@@ -3109,7 +3109,7 @@
       "panel-304": {
         "kind": "Panel",
         "spec": {
-          "title": "Railway · by resource (USD est.)",
+          "title": "Railway \u00b7 by resource (USD est.)",
           "description": "Current billing-cycle service breakdown estimated from Railway usage units and published CPU/RAM/volume/egress rates verified 25 September 2026. The official accrued total above is authoritative. Unknown or removed service IDs remain visible, not silently dropped.",
           "data": {
             "kind": "QueryGroup",
@@ -3253,7 +3253,7 @@
       "panel-305": {
         "kind": "Panel",
         "spec": {
-          "title": "Railway · estimated daily compute + volume (USD)",
+          "title": "Railway \u00b7 estimated daily compute + volume (USD)",
           "description": "Hourly Railway samples multiplied by published CPU/RAM/volume rates and grouped by Singapore date. Only selected dates within the current billing cycle are shown. Egress, credits, plan fees and unsampled intervals are excluded; this is an estimate, not an invoice or the official accrued total.",
           "data": {
             "kind": "QueryGroup",
@@ -3366,8 +3366,8 @@
         "kind": "Panel",
         "spec": {
           "id": 110,
-          "title": "VM-01 · observed running & available hours by day",
-          "description": "row5-bridge-vm01-v1 · Passive Azure VmAvailabilityMetric, PT1M Average. Singapore calendar days; selected partial days are clipped. Observed hours are a lower bound when coverage has gaps. Null is unknown, including portal/CLI deallocation; never treated as off. Zero is unavailable, not proof of deallocation. Not billable allocated hours or exact power-state runtime. Retention 93 days; select at most 31 days per request. Minute resolution; transitions inside a bucket are averaged. Live source/query verification pending.",
+          "title": "VM-01 \u00b7 observed running & available hours by day",
+          "description": "row5-bridge-vm01-v1 \u00b7 Passive Azure VmAvailabilityMetric, PT1M Average. Singapore calendar days; selected partial days are clipped. Observed hours are a lower bound when coverage has gaps. Null is unknown, including portal/CLI deallocation; never treated as off. Zero is unavailable, not proof of deallocation. Not billable allocated hours or exact power-state runtime. Retention 93 days; select at most 31 days per request. Minute resolution; transitions inside a bucket are averaged. Live source/query verification pending.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -3403,17 +3403,17 @@
                           },
                           {
                             "text": "Observed available hours",
-                            "selector": "[\"Observed available hours\"]",
+                            "selector": "Observed available hours",
                             "type": "number"
                           },
                           {
                             "text": "Unknown hours",
-                            "selector": "[\"Unknown hours\"]",
+                            "selector": "Unknown hours",
                             "type": "number"
                           },
                           {
                             "text": "Coverage percent",
-                            "selector": "[\"Coverage percent\"]",
+                            "selector": "Coverage percent",
                             "type": "number"
                           }
                         ]
@@ -3684,7 +3684,7 @@
                   ]
                 }
               },
-              "title": "Azure · VM, disks, network, monitoring and backup"
+              "title": "Azure \u00b7 VM, disks, network, monitoring and backup"
             }
           },
           {
@@ -3790,7 +3790,7 @@
                   ]
                 }
               },
-              "title": "GCP · detailed billing export · credits shown separately"
+              "title": "GCP \u00b7 detailed billing export \u00b7 credits shown separately"
             }
           },
           {
@@ -3870,7 +3870,7 @@
                   ]
                 }
               },
-              "title": "Railway · workspace usage · current billing cycle"
+              "title": "Railway \u00b7 workspace usage \u00b7 current billing cycle"
             }
           }
         ]
@@ -3936,7 +3936,7 @@
       "timezone": "Asia/Singapore",
       "to": "now"
     },
-    "title": "MW Resources · Cost",
+    "title": "MW Resources \u00b7 Cost",
     "variables": []
   }
 }
