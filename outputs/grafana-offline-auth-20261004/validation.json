@@ -1,5 +1,5 @@
 {
-  "status": "server_duration_consent_local_tests_passed_pending_build_rollout",
+  "status": "server_duration_consent_live_public_checks_passed_pending_native_owner_choice",
   "baseline": "2c849c65214e837f097a7ac9da282d852f86d11c",
   "branch": "fix/grafana-two-year-offline",
   "tests": {
@@ -12,27 +12,35 @@
   "subscription_max_seconds": 86400,
   "revocation_tombstone_seconds": 63158400,
   "live_changes": true,
-  "native_host_offline_consent": "blocked_prior_owner_attempts_no_screen_pending_revised_rollout",
+  "native_host_offline_consent": "pending_revised_server_controlled_consent_owner_flow",
   "actual_live_token_scope_session_binding": "unverified_encrypted_payload",
   "fresh_subscription_metadata": "blocked_firestore_403_over_iap",
   "traffic_changed": true,
   "existing_grants_extended": false,
   "packaged_tests": {
-    "passed": 60,
+    "passed": 68,
     "failed": 0,
-    "external_network": "none",
-    "status": "historical_prior_image_revised_package_pending"
+    "external_network": "none"
   },
-  "staged_revision": "mw-grafana-events-00011-cpv",
-  "staged_traffic_percent": 100,
-  "owner_reconnect_ready": false,
-  "live_revision": "mw-grafana-events-00011-cpv",
+  "staged_revision": "mw-grafana-events-00012-w4h",
+  "staged_traffic_percent": 0,
+  "owner_reconnect_ready": true,
+  "live_revision": "mw-grafana-events-00012-w4h",
   "live_traffic_percent": 100,
-  "source_commit": "6408218b2ccabd0d59fd2feef2924fbe4c31700f",
-  "immutable_image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:e5780398eee6fb4876578d473ca16490cd3292e808b1c670c218a8b9adcd90be",
+  "source_commit": "2aefb97ebe19bd6bef4c9f69648452db0be1559e",
+  "immutable_image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:e70fbcd187dcfe432c03f6106211e0086cf2c9249f9b4d648d21771046e02930",
   "public_checks_passed": 20,
   "server_controlled_duration_consent": true,
   "session_independent_policy": "verified_encrypted_consent_bound_to_owner_client_resource_grant_and_fixed_deadline",
   "connected_github_actor_verified": "welct0407",
-  "shell_actor_verified": false
+  "shell_actor_verified": false,
+  "iam_policy_preserved": true,
+  "ingress_preserved": true,
+  "secret_mount_references_preserved": true,
+  "logging_exclusions_preserved": true,
+  "rollback_revision": "mw-grafana-events-00011-cpv",
+  "synthetic_live_grants_created": false,
+  "subscriptions_recreated": false,
+  "runtime_nonroot_uid": 1000,
+  "runtime_proxy_or_extra_ca_or_build_secret_present": false
 }
