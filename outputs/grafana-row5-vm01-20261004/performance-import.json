@@ -9609,7 +9609,7 @@
         "spec": {
           "id": 121,
           "title": "Bridge availability",
-          "description": "row5-bridge-vm01-v1 · Proposed numeric observation metric is not deployed. Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Pending IRM conditions are documented in the approval package.",
+          "description": "row5-bridge-vm01-v1 · Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Subscription/renewal is Unknown until expected membership and grant metadata are verified. Continuity reports retained failure/backlog status; it does not prove owner-visible receipt.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -9715,7 +9715,7 @@
         "spec": {
           "id": 122,
           "title": "Dispatch completion",
-          "description": "row5-bridge-vm01-v1 · Proposed numeric observation metric is not deployed. Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Pending IRM conditions are documented in the approval package.",
+          "description": "row5-bridge-vm01-v1 · Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Subscription/renewal is Unknown until expected membership and grant metadata are verified. Continuity reports retained failure/backlog status; it does not prove owner-visible receipt.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -9821,7 +9821,7 @@
         "spec": {
           "id": 123,
           "title": "Outbox age",
-          "description": "row5-bridge-vm01-v1 · Proposed numeric observation metric is not deployed. Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Pending IRM conditions are documented in the approval package.",
+          "description": "row5-bridge-vm01-v1 · Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Subscription/renewal is Unknown until expected membership and grant metadata are verified. Continuity reports retained failure/backlog status; it does not prove owner-visible receipt.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -10049,7 +10049,7 @@
         "spec": {
           "id": 125,
           "title": "Expected subscriptions",
-          "description": "row5-bridge-vm01-v1 · Proposed numeric observation metric is not deployed. Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Pending IRM conditions are documented in the approval package.",
+          "description": "row5-bridge-vm01-v1 · Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Subscription/renewal is Unknown until expected membership and grant metadata are verified. Continuity reports retained failure/backlog status; it does not prove owner-visible receipt.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -10277,7 +10277,7 @@
         "spec": {
           "id": 126,
           "title": "Renewal / grant authority",
-          "description": "row5-bridge-vm01-v1 · Proposed numeric observation metric is not deployed. Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Pending IRM conditions are documented in the approval package.",
+          "description": "row5-bridge-vm01-v1 · Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Subscription/renewal is Unknown until expected membership and grant metadata are verified. Continuity reports retained failure/backlog status; it does not prove owner-visible receipt.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
@@ -10505,7 +10505,7 @@
         "spec": {
           "id": 127,
           "title": "Delivery continuity",
-          "description": "row5-bridge-vm01-v1 · Proposed numeric observation metric is not deployed. Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Pending IRM conditions are documented in the approval package.",
+          "description": "row5-bridge-vm01-v1 · Availability means app/owner accessible during successful natural dispatch; absence becomes Unknown. Counts are uncapped Firestore aggregates; terminal failures are retained attention items (up to 31 days), not failures today. Missing/stale samples are Unknown; query errors remain visible. No event received alone is not failure. Normal five-minute access tokens are not failure. Subscription/renewal is Unknown until expected membership and grant metadata are verified. Continuity reports retained failure/backlog status; it does not prove owner-visible receipt.",
           "links": [],
           "data": {
             "kind": "QueryGroup",

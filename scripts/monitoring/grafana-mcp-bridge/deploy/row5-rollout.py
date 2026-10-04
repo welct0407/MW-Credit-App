@@ -16,7 +16,7 @@ def run(*args):
  return r.stdout
 
 def gc(*args):
- raw=run('gcloud',*args,'--format=json')
+ raw=run('gcloud',*args,*(() if any(a.startswith('--format=') for a in args) else ('--format=json',)))
  try:return json.loads(raw or 'null')
  except json.JSONDecodeError:raise RuntimeError('Non-JSON sanitized CLI response at '+str(args[:3])+'; bytes='+str(len(raw)))
 def private(path,value):
@@ -56,6 +56,7 @@ def expected(s):
 def normalize_spec(s):
  d=copy.deepcopy(s['spec']);d.pop('traffic',None)
  t=d['template'];t['metadata'].pop('name',None)
+ t['metadata'].get('labels',{}).pop('client.knative.dev/nonce',None)
  for k in list(t['metadata'].get('annotations',{})):
   if k in ('run.googleapis.com/client-name','run.googleapis.com/client-version','run.googleapis.com/operation-id'):del t['metadata']['annotations'][k]
  c=t['spec']['containers'][0];c.pop('image',None)
@@ -101,15 +102,22 @@ def main():
   assert matching(indexes()) and all(i['state']=='READY' for i in matching(indexes()))
   current=service();assert normalize_spec(current)==normalize_spec(before)
   assert current['status']['traffic']==before['status']['traffic']
-  gc('run','services','update',SERVICE,'--region='+REGION,'--image='+args.image,'--update-env-vars=MONITORING_ENABLED=true','--no-traffic')
+  c,env=expected(current)
+  # Resume after a CLI response/redactor failure without creating another revision.
+  if not (c['image']==args.image and env.get('MONITORING_ENABLED',{}).get('value')=='true'):
+   assert c['image']==before['spec']['template']['spec']['containers'][0]['image']
+   run('gcloud','run','services','update',SERVICE,'--region='+REGION,'--image='+args.image,'--update-env-vars=MONITORING_ENABLED=true','--no-traffic','--format=value(status.latestReadyRevisionName)')
   staged=service();c,env=expected(staged);assert c['image']==args.image and env['MONITORING_ENABLED']['value']=='true'
   assert normalize_spec(staged)==normalize_spec(before) and staged['status']['traffic']==before['status']['traffic']
-  private(root/'service-staged.json',staged);private(evidence,{'phase':'stage','source':args.source,'image':args.image,'ready_revision':staged['status']['latestReadyRevisionName'],'traffic':staged['status']['traffic'],'unrelated_service_spec_preserved':True,'alerts_created':0});return
- staged=json.loads((root/'service-staged.json').read_text());revision=staged['status']['latestReadyRevisionName']
+  revision=staged['status']['latestCreatedRevisionName']
+  rev=gc('run','revisions','describe',revision,'--region='+REGION,'--format=json(metadata.name,status.conditions,status.imageDigest)')
+  assert rev['status']['imageDigest']==args.image and any(x['type']=='Ready' and x['status']=='True' for x in rev['status']['conditions'])
+  private(root/'service-staged.json',staged);private(evidence,{'phase':'stage','source':args.source,'image':args.image,'staged_revision':revision,'revision_ready':True,'traffic':staged['status']['traffic'],'unrelated_service_spec_preserved':True,'alerts_created':0});return
+ staged=json.loads((root/'service-staged.json').read_text());revision=staged['status']['latestCreatedRevisionName']
  if args.phase=='activate':
-  current=service();assert normalize_spec(current)==normalize_spec(staged) and current['status']['latestReadyRevisionName']==revision
+  current=service();assert normalize_spec(current)==normalize_spec(staged) and current['status']['latestCreatedRevisionName']==revision
   assert current['status']['traffic']==before['status']['traffic']
-  gc('run','services','update-traffic',SERVICE,'--region='+REGION,'--to-revisions='+revision+'=100')
+  run('gcloud','run','services','update-traffic',SERVICE,'--region='+REGION,'--to-revisions='+revision+'=100','--format=value(status.latestReadyRevisionName)')
   current=service();assert current['status']['traffic']==[{'percent':100,'revisionName':revision}];assert normalize_spec(current)==normalize_spec(before)
   private(root/'service-after.json',current);private(evidence,{'phase':'activate','ready_revision':revision,'traffic':current['status']['traffic'],'unrelated_service_spec_preserved':True,'alerts_created':0});return
  current=service();assert normalize_spec(current)==normalize_spec(before) and current['status']['traffic']==[{'percent':100,'revisionName':revision}]

@@ -19,8 +19,8 @@
       "panel-126",
       "panel-127"
     ],
-    "patch_bytes": 470433,
-    "patch_sha256": "9c50197571e6886d2a14de90ad9f76247719b9ef406f29301b6fb35ce0e33658",
+    "patch_bytes": 470841,
+    "patch_sha256": "bef0a30beec5a674e61608e4e7b13c46c0c72d0712d94e9c83eb569e3b54576f",
     "exact_preservation_test": "PASS after removing only added elements/items",
     "live_save": "not performed",
     "folder_annotation_present": false
