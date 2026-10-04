@@ -6,7 +6,7 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | --- | --- |
 | Dots Browser, Codex Cloud, VM-01 and Debian responsibilities / handoffs | [Development Workflow](Development_Workflow.md) — authoritative routing, access boundaries and confirmed/pending proof |
 | Which repository owns a task | [Repository and instruction ownership](Development_Workflow.md#repository-and-instruction-ownership) — task-to-repository mapping and cross-repository routing |
-| Dots completion, confirmations, delegation, progress updates and repository selection | [Dots Orchestration Rules](Dots_Orchestration_Rules.md) — five standing Custom rules and setup text |
+| Dots completion, confirmations, delegation, progress updates, repository selection and Grafana response | [Dots Orchestration Rules](Dots_Orchestration_Rules.md) — six standing Custom rules and setup text |
 | Which model and reasoning effort to use for each kind of work | [Model Work Mapping](Model_Work_Mapping.md) — owner-editable defaults read before task dispatch |
 | Which release to use for new development / status | [Current development release](Release_Tracker.md#current-development-release) and tracker history |
 | Open DEV work | [Development Changes](Development_Changes.md) |
@@ -35,7 +35,8 @@ Start with [AGENTS task routing](../AGENTS.md#working-method-and-task-routing), 
 | Correct app logos / restoration | [Logo resources](../resources/README.md) |
 | How to read every resource dashboard visual | [Resource Monitoring Dashboard Guide](Resource_Monitoring_Dashboard_Guide.md) |
 | Resource monitoring setup, access and recovery | [Resource Monitoring](Resource_Monitoring.md) |
-| Grafana events → ChatGPT/Dots bridge, OAuth, retries and deployment prerequisites | [Grafana MCP Events Bridge](Grafana_MCP_Events_Bridge.md) — source implementation; not deployed or connected |
+| Grafana events → ChatGPT/Dots bridge, OAuth, retries and deployment prerequisites | [Grafana MCP Events Bridge](Grafana_MCP_Events_Bridge.md) — deployed bridge, verified notification acceptance, current configuration and recovery evidence |
+| Dots troubleshooting steps for configured Grafana alerts | [Grafana Alert Troubleshooting Runbook](Grafana_Alert_Troubleshooting_Runbook.md) — triage, per-alert diagnosis, bounded recovery, escalation and verification |
 | Dated changes/tests/decisions | [Change Logs](../Change%20Logs/) |
 | Dormant analysis/export pilot | [Feature reference](reference/Daily_Loan_Analysis_Automation.md) |
 | Historical evidence | [Archive index](archive/README.md) — excluded from routine work |
