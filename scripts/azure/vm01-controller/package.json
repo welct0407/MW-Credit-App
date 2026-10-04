@@ -11,6 +11,7 @@
     "build": "tsc && node scripts/build-web.mjs",
     "test": "npm run build && node --test tests/*.test.mjs",
     "check": "tsc --noEmit",
+    "cloud:status": "node --use-env-proxy dist/scripts/cloud-status.js",
     "package": "npm run build && node scripts/package.mjs",
     "preflight": "node dist/scripts/preflight.js",
     "bootstrap": "node dist/scripts/admin-ledger.js bootstrap",

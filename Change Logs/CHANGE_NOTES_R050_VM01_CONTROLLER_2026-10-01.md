@@ -1,5 +1,13 @@
 # R050 - Azure VM-01 controller source - 1 October 2026
 
+## Cloud certificate status client — 4 October 2026 UTC
+
+The owner approved a dedicated certificate and Personal Vault delivery for the existing VM01 Controller Codex Cloud app and its four disclosed API roles. Parent-supplied public metadata at04:38:37 UTC verifies tenant/client/principal/API, controller and EasyAuth allowlists, v2/idtyp configuration, enabled roles and absence of prior credentials. The VM worker is sole generator/registrar; private-key handoff is owner-only direct Vault entry. This executor generated no certificate, read/transmitted no real credential and made no Azure/controller request.
+
+Added a source-only fixed-destination status client/CLI, using in-memory PS256 assertions, exact API `.default` scope, Node24 environment-proxy support, redirect rejection, 15-second request deadlines and 64-KiB JSON limits. CLI validates arguments before credential access. It returns selected typed/fresh status fields and public certificate expiry only, with fixed sanitized errors, no automatic retry, no token output and no power-action method. Saved receipt checks preserve the original ID and use GET only. Runtime Function code, server authentication, ledger, deployed package and permissions are unchanged. [Exact Vault keys/destinations, secure setup and rotation/revocation](../scripts/azure/vm01-controller/docs/cloud-certificate.md).
+
+Verification: 25/25 focused client checks pass, including ephemeral mock PS256 signing, real public X.509 failure parsing, mismatched/noncurrent credential rejection, destination/method pins, redaction, bounded responses, timeout abort, fresh assertions and receipt matching. Full suite110 tests:109 passed,0 failed,1 optional Functions-host case skipped for unavailable fixture PFX. Strict TypeScript and whitespace checks pass. No test registers or generates an Azure certificate. Actual matching owner certificate/key loading, saved-environment delivery and live status authentication remain parent-owned pending setup. Shutdown remains on hold. R050 stays Open; publication updates existing draft PR6 without merge/deployment. No AppSheet, SQL, report or persistent-runtime change.
+
 ## Browser shutdown source repair — 3 October 2026 UTC
 
 Owner requested review and repair of today's and foreseeable shutdown issues. Diagnosis used current master `07c8a21f` AGENTS, Development Workflow ownership, Model Work Mapping and R050 Open tracker. Implementation is isolated on `fix/vm01-browser-shutdown`, starting at the accepted browser-only source `00884cc74aea80629211ce1a86e5a3333f7abf2d`; this is also the source rollback point. The cancelled MCP tip `daf6587` was not used. The original master checkout and unrelated work remain untouched.

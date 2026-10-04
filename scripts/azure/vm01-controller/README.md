@@ -14,6 +14,7 @@ The deployed source now distinguishes access-token acquisition, incomplete trans
 
 - [Design and decisions](docs/design.md)
 - [Operations, activation and recovery](docs/operations.md)
+- [Cloud certificate status helper and secure owner setup](docs/cloud-certificate.md)
 - [Acceptance evidence and remaining tests](docs/acceptance.md)
 - [Precise approval manifest](docs/approval-manifest.json)
 - [Approval bundle explanation](docs/approval-bundle.md)
