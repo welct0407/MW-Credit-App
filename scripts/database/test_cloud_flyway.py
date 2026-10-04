@@ -71,3 +71,12 @@ class CloudFlywayTests(unittest.TestCase):
         argv[3]='127.0.0.1'
         with self.assertRaises(ValueError):f.dispatch(helper,original,None,argv,{},[],True,None,[],'SQL PROD',self.repo,'prod','validate')
         self.assertFalse(original.called)
+
+    def test_pending_validation_exception_never_reaches_migrate(self):
+        helper=SimpleNamespace(WRAPPER='/fixed/cloud-run');original=Mock()
+        argv=['/fixed/cloud-run','psql','-h','127.0.0.1','-p','12345','-U','postgres','-d','loan_manager_prod','-c','SELECT 1']
+        for target,action in [('prod','migrate'),('dev','validate')]:
+            with self.assertRaises(ValueError):f.dispatch(helper,original,None,argv,{'PGPASSWORD':'fake'},['iap','sql'],True,None,[],'SQL '+target.upper(),self.repo,target,action,True)
+        self.assertFalse(original.called)
+        f.dispatch(helper,original,None,argv,{'PGPASSWORD':'fake'},['iap','sql'],True,None,[],'SQL PROD',self.repo,'prod','validate',True)
+        self.assertIn('-ignoreMigrationPatterns=*:pending',original.call_args.args[1])

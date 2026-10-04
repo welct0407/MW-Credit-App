@@ -56,7 +56,7 @@ def guard(repo,release,approval,backup,environ):
             raise ValueError('Database identity differs')
 
 
-def dispatch(helper,original,session,argv,env,tunnels,visible,cwd,redactions,stage,repo,target,action):
+def dispatch(helper,original,session,argv,env,tunnels,visible,cwd,redactions,stage,repo,target,action,approved_pending=False):
     if stage!='SQL '+target.upper():
         return original(session,argv,env,tunnels,visible,cwd,redactions,stage)
     db='loan_manager_prod' if target=='prod' else 'loan_manager_dev'
@@ -75,10 +75,13 @@ def dispatch(helper,original,session,argv,env,tunnels,visible,cwd,redactions,sta
     command=[helper.WRAPPER,'flyway','-outputType=json','-configFiles='+str(config),
         '-url=jdbc:postgresql://127.0.0.1:'+port+'/'+db+'?sslmode=prefer&connectTimeout=10&ApplicationName=loan-project-flyway',
         '-user=postgres',"-initSql=SET lock_timeout='5s'; SET statement_timeout='30s'",action]
+    if approved_pending:
+        if target!='prod' or action!='validate':raise ValueError('Pending exception is validation-only')
+        command.insert(-1,'-ignoreMigrationPatterns=*:pending')
     return original(session,command,child,tunnels,True,str(repo),redactions,'Flyway '+target.upper())
 
 
-def run(repo,target,action,environ=None):
+def run(repo,target,action,environ=None,approved_pending=False):
     environ=os.environ if environ is None else environ
     if target not in ('dev','prod') or action not in ('info','validate','migrate'):raise ValueError('Unsupported operation')
     if any(k.startswith('FLYWAY_') for k in environ):raise ValueError('Ambient Flyway overrides prohibited')
@@ -87,7 +90,7 @@ def run(repo,target,action,environ=None):
     spec=importlib.util.spec_from_loader(loader.name,loader);helper=importlib.util.module_from_spec(spec);loader.exec_module(helper)
     original=helper.Session.command
     def command(self,argv,env,tunnels=(),visible=False,cwd=None,redactions=(),stage='Child command'):
-        return dispatch(helper,original,self,argv,env,tunnels,visible,cwd,redactions,stage,repo,target,action)
+        return dispatch(helper,original,self,argv,env,tunnels,visible,cwd,redactions,stage,repo,target,action,approved_pending)
     helper.Session.command=command
     args=helper.parser().parse_args(['--host-key-file',PIN,'--confirm-ssh-user','codex-cloud','sql',target,'--admin',
         *(['--approve-prod-admin'] if target=='prod' else []),'--command','SELECT 1'])
@@ -126,7 +129,11 @@ if __name__=='__main__':
         print(json.dumps({'prepared':True,'commit':release['commit'],'migration_count':len(release['migrations'])}))
     else:
         release=json.loads(args.release_file.read_text());guard(REPO,release,args.approval_reference,args.backup_reference,os.environ)
-        run(REPO,'prod','validate');pending(run(REPO,'prod','info'),'58')
+        pending(run(REPO,'prod','info'),'58')
+        # Strict validate rejects an intentionally pending migration. Permit only
+        # that state after the independent exact-V58 eligibility/manifest gate;
+        # every applied checksum, description and failed/missing state is checked.
+        run(REPO,'prod','validate',approved_pending=True)
         guard(REPO,release,args.approval_reference,args.backup_reference,os.environ)
         if args.mode=='check':print(json.dumps({'checked':True,'production_writes':0,'pending_version':'58'}))
         else:
