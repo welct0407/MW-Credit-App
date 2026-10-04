@@ -1,5 +1,7 @@
 # Resource monitoring tools
 
+R050 development: [Grafana MCP Events bridge](grafana-mcp-bridge/README.md) adds source for owner-authenticated ChatGPT/Dots event subscriptions and durable callbacks. It is not deployed or connected; existing IRM/mobile routes are retained. See its [design and deployment prerequisites](../../Documents/Grafana_MCP_Events_Bridge.md).
+
 Live since 25 September: `debian-health.py` exports read-only receipt queue health for worker revision 21. Eight Payment processing panels and the existing Debian IRM alert implement the [receipt monitoring handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md). See [verified deployment evidence](../../outputs/receipt-monitoring-20260925/README.md).
 
 Use PowerShell 7 from the bundled runtime, with repository root as the current directory. No dependencies are installed in outputs. See [operating reference](../../Documents/Resource_Monitoring.md) for live links, scopes and limitations.

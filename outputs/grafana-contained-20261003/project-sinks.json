@@ -1,0 +1,22 @@
+[
+  {
+    "destination": "logging.googleapis.com/projects/clever-oasis-508610-n7/locations/global/buckets/_Default",
+    "exclusions": [
+      {
+        "description": "grafana-mcp-bootstrap-v1",
+        "filter": "logName=\"projects/clever-oasis-508610-n7/logs/run.googleapis.com%2Frequests\" AND resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-grafana-events\" AND httpRequest.requestUrl =~ \"^https://[^/]+/oauth(/|[?]|$)\"",
+        "name": "mw-grafana-oauth-requests"
+      }
+    ],
+    "filter": "NOT LOG_ID(\"cloudaudit.googleapis.com/activity\") AND NOT LOG_ID(\"externalaudit.googleapis.com/activity\") AND NOT LOG_ID(\"cloudaudit.googleapis.com/system_event\") AND NOT LOG_ID(\"externalaudit.googleapis.com/system_event\") AND NOT LOG_ID(\"cloudaudit.googleapis.com/access_transparency\") AND NOT LOG_ID(\"externalaudit.googleapis.com/access_transparency\")",
+    "name": "_Default",
+    "resourceName": "projects/clever-oasis-508610-n7/sinks/_Default",
+    "updateTime": "2026-10-02T19:04:19.391211084Z"
+  },
+  {
+    "destination": "logging.googleapis.com/projects/clever-oasis-508610-n7/locations/global/buckets/_Required",
+    "filter": "LOG_ID(\"cloudaudit.googleapis.com/activity\") OR LOG_ID(\"externalaudit.googleapis.com/activity\") OR LOG_ID(\"cloudaudit.googleapis.com/system_event\") OR LOG_ID(\"externalaudit.googleapis.com/system_event\") OR LOG_ID(\"cloudaudit.googleapis.com/access_transparency\") OR LOG_ID(\"externalaudit.googleapis.com/access_transparency\")",
+    "name": "_Required",
+    "resourceName": "projects/clever-oasis-508610-n7/sinks/_Required"
+  }
+]

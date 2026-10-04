@@ -1,0 +1,20 @@
+{
+  "scope": "diagnostic-only tested image in existing owner-only contained service",
+  "baselineRollback": "mw-grafana-events-00006-qm4",
+  "fields": [
+    "fixed allowlisted method label",
+    "boolean success",
+    "numeric JSON-RPC error code",
+    "tool/event result counts"
+  ],
+  "excluded": "raw envelopes, requests, responses, params, IDs, user/client identifiers, tokens, headers, URLs, callback data, exception text and tool arguments",
+  "protocolChanges": false,
+  "authenticationChanges": false,
+  "secretPins": {
+    "Google": "2",
+    "otherFour": "1"
+  },
+  "callbacks": "deny-all",
+  "scheduler": "absent",
+  "GrafanaAndIamChanges": false
+}

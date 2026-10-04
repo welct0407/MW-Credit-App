@@ -1,5 +1,7 @@
 # Centralized resource monitoring
 
+**Source-only extension, 2 October 2026:** the [Grafana MCP Events bridge](Grafana_MCP_Events_Bridge.md) implements authenticated ChatGPT/Dots subscriptions, filtering and durable signed retries. It is not deployed, connected or added to Grafana. Current IRM/mobile alert delivery remains intact. The linked guide owns the proposed GCP service, security/deployment prerequisites, cost model and rollback.
+
 Receipt monitoring activated 25 September: the [implementation handover](https://github.com/welct0407/MW-Integration-Agent/blob/main/docs/MONITORING_IMPLEMENTATION_HANDOVER.md) is implemented in the existing collector, eight Payment processing visuals and existing Debian IRM rule. See [implementation evidence](../outputs/receipt-monitoring-20260925/README.md).
 
 For an explanation of every visual on both pages, see the maintained [Dashboard visual guide](Resource_Monitoring_Dashboard_Guide.md). Update that guide with every dashboard change; this document owns operational setup/access/recovery details.
@@ -53,6 +55,9 @@ Ten Grafana-managed rules are documented in folder **MW Resource Monitoring Aler
 | Cloud SQL used memory high | Five-minute mean `database/memory/components` **Usage** is above **85%** | 10 min |
 | Debian VM used memory high | Five-minute mean Ops Agent `memory/percent_used`, state `used`, is above **85%** | 10 min |
 | Metabase Railway memory pressure | `100 × MEMORY_USAGE_GB / latest corresponding MEMORY_LIMIT_GB` is above **90%** | 10 min |
+| Metabase scheduled backup unhealthy (`mw-metabase-backup-health`) | Scheduled Daily/Weekly backup removed, overdue or stale; first scheduled run stays pending, API errors KeepLast | 4 min |
+
+On 3 October, owner approved the additive HMAC webhook in the same contact point, retaining original IRM/mobile delivery. The Dots bridge filters these ten exact names to firing/resolved; dispatch runs every minute Asia/Singapore without remediation. Parent verified the saved route; an outside-filter webhook-only test accepted202 and produced no notification. [Verification, cleanup and containment](../outputs/grafana-live-activation-20261003/README.md).
 
 The Debian rule's 12 component labels are `tunnel`, `tailscale_node`, `webhook_local`, `oltp`, `olap`, `conversations`, `receipts`, `polling`, `daily_jobs`, `database`, `audit_relay`, and `codex_ready`. Its latest sample must be at most six minutes old. The Metabase rule reads only the `status` field from the separate `metabase_probe` metric and emits five stable `component` labels, including PITR. Fresh DOWN/DEGRADED maps to impairment 1; Healthy, Unknown, missing and older than six minutes map to 0. Its saved selector is maintained in `scripts/monitoring/metabase-alert.jq`. The webhook alert requires all three regional reports within 12 minutes; the checks run every five minutes. OpenAI alerts use the same current product-group and active-incident selector as the two tiles. An invalid/missing response makes the tile Unknown and does not generate a new page. Only stable component labels and binary impairment values enter alert queries; incident text and check timestamps never become alert labels. The Cloud SQL connection rule covers the numeric SQL tile, warning at 160 of its configured 200 limit. The superseded four-component grouped rule (`dfz3jpfj9qebkc`) was deleted after its replacement was verified; a Grafana administrator can recover it from Recently deleted if needed.
 

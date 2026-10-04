@@ -1,0 +1,8 @@
+{"atUtc": "2026-10-02T00:55:28.961197+00:00", "event": "intent", "label": "approved exact replacement Principal consent"}
+{"atUtc": "2026-10-02T00:55:30.189180+00:00", "event": "response_received", "label": "approved exact replacement Principal consent"}
+{"atUtc": "2026-10-02T00:55:34.963609+00:00", "event": "intent", "label": "approved browser runtime allowlist replacement"}
+{"atUtc": "2026-10-02T00:55:41.613658+00:00", "event": "response_received", "label": "approved browser runtime allowlist replacement"}
+{"atUtc": "2026-10-02T00:55:46.312915+00:00", "event": "intent", "label": "approved Easy Auth owner-only principal replacement"}
+{"atUtc": "2026-10-02T00:55:48.138876+00:00", "event": "response_received", "label": "approved Easy Auth owner-only principal replacement"}
+{"atUtc": "2026-10-02T00:55:53.238102+00:00", "event": "intent", "label": "approved exact former browser consent removal"}
+{"atUtc": "2026-10-02T00:55:54.336247+00:00", "event": "response_received", "label": "approved exact former browser consent removal"}

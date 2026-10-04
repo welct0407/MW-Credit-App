@@ -1,0 +1,30 @@
+{
+  "status": "READY_FOR_APPROVED_CODE_ONLY_DEPLOYMENT",
+  "sourceBranch": "fix/vm01-browser-shutdown",
+  "parentCommit": "2222413502a4cf99cfb57ffdf25f78691f011111",
+  "acceptedBaselineSource": "00884cc74aea80629211ce1a86e5a3333f7abf2d",
+  "baselinePackageSha256": "6629b67f0cae7520f4c3702e6b852c1073b17f6ae391698a961d2835bc17e961",
+  "packageSha256": "8a2ab3fcf8ac57534c94aaaed645fba629cd5402a734ddb150d6f8f71648a07c",
+  "packageBytes": 15879409,
+  "entryCount": 9748,
+  "compiledChangedOrAdded": [
+    "dist/src/arm.js",
+    "dist/src/confirmation.js",
+    "dist/src/controller.js",
+    "dist/src/ledger.js",
+    "dist/src/state-machine.js",
+    "dist/web/app.js",
+    "dist/web/auth-callback.html",
+    "dist/web/index.html",
+    "dist/web/style.css"
+  ],
+  "productionDependenciesUnchanged": true,
+  "testResult": {
+    "total": 85,
+    "passed": 84,
+    "failed": 0,
+    "skipped": 1
+  },
+  "vmPowerCalls": 0,
+  "ledgerWriteCalls": 0
+}

@@ -1,0 +1,408 @@
+{
+  "source_commit": "379aba00b4596dd4f557a52b31b9c14542c106c6",
+  "started_at": "2026-10-03T11:20:45.376865+00:00",
+  "caller": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "scope": "Owner-approved one-minute live notification dispatch; parent handles Grafana routing and host subscription. No remediation.",
+  "operations": [
+    {
+      "at": "2026-10-03T11:20:48.212142+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "describe",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "attemptDeadline": "240s",
+        "description": "Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "httpTarget": {
+          "body": "e30=",
+          "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Google-Cloud-Scheduler"
+          },
+          "httpMethod": "POST",
+          "oidcToken": {
+            "audience": "https://alerts.mw-credit.com/internal/dispatch",
+            "serviceAccountEmail": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+          },
+          "uri": "https://alerts.mw-credit.com/internal/dispatch"
+        },
+        "lastAttemptTime": "2026-10-03T11:05:26.081523Z",
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "schedule": "0 0 1 1 *",
+        "scheduleTime": "2027-01-01T00:00:02.355050Z",
+        "state": "PAUSED",
+        "status": {
+          "code": -1
+        },
+        "timeZone": "Etc/UTC",
+        "userUpdateTime": "2026-10-03T11:05:28.252899Z"
+      }
+    },
+    {
+      "at": "2026-10-03T11:20:51.281790+00:00",
+      "arguments": [
+        "run",
+        "services",
+        "describe",
+        "mw-grafana-events",
+        "--region=asia-southeast1",
+        "--format=json(metadata.name,status.latestReadyRevisionName,status.traffic,spec.template.spec.serviceAccountName)"
+      ],
+      "exit_code": 0,
+      "result": {
+        "metadata": {
+          "name": "mw-grafana-events"
+        },
+        "spec": {
+          "template": {
+            "spec": {
+              "serviceAccountName": "mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com"
+            }
+          }
+        },
+        "status": {
+          "latestReadyRevisionName": "mw-grafana-events-00009-487",
+          "traffic": [
+            {
+              "percent": 100,
+              "revisionName": "mw-grafana-events-00009-487"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T11:20:54.659317+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "update",
+        "http",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--schedule=* * * * *",
+        "--time-zone=Asia/Singapore",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "attemptDeadline": "240s",
+        "description": "Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "httpTarget": {
+          "body": "e30=",
+          "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Google-Cloud-Scheduler"
+          },
+          "httpMethod": "POST",
+          "oidcToken": {
+            "audience": "https://alerts.mw-credit.com/internal/dispatch",
+            "serviceAccountEmail": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+          },
+          "uri": "https://alerts.mw-credit.com/internal/dispatch"
+        },
+        "lastAttemptTime": "2026-10-03T11:05:26.081523Z",
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "schedule": "* * * * *",
+        "state": "PAUSED",
+        "status": {
+          "code": -1
+        },
+        "timeZone": "Asia/Singapore",
+        "userUpdateTime": "2026-10-03T11:20:53.988279Z"
+      }
+    },
+    {
+      "at": "2026-10-03T11:20:57.532197+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "describe",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "attemptDeadline": "240s",
+        "description": "Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "httpTarget": {
+          "body": "e30=",
+          "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Google-Cloud-Scheduler"
+          },
+          "httpMethod": "POST",
+          "oidcToken": {
+            "audience": "https://alerts.mw-credit.com/internal/dispatch",
+            "serviceAccountEmail": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+          },
+          "uri": "https://alerts.mw-credit.com/internal/dispatch"
+        },
+        "lastAttemptTime": "2026-10-03T11:05:26.081523Z",
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "schedule": "* * * * *",
+        "state": "PAUSED",
+        "status": {
+          "code": -1
+        },
+        "timeZone": "Asia/Singapore",
+        "userUpdateTime": "2026-10-03T11:20:53.988279Z"
+      }
+    },
+    {
+      "at": "2026-10-03T11:21:00.772614+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "resume",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": [],
+      "stderr": "Job has been resumed."
+    },
+    {
+      "at": "2026-10-03T11:21:03.657178+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "describe",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "attemptDeadline": "240s",
+        "description": "Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "httpTarget": {
+          "body": "e30=",
+          "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Google-Cloud-Scheduler"
+          },
+          "httpMethod": "POST",
+          "oidcToken": {
+            "audience": "https://alerts.mw-credit.com/internal/dispatch",
+            "serviceAccountEmail": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+          },
+          "uri": "https://alerts.mw-credit.com/internal/dispatch"
+        },
+        "lastAttemptTime": "2026-10-03T11:05:26.081523Z",
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "schedule": "* * * * *",
+        "scheduleTime": "2026-10-03T11:22:00Z",
+        "state": "ENABLED",
+        "status": {},
+        "timeZone": "Asia/Singapore",
+        "userUpdateTime": "2026-10-03T11:21:00.438628Z"
+      }
+    },
+    {
+      "at": "2026-10-03T11:21:21.411236+00:00",
+      "arguments": [
+        "logging",
+        "read",
+        "timestamp>=\"2026-10-03T11:20:57.532672+00:00\" AND ((resource.type=\"cloud_scheduler_job\" AND resource.labels.job_id=\"mw-grafana-dispatch\" AND resource.labels.location=\"asia-southeast1\") OR (resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-grafana-events\" AND resource.labels.revision_name=\"mw-grafana-events-00009-487\" AND (jsonPayload.event=\"dispatch_completed\" OR httpRequest.requestUrl=\"https://alerts.mw-credit.com/internal/dispatch\")))",
+        "--limit=30",
+        "--format=json(timestamp,resource.type,jsonPayload.@type,jsonPayload.jobName,jsonPayload.status,jsonPayload.count,jsonPayload.event,httpRequest.status)"
+      ],
+      "exit_code": 0,
+      "result": []
+    },
+    {
+      "at": "2026-10-03T11:23:29.193923+00:00",
+      "arguments": [
+        "logging",
+        "read",
+        "timestamp>=\"2026-10-03T11:20:57.532672+00:00\" AND ((resource.type=\"cloud_scheduler_job\" AND resource.labels.job_id=\"mw-grafana-dispatch\" AND resource.labels.location=\"asia-southeast1\") OR (resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"mw-grafana-events\" AND resource.labels.revision_name=\"mw-grafana-events-00009-487\" AND (jsonPayload.event=\"dispatch_completed\" OR httpRequest.requestUrl=\"https://alerts.mw-credit.com/internal/dispatch\")))",
+        "--limit=30",
+        "--format=json(timestamp,resource.type,jsonPayload.@type,jsonPayload.jobName,jsonPayload.status,jsonPayload.count,jsonPayload.event,httpRequest.status)"
+      ],
+      "exit_code": 0,
+      "result": [
+        {
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptStarted",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:23:07.663934438Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptFinished",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:23:07.555242535Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:23:03.237943Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:23:03.165394Z"
+        },
+        {
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptStarted",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:22:04.001053330Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "jsonPayload": {
+            "@type": "type.googleapis.com/google.cloud.scheduler.logging.AttemptFinished",
+            "jobName": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch"
+          },
+          "resource": {
+            "type": "cloud_scheduler_job"
+          },
+          "timestamp": "2026-10-03T11:22:03.442438403Z"
+        },
+        {
+          "jsonPayload": {
+            "count": 0,
+            "event": "dispatch_completed"
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:22:00.895996Z"
+        },
+        {
+          "httpRequest": {
+            "status": 200
+          },
+          "resource": {
+            "type": "cloud_run_revision"
+          },
+          "timestamp": "2026-10-03T11:22:00.819571Z"
+        }
+      ]
+    },
+    {
+      "at": "2026-10-03T11:23:32.308996+00:00",
+      "arguments": [
+        "scheduler",
+        "jobs",
+        "describe",
+        "mw-grafana-dispatch",
+        "--location=asia-southeast1",
+        "--format=json"
+      ],
+      "exit_code": 0,
+      "result": {
+        "attemptDeadline": "240s",
+        "description": "Paused bridge dispatcher; manual synthetic test awaits parent coordination. Annual safety schedule is not production activation.",
+        "httpTarget": {
+          "body": "e30=",
+          "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Google-Cloud-Scheduler"
+          },
+          "httpMethod": "POST",
+          "oidcToken": {
+            "audience": "https://alerts.mw-credit.com/internal/dispatch",
+            "serviceAccountEmail": "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com"
+          },
+          "uri": "https://alerts.mw-credit.com/internal/dispatch"
+        },
+        "lastAttemptTime": "2026-10-03T11:23:03.057610Z",
+        "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/jobs/mw-grafana-dispatch",
+        "retryConfig": {
+          "maxBackoffDuration": "3600s",
+          "maxDoublings": 5,
+          "maxRetryDuration": "0s",
+          "minBackoffDuration": "5s"
+        },
+        "schedule": "* * * * *",
+        "scheduleTime": "2026-10-03T11:24:02.355050Z",
+        "state": "ENABLED",
+        "status": {},
+        "timeZone": "Asia/Singapore",
+        "userUpdateTime": "2026-10-03T11:21:00.438628Z"
+      }
+    }
+  ],
+  "manual_run_requests": 0,
+  "rollback": "Pause this exact job, then update schedule to 0 0 1 1 * and timezone Etc/UTC while paused; verify original target/OIDC/deadline/retries and PAUSED. Preserve durable delivery state.",
+  "baseline_verified": true,
+  "resume_started_at": "2026-10-03T11:20:57.532672+00:00",
+  "live_ready_at": "2026-10-03T11:21:03.657811+00:00",
+  "live_state": "ENABLED",
+  "scheduled_tick_verified": true,
+  "scheduled_dispatch_counts": [
+    0,
+    0
+  ],
+  "scheduled_observed_at": "2026-10-03T11:23:32.309902+00:00",
+  "parent_ui_checkpoint": {
+    "host_automation_id": "6ac0d235a960819184f5ab616a6acf0f",
+    "host_automation_title": "PerformanceAlertNotifications",
+    "host_update_reported_at": "2026-10-03T11:20:44Z",
+    "host_filters_reported": "Ten existing Performance2m alert names, firing/resolved; exact names not supplied to executor.",
+    "grafana_contact_point": "MWPerformanceIRM",
+    "preserved_irm_integration": "MWPerformanceMonitoring",
+    "grafana_webhook_status": "Prepared, not saved; awaiting owner secure HMAC entry.",
+    "provenance": "Parent report; executor did not change/inspect browser or host automation."
+  }
+}

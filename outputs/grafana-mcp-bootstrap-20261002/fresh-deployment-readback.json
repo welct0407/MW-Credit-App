@@ -1,0 +1,21 @@
+{
+  "observedAtUtc": "2026-10-02T21:07:31.744878+00:00",
+  "sourcePin": "b53f2da400b45b176da234513532859c45a31e17",
+  "adapter": "/workspace/.setup/cloud-gcloud",
+  "activeAccount": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "project": "clever-oasis-508610-n7",
+  "region": "asia-southeast1",
+  "service": "mw-grafana-events",
+  "url": "https://mw-grafana-events-pvrgvyg3oq-as.a.run.app",
+  "latestReadyRevision": "mw-grafana-events-00001-rnj",
+  "ready": true,
+  "trafficPercent": 100,
+  "trafficRevision": "mw-grafana-events-00001-rnj",
+  "resolvedImageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap@sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154",
+  "expectedDeploymentMatches": true,
+  "commands": [
+    "gcloud auth list --filter=status:ACTIVE --format=value(account)",
+    "gcloud run services describe mw-grafana-events --region=asia-southeast1 --format=json(status.url,status.latestReadyRevisionName,status.traffic,status.conditions)",
+    "gcloud run revisions describe mw-grafana-events-00001-rnj --region=asia-southeast1 --format=json(metadata.name,status.imageDigest,status.conditions)"
+  ]
+}

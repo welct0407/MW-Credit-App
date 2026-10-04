@@ -1,4 +1,11 @@
-# R050 audited interest reallocation — candidate, not deployed
+# R050 audited interest reallocation
+
+## Repository closeout — 4 October 2026
+
+The tested source is `1cc96775a3a8034a4a143084686f43c174e75a47`; Database migrations CI run37178314854 succeeded. The coordinating owner task confirms the scoped V57 deployment/correction completed at 05:26 UTC. Private financial before/after evidence remains outside Git. The later matching operator/audit rollout deployed V58; its [final checklist](https://github.com/welct0407/AppSheet-Loan-Project/blob/1ecbb109c6e9ee5393622453d042c6391b48dbc4/outputs/r050-production/promotion-checklist.md) records the separate scope. V57 is the immutable prerequisite, rather than a claim that production remains at V57.
+
+The owner directly approved repository merges #3/#6/#7/#8 and MW #1 plus sanitized completion descriptions. Normal forward merges preserve source authors/history; migration/test source is unchanged from successful CI. This closeout performs no financial write, deployment, notification, power action or branch deletion. Earlier candidate/publication-blocker paragraphs below retain their dated provenance and are superseded for authorization/completion by this checkpoint.
+
 
 Owner approved implementing a supported bookkeeping correction on 4 October
 2026. The generic source and synthetic evidence contain no borrower/payment

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "requestId": "1790926255648.48f25330-0f95-4827-ae7e-363f7065e8be",
+  "targetResourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+  "expectedVmId": "0af4bbf5-ce75-43d7-931f-9e8c4a13dfe9",
+  "armRequestId": "7edd0361-7e12-47d2-ba59-dcedeb216a9b",
+  "submittedAt": "2026-10-02T07:31:01.096Z",
+  "acceptedAt": "2026-10-02T07:31:01.255Z",
+  "operationStartTime": "2026-10-02T07:31:01.1806458+00:00",
+  "operationEndTime": "2026-10-02T07:43:04.8662441+00:00",
+  "reference": "vm01-20261002-historical-deallocate",
+  "recoveryApprovalReference": "owner-20261002-portal-recovery-start",
+  "deallocateStarted": {
+    "eventDataId": "e8687635-f76f-422a-8b49-17e9bb06cf89",
+    "eventTimestamp": "2026-10-02T07:31:01.1333815Z",
+    "resourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+    "caller": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+    "correlationId": "fa8c5c86-cca5-423a-ab86-c309fa41adec",
+    "operationName": {
+      "value": "Microsoft.Compute/virtualMachines/deallocate/action"
+    },
+    "status": {
+      "value": "Started"
+    }
+  },
+  "deallocateSucceeded": {
+    "eventDataId": "a4a0c493-a99a-4325-88ab-18fa5de5e156",
+    "eventTimestamp": "2026-10-02T07:43:06.0995435Z",
+    "resourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+    "caller": "a671b605-43e5-4878-b3cb-b7b6bf2ce586",
+    "correlationId": "fa8c5c86-cca5-423a-ab86-c309fa41adec",
+    "operationName": {
+      "value": "Microsoft.Compute/virtualMachines/deallocate/action"
+    },
+    "status": {
+      "value": "Succeeded"
+    }
+  },
+  "recoveryStarted": {
+    "eventDataId": "f577493f-9104-4052-9001-983b8df6f85f",
+    "eventTimestamp": "2026-10-02T07:55:37.0407326Z",
+    "resourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+    "caller": "mwcredit@idea.100-5.com",
+    "correlationId": "8f7fa899-7912-497d-9e4e-9ce17d412635",
+    "operationName": {
+      "value": "Microsoft.Compute/virtualMachines/start/action"
+    },
+    "status": {
+      "value": "Started"
+    }
+  },
+  "recoverySucceeded": {
+    "eventDataId": "67c73307-f809-4343-9ad4-3e4b271f1ef1",
+    "eventTimestamp": "2026-10-02T07:57:08.93534Z",
+    "resourceId": "/subscriptions/50f792fa-803e-4280-833d-1fe60fef5293/resourceGroups/RG-MWCREDIT/providers/Microsoft.Compute/virtualMachines/VM-01",
+    "caller": "mwcredit@idea.100-5.com",
+    "correlationId": "8f7fa899-7912-497d-9e4e-9ce17d412635",
+    "operationName": {
+      "value": "Microsoft.Compute/virtualMachines/start/action"
+    },
+    "status": {
+      "value": "Succeeded"
+    }
+  }
+}

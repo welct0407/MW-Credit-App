@@ -1,0 +1,28 @@
+{
+  "result": "PASS_INTENDED_BROWSER_AUTHENTICATED_STATUS",
+  "observedAtUtc": "2026-10-02T06:19:26Z",
+  "verifiedThroughUtc": "2026-10-02T06:19:34Z",
+  "provenance": "Parent Dots cloud browser, tab9; signed in with intended MW Credit account and clicked Refresh status",
+  "userPrincipalName": "mwcredit@idea.100-5.com",
+  "controllerOrigin": "https://vm01-controller-50f792fa.azurewebsites.net",
+  "deployedSourceCommit": "614ea6496bcd796611080e69f8fc78276304bb8a",
+  "deploymentZipSha256": "1e385975602486f5c80d628916037820d2a30a7064856989c26750497870f87a",
+  "observations": {
+    "powerState": "running",
+    "provisioningState": "Succeeded",
+    "freshObservationDisplayed": true,
+    "errorDisplayed": false,
+    "allPowerButtonsDisabled": true
+  },
+  "timeEvidence": "Use parent UTC observation06:19:26; browser displayed local11:19:26PM, not a UTC timestamp",
+  "verificationBoundary": "Intended signed-in browser status end-to-end accepted through UI; no raw network HTTP status or token inspected",
+  "vmPowerRequests": 0,
+  "nextStage": "User deferred command activation and machine-caller authentication; neither performed",
+  "remainingGates": [
+    "Cloud caller credentials/environment and acceptance",
+    "former-user authenticated token rejection",
+    "optional operation-read approval",
+    "command/admission/polling activation",
+    "explicit live power timing/counts and recovery"
+  ]
+}
