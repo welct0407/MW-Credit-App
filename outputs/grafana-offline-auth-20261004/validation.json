@@ -1,9 +1,9 @@
 {
-  "status": "server_duration_consent_live_public_checks_passed_pending_native_owner_choice",
+  "status": "consent_origin_repair_local_verified_pending_packaged_rollout",
   "baseline": "2c849c65214e837f097a7ac9da282d852f86d11c",
   "branch": "fix/grafana-two-year-offline",
   "tests": {
-    "passed": 68,
+    "passed": 69,
     "failed": 0
   },
   "production_dependency_vulnerabilities": 0,
@@ -12,7 +12,7 @@
   "subscription_max_seconds": 86400,
   "revocation_tombstone_seconds": 63158400,
   "live_changes": true,
-  "native_host_offline_consent": "pending_revised_server_controlled_consent_owner_flow",
+  "native_host_offline_consent": "prior_browser_post_rejected_pending_origin_repair_rollout",
   "actual_live_token_scope_session_binding": "unverified_encrypted_payload",
   "fresh_subscription_metadata": "blocked_firestore_403_over_iap",
   "traffic_changed": true,
@@ -20,11 +20,12 @@
   "packaged_tests": {
     "passed": 68,
     "failed": 0,
-    "external_network": "none"
+    "external_network": "none",
+    "status": "historical_prior_image_repair_pending"
   },
   "staged_revision": "mw-grafana-events-00012-w4h",
   "staged_traffic_percent": 0,
-  "owner_reconnect_ready": true,
+  "owner_reconnect_ready": false,
   "live_revision": "mw-grafana-events-00012-w4h",
   "live_traffic_percent": 100,
   "source_commit": "2aefb97ebe19bd6bef4c9f69648452db0be1559e",
@@ -42,5 +43,9 @@
   "synthetic_live_grants_created": false,
   "subscriptions_recreated": false,
   "runtime_nonroot_uid": 1000,
-  "runtime_proxy_or_extra_ca_or_build_secret_present": false
+  "runtime_proxy_or_extra_ca_or_build_secret_present": false,
+  "browser_origin_regression_passed": true,
+  "consent_page_referrer_policy": "strict-origin",
+  "null_and_foreign_origins_rejected": true,
+  "failed_consent_guard_writes_new_grant": false
 }

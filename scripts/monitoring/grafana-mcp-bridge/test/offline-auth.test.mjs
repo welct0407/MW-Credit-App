@@ -286,3 +286,14 @@ test('two-year authorization code cannot be exchanged if durable consent disappe
   assert.equal((await tokenExchange(app,auth.code,auth.verifier)).status,400);
   assert.equal((await payloads(app,'RefreshToken')).length,0);assert.equal((await payloads(app,'AccessToken')).length,0);
 });
+
+
+test('consent form preserves a canonical browser Origin without accepting null or exposing interaction referrers',async t=>{
+  const app=await application();t.after(()=>app.close());const page=await consentPage(app,{scope:'mcp:events mcp:read'});
+  assert.equal(page.res.headers['referrer-policy'],'strict-origin');
+  assert.equal((await app.call('/health')).headers['referrer-policy'],'no-referrer');
+  assert.equal((await submit(app,page,'allow',{headers:{Origin:'null'}})).status,403);
+  assert.equal((await payloads(app,'Grant')).length,0);assert.equal((await payloads(app,'OwnerConsent')).length,0);
+  assert.equal((await submit(app,page)).status,303);
+  assert.equal((await payloads(app,'Grant')).length,1);assert.equal((await payloads(app,'OwnerConsent')).length,1);
+});
