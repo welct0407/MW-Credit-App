@@ -25,7 +25,7 @@ Restore the prior collector and matching package backup/checksums and original t
 
 ## Remaining work
 
-The AppSheet draft targets the V57 prerequisite branch (PR #7), leaving that existing work unchanged. Complete normal review and parent-owned DEV editor diagnostics before production readiness; obtain separate production rollout authorization. MW task publication is owner-approved and verified in draft PR #1. No readiness or deployment claim is made.
+The AppSheet draft targets the V57 prerequisite branch (PR #7), leaving that existing work unchanged. Shared DEV checks, including parent editor diagnostics, are complete; obtain separate production rollout authorization and verify the pinned backup/package before rollout. MW task publication is owner-approved and verified in draft PR #1. No readiness or deployment claim is made.
 
 ## Shared DEV validation — 4 October 2026
 
@@ -38,3 +38,9 @@ Independent DEV readback matched the tested audited function definition and veri
 V58 creates/replaces SQL routines only; it changes no table, column, trigger, view or AppSheet schema metadata. No dictionary-object, column regeneration or App Upgrade is required for this scope. Parent/Dots Browser still owns the standing DEV-readiness check: reload both canonical DEV editors under `welct0407@mw-credit.com`, verify app identity/current saved version and final zero configuration warnings/errors (AGENTS.md section 6.2). Do not treat dated clear-editor evidence as a fresh check. The apps were already Deployed, so that rule does not require repeating Deployment Check. No new financial UI workflow is introduced by V58. R050 remains Open and production authorization is still separate.
 
 Private SQL/probe logs and prior function definitions remain outside Git; only sanitized results are published here. The migration backup definition SHA-256 is `5a5d07042288cc6ca242fd730c8e4882b9960ec44cbf2840e5907d41639c68bf`. Publication is [AppSheet draft #8](https://github.com/welct0407/AppSheet-Loan-Project/pull/8) and [MW draft #1](https://github.com/welct0407/MW-Integration-Agent/pull/1), with no merge or production rollout.
+
+## Parent browser validation — 4 October 2026, 07:42 UTC
+
+Evidence supplied by the parent Dots cloud-browser session, not a repeat browser inspection by this executor: account menu verified `welct0407@mw-credit.com`. DEV OLTP `500b27b6-884a-41e8-a9ec-df801b0110ad` loaded saved version **1.000159**; DEV OLAP `9f3422be-bc87-4a5a-a42a-67528ee80393` loaded saved version **1.000047**. Both were Deployed, Save disabled, with no editor configuration warnings/errors shown. No app mutations occurred. This closes the pending DEV editor check alongside the shared DEV SQL and isolated combined-runtime validation above.
+
+Production deployment approval has been requested by the parent and remains pending. This evidence authorizes no production changes or merge. R050 remains Open; the deployed retrospective recovery and shutdown hold are preserved. Future saved-environment Git identity hardening is deferred until the audit fix is complete; current repository-local author/committer are verified as `welct0407 <welct0407@gmail.com>`. Published earlier history remains unchanged by owner decision.
