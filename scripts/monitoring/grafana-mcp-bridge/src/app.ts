@@ -77,7 +77,7 @@ export function createApp(config:Config,store:Store,send:CallbackTransport,depen
       res.setHeader('Referrer-Policy','no-referrer');
       if(path==='/health' && req.method==='GET') {json(res,200,{status:'ok'});return;}
       if((path==='/.well-known/oauth-protected-resource' || path==='/.well-known/oauth-protected-resource/mcp') && req.method==='GET') {
-        json(res,200,{resource:config.resource,authorization_servers:[config.issuer],scopes_supported:['mcp:events','mcp:read','offline_access']});return;
+        json(res,200,{resource:config.resource,authorization_servers:[config.issuer],scopes_supported:['mcp:events','mcp:read']});return;
       }
       if(path.startsWith('/oauth/') || path==='/oauth') {await oauth.route(req,res,path,url);return;}
       if(path==='/mcp') {

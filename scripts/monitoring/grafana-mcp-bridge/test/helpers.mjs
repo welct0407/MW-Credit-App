@@ -77,10 +77,12 @@ export async function application(deps={}) {
   const follow=location=>call(new URL(location,conf.baseUrl).pathname+new URL(location,conf.baseUrl).search);
   return {...app,conf,store,call,follow,cookieJar,login:()=>lastLogin,close:async()=>{await app.mcp.close();await new Promise(r=>app.server.close(r));}};
 }
-export async function authorize(app,options={}) {
+export async function authorize(app,options={},endpoint=app.conf.issuer+'/auth') {
   const verifier='synthetic-pkce-verifier-012345678901234567890123456789', {createHash}=await import('node:crypto');
   const params=new URLSearchParams({client_id:app.conf.clientId,redirect_uri:app.conf.redirectUri,response_type:'code',scope:'mcp:events mcp:read',resource:app.conf.resource,state:'synthetic-client-state',code_challenge:createHash('sha256').update(verifier).digest('base64url'),code_challenge_method:'S256',...options});
-  let res=await app.call('/oauth/auth?'+params);
+  const target=new URL(endpoint);
+  for(const [name,value] of params)target.searchParams.append(name,value);
+  let res=await app.call(target.pathname+target.search);
   for(let i=0;i<10;i++){
     const location=res.headers.location;
     if(!location && res.status===200 && res.body.includes('name="csrf"')) {

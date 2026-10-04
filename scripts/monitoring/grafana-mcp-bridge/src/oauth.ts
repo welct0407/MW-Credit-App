@@ -140,6 +140,14 @@ export function createOAuth(config:Config,store:Store,ownerActive:()=>Promise<bo
   provider.use(async (ctx,next)=>{
     if(ctx.path.endsWith('/token') && !(await ownerActive())) {ctx.status=403;ctx.body={error:'access_denied'};return;}
     await next();
+    // RFC 6749 §3.1 allows endpoint query parameters and requires clients to retain them.
+    // The provider's discovery option cannot override standard properties, so adjust
+    // only this generated endpoint. Its duplicate/conflicting prompt checks still apply.
+    if(ctx.oidc?.route==='discovery' && ctx.method==='GET' && ctx.status===200 && ctx.body && typeof ctx.body==='object') {
+      const endpoint=new URL(config.issuer+'/auth');endpoint.searchParams.set('prompt','consent');
+      (ctx.body as Record<string,unknown>).authorization_endpoint=endpoint.toString();
+      ctx.set('Cache-Control','no-store');
+    }
   });
   const route=async (req:IncomingMessage,res:ServerResponse,path:string,url:URL)=>{
     let stage:'provider'|'owner_check'|'callback_state'|'interaction_lookup'|'state_consume'|'google_complete'|'login_finish'|'google_begin'|'state_save'|'grant_save'|'consent_finish'='provider';

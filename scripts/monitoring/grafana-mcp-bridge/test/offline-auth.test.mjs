@@ -117,3 +117,46 @@ test('HTTP revocation of an offline grant remains effective after 90 days and ca
   assert.equal((await refresh(app,token.refresh_token)).status,400);
   const tombstones=await app.store.query('revokedGrants',[],100);assert.equal(tombstones.length,1);assert.ok(tombstones[0].deleteAfter.getTime()>Date.now());
 });
+
+test('both issuer discovery documents carry the consent endpoint query; resource metadata/challenge keep only API scopes',async t=>{
+  const app=await application();t.after(()=>app.close());
+  for(const path of ['/oauth/.well-known/openid-configuration','/oauth/.well-known/oauth-authorization-server']) {
+    const response=await app.call(path);assert.equal(response.status,200);const metadata=response.json();
+    assert.equal(metadata.issuer,app.conf.issuer);assert.equal(metadata.authorization_endpoint,app.conf.issuer+'/auth?prompt=consent');
+    assert.equal(metadata.authorization_response_iss_parameter_supported,true);assert.deepEqual(metadata.code_challenge_methods_supported,['S256']);
+    assert.ok(metadata.scopes_supported.includes('offline_access'));assert.equal(metadata.registration_endpoint,undefined);
+    assert.equal(response.headers['cache-control'],'no-store');
+  }
+  for(const path of ['/.well-known/oauth-protected-resource','/.well-known/oauth-protected-resource/mcp'])assert.deepEqual((await app.call(path)).json().scopes_supported,['mcp:events','mcp:read']);
+  const challenge=await mcpRequest(app,'events/list');assert.equal(challenge.status,401);assert.equal(challenge.headers['www-authenticate'].includes('offline_access'),false);
+});
+
+test('client adding parameters to the discovered endpoint retains consent and completes explicit offline authorization',async t=>{
+  const time=Date.now();t.mock.timers.enable({apis:['Date'],now:time});const app=await application();t.after(()=>app.close());
+  const metadata=(await app.call('/oauth/.well-known/oauth-authorization-server')).json();
+  const grant=await authorize(app,{scope:'openid offline_access mcp:events mcp:read'},metadata.authorization_endpoint);
+  const response=await tokenExchange(app,grant.code,grant.verifier);assert.equal(response.status,200);
+  assert.ok(response.json().id_token);const [token]=await payloads(app,'RefreshToken');
+  assert.equal(token.scope.split(' ').includes('offline_access'),true);assert.equal(!!token.expiresWithSession,false);
+  assert.equal(token.exp-token.iiat,OFFLINE_AUTHORIZATION_SECONDS);
+  t.mock.timers.setTime(time+DAY+1000);assert.equal((await refresh(app,response.json().refresh_token)).status,200);
+});
+
+test('repeated or conflicting prompt/scope parameters fail without granting offline access; replacing consent never elevates access',async t=>{
+  const app=await application();t.after(()=>app.close());
+  const endpoint=(await app.call('/oauth/.well-known/openid-configuration')).json().authorization_endpoint;
+  const params=new URLSearchParams({client_id:app.conf.clientId,redirect_uri:app.conf.redirectUri,response_type:'code',scope:'offline_access mcp:events mcp:read',resource:app.conf.resource,state:'synthetic',code_challenge:'A'.repeat(43),code_challenge_method:'S256'});
+  for(const extra of [['prompt','consent'],['prompt','none'],['prompt','login'],['scope','mcp:read']]) {
+    const target=new URL(endpoint);for(const [key,value] of params)target.searchParams.append(key,value);target.searchParams.append(...extra);
+    const response=await app.call(target.pathname+target.search);
+    const error=response.headers.location?new URL(response.headers.location).searchParams.get('error'):undefined;
+    assert.ok(response.status===400 || error==='invalid_request');
+    assert.equal((await payloads(app,'Grant')).length,0);assert.equal((await payloads(app,'RefreshToken')).length,0);
+  }
+  // A client that overwrites the endpoint query violates the required retention;
+  // the provider drops offline_access rather than bypassing consent/session policy.
+  const overwritten=new URL(endpoint);overwritten.searchParams.set('prompt','login');
+  const onlineGrant=await authorize(app,{scope:'offline_access mcp:events mcp:read'},overwritten);
+  const online=await tokenExchange(app,onlineGrant.code,onlineGrant.verifier);assert.equal(online.status,200);
+  const [token]=await payloads(app,'RefreshToken');assert.equal(token.scope.split(' ').includes('offline_access'),false);assert.equal(!!token.expiresWithSession,true);
+});
