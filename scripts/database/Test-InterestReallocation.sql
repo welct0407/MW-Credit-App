@@ -1,6 +1,14 @@
 \set ON_ERROR_STOP on
 BEGIN;
 \ir Test-CashAccountFixtures.sql
+-- Test-only canonical request adapter; no central DB/production dispatch.
+CREATE FUNCTION pg_temp.ir58_call(op uuid,payment text,receipt jsonb,moves jsonb,reason text,revision text)
+RETURNS text LANGUAGE sql AS $$
+ SELECT public.reallocate_payment_interest_audited(op,jsonb_build_object(
+ 'kind','interest-reallocation-v2','operation_id',op::text,'database','loan_manager_prod',
+ 'payment',payment,'receipt',receipt,'moves',moves,'reason',reason,'code_version',revision,
+ 'actor_id','synthetic-operator','actor_login','synthetic-operator','authorization_reference','synthetic-approval')::text);
+$$;
 CREATE FUNCTION pg_temp.assert(ok boolean,msg text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'Assertion failed: %',msg; END IF; END $$;
 CREATE FUNCTION pg_temp.reject(statement text,expected text) RETURNS void LANGUAGE plpgsql AS $$
@@ -11,6 +19,7 @@ BEGIN
  END;
  IF NOT failed THEN RAISE EXCEPTION 'Expected rejection: %',expected; END IF;
 END $$;
+SELECT pg_temp.reject($q$SELECT public.reallocate_payment_interest('00000000-0058-4000-8000-000000000001','synthetic','{}','[]','synthetic','test')$q$,'Canonical central intent required');
 INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES ('IR57-B','Synthetic reallocation'),('IR57-OTHER','Synthetic unrelated');
 INSERT INTO "Partners"("Row ID","Partner Role") VALUES ('IR57-PARTNER','A');
 INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount")
@@ -46,18 +55,18 @@ CREATE TEMP TABLE ir57_preserved AS
 -- rolls back any operation marker/intent rows created before a later failure.
 DO $$ DECLARE q record; bad jsonb; BEGIN
  SELECT * INTO q FROM ir57_request;
- PERFORM pg_temp.reject(format('SELECT public.reallocate_payment_interest(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
+ PERFORM pg_temp.reject(format('SELECT pg_temp.ir58_call(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
  '00000000-0057-4000-8000-000000000001','IR57-P',q.receipt||'{"Status":"Processing"}',q.moves,'test','synthetic'),'Receipt verification conflict');
  bad:=jsonb_set(q.moves,'{2,expected_repayment,Interest Paid}','"$999.00"');
- PERFORM pg_temp.reject(format('SELECT public.reallocate_payment_interest(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
+ PERFORM pg_temp.reject(format('SELECT pg_temp.ir58_call(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
  '00000000-0057-4000-8000-000000000001','IR57-P',q.receipt,bad,'test','synthetic'),'Move verification conflict');
  PERFORM pg_temp.assert(NOT EXISTS(SELECT 1 FROM agent_audit.commits WHERE operation_id='00000000-0057-4000-8000-000000000001'),'later failure rolls back audit and earlier moves');
  PERFORM pg_temp.assert((SELECT sum("Total Paid")=0 FROM "Charges" WHERE "Row ID" LIKE 'IR57-C%-1'),'earlier moves rolled back');
  bad:=jsonb_set(q.moves,'{0,target_charge}','"IR57-X"');
  bad:=jsonb_set(bad,'{0,expected_target_charge}',(SELECT to_jsonb(x) FROM "Charges" x WHERE "Row ID"='IR57-X'));
- PERFORM pg_temp.reject(format('SELECT public.reallocate_payment_interest(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
+ PERFORM pg_temp.reject(format('SELECT pg_temp.ir58_call(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
  '00000000-0057-4000-8000-000000000001','IR57-P',q.receipt,bad,'test','synthetic'),'same-loan whole interest');
- PERFORM pg_temp.reject(format('SELECT public.reallocate_payment_interest(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
+ PERFORM pg_temp.reject(format('SELECT pg_temp.ir58_call(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
  '00000000-0057-4000-8000-000000000001','IR57-P',q.receipt,q.moves||jsonb_build_array(q.moves->0),'test','synthetic'),'Duplicate or missing');
 END $$;
 -- Capacity and closed-loan constraints use refreshed expected snapshots,
@@ -67,7 +76,7 @@ DO $$ DECLARE q record; bad jsonb; target text; loan_id text; old_due money; BEG
  SELECT "Interest Due" INTO old_due FROM "Charges" WHERE "Row ID"=target;
  UPDATE "Charges" SET "Interest Due"=1::money WHERE "Row ID"=target;
  bad:=jsonb_set(q.moves,'{0,expected_target_charge}',(SELECT to_jsonb(x) FROM "Charges" x WHERE "Row ID"=target));
- PERFORM pg_temp.reject(format('SELECT public.reallocate_payment_interest(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
+ PERFORM pg_temp.reject(format('SELECT pg_temp.ir58_call(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
  '00000000-0057-4000-8000-000000000001','IR57-P',q.receipt,bad,'test','synthetic'),'Target charge capacity conflict');
  UPDATE "Charges" SET "Interest Due"=old_due WHERE "Row ID"=target;
  loan_id:=q.moves->0->'expected_loan'->>'Row ID';
@@ -75,7 +84,7 @@ DO $$ DECLARE q record; bad jsonb; target text; loan_id text; old_due money; BEG
  bad:=jsonb_set(q.moves,'{0,expected_loan}',(SELECT to_jsonb(x) FROM "Loans" x WHERE "Row ID"=loan_id));
  bad:=jsonb_set(bad,'{0,expected_source_charge}',(SELECT to_jsonb(x) FROM "Charges" x WHERE "Row ID"=q.moves->0->'expected_source_charge'->>'Row ID'));
  bad:=jsonb_set(bad,'{0,expected_target_charge}',(SELECT to_jsonb(x) FROM "Charges" x WHERE "Row ID"=target));
- PERFORM pg_temp.reject(format('SELECT public.reallocate_payment_interest(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
+ PERFORM pg_temp.reject(format('SELECT pg_temp.ir58_call(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
  '00000000-0057-4000-8000-000000000001','IR57-P',q.receipt,bad,'test','synthetic'),'same-loan whole interest');
  UPDATE "Loans" SET "Loan Status"='ยังไม่ปิดยอด' WHERE "Row ID"=loan_id;
 END $$;
@@ -83,12 +92,12 @@ END $$;
 SELECT set_config('mw_agent.reallocation_id','00000000-0057-4000-8000-000000000001',true);
 SELECT pg_temp.reject($q$UPDATE "Repayments" SET "Ref Charges"='IR57-C1-1' WHERE "Ref Payment"='IR57-P'$q$,'immutable');
 SELECT set_config('mw_agent.reallocation_id','',true);
-SELECT pg_temp.assert(public.reallocate_payment_interest('00000000-0057-4000-8000-000000000001','IR57-P',receipt,moves,
+SELECT pg_temp.assert(pg_temp.ir58_call('00000000-0057-4000-8000-000000000001','IR57-P',receipt,moves,
  'synthetic owner-approved correction','synthetic-v57')='applied','correction applies') FROM ir57_request;
-SELECT pg_temp.assert(public.reallocate_payment_interest('00000000-0057-4000-8000-000000000001','IR57-P',receipt,moves,
+SELECT pg_temp.assert(pg_temp.ir58_call('00000000-0057-4000-8000-000000000001','IR57-P',receipt,moves,
  'synthetic owner-approved correction','synthetic-v57')='already_applied','same request retry is a no-op') FROM ir57_request;
 DO $$ DECLARE q record; BEGIN SELECT * INTO q FROM ir57_request;
- PERFORM pg_temp.reject(format('SELECT public.reallocate_payment_interest(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
+ PERFORM pg_temp.reject(format('SELECT pg_temp.ir58_call(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
  '00000000-0057-4000-8000-000000000001','IR57-P',q.receipt,q.moves,'changed reason','synthetic-v57'),'Operation ID reused');
 END $$;
 SELECT pg_temp.assert((SELECT sum("Total Paid")=600 AND sum("Amount Remaining")=0 FROM "Charges" WHERE "Row ID" LIKE 'IR57-C%-1'),'first date paid');
@@ -106,13 +115,13 @@ SELECT pg_temp.assert(state IS NOT DISTINCT FROM CASE kind
 SELECT pg_temp.reject($q$UPDATE "Repayments" SET "Interest Paid"=1::money WHERE "Ref Payment"='IR57-P'$q$,'immutable');
 SELECT pg_temp.reject($q$DELETE FROM "Payment Allocations" WHERE "Ref Payment"='IR57-P'$q$,'immutable');
 SELECT pg_temp.assert(NOT EXISTS(SELECT 1 FROM pg_proc p CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl
- WHERE p.oid='public.reallocate_payment_interest(uuid,text,jsonb,jsonb,text,text)'::regprocedure AND acl.grantee=0 AND acl.privilege_type='EXECUTE'),'PUBLIC has no correction permission');
+ WHERE p.oid='public.reallocate_payment_interest_audited(uuid,text)'::regprocedure AND acl.grantee=0 AND acl.privilege_type='EXECUTE'),'PUBLIC has no correction permission');
 SELECT pg_temp.assert((SELECT "Interest Due"::numeric=200 AND "Total Paid"=0 FROM "Charges" WHERE "Row ID"='IR57-X'),'unrelated charge unchanged');
 -- Retry must reconcile the current corrected state, not just find an audit ID.
 DO $$ DECLARE q record; BEGIN
  SELECT * INTO q FROM ir57_request;
  UPDATE "Charges" SET "Notes"='Synthetic subsequent edit' WHERE "Row ID"='IR57-C1-1';
- PERFORM pg_temp.reject(format('SELECT public.reallocate_payment_interest(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
+ PERFORM pg_temp.reject(format('SELECT pg_temp.ir58_call(%L,%L,%L::jsonb,%L::jsonb,%L,%L)',
  '00000000-0057-4000-8000-000000000001','IR57-P',q.receipt,q.moves,'synthetic owner-approved correction','synthetic-v57'),'Applied operation state has changed');
 END $$;
 SELECT 'Interest reallocation regressions passed' result;

@@ -91,6 +91,29 @@ def receipt_snapshot(config, job, inspector=None):
     return values
 
 
+def relay_snapshot(config, job, inspector=None):
+    """An activating service cannot erase the last completed failure."""
+    try:
+        if inspector is None:
+            from mw_integration_agent.relay_health import inspect
+            inspector = inspect
+        values = inspector(config)
+        required = ('status','completed_at','completed_success','backlog',
+                    'oldest_unexported_seconds','missing_intents','running','inspection_failed')
+        if (any(type(values.get(k)) is not int or values[k] < 0 for k in required)
+                or values['status'] not in (0,1,2,4) or values['completed_success'] not in (0,1)
+                or values['running'] not in (0,1) or values['inspection_failed'] not in (0,1)
+                or values['missing_intents'] > values['backlog']):
+            raise ValueError('Invalid relay snapshot')
+    except Exception:
+        return {'status':0,'inspection_failed':1}
+    try:
+        values['status'] = combine([job('mw-audit-relay',180,180),values['status']])
+    except Exception:
+        values.update(status=0,inspection_failed=1)
+    return values
+
+
 def main():
     config = json.loads(Path(CONFIG).read_text())
     result = {'heartbeat': 1}
@@ -115,7 +138,8 @@ def main():
         polling_timing['running'] = int(service.get('ActiveState') in ('active', 'activating'))
         return timer_status(service, timer, uptime, now, 600, 600)
     check('polling', lambda: polling() if config.get('conversation_poll_enabled') else 3)
-    check('audit_relay', lambda: job('mw-audit-relay', 180, 180))
+    audit_relay = relay_snapshot(config, job)
+    result['audit_relay'] = audit_relay['status']
     check('daily_jobs', lambda: combine([job('mw-cash-statement', 90000, 3600),
                                      job('mw-cash-statement-email-retry', 600, 600)])
           if config.get('cash_statement_schedule_enabled') else 3)
@@ -183,6 +207,10 @@ def main():
         series.append({'metric': {'type': WORKER_METRIC, 'labels': {'component': 'polling', 'field': field}},
                        'resource': series[0]['resource'], 'metricKind': 'GAUGE', 'valueType': 'INT64',
                        'points': [{'interval': {'endTime': timestamp}, 'value': {'int64Value': str(value)}}]})
+    for field,value in audit_relay.items():
+        series.append({'metric': {'type': WORKER_METRIC, 'labels': {'component':'audit_relay','field':field}},
+                       'resource':series[0]['resource'],'metricKind':'GAUGE','valueType':'INT64',
+                       'points':[{'interval':{'endTime':timestamp},'value':{'int64Value':str(value)}}]})
     # One low-cardinality numeric snapshot; no borrower/payment identifiers or amounts.
     for field,value in dict(receipt_pipeline,status=result['receipts']).items():
         series.append({'metric': {'type':'custom.googleapis.com/mw_resource_monitoring/receipt_pipeline',
@@ -200,7 +228,8 @@ def main():
           headers={'Authorization': 'Bearer '+token, 'Content-Type': 'application/json'})
     with urllib.request.urlopen(req, timeout=20) as response:
         response.read()
-    print(json.dumps({'checkedAt': timestamp, 'health': result, 'receipt_pipeline':receipt_pipeline,'exported': True}))
+    print(json.dumps({'checkedAt': timestamp, 'health': result, 'receipt_pipeline':receipt_pipeline,
+                     'audit_relay':audit_relay,'exported': True}))
 
 
 if __name__ == '__main__':
