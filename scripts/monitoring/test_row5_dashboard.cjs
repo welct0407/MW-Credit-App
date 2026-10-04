@@ -18,6 +18,21 @@ for(const fmt of ['dashboard','editor-resource'])for(const page of ['performance
  const bad=structuredClone(before);if(bad.spec)bad.spec.timeSettings.timezone='UTC';else bad.timezone='UTC';
  assert.throws(()=>patch(bad,page,{azureVmMetricsUrl}),/timezone/);
 }
+// Optional fresh LIVE v2 exports: prove removing only this task additions restores exact input.
+if(process.argv.length>2){
+ const [perfPath,costPath]=process.argv.slice(2);if(!perfPath||!costPath)throw Error('Provide both live exports');
+ const perf=JSON.parse(fs.readFileSync(perfPath)),cost=JSON.parse(fs.readFileSync(costPath));
+ const azureVmMetricsUrl=perf.spec.elements['panel-11'].spec.data.spec.queries[0].spec.query.spec.url;
+ for(const [page,before] of [['performance',perf],['cost',cost]]){
+  const after=patch(before,page,{azureVmMetricsUrl}),recovered=structuredClone(after);
+  const ids=page==='performance'?[120,121,122,123,124,125,126,127]:[110];
+  for(const id of ids)delete recovered.spec.elements['panel-'+id];
+  for(const row of recovered.spec.layout.spec.rows)row.spec.layout.spec.items=row.spec.layout.spec.items.filter(x=>!ids.includes(Number(x.spec.element.name.replace('panel-',''))));
+  assert.deepEqual(recovered,before,'complete fresh LIVE preservation '+page);
+  assert.deepEqual(patch(after,page,{azureVmMetricsUrl}),after,'fresh repeat '+page);
+ }
+ console.log('PASS: fresh LIVE Performance/Cost complete object preservation and idempotence');
+}
 const now=100000,base={checked_at:now,passive_health_ok:true,last_dispatch_completed_at:now-60,outbox_complete:true,pending_count:0,expected_subscriptions:1,active_expected_subscriptions:1,earliest_expected_expiry_at:now+7200,renewal_advancing:true,delivery_inspected:true,failed_count:0};
 assert.deepEqual(bridgeObservation(base,now),{availability:1,dispatch:1,outbox:1,subscription:1,renewal:1,continuity:1});
 assert(Object.values(bridgeObservation({...base,checked_at:now-361},now)).every(x=>x===4));

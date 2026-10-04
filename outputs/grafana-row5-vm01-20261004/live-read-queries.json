@@ -46,7 +46,7 @@
     "url_options": {
       "method": "GET"
     },
-    "root_selector": "[.value[]?|.timeseries[]?|.data[]?|{Time:.timeStamp,Value:.average}]",
+    "root_selector": ". as $response | [.value[]? as $metric | $metric.timeseries[]? as $series | $series.data[]? | {Time:.timeStamp,Value:.average,Interval:$response.interval,Metric:$metric.name.value,Context:($series.metadatavalues // [] | tostring)}]",
     "columns": [
       {
         "text": "Time",
@@ -57,6 +57,21 @@
         "text": "Value",
         "selector": "Value",
         "type": "number"
+      },
+      {
+        "text": "Interval",
+        "selector": "Interval",
+        "type": "string"
+      },
+      {
+        "text": "Metric",
+        "selector": "Metric",
+        "type": "string"
+      },
+      {
+        "text": "Context",
+        "selector": "Context",
+        "type": "string"
       }
     ]
   },
@@ -74,7 +89,7 @@
     "url_options": {
       "method": "GET"
     },
-    "root_selector": "if .nextLink then error(\"Activity log paginated; save pages privately before deriving history\") else [.value[]?|select((.operationName.value|ascii_downcase|test(\"/virtualmachines/(start|poweroff|deallocate|restart)/action$\")))|{Time:.eventTimestamp,Operation:.operationName.value,Status:.status.value,Correlation:.correlationId,Event:.eventDataId}] end",
+    "root_selector": "if .nextLink then error(\"Activity log paginated; save pages privately before deriving history\") else [.value[]?|select(((.operationName.value // \"\")|ascii_downcase|test(\"/virtualmachines/(start|poweroff|deallocate|restart)/action$\")))|{Time:.eventTimestamp,Operation:.operationName.value,Status:.status.value,Correlation:.correlationId,Event:.eventDataId,Resource:.resourceId}] end",
     "columns": [
       {
         "text": "Time",
@@ -99,6 +114,11 @@
       {
         "text": "Event",
         "selector": "Event",
+        "type": "string"
+      },
+      {
+        "text": "Resource",
+        "selector": "Resource",
         "type": "string"
       }
     ]

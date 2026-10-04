@@ -17,3 +17,7 @@ R051 tracker, monitoring README and operating/visual references now record this 
 ## Source publication
 
 Verified normal push of implementation `d010c282043041718da675e12663c1c8aa729e57` to `feat/grafana-row5-vm01-uptime`; connected actor welct0407 created draft [PR12](https://github.com/welct0407/AppSheet-Loan-Project/pull/12) at15:40:10 UTC. Commit author/committer verified as welct0407<welct0407@gmail.com>. Publication evidence recorded on the same branch. No merge or production effect. Live completion remains blocked on parent fresh Grafana/Azure readbacks and the exact instrumentation/IRM approval bundle.
+
+## Fresh dashboard reconciliation
+
+Parent provided authenticated 15:42–15:43 UTC v2 backups; original hashes/generations/resourceVersions recorded in [fresh evidence](../outputs/grafana-row5-vm01-20261004/fresh-reconciliation.json). Performance61→69 elements adds IDs120–127 only; Cost23→24 adds ID110 only. Tests prove removing only task additions restores the complete original object, preserving all other panels/layout/preferences/metadata. Fresh imports and browser handoff prepared; original Library backups are preserved. Parent confirms both live URLs. Live folder annotation is absent, so handoff requires existing-dashboard UI save and folder verification. Passive Azure results/rule/contact/datasource inspection still pending; no live save or deployment/alert effect applied.

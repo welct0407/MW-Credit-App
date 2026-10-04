@@ -1,0 +1,47 @@
+{
+  "performance": {
+    "backup_bytes": 416059,
+    "backup_sha256": "f6210bfc0964aef5ec5316f6376475243b856410fbbff997ad207c91bd33fa3b",
+    "uid": "mw-resource-performance",
+    "generation": 31,
+    "resourceVersion": "2103829545580806144",
+    "exported_by": "parent authenticated Dots browser",
+    "export_window_utc": "2026-10-04 15:42\u201315:43",
+    "original_elements": 61,
+    "patched_elements": 69,
+    "new_elements": [
+      "panel-120",
+      "panel-121",
+      "panel-122",
+      "panel-123",
+      "panel-124",
+      "panel-125",
+      "panel-126",
+      "panel-127"
+    ],
+    "patch_bytes": 470433,
+    "patch_sha256": "9c50197571e6886d2a14de90ad9f76247719b9ef406f29301b6fb35ce0e33658",
+    "exact_preservation_test": "PASS after removing only added elements/items",
+    "live_save": "not performed",
+    "folder_annotation_present": false
+  },
+  "cost": {
+    "backup_bytes": 138044,
+    "backup_sha256": "8b0fab4da69ab299721c9f0e08536889ada847dfdb50d63a4fd50e9bb20b314a",
+    "uid": "mw-resource-cost",
+    "generation": 13,
+    "resourceVersion": "2103530374456836096",
+    "exported_by": "parent authenticated Dots browser",
+    "export_window_utc": "2026-10-04 15:42\u201315:43",
+    "original_elements": 23,
+    "patched_elements": 24,
+    "new_elements": [
+      "panel-110"
+    ],
+    "patch_bytes": 145514,
+    "patch_sha256": "6d57a1996ac13b5afcaf496229eec43d9cc78465edf1af5f05cfa1c6e0484ec2",
+    "exact_preservation_test": "PASS after removing only added elements/items",
+    "live_save": "not performed",
+    "folder_annotation_present": false
+  }
+}
