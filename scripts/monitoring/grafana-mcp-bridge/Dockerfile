@@ -5,12 +5,12 @@ COPY package.json package-lock.json ./
 # Optional existing environment trust root for dependency downloads behind its approved proxy.
 # BuildKit keeps this public CA mount out of image layers and runtime trust.
 # Optional artifact cache contains only npm's integrity-checked public _cacache,
-# never npmrc, logs or credentials. It is mounted transiently, then removed in this RUN.
+# never npmrc, logs or credentials. Bind mounting avoids adding it to image layers.
 RUN --mount=type=secret,id=build-ca,required=false \
-    --mount=type=secret,id=dependency-cache,required=false \
+    --mount=type=bind,source=.build-cache,target=/build-cache,readonly \
     if [ -s /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
-    if [ -s /run/secrets/dependency-cache ]; then \
-      mkdir /tmp/dependency-cache && tar -xf /run/secrets/dependency-cache -C /tmp/dependency-cache && \
+    if [ -s /build-cache/npm-cache.tar ]; then \
+      mkdir /tmp/dependency-cache && tar -xf /build-cache/npm-cache.tar -C /tmp/dependency-cache && \
       npm ci --offline --cache /tmp/dependency-cache --ignore-scripts --no-audit --no-fund && \
       rm -rf /tmp/dependency-cache; \
     else npm ci --ignore-scripts --no-audit --no-fund; fi
