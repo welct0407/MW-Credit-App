@@ -121,7 +121,7 @@ Owner accepted 8R and authorized replacement. Tab19 is now **8 · Collection Mon
 
 R016 established ten canonical pages, 129 visual placements, 117 distinct questions, 15 active models / 228 fields and four snippets. Original tabs 2/9/10 are replaced by Cash Position (14), Income Statement (16) and Cashflow Statement (15), now ordered as pages 2/3/4, with later tabs shifted back. Fourteen unused questions and seven models are recoverably archived after dependency checks. DEV/PROD are V39; AppSheet and financial rows are unchanged. [canonical cash statements](../outputs/r016-20260922/statement-cleanup/README.md).
 
-Current production baseline is R015; final R016 owner acceptance and migration-key retirement remain pending.
+Historical R016 cash-report checkpoint: V39/report deliveries were subsequently incorporated under R017/R018. R023 accepted and completed the Performance replacement. Whole-R016 acceptance, migration-key retirement evidence and the final R016 tag remain unresolved; see the [4 October reconciliation](../outputs/r016-20260922/promotion-checklist.md#repository-reconciliation--4-october-2026).
 
 ## R019 — Loan-cohort return correction
 
@@ -137,7 +137,7 @@ R017 capital-yield addition, 24 September: **Daily capital yield · snapshots** 
 
 ## R016 — Metabase reporting migration
 
-**Performance review, 24 September:** implemented separate tab **6R · Performance** (18), now immediately after original Performance by owner arrangement. Daily question 222 and new cumulative 230 use Metabase helper 229 for strict seven-day averages before the display-date filter; readiness 231 complements unchanged snapshot status 228. Original Performance (7) is preserved. No DB objects/SQL, snapshot engine, AppSheet or financial-data change. [Saved definitions, 41 checks, browser evidence and rollback](../outputs/r016-20260922/performance-redesign/ROLLING_IMPLEMENTATION.md). R016 is Frozen for promotion; R017 is the sole Open release for subsequent work.
+**Performance review, 24 September:** implemented separate tab **6R · Performance** (18), now immediately after original Performance by owner arrangement. Daily question 222 and new cumulative 230 use Metabase helper 229 for strict seven-day averages before the display-date filter; readiness 231 complements unchanged snapshot status 228. Original Performance (7) was preserved at that checkpoint and later retired under accepted R023. No DB objects/SQL, snapshot engine, AppSheet or financial-data change. [Saved definitions, 41 checks, browser evidence and rollback](../outputs/r016-20260922/performance-redesign/ROLLING_IMPLEMENTATION.md). R016 was frozen at that promotion checkpoint; later handoffs and the current Open release are in the tracker. Performance replacement is complete under R023; broader R016 closure remains separate.
 
 Cash Position keeps today/live and past/snapshot routing. Income and Cashflow statement totals and detail remain live for every selected period. Their separately labeled completed-day trends use stored portfolio/account snapshots, with missing-day counts and actual refresh times. Income excludes principal, capital movements and partner payments; no FIFO distributions or retained-profit bridge appears. Cashflow uses a fresh source opening seed and selected-period running balances. Transfers cancel only in All accounts; unknown balances remain unavailable. The database retains superseded providers for compatible rollback under expand/contract.
 
