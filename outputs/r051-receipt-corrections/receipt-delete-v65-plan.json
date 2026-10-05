@@ -1,8 +1,8 @@
 {
-  "state": "LOCAL_PASS_UNAPPLIED_GUI_PROOF_REQUIRED",
+  "state": "DEV_APPLIED_VALIDATED_ROLLBACK_PASS_GUI_PROOF_REQUIRED",
   "migration": "V65__appsheet_receipt_delete_request.sql",
   "sha256": "72743f3848aaafbaefde7fa15921733ae332bd9209c8da45638fb836aeb3e60b",
-  "actual_dev_version": 64,
+  "actual_dev_version": 65,
   "cause": {
     "provenance": "parent supplied exact AppSheet audit and independent SQL readback",
     "app_version": "1.000167",
@@ -72,8 +72,6 @@
   },
   "next": [
     "Parent explicitly coordinates apply window; no live apply in this preparation",
-    "Verify current exact DEV64, source hashes, validated recovery before migrate",
-    "Apply exact tested V65 and validate history; run rollback-only Test-ReceiptDeleteDev.py with four absent additional namespaces",
     "Reconcile old queued native delete before opening GUI; do not weaken guard or replay it",
     "Regenerate affected Payments table metadata and capture overrides in both apps",
     "Single synthetic custom action save/fullsync/audit/SQL proof before broader GUI continuation"
@@ -98,5 +96,11 @@
     "fresh_recovery": "recovery-v64.json",
     "acceptance": "dev-receipt-delete-v65.json",
     "state": "Applied/validated; rollback-only DEV pass; GUI action/save/full-sync proof pending; additional persistent batches not created"
-  }
+  },
+  "completed_dev_steps": [
+    "Fresh V64 backup restored with26 fingerprints matching",
+    "Pinned V65 applied and validated;25 non-history tables preserved with new Payments flag normalized",
+    "Rollback-only receipt-command acceptance passed; all26 fingerprints unchanged",
+    "Original GUI fixture readback unchanged at19:24:28UTC; window released"
+  ]
 }
