@@ -22,11 +22,12 @@
     "patch_bytes": 477085,
     "patch_sha256": "2106441fb06fc90f10abdc60b4fb2656e633a127093db9979162f092b9e35254",
     "exact_preservation_test": "PASS after removing only added elements/items",
-    "live_save": "Parent saved and verified generation33/resourceVersion2106799088514420736",
+    "live_save": "Latest sizing save verified by parent persisted v2 export; server generation/version omitted",
     "folder_annotation_present": false,
-    "live_acceptance_evidence": "live-acceptance.json; whole spec matches intended except four empty mappings arrays omitted",
+    "live_acceptance_evidence": "row5-sizing-followup.json (latest); live-acceptance.json (4 October historical)",
     "traffic_light_followup": "Owner requested panels121/122 match exact current panel51 style; scoped patch prepared against parent verified unchanged generation33; browser application pending",
-    "sizing_followup": "2026-10-05: source row5 sizing checked; final live save evidence pending parent"
+    "sizing_followup": "2026-10-05: live save/reload/render/persisted export verified; exact11 geometry changes, all non-layout spec properties preserved vs editor baseline",
+    "latest_saved_resource_sha256": "f2b43b217af73c59652dced88cf46acfd9f089ed6b80e449fd936b01212da903"
   },
   "cost": {
     "backup_bytes": 138044,

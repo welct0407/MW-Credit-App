@@ -13,6 +13,10 @@ for(const fmt of ['dashboard','editor-resource'])for(const page of ['performance
    return after.panels.find(p=>p.id===id).gridPos;
   };
   const peer=geometry(51),cards=[121,122,123,125,126,127].map(geometry);
+  const standard=after.spec?after.spec.layout.spec.rows[0].spec.layout.spec.items.filter(p=>[10,14].includes(p.spec.y)&&after.spec.elements[p.spec.element.name]?.spec.vizConfig?.group==='stat').map(p=>({y:p.spec.y,w:p.spec.width,h:p.spec.height})):after.panels.filter(p=>p.type==='stat'&&[10,14].includes(p.gridPos.y)).map(p=>p.gridPos);
+  assert(standard.some(p=>p.y===10)&&standard.some(p=>p.y===14),'both standard status rows inspected');
+  for(const p of standard)assert.deepEqual([p.w,p.h],[2,3],'every existing row3/4 light has the reference footprint');
+
   for(const id of [121,122])assert.deepEqual([geometry(id).w,geometry(id).h],[peer.w,peer.h],'lights match existing row3/4 tile size');
   for(const id of [123,125,126,127])assert.deepEqual([geometry(id).w,geometry(id).h],[4,4],'other row5 card sizes preserved');
   assert.deepEqual(cards.map(p=>p.x),[0,2,4,8,12,16],'compact row5 order');
