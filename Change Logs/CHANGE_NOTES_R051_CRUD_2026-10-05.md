@@ -6,6 +6,8 @@ V65 adds only Payments.`Delete Requested` (Boolean, default false) and invoker t
 
 A separate unapplied V66 candidate enforces the existing positive/Tommy-paid reimbursement invariant from either source, with no-op parent versioning for stale repeatable-read writers. No new fields, caps or grants; restricted ledger writers require underlying expense UPDATE permission. Current expense UI locks stay until server acceptance. [Candidate and tests](../outputs/r051-receipt-corrections/expense-reimbursement-v66.md).
 
+After the parent verified that OLTP168 regeneration cannot expose Delete Requested before three add-row assignments validate, V67 proposes an equivalent validated IS NOT NULL check with nullable column metadata. DEFAULTfalse and command guards remain unchanged; NULL SQLSTATE changes23502→23514. Full local67-migration/nine-concurrency and seeded-opening checks pass; actual AppSheet bootstrap benefit remains unproven and no live apply is included. [Pre-apply plan](../outputs/r051-receipt-corrections/receipt-flag-v67-plan.md).
+
 The following paragraphs retain earlier package checkpoints; the status above and owning evidence define the current gate.
 
 The owner replaced the earlier history-heavy reversal proposal with ordinary INSERT/UPDATE/DELETE for this two-person prototype, then expanded coverage to appropriate operations in both apps and all real business entities. Parent/child relationships and useful cascades must be retained as far as possible. Existing role permissions and necessary consistency/duplicate/concurrency checks remain.

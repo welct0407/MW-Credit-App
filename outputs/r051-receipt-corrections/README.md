@@ -6,6 +6,8 @@
 
 [Additional fixtures](additional-ui-fixtures.md) are executable and locally rehearsed but uncreated. [Source-account UI proposals](source-account-ui-proposals.json) cover expense, loan and settlement corrections, retaining current authorization and dependency rules. Applied V65 still lacks source-side reimbursement revalidation. The separate [V66 candidate](expense-reimbursement-v66.md) addresses that invariant and concurrency locally; it remains unapplied and blocks broad expense account unlocking.
 
+The separate [V67 metadata candidate](receipt-flag-v67-plan.md) preserves non-null stored values with a validated CHECK while exposing nullable column metadata, to test the confirmed OLTP schema/action bootstrap cycle. It is locally tested and **unapplied**; its effect on AppSheet regeneration is not established.
+
 The task branch is `codex/r051-receipt-corrections`, based on `02c7f2d1926bc06ecbbc785446d70d91459dd2b1`, published in [draft PR15](https://github.com/welct0407/AppSheet-Loan-Project/pull/15). DEV target: `clever-oasis-508610-n7 / appsheet-pg-prod-20260914 / 34.21.174.215 / loan_manager_dev`; existing `postgres` route with pinned IAP/proxy transport. PROD, instance settings, role grants and deployed integration runtimes are untouched. R051 remains Open.
 
 ## Current package and checks
