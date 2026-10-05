@@ -5,7 +5,7 @@
     "Ref Paid By Cash Account": {
       "Valid_If": "SELECT(Cash Accounts[Row ID], OR([Active], [Row ID] = [_THISROW].[Ref Paid By Cash Account]))",
       "initial_value": "Retain existing new-row default account behavior; do not reset account on ordinary edits",
-      "Editable_If_status": "PROPOSED ONLY AFTER V66 DEV apply/test: compose existing authorization; no Cash Ledger reference. Current account/payer locks stay until backend and saved default/holder reconciliation pass.",
+      "Editable_If_status": "Backend gate passed; still proposed until saved authorization/default/holder clauses and actual form behavior are reconciled.",
       "Editable_If_predicate_after_verified_V66": "OR(ISBLANK([Source Type]), [Source Type] = \"Manual\")"
     },
     "Ref Paid By Cash Holder": {
@@ -15,9 +15,9 @@
       "existing_record_formula_only_NOT_drop_in": "IF(ISNOTBLANK([Ref Paid By Cash Account]), [Ref Paid By Cash Account].[Ref Cash Holder], LOOKUP([Row ID], \"Business Expenses\", \"Row ID\", \"Ref Paid By Cash Holder\"))",
       "integration_required": "Current new-row fallback/selection behavior must be read from saved GUI and retained in a new/existing branch before applying; this fragment alone would yield blank for an uncreated row."
     },
-    "gate": "V66 candidate only; DEV currently65. Server validates linked reimbursements, so no unavailable Cash Ledger table is needed in OLTP. Do not apply eligibility before coordinated V66 DEV acceptance and saved default/holder formula reconciliation.",
+    "gate": "V66/V67 applied and DEV rollback acceptance passed. Saved new-row fallback, holder Reset/default and actual app permission checks remain required; no unavailable Cash Ledger table reference.",
     "tests": [
-      "correct seeded category Other to actual enum Other / \u0e2d\u0e37\u0e48\u0e19 \u0e46 through GUI before expense edit",
+      "correct seeded category Other to actual enum Other / อื่น ๆ through GUI before expense edit",
       "manual expense amount/account within same holder and across holders; one original cash key follows",
       "holder recomputes on screen and source after sync; no-op preserves original account",
       "system referral locked; inactive new account rejected; cutover rejects atomically; linked reimbursement permits same-Tommy account but rejects other payer/nonpositive source amount atomically"
@@ -36,9 +36,9 @@
       "access": "Retain any current narrower borrower authorization/selection clauses"
     },
     "tests": [
-      "unpaid loan borrower A\u2192B updates borrower totals/history, loan key stable",
+      "unpaid loan borrower A→B updates borrower totals/history, loan key stable",
       "existing receipt or borrower-bound independent expense blocks move",
-      "Lisa accountA\u2192B moves same disbursement cash key and account totals",
+      "Lisa accountA→B moves same disbursement cash key and account totals",
       "Dad account/inactive newly selected account rejected",
       "cutover source correction rejected; closed/default ownership rules remain"
     ]
@@ -59,7 +59,7 @@
     "ownership": "Keep Complete/Reverse/Cancel and existing access/status constraints; no Dad settlement payer",
     "tests": [
       "Use exact PARTNER-A-LISA and PARTNER-A-LISA2 synthetic accounts",
-      "Pending\u2192Completed then amount/date/account correction keeps one original settlement cash key",
+      "Pending→Completed then amount/date/account correction keeps one original settlement cash key",
       "Account-only correction conserves total cash while account balances change",
       "Reverse/Cancel removes owned cash; Complete restores it once",
       "New inactive/non-Lisa account, insufficient net entitlement and included-opening edits reject atomically"

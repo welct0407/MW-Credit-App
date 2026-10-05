@@ -2,7 +2,7 @@
   "state": "DEV_APPLIED_VALIDATED_ROLLBACK_PASS_GUI_PROOF_REQUIRED",
   "migration": "V65__appsheet_receipt_delete_request.sql",
   "sha256": "72743f3848aaafbaefde7fa15921733ae332bd9209c8da45638fb836aeb3e60b",
-  "actual_dev_version": 65,
+  "actual_dev_version": 67,
   "cause": {
     "provenance": "parent supplied exact AppSheet audit and independent SQL readback",
     "app_version": "1.000167",
@@ -13,7 +13,7 @@
     "state": "P1 source/children/cash preserved; later successful sync does not turn failed delete into success"
   },
   "database_design": [
-    "Payments-only Delete Requested boolean NOT NULL DEFAULT false",
+    "Payments-only Delete Requested Boolean DEFAULT false; applied V67 validated IS NOT NULL CHECK retains non-null values with nullable column metadata",
     "BEFORE rejects true on INSERT and command combined with other source edits",
     "Last AFTER UPDATE executes ordinary source DELETE; existing locks/dependencies/owned effects remain",
     "SECURITY INVOKER; no grants, actor label authorization or child-guard weakening",
@@ -102,5 +102,6 @@
     "Pinned V65 applied and validated;25 non-history tables preserved with new Payments flag normalized",
     "Rollback-only receipt-command acceptance passed; all26 fingerprints unchanged",
     "Original GUI fixture readback unchanged at19:24:28UTC; window released"
-  ]
+  ],
+  "v67_status": "DEV V59–V67 is applied and validated. Fresh V65 recovery restored all26 table fingerprints; V66/V67 preserve all25 non-history tables, and rollback-only receipt/reimbursement/NULL acceptance preserves all26. Parent reports OLTP1.000168 runnable with the old37-column schema and OLAP1.000051 with the hidden flag. V67 changes only nullability metadata while a validated CHECK still rejects NULL; actual OLTP regeneration and source-delete save/full-sync proof remain pending. No additional GUI fixture batches were created. AppSheet SQL-role evidence remains unavailable; admin checks do not prove app permissions. No PROD change."
 }

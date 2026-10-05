@@ -1,4 +1,4 @@
-# V67 receipt flag metadata — candidate, not applied
+# V67 receipt flag metadata — applied and DEV rollback-tested
 
 The parent verified an editor bootstrap cycle: DEV OLTP1.000168 remains runnable with its original37-column model; the assignment dropdown exposes17 existing editable Payments fields without Delete Requested. Regeneration rejects three existing receipt-creation actions for omitting that required field before exposing the new schema. The empty attempted assignment was removed, original assignments retained and no app save made. DEV OLAP1.000051 already has the hidden false-default field. These are parent observations, not executor GUI claims.
 
@@ -8,13 +8,15 @@ PostgreSQL explicitly documents this check as functionally equivalent to NOT NUL
 
 The candidate's GUI benefit is an inference, not a guarantee. AppSheet documents table regeneration and action required-value validation, but its PostgreSQL documentation does not establish whether its schema importer also examines CHECK constraints. It may still infer Required, or retain an existing override. Actual regeneration, saved metadata and action validation must decide whether this representation resolves the cycle. [Regeneration](https://support.google.com/appsheet/answer/10106675?hl=en) · [Required_If](https://support.google.com/appsheet/answer/10106535?hl=en) · [PostgreSQL integration](https://support.google.com/appsheet/answer/10106598?hl=en).
 
-Candidate SHA256 `3456e4a7c33eef4e9dfe66e910b2224a10843a313298da082177e913be52e430`, Flyway checksum `1721477385`. [Exact local evidence](local-validation-v67.json).
+Applied SHA256 `3456e4a7c33eef4e9dfe66e910b2224a10843a313298da082177e913be52e430`, Flyway checksum `1721477385`. [Exact local evidence](local-validation-v67.json).
+
+Applied after exact-head CI37366812688 attempt2 passed. Fresh V65 restore matched all26 fingerprints; sequential66/67 preserved all25 business tables. Actual rollback-only acceptance passed and preserved all26. GUI benefit remains unproven.
 
 ## Local verification
 
 `Test-ReceiptDeleteFlagMetadata.sql` replays the exact migration over populated disposable data using the old NOT NULL representation, compares all table fingerprints and V65 function/trigger definitions, and checks metadata/default/validated constraint. It tests omitted/default and explicit-false posting, explicit NULL direct insert/update, multirow update and real-table COPY rejection with complete rollback, true insert/mixed-command rejection, unchanged no-op effects and successful atomic source deletion. Existing receipt concurrency, restricted-role, cancellation/lost-connection and reimbursement tests remain in full Test-CI. COPY's expected23514 appears in the SQL log; the test explicitly captures and asserts SQLSTATE and rollback rather than treating any error as success.
 
-## Proposed coordinated apply and GUI proof
+## Coordinated apply and remaining GUI proof
 
 1. Before any live application, obtain the coordinated DEV window, verify the exact instance/host/loan_manager_dev tuple and current V65 history, a fresh private V65 backup with isolated restore/all26 fingerprint verification, immutable V66/V67 pins and exact-head CI. Recheck relevant invariant counts if state changed; do not repair real records implicitly.
 2. Apply the pending migrations in order, V66 then V67. Each migration is transactional; if a later migration fails, reconcile actual history rather than assuming the whole batch rolled back. Validate hashes/history and compare all non-history table contents; V67 requires no source-row normalization because it adds no column or data.

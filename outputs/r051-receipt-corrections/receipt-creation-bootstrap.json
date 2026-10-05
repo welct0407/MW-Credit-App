@@ -4,7 +4,7 @@
     "oltp": "1.000168 runnable37-column model; verified dropdown17 existing editable target fields lacks Delete Requested; regeneration rejects3missing required assignments before exposing field; empty attemptedassignment removed/original10retained/noSave/runtimeunopened",
     "olap": "1.000051 new hidden false-default field applied"
   },
-  "database": "DEV65 physical Delete Requested boolean NOT NULL DEFAULT false; no schema change proposed",
+  "database": "DEV67 Delete Requested Boolean DEFAULT false; validated payment_delete_requested_present CHECK enforces non-null values while column metadata is nullable",
   "inventory_provenance": "Saved DEV OLTP1.000159 AppDoc baseline; exact names match three parent-reported creator class, current live assignments must be read back",
   "receipt_creators": [
     {
@@ -46,18 +46,18 @@
   ],
   "avoid": [
     "Do not set App formula=FALSE: formula columns cannot be set by the delete action",
-    "Do not permit stored NULL, drop DEFAULTfalse or weaken command guards. A separately reviewed forward V67 candidate changes only NOT NULL representation to an equivalent validated CHECK.",
+    "Do not permit stored NULL, drop DEFAULTfalse or weaken command guards. Applied V67 changes only NOT NULL representation to an equivalent validated CHECK.",
     "Do not expose field for manual editing merely to enable assignments; Editable_If FALSE does not disable actions",
     "Do not rely on action hide/OnlyIf FALSE as a documented required-column-validation bypass",
     "No unrelated tables, replacement database column, workflow removal or private editor API workaround proposed"
   ],
   "sources": [
     {
-      "title": "Actions: The Essentials \u2014 add-row Set these columns and set-values restrictions",
+      "title": "Actions: The Essentials — add-row Set these columns and set-values restrictions",
       "url": "https://support.google.com/appsheet/answer/10107706?hl=en"
     },
     {
-      "title": "Editable_If \u2014 FALSE permits initial values/actions; UI scope only",
+      "title": "Editable_If — FALSE permits initial values/actions; UI scope only",
       "url": "https://support.google.com/appsheet/answer/10107954"
     },
     {
@@ -66,5 +66,6 @@
     }
   ],
   "limitations": "Docs support the final assignments/defaults, not successful recovery of this particular timed-out/rejected editor operation. Actual GUI bootstrap remains unverified.",
-  "alternate_representation_candidate": "Forward V67 preserves non-null stored rule with validated CHECK then drops NOT NULL metadata; see receipt-flag-v67-plan.md. Not applied; GUI effect unproven."
+  "alternate_representation_candidate": "V67 applied and rollback-tested; non-null stored rule preserved, GUI regeneration benefit remains unproven.",
+  "v67_status": "DEV V59–V67 is applied and validated. Fresh V65 recovery restored all26 table fingerprints; V66/V67 preserve all25 non-history tables, and rollback-only receipt/reimbursement/NULL acceptance preserves all26. Parent reports OLTP1.000168 runnable with the old37-column schema and OLAP1.000051 with the hidden flag. V67 changes only nullability metadata while a validated CHECK still rejects NULL; actual OLTP regeneration and source-delete save/full-sync proof remain pending. No additional GUI fixture batches were created. AppSheet SQL-role evidence remains unavailable; admin checks do not prove app permissions. No PROD change."
 }

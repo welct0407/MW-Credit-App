@@ -72,8 +72,8 @@ def fingerprints(c):
 
 
 def backup(expected_version=58):
-    if expected_version not in (58,64):
-        raise ValueError("Only reviewed V58 or pre-V65 V64 recovery is supported")
+    if expected_version not in (58,64,65):
+        raise ValueError("Only reviewed V58/V64/V65 recovery is supported")
     import psycopg
     root = Path(tempfile.mkdtemp(prefix='r051-dev-recovery-', dir='/workspace'))
     root.chmod(0o700)
@@ -123,7 +123,7 @@ def backup(expected_version=58):
                     baseline_version=expected_version,sha256=hashlib.sha256(dump.read_bytes()).hexdigest(),
                     table_count=len(before),restored_fingerprints_match=True,private_artifact_reference=root.name,
                     scope='public,assessment_lab,agent_audit; roles and instance configuration excluded')
-    destination='recovery.json' if expected_version==58 else 'recovery-v64.json'
+    destination='recovery.json' if expected_version==58 else f'recovery-v{expected_version}.json'
     (REPO/'outputs/r051-receipt-corrections'/destination).write_text(json.dumps(evidence,indent=2)+'\n')
     return evidence
 
@@ -135,34 +135,48 @@ def source_hashes():
 
 
 def migrate(target_version=60):
-    if target_version not in (60,61,62,63,64,65):raise ValueError('Only reviewed R051 DEV batches are supported')
-    recovery_name='recovery-v64.json' if target_version==65 else 'recovery.json'
+    if target_version not in (60,61,62,63,64,65,66,67):raise ValueError('Only reviewed R051 DEV batches are supported')
+    recovery_name='recovery-v65.json' if target_version>=66 else ('recovery-v64.json' if target_version==65 else 'recovery.json')
     recovery = json.loads((REPO/'outputs/r051-receipt-corrections'/recovery_name).read_text())
     artifact = Path('/workspace')/recovery['private_artifact_reference']/'before.dump'
-    if (not recovery['restored_fingerprints_match'] or recovery['baseline_version'] != (64 if target_version==65 else 58)
+    if (not recovery['restored_fingerprints_match'] or recovery['baseline_version'] != (65 if target_version>=66 else (64 if target_version==65 else 58))
             or hashlib.sha256(artifact.read_bytes()).hexdigest() != recovery['sha256']):
         raise ValueError('Verified DEV recovery missing or changed')
     hashes = source_hashes()
-    validation=json.loads((REPO/'outputs/r051-receipt-corrections/local-validation.json').read_text())
+    validation_name='local-validation-v67.json' if target_version>=66 else 'local-validation.json'
+    validation=json.loads((REPO/'outputs/r051-receipt-corrections'/validation_name).read_text())
     if not validation['passed'] or validation['source_sha256'] != hashes:
         raise ValueError('Exact migration source has not passed maintained local CI')
+    if target_version>=66:
+        pins={'V66__linked_expense_reimbursement_consistency.sql':'b0ac780016bbf53011f7ec11037c59e8f0b23fbc521a939343bb30b2945d6dc9',
+              'V67__receipt_delete_flag_required_check.sql':'3456e4a7c33eef4e9dfe66e910b2224a10843a313298da082177e913be52e430'}
+        if any(hashes.get(k)!=v for k,v in pins.items()):raise ValueError('Reviewed V66/V67 pin mismatch')
     def apply(c, params):
         if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
             raise ValueError('DEV target changed')
         before = c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank').fetchall()
-        if before[-1] != {60:('58',1886180782),61:('60',1434947825),62:('61',-209051559),63:('62',-2039538011),64:('63',-1466229726),65:('64',1504057228)}[target_version]:
+        if before[-1] != {60:('58',1886180782),61:('60',1434947825),62:('61',-209051559),63:('62',-2039538011),64:('63',-1466229726),65:('64',1504057228),66:('65',-2087638333),67:('66',1095016248)}[target_version]:
             raise ValueError('Expected reviewed DEV history; reconcile before proceeding')
         preservation = None
         def preserved_rows():
             c.execute("SET LOCAL timezone='UTC'")
             rows = fingerprints(c)
             rows.pop('public.flyway_schema_history')
-            rows['public.Payments'] = list(c.execute("SELECT count(*),md5(coalesce(string_agg(md5((to_jsonb(p)-'Delete Requested')::text),'' ORDER BY md5((to_jsonb(p)-'Delete Requested')::text)),'')) FROM public.\"Payments\" p").fetchone())
+            if target_version==65: rows['public.Payments'] = list(c.execute("SELECT count(*),md5(coalesce(string_agg(md5((to_jsonb(p)-'Delete Requested')::text),'' ORDER BY md5((to_jsonb(p)-'Delete Requested')::text)),'')) FROM public.\"Payments\" p").fetchone())
             return rows
-        if target_version == 65:
+        if target_version >= 65:
             c.execute("SET LOCAL timezone='UTC'; SET LOCAL statement_timeout='30s'; SET LOCAL lock_timeout='3s'")
-            if fingerprints(c) != json.loads((artifact.parent/'fingerprints.json').read_text()):
+            recovered=json.loads((artifact.parent/'fingerprints.json').read_text())
+            current=fingerprints(c)
+            if target_version>=66:
+                recovered.pop('public.flyway_schema_history');current.pop('public.flyway_schema_history')
+            if current != recovered:
                 raise ValueError('Source changed since fresh recovery; reconcile before migration')
+            if target_version==66:
+                violations=c.execute('''SELECT count(*) FROM "Cash Ledger" l LEFT JOIN "Business Expenses" e ON e."Row ID"=l."Ref Business Expense"
+                 WHERE l."Entry Origin"='Manual' AND l."Movement Type"='Expense Reimbursement' AND l."Ref Business Expense" IS NOT NULL
+                  AND (e."Amount"::numeric>0 AND e."Ref Paid By Cash Holder"='ch:tommy') IS NOT TRUE''').fetchone()[0]
+                if violations:raise ValueError('Existing linked reimbursement invariant violation; no implicit repair')
             preservation = preserved_rows()
         c.rollback()
         env = {k:v for k,v in os.environ.items() if not k.startswith(('PG','CODEX_','FLYWAY_'))}
@@ -172,14 +186,30 @@ def migrate(target_version=60):
                    '-locations=filesystem:'+str(REPO/'database/migrations'),
                    '-url=jdbc:postgresql://127.0.0.1:'+str(params['port'])+'/loan_manager_dev',
                    '-user=postgres',"-initSql=SET lock_timeout='5s'; SET statement_timeout='30s'",'-target='+str(target_version)]
-        result = json.loads(subprocess.run(command+['migrate'],env=env,cwd=REPO,capture_output=True,text=True,check=True,timeout=120).stdout)
-        valid = json.loads(subprocess.run(command+['validate'],env=env,cwd=REPO,capture_output=True,text=True,check=True,timeout=60).stdout)
+        try:
+            result = json.loads(subprocess.run(command+['migrate'],env=env,cwd=REPO,capture_output=True,text=True,check=True,timeout=120).stdout)
+            valid = json.loads(subprocess.run(command+['validate'],env=env,cwd=REPO,capture_output=True,text=True,check=True,timeout=60).stdout)
+        except (subprocess.SubprocessError,ValueError) as error:
+            # A client failure is an unknown outcome, never authority to replay.
+            # Read the actual history and data through the still-owned connection.
+            c.rollback()
+            c.execute("SET LOCAL statement_timeout='30s'; SET LOCAL lock_timeout='3s'")
+            actual=c.execute('SELECT version,checksum,success FROM flyway_schema_history ORDER BY installed_rank').fetchall()
+            unchanged=preserved_rows()==preservation if preservation is not None else None
+            reconciliation=dict(target_version=target_version,error_type=type(error).__name__,
+                actual_history=actual,business_fingerprints_unchanged=unchanged,
+                automatic_retry=False,recovery_sha256=recovery['sha256'])
+            (REPO/f'outputs/r051-receipt-corrections/dev-migration-v{target_version}-failure.json').write_text(json.dumps(reconciliation,indent=2)+'\n')
+            c.rollback()
+            raise RuntimeError('Migration/validation client failed; actual history recorded, reconcile before any replay') from None
         if not result['success'] or result['migrationsExecuted'] != (2 if target_version==60 else 1) or not valid['validationSuccessful']:
             raise ValueError('Unexpected DEV migration result; reconcile, do not replay')
         after = c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank').fetchall()
         added=after[len(before):]
         if after[:len(before)] != before or [v for v,ch in added] != (['59','60'] if target_version==60 else [str(target_version)]) or source_hashes()!=hashes:
             raise ValueError('Migration/history/source mismatch')
+        if target_version>=66 and added != [(str(target_version),{66:1095016248,67:1721477385}[target_version])]:
+            raise ValueError('Applied reviewed checksum mismatch; do not replay')
         if preservation is not None:
             if preserved_rows() != preservation or c.execute('SELECT count(*) FROM "Payments" WHERE "Delete Requested"').fetchone()[0]:
                 raise ValueError('Post-migration source preservation mismatch; reconcile, do not replay')
@@ -187,7 +217,7 @@ def migrate(target_version=60):
         return dict(database='loan_manager_dev',instance='appsheet-pg-prod-20260914',host='34.21.174.215',
                     migrated=added,validate=True,source_sha256=hashes,recovery_sha256=recovery['sha256'],
                     existing_rows_preserved=(preservation is not None),
-                    preservation_scope='25 non-history tables; Payments normalized without new Delete Requested column; all flags false' if preservation is not None else None)
+                    preservation_scope=('25 non-history tables; Payments normalized without new Delete Requested column; all flags false' if target_version==65 else 'All25 non-history tables unchanged; flags false') if preservation is not None else None)
     result = dev_connection(apply)
     (REPO/('outputs/r051-receipt-corrections/dev-migration.json' if target_version==60 else f'outputs/r051-receipt-corrections/dev-migration-v{target_version}.json')).write_text(json.dumps(result,indent=2)+'\n')
     return result
@@ -312,8 +342,8 @@ def ui_fixtures(mode, browser_reference):
             prior=json.loads(manifest.read_text())
             private_state=Path('/workspace')/prior['private_baseline_reference']
         c.execute("SET LOCAL timezone='Asia/Bangkok'")
-        if c.execute('SELECT max(version::integer) FROM flyway_schema_history WHERE success').fetchone()[0] != 65:
-            raise ValueError('Expected validated V65')
+        if c.execute('SELECT max(version::integer) FROM flyway_schema_history WHERE success').fetchone()[0] != 67:
+            raise ValueError('Expected validated V67')
         if mode=='ui-create':
             if c.execute('SELECT EXISTS(SELECT 1 FROM public."Borrowers" WHERE "Row ID" LIKE \'SYN-R051-UI-%\')').fetchone()[0]:
                 raise ValueError('Reserved namespace is not empty')
@@ -343,8 +373,8 @@ def ui_fixtures(mode, browser_reference):
 if __name__ == '__main__':
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('mode', choices=['backup','backup-v64','migrate','migrate-refinement','migrate-planning','migrate-coalescing','migrate-aggregate','migrate-receipt-delete','test','test-business','test-business-monolithic','ui-create','ui-cleanup'])
+    p.add_argument('mode', choices=['backup','backup-v64','backup-v65','migrate','migrate-refinement','migrate-planning','migrate-coalescing','migrate-aggregate','migrate-receipt-delete','migrate-reimbursement','migrate-flag-metadata','test','test-business','test-business-monolithic','ui-create','ui-cleanup'])
     p.add_argument('--browser-ready-reference')
     args = p.parse_args()
-    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'backup-v64':lambda:backup(64),'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'migrate-aggregate':lambda:migrate(64),'migrate-receipt-delete':lambda:migrate(65),'test':test,'test-business':lambda:test(True),'test-business-monolithic':lambda:test(True,False)}[args.mode]()
+    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'backup-v64':lambda:backup(64),'backup-v65':lambda:backup(65),'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'migrate-aggregate':lambda:migrate(64),'migrate-receipt-delete':lambda:migrate(65),'migrate-reimbursement':lambda:migrate(66),'migrate-flag-metadata':lambda:migrate(67),'test':test,'test-business':lambda:test(True),'test-business-monolithic':lambda:test(True,False)}[args.mode]()
     print(json.dumps(result))

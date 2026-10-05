@@ -1,5 +1,5 @@
 {
-  "gate": "DEV V65 APPLIED/VALIDATED: fresh V64 restore matches26 tables; existing25 non-history tables preserved across additive migration (Payments normalized without new falseflag); rollback receipt-command acceptance preserves all26. Parent reports OLTP1.000167/OLAP1.000049 runnable/editorclear. Native cascade FAILED; queue reconciliation and custom source-action GUI proof pending. Additional persistent batches NOT CREATED. Earlier embedded initial fixtures/CI/UI failures below are historical; current sanitized UI delta is ui-progress-parent.json and current fixture state ui-readback-after-v65.json.",
+  "gate": "DEV V59–V67 is applied and validated. Fresh V65 recovery restored all26 table fingerprints; V66/V67 preserve all25 non-history tables, and rollback-only receipt/reimbursement/NULL acceptance preserves all26. Parent reports OLTP1.000168 runnable with the old37-column schema and OLAP1.000051 with the hidden flag. V67 changes only nullability metadata while a validated CHECK still rejects NULL; actual OLTP regeneration and source-delete save/full-sync proof remain pending. No additional GUI fixture batches were created. AppSheet SQL-role evidence remains unavailable; admin checks do not prove app permissions. No PROD change.",
   "baseline": {
     "oltp": {
       "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
@@ -560,5 +560,17 @@
     "fresh_recovery": "recovery-v64.json",
     "acceptance": "dev-receipt-delete-v65.json",
     "state": "Applied/validated; rollback-only DEV pass; GUI action/save/full-sync proof pending; additional persistent batches not created"
+  },
+  "current_v67_acceptance": {
+    "passed": true,
+    "database": "loan_manager_dev",
+    "expected_version": 67,
+    "window_reference": "Parent reserved DEV window; root cleared fdedfa28 CI37366812688 attempt2 SUCCESS on 2026-10-05; GUI writes paused",
+    "application_name": "r051-v67-delete-bc267b00b32b4224ba31627b1096b829",
+    "flag_metadata_null_bulk_copy_checks": "passed",
+    "functional_checks": "passed",
+    "linked_reimbursement_checks": "passed",
+    "table_fingerprints_compared": 26,
+    "fingerprints_unchanged": true
   }
 }

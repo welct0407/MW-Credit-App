@@ -37,8 +37,8 @@ def gate(c, window_reference, containment_reference):
         raise ValueError('Current exclusive GUI/backend window and notification references required')
     if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
         raise ValueError('DEV identity mismatch')
-    if c.execute('SELECT max(version::integer) FROM public.flyway_schema_history WHERE success').fetchone()[0] != 65:
-        raise ValueError('Expected validated V65')
+    if c.execute('SELECT max(version::integer) FROM public.flyway_schema_history WHERE success').fetchone()[0] != 67:
+        raise ValueError('Expected validated V67')
 
 
 def rows(c, table, where, args):
