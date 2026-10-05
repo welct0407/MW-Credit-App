@@ -12,3 +12,4 @@
 \ir Test-InterestReallocation.sql
 \ir Test-PaymentCrud.sql
 \ir Test-BusinessCrud.sql
+\ir Test-HistoryAggregateParity.sql

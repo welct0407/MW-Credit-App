@@ -129,7 +129,7 @@ def source_hashes():
 
 
 def migrate(target_version=60):
-    if target_version not in (60,61,62,63):raise ValueError('Only reviewed R051 DEV batches are supported')
+    if target_version not in (60,61,62,63,64):raise ValueError('Only reviewed R051 DEV batches are supported')
     recovery = json.loads((REPO/'outputs/r051-receipt-corrections/recovery.json').read_text())
     artifact = Path('/workspace')/recovery['private_artifact_reference']/'before.dump'
     if (not recovery['restored_fingerprints_match'] or recovery['baseline_version'] != 58
@@ -143,7 +143,7 @@ def migrate(target_version=60):
         if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
             raise ValueError('DEV target changed')
         before = c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank').fetchall()
-        if before[-1] != {60:('58',1886180782),61:('60',1434947825),62:('61',-209051559),63:('62',-2039538011)}[target_version]:
+        if before[-1] != {60:('58',1886180782),61:('60',1434947825),62:('61',-209051559),63:('62',-2039538011),64:('63',-1466229726)}[target_version]:
             raise ValueError('Expected reviewed DEV history; reconcile before proceeding')
         c.rollback()
         env = {k:v for k,v in os.environ.items() if not k.startswith(('PG','CODEX_','FLYWAY_'))}
@@ -169,7 +169,39 @@ def migrate(target_version=60):
     return result
 
 
-def test(business_only=False):
+def business_cases(sql):
+    """Run independent business workflows in fresh transactions, one backend.
+
+    Keep the maintained monolithic suite as the local transaction stress test.
+    DEV additionally models pooled app connections: each complete source workflow
+    rolls back before the next, without discarding the session's plan cache.
+    """
+    boundaries = [
+        ('charges', '-- Source charge edit'),
+        ('expenses', '-- Manual expense changes'),
+        ('manual_cash', '-- Manual movement amounts'),
+        ('settlements', '-- Settlement uses'),
+        ('loans_and_masters', '-- Loan principal/current'),
+        ('contributions', 'INSERT INTO "Cash Pool Contributions"("Row ID","Ref Partner","Contribution Date","Transaction Type","Amount") VALUES(\'CRUD60-EXTRA\''),
+        ('default_and_closure', '-- Default and prepared Loan Close'),
+        ('generic_compatibility', 'SAVEPOINT generic_planning;'),
+    ]
+    if any(sql.count(text) != 1 for _, text in boundaries):
+        raise ValueError('Broad suite boundaries changed; review workflow grouping')
+    indexes = [sql.index(text) for _, text in boundaries]
+    if indexes != sorted(indexes):
+        raise ValueError('Broad workflow order changed')
+    setup = sql[:indexes[0]]
+    end = sql.index("SELECT 'Business source CRUD passed' AS result;")
+    preservation = "SELECT pg_temp.assert((SELECT p=to_jsonb(x) FROM unrelated_receipt CROSS JOIN \"Payments\" x WHERE x.\"Row ID\"='CRUD60-P'),'independent receipt preserved by workflow');"
+    result = []
+    for i, (name, _) in enumerate(boundaries):
+        body = sql[indexes[i]:indexes[i+1] if i+1<len(indexes) else end]
+        result.append('\\echo R051_CASE '+name+'\n'+setup+body+'\n'+preservation+"\nSELECT 'R051 workflow "+name+" passed' AS result;\nROLLBACK;\n")
+    return '\n'.join(result)
+
+
+def test(business_only=False, grouped_business=True):
     # This is the live DEV route, deliberately separate from disposable Test-CI.
     # Only two reviewed rollback-only suites, unique accounts, no table-wide fixture
     # assumptions, no opening/admin bypass, no committed synthetic data or notifications.
@@ -182,8 +214,8 @@ VALUES ('DEV-R051-DAD','ch:dad','R051 rollback synthetic Dad','Synthetic'),
     def verify(c, params):
         if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
             raise ValueError('DEV target changed')
-        if c.execute('SELECT max(version::integer) FROM flyway_schema_history WHERE success').fetchone()[0] != 63:
-            raise ValueError('Expected tested V63')
+        if c.execute('SELECT max(version::integer) FROM flyway_schema_history WHERE success').fetchone()[0] != 64:
+            raise ValueError('Expected tested V64')
         c.execute("SET LOCAL timezone='UTC'")
         before = fingerprints(c);c.rollback()
         env = {k:v for k,v in os.environ.items() if not k.startswith(('PG','CODEX_','FLYWAY_'))}
@@ -191,19 +223,19 @@ VALUES ('DEV-R051-DAD','ch:dad','R051 rollback synthetic Dad','Synthetic'),
         root = Path(tempfile.mkdtemp(prefix='r051-dev-tests-',dir='/workspace'));root.chmod(0o700)
         (root/'before-fingerprints.json').write_text(json.dumps(before))
         for p in files:
-            sql = p.read_text().replace('\\ir Test-CashAccountFixtures.sql',fixture).replace('CI-DAD','DEV-R051-DAD').replace('CI-LISA','DEV-R051-LISA')
+            sql = (business_cases(p.read_text()) if p.name=='Test-BusinessCrud.sql' and grouped_business else p.read_text()).replace('\\ir Test-CashAccountFixtures.sql',fixture).replace('CI-DAD','DEV-R051-DAD').replace('CI-LISA','DEV-R051-LISA')
             if ('COMMIT;' in sql.upper() or 'DISABLE TRIGGER' in sql.upper() or 'r008.initializing' in sql
                     or not sql.rstrip().endswith('ROLLBACK;') or '\\ir ' in sql):
                 raise ValueError('Live fixture must be reviewed and rollback-contained')
             appname='r051-crud-'+root.name[-8:]+'-'+p.stem[-20:]
             env['PGAPPNAME']=appname
             settings="BEGIN; SET LOCAL lock_timeout='3s'; SET LOCAL statement_timeout='30s';"
-            sql="\\timing on\nSELECT pg_backend_pid() AS r051_backend_pid;\n"+sql.replace('BEGIN;',settings,1)
+            sql="\\timing on\nSELECT pg_backend_pid() AS r051_backend_pid;\n"+sql.replace('BEGIN;',settings)
             with (root/(p.stem+'.log')).open('w') as log:
                 process=subprocess.Popen([str(PG/'psql'),'-X','-v','ON_ERROR_STOP=1','-h',params['host'],'-p',str(params['port']),
                                 '-U','postgres','-d','loan_manager_dev'],stdin=subprocess.PIPE,env=env,stdout=log,stderr=log,text=True,start_new_session=True)
                 try:
-                    process.communicate(sql,timeout=180)
+                    process.communicate(sql,timeout=420 if p.name=='Test-BusinessCrud.sql' and grouped_business else 180)
                     if process.returncode:raise RuntimeError('DEV suite SQL failure: '+p.name+'; private log '+root.name)
                 except BaseException:
                     if process.poll() is None:
@@ -229,10 +261,10 @@ VALUES ('DEV-R051-DAD','ch:dad','R051 rollback synthetic Dad','Synthetic'),
             if fingerprints(c)!=before:
                 raise ValueError('DEV before/after table fingerprints differ; reconcile concurrent changes')
             c.rollback()
-        return dict(database='loan_manager_dev',suites=names,rollback_contained=True,table_fingerprints_unchanged=len(before),
-                    source_sha256=hashes,private_logs_reference=root.name,notifications='SQL-only; no outbound sends')
+        return dict(database='loan_manager_dev',version=64,suites=names,rollback_contained=True,table_fingerprints_unchanged=len(before),
+                    source_sha256=hashes,private_logs_reference=root.name,migration_source_sha256=source_hashes(),helper_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),business_workflows=('8 fresh rollback transactions in one backend' if grouped_business else 'single monolithic rollback transaction') if 'Test-BusinessCrud.sql' in names else None,notifications='SQL-only; no outbound sends')
     result = dev_connection(verify)
-    (REPO/('outputs/r051-receipt-corrections/dev-business-tests.json' if business_only else 'outputs/r051-receipt-corrections/dev-tests.json')).write_text(json.dumps(result,indent=2)+'\n')
+    (REPO/(('outputs/r051-receipt-corrections/dev-business-tests.json' if grouped_business else 'outputs/r051-receipt-corrections/dev-business-monolithic-tests.json') if business_only else 'outputs/r051-receipt-corrections/dev-tests.json')).write_text(json.dumps(result,indent=2)+'\n')
     return result
 
 
@@ -256,8 +288,8 @@ def ui_fixtures(mode, browser_reference):
             prior=json.loads(manifest.read_text())
             private_state=Path('/workspace')/prior['private_baseline_reference']
         c.execute("SET LOCAL timezone='Asia/Bangkok'")
-        if c.execute('SELECT max(version::integer) FROM flyway_schema_history WHERE success').fetchone()[0] != 63:
-            raise ValueError('Expected validated V63')
+        if c.execute('SELECT max(version::integer) FROM flyway_schema_history WHERE success').fetchone()[0] != 64:
+            raise ValueError('Expected validated V64')
         if mode=='ui-create':
             if c.execute('SELECT EXISTS(SELECT 1 FROM public."Borrowers" WHERE "Row ID" LIKE \'SYN-R051-UI-%\')').fetchone()[0]:
                 raise ValueError('Reserved namespace is not empty')
@@ -287,8 +319,8 @@ def ui_fixtures(mode, browser_reference):
 if __name__ == '__main__':
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('mode', choices=['backup','migrate','migrate-refinement','migrate-planning','migrate-coalescing','test','test-business','ui-create','ui-cleanup'])
+    p.add_argument('mode', choices=['backup','migrate','migrate-refinement','migrate-planning','migrate-coalescing','migrate-aggregate','test','test-business','test-business-monolithic','ui-create','ui-cleanup'])
     p.add_argument('--browser-ready-reference')
     args = p.parse_args()
-    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'test':test,'test-business':lambda:test(True)}[args.mode]()
+    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'migrate-aggregate':lambda:migrate(64),'test':test,'test-business':lambda:test(True),'test-business-monolithic':lambda:test(True,False)}[args.mode]()
     print(json.dumps(result))

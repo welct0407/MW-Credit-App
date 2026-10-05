@@ -1,0 +1,18 @@
+{
+  "suite": "Test-BusinessCrud.sql",
+  "application_name": "r051-crud-0o7xcnpt-Test-BusinessCrud",
+  "owned_sessions_stopped": [],
+  "remaining_owned_sessions": [],
+  "fingerprints_unchanged": true,
+  "version": 63,
+  "planning": "auto",
+  "result": "failed",
+  "private_reference": "r051-dev-tests-0o7xcnpt",
+  "passed_workflows": [
+    "charges",
+    "expenses"
+  ],
+  "failed_workflow": "manual_cash setup",
+  "failure": "30s history refresh timeout in third fresh transaction on same backend",
+  "implication": "Normal pooled-session slowdown remains real; no proof of a single underlying mechanism"
+}
