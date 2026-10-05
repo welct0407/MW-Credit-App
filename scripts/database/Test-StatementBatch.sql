@@ -14,3 +14,4 @@
 \ir Test-AppSheetReceiptDelete.sql
 \ir Test-BusinessCrud.sql
 \ir Test-HistoryAggregateParity.sql
+\ir Test-ExpenseReimbursement.sql

@@ -5,7 +5,8 @@
     "Ref Paid By Cash Account": {
       "Valid_If": "SELECT(Cash Accounts[Row ID], OR([Active], [Row ID] = [_THISROW].[Ref Paid By Cash Account]))",
       "initial_value": "Retain existing new-row default account behavior; do not reset account on ordinary edits",
-      "Editable_If_status": "WITHDRAWN: Cash Ledger is absent from owning OLTP app. Preserve current saved account/payer locks; do not add a table for this predicate."
+      "Editable_If_status": "PROPOSED ONLY AFTER V66 DEV apply/test: compose existing authorization; no Cash Ledger reference. Current account/payer locks stay until backend and saved default/holder reconciliation pass.",
+      "Editable_If_predicate_after_verified_V66": "OR(ISBLANK([Source Type]), [Source Type] = \"Manual\")"
     },
     "Ref Paid By Cash Holder": {
       "existing_row": "Derive/display from selected account; keep direct holder editing locked on existing records",
@@ -14,12 +15,12 @@
       "existing_record_formula_only_NOT_drop_in": "IF(ISNOTBLANK([Ref Paid By Cash Account]), [Ref Paid By Cash Account].[Ref Cash Holder], LOOKUP([Row ID], \"Business Expenses\", \"Row ID\", \"Ref Paid By Cash Holder\"))",
       "integration_required": "Current new-row fallback/selection behavior must be read from saved GUI and retained in a new/existing branch before applying; this fragment alone would yield blank for an uncreated row."
     },
-    "gate": "Do not unlock expense payer/account until server-side linked-reimbursement consistency is enforced and current saved default/holder formulas are reconciled. No app-visible reimbursement dependency column has been verified.",
+    "gate": "V66 candidate only; DEV currently65. Server validates linked reimbursements, so no unavailable Cash Ledger table is needed in OLTP. Do not apply eligibility before coordinated V66 DEV acceptance and saved default/holder formula reconciliation.",
     "tests": [
       "correct seeded category Other to actual enum Other / \u0e2d\u0e37\u0e48\u0e19 \u0e46 through GUI before expense edit",
       "manual expense amount/account within same holder and across holders; one original cash key follows",
       "holder recomputes on screen and source after sync; no-op preserves original account",
-      "system referral locked; inactive new account rejected; cutover rejects atomically; separate reimbursement stays locked"
+      "system referral locked; inactive new account rejected; cutover rejects atomically; linked reimbursement permits same-Tommy account but rejects other payer/nonpositive source amount atomically"
     ]
   },
   "Loans": {

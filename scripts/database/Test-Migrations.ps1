@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$InterestReallocationConcurrency,[switch]$PaymentCrudConcurrency,[switch]$ReceiptDeleteConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency,[switch]$R008Concurrency)
+param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$InterestReallocationConcurrency,[switch]$PaymentCrudConcurrency,[switch]$ReceiptDeleteConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$ExpenseReimbursementConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency,[switch]$R008Concurrency)
 . "$PSScriptRoot/Common.ps1"
 $null = @(Get-MigrationManifest)
 $bin = Get-PgBin
@@ -52,6 +52,9 @@ try {
         }
         if ($BusinessExpensesConcurrency) {
             & "$PSScriptRoot/Test-BusinessExpensesConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+        }
+        if ($ExpenseReimbursementConcurrency) {
+            & "$PSScriptRoot/Test-ExpenseReimbursementConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
         }
         if ($PaymentCrudConcurrency) {
             & "$PSScriptRoot/Test-PaymentCrudConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
