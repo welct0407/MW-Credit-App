@@ -294,3 +294,7 @@ Promotion starts 2026-09-24T04:55:21.126Z: R016 scope Frozen with tested package
 ## Repository reconciliation — 4 October 2026
 
 Read-only review of the R017/R018 delivery records, R023 acceptance/completion, existing checklist and exact remote tag lookup corrects the stale Performance replacement decision and old production/open-release claims in current references. R023 already retired the original Performance tab; no new retirement is needed or performed. Historical report evidence/counts remain dated. Whole-R016 acceptance and temporary migration-key retirement are not independently established by the retained records; exact remote R016 tag lookup returns no match. Checklist/manifest/tracker now distinguish delivered scopes from those unresolved closure items. No credential mutation, report deletion, new runtime test, deployment or tag creation. Documentation rollback is a scoped forward revert preserving later accepted report history. Local JSON, reference and whitespace checks apply; this is not a new live report/key audit.
+
+## Owner acceptance and administrative closeout — 5 October 2026
+
+The owner instructed “R016 - close it out”. Whole-reporting acceptance is recorded and R016 is Closed at owner direction; the 4 October acceptance gap is superseded. Temporary migration-key retirement is still unproven, so P48/P50 final Released/tag gates remain blocked. No credential change, SQL replay or repeated Performance retirement occurred. [Closeout evidence, limitations and checks](CHANGE_NOTES_R050_R016_OWNER_CLOSEOUT_2026-10-05.md).

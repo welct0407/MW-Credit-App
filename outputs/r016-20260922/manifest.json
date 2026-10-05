@@ -26,11 +26,9 @@
   },
   "checklist": "promotion-checklist.md",
   "remaining": [
-    "Owner review of remaining migrated pages, Income Statement and Cashflow Statement",
+    "Temporary Metabase migration-key retirement evidence and final R016 tag",
     "Borrower daily balance history unavailable in existing source; no new schema authorized",
-    "Lisa personal Google sign-in remains unconfirmed",
-    "Migration-key revocation and final R016 acceptance/closure",
-    "Owner review of completed 2R snapshot design"
+    "Lisa personal Google sign-in remains unconfirmed"
   ],
   "appsheet": {
     "olap": "unchanged",
@@ -62,7 +60,7 @@
     "v38_migration_sha256": "0a18535118706be2a2b19a3e69c7bb96d7904252ff7d309e1f7d47311f16f756",
     "v39_migration_sha256": "5047669deccff394983ccb8a3b0f644fef3c398c3d2e89ccd1ee2752354c8730"
   },
-  "status": "frozen-for-promotion-6r-rolling-complete-owner-closure-pending",
+  "status": "closed-at-owner-direction-reporting-accepted-key-retirement-evidence-pending",
   "release": "R016",
   "tests": "query-reconciliation.json",
   "final_tag": null,
@@ -122,15 +120,15 @@
   "cash_review": {
     "tabs": [
       {
-        "name": "2R · Cash Position",
+        "name": "2R \u00b7 Cash Position",
         "id": 14
       },
       {
-        "name": "10R · Cashflow Statement",
+        "name": "10R \u00b7 Cashflow Statement",
         "id": 15
       },
       {
-        "name": "9R · Income Statement",
+        "name": "9R \u00b7 Income Statement",
         "id": 16
       }
     ],
@@ -230,5 +228,14 @@
     "migration_key_retirement": "Not independently established; no credential mutation authorized",
     "R016_remote_tag": "Absent at exact read-only lookup",
     "historical_manifest": "Earlier definitions/counts/pins below are dated R016 checkpoint evidence"
+  },
+  "owner_closeout_20261005": {
+    "whole_release_acceptance": "Owner explicitly instructed R016 - close it out",
+    "provenance": "Supplied owner transcript; no exact test timestamp or new live verification",
+    "administrative_status": "closed-at-owner-direction",
+    "release_gate": "migration-key retirement evidence absent; final Released/tag blocked",
+    "credential_mutation": false,
+    "performance_retirement": "Already complete under R023; not repeated",
+    "evidence": "promotion-checklist.md#owner-acceptance-and-repository-closeout--5-october-2026"
   }
 }
