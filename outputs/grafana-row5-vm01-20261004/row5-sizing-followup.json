@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-05",
+  "owner_request": "Make the two updated lights the same size as rows3/4; leave remaining space blank; other row5 tile sizes unchanged",
+  "parent_baseline": "Lights121/122 are4x4, standard rows3/4 lights are2x3",
+  "source_geometry": {
+    "120": {
+      "x": 0,
+      "y": 17,
+      "width": 8,
+      "height": 1
+    },
+    "124": {
+      "x": 8,
+      "y": 17,
+      "width": 12,
+      "height": 1
+    },
+    "121": {
+      "x": 0,
+      "y": 18,
+      "width": 2,
+      "height": 3
+    },
+    "122": {
+      "x": 2,
+      "y": 18,
+      "width": 2,
+      "height": 3
+    },
+    "123": {
+      "x": 4,
+      "y": 18,
+      "width": 4,
+      "height": 4
+    },
+    "125": {
+      "x": 8,
+      "y": 18,
+      "width": 4,
+      "height": 4
+    },
+    "126": {
+      "x": 12,
+      "y": 18,
+      "width": 4,
+      "height": 4
+    },
+    "127": {
+      "x": 16,
+      "y": 18,
+      "width": 4,
+      "height": 4
+    }
+  },
+  "checks": [
+    "Classic/v2 lights match existing panel51 dimensions2x3",
+    "Other four cards remain4x4; cards at x0/2/4/8/12/16",
+    "Headers Bridge x0width8 and Subscription x8width12; no overlap; x20\u201324 empty",
+    "Prepared import changes only row5 geometry; all panels/queries/styles/metadata preserved",
+    "Fresh original-object preservation/idempotence and existing numeric/Unknown/SGT query regressions pass"
+  ],
+  "live_acceptance": "Awaiting parent final saved evidence",
+  "executor_effects": "Source/tests/docs only; no browser/backend/alert/merge/default-branch operation"
+}

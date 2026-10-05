@@ -7,6 +7,23 @@ for(const fmt of ['dashboard','editor-resource'])for(const page of ['performance
  const azureVmMetricsUrl=performance.spec?.elements?.['panel-11']?.spec.data.spec.queries[0].spec.query.spec.url??performance.panels.find(p=>p.id===11).targets[0].url;
  const after=patch(before,page,{azureVmMetricsUrl});
  assert.deepEqual(patch(after,page,{azureVmMetricsUrl}),after,'idempotent '+page+' '+fmt);
+ if(page==='performance'){
+  const geometry=id=>{
+   if(after.spec){const p=after.spec.layout.spec.rows[0].spec.layout.spec.items.find(p=>p.spec.element.name==='panel-'+id).spec;return {x:p.x,y:p.y,w:p.width,h:p.height};}
+   return after.panels.find(p=>p.id===id).gridPos;
+  };
+  const peer=geometry(51),cards=[121,122,123,125,126,127].map(geometry);
+  for(const id of [121,122])assert.deepEqual([geometry(id).w,geometry(id).h],[peer.w,peer.h],'lights match existing row3/4 tile size');
+  for(const id of [123,125,126,127])assert.deepEqual([geometry(id).w,geometry(id).h],[4,4],'other row5 card sizes preserved');
+  assert.deepEqual(cards.map(p=>p.x),[0,2,4,8,12,16],'compact row5 order');
+  assert.deepEqual(geometry(120),{x:0,y:17,w:8,h:1},'Bridge header aligned over its cards');
+  assert.deepEqual(geometry(124),{x:8,y:17,w:12,h:1},'Subscription header aligned over its cards');
+  assert.equal(Math.max(...cards.map(p=>p.x+p.w)),20,'rightmost four columns remain blank');
+  for(let i=0;i<cards.length;i++)for(let j=i+1;j<cards.length;j++){
+   const a=cards[i],b=cards[j];assert(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y,'row5 cards must not overlap');
+  }
+ }
+
  if(before.spec){
   for(const [id,p]of Object.entries(before.spec.elements))assert.deepEqual(after.spec.elements[id],p,'preserve '+id);
   assert.deepEqual(after.metadata,before.metadata);assert.deepEqual(after.spec.timeSettings,before.spec.timeSettings);
