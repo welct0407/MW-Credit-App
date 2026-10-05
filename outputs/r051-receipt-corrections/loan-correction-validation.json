@@ -1,9 +1,9 @@
 {
-  "state": "FOCUSED_LOCAL_PASS_WITH_EXPLICIT_TYPE_CONVERSION_SUPPORT_GAP",
+  "state": "BOUNDED_LOAN_AND_V68_CONVERSION_CANDIDATE_PASS_UNAPPLIED",
   "test": "scripts/database/Test-LoanCorrections.sql",
-  "test_sha256": "784d07a65724323df50573c48b7c7e68cfb8be82985f43e2ef89fe101007178a",
+  "test_sha256": "989ea4b469ab697bb6d105aade98aff4d98bfac9523d3f8ac3e12e306b640459",
   "local_result": "passed",
-  "maintained_route": "Test-StatementBatch.sql included by Test-CI.ps1; full run passed",
+  "maintained_route": "Test-StatementBatch.sql via Test-CI.ps1; V68 full maintained pass",
   "source_mutation_scope": "Private restored V67, rollback-contained. Synthetic funding and account fixtures are local test setup only. No DEV source changes.",
   "positive_cases": [
     "daily principal200→150 after principal30 paid: outstanding120/current12/original10; exact disbursement key retained",
@@ -26,14 +26,15 @@
     "exact disbursement key unchanged across principal/date/account correction"
   ],
   "type_conversion": {
-    "usable_schedule": false,
-    "observed": "Fixed loan100, six-day term, fixed30 has original daily5 and current dailyNULL. Type-only switch to daily persists while current remainsNULL/original5; generate_loan_charge returnsNULL.",
-    "meaning": "Characterization test passes by proving an actual support gap; arbitrary existing Loan Type conversion is not accepted.",
-    "recommendation": "Pending explicit semantics/fix, retain original type on existing loans rather than offer unverified conversions. Do not alter frozen original rate automatically or silently repair missing current basis. Parent should review this specific UI constraint."
+    "actual_dev67_gap": "Fixed→daily can retain NULL daily amount; prior local reproduction remains historical evidence.",
+    "candidate": "V68 derives current amount from frozen original/outstanding; fixed/instalment/roundtrip/zero/missing cases locally pass.",
+    "candidate_applied": false,
+    "evidence": "daily-type-conversion-v68.json",
+    "recommendation": "No blanket existing-type lock in final plan; preserve existing editability after candidate backend and GUI acceptance. Reject only missing original basis or missing automatic schedule inputs."
   },
   "Test_CI_routes": [
     {
-      "migrations": 67,
+      "migrations": 68,
       "pre_migration_target": null,
       "second_run": 0,
       "sql": "passed",
@@ -49,16 +50,16 @@
         "DefaultLoan"
       ],
       "checksum_tampering_rejected": true,
-      "logs": "/tmp/r051-migration-test-t9h63q8o"
+      "logs": "/tmp/r051-migration-test-_1gptc9j"
     },
     {
-      "migrations": 48,
+      "migrations": 49,
       "pre_migration_target": 19,
       "second_run": 0,
       "sql": "passed",
       "concurrency": [],
       "checksum_tampering_rejected": true,
-      "logs": "/tmp/r051-migration-test-gi7i1zze"
+      "logs": "/tmp/r051-migration-test-sh_4qxav"
     }
   ],
   "separate_local_reproduction": "local-borrower-cascade.json; not part of Windows CI"

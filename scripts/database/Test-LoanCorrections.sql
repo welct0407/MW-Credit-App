@@ -51,13 +51,13 @@ SELECT pg_temp.loan_reject($q$UPDATE "Loans" SET "Ref Borrowers"='TERM-B' WHERE 
 DELETE FROM "Business Expenses" WHERE "Row ID"='TERM-E';
 UPDATE "Loans" SET "Ref Borrowers"='TERM-B' WHERE "Row ID"='TERM-X';
 SELECT pg_temp.loan_assert((SELECT "Ref Borrowers"='TERM-B' FROM "Loans" WHERE "Row ID"='TERM-X'),'unreferenced unpaid loan parent correction');
--- Characterize conversion, not a claim that arbitrary type conversion has a valid schedule.
+-- Entering daily mode derives a usable amount from the frozen original rate.
 UPDATE "Loans" SET "Loan Type"='ดอกเบี้ยรายวัน',"Auto Charge Enabled"=true,"Interest Payment Interval"=1 WHERE "Row ID"='TERM-X';
-SELECT pg_temp.loan_assert((SELECT "Current Daily Interest" IS NULL AND "Original Daily Interest Rate"=5 FROM "Loans" WHERE "Row ID"='TERM-X'),'fixed-to-daily type-only edit retains old null current amount and frozen original basis');
-SELECT pg_temp.loan_assert(public.generate_loan_charge('TERM-X',current_date) IS NULL,'type-only persistence does not establish a usable daily schedule');
+SELECT pg_temp.loan_assert((SELECT "Current Daily Interest"=5::money AND "Original Daily Interest Rate"=5 FROM "Loans" WHERE "Row ID"='TERM-X'),'fixed-to-daily derives current amount without rewriting frozen original basis');
+SELECT pg_temp.loan_assert(public.generate_loan_charge('TERM-X',current_date) IS NOT NULL,'converted daily loan has a usable generation amount');
 -- Opening-included source guards are exercised by Test-OpeningIncludedCrud.sql in the seeded route.
 -- Parent DELETE is a single atomic SQL statement; it cannot delete referenced children.
 SELECT pg_temp.loan_reject($q$DELETE FROM "Borrowers" WHERE "Row ID"='TERM-B'$q$,'foreign key');
 SELECT pg_temp.loan_assert((SELECT count(*)=3 FROM "Loans" WHERE "Row ID" IN ('TERM-D','TERM-F','TERM-X')),'failed parent SQL delete preserves all children');
-SELECT 'Loan correction positives, guards and conversion limitation passed' AS result;
+SELECT 'Loan correction positives, guards and daily conversion passed' AS result;
 ROLLBACK;

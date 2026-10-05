@@ -17,3 +17,4 @@
 \ir Test-ExpenseReimbursement.sql
 \ir Test-ReceiptDeleteFlagMetadata.sql
 \ir Test-LoanCorrections.sql
+\ir Test-DailyTypeConversion.sql

@@ -1,6 +1,6 @@
 # Direct loan correction — bounded supported matrix
 
-DEV67 source behavior; local tests only for this extension. Existing GUI fields are not proof of valid generation after every edit. [Exact tests/results](loan-correction-validation.json). No live loan was changed and no migration is proposed.
+Actual DEV67; V68 local conversion fix is not yet applied. Existing GUI fields are not proof of valid generation after every edit. [Exact tests/results](loan-correction-validation.json). No live loan was changed and no migration is proposed.
 
 | Edit | Proven behavior / boundary | GUI acceptance still required |
 |---|---|---|
@@ -10,14 +10,8 @@ DEV67 source behavior; local tests only for this extension. Existing GUI fields 
 | Fixed interest / Due Date |New fixed45 and corrected due date generate500 principal+45 interest on that date; earlier7-interest charge retained. |Form fields and future generation. Review existing booked principal before any new full-principal charge; no automatic cancellation of old obligations. |
 | Borrower |Unpaid source move works after independent borrower-bound expense is removed/corrected. Any receipt or mismatched borrower-bound expense rejects. |Contextual Add remains; Edit field availability/access and old/new parent totals. |
 | Original daily rate / Current daily amount |Original percentage remains immutable. Current daily amount recalculates on principal changes; unchanged-principal saves preserve prior current amount. |Keep original read-only and current entry-only as currently configured. |
-| Existing Loan Type conversion |**Support gap:** fixed→daily can persist with Current Daily Interest=NULL; generator then returnsNULL. Stored type change is not usable-schedule acceptance. Frozen original5 remained in the local case. Other cross-type conversions remain unproven. |Proposed temporary type Editable_If below requires parent review; no silent UI change. A future correction needs explicit basis/schedule semantics, not a guessed original-rate rewrite. |
+| Entering daily from fixed/installment or returning from another type |V68 candidate derives daily amount from frozen original percentage and current outstanding, preserving booked charges/cash. Missing original basis rejects; automatic mode needs a valid date/interval, manual mode does not. Zero remains zero. Actual DEV67 still has the old NULL-amount gap until deployment. |No blanket type-lock proposal. Preserve existing editable type and independent access rules after V68 backend acceptance; verify form save/full-sync/current derived display and future eligible generation. Other cross-type schedule semantics remain separately bounded. |
 
-Narrow proposed existing-type control, composed with current independent access rules:
-
-```appsheet
-NOT(IN([Row ID], Loans[Row ID]))
-```
-
-This retains new-loan type selection and locks existing conversion until its missing-basis/schedule semantics are resolved. It is a disclosed restriction for a reproduced gap, not a claim that the release supports all type conversions. Preserve existing term validations and booked obligations; do not add a blanket source-history prohibition.
+[Concrete V68 pre-apply plan](daily-type-conversion-v68-plan.md) and tests supersede the temporary proposal to lock every existing Loan Type. No UI/DEV change has been performed by this local package.
 
 [Borrower delete proposal](borrower-delete-ui-plan.json) restricts native Delete to unreferenced borrowers and retains relationships. Local multi-request reproduction proves a later failure cannot restore an earlier committed unpaid sibling deletion; it does not assert actual AppSheet ordering. OLTP lacks Loan Assessment, so that reference remains a final FK check/OLAP workflow.

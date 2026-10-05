@@ -53,8 +53,12 @@ Earlier failures remain recorded: `timeout-reconciliation.json`, `dev-v61-test-a
 
 Initial exact fixtures were committed/read back under reviewed owner-only/no-borrower containment and have since been edited by the GUI. Their initial baseline is historical, not current: `ui-fixture-state.json` / `ui-fixture-readback.json`. `dev-recipient-containment.json` records sanitized DB delivery checks; the parent separately verified bot routing. Six additional batches are committed/read back; seventh REIMBURSE remains **not created**. See [actual keys/state](six-ui-seed-readback.json), [expense GUI proof](gui-expense-edit-delete-evidence.json) and [seventh plan/tests](additional-ui-fixtures.md). Capture every GUI-generated key with synthetic parent/account references before exact cleanup; the static seed cleanup alone does not prove zero residue after GUI Add operations.
 
-Earlier PR-description approval rejections are historical. The parent confirmed the exact authorized body update succeeded at21:07:24UTC; PR15 remains open, draft and unmerged. No production promotion, merge, release freeze, real-source hard deletion or real money movement is authorized by this task.
+Earlier PR-description approval rejections are historical. The parent confirmed the exact authorized body update succeeded at21:07:24UTC. A later identical approved-body retry was rejected again by automatic approval review because quoted authorization was not accepted; the root stopped further attempts. Branch evidence is current; PR15 remains open, draft and unmerged. No production promotion, merge, release freeze, real-source hard deletion or real money movement is authorized by this task.
 
 ## Direct loan and borrower follow-up
 
 [Loan matrix/tests](loan-correction-ui-plan.md) proves bounded principal/date/account/future-term edits and explicitly records unusable fixed→daily conversion as a support gap. [Borrower guard](borrower-delete-ui-plan.json) preserves relationships and restricts native Delete to unreferenced rows; [local multi-request reproduction](local-borrower-cascade.json) is distinct from actual GUI evidence. These follow-ups perform no live source mutation.
+
+## V68 local conversion candidate
+
+[Plan and exact evidence](daily-type-conversion-v68-plan.md): entering daily now derives current amount from the frozen original rate and remaining principal; missing original evidence rejects, zero/manual mode remain valid, old booked/cash facts stay intact. Focused local tests and maintained CI pass (68 migrations/nine concurrency and seeded V19→68); publication-head CI remains pending. Actual DEV stays67, no live calls or seventh seed. The temporary blanket type-lock proposal is superseded by this candidate, subject to backend/GUI acceptance.
