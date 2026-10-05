@@ -3,7 +3,7 @@
   "command": "scripts/database/Test-CI.ps1",
   "routes": [
     {
-      "migrations": 67,
+      "migrations": 68,
       "pre_migration_target": null,
       "second_run": 0,
       "sql": "passed",
@@ -19,20 +19,20 @@
         "DefaultLoan"
       ],
       "checksum_tampering_rejected": true,
-      "logs": "/tmp/r051-migration-test-t9h63q8o"
+      "logs": "/tmp/r051-migration-test-zpmb3ctp"
     },
     {
-      "migrations": 48,
+      "migrations": 49,
       "pre_migration_target": 19,
       "second_run": 0,
       "sql": "passed",
       "concurrency": [],
       "checksum_tampering_rejected": true,
-      "logs": "/tmp/r051-migration-test-gi7i1zze"
+      "logs": "/tmp/r051-migration-test-kgjwtgwa"
     }
   ],
-  "fixture_rehearsal": "local-additional-fixtures-v67.json",
+  "fixture_rehearsal": "local-additional-fixtures-v68.json",
   "migration_source_unchanged": true,
-  "scope": "Final local fixture/explicit old-holder payload/loan test preparation; maintained67/nine concurrency plus seeded route passed. Six prior authorized DEV seeds recorded separately; no seventh live seed.",
-  "fixture_script_sha256": "467da23eae16a344e553ee0ea44bc02662da8cc5c007f2b982a73326d55fe4ac"
+  "scope": "Strict68 helper and seven local fixture workflows pass; actual six seeded baseline preserved, seventh uncreated. Historical V67 result retained separately.",
+  "fixture_script_sha256": "3c2792e8eb3864aa00b07abf44ccc85a52d2b4240e72dd6f41ba796d893fd968"
 }

@@ -2,8 +2,8 @@
   "state": "Six batches committed and independently read back at21:21:22UTC; REIMBURSE locally prepared only. See six-ui-seed-readback.json; current GUI edits may supersede this dated baseline.",
   "prepared_business_date": "2026-10-06",
   "timezone": "Asia/Bangkok",
-  "expected_dev_version": 67,
-  "expected_checksum": 1721477385,
+  "expected_dev_version": 68,
+  "expected_checksum": -79096429,
   "batches": [
     {
       "batch": "DAILY",
@@ -198,9 +198,10 @@
   ],
   "gates": [
     "Current parent write window and no-send/owner-only routing",
-    "Fresh exact DEV67 preflight, current Bangkok date and namespace readback immediately before seed",
+    "Fresh exact DEV68 preflight, current Bangkok date and namespace readback immediately before seed",
     "PARTNER-A actual future contribution date and current settlement entitlement; no fake funding",
     "Capture GUI/scheduler generated IDs; never replay unknown commit",
     "REIMBURSE requires a new coordinated write window, fresh target/date/collision preflight, reviewed containment and recovery. No seventh seed authorized by this preparation."
-  ]
+  ],
+  "current_helper_sha256": "3c2792e8eb3864aa00b07abf44ccc85a52d2b4240e72dd6f41ba796d893fd968"
 }

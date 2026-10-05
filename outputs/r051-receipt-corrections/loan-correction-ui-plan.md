@@ -1,6 +1,6 @@
 # Direct loan correction — bounded supported matrix
 
-Actual DEV67; V68 local conversion fix is not yet applied. Existing GUI fields are not proof of valid generation after every edit. [Exact tests/results](loan-correction-validation.json). No live loan was changed and no migration is proposed.
+Actual DEV68; entering-daily conversion passes rollback-only DEV acceptance. Existing GUI fields are not proof of valid generation after every edit. [Exact tests/results](loan-correction-validation.json). No original loan was changed by the acceptance; synthetic checks rolled back.
 
 | Edit | Proven behavior / boundary | GUI acceptance still required |
 |---|---|---|
@@ -10,8 +10,8 @@ Actual DEV67; V68 local conversion fix is not yet applied. Existing GUI fields a
 | Fixed interest / Due Date |New fixed45 and corrected due date generate500 principal+45 interest on that date; earlier7-interest charge retained. |Form fields and future generation. Review existing booked principal before any new full-principal charge; no automatic cancellation of old obligations. |
 | Borrower |Unpaid source move works after independent borrower-bound expense is removed/corrected. Any receipt or mismatched borrower-bound expense rejects. |Contextual Add remains; Edit field availability/access and old/new parent totals. |
 | Original daily rate / Current daily amount |Original percentage remains immutable. Current daily amount recalculates on principal changes; unchanged-principal saves preserve prior current amount. |Keep original read-only and current entry-only as currently configured. |
-| Entering daily from fixed/installment or returning from another type |V68 candidate derives daily amount from frozen original percentage and current outstanding, preserving booked charges/cash. Missing original basis rejects; automatic mode needs a valid date/interval, manual mode does not. Zero remains zero. Actual DEV67 still has the old NULL-amount gap until deployment. |No blanket type-lock proposal. Preserve existing editable type and independent access rules after V68 backend acceptance; verify form save/full-sync/current derived display and future eligible generation. Other cross-type schedule semantics remain separately bounded. |
+| Entering daily from fixed/installment or returning from another type |Applied V68 derives daily amount from frozen original percentage and current outstanding, preserving booked charges/cash. Missing original basis rejects; automatic mode needs a valid date/interval, manual mode does not. Zero remains zero. The old DEV67 NULL-amount gap is fixed in the backend. |No blanket type-lock proposal. Preserve existing editable type and independent access rules with backend acceptance complete; verify form save/full-sync/current derived display and future eligible generation. Other cross-type schedule semantics remain separately bounded. |
 
-[Concrete V68 pre-apply plan](daily-type-conversion-v68-plan.md) and tests supersede the temporary proposal to lock every existing Loan Type. No UI/DEV change has been performed by this local package.
+[V68 rules and applied sequence](daily-type-conversion-v68-plan.md) and tests supersede the temporary proposal to lock every existing Loan Type. V68 is applied; no GUI change was performed by this executor.
 
 [Borrower delete proposal](borrower-delete-ui-plan.json) restricts native Delete to unreferenced borrowers and retains relationships. Local multi-request reproduction proves a later failure cannot restore an earlier committed unpaid sibling deletion; it does not assert actual AppSheet ordering. OLTP lacks Loan Assessment, so that reference remains a final FK check/OLAP workflow.

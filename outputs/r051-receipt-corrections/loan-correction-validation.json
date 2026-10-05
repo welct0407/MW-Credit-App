@@ -1,5 +1,5 @@
 {
-  "state": "BOUNDED_LOAN_AND_V68_CONVERSION_CANDIDATE_PASS_UNAPPLIED",
+  "state": "V68_APPLIED_DEV_CONVERSION_ACCEPTANCE_PASS_GUI_PENDING",
   "test": "scripts/database/Test-LoanCorrections.sql",
   "test_sha256": "989ea4b469ab697bb6d105aade98aff4d98bfac9523d3f8ac3e12e306b640459",
   "local_result": "passed",
@@ -26,11 +26,11 @@
     "exact disbursement key unchanged across principal/date/account correction"
   ],
   "type_conversion": {
-    "actual_dev67_gap": "Fixed→daily can retain NULL daily amount; prior local reproduction remains historical evidence.",
-    "candidate": "V68 derives current amount from frozen original/outstanding; fixed/instalment/roundtrip/zero/missing cases locally pass.",
-    "candidate_applied": false,
-    "evidence": "daily-type-conversion-v68.json",
-    "recommendation": "No blanket existing-type lock in final plan; preserve existing editability after candidate backend and GUI acceptance. Reject only missing original basis or missing automatic schedule inputs."
+    "historical_dev67_gap": "Fixed→daily could retain NULL daily amount; superseded by applied68.",
+    "backend": "V68 derives current amount from frozen original/outstanding; fixed/installment/roundtrip/zero/missing cases pass actual rollback DEV acceptance.",
+    "candidate_applied": true,
+    "evidence": "daily-type-conversion-v68-actual-summary.json",
+    "recommendation": "No blanket existing-type lock. Preserve existing editability with original-basis/automatic-schedule validation; actual GUI acceptance and other cross-type schedules remain unproven."
   },
   "Test_CI_routes": [
     {

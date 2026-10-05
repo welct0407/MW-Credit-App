@@ -36,8 +36,8 @@ def setup(c, *, readonly=False):
 def verify_target(c):
     if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
         raise ValueError('DEV identity mismatch')
-    if c.execute('SELECT version,checksum FROM public.flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone() != ('67',1721477385):
-        raise ValueError('Expected validated V67/checksum1721477385')
+    if c.execute('SELECT version,checksum FROM public.flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone() != ('68',-79096429):
+        raise ValueError('Expected validated V68/checksum-79096429')
 
 
 def gate(c, window_reference, containment_reference):

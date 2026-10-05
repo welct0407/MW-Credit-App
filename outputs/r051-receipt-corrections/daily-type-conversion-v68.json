@@ -1,6 +1,6 @@
 {
-  "state": "LOCAL_FOCUSED_AND_MAINTAINED_CI_PASS_UNAPPLIED",
-  "actual_dev_version": 67,
+  "state": "DEV_APPLIED_VALIDATED_ROLLBACK_ACCEPTANCE_PASS_GUI_PENDING",
+  "actual_dev_version": 68,
   "actual_prod_version": 58,
   "migration": "database/migrations/V68__daily_type_conversion_uses_original_rate.sql",
   "migration_sha256": "2e9b4921e1aa6380f5537262a693bc859e591ef4bdd37ad5c95e2018a9b2abae",
@@ -34,12 +34,11 @@
   ],
   "local_log": "/tmp/r051-type-conversion-local.log",
   "required_ci_log": "/tmp/r051-type-conversion-ci.log",
-  "applied": false,
+  "applied": true,
   "remaining": [
-    "Publish reviewed exact candidate and verify exact publication-head CI",
-    "Parent review of this concrete plan before any DEV migration",
-    "Coordinated DEV window, exact current history/target and fresh verified recovery, then separately authored rollback-only acceptance",
-    "Saved app form/full-sync and any affected event afterimage proof; no schema regeneration necessary"
+    "Exact publication-head CI for helper/evidence update",
+    "Actual loan form/full-sync and any affected event afterimage proof; other cross-type schedules remain bounded/unverified",
+    "Seventh REIMBURSE seed requires a separate coordinated window; no new seed in this apply"
   ],
   "maintained_ci": {
     "command": "scripts/database/Test-CI.ps1",
@@ -80,5 +79,8 @@
   "test_hashes": {
     "scripts/database/Test-LoanCorrections.sql": "989ea4b469ab697bb6d105aade98aff4d98bfac9523d3f8ac3e12e306b640459",
     "scripts/database/Test-DailyTypeConversion.sql": "39a28e381613cfb9619cabdf7794eb7f4f68024c6594e2e8b0eca6a9d0db2e64"
-  }
+  },
+  "flyway_checksum": -79096429,
+  "actual_acceptance": "dev-daily-conversion-v68.json",
+  "actual_summary": "daily-type-conversion-v68-actual-summary.json"
 }
