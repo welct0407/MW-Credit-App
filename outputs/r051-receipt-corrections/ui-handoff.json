@@ -1,5 +1,5 @@
 {
-  "gate": "BACKEND VALIDATED DEV V59–V64. Actual receipt, eight same-backend business workflows and original monolithic reproduction all PASS with all26 fingerprints/initial GUI baseline preserved. Backend window released. UI NOT ACCEPTED: OLTP1.000160 is confirmed not runnable; browser permission blocked, OLAP1.000047 unchanged. Resolve current editor/runtime failure and complete both-app GUI save/sync/cascade tests before readiness.",
+  "gate": "DEV V65 APPLIED/VALIDATED: fresh V64 restore matches26 tables; existing25 non-history tables preserved across additive migration (Payments normalized without new falseflag); rollback receipt-command acceptance preserves all26. Parent reports OLTP1.000167/OLAP1.000049 runnable/editorclear. Native cascade FAILED; queue reconciliation and custom source-action GUI proof pending. Additional persistent batches NOT CREATED. Earlier embedded initial fixtures/CI/UI failures below are historical; current sanitized UI delta is ui-progress-parent.json and current fixture state ui-readback-after-v65.json.",
   "baseline": {
     "oltp": {
       "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
@@ -553,5 +553,12 @@
       "trace_id": "77b1231c-e86a-4979-9db6-0de864d6b775",
       "source": "Parent browser/email report; cause not diagnosed because browser permission remains blocked"
     }
+  },
+  "v65_gate": {
+    "version": 65,
+    "checksum": -2087638333,
+    "fresh_recovery": "recovery-v64.json",
+    "acceptance": "dev-receipt-delete-v65.json",
+    "state": "Applied/validated; rollback-only DEV pass; GUI action/save/full-sync proof pending; additional persistent batches not created"
   }
 }

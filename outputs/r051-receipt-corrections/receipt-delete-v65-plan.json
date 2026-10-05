@@ -91,5 +91,12 @@
     "fingerprints_compared": 26,
     "fingerprints_unchanged": true,
     "scope": "private loopback restored copy, not DEV execution"
+  },
+  "dev_gate": {
+    "version": 65,
+    "checksum": -2087638333,
+    "fresh_recovery": "recovery-v64.json",
+    "acceptance": "dev-receipt-delete-v65.json",
+    "state": "Applied/validated; rollback-only DEV pass; GUI action/save/full-sync proof pending; additional persistent batches not created"
   }
 }
