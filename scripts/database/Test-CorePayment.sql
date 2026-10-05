@@ -49,8 +49,14 @@ UPDATE "Payments" SET "Notes"='Synthetic metadata retry',"Status"='Processing',"
 SELECT public.post_payment('CP6-P1');
 SELECT pg_temp.assert((SELECT "Status"='Posted' FROM "Payments" WHERE "Row ID"='CP6-P1'),'stale status protected');
 SELECT pg_temp.assert((SELECT count(*)=2 FROM "Repayments" WHERE "Ref Payment"='CP6-P1'),'retry no duplicates');
-SELECT pg_temp.reject($q$UPDATE "Payments" SET "Amount Received"=151::money WHERE "Row ID"='CP6-P1'$q$,'financial inputs cannot');
-SELECT pg_temp.reject($q$DELETE FROM "Payments" WHERE "Row ID"='CP6-P1'$q$,'cannot be deleted');
+SAVEPOINT receipt_crud_regression;
+UPDATE "Payments" SET "Amount Received"=151::money WHERE "Row ID"='CP6-P1';
+SELECT pg_temp.assert((SELECT sum("Principal Paid"::numeric+"Interest Paid"::numeric)=151 FROM "Repayments" WHERE "Ref Payment"='CP6-P1'),'source UPDATE reconciles');
+ROLLBACK TO receipt_crud_regression;
+SAVEPOINT receipt_delete_regression;
+DELETE FROM "Payments" WHERE "Row ID"='CP6-P1';
+SELECT pg_temp.assert(NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Ref Payment"='CP6-P1'),'source DELETE removes owned children');
+ROLLBACK TO receipt_delete_regression;
 SELECT pg_temp.reject($q$UPDATE "Repayments" SET "Interest Paid"=1::money WHERE "Ref Payment"='CP6-P1'$q$,'immutable');
 
 INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Status","Ref Borrower","Amount Received","Payment Date","Allocation Method","Ref Target Charge") VALUES ('CI-DAD','CP6-P2','Processing','CP6-B',10::money,current_date,'Single Partial','CP6-A');

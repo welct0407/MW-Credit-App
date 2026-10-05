@@ -64,8 +64,8 @@ SELECT pg_temp.assert((SELECT count(*)=2 FROM "Loans" WHERE "Row ID" IN ('SC-L1'
 SELECT public.post_payment('SC-P1');
 UPDATE "Payments" SET "Status"='Processing',"Notes"='Synthetic retry metadata' WHERE "Row ID"='SC-P1';
 SELECT pg_temp.assert((SELECT count(*)=3 FROM "Repayments" WHERE "Ref Payment"='SC-P1'),'retry no duplicate');
-SELECT pg_temp.reject($q$UPDATE "Payments" SET "Selected Charge IDs"='SC-A' WHERE "Row ID"='SC-P1'$q$,'selection cannot');
-SELECT pg_temp.reject($q$UPDATE "Payments" SET "Amount Received"=651::money WHERE "Row ID"='SC-P1'$q$,'financial inputs cannot');
+SELECT pg_temp.reject($q$UPDATE "Payments" SET "Selected Charge IDs"='SC-A' WHERE "Row ID"='SC-P1'$q$,'Payment does not match');
+SELECT pg_temp.reject($q$UPDATE "Payments" SET "Amount Received"=651::money WHERE "Row ID"='SC-P1'$q$,'Payment does not match');
 SELECT pg_temp.reject($q$SELECT pg_temp.receive('SC-STALE','SC-B,SC-C,SC-D',650)$q$,'not eligible');
 SELECT pg_temp.receive('SC-SINGLE','SC-A',400);
 SELECT pg_temp.assert((SELECT count(*)=1 FROM "Payment Allocations" WHERE "Ref Payment"='SC-SINGLE'),'single selection supported');

@@ -1,0 +1,17 @@
+{
+  "database": "loan_manager_dev",
+  "state": "created",
+  "private_baseline_reference": "r051-ui-baseline-3fsqpjql",
+  "source_tables_changed_after_cleanup": null,
+  "browser_readiness_reference": "source_thread01a10a1a-782a-7480-88fc-0cc23c8830f8 browser containment 2026-10-05 16:13 UTC; both-app owner-only/no-borrower-route review",
+  "counts": {
+    "Borrowers": 1,
+    "Loans": 2,
+    "Charges": 3,
+    "Payments": 2,
+    "Business Expenses": 1,
+    "Cash Accounts": 2,
+    "Cash Ledger": 1
+  },
+  "script_sha256": "de4ab7fd516469ce3ac0e7fa9782518e536b25dacf559ca0ed2a455b386e3a0f"
+}

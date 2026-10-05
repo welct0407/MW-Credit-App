@@ -10,3 +10,5 @@
 \ir Test-ReceiptUpload.sql
 \ir Test-UpcomingCharges.sql
 \ir Test-InterestReallocation.sql
+\ir Test-PaymentCrud.sql
+\ir Test-BusinessCrud.sql

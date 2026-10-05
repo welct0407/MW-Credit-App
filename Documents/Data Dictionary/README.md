@@ -1,5 +1,7 @@
 # Ecosystem data dictionary
 
+R051 ordinary source CRUD is a labeled [DEV delta](DEV_R051_CRUD.md); existing exported PROD table/action definitions are not silently overwritten.
+
 **R026 partial-state notice, 24 September:** database pg_cron retirement and export lifecycle are updated. App records from the earlier audit have not been fully reconciled after the partial OLAP upgrade and DEV Daily Analytics regeneration. Use the [owner-directed closure](../../outputs/r026-dictionary-fixes/closure.md) for actual versions, remaining locale/schema differences and verification limits; do not treat older app records as current verified truth for those affected properties.
 
 This folder is the maintained home for exact model and configuration documentation across the loan ecosystem. Start with the relevant system and object; do not read the complete dictionary for an ordinary change.
