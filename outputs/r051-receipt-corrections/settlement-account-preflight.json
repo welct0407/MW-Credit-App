@@ -1,0 +1,10 @@
+{
+  "database": "loan_manager_dev",
+  "version": 65,
+  "read_only": true,
+  "snapshot_at": "2026-10-05 19:26:59.922293+00:00",
+  "completed_count": 3,
+  "completed_blank_account_count": 2,
+  "completed_blank_account_opening_included_count": 2,
+  "ui_rule": "Hold stricter Required_If until legacy blank-account edit behavior is reconciled; no row changed"
+}

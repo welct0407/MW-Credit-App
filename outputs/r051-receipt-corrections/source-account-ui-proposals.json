@@ -52,8 +52,8 @@
     "Ref Paid From Cash Account": {
       "Editable_If_predicate": "OR(NOT(IN([Row ID], Settlements[Row ID])), IN([Status], LIST(\"Pending\", \"Completed\")))",
       "Valid_If": "SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = \"ch:lisa\"), [Row ID] = [_THISROW].[Ref Paid From Cash Account]))",
-      "Required_If": "[Status] = \"Completed\"",
-      "initial_value": "Keep existing Lisa default on new rows; do not reset account on normal edits"
+      "initial_value": "Keep existing Lisa default on new rows; do not reset account on normal edits",
+      "Required_If_status": "HOLD existing saved rule: read-only DEV65 preflight found3 Completed rows,2 blank-account rows, both included in historical opening. Do not make all Completed rows newly require an account; preserve metadata edits and existing completion checks. See settlement-account-preflight.json."
     },
     "ownership": "Keep Complete/Reverse/Cancel and existing access/status constraints; no Dad settlement payer",
     "tests": [
