@@ -71,6 +71,41 @@ def combine(values):
     return 1
 
 
+def sql_uptime_snapshot(conn):
+    """Use only the existing reporting transaction; never widen its privileges.
+
+    A savepoint isolates this extra read from the original connectivity check.
+    Failure emits fresh Unknown without carrying forward an old uptime value.
+    """
+    observed = dt.datetime.now(dt.timezone.utc).isoformat()
+    try:
+        with conn.transaction():
+            database, role, readonly, seconds, stamp = conn.execute(
+                "SELECT current_database(),current_user,"
+                "current_setting('transaction_read_only'),"
+                "floor(extract(epoch FROM "
+                "(statement_timestamp()-pg_postmaster_start_time())))::bigint,"
+                "statement_timestamp()"
+            ).fetchone()
+            if (database != 'loan_manager_prod' or role != 'mw_integration_agent' or
+                    readonly != 'on' or type(seconds) is not int or seconds < 0 or
+                    not isinstance(stamp, dt.datetime) or stamp.tzinfo is None or
+                    abs((dt.datetime.now(dt.timezone.utc) - stamp).total_seconds()) > 120):
+                return {'status': 4}, observed
+        return {'status': 1, 'uptime_seconds': seconds}, stamp.isoformat()
+    except Exception:
+        return {'status': 4}, observed
+
+
+def sql_uptime_series(snapshot, observed, resource):
+    return [{'metric': {'type': WORKER_METRIC,
+                        'labels': {'component': 'cloud_sql_prod', 'field': field}},
+             'resource': resource, 'metricKind': 'GAUGE', 'valueType': 'INT64',
+             'points': [{'interval': {'endTime': observed},
+                         'value': {'int64Value': str(value)}}]}
+            for field, value in snapshot.items()]
+
+
 def receipt_snapshot(config, job, inspector=None):
     if not config.get('receipt_summary_enabled'):
         return {'status':3}
@@ -117,6 +152,8 @@ def relay_snapshot(config, job, inspector=None):
 def main():
     config = json.loads(Path(CONFIG).read_text())
     result = {'heartbeat': 1}
+    sql_uptime = {'status': 4}
+    sql_observed = dt.datetime.now(dt.timezone.utc).isoformat()
     def check(name, fn):
         try:
             result[name] = int(fn())
@@ -163,6 +200,7 @@ def main():
         return 2 if s.get('Health') else 1
     check('tailscale_node', tailscale)
     def database():
+        nonlocal sql_uptime, sql_observed
         import psycopg
         from mw_integration_agent.state import parameters
         from mw_integration_agent.config import load_secret
@@ -176,6 +214,8 @@ def main():
             with psycopg.connect(**args) as conn:
                 if conn.execute('SELECT 1').fetchone() != (1,):
                     return 0
+                if args['dbname'] == 'loan_manager_prod' and args['user'] == 'mw_integration_agent':
+                    sql_uptime, sql_observed = sql_uptime_snapshot(conn)
         return 1
     check('database', database)
     def codex():
@@ -211,6 +251,7 @@ def main():
         series.append({'metric': {'type': WORKER_METRIC, 'labels': {'component':'audit_relay','field':field}},
                        'resource':series[0]['resource'],'metricKind':'GAUGE','valueType':'INT64',
                        'points':[{'interval':{'endTime':timestamp},'value':{'int64Value':str(value)}}]})
+    series.extend(sql_uptime_series(sql_uptime, sql_observed, series[0]['resource']))
     # One low-cardinality numeric snapshot; no borrower/payment identifiers or amounts.
     for field,value in dict(receipt_pipeline,status=result['receipts']).items():
         series.append({'metric': {'type':'custom.googleapis.com/mw_resource_monitoring/receipt_pipeline',
@@ -229,7 +270,8 @@ def main():
     with urllib.request.urlopen(req, timeout=20) as response:
         response.read()
     print(json.dumps({'checkedAt': timestamp, 'health': result, 'receipt_pipeline':receipt_pipeline,
-                     'audit_relay':audit_relay,'exported': True}))
+                     'audit_relay':audit_relay,'sql_uptime':sql_uptime,'sql_uptime_observed_at':sql_observed,
+                     'exported': True}))
 
 
 if __name__ == '__main__':
