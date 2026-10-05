@@ -1,0 +1,69 @@
+{
+  "state": "GUIDANCE_ONLY_GUI_SAVE_PENDING",
+  "parent_reported_current_state": {
+    "oltp": "1.000168 runnable,37 columns retained; regeneration rejected missing required Delete Requested in3 creation actions; assignment dropdown timeout300s/readback pending",
+    "olap": "1.000051 new hidden false-default field applied"
+  },
+  "database": "DEV65 physical Delete Requested boolean NOT NULL DEFAULT false; no schema change proposed",
+  "inventory_provenance": "Saved DEV OLTP1.000159 AppDoc baseline; exact names match three parent-reported creator class, current live assignments must be read back",
+  "receipt_creators": [
+    {
+      "table": "Charges",
+      "action": "Common - Create Full Payment from Charge"
+    },
+    {
+      "table": "Loans",
+      "action": "Receive All Remaining Charges"
+    },
+    {
+      "table": "Charges",
+      "action": "Payment - Create First-Day Receipt"
+    }
+  ],
+  "assignment": {
+    "action_type": "Data: add a new row to another table by using values from this row",
+    "target_table": "Payments",
+    "Set these columns": {
+      "Delete Requested": "FALSE"
+    },
+    "preserve": "all existing assignments, conditions, identities, ownership and bot routing; append one literal Boolean assignment"
+  },
+  "column_metadata": {
+    "type": "Yes/No",
+    "Initial value": "FALSE",
+    "App formula": "blank",
+    "Show_If": "FALSE",
+    "Editable_If": "FALSE",
+    "Reset on edit": false,
+    "database_required_and_default": "unchanged"
+  },
+  "supported_steps": [
+    "Read back saved app168 schema/actions after the timeout before retrying; do not assume partial dropdown edits persisted",
+    "In current editor, refresh affected Payments schema and inspect whether new physical field is available in the pending definition; the action assignment target is Payments, not its Charges/Loans source table",
+    "If field is available, append literal FALSE in Set these columns for each named add-row action, preserve every other assignment, and set Payments initial value FALSE before final validation/save",
+    "Read back saved schema count/field and all3 explicit assignments, clear editor diagnostics/runnable state, preserve Ref/IsAPartOf; then synthetic receipt Add plus custom Delete save/full-sync tests",
+    "If regeneration rolls the schema back to37 columns and target assignment selector cannot expose Delete Requested, stop that UI mutation and capture the exact current editor error. Official docs do not establish an atomic-bootstrap bypass for that rejected state; do not claim an unavailable selector or saved change"
+  ],
+  "avoid": [
+    "Do not set App formula=FALSE: formula columns cannot be set by the delete action",
+    "Do not make the PostgreSQL flag nullable, drop its default or weaken its insert/mixed-command guard",
+    "Do not expose field for manual editing merely to enable assignments; Editable_If FALSE does not disable actions",
+    "Do not rely on action hide/OnlyIf FALSE as a documented required-column-validation bypass",
+    "No unrelated tables, replacement database column, workflow removal or private editor API workaround proposed"
+  ],
+  "sources": [
+    {
+      "title": "Actions: The Essentials \u2014 add-row Set these columns and set-values restrictions",
+      "url": "https://support.google.com/appsheet/answer/10107706?hl=en"
+    },
+    {
+      "title": "Editable_If \u2014 FALSE permits initial values/actions; UI scope only",
+      "url": "https://support.google.com/appsheet/answer/10107954"
+    },
+    {
+      "title": "Define app formulas and initial values",
+      "url": "https://support.google.com/appsheet/answer/10106437"
+    }
+  ],
+  "limitations": "Docs support the final assignments/defaults, not successful recovery of this particular timed-out/rejected editor operation. Actual GUI bootstrap remains unverified."
+}

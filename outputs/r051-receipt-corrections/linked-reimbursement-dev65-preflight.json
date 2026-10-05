@@ -1,0 +1,33 @@
+{
+  "database": "loan_manager_dev",
+  "instance": "appsheet-pg-prod-20260914",
+  "host": "34.21.174.215",
+  "version": 65,
+  "checksum": -2087638333,
+  "read_only": true,
+  "snapshot_at": "2026-10-05 19:43:25.094264+00:00",
+  "linked_manual_reimbursements": {
+    "count": 0,
+    "missing_expense": 0,
+    "nonpositive_or_null_amount": 0,
+    "non_tommy_or_null_payer": 0,
+    "violations": 0
+  },
+  "verified_admin_role": "postgres",
+  "admin_privileges": {
+    "Business Expenses.SELECT": true,
+    "Business Expenses.UPDATE": true,
+    "Cash Ledger.SELECT": true,
+    "Cash Ledger.INSERT": true,
+    "Cash Ledger.UPDATE": true,
+    "Cash Accounts.SELECT": true,
+    "Cash Holders.SELECT": true,
+    "Business Expenses.UPDATE Row ID": true,
+    "Cash Accounts.UPDATE any column for existing FOR SHARE": true,
+    "Cash Holders.UPDATE any column for existing FOR SHARE": true
+  },
+  "configured_app_role": {
+    "status": "pending exact current configured SQL username"
+  },
+  "scope": "No rows, amounts, recipients or credentials exported; no migration, seeds, repairs or source writes"
+}
