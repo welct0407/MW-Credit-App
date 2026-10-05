@@ -1,6 +1,6 @@
 # R051 — Ordinary business source CRUD
 
-Status: V59–V62 applied DEV; V63 locally validated and pending coordinated DEV apply/test. Browser tests and final cleanup remain in progress; R051 remains Open. No PROD writes, runtime deployment, merge or release freeze authorized/performed.
+Status: V59–V63 applied and validated DEV. Actual receipt suite passes; broad backdated-contribution timeout remains under investigation. Browser tests and final cleanup remain in progress; R051 remains Open. No PROD writes, runtime deployment, merge or release freeze authorized/performed.
 
 The owner replaced the earlier history-heavy reversal proposal with ordinary INSERT/UPDATE/DELETE for this two-person prototype, then expanded coverage to appropriate operations in both apps and all real business entities. Parent/child relationships and useful cascades must be retained as far as possible. Existing role permissions and necessary consistency/duplicate/concurrency checks remain.
 
@@ -12,4 +12,8 @@ Recovery and actual testing results, migration hashes and publication pins belon
 
 All script, migration, test, formula and fix authoring uses owner-requested GPT-6 Astra High. Root coordination/review is read-only. The companion MW-Integration-Agent worktree remains unchanged; simplified CRUD needs no companion/runtime change.
 
-V63 batches repeated historical refreshes without a persistent queue, retaining a deferred fallback for referral and expense-share changes. Full 63-migration CI, seven concurrency suites, seeded historical-opening checks and canonical consolidated/account snapshot comparisons pass. A restored-DEV data benchmark complements disposable tests; actual live performance/full-suite proof remains pending.
+V63 batches repeated historical refreshes without a persistent queue, retaining a deferred fallback for referral and expense-share changes. Full 63-migration CI, seven concurrency suites, seeded historical-opening checks and canonical consolidated/account snapshot comparisons pass. A restored-DEV data benchmark complements disposable tests; actual DEV receipt suite now passes (formerly failing daily insert 1.308s), while the broad contribution case exceeds its 30s statement bound. Both rollback attempts preserve all 26 table fingerprints and the GUI baseline. No broad-suite pass is claimed.
+
+Published candidate `134bd9a5a70662c7d8ed0d45bf6d4fc3ae989223`, [draft PR15](https://github.com/welct0407/AppSheet-Loan-Project/pull/15), has successful exact-head Windows CI run `37340684900`. Parent reports OLTP1.000160 saved from1.000159, pre-save diagnostics clear but immediate runnable status unresolved; OLAP unchanged. No successful GUI save/sync/cascade acceptance is claimed.
+
+Bounded contribution diagnostics separated normal execution from the suite-wide forced-generic stress setting: normal fresh/late contributions complete in about1.5s; late generic takes16.2s. The test now uses normal planning for functional coverage, retaining an isolated generic compatibility assertion; no financial assertions removed and no new business migration. Full broad DEV acceptance remains pending its rerun.

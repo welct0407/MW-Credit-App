@@ -1,6 +1,6 @@
 # R051 DEV CRUD delta
 
-DEV V59–V62 changes function/trigger behavior only: no new business tables, columns, enum values, role grants or app table bindings. Existing production YAML exports remain production reference. DEV apply/test and browser evidence are recorded in [R051 evidence](../../outputs/r051-receipt-corrections/README.md).
+DEV V59–V63 changes function/trigger behavior only: no new business tables, columns, enum values, role grants or app table bindings. Existing production YAML exports remain production reference. DEV apply/test and browser evidence are recorded in [R051 evidence](../../outputs/r051-receipt-corrections/README.md).
 
 Payments source edits reconcile old/new allocations, repayments, charge/loan materialized values, account cash and payment-owned closure/referral. Source deletion removes its financial projections atomically; it does not refund money. Whole positive interest allocation Ref Charge edits work in either date direction within the same eligible loan. Other generated child amounts remain source-managed.
 

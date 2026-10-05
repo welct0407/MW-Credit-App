@@ -1,8 +1,9 @@
 \set ON_ERROR_STOP on
 BEGIN;
 SET LOCAL timezone='Asia/Bangkok';
--- Even a caller preferring generic plans gets date-specific history planning.
-SET LOCAL plan_cache_mode='force_generic_plan';
+-- Ordinary CRUD uses PostgreSQL's normal automatic planning.
+-- Forced generic planning is isolated below as a separate compatibility check.
+SET LOCAL plan_cache_mode='auto';
 DO $$ BEGIN ASSERT (SELECT 'plan_cache_mode=force_custom_plan'=ANY(proconfig) FROM pg_proc WHERE oid='public.refresh_daily_analytics(date,date)'::regprocedure),'bounded date-specific refresh plan'; END $$;
 \ir Test-CashAccountFixtures.sql
 CREATE FUNCTION pg_temp.assert(ok boolean,msg text) RETURNS void LANGUAGE plpgsql AS $$
@@ -119,5 +120,10 @@ SELECT pg_temp.assert((SELECT "Outstanding Principal"=100 AND "Loan Status"='ย
 SELECT pg_temp.assert((SELECT "Principal Due"=100::money AND "Interest Due"=10::money FROM "Charges" WHERE "Row ID"='CRUD60-CLOSE-C'),'augmented charge retained for explicit correction');
 UPDATE "Charges" SET "Principal Due"=0::money WHERE "Row ID"='CRUD60-CLOSE-C';
 SELECT pg_temp.assert((SELECT "Posted Amount"=10 FROM "Payments" WHERE "Row ID"='CRUD60-CLOSE-FIRST'),'charge correction preserves earlier receipt');
+SAVEPOINT generic_planning;
+SET LOCAL plan_cache_mode='force_generic_plan';
+SELECT public.refresh_daily_analytics(current_date-1,current_date);
+SELECT pg_temp.assert(current_setting('plan_cache_mode')='force_generic_plan','history refresh restores caller planning setting');
+ROLLBACK TO generic_planning;
 SELECT 'Business source CRUD passed' AS result;
 ROLLBACK;

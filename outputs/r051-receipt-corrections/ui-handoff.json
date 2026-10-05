@@ -1,5 +1,5 @@
 {
-  "gate": "PARTIAL DEV GATE: V59–V62 applied. Browser may validate/save scoped expressions, actions and slices now; no overall CRUD acceptance. Exact initial synthetic fixtures require browser bot-route/no-borrower-send readiness plus successful bounded create/readback. Historical performance and complete DEV suites remain pending.",
+  "gate": "PARTIAL DEV GATE: V59–V63 applied/validated. Actual DEV receipt suite PASSED, including daily corrections, consolidated/account snapshots and rollback cases. Broad suite still fails on backdated contribution/history performance; no overall CRUD acceptance. Initial committed fixtures preserved; backend write window released for bounded GUI tests.",
   "baseline": {
     "oltp": {
       "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
@@ -96,7 +96,7 @@
   "notifications": "Verify bot event types/conditions in both apps; source correction, metadata/no-op and delete must not double-send receipts or notify borrowers during DEV tests. SQL itself has no outbound sends.",
   "atomicity": "One SQL statement/transaction is atomic. A single receipt form saves its inputs together; do not promise separate AppSheet queued row changes are one database transaction.",
   "verified_ui_scope": {
-    "evidence": "dev-v61-test-attempt.json; rollback-only synthetic Test-PaymentCrud reached all cases before CRUD59-DAILY insert then timed out. No fixtures retained.",
+    "evidence": "dev-partial-tests-v63.json: entire receipt suite passed and rolled back; broad backdated-contribution timeout rolled back with all26 table fingerprints unchanged and initial GUI fixtures preserved.",
     "configuration_now": "Validate/save proposed field/action/slice changes in both DEV apps, preserving Ref/IsAPartOf, existing new-row/retry behavior and source ownership. Verify editor issues/readback. This is configuration proof, not sync proof.",
     "after_fixture_creation": [
       "Receipt amount correction with available charge capacity",
@@ -108,10 +108,10 @@
     ],
     "not_yet_verified": [
       "Any real AppSheet save/sync/cascade ordering or notification event behavior",
-      "Ten-day/new/backdated daily loan insert and daily principal correction path after repeated refreshes",
       "Broad manual expenses, contributions, settlements, cash movements, default undo and master-data live suites",
       "Any historical opening/cutover or unassigned-account financial change (reconciliation remains required)",
-      "Any existing real user record mutation"
+      "Any existing real user record mutation",
+      "Broad backdated contribution/history performance, later live default/LoanClose cases, full GUI acceptance and final cleanup remain pending."
     ],
     "fixture_gate": "Initial exact fixtures are CREATED and independently read back on V62. Browser may run the listed bounded scenarios after coordinating its write window with backend tests. Preserve all actual generated keys for cleanup; additional fixtures are not yet created.",
     "atomicity": "SQL source writes roll back on timeout/error. AppSheet may sync child/parent rows in separate transactions; only actual GUI tests can establish cascade behavior."
@@ -411,5 +411,49 @@
       "cleanup": "Receipt first, then charge/loan, borrower and unreferenced synthetic referrer."
     },
     "scope": "All generated GUI IDs must be captured with exact synthetic parent/account refs. Final cleanup compares nonfixture source-table fingerprints; derived analytics timestamps may legitimately regenerate. No real source deletion, external transfer, borrower message, production write or app-wide audit."
+  },
+  "dev_receipt_result": {
+    "version": 63,
+    "database": "loan_manager_dev",
+    "code_commit": "134bd9a5a70662c7d8ed0d45bf6d4fc3ae989223",
+    "passed_suites": [
+      "Test-PaymentCrud.sql"
+    ],
+    "receipt_metrics": {
+      "statement_count": 102,
+      "sum_psql_statement_times_seconds": 45.208,
+      "max_statement_ms": 3156.139,
+      "daily_loan_insert_ms": 1307.684
+    },
+    "failed_suite": "Test-BusinessCrud.sql",
+    "failure": "Server statement timeout during extra backdated contribution/history refresh; broad final default/LoanClose cases not reached",
+    "rollback_contained": true,
+    "remaining_owned_sessions": [],
+    "all_26_table_fingerprints_unchanged": true,
+    "gui_baseline_preserved": true,
+    "private_logs_reference": "r051-dev-tests-psnle3ah",
+    "overall_pass": false
+  },
+  "ui_progress_parent": {
+    "date": "2026-10-05",
+    "source": "Parent browser report; not executor GUI observation",
+    "oltp": {
+      "saved_version": "1.000160",
+      "previous_version": "1.000159",
+      "Deployable": "Yes",
+      "Runnable": "No immediately after save; unresolved",
+      "pre_save_editor_issues": "No issues found",
+      "changed": "Coherent receipt/allocation configuration saved; no fixture data writes before reserved backend window"
+    },
+    "olap": "Unchanged at last report",
+    "browser_access": "Security permission request dismissed; parent owns access retry",
+    "related_observation": {
+      "time_utc": "16:01:27",
+      "component": "DEV OLTP UpcomingChargeForecast",
+      "message": "Timed out waiting for a resource",
+      "trace": "ee9b7540-516f-495c-9740-2864cfcbbbb7",
+      "reported_stack": "SelectFunction/computed virtual column",
+      "interpretation": "Cause unverified; no attribution to backend change or production impact; no infrastructure remediation performed"
+    }
   }
 }

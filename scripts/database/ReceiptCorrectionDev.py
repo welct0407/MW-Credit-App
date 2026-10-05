@@ -169,11 +169,11 @@ def migrate(target_version=60):
     return result
 
 
-def test():
+def test(business_only=False):
     # This is the live DEV route, deliberately separate from disposable Test-CI.
     # Only two reviewed rollback-only suites, unique accounts, no table-wide fixture
     # assumptions, no opening/admin bypass, no committed synthetic data or notifications.
-    names = ['Test-PaymentCrud.sql','Test-BusinessCrud.sql']
+    names = ['Test-BusinessCrud.sql'] if business_only else ['Test-PaymentCrud.sql','Test-BusinessCrud.sql']
     files = [REPO/'scripts/database'/name for name in names]
     hashes = {p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
     fixture = """INSERT INTO public.\"Cash Accounts\"(\"Row ID\",\"Ref Cash Holder\",\"Account Label\",\"Bank Name\")
@@ -232,7 +232,7 @@ VALUES ('DEV-R051-DAD','ch:dad','R051 rollback synthetic Dad','Synthetic'),
         return dict(database='loan_manager_dev',suites=names,rollback_contained=True,table_fingerprints_unchanged=len(before),
                     source_sha256=hashes,private_logs_reference=root.name,notifications='SQL-only; no outbound sends')
     result = dev_connection(verify)
-    (REPO/'outputs/r051-receipt-corrections/dev-tests.json').write_text(json.dumps(result,indent=2)+'\n')
+    (REPO/('outputs/r051-receipt-corrections/dev-business-tests.json' if business_only else 'outputs/r051-receipt-corrections/dev-tests.json')).write_text(json.dumps(result,indent=2)+'\n')
     return result
 
 
@@ -287,8 +287,8 @@ def ui_fixtures(mode, browser_reference):
 if __name__ == '__main__':
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('mode', choices=['backup','migrate','migrate-refinement','migrate-planning','migrate-coalescing','test','ui-create','ui-cleanup'])
+    p.add_argument('mode', choices=['backup','migrate','migrate-refinement','migrate-planning','migrate-coalescing','test','test-business','ui-create','ui-cleanup'])
     p.add_argument('--browser-ready-reference')
     args = p.parse_args()
-    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'test':test}[args.mode]()
+    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'test':test,'test-business':lambda:test(True)}[args.mode]()
     print(json.dumps(result))

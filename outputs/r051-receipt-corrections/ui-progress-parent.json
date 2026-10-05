@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-05",
+  "source": "Parent browser report; not executor GUI observation",
+  "oltp": {
+    "saved_version": "1.000160",
+    "previous_version": "1.000159",
+    "Deployable": "Yes",
+    "Runnable": "No immediately after save; unresolved",
+    "pre_save_editor_issues": "No issues found",
+    "changed": "Coherent receipt/allocation configuration saved; no fixture data writes before reserved backend window"
+  },
+  "olap": "Unchanged at last report",
+  "browser_access": "Security permission request dismissed; parent owns access retry",
+  "related_observation": {
+    "time_utc": "16:01:27",
+    "component": "DEV OLTP UpcomingChargeForecast",
+    "message": "Timed out waiting for a resource",
+    "trace": "ee9b7540-516f-495c-9740-2864cfcbbbb7",
+    "reported_stack": "SelectFunction/computed virtual column",
+    "interpretation": "Cause unverified; no attribution to backend change or production impact; no infrastructure remediation performed"
+  }
+}
