@@ -13,6 +13,11 @@ DECLARE definition text:=pg_get_functiondef('public.refresh_daily_analytics(date
  correlated text:=$correlated$coalesce((SELECT sum(paid) FROM charge_payments cp WHERE cp.charge=c."Row ID" AND cp.d<=dates.d),0),0)),0) AS pending
      FROM public."Charges" c WHERE c."Charge Date"<=dates.d$correlated$;
 BEGIN
+ -- Flyway/psql can preserve different line endings on Windows. Normalize only
+ -- carriage returns before matching the exact retained calculation fragment.
+ definition:=replace(definition,chr(13),'');
+ grouped:=replace(grouped,chr(13),'');
+ correlated:=replace(correlated,chr(13),'');
  ASSERT position(grouped in definition)>0,'Expected grouped implementation';
  definition:=replace(definition,'public.refresh_daily_analytics(','pg_temp.refresh_daily_analytics_reference(');
  definition:=replace(definition,grouped,correlated);

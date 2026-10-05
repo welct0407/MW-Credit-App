@@ -1,5 +1,5 @@
 {
-  "gate": "PARTIAL DEV GATE: V59–V63 applied/validated. Actual DEV receipt suite PASSED, including daily corrections, consolidated/account snapshots and rollback cases. Broad suite still fails on backdated contribution/history performance; no overall CRUD acceptance. Initial committed fixtures preserved; backend write window released for bounded GUI tests.",
+  "gate": "BACKEND VALIDATED DEV V59–V64. Actual receipt, eight same-backend business workflows and original monolithic reproduction all PASS with all26 fingerprints/initial GUI baseline preserved. Backend window released. UI NOT ACCEPTED: OLTP1.000160 is confirmed not runnable; browser permission blocked, OLAP1.000047 unchanged. Resolve current editor/runtime failure and complete both-app GUI save/sync/cascade tests before readiness.",
   "baseline": {
     "oltp": {
       "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
@@ -96,7 +96,7 @@
   "notifications": "Verify bot event types/conditions in both apps; source correction, metadata/no-op and delete must not double-send receipts or notify borrowers during DEV tests. SQL itself has no outbound sends.",
   "atomicity": "One SQL statement/transaction is atomic. A single receipt form saves its inputs together; do not promise separate AppSheet queued row changes are one database transaction.",
   "verified_ui_scope": {
-    "evidence": "dev-partial-tests-v63.json: entire receipt suite passed and rolled back; broad backdated-contribution timeout rolled back with all26 table fingerprints unchanged and initial GUI fixtures preserved.",
+    "evidence": "dev-acceptance-v64.json, dev-tests.json and dev-business-monolithic-tests.json: source/cash/parent/default/closure/current-daily/history and pooled-session checks passed, with rollback and all26 fingerprints preserved.",
     "configuration_now": "Validate/save proposed field/action/slice changes in both DEV apps, preserving Ref/IsAPartOf, existing new-row/retry behavior and source ownership. Verify editor issues/readback. This is configuration proof, not sync proof.",
     "after_fixture_creation": [
       "Receipt amount correction with available charge capacity",
@@ -107,17 +107,27 @@
       "Payment-owned close-date correction; earlier-receipt edit/delete preserving later receipt and reopening if debt returns (additional exact synthetic fixtures needed)"
     ],
     "not_yet_verified": [
-      "Any real AppSheet save/sync/cascade ordering or notification event behavior",
-      "Broad manual expenses, contributions, settlements, cash movements, default undo and master-data live suites",
-      "Any historical opening/cutover or unassigned-account financial change (reconciliation remains required)",
-      "Any existing real user record mutation",
-      "Broad backdated contribution/history performance, later live default/LoanClose cases, full GUI acceptance and final cleanup remain pending."
+      "Current GUI form validation, save/sync and Ref/IsAPartOf cascade ordering in both apps",
+      "Both-app final zero-warning/error and runnable/load checks; OLTP1.000160 confirmed not runnable",
+      "Actual notification event/no-double-send behavior during GUI corrections; recipient/bot containment baseline remains recorded",
+      "Additional synthetic fixture batches, GUI Add-generated ID capture and final cleanup/source preservation",
+      "Existing real user records and historical opening/unassigned-account corrections are not authorized test records; their documented dependency checks remain"
     ],
     "fixture_gate": "Initial exact fixtures are CREATED and independently read back on V62. Browser may run the listed bounded scenarios after coordinating its write window with backend tests. Preserve all actual generated keys for cleanup; additional fixtures are not yet created.",
-    "atomicity": "SQL source writes roll back on timeout/error. AppSheet may sync child/parent rows in separate transactions; only actual GUI tests can establish cascade behavior."
+    "atomicity": "SQL source writes roll back on timeout/error. AppSheet may sync child/parent rows in separate transactions; only actual GUI tests can establish cascade behavior.",
+    "backend_verified_scenarios": [
+      "Receipt source insert/update/delete, both old/new parents and account cash",
+      "Whole positive interest moves in both date directions",
+      "Manual expenses, manual cash movements, settlements and contributions",
+      "Unpaid charges/loans, borrower/partner/account/assessment source operations and dependency rejections",
+      "Default undo, payment-owned closure/referral, retained Loan Close charge",
+      "Backdated daily principal current-rate correction with later booked charges retained",
+      "Canonical consolidated/account snapshots, rollback/no-op/invalid/multirow cases",
+      "Same-session eight workflow transactions and original combined transaction"
+    ]
   },
   "fixture_manifest": {
-    "state": "not created; wait for DEV validation and browser notification-containment readiness",
+    "state": "Initial exact batch created and verified; see ui-fixture-state.json and ui-fixture-readback.json. Additional batches below are NOT CREATED.",
     "namespace": "SYN-R051-UI-",
     "target": "loan_manager_dev only",
     "creation_script": "scripts/database/R051-UiFixtures.sql",
@@ -141,7 +151,70 @@
       "Loan/charge OLAP readonly operational navigation into OLTP",
       "Both apps warning/error checks and no duplicate/real sends"
     ],
-    "broader_gui": "Every app Add-generated UNIQUEID must be captured and added to exact cleanup inventory, with refs verified against synthetic parents/accounts. Static seeded cleanup alone does not prove zero residue. Contributions/settlement tests need isolated future-date/entitlement plan before creation."
+    "broader_gui": "Every app Add-generated UNIQUEID must be captured and added to exact cleanup inventory, with refs verified against synthetic parents/accounts. Static seeded cleanup alone does not prove zero residue. Contributions/settlement tests need isolated future-date/entitlement plan before creation.",
+    "additional_gui_plan": {
+      "state": "NOT CREATED. Separate bounded batches after initial GUI tests; require exact IDs/readback and cleanup for each. Do not merge these into current baseline implicitly.",
+      "contributions": {
+        "partner": "SYN-R051-UI-PARTNER-A",
+        "role": "A",
+        "delivery": "blank; no synthetic nonowner delivery address",
+        "date_rule": "Use a future date after every existing repayment and expense date (preflight read); retain existing app date validation. This avoids changing existing historical allocation shares.",
+        "gui_sequence": "Add Contribution10 → edit20/date+1 → add Withdrawal5 → delete Withdrawal → delete Contribution. Capture every generated key.",
+        "cleanup": "Exact captured contribution keys, then unreferenced synthetic partner after settlement cleanup."
+      },
+      "settlements": {
+        "partner": "SYN-R051-UI-PARTNER-A",
+        "account": "SYN-R051-UI-LISA",
+        "preflight": "partner_net_profit for the synthetic role must permit2 without modifying real entitlement/source rows or topping up balances. If unavailable, verify insufficient-entitlement rejection and report positive-flow test unavailable; never fabricate funding to bypass it.",
+        "gui_sequence": "Add Pending1 → Complete Transfer today → correct amount2/date/account within same synthetic accounts → Reverse Transfer → Complete → existing Cancel/Delete Settlement action. Keep working specialized actions.",
+        "cleanup": "Capture generated settlement ID; remove only exact synthetic source and its owned cash after testing."
+      },
+      "daily": {
+        "loan": "SYN-R051-UI-DAILY",
+        "charge": "SYN-R051-UI-DAILY-C",
+        "later_charge": "SYN-R051-UI-DAILY-LATER",
+        "payment": "SYN-R051-UI-DAILY-P",
+        "baseline": "Loan100 dated today-2, original/current daily interest10, auto generation disabled. Charge today-2 principal100 interest10, receipt20 (interest10/principal10), later charge today-1 interest9.",
+        "gui_sequence": "Receipt20→30: current principal80/rate8, later booked9 unchanged. Delete receipt: principal100/rate10, later booked9 unchanged. Edit later unpaid charge9→10 separately.",
+        "cleanup": "Receipt before both charges, then loan; no auto-generated notifications."
+      },
+      "default": {
+        "loan": "SYN-R051-UI-DEFAULT",
+        "charge": "SYN-R051-UI-DEFAULT-C",
+        "baseline": "Loan100/current daily interest10, charge today principal100 interest10; no receipts. Create with auto-generation off; enable only during the bounded Default→Undo test and disable immediately afterward.",
+        "gui_sequence": "Existing Default Loan confirmation today with actual actor → check zero-cash loss and closed/default state → Undo Default → restored100/10 charge and outstanding100, no loss row/cash residue.",
+        "undo_action": {
+          "type": "Data: set the values of some columns in this row",
+          "column_values": {
+            "Defaulted": "FALSE"
+          },
+          "OnlyIf": "[Defaulted] = TRUE",
+          "confirmation": true,
+          "instruction": "Keep current access predicates. SQL restores known source components or returns a precise dependency error."
+        },
+        "cleanup": "Undo default first if still set, disable auto-generation, delete exact unpaid charge/loan. Track any scheduler-created rows causally owned by this synthetic loan; never touch unrelated rows."
+      },
+      "legacy_repayment": {
+        "loan": "SYN-R051-UI-LEGACY",
+        "charge": "SYN-R051-UI-LEGACY-C",
+        "repayment": "SYN-R051-UI-LEGACY-R",
+        "baseline": "Independent legacy row Ref Payment blank, principal0/interest1 against synthetic charge principal100/interest10; loan100. No new ordinary Add workflow is exposed.",
+        "gui_sequence": "Existing independent-row Edit interest1→2/date → Delete; materialized charge/loan values refresh, no fabricated source cash. Receipt-linked children stay source-managed.",
+        "cleanup": "Exact repayment first, then unpaid charge/loan."
+      },
+      "closure_referral": {
+        "borrower": "SYN-R051-UI-CLOSE-B",
+        "referrer": "SYN-R051-UI-REFERRER",
+        "loan": "SYN-R051-UI-CLOSE-L",
+        "charge": "SYN-R051-UI-CLOSE-C",
+        "payment": "SYN-R051-UI-CLOSE-P",
+        "baseline": "Both synthetic borrowers have no contact details; only their mutual synthetic referrer link. Loan100 and charge principal100/interest100 dated today-2, receipt200 today closes. Expected referral10.",
+        "gui_sequence": "Closing receipt date today→today-1 follows source in close/referral date. Delete receipt reopens and removes only own referral/system cash. Prepared Loan Close charge behavior is separately tested from this ordinary full-payment closure.",
+        "cash_note": "Generated referral uses the existing DEV Lisa default account by design; capture its exact owned cash row. Do not change any real account default or original source record.",
+        "cleanup": "Receipt first, then charge/loan, borrower and unreferenced synthetic referrer."
+      },
+      "scope": "All generated GUI IDs must be captured with exact synthetic parent/account refs. Final cleanup compares nonfixture source-table fingerprints; derived analytics timestamps may legitimately regenerate. No real source deletion, external transfer, borrower message, production write or app-wide audit."
+    }
   },
   "fixture_sql": {
     "create": "-- DEV GUI-only synthetic fixture manifest. Runner verifies exact DEV identity,\n-- notifications containment and an empty reserved namespace before committing.\n-- No borrower contact or referrer: these receipts must not notify real people.\nINSERT INTO \"Cash Accounts\"(\"Row ID\",\"Ref Cash Holder\",\"Account Label\",\"Bank Name\") VALUES\n ('SYN-R051-UI-DAD','ch:dad','SYNTHETIC R051 UI Dad','Synthetic'),\n ('SYN-R051-UI-LISA','ch:lisa','SYNTHETIC R051 UI Lisa','Synthetic');\nINSERT INTO \"Borrowers\"(\"Row ID\",\"Borrower Name\") VALUES\n ('SYN-R051-UI-B','SYNTHETIC R051 CRUD TEST');\nINSERT INTO \"Loans\"(\"Ref Disbursed From Cash Account\",\"Row ID\",\"Ref Borrowers\",\"Loan Date\",\"Principal Amount\",\"Loan Status\",\"Loan Type\",\"Auto Charge Enabled\") VALUES\n ('SYN-R051-UI-LISA','SYN-R051-UI-L1','SYN-R051-UI-B',current_date-2,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false),\n ('SYN-R051-UI-LISA','SYN-R051-UI-L2','SYN-R051-UI-B',current_date-2,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false);\nINSERT INTO \"Charges\"(\"Row ID\",\"Ref Loans\",\"Charge Date\",\"Principal Due\",\"Interest Due\") VALUES\n ('SYN-R051-UI-C1','SYN-R051-UI-L1',current_date-1,100::money,10::money),\n ('SYN-R051-UI-C2','SYN-R051-UI-L2',current_date-1,100::money,10::money),\n ('SYN-R051-UI-C0','SYN-R051-UI-L2',current_date-2,0::money,10::money);\nINSERT INTO \"Payments\"(\"Row ID\",\"Ref Borrower\",\"Status\",\"Amount Received\",\"Payment Date\",\"Allocation Method\",\"Ref Target Charge\",\"Ref Received By Cash Account\",\"Notes\") VALUES\n ('SYN-R051-UI-P1','SYN-R051-UI-B','Processing',20::money,current_date,'Single Partial','SYN-R051-UI-C1','SYN-R051-UI-DAD','Synthetic UI correction/delete test');\nINSERT INTO \"Payments\"(\"Row ID\",\"Ref Borrower\",\"Status\",\"Amount Received\",\"Payment Date\",\"Allocation Method\",\"Ref Target Charge\",\"Ref Received By Cash Account\",\"Notes\") VALUES\n ('SYN-R051-UI-P2','SYN-R051-UI-B','Processing',5::money,current_date,'Lump Sum',NULL,'SYN-R051-UI-DAD','Synthetic whole-interest move test');\nINSERT INTO \"Business Expenses\"(\"Row ID\",\"Expense Date\",\"Expense Category\",\"Amount\",\"Ref Paid By Cash Account\",\"Ref Paid By Cash Holder\",\"Notes\") VALUES\n ('SYN-R051-UI-E',current_date,'Other',1::money,'SYN-R051-UI-LISA','ch:lisa','Synthetic UI expense edit/delete');\nINSERT INTO \"Cash Ledger\"(\"Row ID\",\"Movement Date\",\"Movement Type\",\"Amount\",\"Ref From Cash Holder\",\"Ref To Cash Holder\",\"Ref From Cash Account\",\"Ref To Cash Account\",\"Notes\") VALUES\n ('SYN-R051-UI-H',current_date,'Cash Handover',1,'ch:dad','ch:lisa','SYN-R051-UI-DAD','SYN-R051-UI-LISA','Synthetic UI movement edit/delete');\nSET CONSTRAINTS ALL IMMEDIATE;\n",
@@ -413,26 +486,44 @@
     "scope": "All generated GUI IDs must be captured with exact synthetic parent/account refs. Final cleanup compares nonfixture source-table fingerprints; derived analytics timestamps may legitimately regenerate. No real source deletion, external transfer, borrower message, production write or app-wide audit."
   },
   "dev_receipt_result": {
-    "version": 63,
-    "database": "loan_manager_dev",
-    "code_commit": "134bd9a5a70662c7d8ed0d45bf6d4fc3ae989223",
-    "passed_suites": [
-      "Test-PaymentCrud.sql"
-    ],
-    "receipt_metrics": {
-      "statement_count": 102,
-      "sum_psql_statement_times_seconds": 45.208,
-      "max_statement_ms": 3156.139,
-      "daily_loan_insert_ms": 1307.684
-    },
-    "failed_suite": "Test-BusinessCrud.sql",
-    "failure": "Server statement timeout during extra backdated contribution/history refresh; broad final default/LoanClose cases not reached",
-    "rollback_contained": true,
-    "remaining_owned_sessions": [],
+    "version": 64,
+    "migration_checksum": 1504057228,
+    "migration_sha256": "2f84f8ea27f0c035a89d0d3e551b1ce2cc8c60e8fa35e1c87ee496ad9623140d",
+    "tested_code_commit": "1afb4489df67a9afd5e59367cc9c8e072f5622a1",
     "all_26_table_fingerprints_unchanged": true,
-    "gui_baseline_preserved": true,
-    "private_logs_reference": "r051-dev-tests-psnle3ah",
-    "overall_pass": false
+    "gui_fixture_baseline_preserved": true,
+    "all_test_transactions_rolled_back": true,
+    "backend_window_released": true,
+    "metrics": {
+      "receipts": {
+        "statements": 102,
+        "sum_client_elapsed_seconds": 26.79,
+        "max_client_statement_ms": 438.289,
+        "passed": true,
+        "private_logs_reference": "r051-dev-tests-cp5n69sk",
+        "daily_loan_insert_ms": 324.255
+      },
+      "pooled_business_workflows": {
+        "statements": 244,
+        "sum_client_elapsed_seconds": 61.609,
+        "max_client_statement_ms": 454.161,
+        "passed": true,
+        "private_logs_reference": "r051-dev-tests-cp5n69sk"
+      },
+      "original_monolithic_repro": {
+        "statements": 103,
+        "sum_client_elapsed_seconds": 29.239,
+        "max_client_statement_ms": 488.103,
+        "passed": true,
+        "private_logs_reference": "r051-dev-tests-1p5zhr1d"
+      }
+    },
+    "timing_scope": "psql client statement timings include network round trips; not server CPU times",
+    "limits": [
+      "Current AppSheet GUI sync/cascades and all editor issues remain unverified",
+      "Initial GUI fixtures retained; additional batches not created",
+      "No PROD writes, promotion, merge or instance changes"
+    ]
   },
   "ui_progress_parent": {
     "date": "2026-10-05",
@@ -445,7 +536,7 @@
       "pre_save_editor_issues": "No issues found",
       "changed": "Coherent receipt/allocation configuration saved; no fixture data writes before reserved backend window"
     },
-    "olap": "Unchanged at last report",
+    "olap": "1.000047 unchanged",
     "browser_access": "Security permission request dismissed; parent owns access retry",
     "related_observation": {
       "time_utc": "16:01:27",
@@ -454,6 +545,13 @@
       "trace": "ee9b7540-516f-495c-9740-2864cfcbbbb7",
       "reported_stack": "SelectFunction/computed virtual column",
       "interpretation": "Cause unverified; no attribution to backend change or production impact; no infrastructure remediation performed"
+    },
+    "oltp_runnable": "confirmed false from parent-provided AppSheet failure email",
+    "confirmed_failure": {
+      "reported_time_utc": "2026-10-05T16:24:08Z",
+      "version": "1.000160",
+      "trace_id": "77b1231c-e86a-4979-9db6-0de864d6b775",
+      "source": "Parent browser/email report; cause not diagnosed because browser permission remains blocked"
     }
   }
 }

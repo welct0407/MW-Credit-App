@@ -34,6 +34,8 @@ Receipt financial fields, target and selected-charge validation must be changed 
 
 SQL recalculation sends no outbound messages. Browser acceptance must verify existing bot event types/conditions for both apps: metadata/no-op/correction/delete must not resend a receipt or borrower notification. Use owner-only DEV delivery or disabled external delivery per existing DEV configuration; no new notification framework is requested.
 
-## Evidence still required
+## Verification state
 
-Final full migration/SQL/concurrency CI, actual DEV rollback-contained source CRUD suites, unchanged before/after fixture fingerprints, UI field/action/slice and sync assertions, migration hashes and exact tested commit, draft PR CI. Recovery already verified by restoring all 26 business/audit table fingerprints; artifacts remain private. No PROD changes authorized.
+Backend V64 is applied and validated. Full local migration/SQL/seven-concurrency and old/new snapshot parity checks pass. Actual DEV receipt tests, eight complete workflows on one reused backend and the original combined-transaction reproduction pass; all 26 table fingerprints and the reserved GUI baseline remain unchanged. Final exact-head Windows CI follows a test-only CRLF normalization fix.
+
+Both-app field/action/slice readback, form save/sync/cascade and notification assertions, zero editor issues, runnable/load checks and fixture cleanup remain required. Parent confirms OLTP1.000160 is not runnable and browser permission is blocked; OLAP remains1.000047. SQL acceptance is not AppSheet acceptance. Recovery was verified by restoring all 26 table fingerprints; artifacts remain private. No PROD changes authorized.

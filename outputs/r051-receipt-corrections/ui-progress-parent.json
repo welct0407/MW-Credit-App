@@ -9,7 +9,7 @@
     "pre_save_editor_issues": "No issues found",
     "changed": "Coherent receipt/allocation configuration saved; no fixture data writes before reserved backend window"
   },
-  "olap": "Unchanged at last report",
+  "olap": "1.000047 unchanged",
   "browser_access": "Security permission request dismissed; parent owns access retry",
   "related_observation": {
     "time_utc": "16:01:27",
@@ -18,5 +18,12 @@
     "trace": "ee9b7540-516f-495c-9740-2864cfcbbbb7",
     "reported_stack": "SelectFunction/computed virtual column",
     "interpretation": "Cause unverified; no attribution to backend change or production impact; no infrastructure remediation performed"
+  },
+  "oltp_runnable": "confirmed false from parent-provided AppSheet failure email",
+  "confirmed_failure": {
+    "reported_time_utc": "2026-10-05T16:24:08Z",
+    "version": "1.000160",
+    "trace_id": "77b1231c-e86a-4979-9db6-0de864d6b775",
+    "source": "Parent browser/email report; cause not diagnosed because browser permission remains blocked"
   }
 }

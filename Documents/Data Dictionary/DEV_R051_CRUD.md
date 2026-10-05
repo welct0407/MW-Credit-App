@@ -1,6 +1,6 @@
 # R051 DEV CRUD delta
 
-DEV V59–V63 changes function/trigger behavior only: no new business tables, columns, enum values, role grants or app table bindings. Existing production YAML exports remain production reference. DEV apply/test and browser evidence are recorded in [R051 evidence](../../outputs/r051-receipt-corrections/README.md).
+DEV V59–V64 changes function/trigger behavior only: no new business tables, columns, enum values, role grants or app table bindings. Existing production YAML exports remain production reference. DEV apply/test and browser evidence are recorded in [R051 evidence](../../outputs/r051-receipt-corrections/README.md).
 
 Payments source edits reconcile old/new allocations, repayments, charge/loan materialized values, account cash and payment-owned closure/referral. Source deletion removes its financial projections atomically; it does not refund money. Whole positive interest allocation Ref Charge edits work in either date direction within the same eligible loan. Other generated child amounts remain source-managed.
 
@@ -11,3 +11,5 @@ An older principal receipt correction updates current principal/current daily in
 Keep source identity, posting/service fields and derived snapshots noneditable. Preserve existing Ref/IsAPartOf relations; actual AppSheet cascade ordering still needs synthetic sync verification. OLAP analytics views stay read-only with operational navigation to OLTP. Do not interpret a SQL transaction guarantee as atomicity of separately synced app rows.
 
 Exact proposed AppSheet fields/action/slice changes: [UI handoff](../../outputs/r051-receipt-corrections/ui-handoff.json). These formulas require current GUI validation/readback, both-app no-warning/error checks and no real outbound test notifications before the UI is considered complete. See [all scenarios](../R051_CRUD_Scenarios.md).
+
+V64 changes only historical query execution: aggregate charge payments once per snapshot date instead of repeatedly scanning per charge. Complete original/new daily and account snapshot parity passes. Actual DEV receipt/source workflows and historical recalculation pass with all source data preserved; GUI configuration/runtime acceptance remains separate and blocked.
