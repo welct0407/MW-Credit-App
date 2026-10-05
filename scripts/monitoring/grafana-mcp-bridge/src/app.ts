@@ -37,7 +37,7 @@ function rpc<T>(fn:()=>Promise<T>):Promise<T> {
     throw new ProtocolError(-32603,'bridge_operation_failed');
   });
 }
-export function createApp(config:Config,store:Store,send:CallbackTransport,dependencies:{google?:GoogleLogin;scheduler?:SchedulerVerifier;now?:()=>number;metadataFetch?:typeof fetch}={}) {
+export function createApp(config:Config,store:Store,send:CallbackTransport,dependencies:{google?:GoogleLogin;scheduler?:SchedulerVerifier;now?:()=>number;metadataFetch?:typeof fetch;monitor?:()=>Promise<void>;monitorTimeoutMs?:number}={}) {
   const bridge=new Bridge(store,config,send,dependencies.now);
   const oauth=createOAuth(config,store,()=>bridge.ownerActive(),dependencies.google,dependencies.metadataFetch);
   const mcp=createMcpHandler(()=>{
@@ -94,7 +94,15 @@ export function createApp(config:Config,store:Store,send:CallbackTransport,depen
       }
       if(path==='/internal/dispatch' && req.method==='POST') {
         await verifyScheduler(req.headers.authorization);await body(req,1024);
-        const result=await bridge.dispatch();logEvent('dispatch_completed',{count:result.attempted});json(res,200,result);return;
+        const result=await bridge.dispatch();logEvent('dispatch_completed',{count:result.attempted});
+        // Instrumentation must never turn a completed dispatch into a delivery retry.
+        if(dependencies.monitor){
+          let timer:ReturnType<typeof setTimeout>|undefined;
+          try{await Promise.race([dependencies.monitor(),new Promise<never>((_,reject)=>{
+            timer=setTimeout(()=>reject(new Error()),Math.min(10000,Math.max(1,dependencies.monitorTimeoutMs??10000)));
+          })]);}catch{logEvent('monitoring_failed');}finally{if(timer)clearTimeout(timer);}
+        }
+        json(res,200,result);return;
       }
       throw new SafeError('not_found',404);
     } catch(error) {

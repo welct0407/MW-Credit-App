@@ -8,6 +8,7 @@ export interface Transaction {
   delete(path: string): void;
 }
 export interface Store {
+  count?(collection: string, filters: Filter[]): Promise<number>;
   atomic<T>(fn: (tx: Transaction) => Promise<T>): Promise<T>;
   get<T extends Document>(path: string): Promise<T | undefined>;
   query<T extends Document>(collection: string, filters: Filter[], limit: number, order?: string): Promise<T[]>;
@@ -34,6 +35,11 @@ export class FirestoreStore implements Store {
       }
       return result;
     });
+  }
+  async count(collection: string, filters: Filter[]) {
+    let q: FirebaseFirestore.Query = this.db.collection(collection);
+    for (const [key, op, value] of filters) q=q.where(key,op,value);
+    return (await q.count().get()).data().count;
   }
   async get<T extends Document>(path: string) {
     const snap = await this.db.doc(path).get();
@@ -67,6 +73,7 @@ export class MemoryStore implements Store {
       return result;
     } finally { release(); }
   }
+  async count(collection: string, filters: Filter[]) { return (await this.query(collection,filters,Number.MAX_SAFE_INTEGER)).length; }
   async get<T extends Document>(path: string) { return structuredClone(this.data.get(path)) as T | undefined; }
   async query<T extends Document>(collection: string, filters: Filter[], limit: number, order?: string) {
     const rows = [...this.data].filter(([path]) => path.startsWith(collection + '/') && path.split('/').length === 2)

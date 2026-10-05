@@ -29,7 +29,7 @@ export interface EventRecord extends Document { id:string; timestamp:string; dat
 export interface Subscription extends Document {
   id:string; owner:string; name:string; filters:FiltersType; url:string; secret:string;
   oldSecret?:string; rotateUntil?:number; expiresAt:number; active:boolean; verifiedAt:number; revision:number;
-  grantHash?:string;
+  grantHash?:string; grantExpiresAt?:number;
 }
 export interface Delivery extends Document {
   id:string; eventId:string; subscriptionId:string; state:'pending'|'delivered'|'failed'|'cancelled';
@@ -111,7 +111,7 @@ export class Bridge {
     }));
     if(grantExpiresAt<=time)throw new SafeError('grant_expired',403);
     const candidate:Subscription={id,owner:this.config.ownerSub,name:params.name,filters,url,secret:seal(secret,this.config.stateKey),expiresAt:Math.min(time+Math.min(ttl,86400_000),grantExpiresAt),active:true,verifiedAt:time,revision:(before?.revision ?? 0)+1,deleteAfter:new Date(time+8*86400_000)};
-    if(grantId)candidate.grantHash=hash(grantId);
+    if(grantId){candidate.grantHash=hash(grantId);candidate.grantExpiresAt=grantExpiresAt;}
     if(before && before.active && before.expiresAt>time && equal(open(before.secret,this.config.stateKey),secret) && before.verifiedAt>time-300_000) candidate.verifiedAt=before.verifiedAt;
     else {
       const challenge=randomBytes(32).toString('base64url'), body=JSON.stringify({type:'verification',challenge});

@@ -1,5 +1,7 @@
 # Grafana → ChatGPT/Dots event bridge
 
+**R051 telemetry acceptance,4 October16:46 UTC:** owner-approved00015-qcs/100% exports12 numeric monitoring series after each natural minute drain; three ticks verified. Exact oldest-pending index and missing runtime Metric Writer role applied, unrelated service/IAM/Scheduler/owner access preserved. Eight IRM alerts remain uncreated; both dashboards are now parent-verified; expected subscriber/grant metadata remains pending. [Immutable source/image, acceptance and exact blockers](../outputs/grafana-row5-vm01-20261004/README.md). Earlier deployment-stage paragraphs below are historical.
+
 **Closeout checkpoint, 4 October 2026:** the approved bridge is deployed and connected; the saved live route, ten-name firing/resolved subscription and preserved mobile delivery are recorded in [final live activation evidence](../outputs/grafana-live-activation-20261003/README.md#final-live-route-filters-and-approved-cleanup). A fresh read-only canonical bridge-health call returned owner access enabled, pending0 /failed0 /delivered9 /cancelled0 (counts capped at100). This proves the bounded bridge checkpoint, not every host action or service recovery. Earlier contained/activation-pending paragraphs below are historical stages. No reauthentication, runtime/configuration change, synthetic event or resend was performed for this repository reconciliation.
 
 
