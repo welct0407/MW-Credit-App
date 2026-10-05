@@ -1,0 +1,179 @@
+{
+  "state": "PREPARED_NOT_CREATED; local V67 rehearsal passed; not live collision/availability certification",
+  "prepared_business_date": "2026-10-06",
+  "timezone": "Asia/Bangkok",
+  "expected_dev_version": 67,
+  "expected_checksum": 1721477385,
+  "batches": [
+    {
+      "batch": "DAILY",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "source_keys": {
+        "Cash Accounts": [
+          "SYN-R051-UI-DAILY-DAD",
+          "SYN-R051-UI-DAILY-LISA"
+        ],
+        "Borrowers": [
+          "SYN-R051-UI-DAILY-B"
+        ],
+        "Loans": [
+          "SYN-R051-UI-DAILY"
+        ],
+        "Charges": [
+          "SYN-R051-UI-DAILY-C",
+          "SYN-R051-UI-DAILY-LATER"
+        ],
+        "Payments": [
+          "SYN-R051-UI-DAILY-P"
+        ]
+      },
+      "dates": {
+        "loan": "2026-10-04",
+        "charge": "2026-10-04",
+        "payment": "2026-10-04",
+        "later_charge": "2026-10-05"
+      },
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+    },
+    {
+      "batch": "DEFAULT",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "source_keys": {
+        "Cash Accounts": [
+          "SYN-R051-UI-DEFAULT-DAD",
+          "SYN-R051-UI-DEFAULT-LISA"
+        ],
+        "Borrowers": [
+          "SYN-R051-UI-DEFAULT-B"
+        ],
+        "Loans": [
+          "SYN-R051-UI-DEFAULT"
+        ],
+        "Charges": [
+          "SYN-R051-UI-DEFAULT-C"
+        ]
+      },
+      "dates": {
+        "loan": "2026-10-04",
+        "charge": "2026-10-06"
+      },
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+    },
+    {
+      "batch": "LEGACY",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "source_keys": {
+        "Cash Accounts": [
+          "SYN-R051-UI-LEGACY-DAD",
+          "SYN-R051-UI-LEGACY-LISA",
+          "SYN-R051-UI-LEGACY-LISA2"
+        ],
+        "Borrowers": [
+          "SYN-R051-UI-LEGACY-B"
+        ],
+        "Loans": [
+          "SYN-R051-UI-LEGACY"
+        ],
+        "Charges": [
+          "SYN-R051-UI-LEGACY-C"
+        ],
+        "Repayments": [
+          "SYN-R051-UI-LEGACY-R"
+        ]
+      },
+      "dates": {
+        "loan": "2026-10-04",
+        "charge": "2026-10-04",
+        "repayment": "2026-10-06"
+      },
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+    },
+    {
+      "batch": "CLOSE",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "source_keys": {
+        "Cash Accounts": [
+          "SYN-R051-UI-CLOSE-DAD",
+          "SYN-R051-UI-CLOSE-LISA"
+        ],
+        "Borrowers": [
+          "SYN-R051-UI-CLOSE-B",
+          "SYN-R051-UI-CLOSE-REF"
+        ],
+        "Loans": [
+          "SYN-R051-UI-CLOSE-L"
+        ],
+        "Charges": [
+          "SYN-R051-UI-CLOSE-C"
+        ],
+        "Payments": [
+          "SYN-R051-UI-CLOSE-P"
+        ]
+      },
+      "dates": {
+        "loan": "2026-10-04",
+        "charge": "2026-10-04",
+        "payment": "2026-10-06"
+      },
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+    },
+    {
+      "batch": "PREPARED",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "source_keys": {
+        "Cash Accounts": [
+          "SYN-R051-UI-PREPARED-DAD",
+          "SYN-R051-UI-PREPARED-LISA"
+        ],
+        "Borrowers": [
+          "SYN-R051-UI-PREPARED-B"
+        ],
+        "Loans": [
+          "SYN-R051-UI-PREPARED-L"
+        ],
+        "Charges": [
+          "SYN-R051-UI-PREPARED-C"
+        ],
+        "Payments": [
+          "SYN-R051-UI-PREPARED-FIRST",
+          "SYN-R051-UI-PREPARED-P"
+        ]
+      },
+      "dates": {
+        "loan": "2026-10-04",
+        "charge": "2026-10-06",
+        "payment": "2026-10-06"
+      },
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+    },
+    {
+      "batch": "PARTNER-A",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "source_keys": {
+        "Cash Accounts": [
+          "SYN-R051-UI-PARTNER-A-DAD",
+          "SYN-R051-UI-PARTNER-A-LISA",
+          "SYN-R051-UI-PARTNER-A-LISA2"
+        ],
+        "Partners": [
+          "SYN-R051-UI-PARTNER-A"
+        ]
+      },
+      "dates": {},
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+    }
+  ],
+  "gates": [
+    "Current parent write window and no-send/owner-only routing",
+    "Fresh exact DEV67 preflight, current Bangkok date and namespace readback immediately before seed",
+    "PARTNER-A actual future contribution date and current settlement entitlement; no fake funding",
+    "Capture GUI/scheduler generated IDs; never replay unknown commit",
+    "No persistent seed authorized by this preparation"
+  ]
+}

@@ -32,13 +32,40 @@ def setup(c, *, readonly=False):
     c.execute("SET LOCAL application_name='r051-additional-gui-fixtures'")
 
 
+def verify_target(c):
+    if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
+        raise ValueError('DEV identity mismatch')
+    if c.execute('SELECT version,checksum FROM public.flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone() != ('67',1721477385):
+        raise ValueError('Expected validated V67/checksum1721477385')
+
+
 def gate(c, window_reference, containment_reference):
     if not window_reference or not containment_reference:
         raise ValueError('Current exclusive GUI/backend window and notification references required')
-    if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
-        raise ValueError('DEV identity mismatch')
-    if c.execute('SELECT max(version::integer) FROM public.flyway_schema_history WHERE success').fetchone()[0] != 67:
-        raise ValueError('Expected validated V67')
+    verify_target(c)
+
+
+def plan(batch,today):
+    """Exact source keys/date expectations; generated GUI/engine keys come from readback."""
+    i=ids(batch)
+    accounts=[i['dad'],i['lisa']]+([i['lisa2']] if batch in ('LEGACY','PARTNER-A') else [])
+    source={'Cash Accounts':accounts}
+    dates={}
+    if batch=='PARTNER-A':
+        source['Partners']=[i['partner']]
+    else:
+        source.update({'Borrowers':[i['borrower']]+([i['referrer']] if batch=='CLOSE' else []),
+                       'Loans':[i['loan']],'Charges':[i['charge']]+([i['later']] if batch=='DAILY' else [])})
+        dates={'loan':str(today-timedelta(days=2)),
+               'charge':str(today if batch in ('DEFAULT','PREPARED') else today-timedelta(days=2))}
+        if batch in ('DAILY','CLOSE','PREPARED'):
+            source['Payments']=([i['first']] if batch=='PREPARED' else [])+[i['payment']]
+            dates['payment']=str(today-timedelta(days=2) if batch=='DAILY' else today)
+        if batch=='DAILY':dates['later_charge']=str(today-timedelta(days=1))
+        if batch=='LEGACY':
+            source['Repayments']=[i['repayment']];dates['repayment']=str(today)
+    return {'batch':batch,'business_date':str(today),'timezone':'Asia/Bangkok',
+            'source_keys':source,'dates':dates,'generated_keys':'Capture from actual readback; GUI UNIQUEIDs are not preassigned'}
 
 
 def rows(c, table, where, args):
@@ -73,6 +100,9 @@ def readback(c, batch):
 
 def preflight(c, batch):
     i=ids(batch)
+    if c.execute('SHOW timezone').fetchone()[0]!='Asia/Bangkok':
+        raise ValueError('Fixture dates require Asia/Bangkok transaction timezone')
+    today=c.execute('SELECT current_date').fetchone()[0]
     last=c.execute('''SELECT greatest(current_date,
       coalesce((SELECT max("Payment Date") FROM public."Repayments"),current_date),
       coalesce((SELECT max("Expense Date") FROM public."Business Expenses"),current_date))''').fetchone()[0]
@@ -81,7 +111,10 @@ def preflight(c, batch):
         available=c.execute('''SELECT public.partner_net_profit(%s)-coalesce(sum("Amount"::numeric),0)
           FROM public."Settlements" WHERE "Ref Partner"=%s AND "Status" IS DISTINCT FROM 'Cancelled' ''',[i['partner'],i['partner']]).fetchone()[0]
     return {
-                'batch':batch,'business_date':str(c.execute('SELECT current_date').fetchone()[0]),
+                'batch':batch,'business_date':str(today),'timezone':'Asia/Bangkok',
+                'database':c.execute('SELECT current_database()').fetchone()[0],
+                'version':c.execute('SELECT max(version::integer) FROM public.flyway_schema_history WHERE success').fetchone()[0],
+                'plan':plan(batch,today),
                 'contribution_date':str(last+timedelta(days=1)),
                 'settlement_available':None if available is None else str(available),
                 'settlement_positive_flow_permitted':available is not None and available>=2}
@@ -219,6 +252,7 @@ def main():
             p.error('Cleanup requires existing seed state and reviewed current inventory')
     def perform(c,params):
         setup(c,readonly=not write)
+        if not write: verify_target(c)
         if write:
             gate(c,args.window_reference,args.containment_reference)
             state={'batch':args.batch,'database':'loan_manager_dev','operation':args.mode,'outcome':'pending',
