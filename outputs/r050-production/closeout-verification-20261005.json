@@ -26,5 +26,16 @@
     "outputs/r050-production/closeout-verification-20261005.json",
     "outputs/r050-production/promotion-checklist.md",
     "outputs/r050-production/release-manifest.json"
-  ]
+  ],
+  "controller_evidence_correction": {
+    "result": "passed",
+    "scope": "Only newly introduced current controller assertions corrected; dated historical controller evidence/source untouched",
+    "checked_relative_links_and_anchors": 264,
+    "checked_checklist_rows": 24,
+    "parsed_changed_json": 1,
+    "R051_row_and_R052_preserved": true,
+    "tag": "R050 unchanged at 0c8b2be115a612fc839173179daaae0ad5697cc1",
+    "operational_evidence": "Coordinator-supplied task01a10596 completed deallocation 2026-10-05T07:59:11.580Z; generation17; exactly one POST",
+    "no_new_live_operation": true
+  }
 }
