@@ -1,0 +1,144 @@
+{
+  "saved_at_utc": "2026-10-05T12:29:20Z",
+  "dashboard": "mw-resource-performance",
+  "timezone": "Asia/Singapore",
+  "element_count": 72,
+  "final_export": {
+    "library_file_id": "libfile_e8aca74177988191895ce765e18c36af",
+    "file_id": "file_00000000f8fc820da095d204a6c51847",
+    "file_name": "performance-saved-infrastructure-uptime-v2.json",
+    "sha256": "784451052f9070e97b05b87e9d8c1d21805899e30a3820e665255a19a8f1283e",
+    "size_bytes": 495843
+  },
+  "before_export": {
+    "library_file_id": "libfile_e9a356d209ec8191bbe440de80cf41b4",
+    "sha256": "54781d962132db847c450558c37f462f850f693769b8d3b08939f610ce76d16c"
+  },
+  "browser_reload": {
+    "header": "Infrastructure Uptime",
+    "debian_vm": "13d 21h 24m",
+    "cloud_sql": "14d 23h 48m",
+    "seconds_displayed": false,
+    "screenshot_library_file_id": "libfile_5ec7bd77aa948191ac98e5fec7b1bfba"
+  },
+  "owner_acceptance": {
+    "quote": "ok. it looks fine. we can close this item.",
+    "evidence_reference": "Sentinel_721473b5a2f881919ecd7c527934b9db",
+    "repository_merge_authorized": false
+  },
+  "reconciliation": {
+    "original_69_elements_layout_settings_preserved": true,
+    "saved_panels_match_generator": true,
+    "allowed_normalization": "layout item array ordering only",
+    "stat_reduce_options": {
+      "calcs": [
+        "last"
+      ],
+      "fields": "/.*/",
+      "values": true
+    }
+  },
+  "collector_deployment": {
+    "deployed_at_utc": "2026-10-05T12:17:38.708820+00:00",
+    "backup": "/var/backups/mw-resource-monitoring/sql-uptime-20261005T121738Z/debian-health.py",
+    "old_sha256": "64475e2a34aa9a98a62d85058be2fe8a60d5c92281e92f4a2d94012891253510",
+    "installed_sha256": "9f79bb7f8938548bdf6c811bbe293d3eeab5e81fd87599ad08f30c63b429b79c",
+    "units_unchanged": true,
+    "actions": "Only collector file backed up and atomically replaced; no restart or timer trigger"
+  },
+  "natural_collector_verification": {
+    "installed_sha256": "9f79bb7f8938548bdf6c811bbe293d3eeab5e81fd87599ad08f30c63b429b79c",
+    "timer_active": "active",
+    "service_result": "success",
+    "natural_samples": [
+      {
+        "checkedAt": "2026-10-05T12:19:00.620704+00:00",
+        "sql_observed_at": "2026-10-05T12:18:48.567711+00:00",
+        "sql_uptime": {
+          "status": 1,
+          "uptime_seconds": 1294782
+        },
+        "exported": true,
+        "database_health": 1
+      },
+      {
+        "checkedAt": "2026-10-05T12:21:21.154684+00:00",
+        "sql_observed_at": "2026-10-05T12:21:06.726104+00:00",
+        "sql_uptime": {
+          "status": 1,
+          "uptime_seconds": 1294920
+        },
+        "exported": true,
+        "database_health": 1
+      },
+      {
+        "checkedAt": "2026-10-05T12:23:40.168841+00:00",
+        "sql_observed_at": "2026-10-05T12:23:26.474244+00:00",
+        "sql_uptime": {
+          "status": 1,
+          "uptime_seconds": 1295060
+        },
+        "exported": true,
+        "database_health": 1
+      },
+      {
+        "checkedAt": "2026-10-05T12:25:57.038575+00:00",
+        "sql_observed_at": "2026-10-05T12:25:45.644278+00:00",
+        "sql_uptime": {
+          "status": 1,
+          "uptime_seconds": 1295199
+        },
+        "exported": true,
+        "database_health": 1
+      },
+      {
+        "checkedAt": "2026-10-05T12:28:08.716517+00:00",
+        "sql_observed_at": "2026-10-05T12:27:59.266181+00:00",
+        "sql_uptime": {
+          "status": 1,
+          "uptime_seconds": 1295333
+        },
+        "exported": true,
+        "database_health": 1
+      },
+      {
+        "checkedAt": "2026-10-05T12:30:25.950661+00:00",
+        "sql_observed_at": "2026-10-05T12:30:14.990315+00:00",
+        "sql_uptime": {
+          "status": 1,
+          "uptime_seconds": 1295469
+        },
+        "exported": true,
+        "database_health": 1
+      },
+      {
+        "checkedAt": "2026-10-05T12:32:41.180348+00:00",
+        "sql_observed_at": "2026-10-05T12:32:27.626276+00:00",
+        "sql_uptime": {
+          "status": 1,
+          "uptime_seconds": 1295601
+        },
+        "exported": true,
+        "database_health": 1
+      },
+      {
+        "checkedAt": "2026-10-05T12:34:54.493389+00:00",
+        "sql_observed_at": "2026-10-05T12:34:42.685320+00:00",
+        "sql_uptime": {
+          "status": 1,
+          "uptime_seconds": 1295736
+        },
+        "exported": true,
+        "database_health": 1
+      }
+    ]
+  },
+  "validation": {
+    "dashboard_regressions": "pass",
+    "exact_saved_resource_reconciliation": "pass; layout item ordering only",
+    "sql_uptime_tests": 3,
+    "existing_debian_health_tests": 20,
+    "diff_whitespace": "pass",
+    "applicable_ci": "Neither existing workflow matches the changed paths; verify exact head after publication"
+  }
+}
