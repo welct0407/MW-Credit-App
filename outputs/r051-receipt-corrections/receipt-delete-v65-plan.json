@@ -80,7 +80,7 @@
   ],
   "limits": [
     "Connector sync behavior unproven until GUI test",
-    "AppSheet bulk actions are separate row transactions",
+    "SQL multirow atomicity does not establish AppSheet bulk atomicity; bulk GUI untested",
     "No automatic receipt-bearing Borrower/Loan/Charge cascade expansion",
     "Six additional GUI batches prepared, uncreated",
     "Expense source revalidation after separate manual reimbursement remains unresolved; no broad account unlock"
