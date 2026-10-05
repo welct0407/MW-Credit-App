@@ -64,7 +64,7 @@ SELECT pg_temp.close_assert((SELECT "Loan Status"='ยังไม่ปิด�
 -- Owner's simple inverse: retain prepared/augmented charge, reverse receipt/cash.
 SAVEPOINT close_delete;
 CREATE TEMP TABLE close_charge_before AS SELECT "Row ID","Principal Due","Interest Due","Notes" FROM "Charges" WHERE "Ref Loans"='AC7-PAID';
-DELETE FROM "Payments" WHERE "Row ID"='AC7-P-PAID';
+UPDATE "Payments" SET "Delete Requested"=true WHERE "Row ID"='AC7-P-PAID';
 SET CONSTRAINTS ALL IMMEDIATE;
 SELECT pg_temp.close_assert((SELECT "Loan Status"='ยังไม่ปิดยอด' AND "Outstanding Principal"=100 AND "Ref Closing Payment" IS NULL FROM "Loans" WHERE "Row ID"='AC7-PAID'),'delete closing receipt reopens');
 SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Cash Ledger" WHERE "Ref Payment"='AC7-P-PAID'),'close cash removed');

@@ -1,12 +1,13 @@
 {
   "command": "pwsh -NoProfile -File scripts/database/Test-CI.ps1",
   "passed": true,
-  "migrations": 64,
+  "migrations": 65,
   "second_run": 0,
   "sql": "passed",
   "concurrency": [
     "BusinessExpenses",
     "PaymentCrud",
+    "ReceiptDelete",
     "InterestReallocation",
     "CorePayment",
     "AtomicLoanClose",
@@ -15,7 +16,7 @@
   ],
   "schema_export_normalized": true,
   "checksum_tampering_rejected": true,
-  "private_logs_reference": "r051-migration-test-_bdu_8ps",
+  "private_logs_reference": "r051-migration-test-pjrof_7q",
   "source_sha256": {
     "V10__atomic_default_loan.sql": "f1c972d6b85c7abc28e50549ac47534fc540b6a73e57f815bf18cb1c43ee54eb",
     "V11__monitored_analytics_refresh.sql": "7e182b57a3e6fde06df9a27ee9736768ee564b638244c5ef4982c944cc32e637",
@@ -77,6 +78,7 @@
     "V62__date_specific_analytics_refresh_plan.sql": "4dc3ad6337691c1cf4d6445e9e9d35965dcb162784130e9591bb4310c952c649",
     "V63__one_history_refresh_per_source_statement.sql": "4a62179f01b5aa6d9c305d90b7e555598c3c4a61e1173b74b799f061e6340022",
     "V64__aggregate_charge_payments_per_snapshot_date.sql": "2f84f8ea27f0c035a89d0d3e551b1ce2cc8c60e8fa35e1c87ee496ad9623140d",
+    "V65__appsheet_receipt_delete_request.sql": "72743f3848aaafbaefde7fa15921733ae332bd9209c8da45638fb836aeb3e60b",
     "V6__core_payment_transaction.sql": "9b1479c42c9b390188d7fb476b788cd66d07f541029078635cdf89502e795eb7",
     "V7__atomic_loan_close.sql": "f99e5a258ba138a55a61820524468f05b1202c92e78a9ee046c1d3d5a31e2bf2",
     "V8__common_charge_generation.sql": "897e34a8d1f6db8cd63ae1caeb240a5c53471c45bc068e3fe410cab034d3e226",
@@ -85,9 +87,13 @@
   "historical_opening": {
     "passed": true,
     "pre_migration_target": 19,
-    "logs": "r051-migration-test-0xmfsr22",
-    "cases": "12 cash-affecting rejections plus permitted metadata edits",
+    "logs": "r051-migration-test-_8_ykm7q",
+    "cases": "13 financial/delete-request rejections plus permitted metadata edits",
     "note": "Integrated second route in the same maintained Test-CI invocation"
   },
-  "full_row_reference_parity": "Test-HistoryAggregateParity.sql passed, retained V37 calculation versus V64"
+  "full_row_reference_parity": "Test-HistoryAggregateParity.sql passed, retained V37 calculation versus V64",
+  "logs": [
+    "/tmp/r051-migration-test-pjrof_7q",
+    "/tmp/r051-migration-test-_8_ykm7q"
+  ]
 }

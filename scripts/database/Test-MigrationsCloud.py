@@ -49,7 +49,7 @@ def main():
   adapted=root/'concurrency';adapted.mkdir()
   for source in (REPO/'scripts/database').glob('*.sql'):(adapted/source.name).symlink_to(source)
   checks=[]
-  for name in ([] if args.sql_only else ['BusinessExpenses','PaymentCrud','InterestReallocation','CorePayment','AtomicLoanClose','ChargeGeneration','DefaultLoan']):
+  for name in ([] if args.sql_only else ['BusinessExpenses','PaymentCrud','ReceiptDelete','InterestReallocation','CorePayment','AtomicLoanClose','ChargeGeneration','DefaultLoan']):
    source=REPO/f'scripts/database/Test-{name}Concurrency.ps1'
    dest=adapted/source.name
    dest.write_text(source.read_text().replace('psql.exe','psql').replace(' -WindowStyle Hidden',''))

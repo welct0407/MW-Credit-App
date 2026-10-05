@@ -129,7 +129,7 @@ def source_hashes():
 
 
 def migrate(target_version=60):
-    if target_version not in (60,61,62,63,64):raise ValueError('Only reviewed R051 DEV batches are supported')
+    if target_version not in (60,61,62,63,64,65):raise ValueError('Only reviewed R051 DEV batches are supported')
     recovery = json.loads((REPO/'outputs/r051-receipt-corrections/recovery.json').read_text())
     artifact = Path('/workspace')/recovery['private_artifact_reference']/'before.dump'
     if (not recovery['restored_fingerprints_match'] or recovery['baseline_version'] != 58
@@ -143,7 +143,7 @@ def migrate(target_version=60):
         if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
             raise ValueError('DEV target changed')
         before = c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank').fetchall()
-        if before[-1] != {60:('58',1886180782),61:('60',1434947825),62:('61',-209051559),63:('62',-2039538011),64:('63',-1466229726)}[target_version]:
+        if before[-1] != {60:('58',1886180782),61:('60',1434947825),62:('61',-209051559),63:('62',-2039538011),64:('63',-1466229726),65:('64',1504057228)}[target_version]:
             raise ValueError('Expected reviewed DEV history; reconcile before proceeding')
         c.rollback()
         env = {k:v for k,v in os.environ.items() if not k.startswith(('PG','CODEX_','FLYWAY_'))}
@@ -319,8 +319,8 @@ def ui_fixtures(mode, browser_reference):
 if __name__ == '__main__':
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('mode', choices=['backup','migrate','migrate-refinement','migrate-planning','migrate-coalescing','migrate-aggregate','test','test-business','test-business-monolithic','ui-create','ui-cleanup'])
+    p.add_argument('mode', choices=['backup','migrate','migrate-refinement','migrate-planning','migrate-coalescing','migrate-aggregate','migrate-receipt-delete','test','test-business','test-business-monolithic','ui-create','ui-cleanup'])
     p.add_argument('--browser-ready-reference')
     args = p.parse_args()
-    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'migrate-aggregate':lambda:migrate(64),'test':test,'test-business':lambda:test(True),'test-business-monolithic':lambda:test(True,False)}[args.mode]()
+    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'migrate-aggregate':lambda:migrate(64),'migrate-receipt-delete':lambda:migrate(65),'test':test,'test-business':lambda:test(True),'test-business-monolithic':lambda:test(True,False)}[args.mode]()
     print(json.dumps(result))

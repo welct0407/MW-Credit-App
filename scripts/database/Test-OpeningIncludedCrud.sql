@@ -7,6 +7,7 @@ BEGIN BEGIN EXECUTE statement; EXCEPTION WHEN OTHERS THEN
  IF position('historical cash opening' in SQLERRM)=0 THEN RAISE; END IF; RETURN; END;
  RAISE EXCEPTION 'Opening-included correction was not rejected'; END $$;
 SELECT pg_temp.reject($q$UPDATE "Payments" SET "Ref Received By Cash Account"='CI-DAD' WHERE "Row ID"='R005-OLD-P'$q$);
+SELECT pg_temp.reject($q$UPDATE "Payments" SET "Delete Requested"=true WHERE "Row ID"='R005-OLD-P'$q$);
 SELECT pg_temp.reject($q$UPDATE "Payments" SET "Amount Received"=16000::money WHERE "Row ID"='R005-OLD-P'$q$);
 SELECT pg_temp.reject($q$UPDATE "Loans" SET "Principal Amount"=11000::money WHERE "Row ID"='R005-OLD-L'$q$);
 SELECT pg_temp.reject($q$UPDATE "Loans" SET "Loan Date"="Loan Date"-1 WHERE "Row ID"='R005-OLD-L'$q$);

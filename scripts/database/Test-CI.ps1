@@ -10,6 +10,6 @@ if (-not $IsWindows) {
 }
 # One entry point for local pre-push verification and GitHub Actions.
 # Test-Migrations creates and stops its own loopback-only disposable PostgreSQL.
-& "$PSScriptRoot/Test-Migrations.ps1" -TestSqlFile scripts/database/Test-StatementBatch.sql -BusinessExpensesConcurrency -PaymentCrudConcurrency -InterestReallocationConcurrency -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency
+& "$PSScriptRoot/Test-Migrations.ps1" -TestSqlFile scripts/database/Test-StatementBatch.sql -BusinessExpensesConcurrency -PaymentCrudConcurrency -ReceiptDeleteConcurrency -InterestReallocationConcurrency -CorePaymentConcurrency -AtomicLoanCloseConcurrency -ChargeGenerationConcurrency -DefaultLoanConcurrency
 
 & "$PSScriptRoot/Test-Migrations.ps1" -PreMigrationTarget 19 -PreMigrationSqlFile scripts/database/Test-R005-Before.sql -TestSqlFile scripts/database/Test-OpeningIncludedCrud.sql

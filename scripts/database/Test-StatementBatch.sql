@@ -11,5 +11,6 @@
 \ir Test-UpcomingCharges.sql
 \ir Test-InterestReallocation.sql
 \ir Test-PaymentCrud.sql
+\ir Test-AppSheetReceiptDelete.sql
 \ir Test-BusinessCrud.sql
 \ir Test-HistoryAggregateParity.sql

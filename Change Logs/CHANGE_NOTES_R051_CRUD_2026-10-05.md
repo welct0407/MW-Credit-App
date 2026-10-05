@@ -1,6 +1,10 @@
 # R051 — Ordinary business source CRUD
 
-Status: V59–V64 applied and validated DEV; actual receipts, eight same-session workflows and original combined-transaction reproduction pass with all26 fingerprints preserved. GUI acceptance/cleanup remain blocked: OLTP1.000160 is confirmed not runnable and browser permission is unavailable; OLAP unchanged. R051 remains Open. No PROD writes, runtime deployment, merge or release freeze.
+Status: DEV V59–V64 remains applied/validated. Parent-reported OLTP1.000167 / OLAP1.000049 are runnable/deployable with no editor issues; bounded source edits sync successfully. Native P1 Delete is audit-confirmed failed at its client-generated allocation delete, with source/cash preserved. V65 source-command candidate passes full local checks but is unapplied; GUI writes paused. R051 remains Open. No PROD writes, runtime deployment, merge or release freeze.
+
+V65 adds only Payments.`Delete Requested` (Boolean, default false) and invoker trigger handling. Inserted/mixed commands reject; the last AFTER UPDATE invokes the existing ordinary parent DELETE. Existing child guards, permission boundaries, Ref/IsAPartOf and broader parent dependency semantics are unchanged. Custom Delete is initially detail-only; actual AppSheet save/full-sync behavior remains to prove. [Plan and local evidence](../outputs/r051-receipt-corrections/receipt-delete-v65-plan.json). Six additional isolated GUI batches and source-account UI proposals are prepared, uncreated/unapplied. Expense payer correction after a separate reimbursement remains an explicit source-validation gap; no broad unlock or hidden guard removal was made.
+
+The following paragraphs retain earlier package checkpoints; the status above and owning evidence define the current gate.
 
 The owner replaced the earlier history-heavy reversal proposal with ordinary INSERT/UPDATE/DELETE for this two-person prototype, then expanded coverage to appropriate operations in both apps and all real business entities. Parent/child relationships and useful cascades must be retained as far as possible. Existing role permissions and necessary consistency/duplicate/concurrency checks remain.
 

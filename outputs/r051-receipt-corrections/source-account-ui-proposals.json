@@ -1,0 +1,68 @@
+{
+  "state": "PROPOSED_NOT_APPLIED; reconcile current saved clauses before applying",
+  "basis": "Current V60/V61 backend plus prior dictionary; parent reports new-row-only account locks and omitted Loans_Form borrower",
+  "Business Expenses": {
+    "Ref Paid By Cash Account": {
+      "Editable_If_predicate": "AND(OR(ISBLANK([Source Type]), [Source Type] = \"Manual\"), COUNT(SELECT(Cash Ledger[Row ID], AND([Ref Business Expense] = [_THISROW].[Row ID], [Entry Origin] = \"Manual\"))) = 0)",
+      "Valid_If": "SELECT(Cash Accounts[Row ID], OR([Active], [Row ID] = [_THISROW].[Ref Paid By Cash Account]))",
+      "initial_value": "Retain existing new-row default account behavior; do not reset account on ordinary edits"
+    },
+    "Ref Paid By Cash Holder": {
+      "existing_row": "Derive/display from selected account; keep direct holder editing locked on existing records",
+      "Reset on edit_proposal": true,
+      "new_row": "Preserve current new-row payer selection/default workflow; do not replace its fallback with blank",
+      "existing_record_formula_only_NOT_drop_in": "IF(ISNOTBLANK([Ref Paid By Cash Account]), [Ref Paid By Cash Account].[Ref Cash Holder], LOOKUP([Row ID], \"Business Expenses\", \"Row ID\", \"Ref Paid By Cash Holder\"))",
+      "integration_required": "Current new-row fallback/selection behavior must be read from saved GUI and retained in a new/existing branch before applying; this fragment alone would yield blank for an uncreated row."
+    },
+    "gate": "Only synthetic/verified no-reimbursement sources until backend reimbursement revalidation is resolved; client predicates cannot enforce concurrency or see filtered-out ledger rows",
+    "tests": [
+      "correct seeded category Other to actual enum Other / อื่น ๆ through GUI before expense edit",
+      "manual expense amount/account within same holder and across holders; one original cash key follows",
+      "holder recomputes on screen and source after sync; no-op preserves original account",
+      "system referral locked; inactive new account rejected; cutover rejects atomically; separate reimbursement stays locked"
+    ]
+  },
+  "Loans": {
+    "Ref Disbursed From Cash Account": {
+      "Editable_If_predicate": "NOT([Defaulted])",
+      "Valid_If": "SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = \"ch:lisa\"), [Row ID] = [_THISROW].[Ref Disbursed From Cash Account]))",
+      "initial_value": "Retain current Lisa default for new rows; Reset on edit stays false"
+    },
+    "Ref Borrowers": {
+      "form": "Include existing Ref Borrowers column in Loans_Form for Edit; keep contextual Add prefill and Ref/IsAPartOf",
+      "Editable_If_predicate": "OR(NOT(IN([Row ID], Loans[Row ID])), AND(NOT([Defaulted]), COUNT(SELECT(Repayments[Row ID], [Ref Loans] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Business Expenses[Row ID], AND([Ref Related Loan] = [_THISROW].[Row ID], ISNOTBLANK([Ref Related Borrower])))) = 0))",
+      "Valid_If_base": "Borrowers[Row ID]",
+      "access": "Retain any current narrower borrower authorization/selection clauses"
+    },
+    "tests": [
+      "unpaid loan borrower A→B updates borrower totals/history, loan key stable",
+      "existing receipt or borrower-bound independent expense blocks move",
+      "Lisa accountA→B moves same disbursement cash key and account totals",
+      "Dad account/inactive newly selected account rejected",
+      "cutover source correction rejected; closed/default ownership rules remain"
+    ]
+  },
+  "notes": [
+    "These are eligibility/form proposals, not complete server authorization or dependency proof",
+    "Preserve existing current access predicates, new-row default behavior and field type metadata",
+    "No unrestricted derived/source identity fields; no relationship removal",
+    "OLAP analytics remain readonly with OLTP navigation"
+  ],
+  "Settlements": {
+    "Ref Paid From Cash Account": {
+      "Editable_If_predicate": "OR(NOT(IN([Row ID], Settlements[Row ID])), IN([Status], LIST(\"Pending\", \"Completed\")))",
+      "Valid_If": "SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = \"ch:lisa\"), [Row ID] = [_THISROW].[Ref Paid From Cash Account]))",
+      "Required_If": "[Status] = \"Completed\"",
+      "initial_value": "Keep existing Lisa default on new rows; do not reset account on normal edits"
+    },
+    "ownership": "Keep Complete/Reverse/Cancel and existing access/status constraints; no Dad settlement payer",
+    "tests": [
+      "Use exact PARTNER-A-LISA and PARTNER-A-LISA2 synthetic accounts",
+      "Pending→Completed then amount/date/account correction keeps one original settlement cash key",
+      "Account-only correction conserves total cash while account balances change",
+      "Reverse/Cancel removes owned cash; Complete restores it once",
+      "New inactive/non-Lisa account, insufficient net entitlement and included-opening edits reject atomically"
+    ],
+    "gate": "Positive flow requires actual partner net availability; no manufactured funding"
+  }
+}
