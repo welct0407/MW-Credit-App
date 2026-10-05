@@ -18,7 +18,8 @@ for(const fmt of ['dashboard','editor-resource'])for(const page of ['performance
   for(const p of standard)assert.deepEqual([p.w,p.h],[2,3],'every existing row3/4 light has the reference footprint');
 
   for(const id of [121,122])assert.deepEqual([geometry(id).w,geometry(id).h],[peer.w,peer.h],'lights match existing row3/4 tile size');
-  for(const id of [123,125,126,127])assert.deepEqual([geometry(id).w,geometry(id).h],[4,4],'other row5 card sizes preserved');
+  for(const id of [123,125,126,127])assert.deepEqual([geometry(id).w,geometry(id).h],[4,3],'other row5 card widths preserved and height matches the lights');
+  assert(cards.every(p=>p.h===peer.h),'all six row5 cards have the standard light height');
   assert.deepEqual(cards.map(p=>p.x),[0,2,4,8,12,16],'compact row5 order');
   assert.deepEqual(geometry(120),{x:0,y:17,w:8,h:1},'Bridge header aligned over its cards');
   assert.deepEqual(geometry(124),{x:8,y:17,w:12,h:1},'Subscription header aligned over its cards');

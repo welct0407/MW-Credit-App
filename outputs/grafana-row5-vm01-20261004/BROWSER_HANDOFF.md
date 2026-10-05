@@ -69,3 +69,9 @@ Parent sizing acceptance5 October: save/reload/render verified,83×106px lights 
 Persisted sizing export verification complete: exact proposed-resource equality and non-layout spec equality to pre-edit editor baseline. Saved SHA256 f2b43b217af73c59652dced88cf46acfd9f089ed6b80e449fd936b01212da903, v2 API, all69 plugin versions13.3.0-36797930677. Server generation/version omitted by export; parent Versions UI check does not block this source/docs closeout. Latest evidence is row5-sizing-followup.json. Historical snapshots/stage notes remain dated and must not be reapplied over current live state.
 
 Versions UI closeout: dashboard history version35, saved2026-10-05T03:37:08Z (11:37:08SGT), by Welct MW Credit with the exact sizing note; prior version34 is rollback. This history version is independently verified and must not be conflated with server resourceVersion/generation omitted from the v2 export. All live sizing verification is complete; no historical import reapplied.
+
+## Uniform-height refinement — 5 October
+
+Latest owner request changes only heights123/125/126/127 from4→3. Widths4, positions, headers and lights2×3 stay unchanged; all six cards height3 and right four columns blank. Source/preservation regressions pass. Parent final saved evidence pending. Use performance-row5-height-patch.json only on the current export; older prepared envelopes are historical. Earlier retain-height4 acceptance is superseded only for these four panels. Latest evidence: row5-height-followup.json.
+
+Uniform-height refinement is live verified at dashboard history version36, saved2026-10-05T03:58:27Z (11:58:27SGT), rollback35. Only four heights4→3 changed; zero normalization/other-property deltas. Saved resource exactly equals proposed; screenshot delivered; no evidence pending. Hash6ddeeacbe27acd30fbea85e3b5503082f6cf4b0c1aa032a7dda7ec6cc754bf98. Latest acceptance is row5-height-followup.json. Do not replay historical imports/patches.
