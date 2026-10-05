@@ -97,11 +97,17 @@
     "header_y": 17,
     "header_height": 1,
     "after_refresh": "Live populated; screenshot captured by parent browser",
-    "resource_version": "Server generation/version omitted by export; parent checking Versions UI, not a source/documentation blocker",
+    "resource_version": "Server generation/resourceVersion omitted by v2 export; dashboard history version35 independently verified in Versions UI",
     "persisted_export": "Exactly equals proposed resource after reload",
     "non_layout_spec": "Every property structurally equals pre-edit editor baseline",
     "api_version": "dashboard.grafana.app/v2",
     "visualization_plugin_versions": "All69 are13.3.0-36797930677",
-    "saved_resource_sha256": "f2b43b217af73c59652dced88cf46acfd9f089ed6b80e449fd936b01212da903"
+    "saved_resource_sha256": "f2b43b217af73c59652dced88cf46acfd9f089ed6b80e449fd936b01212da903",
+    "dashboard_version": 35,
+    "saved_at_utc": "2026-10-05T03:37:08Z",
+    "saved_at_sgt": "2026-10-05 11:37:08 Asia/Singapore",
+    "saved_by": "Welct MW Credit",
+    "versions_ui": "Latest35 with exact sizing save note verified",
+    "rollback_dashboard_version": 34
   }
 }

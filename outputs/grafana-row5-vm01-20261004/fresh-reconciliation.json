@@ -22,12 +22,14 @@
     "patch_bytes": 477085,
     "patch_sha256": "2106441fb06fc90f10abdc60b4fb2656e633a127093db9979162f092b9e35254",
     "exact_preservation_test": "PASS after removing only added elements/items",
-    "live_save": "Latest sizing save verified by parent persisted v2 export; server generation/version omitted",
+    "live_save": "Latest sizing save: dashboard history version35,2026-10-05T03:37:08Z, verified in Versions UI; rollback34",
     "folder_annotation_present": false,
     "live_acceptance_evidence": "row5-sizing-followup.json (latest); live-acceptance.json (4 October historical)",
     "traffic_light_followup": "Owner requested panels121/122 match exact current panel51 style; scoped patch prepared against parent verified unchanged generation33; browser application pending",
     "sizing_followup": "2026-10-05: live save/reload/render/persisted export verified; exact11 geometry changes, all non-layout spec properties preserved vs editor baseline",
-    "latest_saved_resource_sha256": "f2b43b217af73c59652dced88cf46acfd9f089ed6b80e449fd936b01212da903"
+    "latest_saved_resource_sha256": "f2b43b217af73c59652dced88cf46acfd9f089ed6b80e449fd936b01212da903",
+    "latest_dashboard_version": 35,
+    "latest_saved_at_utc": "2026-10-05T03:37:08Z"
   },
   "cost": {
     "backup_bytes": 138044,
