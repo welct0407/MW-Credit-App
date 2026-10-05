@@ -1,0 +1,32 @@
+{
+  "state": "PROPOSED_NOT_APPLIED; local risk reproduction passed, actual GUI delete behavior untested",
+  "policy": "Delete an unreferenced borrower only. Handle each source loan/receipt/assessment/reference explicitly before deleting the borrower. Keep every Ref/IsAPartOf relationship.",
+  "actual_fk_references": [
+    "Loans.Ref Borrowers",
+    "Payments.Ref Borrower",
+    "Loan Assessment.Ref Borrower",
+    "Borrowers.Ref Referrer",
+    "Business Expenses.Ref Payee Borrower",
+    "Business Expenses.Ref Related Borrower"
+  ],
+  "OLTP": {
+    "table_inventory_basis": "Parent-provided saved AppDoc baseline plus current parent scope; Loan Assessment is absent from OLTP",
+    "native_Delete_OnlyIf": "AND(CONTEXT(\"ViewType\") = \"Detail\", COUNT(SELECT(Loans[Row ID], [Ref Borrowers] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Payments[Row ID], [Ref Borrower] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Borrowers[Row ID], [Ref Referrer] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Business Expenses[Row ID], OR([Ref Payee Borrower] = [_THISROW].[Row ID], [Ref Related Borrower] = [_THISROW].[Row ID]))) = 0)",
+    "missing_reference": "Loan Assessment cannot be referenced in OLTP expression. A remaining assessment causes final SQL FK rejection; resolve that source in OLAP. Do not add a table merely for this condition."
+  },
+  "OLAP": {
+    "native_Delete_OnlyIf": "AND(CONTEXT(\"ViewType\") = \"Detail\", COUNT(SELECT(Loans[Row ID], [Ref Borrowers] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Payments[Row ID], [Ref Borrower] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Borrowers[Row ID], [Ref Referrer] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Business Expenses[Row ID], OR([Ref Payee Borrower] = [_THISROW].[Row ID], [Ref Related Borrower] = [_THISROW].[Row ID]))) = 0, COUNT(SELECT(Loan Assessment[Row ID], [Ref Borrower] = [_THISROW].[Row ID])) = 0)"
+  },
+  "composition": "AND with existing independent authorization predicates; preserve confirmation. Apply to native Delete and affected source slices/other delete entrypoints after checking actual saved configuration; detail-only initially. Do not infer a hidden icon disables every deletion route.",
+  "integrity_limits": "Client counts may be stale or security-filtered; this is an availability condition, not transaction authorization. SQL FKs/child guards stay final. No atomicity guarantee for AppSheet child-first requests or concurrent changes. Do not expose bulk/cascaded borrower deletion as a supported inverse.",
+  "tests": [
+    "Saved server validation/RunnableYes; paid+unpaid child borrower has no Delete entrypoint",
+    "Borrower with any visible loan, receipt, referrer link, related/payee expense or OLAP assessment cannot invoke Delete",
+    "Unreferenced synthetic borrower detail Delete succeeds/full sync and SQL absence; unrelated rows unchanged",
+    "OLTP borrower with assessment only: FK failure has no child/source mutation; resolve in OLAP then delete",
+    "Preserve Refs/inline displays and test affected source slice/action paths; do not claim actual request order from local simulation"
+  ],
+  "local_evidence": "local-borrower-cascade.json",
+  "local_script": "scripts/database/Test-BorrowerCascadeLocal.py",
+  "local_scope": "Separate temporary copy of private localhost V67, dropped afterward. SQL parent delete rejects with exact equality across7 scoped source/child/cash tables. Independently committed unpaid-loan deletion survives later paid-loan rejection; this models risk rather than proving AppSheet order."
+}

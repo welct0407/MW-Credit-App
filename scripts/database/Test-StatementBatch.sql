@@ -16,3 +16,4 @@
 \ir Test-HistoryAggregateParity.sql
 \ir Test-ExpenseReimbursement.sql
 \ir Test-ReceiptDeleteFlagMetadata.sql
+\ir Test-LoanCorrections.sql

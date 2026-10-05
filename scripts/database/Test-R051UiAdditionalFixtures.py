@@ -1,5 +1,6 @@
 """Local-only V67 GUI fixture/date/key rehearsal; never uses DEV transport."""
 import argparse
+import tempfile
 import hashlib
 import json
 from datetime import date
@@ -10,6 +11,11 @@ import ReceiptCorrectionDev as transport
 
 
 def run(port,data_directory):
+    assert not fixtures.private_state_path_allowed(Path(fixtures.__file__).resolve().parents[2]/'private.json')
+    with tempfile.TemporaryDirectory(prefix='r051-state-classification-') as d:
+        private=Path(d);assert fixtures.private_state_path_allowed(private/'state.json')
+        (private/'.git').mkdir();assert fixtures.private_state_path_allowed(private/'state.json')
+        (private/'.git/HEAD').write_text('ref: refs/heads/test\n');assert not fixtures.private_state_path_allowed(private/'state.json')
     with psycopg.connect(host='127.0.0.1',port=port,dbname='postgres',user='postgres',connect_timeout=5) as c:
         if Path(c.execute('SHOW data_directory').fetchone()[0]).resolve()!=data_directory.resolve():
             raise ValueError('Expected exact private local cluster')
@@ -32,11 +38,12 @@ def run(port,data_directory):
                 fixtures.setup(c)
                 pre=fixtures.preflight(c,batch)
                 assert pre['version']==67 and pre['timezone']=='Asia/Bangkok'
+                original_accounts={table:c.execute('SELECT to_jsonb(t) FROM "'+table+'" t ORDER BY "Row ID"').fetchall() for table in ('Cash Accounts','Cash Holders')} if batch=='REIMBURSE' else None
                 seeded=fixtures.seed(c,batch)
                 for table,keys in pre['plan']['source_keys'].items():
                     assert sorted(fixtures.keys(seeded,table))==sorted(keys),(batch,table)
                 assert not any(r['Auto Charge Enabled'] for r in seeded['Loans'])
-                for table,field,plan_key in [('Loans','Loan Date','loan'),('Charges','Charge Date','charge'),('Payments','Payment Date','payment'),('Repayments','Payment Date','repayment')]:
+                for table,field,plan_key in [('Loans','Loan Date','loan'),('Charges','Charge Date','charge'),('Payments','Payment Date','payment'),('Repayments','Payment Date','repayment'),('Business Expenses','Expense Date','expense')]:
                     if plan_key not in pre['plan']['dates']:continue
                     exact_key=fixtures.ids(batch)['charge'] if table=='Charges' else None
                     for row in seeded[table]:
@@ -47,13 +54,39 @@ def run(port,data_directory):
                 if batch=='PARTNER-A':
                     assert not seeded['Cash Pool Contributions'] and not seeded['Settlements']
                     assert all(not row.get('Email') and not row.get('Login Email') and not row.get('IG Integration Enabled') for row in seeded['Partners'])
+                if batch=='REIMBURSE':
+                    i=fixtures.ids(batch);key=i['root']+'-LOCAL-R'
+                    def add():
+                        c.execute('INSERT INTO "Cash Ledger"("Row ID","Movement Date","Movement Type","Amount","Ref From Cash Holder","Ref To Cash Holder","Ref From Cash Account","Ref To Cash Account","Ref Business Expense") VALUES(%s,current_date,\'Expense Reimbursement\',5,\'ch:lisa\',\'ch:tommy\',%s,%s,%s)',[key,i['lisa'],i['tommy'],i['expense']])
+                    add()
+                    c.execute('UPDATE "Cash Ledger" SET "Amount"=6 WHERE "Row ID"=%s',[key])
+                    c.execute('UPDATE "Business Expenses" SET "Ref Paid By Cash Account"=%s WHERE "Row ID"=%s',[i['tommy2'],i['expense']])
+                    assert c.execute('SELECT "Amount"=6 AND "Ref To Cash Account"=%s FROM "Cash Ledger" WHERE "Row ID"=%s',[i['tommy'],key]).fetchone()[0]
+                    protected_before={t:c.execute('SELECT to_jsonb(x) FROM "'+t+'" x ORDER BY "Row ID"').fetchall() for t in ('Business Expenses','Cash Ledger')}
+                    for query,args in [('UPDATE "Business Expenses" SET "Ref Paid By Cash Account"=%s, "Ref Paid By Cash Holder"=\'ch:tommy\' WHERE "Row ID"=%s',[i['lisa'],i['expense']]),('UPDATE "Business Expenses" SET "Amount"=0::money WHERE "Row ID"=%s',[i['expense']])]:
+                        try:
+                            with c.transaction():c.execute(query,args)
+                        except psycopg.Error as e:assert 'Correct linked reimbursement' in str(e)
+                        else:raise AssertionError('Linked invariant accepted invalid source')
+                        assert {t:c.execute('SELECT to_jsonb(x) FROM "'+t+'" x ORDER BY "Row ID"').fetchall() for t in protected_before}==protected_before
+                    c.execute('UPDATE "Cash Ledger" SET "Ref Business Expense"=%s WHERE "Row ID"=%s',[i['expense2'],key])
+                    c.execute('UPDATE "Business Expenses" SET "Ref Paid By Cash Account"=%s, "Ref Paid By Cash Holder"=\'ch:tommy\' WHERE "Row ID"=%s',[i['lisa'],i['expense']])
+                    assert c.execute('SELECT count(*)=1 AND bool_and("Ref From Cash Account"=%s AND "Ref From Cash Holder"=\'ch:lisa\') FROM "Cash Ledger" WHERE "Row ID"=%s',[i['lisa'],'cash:EXPENSE:'+i['expense']]).fetchone()[0]
+                    assert c.execute('SELECT "Ref Paid By Cash Holder"=\'ch:lisa\' FROM "Business Expenses" WHERE "Row ID"=%s',[i['expense']]).fetchone()[0]
+                    c.execute('DELETE FROM "Cash Ledger" WHERE "Row ID"=%s',[key])
+                    assert c.execute('SELECT count(*) FROM "Cash Ledger" WHERE "Row ID"=%s',[key]).fetchone()[0]==0
+                    c.execute('UPDATE "Business Expenses" SET "Ref Paid By Cash Account"=%s WHERE "Row ID"=%s',[i['tommy2'],i['expense']]);add()
+                    # Cleanup must delete captured independent reimbursement before its expense.
+                    seeded=fixtures.readback(c,batch)
                 fixtures.cleanup(c,batch,{table:fixtures.keys(seeded,table) for table in seeded})
                 assert not any(fixtures.readback(c,batch).values())
+                if original_accounts is not None:
+                    assert {table:c.execute('SELECT to_jsonb(t) FROM "'+table+'" t ORDER BY "Row ID"').fetchall() for table in original_accounts}==original_accounts
                 results.append({'batch':batch,'passed':True,'plan':pre['plan']})
             finally:c.rollback()
             c.execute("SET LOCAL timezone='UTC'");assert transport.fingerprints(c)==before;c.rollback()
-        return {'passed':True,'scope':'LOCAL restored V67; six seed/readback/exact cleanup workflows rolled back; no DEV access',
-                'bangkok_midnight_boundary_cases':2,'table_fingerprints_unchanged':len(before),'batches':results,
+        return {'passed':True,'scope':'LOCAL restored V67; seven seed/readback/exact cleanup workflows rolled back; no DEV access',
+                'explicit_old_holder_payload':{'unlinked_cross_holder_derived':True,'linked_cross_holder_rejected_full_source_cash_preserved':True},'private_state_path_cases':4,'bangkok_midnight_boundary_cases':2,'table_fingerprints_unchanged':len(before),'batches':results,
                 'fixture_script_sha256':hashlib.sha256(Path(fixtures.__file__).read_bytes()).hexdigest()}
 
 

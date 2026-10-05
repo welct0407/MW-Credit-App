@@ -19,7 +19,7 @@
         "DefaultLoan"
       ],
       "checksum_tampering_rejected": true,
-      "logs": "/tmp/r051-migration-test-bqk7aaqx"
+      "logs": "/tmp/r051-migration-test-t9h63q8o"
     },
     {
       "migrations": 48,
@@ -28,10 +28,11 @@
       "sql": "passed",
       "concurrency": [],
       "checksum_tampering_rejected": true,
-      "logs": "/tmp/r051-migration-test-rcrvp1ll"
+      "logs": "/tmp/r051-migration-test-gi7i1zze"
     }
   ],
   "fixture_rehearsal": "local-additional-fixtures-v67.json",
   "migration_source_unchanged": true,
-  "scope": "Repo/local-only followup; no new DEV mutation"
+  "scope": "Final local fixture/explicit old-holder payload/loan test preparation; maintained67/nine concurrency plus seeded route passed. Six prior authorized DEV seeds recorded separately; no seventh live seed.",
+  "fixture_script_sha256": "467da23eae16a344e553ee0ea44bc02662da8cc5c007f2b982a73326d55fe4ac"
 }

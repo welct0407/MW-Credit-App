@@ -1,6 +1,11 @@
 {
   "passed": true,
-  "scope": "LOCAL restored V67; six seed/readback/exact cleanup workflows rolled back; no DEV access",
+  "scope": "LOCAL restored V67; seven seed/readback/exact cleanup workflows rolled back; no DEV access",
+  "explicit_old_holder_payload": {
+    "unlinked_cross_holder_derived": true,
+    "linked_cross_holder_rejected_full_source_cash_preserved": true
+  },
+  "private_state_path_cases": 4,
   "bangkok_midnight_boundary_cases": 2,
   "table_fingerprints_unchanged": 26,
   "batches": [
@@ -190,7 +195,31 @@
         "dates": {},
         "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
       }
+    },
+    {
+      "batch": "REIMBURSE",
+      "passed": true,
+      "plan": {
+        "batch": "REIMBURSE",
+        "business_date": "2026-10-06",
+        "timezone": "Asia/Bangkok",
+        "source_keys": {
+          "Cash Accounts": [
+            "SYN-R051-UI-REIMBURSE-LISA",
+            "SYN-R051-UI-REIMBURSE-TOMMY1",
+            "SYN-R051-UI-REIMBURSE-TOMMY2"
+          ],
+          "Business Expenses": [
+            "SYN-R051-UI-REIMBURSE-E1",
+            "SYN-R051-UI-REIMBURSE-E2"
+          ]
+        },
+        "dates": {
+          "expense": "2026-10-06"
+        },
+        "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      }
     }
   ],
-  "fixture_script_sha256": "a7bd2da032ec9069ecf00e24a6d15beb2ed36a3e8803a9eb3ef034a43c1cbfa7"
+  "fixture_script_sha256": "467da23eae16a344e553ee0ea44bc02662da8cc5c007f2b982a73326d55fe4ac"
 }

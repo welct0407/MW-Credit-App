@@ -1,5 +1,5 @@
 {
-  "state": "PREPARED_NOT_CREATED; local V67 rehearsal passed; not live collision/availability certification",
+  "state": "Six batches committed and independently read back at21:21:22UTC; REIMBURSE locally prepared only. See six-ui-seed-readback.json; current GUI edits may supersede this dated baseline.",
   "prepared_business_date": "2026-10-06",
   "timezone": "Asia/Bangkok",
   "expected_dev_version": 67,
@@ -34,7 +34,8 @@
         "payment": "2026-10-04",
         "later_charge": "2026-10-05"
       },
-      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned",
+      "state": "COMMITTED_2026-10-05; see dated actual readback"
     },
     {
       "batch": "DEFAULT",
@@ -59,7 +60,8 @@
         "loan": "2026-10-04",
         "charge": "2026-10-06"
       },
-      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned",
+      "state": "COMMITTED_2026-10-05; see dated actual readback"
     },
     {
       "batch": "LEGACY",
@@ -89,7 +91,8 @@
         "charge": "2026-10-04",
         "repayment": "2026-10-06"
       },
-      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned",
+      "state": "COMMITTED_2026-10-05; see dated actual readback"
     },
     {
       "batch": "CLOSE",
@@ -119,7 +122,8 @@
         "charge": "2026-10-04",
         "payment": "2026-10-06"
       },
-      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned",
+      "state": "COMMITTED_2026-10-05; see dated actual readback"
     },
     {
       "batch": "PREPARED",
@@ -149,7 +153,8 @@
         "charge": "2026-10-06",
         "payment": "2026-10-06"
       },
-      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned",
+      "state": "COMMITTED_2026-10-05; see dated actual readback"
     },
     {
       "batch": "PARTNER-A",
@@ -166,7 +171,29 @@
         ]
       },
       "dates": {},
-      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned",
+      "state": "COMMITTED_2026-10-05; see dated actual readback"
+    },
+    {
+      "batch": "REIMBURSE",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "source_keys": {
+        "Cash Accounts": [
+          "SYN-R051-UI-REIMBURSE-LISA",
+          "SYN-R051-UI-REIMBURSE-TOMMY1",
+          "SYN-R051-UI-REIMBURSE-TOMMY2"
+        ],
+        "Business Expenses": [
+          "SYN-R051-UI-REIMBURSE-E1",
+          "SYN-R051-UI-REIMBURSE-E2"
+        ]
+      },
+      "dates": {
+        "expense": "2026-10-06"
+      },
+      "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned",
+      "state": "PREPARED_NOT_CREATED"
     }
   ],
   "gates": [
@@ -174,6 +201,6 @@
     "Fresh exact DEV67 preflight, current Bangkok date and namespace readback immediately before seed",
     "PARTNER-A actual future contribution date and current settlement entitlement; no fake funding",
     "Capture GUI/scheduler generated IDs; never replay unknown commit",
-    "No persistent seed authorized by this preparation"
+    "REIMBURSE requires a new coordinated write window, fresh target/date/collision preflight, reviewed containment and recovery. No seventh seed authorized by this preparation."
   ]
 }

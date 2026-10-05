@@ -1,0 +1,135 @@
+{
+  "state": "BOUNDED_GUI_EDIT_DELETE_PASS",
+  "provenance": "GUI/audit facts supplied by parent; SQL independently observed in bounded read-only snapshots. Raw browser audit remains private.",
+  "source": "SYN-R051-UI-E",
+  "edit": {
+    "gui": "Submitted once approximately21:03:01UTC; explicit sync complete21:03:11 with empty queue. Amount1→2, category Other / อื่น ๆ; Lisa/account/date/notes unchanged. Exact edit request ID not supplied.",
+    "sql": {
+      "database": "loan_manager_dev",
+      "instance": "appsheet-pg-prod-20260914",
+      "host": "34.21.174.215",
+      "version": 67,
+      "snapshot_at": "2026-10-05 21:04:51.380814+00:00",
+      "read_only": true,
+      "expense": [
+        {
+          "Notes": "Synthetic UI expense edit/delete",
+          "Amount": "$2.00",
+          "Row ID": "SYN-R051-UI-E",
+          "Source Type": "Manual",
+          "Expense Date": "2026-10-05",
+          "Expense Category": "Other / อื่น ๆ",
+          "Ref Paid By Cash Holder": "ch:lisa",
+          "Ref Paid By Cash Account": "SYN-R051-UI-LISA"
+        }
+      ],
+      "expense_cash": [
+        {
+          "Notes": null,
+          "Amount": 2.0,
+          "Row ID": "cash:EXPENSE:SYN-R051-UI-E",
+          "Ref Loan": null,
+          "Created At": "2026-10-05T23:15:59.06517",
+          "Source Key": "EXPENSE:SYN-R051-UI-E",
+          "Updated At": "2026-10-06T04:03:04.921077",
+          "Ref Payment": null,
+          "Source Type": "Business Expense",
+          "Entry Origin": "System",
+          "Movement Date": "2026-10-05",
+          "Movement Type": "Business Expense",
+          "Ref Settlement": null,
+          "Ref To Cash Holder": null,
+          "Ref To Cash Account": null,
+          "Ref Business Expense": "SYN-R051-UI-E",
+          "Ref From Cash Holder": "ch:lisa",
+          "Ref From Cash Account": "SYN-R051-UI-LISA"
+        }
+      ],
+      "expense_correct": true,
+      "expense_cash_correct": true,
+      "account_nets": {
+        "SYN-R051-UI-LISA": "-202.00",
+        "SYN-R051-UI-DAD": "6.00"
+      },
+      "p2_unchanged": {
+        "payments": true,
+        "allocations": true,
+        "repayments": true,
+        "cash": true
+      },
+      "created_receipt_unchanged": {
+        "payment": true,
+        "allocations": true,
+        "repayments": true,
+        "cash": true
+      },
+      "actual_orphans": {
+        "allocations_missing_payment": [],
+        "repayments_missing_payment": [],
+        "repayments_missing_allocation": [],
+        "system_cash_missing_source": []
+      },
+      "duplicate_owned_groups": {
+        "allocations": [],
+        "repayments": [],
+        "cash": []
+      },
+      "passed": true
+    }
+  },
+  "delete": {
+    "audit": {
+      "request_id": "1704887",
+      "client_at": "2026-10-05T21:07:43.864Z",
+      "server_at": "2026-10-05T21:07:43.914Z",
+      "status": "Success",
+      "duration_seconds": 3.646,
+      "sync_at": "2026-10-05T21:07:48Z",
+      "sync_status": "Success",
+      "sync_duration_seconds": 5.455,
+      "bounded_no_bot_send_error_or_duplicate": true
+    },
+    "sql": {
+      "database": "loan_manager_dev",
+      "instance": "appsheet-pg-prod-20260914",
+      "host": "34.21.174.215",
+      "version": 67,
+      "snapshot_at": "2026-10-05 21:09:38.211066+00:00",
+      "read_only": true,
+      "expense": [],
+      "expense_cash": [],
+      "expense_correct": true,
+      "expense_cash_correct": true,
+      "account_nets": {
+        "SYN-R051-UI-LISA": "-200.00",
+        "SYN-R051-UI-DAD": "6.00"
+      },
+      "p2_unchanged": {
+        "payments": true,
+        "allocations": true,
+        "repayments": true,
+        "cash": true
+      },
+      "created_receipt_unchanged": {
+        "payment": true,
+        "allocations": true,
+        "repayments": true,
+        "cash": true
+      },
+      "loans_unchanged": true,
+      "actual_orphans": {
+        "allocations_missing_payment": [],
+        "repayments_missing_payment": [],
+        "repayments_missing_allocation": [],
+        "system_cash_missing_source": []
+      },
+      "duplicate_owned_groups": {
+        "allocations": [],
+        "repayments": [],
+        "cash": []
+      },
+      "passed": true
+    }
+  },
+  "limits": "Single manual expense amount/category edit and deletion only; cross-holder form candidate and linked reimbursement GUI acceptance remain pending. No executor source mutation."
+}

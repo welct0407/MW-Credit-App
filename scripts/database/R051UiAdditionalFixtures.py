@@ -9,7 +9,7 @@ from datetime import timedelta
 from psycopg import sql
 
 PREFIX = 'SYN-R051-UI-'
-BATCHES = ('DAILY', 'DEFAULT', 'LEGACY', 'CLOSE', 'PREPARED', 'PARTNER-A')
+BATCHES = ('DAILY', 'DEFAULT', 'LEGACY', 'CLOSE', 'PREPARED', 'PARTNER-A', 'REIMBURSE')
 
 
 def ids(batch):
@@ -20,7 +20,8 @@ def ids(batch):
                 loan=root if batch in ('DAILY','DEFAULT','LEGACY') else root+'-L',
                 charge=root+'-C', later=root+'-LATER', payment=root+'-P',
                 first=root+'-FIRST', repayment=root+'-R', partner=root,
-                dad=root+'-DAD', lisa=root+'-LISA', lisa2=root+'-LISA2')
+                dad=root+'-DAD', lisa=root+'-LISA', lisa2=root+'-LISA2',
+                tommy=root+'-TOMMY1', tommy2=root+'-TOMMY2', expense=root+'-E1', expense2=root+'-E2')
 
 
 def setup(c, *, readonly=False):
@@ -48,11 +49,15 @@ def gate(c, window_reference, containment_reference):
 def plan(batch,today):
     """Exact source keys/date expectations; generated GUI/engine keys come from readback."""
     i=ids(batch)
-    accounts=[i['dad'],i['lisa']]+([i['lisa2']] if batch in ('LEGACY','PARTNER-A') else [])
+    accounts=([i['lisa'],i['tommy'],i['tommy2']] if batch=='REIMBURSE' else
+              [i['dad'],i['lisa']]+([i['lisa2']] if batch in ('LEGACY','PARTNER-A') else []))
     source={'Cash Accounts':accounts}
     dates={}
     if batch=='PARTNER-A':
         source['Partners']=[i['partner']]
+    elif batch=='REIMBURSE':
+        source['Business Expenses']=[i['expense'],i['expense2']]
+        dates['expense']=str(today)
     else:
         source.update({'Borrowers':[i['borrower']]+([i['referrer']] if batch=='CLOSE' else []),
                        'Loans':[i['loan']],'Charges':[i['charge']]+([i['later']] if batch=='DAILY' else [])})
@@ -82,7 +87,7 @@ def readback(c, batch):
     i=ids(batch); result={}
     result['Borrowers']=rows(c,'Borrowers','"Row ID"=ANY(%s)',[[i['borrower'],i['referrer']]])
     result['Partners']=rows(c,'Partners','"Row ID"=%s',[i['partner']]) if batch=='PARTNER-A' else []
-    result['Cash Accounts']=rows(c,'Cash Accounts','"Row ID"=ANY(%s)',[[i['dad'],i['lisa'],i['lisa2']]])
+    result['Cash Accounts']=rows(c,'Cash Accounts','"Row ID"=ANY(%s)',[[i['dad'],i['lisa'],i['lisa2'],i['tommy'],i['tommy2']]])
     result['Loans']=rows(c,'Loans','"Row ID"=%s OR "Ref Borrowers"=%s',[i['loan'],i['borrower']])
     loans=list(set(keys(result,'Loans')+[i['loan']]))
     result['Charges']=rows(c,'Charges','"Ref Loans"=ANY(%s) OR "Row ID"=ANY(%s)',[loans,[i['charge'],i['later']]])
@@ -91,10 +96,10 @@ def readback(c, batch):
     payments=list(set(keys(result,'Payments')+[i['payment'],i['first']]))
     result['Payment Allocations']=rows(c,'Payment Allocations','"Ref Payment"=ANY(%s) OR "Ref Charge"=ANY(%s)',[payments,charges])
     result['Repayments']=rows(c,'Repayments','"Ref Payment"=ANY(%s) OR "Ref Charges"=ANY(%s) OR "Ref Loans"=ANY(%s) OR "Row ID"=%s',[payments,charges,loans,i['repayment']])
-    result['Business Expenses']=rows(c,'Business Expenses','"Ref Related Loan"=ANY(%s) OR "Ref Related Borrower"=%s OR "Ref Payee Borrower"=%s',[loans,i['borrower'],i['referrer']])
+    result['Business Expenses']=rows(c,'Business Expenses','"Ref Related Loan"=ANY(%s) OR "Ref Related Borrower"=%s OR "Ref Payee Borrower"=%s OR "Row ID"=ANY(%s)',[loans,i['borrower'],i['referrer'],[i['expense'],i['expense2']]])
     result['Cash Pool Contributions']=rows(c,'Cash Pool Contributions','"Ref Partner"=%s',[i['partner']]) if batch=='PARTNER-A' else []
     result['Settlements']=rows(c,'Settlements','"Ref Partner"=%s',[i['partner']]) if batch=='PARTNER-A' else []
-    result['Cash Ledger']=rows(c,'Cash Ledger','"Ref Payment"=ANY(%s) OR "Ref Loan"=ANY(%s) OR "Ref Business Expense"=ANY(%s) OR "Ref Settlement"=ANY(%s) OR "Ref From Cash Account"=ANY(%s) OR "Ref To Cash Account"=ANY(%s)',[payments,loans,keys(result,'Business Expenses'),keys(result,'Settlements'),[i['dad'],i['lisa'],i['lisa2']],[i['dad'],i['lisa'],i['lisa2']]])
+    result['Cash Ledger']=rows(c,'Cash Ledger','"Ref Payment"=ANY(%s) OR "Ref Loan"=ANY(%s) OR "Ref Business Expense"=ANY(%s) OR "Ref Settlement"=ANY(%s) OR "Ref From Cash Account"=ANY(%s) OR "Ref To Cash Account"=ANY(%s)',[payments,loans,keys(result,'Business Expenses'),keys(result,'Settlements'),[i['dad'],i['lisa'],i['lisa2'],i['tommy'],i['tommy2']],[i['dad'],i['lisa'],i['lisa2'],i['tommy'],i['tommy2']]])
     return result
 
 
@@ -140,8 +145,17 @@ def seed(c,batch):
     if any(readback(c,batch).values()):
         raise ValueError('Batch already has records; reconcile, never replay seed')
     today=c.execute('SELECT current_date').fetchone()[0]
-    for who in (('dad','lisa','lisa2') if batch in ('LEGACY','PARTNER-A') else ('dad','lisa')):
-        insert(c,'Cash Accounts',{'Row ID':i[who],'Ref Cash Holder':'ch:'+('dad' if who=='dad' else 'lisa'),'Account Label':'SYNTHETIC R051 '+batch+' '+who,'Bank Name':'Synthetic'})
+    account_specs=([('lisa','ch:lisa'),('tommy','ch:tommy'),('tommy2','ch:tommy')] if batch=='REIMBURSE' else
+        [(who,'ch:'+('dad' if who=='dad' else 'lisa')) for who in (('dad','lisa','lisa2') if batch in ('LEGACY','PARTNER-A') else ('dad','lisa'))])
+    for who,holder in account_specs:
+        insert(c,'Cash Accounts',{'Row ID':i[who],'Ref Cash Holder':holder,'Account Label':'SYNTHETIC R051 '+batch+' '+who,'Bank Name':'Synthetic'})
+    if batch=='REIMBURSE':
+        for key,amount,account in [('expense',20,'tommy'),('expense2',10,'tommy2')]:
+            insert(c,'Business Expenses',{'Row ID':i[key],'Expense Date':today,'Expense Category':'Other / อื่น ๆ',
+                'Amount':amount,'Ref Paid By Cash Account':i[account],'Ref Paid By Cash Holder':'ch:tommy',
+                'Notes':'Synthetic R051 reimbursement source'})
+        c.execute('SET CONSTRAINTS ALL IMMEDIATE')
+        return readback(c,batch)
     if batch=='PARTNER-A':
         insert(c,'Partners',{'Row ID':i['partner'],'Partner Name':'SYNTHETIC R051 GUI','Partner Role':'A','Email':None,'Login Email':None,'IG Integration Enabled':False})
         # GUI creates contributions/settlements only after the returned preflight;
@@ -205,14 +219,17 @@ def cleanup(c,batch,reviewed_inventory):
     for row in before['Cash Ledger']:
         if row.get('Ref Payment') not in payments+[None] or row.get('Ref Loan') not in loans+[None] or row.get('Ref Business Expense') not in keys(before,'Business Expenses')+[None] or row.get('Ref Settlement') not in keys(before,'Settlements')+[None]:
             raise ValueError('Foreign cash source dependency')
-        if row['Entry Origin']=='Manual' and any(row.get(field) not in [i['dad'],i['lisa'],i['lisa2'],None] for field in ('Ref From Cash Account','Ref To Cash Account')):
+        if row['Entry Origin']=='Manual' and any(row.get(field) not in [i['dad'],i['lisa'],i['lisa2'],i['tommy'],i['tommy2'],None] for field in ('Ref From Cash Account','Ref To Cash Account')):
             raise ValueError('Manual cash crosses fixture account boundary')
     # Undo default through its source transition before touching system loss rows.
     for row in before['Loans']:
         if row.get('Defaulted'):
             c.execute('UPDATE public."Loans" SET "Defaulted"=false WHERE "Row ID"=%s',[row['Row ID']])
     c.execute('UPDATE public."Loans" SET "Auto Charge Enabled"=false WHERE "Row ID"=ANY(%s)',[loans])
-    for table in ('Settlements','Payments','Repayments','Business Expenses','Cash Ledger','Charges','Loans','Cash Pool Contributions','Partners','Borrowers','Cash Accounts'):
+    owned_sources=('Settlements','Payments','Repayments','Business Expenses','Cash Ledger','Charges','Loans','Cash Pool Contributions','Partners','Borrowers','Cash Accounts')
+    if batch=='REIMBURSE':
+        owned_sources=('Settlements','Payments','Repayments','Cash Ledger','Business Expenses','Charges','Loans','Cash Pool Contributions','Partners','Borrowers','Cash Accounts')
+    for table in owned_sources:
         row_ids=keys(before,table)
         if table=='Repayments': row_ids=[r['Row ID'] for r in before[table] if not r.get('Ref Payment') and not r['Row ID'].startswith('df10:')]
         if table=='Business Expenses': row_ids=[r['Row ID'] for r in before[table] if r['Source Type']=='Manual']
@@ -221,11 +238,25 @@ def cleanup(c,batch,reviewed_inventory):
             c.execute('UPDATE public."Borrowers" SET "Ref Referrer"=NULL WHERE "Row ID"=%s',[i['borrower']])
         if table=='Cash Accounts':
             c.execute('DELETE FROM public."Cash Account Daily Analytics" WHERE "Ref Cash Account"=ANY(%s)',[row_ids])
+            if batch=='REIMBURSE':
+                # A holder with no prior account receives a default on first insert.
+                # Remove only captured nondefault fixture accounts first, then its last default.
+                ordered=c.execute('SELECT "Row ID" FROM "Cash Accounts" WHERE "Row ID"=ANY(%s) ORDER BY "Default Account","Row ID"',[row_ids]).fetchall()
+                for (key,) in ordered:c.execute('DELETE FROM "Cash Accounts" WHERE "Row ID"=%s',[key])
+                continue
         if row_ids:
             c.execute(sql.SQL('DELETE FROM public.{} WHERE "Row ID"=ANY(%s)').format(sql.Identifier(table)),[row_ids])
     c.execute('SET CONSTRAINTS ALL IMMEDIATE')
     if any(readback(c,batch).values()):
         raise ValueError('Fixture residue remains; rollback cleanup')
+
+
+def private_state_path_allowed(path):
+    """Empty read-only sandbox .git markers are not repositories; real metadata stays excluded."""
+    if path is None:return False
+    return not any((parent/'.git').is_file() or
+                   ((parent/'.git').is_dir() and any((parent/'.git').iterdir()))
+                   for parent in path.resolve().parents)
 
 
 def main():
@@ -244,7 +275,7 @@ def main():
     args=p.parse_args()
     write=args.mode in ('seed','cleanup')
     if write:
-        if not args.state or any((parent/'.git').exists() for parent in args.state.resolve().parents):
+        if not private_state_path_allowed(args.state):
             p.error('Mutation requires a private state path outside the repository')
         if args.mode=='seed' and args.state.exists():
             p.error('State already exists; reconcile unknown outcome before retry')

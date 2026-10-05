@@ -1,5 +1,5 @@
 {
-  "state": "Initial source counts below are historical seed facts. P1 is deleted and new GUI receipt Bx59mH6SCh4OMcWXvOpo6Y is Posted1; see combined GUI evidence. Additional batches NOT CREATED.",
+  "state": "Initial source counts are historical. P1/E/H deleted; P2 and GUI-created Bx59mH6SCh4OMcWXvOpo6Y retained at six-seed readback. Six additional batches committed; REIMBURSE prepared only. See dated evidence.",
   "namespace": "SYN-R051-UI-",
   "target": "loan_manager_dev only",
   "creation_script": "scripts/database/R051-UiFixtures.sql",
@@ -25,7 +25,7 @@
   ],
   "broader_gui": "Every app Add-generated UNIQUEID must be captured and added to exact cleanup inventory, with refs verified against synthetic parents/accounts. Static seeded cleanup alone does not prove zero residue. Contributions/settlement tests need isolated future-date/entitlement plan before creation.",
   "additional_gui_plan": {
-    "state": "NOT CREATED. Separate bounded batches after initial GUI tests; require exact IDs/readback and cleanup for each. Do not merge these into current baseline implicitly.",
+    "state": "DAILY, DEFAULT, LEGACY, CLOSE, PREPARED and PARTNER-A committed/read back on Bangkok6Oct; see six-ui-seed-readback.json. REIMBURSE not created.",
     "contributions": {
       "partner": "SYN-R051-UI-PARTNER-A",
       "role": "A",
@@ -95,7 +95,22 @@
       "close_receipt": "SYN-R051-UI-PREPARED-P",
       "test": "Delete close receipt using source command; retain FIRST10 and augmented100P+10I charge, reopen principal100. Charge separately editable."
     },
-    "exact_keymap": "additional-ui-keymap.json; recompute date plan at seed"
+    "exact_keymap": "additional-ui-keymap.json; recompute date plan at seed",
+    "reimbursement": {
+      "state": "PREPARED_NOT_CREATED",
+      "keymap": "additional-ui-keymap.json",
+      "accounts": [
+        "SYN-R051-UI-REIMBURSE-LISA",
+        "SYN-R051-UI-REIMBURSE-TOMMY1",
+        "SYN-R051-UI-REIMBURSE-TOMMY2"
+      ],
+      "expenses": [
+        "SYN-R051-UI-REIMBURSE-E1",
+        "SYN-R051-UI-REIMBURSE-E2"
+      ],
+      "gui_sequence": "Add manual reimbursement5 linked E1; edit6; same-Tommy source account correction; reject cross-holder/nonpositive expense while linked; relink E1→E2; E1 correction now allowed; delete reimbursement. Capture each generated key.",
+      "cleanup": "Exact captured manual reimbursement before expenses; owned nondefault accounts before last owned default. No original holder/account/default changes."
+    }
   },
   "source_counts_note": "Historical initial seed, not current database counts",
   "gui_generated_ids": [
