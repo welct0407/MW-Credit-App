@@ -48,7 +48,7 @@ function patch(input,page,options={}){
    p.options.textMode='value_and_name';p.options.wideLayout=true;
    p.fieldConfig.overrides.push({matcher:{id:'byRegexp',options:'^(?:[A-Z] )?'+label.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$'},properties:[{id:'unit',value:unit},{id:'mappings',value:[]},{id:'noValue',value:'Unknown'},{id:'color',value:{mode:'fixed',fixedColor:'blue'}}]});
   }
-  positions.push([120,0,17,8,1],[124,8,17,12,1],[121,0,18,2,3],[122,2,18,2,3],[123,4,18,4,3],[125,8,18,4,3],[126,12,18,4,3],[127,16,18,4,3]);
+  positions.push([120,0,17,8,1],[124,8,17,12,1],[121,0,18,2,4],[122,2,18,2,4],[123,4,18,4,4],[125,8,18,4,4],[126,12,18,4,4],[127,16,18,4,4]);
  }else{
   // Reuse the existing passive Azure monitoring route; never use the controller.
   const t={url:options.azureVmMetricsUrl};

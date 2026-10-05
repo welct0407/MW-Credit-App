@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-05",
+  "owner_request": "Increase the height of the entire row by1 because four tile labels became unreadable",
+  "supersedes": "Version36 height3 is a historical intermediate; all six row5 cards now height4",
+  "changes": {
+    "121": {
+      "height_before": 3,
+      "height_after": 4,
+      "width_retained": 2
+    },
+    "122": {
+      "height_before": 3,
+      "height_after": 4,
+      "width_retained": 2
+    },
+    "123": {
+      "height_before": 3,
+      "height_after": 4,
+      "width_retained": 4
+    },
+    "125": {
+      "height_before": 3,
+      "height_after": 4,
+      "width_retained": 4
+    },
+    "126": {
+      "height_before": 3,
+      "height_after": 4,
+      "width_retained": 4
+    },
+    "127": {
+      "height_before": 3,
+      "height_after": 4,
+      "width_retained": 4
+    }
+  },
+  "preserved": "x0/2/4/8/12/16,y18,headers120x0width8 and124x8width12,y17height1,right blank4units,all queries/styles/other properties",
+  "checks": [
+    "Classic/v2 all six cards height4; original rows3/4 stay2x3",
+    "Exactly six height3→4 changes in each prepared resource; every other value unchanged",
+    "Existing preservation/idempotence/geometry/Unknown/numeric/SGT regressions pass"
+  ],
+  "live_acceptance": "Complete: version37 parent save/reload/persisted equality verified; screenshot delivered",
+  "readability": "Three wide cards readable; Renewal / grant authority labels approximately4.3px at1180px viewport due horizontal stat layout. Full readability is not resolved. Formatting change awaits owner decision.",
+  "executor_effects": "Source/tests/docs only; parent owns browser edits; no backend/alert/merge effect",
+  "parent_saved_state": {
+    "dashboard_version": 37,
+    "saved_at_utc": "2026-10-05T04:03:56Z",
+    "saved_at_sgt": "2026-10-05 12:03:56 Asia/Singapore",
+    "rollback_dashboard_version": 36,
+    "saved_resource_sha256": "941679bd211ee322c4f1c6686066ce1359c7fb8e02b58bbe97a0ab39c0b8ab91",
+    "height_properties_changed": 6,
+    "only_changed_panels": [
+      121,
+      122,
+      123,
+      125,
+      126,
+      127
+    ],
+    "before_height_units": 3,
+    "after_height_units": 4,
+    "persisted_export": "Exactly equals proposal; every other property unchanged",
+    "normalization_or_other_property_deltas": 0,
+    "screenshot": "Delivered to owner"
+  }
+}

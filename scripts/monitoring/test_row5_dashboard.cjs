@@ -12,14 +12,14 @@ for(const fmt of ['dashboard','editor-resource'])for(const page of ['performance
    if(after.spec){const p=after.spec.layout.spec.rows[0].spec.layout.spec.items.find(p=>p.spec.element.name==='panel-'+id).spec;return {x:p.x,y:p.y,w:p.width,h:p.height};}
    return after.panels.find(p=>p.id===id).gridPos;
   };
-  const peer=geometry(51),cards=[121,122,123,125,126,127].map(geometry);
+  const cards=[121,122,123,125,126,127].map(geometry);
   const standard=after.spec?after.spec.layout.spec.rows[0].spec.layout.spec.items.filter(p=>[10,14].includes(p.spec.y)&&after.spec.elements[p.spec.element.name]?.spec.vizConfig?.group==='stat').map(p=>({y:p.spec.y,w:p.spec.width,h:p.spec.height})):after.panels.filter(p=>p.type==='stat'&&[10,14].includes(p.gridPos.y)).map(p=>p.gridPos);
   assert(standard.some(p=>p.y===10)&&standard.some(p=>p.y===14),'both standard status rows inspected');
   for(const p of standard)assert.deepEqual([p.w,p.h],[2,3],'every existing row3/4 light has the reference footprint');
 
-  for(const id of [121,122])assert.deepEqual([geometry(id).w,geometry(id).h],[peer.w,peer.h],'lights match existing row3/4 tile size');
-  for(const id of [123,125,126,127])assert.deepEqual([geometry(id).w,geometry(id).h],[4,3],'other row5 card widths preserved and height matches the lights');
-  assert(cards.every(p=>p.h===peer.h),'all six row5 cards have the standard light height');
+  for(const id of [121,122])assert.deepEqual([geometry(id).w,geometry(id).h],[2,4],'lights retain width2 and increase to owner-requested height4');
+  for(const id of [123,125,126,127])assert.deepEqual([geometry(id).w,geometry(id).h],[4,4],'other row5 card widths preserved and height increased to4');
+  assert(cards.every(p=>p.h===4),'all six row5 cards have owner-requested height4');
   assert.deepEqual(cards.map(p=>p.x),[0,2,4,8,12,16],'compact row5 order');
   assert.deepEqual(geometry(120),{x:0,y:17,w:8,h:1},'Bridge header aligned over its cards');
   assert.deepEqual(geometry(124),{x:8,y:17,w:12,h:1},'Subscription header aligned over its cards');

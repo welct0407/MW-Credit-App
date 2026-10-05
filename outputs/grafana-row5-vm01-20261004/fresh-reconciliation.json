@@ -20,17 +20,18 @@
       "panel-127"
     ],
     "patch_bytes": 477085,
-    "patch_sha256": "08be32f223005be02103a1804a815946892ad417ab8014c018ca66d3169fa171",
+    "patch_sha256": "97342e057a7fb1dda57fec0b9002c694358b903575192bde7cf244dba1caf9a8",
     "exact_preservation_test": "PASS after removing only added elements/items",
-    "live_save": "Latest height refinement: version36,2026-10-05T03:58:27Z,parent verified; rollback35",
+    "live_save": "Latest entire-row height refinement: version37,2026-10-05T04:03:56Z,parent verified; rollback36",
     "folder_annotation_present": false,
-    "live_acceptance_evidence": "row5-height-followup.json (latest); row5-sizing-followup.json and live-acceptance.json (historical)",
+    "live_acceptance_evidence": "row5-entire-height-followup.json (latest); row5-height-followup.json version36 and row5-sizing-followup.json version35 (historical)",
     "traffic_light_followup": "Owner requested panels121/122 match exact current panel51 style; scoped patch prepared against parent verified unchanged generation33; browser application pending",
     "sizing_followup": "2026-10-05: live save/reload/render/persisted export verified; exact11 geometry changes, all non-layout spec properties preserved vs editor baseline",
-    "latest_saved_resource_sha256": "6ddeeacbe27acd30fbea85e3b5503082f6cf4b0c1aa032a7dda7ec6cc754bf98",
-    "latest_dashboard_version": 36,
-    "latest_saved_at_utc": "2026-10-05T03:58:27Z",
-    "height_followup": "2026-10-05: live version36 verified, only four height4\u21923 changes; zero normalization/other-property deltas"
+    "latest_saved_resource_sha256": "941679bd211ee322c4f1c6686066ce1359c7fb8e02b58bbe97a0ab39c0b8ab91",
+    "latest_dashboard_version": 37,
+    "latest_saved_at_utc": "2026-10-05T04:03:56Z",
+    "height_followup": "2026-10-05: live version36 verified, only four height4\u21923 changes; zero normalization/other-property deltas",
+    "entire_height_followup": "2026-10-05: live version37 verified, only six height3\u21924 changes; zero normalization/other-property deltas. Renewal horizontal labels remain small at1180px viewport; formatting proposal awaiting owner"
   },
   "cost": {
     "backup_bytes": 138044,

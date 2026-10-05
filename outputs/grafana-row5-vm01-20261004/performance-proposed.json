@@ -11365,7 +11365,7 @@
                         "x": 0,
                         "y": 18,
                         "width": 2,
-                        "height": 3,
+                        "height": 4,
                         "element": {
                           "kind": "ElementReference",
                           "name": "panel-121"
@@ -11378,7 +11378,7 @@
                         "x": 2,
                         "y": 18,
                         "width": 2,
-                        "height": 3,
+                        "height": 4,
                         "element": {
                           "kind": "ElementReference",
                           "name": "panel-122"
@@ -11391,7 +11391,7 @@
                         "x": 4,
                         "y": 18,
                         "width": 4,
-                        "height": 3,
+                        "height": 4,
                         "element": {
                           "kind": "ElementReference",
                           "name": "panel-123"
@@ -11404,7 +11404,7 @@
                         "x": 8,
                         "y": 18,
                         "width": 4,
-                        "height": 3,
+                        "height": 4,
                         "element": {
                           "kind": "ElementReference",
                           "name": "panel-125"
@@ -11417,7 +11417,7 @@
                         "x": 12,
                         "y": 18,
                         "width": 4,
-                        "height": 3,
+                        "height": 4,
                         "element": {
                           "kind": "ElementReference",
                           "name": "panel-126"
@@ -11430,7 +11430,7 @@
                         "x": 16,
                         "y": 18,
                         "width": 4,
-                        "height": 3,
+                        "height": 4,
                         "element": {
                           "kind": "ElementReference",
                           "name": "panel-127"
