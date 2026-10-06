@@ -1,0 +1,16 @@
+#:schema https://developers.openai.com/codex/config-schema.json
+
+# Let Codex request escalation when necessary,
+# but let the automatic reviewer handle eligible requests.
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+
+# Normal development access: modify the checked-out workspace
+# without giving unrestricted host filesystem access.
+sandbox_mode = "workspace-write"
+
+# Allow current web search.
+web_search = "live"
+
+[sandbox_workspace_write]
+network_access = true
