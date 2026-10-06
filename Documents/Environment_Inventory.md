@@ -136,7 +136,7 @@ Historical full metadata checkpoint: **24 September 2026**, from the [dictionary
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000263 (R049 summary/drilldown) | database-2 | 22 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100208 (R048 original interest) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000183 (parent-verified receipt guidance/full sync, 6 October08:50 UTC; broad acceptance pending) | database-3 | 22 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000184 (parent-verified repayment guidance/full sync/source navigation, 6 October; default/legacy acceptance pending) | database-3 | 22 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000053 (parent-reported automatic consistency normalization, 6 October08:24 UTC; broad acceptance pending) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:

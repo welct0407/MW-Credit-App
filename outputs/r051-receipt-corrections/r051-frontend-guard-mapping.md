@@ -4,6 +4,8 @@ Owner requirement, 6 October 2026: expected invalid operations must be prevented
 
 This is a frontend design contract with **partial receipt implementation**. [OLTP183 evidence](receipt-frontend-checkpoint-20261006.json) records saved Notes, amount validation and Correction Guidance with bounded P2 form/visibility tests; all remaining coverage stays pending. Backend V70 is [applied and independently validated in DEV](default-repayment-v70-actual-summary.json). Preserve existing independent role/security predicates, Ref/IsAPartOf relationships, supported ordinary CRUD and source ownership. Do not introduce blanket reversal-only rules or locks on every previously saved row.
 
+[OLTP184 repayment evidence](repayment-frontend-checkpoint-20261006.json) adds saved four-parent field guards and visible guidance. Actual full sync and generated P2 unavailable Edit/Delete plus exact receipt navigation passed; defaulted-parent and independent legacy acceptance remain pending. V70 source review confirms the four parent routes, with blank-value and persisted-LOOKUP behavior still requiring runtime cases.
+
 ## Status and implementation pattern
 
 | Evidence/status | What is known | What is not established |

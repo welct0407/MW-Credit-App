@@ -1,5 +1,7 @@
 # R051 CRUD evidence
 
+**Repayment frontend checkpoint:** [OLTP184 saved/runtime evidence](repayment-frontend-checkpoint-20261006.json) records four-parent default guards, retained amount/date rules, bilingual explanations and view links. Full sync and generated P2 source-ownership prevention/navigation passed without submissions. Defaulted and independent legacy cases remain pending.
+
 **Receipt frontend checkpoint, 6 October08:50 UTC:** [OLTP183 saved/runtime evidence](receipt-frontend-checkpoint-20261006.json) records optional Notes, seven-input metadata exemption replacing the universal amount bypass, visible bilingual guidance and bounded P2 negative/positive form tests. Actual full sync/visibility passed; Cancel/Discard preserved Posted5. [Fresh read-only Dev preflight](dev-resume-preflight-20261006.json) confirms V70 and synthetic fixture state at08:28 UTC. Remaining methods, other guards, GUI acceptance and cleanup stay pending. OLAP53 is parent-reported automatic normalization, with no business guard edits.
 
 **Historical pre-reboot checkpoint (superseded by the receipt checkpoint above):** start with the [durable restart checkpoint](restart-checkpoint.md), [saved OLTP177/OLAP52 evidence](ui-saved-checkpoint-20261006.json) and [19-group frontend review](frontend-supplement-review-20261006.md). Authorized backend work/tests are complete; all additional frontend proposals remain unapplied/uncompiled/runtime-untested. Preserve fixtures and unresolved browser approval; no new migration or live cleanup is required to resume.
