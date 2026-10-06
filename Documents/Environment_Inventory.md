@@ -128,16 +128,16 @@ Google sign-in is Active with domain auto-signup blank. The two ordinary partner
 
 ## AppSheet and Cloud SQL checkpoint
 
-Latest metadata checkpoint: **24 September 2026**, from the [dictionary reconciliation](../outputs/dictionary-reconciliation-20260924/README.md). All four saved app versions below, their 74 environment-specific business-source bindings and both PostgreSQL V39 targets were read independently. AppDoc properties and original SQL catalog sections remained unchanged at the final comparison. This read-only checkpoint does not change product-release status; unaffected operational facts retain their earlier evidence.
+Historical full metadata checkpoint: **24 September 2026**, from the [dictionary reconciliation](../outputs/dictionary-reconciliation-20260924/README.md). The then-current four app versions, 74 environment-specific source bindings and both PostgreSQL V39 targets were read independently. Later versions below have their own dated evidence. The [6 October sanitized DEV app checkpoint](../outputs/r051-receipt-corrections/ui-saved-checkpoint-20261006.json) records parent-verified OLTP177/OLAP52; it is not a new full binding audit. Current SQL is recorded at the top of this inventory.
 
 ## App identities and bindings
 
-| Environment | App | App ID | Live version | SQL connection | SQL tables / views |
+| Environment | App | App ID | Recorded version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000263 (R049 summary/drilldown) | database-2 | 22 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100208 (R048 original interest) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000159 (30 September readiness save/restoration) | database-3 | 22 |
-| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000047 (30 September readiness save/restoration) | database-3 | 19 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000177 (parent-verified save/runtime, 6 October04:52 UTC; broad acceptance pending) | database-3 | 22 |
+| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000052 (parent-reported retained runnable configuration; broad acceptance pending) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
 

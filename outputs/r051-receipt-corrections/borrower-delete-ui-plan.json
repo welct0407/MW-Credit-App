@@ -12,7 +12,7 @@
   "OLTP": {
     "table_inventory_basis": "Parent-provided saved AppDoc baseline plus current parent scope; Loan Assessment is absent from OLTP",
     "native_Delete_OnlyIf": "AND(CONTEXT(\"ViewType\") = \"Detail\", COUNT(SELECT(Loans[Row ID], [Ref Borrowers] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Payments[Row ID], [Ref Borrower] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Borrowers[Row ID], [Ref Referrer] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Business Expenses[Row ID], OR([Ref Payee Borrower] = [_THISROW].[Row ID], [Ref Related Borrower] = [_THISROW].[Row ID]))) = 0)",
-    "missing_reference": "Loan Assessment cannot be referenced in OLTP expression. A remaining assessment causes final SQL FK rejection; resolve that source in OLAP. Do not add a table merely for this condition."
+    "missing_reference": "Loan Assessment is absent from OLTP, so this historical expression is incomplete and must not be applied as complete frontend prevention. A predictable final FK rejection is not acceptable UX. Use a trustworthy bounded dependency summary or an authorized OLAP workflow that can establish all dependencies; do not expose raw assessments or assume a filtered child list proves absence. See r051-frontend-guard-mapping.md."
   },
   "OLAP": {
     "native_Delete_OnlyIf": "AND(CONTEXT(\"ViewType\") = \"Detail\", COUNT(SELECT(Loans[Row ID], [Ref Borrowers] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Payments[Row ID], [Ref Borrower] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Borrowers[Row ID], [Ref Referrer] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Business Expenses[Row ID], OR([Ref Payee Borrower] = [_THISROW].[Row ID], [Ref Related Borrower] = [_THISROW].[Row ID]))) = 0, COUNT(SELECT(Loan Assessment[Row ID], [Ref Borrower] = [_THISROW].[Row ID])) = 0)"
@@ -23,7 +23,7 @@
     "Saved server validation/RunnableYes; paid+unpaid child borrower has no Delete entrypoint",
     "Borrower with any visible loan, receipt, referrer link, related/payee expense or OLAP assessment cannot invoke Delete",
     "Unreferenced synthetic borrower detail Delete succeeds/full sync and SQL absence; unrelated rows unchanged",
-    "OLTP borrower with assessment only: FK failure has no child/source mutation; resolve in OLAP then delete",
+    "Assessment-only reference: block and explain before submission using trustworthy dependency coverage, or route to an authorized OLAP workflow; preserve final SQL FK protection for stale/direct writers",
     "Preserve Refs/inline displays and test affected source slice/action paths; do not claim actual request order from local simulation"
   ],
   "local_evidence": "local-borrower-cascade.json",
