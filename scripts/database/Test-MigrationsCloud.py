@@ -58,7 +58,8 @@ def main():
    checks.append(name)
   run([PG/'pg_dump','-h','127.0.0.1','-p',port,'-U','postgres','-d','postgres','--schema-only','--no-owner','--no-privileges','--schema=public','--schema=assessment_lab','--exclude-table=public.flyway_schema_history','--file='+str(root/'rebuilt.sql')])
   run([SETUP/'powershell-7.5.4/pwsh','-NoProfile','-File',REPO/'scripts/database/Normalize-Schema.ps1','-InputFile',root/'rebuilt.sql','-OutputFile',root/'rebuilt.normalized.sql'])
-  if first['migrationsExecuted']==1:
+  # A one-migration upgrade (for example V68 -> V69) is not a V1-only rebuild.
+  if args.pre_target is None and first['migrationsExecuted']==1:
    assert (root/'rebuilt.normalized.sql').read_bytes()==(REPO/'database/migrations/V1__existing_schema.sql').read_bytes()
   copies=root/'migrations';shutil.copytree(migrations,copies)
   v1=copies/'V1__existing_schema.sql';v1.write_text(v1.read_text().replace("'standard public schema'","'synthetic checksum mutation'"))

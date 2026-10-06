@@ -35,11 +35,31 @@ SELECT pg_temp.assert((SELECT "Principal Due"::numeric=10 AND "Interest Due"::nu
 SELECT pg_temp.assert((SELECT sum("Principal Paid"::numeric)=100 AND sum("Principal Paid"::numeric+"Interest Paid"::numeric)=30 FROM "Repayments" WHERE "Ref Loans"='DF10-1'),'principal extinguished and actual cash unchanged');
 UPDATE "Loans" SET "Defaulted"=true,"Close Date"=current_date,"Closed By"='synthetic@example.invalid' WHERE "Row ID"='DF10-1';
 SELECT pg_temp.assert((SELECT count(*)=1 FROM "Repayments" WHERE "Ref Loans"='DF10-1' AND "Row ID" LIKE 'df10:%'),'duplicate command no-op');
+-- V69 protects the original write-off evidence as well as generated loss rows.
+SELECT pg_temp.reject($q$DELETE FROM "Charges" WHERE "Row ID"='DF10-unpaid'$q$,'Undo Default');
+SELECT pg_temp.reject($q$UPDATE "Charges" SET "Principal Due"=1::money WHERE "Row ID"='DF10-unpaid'$q$,'Undo Default');
+SELECT pg_temp.reject($q$UPDATE "Charges" SET "Interest Due"=1::money WHERE "Row ID"='DF10-unpaid'$q$,'Undo Default');
+SELECT pg_temp.reject($q$UPDATE "Charges" SET "Notes"='erase evidence' WHERE "Row ID"='DF10-unpaid'$q$,'Undo Default');
+SELECT pg_temp.reject($q$UPDATE "Charges" SET "Charge Date"=current_date WHERE "Row ID"='DF10-unpaid'$q$,'Undo Default');
+SELECT pg_temp.reject($q$UPDATE "Charges" SET "Ref Loans"='DF10-5' WHERE "Row ID"='DF10-unpaid'$q$,'Undo Default');
+SELECT pg_temp.reject($q$UPDATE "Charges" SET "Ref Loans"='DF10-1' WHERE "Row ID"='DF10-a-good'$q$,'Undo Default');
+SELECT set_config('business_crud.default','DF10-1',true);
+SELECT pg_temp.reject($q$DELETE FROM "Charges" WHERE "Row ID"='DF10-unpaid'$q$,'Undo Default');
+SELECT pg_temp.reject($q$UPDATE "Charges" SET "Notes"='forged context' WHERE "Row ID"='DF10-unpaid'$q$,'Undo Default');
+SELECT set_config('business_crud.default','',true);
+UPDATE "Charges" SET "Total Paid"=999,"Amount Remaining"=999 WHERE "Row ID"='DF10-unpaid';
+SELECT pg_temp.assert((SELECT "Total Paid"=0 AND "Amount Remaining"=0 FROM "Charges" WHERE "Row ID"='DF10-unpaid'),'derived-only update recomputes authoritative cache');
+SELECT pg_temp.reject($q$UPDATE "Repayments" SET "Notes"='change loss' WHERE "Row ID"='df10:6:DF10-1'$q$,'immutable');
+SELECT pg_temp.reject($q$UPDATE "Charges" SET "Notes"='change loss' WHERE "Row ID"='df10:6:DF10-1'$q$,'immutable');
+SELECT pg_temp.reject($q$DELETE FROM "Charges" WHERE "Row ID"='df10:6:DF10-1'$q$,'receipts');
 SAVEPOINT default_inverse;
 UPDATE "Loans" SET "Defaulted"=false WHERE "Row ID"='DF10-1';
 SELECT pg_temp.assert((SELECT "Outstanding Principal"=90 AND "Loan Status"='ยังไม่ปิดยอด' AND "Default Loss Amount" IS NULL FROM "Loans" WHERE "Row ID"='DF10-1'),'default undo restores remaining principal');
 SELECT pg_temp.assert((SELECT "Principal Due"=20::money AND "Interest Due"=10::money AND "Notes"='Preserve note' FROM "Charges" WHERE "Row ID"='DF10-unpaid'),'default undo restores booked amounts and original note');
 SELECT pg_temp.assert(NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Row ID"='df10:6:DF10-1'),'default undo removes only loss posting');
+UPDATE "Charges" SET "Notes"='ordinary edit after undo' WHERE "Row ID" IN ('DF10-unpaid','DF10-partial');
+DELETE FROM "Charges" WHERE "Row ID"='DF10-unpaid';
+SELECT pg_temp.assert(NOT EXISTS(SELECT 1 FROM "Charges" WHERE "Row ID"='DF10-unpaid'),'ordinary unpaid charge delete after undo');
 ROLLBACK TO default_inverse;
 SELECT pg_temp.reject($q$DELETE FROM "Repayments" WHERE "Ref Loans"='DF10-1' AND "Row ID" LIKE 'df10:%'$q$,'immutable');
 SELECT pg_temp.reject($q$UPDATE "Loans" SET "Defaulted"=true,"Close Date"=current_date,"Closed By"='synthetic@example.invalid' WHERE "Row ID"='DF10-2'$q$,'paid charge today');
@@ -53,7 +73,8 @@ SELECT pg_temp.assert((SELECT "Default Loss Amount"::numeric=100 FROM "Loans" WH
 SELECT pg_temp.assert(NOT EXISTS(SELECT 1 FROM "Payments" WHERE "Ref Target Charge"='df10:6:DF10-4'),'same-day loss never produces first-day cash receipt');
 SELECT pg_temp.reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Charge","Amount Received","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','DF10-after-default','DF10-B','DF10-partial',1::money,current_date,'Single Partial','Processing')$q$,'current eligible balance');
 SELECT pg_temp.assert(public.generate_due_charges(current_date,ARRAY['DF10-1','DF10-4'])=0,'defaulted loans never generate new charges');
--- Old defaults may have untouched fully paid charges without a write-off note.
+-- Current defaults protect even fully paid charge evidence. Legacy no-note
+-- compatibility is tested by the separate committed V68 -> V69 upgrade fixture.
 INSERT INTO "Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest")
  VALUES('CI-LISA','DF10-LEGACY','DF10-B',current_date-5,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,10::money);
 INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due") VALUES
@@ -62,7 +83,7 @@ INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Payment Date","Prin
  VALUES('DF10-LEGACY-R','DF10-LEGACY','DF10-LEGACY-PAID',current_date-4,0::money,10::money);
 UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='DF10-LEGACY';
 UPDATE "Loans" SET "Defaulted"=true,"Close Date"=current_date,"Closed By"='synthetic' WHERE "Row ID"='DF10-LEGACY';
-UPDATE "Charges" SET "Notes"=NULL WHERE "Row ID"='DF10-LEGACY-PAID';
+SELECT pg_temp.reject($q$UPDATE "Charges" SET "Notes"=NULL WHERE "Row ID"='DF10-LEGACY-PAID'$q$,'Undo Default');
 UPDATE "Loans" SET "Defaulted"=false WHERE "Row ID"='DF10-LEGACY';
 SET CONSTRAINTS ALL IMMEDIATE;
 SELECT pg_temp.assert((SELECT "Interest Due"=10::money AND "Notes" IS NULL FROM "Charges" WHERE "Row ID"='DF10-LEGACY-PAID'),'untouched paid charge remains unchanged');

@@ -1,5 +1,7 @@
 # R051 — Ordinary business source CRUD
 
+Prepared only: [V69 original default-charge protection](../outputs/r051-receipt-corrections/default-charge-v69-plan.json) closes the discovered UPDATE/DELETE gap while preserving Default/Undo and cache refresh. DEV remains V68; no candidate migration or app relationship change has been applied. Required local CI passes69 migrations/nine concurrency suites, historical opening upgrade and the committed V68→V69 legacy-Undo upgrade. Evidence is recorded in the linked plan.
+
 Status: DEV V68 is applied/validated (checksum−79096429); rollback-only conversion acceptance passed, preserving all26 fingerprints and original plus six GUI fixtures. The backend entering-daily gap is fixed; actual loan form/full-sync and other cross-type schedules remain unverified. Parent last confirms restored OLTP1.000173 runnable / OLAP1.000052; scoped GUI testing has resumed under owner authorization. Six lifecycle batches remain committed, seventh REIMBURSE prepared only. Expense preview, borrower Delete availability, broad GUI acceptance and cleanup remain pending. PROD58 is untouched. R051 remains Open.
 
 6 October: [DEFAULT fixture correction](../outputs/r051-receipt-corrections/default-fixture-interval-repair.json) sets only its required payment interval from NULL to1, preserving blank anchor, auto=false and all financial rows. Independent DEV readback passed; future daily seeds now match the form requirement. Existing DAILY/PREPARED schedules remain unchanged. No schema or app-validator change.
