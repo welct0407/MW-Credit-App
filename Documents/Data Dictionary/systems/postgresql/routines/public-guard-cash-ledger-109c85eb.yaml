@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -24,8 +24,21 @@
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
       BEGIN
+
+       -- A parent expense deletion only unlinks its independent reimbursement.
+       -- Retain the actual transfer, accounts, amount, date and original audit fields.
+       IF TG_OP='UPDATE' AND pg_trigger_depth()>1
+        AND OLD."Entry Origin"='Manual' AND OLD."Movement Type"='Expense Reimbursement'
+        AND OLD."Ref Business Expense" IS NOT NULL AND NEW."Ref Business Expense" IS NULL
+        AND (to_jsonb(NEW)-'Ref Business Expense')=(to_jsonb(OLD)-'Ref Business Expense')
+        AND NOT EXISTS(SELECT 1 FROM public."Business Expenses" WHERE "Row ID"=OLD."Ref Business Expense") THEN
+        NEW."Notes":=concat_ws(E'\n',nullif(OLD."Notes",''),'R051: original expense deleted; retained reimbursement source ID: '||OLD."Ref Business Expense");
+        NEW."Updated At":=clock_timestamp() AT TIME ZONE 'Asia/Bangkok';
+        RETURN NEW;
+       END IF;
        IF TG_OP='DELETE' THEN
         IF OLD."Entry Origin"='System' AND pg_trigger_depth()>=2 THEN RETURN OLD; END IF;
+        IF OLD."Entry Origin"='Manual' AND OLD."Movement Type" IN ('Cash Handover','Expense Reimbursement') THEN RETURN OLD; END IF;
         RAISE EXCEPTION 'Cash movements are retained; use a documented correction';
        END IF;
        NEW."Ref From Cash Holder":=nullif(btrim(NEW."Ref From Cash Holder"),'');

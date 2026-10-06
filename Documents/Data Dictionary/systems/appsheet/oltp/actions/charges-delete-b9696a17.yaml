@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
 "content":
   "definition":
@@ -20,7 +20,9 @@
     "With these properties": "{\"InputParametersUsed\":null,\"Prominence\":\"Display_Prominently\",\"NeedsConfirmation\":true,\"\
       ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\":true}"
     "Do this": "DELETE_RECORD"
-    "Only if this condition is true": "=COUNT(SELECT(Payment Allocations[Row ID], [Ref Charge] = [_THISROW].[Row ID])) = 0"
+    "Only if this condition is true": "=AND(NOT(STARTSWITH([Row ID], \"df10:\")), NOT([Ref Loans].[Defaulted] = TRUE), COUNT(SELECT(Payment\
+      \ Allocations[Row ID], [Ref Charge] = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Repayments[Row ID], [Ref Charges] = [_THISROW].[Row\
+      \ ID])) = 0, COUNT(SELECT(Payments[Row ID], [Ref Target Charge] = [_THISROW].[Row ID])) = 0)"
     "Disable automatic updates?": "No"
     "Action icon": ""
     "For a record of this table": "Charges"

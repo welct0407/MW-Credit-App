@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -27,8 +27,12 @@
         target text; today_count integer; latest date; interest numeric:=0; outstanding numeric;
         scheduled numeric; missing numeric; total numeric;
       BEGIN
+        -- Materialized allocation/repayment cache writes are not new close requests.
+        IF TG_OP='UPDATE' AND public.payment_inputs(NEW) IS NOT DISTINCT FROM public.payment_inputs(OLD)
+          AND (NEW."Status" IS NOT DISTINCT FROM OLD."Status" OR OLD."Status"='Posted') THEN RETURN NEW; END IF;
+
         IF TG_OP='UPDATE' AND NEW."Ref Target Loan" IS DISTINCT FROM OLD."Ref Target Loan"
-          AND (OLD."Status"='Posted' OR EXISTS(SELECT 1 FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID")
+          AND (EXISTS(SELECT 1 FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID")
             OR EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID")) THEN
           RAISE EXCEPTION 'Prepared or posted payment target loan cannot be changed';
         END IF;
@@ -36,7 +40,7 @@
         IF NEW."Allocation Method" IS DISTINCT FROM 'Loan Close' THEN
           RAISE EXCEPTION 'Target loan is only valid for Loan Close';
         END IF;
-        IF TG_OP='UPDATE' AND OLD."Status"='Posted' THEN RETURN NEW; END IF;
+        IF TG_OP='UPDATE' AND OLD."Status"='Posted' AND NEW."Ref Target Loan" IS NOT DISTINCT FROM OLD."Ref Target Loan" THEN RETURN NEW; END IF;
         IF NEW."Status" IS DISTINCT FROM 'Processing' THEN
           IF TG_OP='INSERT' THEN RAISE EXCEPTION 'Loan Close command must start in Processing'; END IF;
           RETURN NEW;

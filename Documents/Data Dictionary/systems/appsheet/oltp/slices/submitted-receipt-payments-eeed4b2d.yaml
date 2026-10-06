@@ -7,22 +7,10 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r047-production/oltp-affected-definitions.json"
+  "source": "outputs/r051-production/README.md"
 "content":
   "definition":
-    "Row filter condition": |-
-      =AND(
-        [Status] = "Posted",
-        OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])),
-        COUNT(
-          INTERSECT(
-            SELECT([Related Payment Allocations][Ref Charge], [Allocated Amount] > 0),
-            [Ref Borrower].[Todays Collection Charges]
-          )
-        ) > 0
-      )
-    "Slice Actions":
-    - "**auto**"
+    "Slice Name": "Submitted Receipt Payments"
     "Slice Columns":
     - "_RowNumber"
     - "Row ID"
@@ -61,10 +49,24 @@
     - "Uploaded Receipt At"
     - "Receipt Preview"
     - "Receipt Display At"
-    "Slice Name": "Submitted Receipt Payments"
+    - "Delete Requested"
+    - "Correction Guidance"
+    "Row filter condition": |-
+      =AND(
+        [Status] = "Posted",
+        OR(ISNOTBLANK([Receipt Image]), ISNOTBLANK([Uploaded Receipt])),
+        COUNT(
+          INTERSECT(
+            SELECT([Related Payment Allocations][Ref Charge], [Allocated Amount] > 0),
+            [Ref Borrower].[Todays Collection Charges]
+          )
+        ) > 0
+      )
+    "Update mode": "UPDATES_ONLY"
     "Source Table": "Payments"
-    "Update mode": "READ_ONLY"
     "Visible?": "ALWAYS"
+    "Slice Actions":
+    - "**auto**"
   "members":
   - "Ordinal": 1
     "Column": "_RowNumber"
@@ -140,6 +142,10 @@
     "Column": "Receipt Preview"
   - "Ordinal": 37
     "Column": "Receipt Display At"
+  - "Ordinal": 38
+    "Column": "Delete Requested"
+  - "Ordinal": 39
+    "Column": "Correction Guidance"
 "evidence":
   "/content/definition/Row filter condition":
     "reference": "outputs/r048-collection-receipts/PRODUCTION.md"

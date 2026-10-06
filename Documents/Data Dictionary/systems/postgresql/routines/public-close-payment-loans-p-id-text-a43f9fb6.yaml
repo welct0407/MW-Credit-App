@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -25,7 +25,8 @@
       AS $function$
       BEGIN
         UPDATE public."Loans" l SET "Loan Status"='ปิดยอดแล้ว',
-          "Close Date"=(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date,
+          "Close Date"=CASE WHEN coalesce(nullif(current_setting('payment_crud.parents',true),'')::jsonb,'{}') ? p_id
+            THEN p."Payment Date" ELSE (statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date END,
           "Closed By"=p."Created By", "Ref Closing Payment"=p."Row ID"
         FROM public."Payments" p
         WHERE p."Row ID"=p_id AND l."Loan Status"='ยังไม่ปิดยอด'

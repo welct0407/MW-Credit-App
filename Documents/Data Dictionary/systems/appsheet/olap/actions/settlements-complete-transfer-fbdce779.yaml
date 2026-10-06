@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
 "content":
   "definition":
@@ -29,7 +29,9 @@
     "Do this": "SET_COLUMN_VALUE"
     "Attach to column": "Status"
     "Set this column": "Status"
-    "Only if this condition is true": "=[Status] = \"Pending\""
+    "Only if this condition is true": "=AND([Status] = \"Pending\", OR(AND(ISNOTBLANK([Ref Paid From Cash Account]), [Ref\
+      \ Paid From Cash Account].[Active], [Ref Paid From Cash Account].[Ref Cash Holder] = \"ch:lisa\"), COUNT(SELECT(Cash\
+      \ Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = \"ch:lisa\"))) > 0))"
     "Disable automatic updates?": "No"
     "Display name": "ยืนยันการโอน"
     "Action icon": ""

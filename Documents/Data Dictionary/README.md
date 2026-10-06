@@ -1,6 +1,6 @@
 # Ecosystem data dictionary
 
-R051 ordinary source CRUD is a labeled [DEV delta](DEV_R051_CRUD.md); existing exported PROD table/action definitions are not silently overwritten.
+R051 production closure:42 affected AppSheet objects and65 PostgreSQL objects (51 routines,14 relations) are reconciled from saved production AppDoc and read-only V77 metadata. All91 R051 DEV overlays are closed and retained as dated evidence; the retired trial stays explicitly rejected. [Production evidence](../../outputs/r051-production/README.md) · [Dated DEV delta](DEV_R051_CRUD.md).
 
 **R026 partial-state notice, 24 September:** database pg_cron retirement and export lifecycle are updated. App records from the earlier audit have not been fully reconciled after the partial OLAP upgrade and DEV Daily Analytics regeneration. Use the [owner-directed closure](../../outputs/r026-dictionary-fixes/closure.md) for actual versions, remaining locale/schema differences and verification limits; do not treat older app records as current verified truth for those affected properties.
 

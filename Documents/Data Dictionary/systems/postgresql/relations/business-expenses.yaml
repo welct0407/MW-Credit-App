@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -860,6 +860,22 @@
       "delete_action": " "
       "match_type": " "
       "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "zzzzzz_business_history_commit"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
   "indexes":
     "Business Expenses_pkey":
       "schema": "public"
@@ -951,23 +967,23 @@
       "access_method": "btree"
       "comment": null
   "triggers":
-    "RI_ConstraintTrigger_a_17212":
+    "RI_ConstraintTrigger_a_21402":
       "schema": "public"
       "relation": "Business Expenses"
-      "name": "RI_ConstraintTrigger_a_17212"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17212\" AFTER DELETE ON \"Business Expenses\" FROM\
-        \ \"Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_restrict_del\"()"
+      "name": "RI_ConstraintTrigger_a_21402"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21402\" AFTER DELETE ON \"Business Expenses\" FROM\
+        \ \"Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_setnull_del\"()"
       "enabled": "O"
       "internal": true
-      "routine": "\"RI_FKey_restrict_del\"()"
+      "routine": "\"RI_FKey_setnull_del\"()"
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_a_17213":
+    "RI_ConstraintTrigger_a_21403":
       "schema": "public"
       "relation": "Business Expenses"
-      "name": "RI_ConstraintTrigger_a_17213"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17213\" AFTER UPDATE ON \"Business Expenses\" FROM\
+      "name": "RI_ConstraintTrigger_a_21403"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21403\" AFTER UPDATE ON \"Business Expenses\" FROM\
         \ \"Cash Ledger\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
       "enabled": "O"
       "internal": true
@@ -1095,6 +1111,42 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "a000_business_history_begin":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "a000_business_history_begin"
+      "definition": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Business Expenses\"\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION begin_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "begin_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a000_opening_consistency":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "a000_opening_consistency"
+      "definition": "CREATE TRIGGER a000_opening_consistency BEFORE UPDATE ON \"Business Expenses\" FOR EACH ROW EXECUTE FUNCTION\
+        \ guard_opening_included_source()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_opening_included_source()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a00_business_delete":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "a00_business_delete"
+      "definition": "CREATE TRIGGER a00_business_delete BEFORE DELETE ON \"Business Expenses\" FOR EACH ROW EXECUTE FUNCTION\
+        \ business_source_delete()"
+      "enabled": "O"
+      "internal": false
+      "routine": "business_source_delete()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "a0_cash_account":
       "schema": "public"
       "relation": "Business Expenses"
@@ -1104,6 +1156,18 @@
       "enabled": "O"
       "internal": false
       "routine": "guard_source_cash_account()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a1_linked_expense_reimbursement":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "a1_linked_expense_reimbursement"
+      "definition": "CREATE TRIGGER a1_linked_expense_reimbursement BEFORE UPDATE ON \"Business Expenses\" FOR EACH ROW EXECUTE\
+        \ FUNCTION guard_linked_expense_reimbursement()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_linked_expense_reimbursement()"
       "deferrable": false
       "initially_deferred": false
       "comment": null
@@ -1191,6 +1255,54 @@
       "routine": "cash_source_changed()"
       "deferrable": false
       "initially_deferred": false
+      "comment": null
+    "zzy_r051_opening":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "zzy_r051_opening"
+      "definition": "CREATE TRIGGER zzy_r051_opening AFTER DELETE OR UPDATE ON \"Business Expenses\" FOR EACH ROW EXECUTE\
+        \ FUNCTION r051_restate_opening_source('Business Expense')"
+      "enabled": "O"
+      "internal": false
+      "routine": "r051_restate_opening_source()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzz_business_history":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "zzzz_business_history"
+      "definition": "CREATE TRIGGER zzzz_business_history AFTER INSERT OR DELETE OR UPDATE ON \"Business Expenses\" FOR EACH\
+        \ ROW EXECUTE FUNCTION business_history_refresh('Expense Date')"
+      "enabled": "O"
+      "internal": false
+      "routine": "business_history_refresh()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzz_business_history_flush":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "zzzzz_business_history_flush"
+      "definition": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Business Expenses\"\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Business Expenses"
+      "name": "zzzzzz_business_history_commit"
+      "definition": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Business\
+        \ Expenses\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": true
+      "initially_deferred": true
       "comment": null
   "policies": {}
   "dependencies": []

@@ -10,7 +10,7 @@
   "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
 "content":
   "release": "R051"
-  "status": "Applied DEV V72; PROD unchanged"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
   "database": "loan_manager_dev"
   "catalog_observation":
     "name": "public.Cash Accounts"
@@ -75,3 +75,9 @@
       "guard_cash_account": "CREATE TRIGGER guard_cash_account BEFORE INSERT OR DELETE OR UPDATE ON \"Cash Accounts\" FOR\
         \ EACH ROW EXECUTE FUNCTION guard_cash_account()"
   "captured_at": "2026-10-06T12:13:22.006330+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

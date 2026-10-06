@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -23,7 +23,7 @@
        LANGUAGE plpgsql
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
-      DECLARE outstanding numeric; c record; posting text:='df10:'||length(p_loan."Row ID")||':'||p_loan."Row ID";
+      DECLARE prior text:=current_setting('business_crud.default',true); outstanding numeric; c record; posting text:='df10:'||length(p_loan."Row ID")||':'||p_loan."Row ID";
       BEGIN
         IF pg_trigger_depth()=0 THEN RAISE EXCEPTION 'Confirm default through the Loans state transition'; END IF;
         -- The originating Loans UPDATE already owns its row lock. Never wait for a
@@ -50,6 +50,7 @@
         SELECT p_loan."Principal Amount"::numeric-coalesce(sum("Principal Paid"::numeric),0)
           INTO outstanding FROM public."Repayments" WHERE "Ref Loans"=p_loan."Row ID";
         IF outstanding<=0 THEN RAISE EXCEPTION 'Default requires outstanding principal'; END IF;
+        PERFORM set_config('business_crud.default',p_loan."Row ID",true);
         FOR c IN SELECT ch.*,coalesce(r.p,0) AS paid_p,coalesce(r.i,0) AS paid_i
           FROM public."Charges" ch LEFT JOIN LATERAL
             (SELECT sum("Principal Paid"::numeric) p,sum("Interest Paid"::numeric) i
@@ -64,7 +65,7 @@
             AND c."Principal Due"::numeric+c."Interest Due"::numeric<=c.paid_p+c.paid_i THEN
             RAISE EXCEPTION 'A paid charge today prevents Default Loan';
           END IF;
-          IF c."Principal Due"::numeric>c.paid_p OR c."Interest Due"::numeric>c.paid_i THEN
+          IF true THEN -- Record all original components so later undo can prove completeness.
             UPDATE public."Charges" SET "Principal Due"=c.paid_p::money,"Interest Due"=c.paid_i::money,
               "Notes"=concat_ws(E'\n',nullif(c."Notes",''),'Default write-off '||jsonb_build_object(
                 'posting',posting,'date',p_date,'actor',p_actor,
@@ -81,6 +82,7 @@
           VALUES(posting,p_date,outstanding::money,(-outstanding)::money,
             'หนี้สูญ - บันทึกเงินต้นคงเหลือเป็นขาดทุน / Loan default - outstanding principal recorded as loss',
             p_loan."Row ID",posting,p_actor);
+        PERFORM set_config('business_crud.default',coalesce(prior,''),true);
         RETURN outstanding;
       END $function$
     "owner": "postgres"

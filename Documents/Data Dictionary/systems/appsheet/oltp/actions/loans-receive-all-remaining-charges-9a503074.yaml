@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
 "content":
   "definition":
@@ -24,8 +24,9 @@
       Payment Date\",\"NewColumnValue\":\"=TODAY()\"},{\"ColumnToEdit\":\"Payment Method\",\"NewColumnValue\":\"=\\\"Bank\
       \ Transfer\\\"\"},{\"ColumnToEdit\":\"Allocation Method\",\"NewColumnValue\":\"=\\\"Loan Close\\\"\"},{\"ColumnToEdit\"\
       :\"Created By\",\"NewColumnValue\":\"=USEREMAIL()\"},{\"ColumnToEdit\":\"Created At\",\"NewColumnValue\":\"=NOW()\"\
-      }],\"InputParametersUsed\":null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
-      :\"\",\"ModifiesData\":true,\"BulkApplicable\":true}"
+      },{\"ColumnToEdit\":\"Delete Requested\",\"NewColumnValue\":\"=FALSE\"}],\"InputParametersUsed\":null,\"Prominence\"\
+      :\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\"\
+      :true}"
     "Do this": "ADD_RECORD_TO"
     "Only if this condition is true": "=AND([Auto Charge Enabled], [Loan Type] = \"ดอกเบี้ยรายวัน\", [Loan Status] = \"ยังไม่ปิดยอด\"\
       , [Outstanding Principal] > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Ref Borrowers], IN([Status],\

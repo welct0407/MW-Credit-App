@@ -10,7 +10,7 @@
   "source": "database/migrations/V77__retire_unused_payment_related_ids_view.sql"
 "content":
   "release": "R051"
-  "status": "Retired in DEV V77; no AppSheet or SQL consumer retained"
+  "status": "Rejected experiment retired in DEV and PROD V77; retained as dated evidence"
   "database": "loan_manager_dev"
   "captured_at": "2026-10-06T17:44:22.749668+00:00"
   "catalog_observation":
@@ -50,3 +50,9 @@
     - - "Visible Allocation IDs"
       - "text"
   "consumers": "None; V75/V76 definitions below are dated historical evidence, not current live objects."
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

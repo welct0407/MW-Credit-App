@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -25,7 +25,14 @@
       AS $function$
       DECLARE allocation_date date;
       BEGIN
-       IF TG_OP='DELETE' THEN RAISE EXCEPTION 'Expenses are retained; record a documented manual adjustment instead'; END IF;
+       IF TG_OP='DELETE' AND OLD."Source Type"='Referral Rebate' AND pg_trigger_depth()>=2
+        AND EXISTS(SELECT 1 FROM public."Loans" l WHERE l."Row ID"=OLD."Ref Related Loan"
+         AND l."Ref Closing Payment" IS NOT NULL AND (l."Ref Closing Payment"=nullif(current_setting('payment_crud.id',true),'')
+          OR EXISTS(SELECT 1 FROM public."Repayments" r WHERE r."Ref Loans"=l."Row ID"
+           AND r."Ref Payment"=nullif(current_setting('payment_crud.id',true),'')))) THEN RETURN OLD; END IF;
+       IF TG_OP='DELETE' THEN
+        IF OLD."Source Type"='Manual' THEN RETURN OLD; END IF;
+        RAISE EXCEPTION 'Automatic referral follows its loan/receipt; edit that source'; END IF;
        IF TG_OP='UPDATE' THEN
          IF NEW."Row ID" IS DISTINCT FROM OLD."Row ID" OR NEW."Source Type" IS DISTINCT FROM OLD."Source Type"
            OR NEW."Created At" IS DISTINCT FROM OLD."Created At" OR NEW."Created By" IS DISTINCT FROM OLD."Created By" THEN

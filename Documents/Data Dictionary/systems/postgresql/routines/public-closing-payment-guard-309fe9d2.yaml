@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -24,6 +24,15 @@
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
       BEGIN
+        IF TG_OP='UPDATE' AND pg_trigger_depth()>=2 AND nullif(current_setting('payment_crud.id',true),'') IS NOT NULL
+          AND OLD."Ref Closing Payment" IS NOT NULL AND NOT coalesce(OLD."Defaulted",false)
+          AND NEW."Ref Closing Payment" IS NULL AND NEW."Loan Status"='ยังไม่ปิดยอด'
+          AND (OLD."Ref Closing Payment"=current_setting('payment_crud.id',true) OR EXISTS
+           (SELECT 1 FROM public."Repayments" WHERE "Ref Loans"=OLD."Row ID" AND "Ref Payment"=current_setting('payment_crud.id',true))
+           OR EXISTS(SELECT 1 FROM jsonb_array_elements(coalesce(nullif(current_setting('payment_crud.parents',true),'')::jsonb
+            ->current_setting('payment_crud.id',true),'[]')) j WHERE j->>'Row ID'=OLD."Row ID"))
+          AND (to_jsonb(NEW)-ARRAY['Loan Status','Ref Closing Payment','Close Date','Closed By'])=
+              (to_jsonb(OLD)-ARRAY['Loan Status','Ref Closing Payment','Close Date','Closed By']) THEN RETURN NEW; END IF;
         IF TG_OP='INSERT' AND NEW."Ref Closing Payment" IS NOT NULL THEN
           RAISE EXCEPTION 'Closing payment is assigned by the payment engine';
         END IF;

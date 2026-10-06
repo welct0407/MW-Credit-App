@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
 "content":
   "definition":
@@ -24,8 +24,9 @@
       :\"Payment Method\",\"NewColumnValue\":\"=\\\"Net-off at Disbursement\\\"\"},{\"ColumnToEdit\":\"Allocation Method\"\
       ,\"NewColumnValue\":\"=\\\"First-day Auto\\\"\"},{\"ColumnToEdit\":\"Notes\",\"NewColumnValue\":\"=[Notes]\"},{\"ColumnToEdit\"\
       :\"Created By\",\"NewColumnValue\":\"=[Ref Loans].[Created By]\"},{\"ColumnToEdit\":\"Created At\",\"NewColumnValue\"\
-      :\"=NOW()\"}],\"InputParametersUsed\":null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\"\
-      :\"\",\"ModifiesData\":true,\"BulkApplicable\":true}"
+      :\"=NOW()\"},{\"ColumnToEdit\":\"Delete Requested\",\"NewColumnValue\":\"=FALSE\"}],\"InputParametersUsed\":null,\"\
+      Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\"\
+      :true}"
     "Do this": "ADD_RECORD_TO"
     "Only if this condition is true": "=AND([Amount Remaining] > 0, [Charge Date] = [Ref Loans].[Loan Date], COUNT(SELECT(Payments[Row\
       \ ID], AND([Ref Target Charge] = [_THISROW].[Row ID], [Allocation Method] = \"First-day Auto\"))) = 0)"

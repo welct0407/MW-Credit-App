@@ -1,5 +1,7 @@
 # Dictionary tooling
 
+R051 production: `capture_r051_production.py` reads only the affected V77 PostgreSQL metadata; `close_r051_production.py` previews or (`--apply`) writes guarded canonical production definitions and closes dated DEV overlays from private final AppDoc captures. Validated107 production objects and91 closed overlays; neither helper mutates live apps or databases. [Evidence](../../outputs/r051-production/README.md).
+
 R051 performance: `capture_r051_performance.py` reads the ten affected V73 routines and three relations; `close_r051_performance.py --apply` updates only their guarded DEV overlays. [Evidence](../../outputs/r051-trigger-performance/README.md).
 
 R051: `capture_r051_crud.py` reads only affected DEV V72 catalog definitions. `close_r051_crud.py` previews (or `--apply` writes) guarded selected-property DEV overlays at OLTP194/OLAP56: 27 AppSheet objects, 44 routines and 10 relations. Saved UI readbacks/checkpoints and SQL metadata are linked; unlisted properties are not claimed as a full export. Neither helper mutates live definitions. [Current delta](../../Documents/Data%20Dictionary/DEV_R051_CRUD.md).

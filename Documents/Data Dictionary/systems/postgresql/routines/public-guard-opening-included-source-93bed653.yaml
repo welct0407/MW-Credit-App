@@ -1,0 +1,70 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.guard_opening_included_source()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "guard_opening_included_source"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.guard_opening_included_source()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE kind text; fields text[]; o jsonb:=to_jsonb(OLD); n jsonb:=to_jsonb(NEW); a text;
+      BEGIN
+       kind:=CASE TG_TABLE_NAME WHEN 'Payments' THEN 'Payment' WHEN 'Loans' THEN 'Loan'
+        WHEN 'Business Expenses' THEN 'Business Expense' WHEN 'Settlements' THEN 'Settlement' END;
+       fields:=CASE kind
+        WHEN 'Payment' THEN ARRAY['Amount Received','Payment Date','Ref Received By Cash Holder','Ref Received By Cash Account','Status']
+        WHEN 'Loan' THEN ARRAY['Principal Amount','Loan Date','Ref Disbursed From Cash Account']
+        WHEN 'Business Expense' THEN ARRAY['Amount','Expense Date','Ref Paid By Cash Holder','Ref Paid By Cash Account']
+        WHEN 'Settlement' THEN ARRAY['Amount','Transfer Date','Status','Ref Paid From Cash Account'] END;
+       IF NOT EXISTS(SELECT 1 FROM unnest(fields) k WHERE o->k IS DISTINCT FROM n->k) THEN RETURN NEW; END IF;
+       IF kind='Payment' THEN
+        IF NEW."Ref Received By Cash Account" IS NULL AND OLD."Ref Received By Cash Account" IS NULL THEN
+        NEW."Ref Received By Cash Account":=public.r051_historical_account(NEW."Ref Received By Cash Account",NEW."Ref Received By Cash Holder");
+        SELECT "Ref Cash Holder" INTO NEW."Ref Received By Cash Holder" FROM public."Cash Accounts" WHERE "Row ID"=NEW."Ref Received By Cash Account";
+        END IF;
+       ELSIF kind='Loan' THEN
+        IF NEW."Ref Disbursed From Cash Account" IS NULL AND OLD."Ref Disbursed From Cash Account" IS NULL THEN
+        NEW."Ref Disbursed From Cash Account":=public.r051_historical_account(NEW."Ref Disbursed From Cash Account",'ch:lisa');
+        END IF;
+       ELSIF kind='Business Expense' THEN
+        IF NEW."Ref Paid By Cash Account" IS NULL AND OLD."Ref Paid By Cash Account" IS NULL
+         AND (NEW."Amount"::numeric>0 OR NEW."Ref Paid By Cash Holder" IS NOT NULL) THEN
+         NEW."Ref Paid By Cash Account":=public.r051_historical_account(NEW."Ref Paid By Cash Account",NEW."Ref Paid By Cash Holder");
+         SELECT "Ref Cash Holder" INTO NEW."Ref Paid By Cash Holder" FROM public."Cash Accounts" WHERE "Row ID"=NEW."Ref Paid By Cash Account";
+        END IF;
+       ELSIF kind='Settlement' THEN
+        IF NEW."Status"='Completed' AND NEW."Ref Paid From Cash Account" IS NULL AND OLD."Ref Paid From Cash Account" IS NULL THEN
+         NEW."Ref Paid From Cash Account":=public.r051_historical_account(NEW."Ref Paid From Cash Account",'ch:lisa');
+        END IF;
+       END IF;
+       RETURN NEW;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

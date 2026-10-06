@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -472,6 +472,24 @@
       "collation": null
       "acl": null
       "comment": "Server-maintained Asia/Bangkok time of the latest user image addition or replacement; null after removal"
+    "Delete Requested":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "Delete Requested"
+      "ordinal": 25
+      "data_type": "boolean"
+      "type_schema": "pg_catalog"
+      "type_name": "bool"
+      "not_null": false
+      "identity": ""
+      "generated": ""
+      "dimensions": 0
+      "storage": "p"
+      "compression": ""
+      "default_expression": "false"
+      "collation": null
+      "acl": null
+      "comment": null
   "constraints":
     "Payments_Ref Received By Cash Account_fkey":
       "schema": "public"
@@ -597,6 +615,23 @@
       "delete_action": "a"
       "match_type": "s"
       "comment": null
+    "payment_delete_requested_present":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "payment_delete_requested_present"
+      "kind": "c"
+      "definition": "CHECK (\"Delete Requested\" IS NOT NULL)"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": true
+      "column_numbers":
+      - 25
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
     "payment_receipt_triplet":
       "schema": "public"
       "relation": "Payments"
@@ -612,6 +647,22 @@
       - 19
       - 20
       - 21
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "zzzzzz_business_history_commit"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
       "referenced_column_numbers": null
       "referenced_relation": null
       "update_action": " "
@@ -889,6 +940,53 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "a000_business_history_begin":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a000_business_history_begin"
+      "definition": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Payments\" FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION begin_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "begin_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a000_opening_consistency":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a000_opening_consistency"
+      "definition": "CREATE TRIGGER a000_opening_consistency BEFORE UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION guard_opening_included_source()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_opening_included_source()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a000_payment_delete_request":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a000_payment_delete_request"
+      "definition": "CREATE TRIGGER a000_payment_delete_request BEFORE INSERT OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE\
+        \ FUNCTION payment_delete_request_guard()"
+      "enabled": "O"
+      "internal": false
+      "routine": "payment_delete_request_guard()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a00_payment_crud":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "a00_payment_crud"
+      "definition": "CREATE TRIGGER a00_payment_crud BEFORE DELETE OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ payment_crud_prepare()"
+      "enabled": "O"
+      "internal": false
+      "routine": "payment_crud_prepare()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "a00_receipt_evidence":
       "schema": "public"
       "relation": "Payments"
@@ -1025,8 +1123,8 @@
       "name": "process_lump_sum"
       "definition": "CREATE TRIGGER process_lump_sum AFTER INSERT OR UPDATE OF \"Row ID\", \"Status\", \"Ref Borrower\", \"\
         Amount Received\", \"Payment Method\", \"Allocation Method\", \"Bank Reference\", \"Notes\", \"Created By\", \"Payment\
-        \ Date\", \"Created At\", \"Processed At\", \"Ref Target Charge\", \"Ref Target Loan\" ON \"Payments\" FOR EACH ROW\
-        \ EXECUTE FUNCTION process_lump_sum()"
+        \ Date\", \"Created At\", \"Processed At\", \"Ref Target Charge\", \"Ref Target Loan\", \"Selected Charge IDs\" ON\
+        \ \"Payments\" FOR EACH ROW EXECUTE FUNCTION process_lump_sum()"
       "enabled": "O"
       "internal": false
       "routine": "process_lump_sum()"
@@ -1057,6 +1155,66 @@
       "routine": "vc_payment_row()"
       "deferrable": false
       "initially_deferred": false
+      "comment": null
+    "zzy_r051_opening":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "zzy_r051_opening"
+      "definition": "CREATE TRIGGER zzy_r051_opening AFTER DELETE OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ r051_restate_opening_source('Payment')"
+      "enabled": "O"
+      "internal": false
+      "routine": "r051_restate_opening_source()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzz_payment_crud":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "zzz_payment_crud"
+      "definition": "CREATE TRIGGER zzz_payment_crud AFTER DELETE OR UPDATE ON \"Payments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ payment_crud_finish()"
+      "enabled": "O"
+      "internal": false
+      "routine": "payment_crud_finish()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzz_payment_delete_requested":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "zzzz_payment_delete_requested"
+      "definition": "CREATE TRIGGER zzzz_payment_delete_requested AFTER UPDATE OF \"Delete Requested\" ON \"Payments\" FOR\
+        \ EACH ROW WHEN (new.\"Delete Requested\") EXECUTE FUNCTION payment_delete_requested()"
+      "enabled": "O"
+      "internal": false
+      "routine": "payment_delete_requested()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzz_business_history_flush":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "zzzzz_business_history_flush"
+      "definition": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Payments\" FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Payments"
+      "name": "zzzzzz_business_history_commit"
+      "definition": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Payments\"\
+        \ DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": true
+      "initially_deferred": true
       "comment": null
   "policies": {}
   "dependencies": []

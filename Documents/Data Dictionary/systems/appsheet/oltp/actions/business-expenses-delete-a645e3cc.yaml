@@ -1,0 +1,31 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Business Expenses.Delete"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+"content":
+  "definition":
+    "Action name": "Delete"
+    "Bulk action?": "Yes"
+    "Confirmation Message": "\"ลบค่าใช้จ่ายนี้หรือไม่? รายการโอนคืนเงินที่มีอยู่ยังคงอยู่ ให้บันทึกเงินที่รับคืนจริงแยกต่างหาก\
+      \ / Delete this expense? Existing reimbursement transfers remain. Record any actual cash return separately.\""
+    "Modifies data?": "Yes"
+    "Needs confirmation?": "Yes"
+    "Prominence": "Display_Prominently"
+    "Action order": "1"
+    "With these properties": "{\"InputParametersUsed\":null,\"Prominence\":\"Display_Prominently\",\"NeedsConfirmation\":true,\"\
+      ConfirmationMessage\":\"\\\"ลบค่าใช้จ่ายนี้หรือไม่? รายการโอนคืนเงินที่มีอยู่ยังคงอยู่ ให้บันทึกเงินที่รับคืนจริงแยกต่างหาก\
+      \ / Delete this expense? Existing reimbursement transfers remain. Record any actual cash return separately.\\\"\",\"\
+      ModifiesData\":true,\"BulkApplicable\":true}"
+    "Do this": "DELETE_RECORD"
+    "Only if this condition is true": "=[Source Type] = \"Manual\""
+    "Disable automatic updates?": "No"
+    "Action icon": ""
+    "For a record of this table": "Business Expenses"
+    "Does this action apply to the whole table?": "No"
+    "Visible?": "ADVANCED"

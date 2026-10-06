@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -415,6 +415,22 @@
       "delete_action": "a"
       "match_type": "s"
       "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Charges"
+      "name": "zzzzzz_business_history_commit"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
   "indexes":
     "Charges_pkey":
       "schema": "public"
@@ -572,6 +588,18 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "a000_business_history_begin":
+      "schema": "public"
+      "relation": "Charges"
+      "name": "a000_business_history_begin"
+      "definition": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Charges\" FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION begin_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "begin_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "aa_vc_lock":
       "schema": "public"
       "relation": "Charges"
@@ -581,6 +609,18 @@
       "enabled": "O"
       "internal": false
       "routine": "vc_lock_parents()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "ab_charge_consistency":
+      "schema": "public"
+      "relation": "Charges"
+      "name": "ab_charge_consistency"
+      "definition": "CREATE TRIGGER ab_charge_consistency BEFORE INSERT OR DELETE OR UPDATE ON \"Charges\" FOR EACH ROW EXECUTE\
+        \ FUNCTION guard_charge_consistency()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_charge_consistency()"
       "deferrable": false
       "initially_deferred": false
       "comment": null
@@ -654,6 +694,42 @@
       "routine": "vc_charge_row()"
       "deferrable": false
       "initially_deferred": false
+      "comment": null
+    "zzzz_business_history":
+      "schema": "public"
+      "relation": "Charges"
+      "name": "zzzz_business_history"
+      "definition": "CREATE TRIGGER zzzz_business_history AFTER INSERT OR DELETE OR UPDATE ON \"Charges\" FOR EACH ROW EXECUTE\
+        \ FUNCTION business_history_refresh('Charge Date')"
+      "enabled": "O"
+      "internal": false
+      "routine": "business_history_refresh()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzz_business_history_flush":
+      "schema": "public"
+      "relation": "Charges"
+      "name": "zzzzz_business_history_flush"
+      "definition": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Charges\" FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Charges"
+      "name": "zzzzzz_business_history_commit"
+      "definition": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Charges\"\
+        \ DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": true
+      "initially_deferred": true
       "comment": null
   "policies": {}
   "dependencies": []

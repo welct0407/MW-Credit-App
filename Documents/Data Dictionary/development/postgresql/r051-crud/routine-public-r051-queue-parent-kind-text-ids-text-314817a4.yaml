@@ -10,7 +10,7 @@
   "source": "outputs/r051-trigger-performance/sql-definitions.json"
 "content":
   "release": "R051"
-  "status": "Applied DEV V73; PROD unchanged"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
   "database": "loan_manager_dev"
   "catalog_observation":
     "name": "public.r051_queue_parent(kind text, ids text[])"
@@ -19,3 +19,9 @@
       \  (coalesce(nullif(current_setting('r051_dirty.'||kind,true),'')::jsonb,'{}'::jsonb)||\r\n   coalesce((SELECT jsonb_object_agg(k,true)\
       \ FROM unnest(ids) k WHERE k IS NOT NULL),'{}'::jsonb))::text,true);\r\nEND $function$\n"
   "captured_at": "2026-10-06T14:11:33.381694+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

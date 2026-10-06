@@ -18988,6 +18988,16 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/olap/actions/business-expenses-open-expense-in-operational-app-12b12f27.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "action",
+      "name": "Business Expenses.Open Expense in Operational App",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/olap/actions/business-expenses-view-ref-ref-paid-by-cash-account-dfd6a3ca.yaml",
       "system": "appsheet",
       "component": "olap",
@@ -19258,6 +19268,16 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/olap/actions/charges-open-charge-in-operational-app-819bcee7.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "action",
+      "name": "Charges.Open Charge in Operational App",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/olap/actions/charges-view-ref-borrower-reference-te-063a1408.yaml",
       "system": "appsheet",
       "component": "olap",
@@ -19393,6 +19413,16 @@
       "component": "olap",
       "kind": "action",
       "name": "Loans.Compose Email (Created By)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/olap/actions/loans-open-in-operational-app-b52ee78b.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "action",
+      "name": "Loans.Open in Operational App",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -19543,6 +19573,16 @@
       "component": "olap",
       "kind": "action",
       "name": "Payments.Compose Email (Created By)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/olap/actions/payments-open-payment-in-operational-app-a436f32f.yaml",
+      "system": "appsheet",
+      "component": "olap",
+      "kind": "action",
+      "name": "Payments.Open Payment in Operational App",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -22194,6 +22234,10 @@
           "pointer": "/content/columns/Payment Request Token"
         },
         {
+          "subject": "Original Daily Interest Rate",
+          "pointer": "/content/columns/Original Daily Interest Rate"
+        },
+        {
           "subject": "Related Repayments",
           "pointer": "/content/columns/Related Repayments"
         },
@@ -22236,10 +22280,6 @@
         {
           "subject": "Related Cash Ledgers",
           "pointer": "/content/columns/Related Cash Ledgers"
-        },
-        {
-          "subject": "Original Daily Interest Rate",
-          "pointer": "/content/columns/Original Daily Interest Rate"
         }
       ]
     },
@@ -22507,22 +22547,6 @@
           "pointer": "/content/columns/Ref Received By Cash Account"
         },
         {
-          "subject": "Related Repayments",
-          "pointer": "/content/columns/Related Repayments"
-        },
-        {
-          "subject": "Related Payment Allocations",
-          "pointer": "/content/columns/Related Payment Allocations"
-        },
-        {
-          "subject": "Related Loans",
-          "pointer": "/content/columns/Related Loans"
-        },
-        {
-          "subject": "Related Cash Ledgers",
-          "pointer": "/content/columns/Related Cash Ledgers"
-        },
-        {
           "subject": "IG Receipt ID",
           "pointer": "/content/columns/IG Receipt ID"
         },
@@ -22545,6 +22569,26 @@
         {
           "subject": "Uploaded Receipt At",
           "pointer": "/content/columns/Uploaded Receipt At"
+        },
+        {
+          "subject": "Delete Requested",
+          "pointer": "/content/columns/Delete Requested"
+        },
+        {
+          "subject": "Related Repayments",
+          "pointer": "/content/columns/Related Repayments"
+        },
+        {
+          "subject": "Related Payment Allocations",
+          "pointer": "/content/columns/Related Payment Allocations"
+        },
+        {
+          "subject": "Related Loans",
+          "pointer": "/content/columns/Related Loans"
+        },
+        {
+          "subject": "Related Cash Ledgers",
+          "pointer": "/content/columns/Related Cash Ledgers"
         }
       ]
     },
@@ -23415,6 +23459,10 @@
         {
           "subject": "Related Cash Ledgers",
           "pointer": "/content/columns/Related Cash Ledgers"
+        },
+        {
+          "subject": "Settlement Guidance",
+          "pointer": "/content/columns/Settlement Guidance"
         }
       ]
     },
@@ -24410,6 +24458,16 @@
       "lookup": []
     },
     {
+      "file": "systems/appsheet/oltp/actions/business-expenses-delete-a645e3cc.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "action",
+      "name": "Business Expenses.Delete",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/appsheet/oltp/actions/business-expenses-edit-5ac522a3.yaml",
       "system": "appsheet",
       "component": "oltp",
@@ -24885,6 +24943,16 @@
       "component": "oltp",
       "kind": "action",
       "name": "Loans.Set Loan Closed",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/appsheet/oltp/actions/loans-undo-default-41c13fbc.yaml",
+      "system": "appsheet",
+      "component": "oltp",
+      "kind": "action",
+      "name": "Loans.Undo Default",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -27476,6 +27544,10 @@
         {
           "subject": "Charge Selection Label",
           "pointer": "/content/columns/Charge Selection Label"
+        },
+        {
+          "subject": "Correction Guidance",
+          "pointer": "/content/columns/Correction Guidance"
         }
       ]
     },
@@ -27882,6 +27954,10 @@
           "pointer": "/content/columns/Payment Request Token"
         },
         {
+          "subject": "Original Daily Interest Rate",
+          "pointer": "/content/columns/Original Daily Interest Rate"
+        },
+        {
           "subject": "Related Repayments",
           "pointer": "/content/columns/Related Repayments"
         },
@@ -27956,10 +28032,6 @@
         {
           "subject": "Related Cash Account Statement Recents",
           "pointer": "/content/columns/Related Cash Account Statement Recents"
-        },
-        {
-          "subject": "Original Daily Interest Rate",
-          "pointer": "/content/columns/Original Daily Interest Rate"
         },
         {
           "subject": "Related Upcoming Charge Forecasts",
@@ -28259,6 +28331,34 @@
           "pointer": "/content/columns/Ref Received By Cash Account"
         },
         {
+          "subject": "IG Receipt ID",
+          "pointer": "/content/columns/IG Receipt ID"
+        },
+        {
+          "subject": "Receipt Image",
+          "pointer": "/content/columns/Receipt Image"
+        },
+        {
+          "subject": "Receipt Received At",
+          "pointer": "/content/columns/Receipt Received At"
+        },
+        {
+          "subject": "Selected Charge IDs",
+          "pointer": "/content/columns/Selected Charge IDs"
+        },
+        {
+          "subject": "Uploaded Receipt",
+          "pointer": "/content/columns/Uploaded Receipt"
+        },
+        {
+          "subject": "Uploaded Receipt At",
+          "pointer": "/content/columns/Uploaded Receipt At"
+        },
+        {
+          "subject": "Delete Requested",
+          "pointer": "/content/columns/Delete Requested"
+        },
+        {
           "subject": "Related Payment Allocations",
           "pointer": "/content/columns/Related Payment Allocations"
         },
@@ -28299,36 +28399,16 @@
           "pointer": "/content/columns/Related Cash Account Statement Recents"
         },
         {
-          "subject": "IG Receipt ID",
-          "pointer": "/content/columns/IG Receipt ID"
+          "subject": "Receipt Preview",
+          "pointer": "/content/columns/Receipt Preview"
         },
         {
           "subject": "Receipt Display At",
           "pointer": "/content/columns/Receipt Display At"
         },
         {
-          "subject": "Receipt Image",
-          "pointer": "/content/columns/Receipt Image"
-        },
-        {
-          "subject": "Receipt Preview",
-          "pointer": "/content/columns/Receipt Preview"
-        },
-        {
-          "subject": "Receipt Received At",
-          "pointer": "/content/columns/Receipt Received At"
-        },
-        {
-          "subject": "Selected Charge IDs",
-          "pointer": "/content/columns/Selected Charge IDs"
-        },
-        {
-          "subject": "Uploaded Receipt",
-          "pointer": "/content/columns/Uploaded Receipt"
-        },
-        {
-          "subject": "Uploaded Receipt At",
-          "pointer": "/content/columns/Uploaded Receipt At"
+          "subject": "Correction Guidance",
+          "pointer": "/content/columns/Correction Guidance"
         }
       ]
     },
@@ -29931,6 +30011,10 @@
         {
           "subject": "Borrower Reference TE",
           "pointer": "/content/columns/Borrower Reference TE"
+        },
+        {
+          "subject": "Correction Guidance",
+          "pointer": "/content/columns/Correction Guidance"
         }
       ]
     },
@@ -36343,6 +36427,10 @@
         {
           "subject": "Business Expenses_pkey",
           "pointer": "/content/constraints/Business Expenses_pkey"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -36762,6 +36850,10 @@
         {
           "subject": "cash_ledger_source",
           "pointer": "/content/constraints/cash_ledger_source"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -36813,6 +36905,10 @@
         {
           "subject": "expense_contribution_changed",
           "pointer": "/content/constraints/expense_contribution_changed"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -36908,6 +37004,10 @@
         {
           "subject": "appsheet_ref_06",
           "pointer": "/content/constraints/appsheet_ref_06"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -37475,6 +37575,10 @@
         {
           "subject": "Loan Assessment SQL Lab_pkey",
           "pointer": "/content/constraints/Loan Assessment SQL Lab_pkey"
+        },
+        {
+          "subject": "r051_assessment_borrower",
+          "pointer": "/content/constraints/r051_assessment_borrower"
         }
       ]
     },
@@ -37697,6 +37801,10 @@
         {
           "subject": "vc_loan_status_changed",
           "pointer": "/content/constraints/vc_loan_status_changed"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -38128,6 +38236,10 @@
         {
           "subject": "vc_payment_changed",
           "pointer": "/content/constraints/vc_payment_changed"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -38237,6 +38349,10 @@
           "pointer": "/content/columns/Uploaded Receipt At"
         },
         {
+          "subject": "Delete Requested",
+          "pointer": "/content/columns/Delete Requested"
+        },
+        {
           "subject": "Payments_Ref Received By Cash Account_fkey",
           "pointer": "/content/constraints/Payments_Ref Received By Cash Account_fkey"
         },
@@ -38265,8 +38381,16 @@
           "pointer": "/content/constraints/appsheet_ref_13"
         },
         {
+          "subject": "payment_delete_requested_present",
+          "pointer": "/content/constraints/payment_delete_requested_present"
+        },
+        {
           "subject": "payment_receipt_triplet",
           "pointer": "/content/constraints/payment_receipt_triplet"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -40759,6 +40883,10 @@
         {
           "subject": "vc_repayment_changed",
           "pointer": "/content/constraints/vc_repayment_changed"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -42878,6 +43006,10 @@
         {
           "subject": "appsheet_ref_09",
           "pointer": "/content/constraints/appsheet_ref_09"
+        },
+        {
+          "subject": "zzzzzz_business_history_commit",
+          "pointer": "/content/constraints/zzzzzz_business_history_commit"
         }
       ]
     },
@@ -43225,6 +43357,36 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-begin-business-history-092ea3ae.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.begin_business_history()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-business-history-refresh-9feb6699.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.business_history_refresh()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-business-source-delete-0cb3a7c6.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.business_source_delete()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-calculate-business-expense-03c6d18d.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -43415,6 +43577,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-flush-business-history-a9f3abe8.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.flush_business_history()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-generate-due-charges-p-business-date-date-p-loans-text-92bec9db.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -43475,11 +43647,51 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-guard-charge-consistency-69182533.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.guard_charge_consistency()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-guard-ledger-cash-accounts-8142ed94.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.guard_ledger_cash_accounts()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-guard-linked-expense-reimbursement-10dfb277.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.guard_linked_expense_reimbursement()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-guard-loan-consistency-68725f10.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.guard_loan_consistency()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-guard-opening-included-source-93bed653.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.guard_opening_included_source()",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -43565,6 +43777,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-move-payment-interest-a-payment-allocations-n-payment-allocations-f70426ef.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.move_payment_interest(a \"Payment Allocations\", n \"Payment Allocations\")",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-new-loan-cashpool-guard-f2a6c29e.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -43620,6 +43842,56 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.payment_charge_balances(p_id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-payment-crud-finish-958c8ac9.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.payment_crud_finish()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-payment-crud-prepare-c8c2c378.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.payment_crud_prepare()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-payment-delete-request-guard-be4384cb.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.payment_delete_request_guard()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-payment-delete-requested-6a32afcb.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.payment_delete_requested()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-payment-inputs-p-payments-a2d12f20.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.payment_inputs(p \"Payments\")",
       "scope": "production",
       "status": "documented",
       "lookup": []
@@ -43705,6 +43977,76 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-r051-attribute-historical-ledger-7ffb5e56.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.r051_attribute_historical_ledger()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-r051-flush-parents-kind-text-9385643c.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.r051_flush_parents(kind text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-r051-historical-account-account-id-text-holder-id-text-32c4c516.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.r051_historical_account(account_id text, holder_id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-r051-historical-source-flow-kind-text-j-jsonb-583d97e5.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.r051_historical_source_flow(kind text, j jsonb)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-r051-parent-dirty-1403c966.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.r051_parent_dirty()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-r051-queue-parent-kind-text-ids-text-04ad51d3.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.r051_queue_parent(kind text, ids text[])",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-r051-restate-opening-source-08a41579.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.r051_restate_opening_source()",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-recalculate-business-expenses-from-date-p-date-date-e4ce4027.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -43745,6 +44087,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-refresh-daily-analytics-scoped-p-from-date-p-to-date-p-accounts-text-f7f4ed76.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.refresh_daily_analytics_scoped(p_from date, p_to date, p_accounts text[])",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-refresh-reversed-settlement-analytics-ed7b6366.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -43775,6 +44127,16 @@
       "lookup": []
     },
     {
+      "file": "systems/postgresql/routines/public-request-business-history-d-date-9462be68.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.request_business_history(d date)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "systems/postgresql/routines/public-seed-cash-statement-context-d6017c74.yaml",
       "system": "postgresql",
       "component": "loan_manager_prod",
@@ -43800,6 +44162,16 @@
       "component": "loan_manager_prod",
       "kind": "routine",
       "name": "public.sync_cash_ledger(p_type text, p_id text)",
+      "scope": "production",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "systems/postgresql/routines/public-undo-loan-default-p-loans-b7ace212.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_prod",
+      "kind": "routine",
+      "name": "public.undo_loan_default(p \"Loans\")",
       "scope": "production",
       "status": "documented",
       "lookup": []

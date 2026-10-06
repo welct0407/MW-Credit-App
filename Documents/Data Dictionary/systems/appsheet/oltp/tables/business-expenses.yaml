@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -27,7 +27,7 @@
     "Visible?": "ALWAYS"
     "Shared?": "Yes"
     "Schema": "Business Expenses_Schema"
-    "Are updates allowed?": "ADDS_AND_UPDATES"
+    "Are updates allowed?": "ALL_CHANGES"
     "Source Path": "Business Expenses"
     "Data Source": "database-2"
     "Store for image and file capture": "_Default"
@@ -121,6 +121,7 @@
       "rules":
         "Column name": "Expense Date"
         "Visible?": "ALWAYS"
+        "Display name": "=\"วันที่ค่าใช้จ่าย / Expense Date\""
         "Type": "Date"
         "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
           Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
@@ -140,7 +141,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Display name": "=\"วันที่ค่าใช้จ่าย / Expense Date\""
     "Expense Category":
       "inventory":
         "App": "OLTP"
@@ -155,6 +155,7 @@
       "rules":
         "Column name": "Expense Category"
         "Visible?": "ALWAYS"
+        "Display name": "=\"ประเภทค่าใช้จ่าย / Expense Category\""
         "Type": "Enum"
         "Type Qualifier": "{\"EnumValues\":[\"Referral Rebate / ค่านายหน้าแนะนำลูกค้า\",\"Collection Cost / ค่าใช้จ่ายติดตามหนี้\"\
           ,\"Transportation / ค่าเดินทาง\",\"Bank / Transfer Fee / ค่าธรรมเนียมธนาคารและโอนเงิน\",\"Software / Subscription\
@@ -182,7 +183,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Display name": "=\"ประเภทค่าใช้จ่าย / Expense Category\""
     "Amount":
       "inventory":
         "App": "OLTP"
@@ -197,6 +197,7 @@
       "rules":
         "Column name": "Amount"
         "Visible?": "ALWAYS"
+        "Display name": "=\"จำนวนเงิน / Amount\""
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
           :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND([_THIS]\
@@ -217,7 +218,6 @@
         "Searchable": "No"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Display name": "=\"จำนวนเงิน / Amount\""
     "Payee Name":
       "inventory":
         "App": "OLTP"
@@ -232,6 +232,7 @@
       "rules":
         "Column name": "Payee Name"
         "Visible?": "ALWAYS"
+        "Display name": "=\"ชื่อผู้รับเงิน / Payee Name\""
         "Type": "Name"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
@@ -251,7 +252,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Display name": "=\"ชื่อผู้รับเงิน / Payee Name\""
     "Ref Payee Borrower":
       "inventory":
         "App": "OLTP"
@@ -406,6 +406,7 @@
       "rules":
         "Column name": "Notes"
         "Visible?": "ALWAYS"
+        "Display name": "=\"หมายเหตุ / Notes\""
         "Type": "LongText"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
@@ -425,7 +426,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Display name": "=\"หมายเหตุ / Notes\""
     "Source Type":
       "inventory":
         "App": "OLTP"
@@ -816,8 +816,8 @@
           ,\"Valid_If\":\"=LIST(\\\"ch:dad\\\", \\\"ch:lisa\\\", \\\"ch:tommy\\\")\",\"Error_Message_If_Invalid\":null,\"\
           Show_If\":null,\"Required_If\":\"=AND([Amount] > 0, OR(NOT(IN([Row ID], Business Expenses[Row ID])), ISNOTBLANK(LOOKUP([Row\
           \ ID], \\\"Business Expenses\\\", \\\"Row ID\\\", \\\"Ref Paid By Cash Holder\\\"))))\",\"Editable_If\":\"=AND(NOT(IN([Row\
-          \ ID], Business Expenses[Row ID])), OR(ISBLANK([Source Type]), [Source Type] = \\\"Manual\\\"))\",\"Reset_If\":null,\"\
-          Suggested_Values\":null}"
+          \ ID], Business Expenses[Row ID])), OR(ISBLANK([Source Type]), [Source Type] = \\\"Manual\\\"))\",\"Reset_If\":\"\
+          \",\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -856,6 +856,9 @@
       "rules":
         "Column name": "Ref Paid By Cash Account"
         "Visible?": "ALWAYS"
+        "Description": "=IF(AND(IN([Row ID], Business Expenses[Row ID]), OR(ISBLANK([Source Type]), [Source Type] = \"Manual\"\
+          ), ISNOTBLANK([Ref Paid By Cash Account])), CONCATENATE(\"ผู้จ่ายหลังบันทึก / Payer after saving: \", [Ref Paid\
+          \ By Cash Account].[Ref Cash Holder].[Holder Name]), \"บัญชีผู้จ่าย / Paid from account\")"
         "Display name": "=\"บัญชีผู้จ่าย / Paid From Account\""
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
@@ -863,11 +866,13 @@
           :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
           \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = [_THISROW].[Ref Paid By Cash\
-          \ Holder]), [Row ID] = [_THISROW].[Ref Paid By Cash Account]))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
-          Required_If\":\"=AND(NOT(IN([Row ID], Business Expenses[Row ID])), [Amount] > 0, OR(ISBLANK([Source Type]), [Source\
-          \ Type] = \\\"Manual\\\"))\",\"Editable_If\":\"=NOT(IN([Row ID], Business Expenses[Row ID]))\",\"Reset_If\":null,\"\
-          Suggested_Values\":null}"
+          ,\"Valid_If\":\"=IF(IN([Row ID], Business Expenses[Row ID]), SELECT(Cash Accounts[Row ID], OR(AND([Active], IN([Ref\
+          \ Cash Holder], LIST(\\\"ch:dad\\\", \\\"ch:lisa\\\", \\\"ch:tommy\\\"))), [Row ID] = LOOKUP([_THISROW].[Row ID],\
+          \ \\\"Business Expenses\\\", \\\"Row ID\\\", \\\"Ref Paid By Cash Account\\\"))), SELECT(Cash Accounts[Row ID],\
+          \ AND([Active], [Ref Cash Holder] = [_THISROW].[Ref Paid By Cash Holder])))\",\"Error_Message_If_Invalid\":null,\"\
+          Show_If\":null,\"Required_If\":\"=AND(NOT(IN([Row ID], Business Expenses[Row ID])), [Amount] > 0, OR(ISBLANK([Source\
+          \ Type]), [Source Type] = \\\"Manual\\\"))\",\"Editable_If\":\"=OR(ISBLANK([Source Type]), [Source Type] = \\\"\
+          Manual\\\")\",\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -938,386 +943,6 @@
         "Scannable": "No"
         "NFC Scannable": "No"
         "Sensitive data": "No"
-  "editor":
-    "fields":
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Business Expenses"
-      "label": "Table name"
-      "text": |-
-        Table name
-        Name for this table (user-visible)
-        ​
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Updates"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Adds"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Deletes"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Read-Only"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "science"
-      "controls": []
-      "label": "Are updates allowed?"
-      "text": |-
-        Are updates allowed?
-        Are adds, deletes and updates allowed?
-        Updates
-        Adds
-        Deletes
-        Read-Only
-        science
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Business Expenses"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "8"
-      "label": "Source Path"
-      "text": |-
-        Source Path
-        A user-understandable path to the table data
-        - select a source -
-        Borrowers
-        Loans
-        Repayments
-        Statistics
-        Charges
-        Partners
-        Payment Allocations
-        Payments
-        Business Expenses
-        Loan Form Context
-        Cash Holders
-        Cash Holder Balances
-        Cash Accounts
-        Cash Statement Context
-        Cash Account Daily Summary Recent
-        Cash Account Statement Recent
-        Cash Account Balances
-        Cash Dashboard
-        - browse for more data -
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Add"
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "_RowNumber"
-      "label": "Column Order List"
-      "text": |-
-        Column Order List
-        The order of columns to retrieve from the provider (only applies to some storage providers)
-        drag_indicator
-        _RowNumber
-        ​
-        Add
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Copy Data to New Source"
-      "controls": []
-      "label": "Data Source"
-      "text": |-
-        Data Source
-        Name of the table data source
-        database-2
-        Copy Data to New Source
-    - "choices": []
-      "controls": []
-      "label": "Source Id"
-      "text": |-
-        Source Id
-        A provider-specific path to the table data (not user-visible)
-        Table=public.Business Expenses__Business Expenses
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Default"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "_Default"
-      "label": "Store for image and file capture"
-      "text": |-
-        Store for image and file capture
-        By default, images and files captured by the app are stored in the cloud file system associated with the app owner's account. You can explicitly add an object store and use it instead.
-        Default
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      "label": "Filter out all existing rows?"
-      "text": |-
-        Filter out all existing rows?
-        Used only in forms apps that collect new data rows but never show any pre-existing rows.
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": ""
-      "label": "Security filter"
-      "text": |-
-        Security filter
-        The app uses only those rows that match this (optional) filter condition. Use this filter to limit what each user can see.
-        =
-        science
-        ​
-    - "choices":
-      - "checked": "true"
-        "pressed": null
-        "role": "radio"
-        "text": "as app creator"
-      - "checked": "false"
-        "pressed": null
-        "role": "radio"
-        "text": "as app user"
-      "controls": []
-      "label": "Access mode"
-      "text": |-
-        Access mode
-        The app will access the spreadsheet using the app creator or app user credentials.
-        as app creator
-        as app user
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": true
-      "label": "Shared?"
-      "text": |-
-        Shared?
-        Is this table shared by all users? This option is normally checked. Before unchecking, carefully review 'Private Tables' in the documentation.
-    - "choices": []
-      "controls":
-      - "selected":
-        - ""
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": ""
-      "label": "Data locale"
-      "text": |-
-        Data locale
-        Locale used to read the table
-        Compatibility (For backward compatibility)
-        Amharic (Ethiopia)
-        Arabic (Algeria)
-        Arabic (Bahrain)
-        Arabic (Egypt)
-        Arabic (Iraq)
-        Arabic (Jordan)
-        Arabic (Kuwait)
-        Arabic (Lebanon)
-        Arabic (Libya)
-        Arabic (Morocco)
-        Arabic (Oman)
-        Arabic (Qatar)
-        Arabic (Saudi Arabia)
-        Arabic (Syria)
-        Arabic (Tunisia)
-        Arabic (United Arab Emirates)
-        Arabic (Yemen)
-        Armenian (Armenia)
-        Azerbaijani (Cyrillic, Azerbaijan)
-        Azerbaijani (Latin, Azerbaijan)
-        Bengali (India)
-        Bulgarian (Bulgaria)
-        Burmese (Myanmar)
-        Catalan (Catalan)
-        Chinese (Simplified, China)
-        Chinese (Traditional, Hong Kong SAR)
-        Chinese (Traditional, Taiwan)
-        Chinese Traditional (Malaysia)
-        Croatian (Croatia)
-        Czech (Czechia)
-        Danish (Denmark)
-        Dari (Afghanistan)
-        Dutch (Aruba)
-        Dutch (Belgium)
-        Dutch (Curaçao)
-        Dutch (Netherlands)
-        English (Australia)
-        English (Bahrain)
-        English (Belgium)
-        English (Brazil)
-        English (Canada)
-        English (Germany)
-        English (Hong Kong SAR)
-        English (India)
-        English (Ireland)
-        English (Kenya)
-        English (Malaysia)
-        English (New Zealand)
-        English (Norway)
-        English (Philippines)
-        English (Singapore)
-        English (South Africa)
-        English (Sri Lanka)
-        English (Tanzania)
-        English (United Kingdom)
-        English (United States)
-        Filipino (Philippines)
-        Finnish (Finland)
-        French (Belgium)
-        French (Cameroon)
-        French (Canada)
-        French (Côte d’Ivoire)
-        French (France)
-        French (Luxembourg)
-        French (Mali)
-        French (Morocco)
-        French (Senegal)
-        French (Switzerland)
-        French Congo (DRC)
-        Fulah (Latin, Senegal)
-        Georgian (Georgia)
-        German (Austria)
-        German (Germany)
-        German (Liechtenstein)
-        German (Luxembourg)
-        German (Switzerland)
-        Greek (Greece)
-        Gujarati (India)
-        Hausa (Latin, Nigeria)
-        Hebrew (Israel)
-        Hindi (India)
-        Hungarian (Hungary)
-        Igbo (Nigeria)
-        Indonesian (Indonesia)
-        Irish (Ireland)
-        Italian (Italy)
-        Italian (Switzerland)
-        Japanese (Japan)
-        Kannada (India)
-        Kinyarwanda (Rwanda)
-        Kiswahili (Kenya)
-        Kiswahili (Tanzania)
-        Korean (Korea)
-        Latvian (Latvia)
-        Lingala (Angola)
-        Lithuanian (Lithuania)
-        Malay (Brunei)
-        Malay (Malaysia)
-        Malayalam (India)
-        Marathi (India)
-        Mongolian (Mongolia)
-        Norwegian Bokmål (Norway)
-        Norwegian Nynorsk (Norway)
-        Oromo (Ethiopia)
-        Pashto (Afghanistan)
-        Persian (Iran)
-        Polish (Poland)
-        Portuguese (Angola)
-        Portuguese (Brazil)
-        Portuguese (Mozambique)
-        Portuguese (Portugal)
-        Romanian (Romania)
-        Russian (Russia)
-        Serbian (Cyrillic, Serbia)
-        Serbian (Latin, Serbia)
-        Serbian (Serbia)
-        Setswana (Botswana)
-        Sinhala (Sri Lanka)
-        Slovak (Slovakia)
-        Slovenian (Slovenia)
-        Spanish (Argentina)
-        Spanish (Bolivia)
-        Spanish (Chile)
-        Spanish (Colombia)
-        Spanish (Costa Rica)
-        Spanish (Dominican Republic)
-        Spanish (Ecuador)
-        Spanish (El Salvador)
-        Spanish (Guatemala)
-        Spanish (Honduras)
-        Spanish (Latin America)
-        Spanish (Latin America)
-        Spanish (Mexico)
-        Spanish (Nicaragua)
-        Spanish (Panama)
-        Spanish (Paraguay)
-        Spanish (Peru)
-        Spanish (Spain, International Sort)
-        Spanish (United States)
-        Spanish (Uruguay)
-        Spanish (Venezuela)
-        Swedish (Sweden)
-        Tamil (India)
-        Tamil (Sri Lanka)
-        Telugu (India)
-        Thai (Thailand)
-        Tigrinya (Ethiopia)
-        Turkish (Turkey)
-        Ukrainian (Ukraine)
-        Vietnamese (Vietnam)
-        Yoruba (Nigeria)
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": ""
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": "x"
-      "label": "Descriptive comment"
-      "text": |-
-        Descriptive comment
-        Comments help you and your collaborators better record and understand the structure of the app
-    "update_permissions_snapshot": |2-
-
-        - heading "Table settings" [level=5]
-        - button "close":
-        - heading "Table name" [level=6]
-        - text: Name for this table (user-visible)
-        - textbox: Business Expenses
-        - heading "Are updates allowed?" [level=6]
-        - text: Are adds, deletes and updates allowed?
-        - button " Updates":
-          - text: 
-          - generic: Updates
-        - button " Adds":
-          - text: 
-          - generic: Adds
-        - button " Deletes":
-          - text: 
-          - generic: Deletes
-        - button "Read-Only"
-        - button "science"
-        - heading "Storage" [level=3]
-        - generic: 
-        - heading "Source Path" [level=6]
-        - text: A user-understandable path to the table data
-        - combobox "Select an option":
-          - option "- select a source -"
 "evidence":
   "/content/columns":
     "reference": "outputs/r036-production/production-verification.json"

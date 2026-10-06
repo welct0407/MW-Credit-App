@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -168,7 +168,7 @@
       "relation": "Loan Assessment"
       "name": "appsheet_ref_07"
       "kind": "f"
-      "definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\")"
+      "definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\") ON DELETE SET NULL"
       "deferrable": false
       "initially_deferred": false
       "validated": true
@@ -178,7 +178,7 @@
       - 1
       "referenced_relation": "\"Borrowers\""
       "update_action": "a"
-      "delete_action": "a"
+      "delete_action": "n"
       "match_type": "s"
       "comment": null
   "indexes":
@@ -200,11 +200,11 @@
       "access_method": "btree"
       "comment": null
   "triggers":
-    "RI_ConstraintTrigger_c_16722":
+    "RI_ConstraintTrigger_c_21409":
       "schema": "public"
       "relation": "Loan Assessment"
-      "name": "RI_ConstraintTrigger_c_16722"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16722\" AFTER INSERT ON \"Loan Assessment\" FROM \"\
+      "name": "RI_ConstraintTrigger_c_21409"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_21409\" AFTER INSERT ON \"Loan Assessment\" FROM \"\
         Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
       "enabled": "O"
       "internal": true
@@ -212,11 +212,11 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_c_16723":
+    "RI_ConstraintTrigger_c_21410":
       "schema": "public"
       "relation": "Loan Assessment"
-      "name": "RI_ConstraintTrigger_c_16723"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_16723\" AFTER UPDATE ON \"Loan Assessment\" FROM \"\
+      "name": "RI_ConstraintTrigger_c_21410"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_21410\" AFTER UPDATE ON \"Loan Assessment\" FROM \"\
         Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
       "enabled": "O"
       "internal": true

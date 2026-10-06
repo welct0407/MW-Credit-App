@@ -10,7 +10,7 @@
   "source": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
 "content":
   "release": "R051"
-  "status": "Open DEV implementation; PROD unchanged"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
   "version": "1.000194"
   "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
@@ -21,3 +21,9 @@
       "Delete Requested": "FALSE"
   "evidence":
     "added_assignment": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."
