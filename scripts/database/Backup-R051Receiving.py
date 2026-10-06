@@ -2,6 +2,7 @@
 
 Never changes the live database. Recovery data stays outside all repositories.
 """
+import argparse
 import hashlib
 import json
 import os
@@ -16,6 +17,13 @@ import psycopg
 from psycopg import sql
 
 repo = Path(__file__).resolve().parents[2]
+p = argparse.ArgumentParser(description=__doc__)
+p.add_argument('--evidence-dir', default='outputs/r051-payment-performance')
+args = p.parse_args()
+evidence_dir = (repo / args.evidence_dir).resolve()
+assert evidence_dir.is_relative_to((repo / 'outputs').resolve())
+evidence_dir.mkdir(parents=True, exist_ok=True)
+assert not (evidence_dir / 'vm01-development-backup.json').exists(), 'Preserve prior recovery evidence'
 target = json.loads((repo / 'database/environments.json').read_text())['development']
 assert (target['instance'], target['host'], target['database']) == (
     'appsheet-pg-prod-20260914', '34.21.174.215', 'loan_manager_dev')
@@ -80,7 +88,7 @@ try:
                 'migrations_rehearsed': [], 'existing_values_unchanged': True,
                 'migration_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in migrations},
                 'restore_data_directory': str(data), 'scope': 'public, assessment_lab, agent_audit; instance settings/roles external; local restore stopped'}
-    out = repo / 'outputs/r051-payment-performance/vm01-development-backup.json'
+    out = evidence_dir / 'vm01-development-backup.json'
     out.write_text(json.dumps(evidence, indent=2) + '\n')
     print(json.dumps(evidence))
 finally:

@@ -1,6 +1,6 @@
 # Environment inventory
 
-**R051 common receiving/sync investigation, 6 October 2026:** final DEV OLTP1.000198 / OLAP1.000056, both saved and clear; V73 unchanged. Common DB medians37–68ms; app eligibility trial rejected for lack of demonstrated speed gain and original formula restored exactly.22 business tables plus user settings explain23 sync entries; no table removed. Current synthetic GUI/cleanup passed and23 existing source/audit/history tables match the verified backup. R051 Open, PR15 draft, PROD untouched. [Evidence and table-reduction review](../outputs/r051-payment-performance/README.md).
+**R051 AppSheet latency experiment, 6 October 2026:** DEV OLTP1.000200 retains server-only Posted guards on the two hidden receipt eligibility fields; OLAP1.000056 and V73 unchanged. Three matched correction saves: median3.633→2.694s (25.8% lower); general sync/all-channel improvement is unproven. New receipt, correction/full-amount validation and synthetic delete passed; cleanup preserved23 existing source/audit/history tables and owner-only delivery.22 business tables plus user settings remain. R051 Open; separate experiment branch stacked on draft PR15; PROD untouched. [Current candidate, measurements and rollback](../outputs/r051-appsheet-latency/README.md).
 
 **R051 performance continuation, 6 October 2026:** DEV V73/checksum1165230041 applied and validated; OLTP1.000194 / OLAP1.000056 unchanged, saved and clear. Scoped synchronous history, coalesced parent refresh, unchanged-row avoidance and measured query rewrites passed full SQL/concurrency and current GUI checks. Live backdated receipt timing138→66ms; ordinary receipt timings improved12–19%; expense sample did not improve. Exact cleanup preserved22 existing source/audit tables. R051 Open, PR15 draft, PROD untouched. [Measurements and recovery](../outputs/r051-trigger-performance/README.md).
 
@@ -140,7 +140,7 @@ Historical full metadata checkpoint: **24 September 2026**, from the [dictionary
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000263 (R049 summary/drilldown) | database-2 | 22 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100208 (R048 original interest) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000198 (6 October: original eligibility formula restored; saved, No issues found; sync passed) | database-3 | 22 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000200 (6 October: two server-only Posted eligibility guards; saved, No issues found; bounded GUI/cleanup passed) | database-3 | 22 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000056 (6 October: saved, No issues found; current GUI acceptance passed) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:

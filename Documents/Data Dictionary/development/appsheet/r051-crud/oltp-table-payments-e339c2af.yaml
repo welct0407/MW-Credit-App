@@ -12,7 +12,7 @@
   "release": "R051"
   "status": "Open DEV implementation; PROD unchanged"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000198"
+  "version": "1.000200"
   "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
     \ view definition."
   "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
@@ -65,14 +65,19 @@
       "Reset on edit": false
     "Are updates allowed?": "ADDS_AND_UPDATES"
     "column:Eligible Charges":
-      "AppFormula": "IF(IN([Status], LIST(\"Processing\", \"Error\", \"Posted\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref\
-        \ Borrowers] = [_THISROW].[Ref Borrower], OR([Amount Remaining] > 0, IN([_THISROW].[Row ID], [Related Payment Allocations][Ref\
-        \ Payment])), IFS(IN([_THISROW].[Allocation Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\"\
-        )), [Row ID] = [_THISROW].[Ref Target Charge], [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = IF(ISNOTBLANK([_THISROW].[Ref\
-        \ Target Loan]), [_THISROW].[Ref Target Loan], [_THISROW].[Ref Target Charge].[Ref Loans]), IN([_THISROW].[Allocation\
-        \ Method], LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], [_THISROW].[Allocation\
-        \ Method] = \"Selected Charges\", AND(IN([Row ID], [_THISROW].[Selected Charge IDs]), [Charge Date] <= [_THISROW].[Payment\
-        \ Date]), TRUE, FALSE))), LIST())"
+      "AppFormula": "IF(AND(CONTEXT(\"Host\") = \"Server\", [Status] = \"Posted\"), LIST(), IF(IN([Status], LIST(\"Processing\"\
+        , \"Error\", \"Posted\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], OR([Amount\
+        \ Remaining] > 0, IN([_THISROW].[Row ID], [Related Payment Allocations][Ref Payment])), IFS(IN([_THISROW].[Allocation\
+        \ Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge],\
+        \ [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = IF(ISNOTBLANK([_THISROW].[Ref Target Loan]), [_THISROW].[Ref\
+        \ Target Loan], [_THISROW].[Ref Target Charge].[Ref Loans]), IN([_THISROW].[Allocation Method], LIST(\"Receive All\"\
+        , \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], [_THISROW].[Allocation Method] = \"Selected Charges\"\
+        , AND(IN([Row ID], [_THISROW].[Selected Charge IDs]), [Charge Date] <= [_THISROW].[Payment Date]), TRUE, FALSE))),\
+        \ LIST()))"
+    "column:Eligible Outstanding":
+      "AppFormula": "IF(AND(CONTEXT(\"Host\") = \"Server\", [Status] = \"Posted\"), 0, SUM([Eligible Charges][Amount Remaining])\
+        \ + SUM(SELECT(Payment Allocations[Allocated Amount], AND([Ref Payment] = [_THISROW].[Row ID], IN([Ref Charge], [_THISROW].[Eligible\
+        \ Charges])))))"
   "evidence":
     "column:Notes": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
     "column:Amount Received": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
@@ -81,10 +86,17 @@
     "Are updates allowed?": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
 "evidence":
   "/content/version":
-    "reference": "outputs/r051-payment-performance/app-formula.json"
-    "reason": "Final saved OLTP198 restores the sole trialled formula exactly; other selected properties unchanged."
+    "reference": "outputs/r051-appsheet-latency/formula-trial.json"
+    "reason": "Saved DEV OLTP200 server-only Posted guards; form logic preserved; exact current AppDoc readback and bounded\
+      \ GUI tests."
     "state": "value"
   "/content/properties/column:Eligible Charges":
-    "reference": "outputs/r051-payment-performance/app-formula.json"
-    "reason": "Final saved OLTP198 restores the sole trialled formula exactly; other selected properties unchanged."
+    "reference": "outputs/r051-appsheet-latency/formula-trial.json"
+    "reason": "Saved DEV OLTP200 server-only Posted guards; form logic preserved; exact current AppDoc readback and bounded\
+      \ GUI tests."
+    "state": "value"
+  "/content/properties/column:Eligible Outstanding":
+    "reference": "outputs/r051-appsheet-latency/formula-trial.json"
+    "reason": "Saved DEV OLTP200 server-only Posted guards; form logic preserved; exact current AppDoc readback and bounded\
+      \ GUI tests."
     "state": "value"

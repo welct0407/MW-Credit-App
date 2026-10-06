@@ -1,4 +1,5 @@
 """Read-only final preservation check against the verified V73 receiving backup."""
+import argparse
 import hashlib
 import json
 import sys
@@ -10,7 +11,11 @@ import psycopg
 from psycopg import sql
 
 repo = Path(__file__).resolve().parents[2]
-out = repo / 'outputs/r051-payment-performance'
+p = argparse.ArgumentParser(description=__doc__)
+p.add_argument('--evidence-dir', default='outputs/r051-payment-performance')
+args = p.parse_args()
+out = (repo / args.evidence_dir).resolve()
+assert out.is_relative_to((repo / 'outputs').resolve())
 backup = json.loads((out / 'vm01-development-backup.json').read_text())
 assert backup['restored_fingerprints_match']
 assert hashlib.sha256(Path(backup['backup_file']).read_bytes()).hexdigest() == backup['backup_sha256']

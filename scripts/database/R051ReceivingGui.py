@@ -5,8 +5,9 @@ sys.path.insert(0,r'C:\Users\MWCredit\AppData\Local\AppSheetLoanTools\python-dep
 import psycopg
 from psycopg import sql
 from R051ReceivingFixtures import setup
-p=argparse.ArgumentParser();p.add_argument('action',choices=['seed','read','cleanup']);args=p.parse_args()
-repo=Path(__file__).resolve().parents[2];out=repo/'outputs/r051-payment-performance'
+p=argparse.ArgumentParser();p.add_argument('action',choices=['seed','read','cleanup']);p.add_argument('--evidence-dir',default='outputs/r051-payment-performance');args=p.parse_args()
+repo=Path(__file__).resolve().parents[2];out=(repo/args.evidence_dir).resolve()
+assert out.is_relative_to((repo/'outputs').resolve())
 b=json.loads((out/'vm01-development-backup.json').read_text());assert b['restored_fingerprints_match']
 assert hashlib.sha256(Path(b['backup_file']).read_bytes()).hexdigest()==b['backup_sha256']
 t=json.loads((repo/'database/environments.json').read_text())['development']

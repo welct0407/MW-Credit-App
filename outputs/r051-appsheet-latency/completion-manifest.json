@@ -1,0 +1,48 @@
+{
+  "release": "R051",
+  "status": "DEV candidate retained for review; separate draft PR; no merge or promotion",
+  "starting_commit": "7a0231d0ed964cf1e869ecd43c6521fb07a5e457",
+  "branch": "codex/r051-appsheet-latency-experiment",
+  "base_branch": "codex/r051-receipt-corrections",
+  "oltp": {
+    "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "rollback": "1.000198",
+    "saved": "1.000200",
+    "issues": 0,
+    "properties_changed": [
+      "Payments.Eligible Charges.AppFormula",
+      "Payments.Eligible Outstanding.AppFormula"
+    ]
+  },
+  "olap": {
+    "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+    "saved": "1.000056",
+    "unchanged": true,
+    "issues": 0,
+    "final_editor_state_rechecked": true
+  },
+  "database": {
+    "instance": "appsheet-pg-prod-20260914",
+    "host": "34.21.174.215",
+    "port": 5432,
+    "database": "loan_manager_dev",
+    "version": 73,
+    "checksum": 1165230041,
+    "migrations_applied": []
+  },
+  "backup": "vm01-development-backup.json",
+  "preservation": "final-preservation.json",
+  "measurements": "measurements.json",
+  "full_local_ci": {
+    "command": "scripts/database/Test-CI.ps1",
+    "exit_code": 0,
+    "output": "local-ci.txt"
+  },
+  "dictionary_validation": "dictionary-validation.json",
+  "limitations": [
+    "Small sequential DEV timing sample; no statistical guarantee",
+    "No general sync or all-seven-channel speedup established",
+    "Receive All borrower virtual columns remain costly",
+    "No real mobile device timing measured"
+  ]
+}
