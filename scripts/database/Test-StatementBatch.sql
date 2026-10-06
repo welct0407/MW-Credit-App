@@ -23,3 +23,4 @@
 \ir Test-UiFixtures.sql
 
 \ir Test-DefaultInspection.sql
+\ir Test-DefaultRepayment.sql

@@ -1,6 +1,6 @@
 """Local-only Default inspection and separate-request cascade proof; no DEV transport.
 
-Creates/drops a temporary copy of the explicitly verified localhost V69 database.
+Creates/drops a temporary copy of the explicitly verified localhost V69 (historical) or V70 database.
 The shared validate_defaulted function uses the real actor fields; generated loss
 Charge.Notes is a generic description, never an actor field. No live write mode.
 """
@@ -82,13 +82,13 @@ def reject(c,statement,expected):
     assert fingerprints(c)==before
 
 
-def run(port,data_directory):
+def run(port,data_directory,expected_version=70):
     name='r051_default_inspection_'+uuid.uuid4().hex[:10]
     params=dict(host='127.0.0.1',port=port,user='postgres',connect_timeout=5)
     with psycopg.connect(**params,dbname='postgres',autocommit=True) as admin:
         assert Path(admin.execute('SHOW data_directory').fetchone()[0]).resolve()==data_directory.resolve()
         assert admin.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==('postgres','127.0.0.1')
-        assert admin.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()==('69',245428688)
+        assert admin.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()==(str(expected_version),{69:245428688,70:124258995}[expected_version])
         admin.execute("SET timezone='UTC'");master_before=fingerprints(admin)
         admin.execute(sql.SQL('CREATE DATABASE {} TEMPLATE postgres').format(sql.Identifier(name)))
         try:
@@ -139,24 +139,39 @@ def run(port,data_directory):
                 legacy_closed=state(c,legacy);loss=validate_defaulted(legacy_closed,legacy,legacy+'-C',ACTOR,today,90);c.commit()
                 allocations=c.execute('SELECT count(*) FROM "Payment Allocations" a JOIN "Charges" ch ON ch."Row ID"=a."Ref Charge" WHERE ch."Ref Loans"=%s',[legacy]).fetchone()[0];assert allocations==0
                 reject(c,f'DELETE FROM "Loans" WHERE "Row ID"=\'{legacy}\'','Undo Default');c.rollback()
-                c.execute('DELETE FROM "Repayments" WHERE "Row ID"=\'INSLOCAL69-R\'');c.commit()
-                after_child=state(c,legacy)
-                assert not any(r['Row ID']=='INSLOCAL69-R' for r in after_child['Repayments'])
-                assert after_child['Cash Ledger']==legacy_closed['Cash Ledger']
-                assert after_child['Loans'][0]['Defaulted'] is True
-                for statement,reason in [(f'DELETE FROM "Charges" WHERE "Row ID"=\'{legacy}-C\'','Undo Default'),(f'DELETE FROM "Repayments" WHERE "Row ID"=\'{loss}\'','immutable'),(f'DELETE FROM "Loans" WHERE "Row ID"=\'{legacy}\'','Undo Default')]:reject(c,statement,reason)
-                assert state(c,legacy)==after_child
-                c.execute('UPDATE "Loans" SET "Defaulted"=false WHERE "Row ID"=%s',[legacy]);c.execute('SET CONSTRAINTS ALL IMMEDIATE')
-                after_later_undo=state(c,legacy)
-                assert not any(r['Row ID']=='INSLOCAL69-R' for r in after_later_undo['Repayments'])
-                assert after_later_undo['Loans'][0]['Outstanding Principal']==100 and legacy_before['Loans'][0]['Outstanding Principal']==90
-                c.rollback()
-                result={'passed':True,'scope':'Isolated localhost V69 copy only; no DEV transport or writes','correct_actor_fields':['Loans.Closed By','original Charges.Notes restoration JSON.actor','Repayments.Created By'],'loss_charge_note':'Generic zero-cash description, not an actor field','observer_visibility':'Auto-enabled intermediate state invisible; observer saw open/autoFalse before commit and defaulted/autoFalse afterward','default_undo_exact_sources_and_cash':True,'setup_undo_full_transaction_rollback_all26_equal':True,'undo_all_nonanalytics_tables_equal':True,'undo_analytics_timestamp_only_row_counts':{k:len(v) for k,v in undo_delta.items()},'plain_default_parent_and_children_delete_rejected_unchanged':True,'nondefault_unpaid_child_first_delete_passed':True,'legacy_risk':{'allocation_count':allocations,'old_ui_condition_would_allow':True,'proposed_default_condition_would_block':True,'legacy_repayment_deletion_committed':True,'later_parent_and_protected_child_deletions_rejected':True,'earlier_committed_delete_survives_failure':True,'defaulted_outstanding_after_child_delete':after_child['Loans'][0]['Outstanding Principal'],'later_undo_does_not_restore_deleted_legacy_row':True},'actual_appsheet_request_order':'Not observed; this simulates independently committed requests','temporary_database_removed':True}
+                if expected_version==69:
+                    c.execute('DELETE FROM "Repayments" WHERE "Row ID"=\'INSLOCAL69-R\'');c.commit()
+                    after_child=state(c,legacy)
+                    assert not any(r['Row ID']=='INSLOCAL69-R' for r in after_child['Repayments'])
+                    assert after_child['Cash Ledger']==legacy_closed['Cash Ledger']
+                    assert after_child['Loans'][0]['Defaulted'] is True
+                    for statement,reason in [(f'DELETE FROM "Charges" WHERE "Row ID"=\'{legacy}-C\'','Undo Default'),(f'DELETE FROM "Repayments" WHERE "Row ID"=\'{loss}\'','immutable'),(f'DELETE FROM "Loans" WHERE "Row ID"=\'{legacy}\'','Undo Default')]:reject(c,statement,reason)
+                    assert state(c,legacy)==after_child
+                    c.execute('UPDATE "Loans" SET "Defaulted"=false WHERE "Row ID"=%s',[legacy]);c.execute('SET CONSTRAINTS ALL IMMEDIATE')
+                    after_later_undo=state(c,legacy)
+                    assert not any(r['Row ID']=='INSLOCAL69-R' for r in after_later_undo['Repayments'])
+                    assert after_later_undo['Loans'][0]['Outstanding Principal']==100 and legacy_before['Loans'][0]['Outstanding Principal']==90
+                    c.rollback()
+                    legacy_result={'allocation_count':allocations,'historical_v69_unsafe_delete_committed':True,'earlier_committed_delete_survives_failure':True,'defaulted_outstanding_after_child_delete':after_child['Loans'][0]['Outstanding Principal'],'later_undo_does_not_restore_deleted_legacy_row':True}
+                else:
+                    closed_fp=fingerprints(c)
+                    # Independent failed requests each roll back; no earlier child
+                    # removal can survive the later parent rejection.
+                    for statement,reason in [("DELETE FROM \"Repayments\" WHERE \"Row ID\"='INSLOCAL69-R'",'Undo Default'),("UPDATE \"Repayments\" SET \"Notes\"='forbidden' WHERE \"Row ID\"='INSLOCAL69-R'",'Undo Default'),(f'DELETE FROM "Charges" WHERE "Row ID"=\'{legacy}-C\'','receipts'),(f'DELETE FROM "Loans" WHERE "Row ID"=\'{legacy}\'','Undo Default')]:
+                        reject(c,statement,reason);c.rollback();assert fingerprints(c)==closed_fp;c.rollback()
+                    assert state(c,legacy)==legacy_closed
+                    c.execute('UPDATE "Loans" SET "Defaulted"=false WHERE "Row ID"=%s',[legacy]);c.execute('SET CONSTRAINTS ALL IMMEDIATE')
+                    assert state(c,legacy)==legacy_before
+                    c.execute('DELETE FROM "Repayments" WHERE "Row ID"=\'INSLOCAL69-R\'');c.execute('SET CONSTRAINTS ALL IMMEDIATE')
+                    assert state(c,legacy)['Loans'][0]['Outstanding Principal']==100
+                    c.rollback()
+                    legacy_result={'allocation_count':allocations,'v70_child_delete_and_update_rejected':True,'separate_failed_requests_all26_unchanged':True,'later_undo_exact_source_restoration':True,'ordinary_delete_after_undo_passed':True}
+                result={'passed':True,'scope':f'Isolated localhost V{expected_version} copy only; no DEV transport or writes','correct_actor_fields':['Loans.Closed By','original Charges.Notes restoration JSON.actor','Repayments.Created By'],'loss_charge_note':'Generic zero-cash description, not an actor field','observer_visibility':'Auto-enabled intermediate state invisible; observer saw open/autoFalse before commit and defaulted/autoFalse afterward','default_undo_exact_sources_and_cash':True,'setup_undo_full_transaction_rollback_all26_equal':True,'undo_all_nonanalytics_tables_equal':True,'undo_analytics_timestamp_only_row_counts':{k:len(v) for k,v in undo_delta.items()},'plain_default_parent_and_children_delete_rejected_unchanged':True,'nondefault_unpaid_child_first_delete_passed':True,'legacy_risk':legacy_result,'actual_appsheet_request_order':'Not observed; this simulates independently committed requests','temporary_database_removed':True}
         finally:admin.execute(sql.SQL('DROP DATABASE {}').format(sql.Identifier(name)))
         assert fingerprints(admin)==master_before;result['original_local_database_all26_unchanged']=True
         return result
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--port',type=int,required=True);p.add_argument('--data-directory',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
-    a=p.parse_args();result=run(a.port,a.data_directory);a.output.write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--port',type=int,required=True);p.add_argument('--data-directory',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--expected-version',type=int,choices=(69,70),default=70)
+    a=p.parse_args();result=run(a.port,a.data_directory,a.expected_version);a.output.write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))

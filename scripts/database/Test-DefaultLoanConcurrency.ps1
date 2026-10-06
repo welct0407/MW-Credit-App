@@ -112,3 +112,81 @@ DELETE FROM "Charges" WHERE "Row ID"='DF69-CON-C';
 '@) | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
 if($LASTEXITCODE){throw 'Original-charge concurrency final preservation failed'}
 [pscustomobject]@{originalEditFirstDefaultSerializes=$true;defaultFirstRejectsCorrection=$true;undoFirstAllowsOrdinaryCorrection=$true;staleRepeatableReadRejected=$true;ordinaryDeleteAfterUndo=$true}
+
+# V70 independent repayments retain ordinary statement advisory/borrower locks.
+@'
+SET TIME ZONE 'Asia/Bangkok';
+INSERT INTO "Borrowers"("Row ID","Borrower Name") VALUES('DR70-CON-B','Synthetic legacy repayment concurrency');
+INSERT INTO "Loans"("Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Type","Loan Status","Auto Charge Enabled","Current Daily Interest","Interest Payment Interval","Ref Disbursed From Cash Account") VALUES('DR70-CON-L','DR70-CON-B',current_date-3,100::money,'ดอกเบี้ยรายวัน','ยังไม่ปิดยอด',false,10::money,1,'CI-LISA');
+INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Interest Due","Notes") VALUES('DR70-CON-C','DR70-CON-L',current_date-2,100::money,10::money,'original');
+INSERT INTO "Repayments"("Row ID","Ref Loans","Ref Charges","Payment Date","Principal Paid","Interest Paid","Notes") VALUES('DR70-CON-R','DR70-CON-L','DR70-CON-C',current_date-1,10::money,2::money,'original repayment');
+UPDATE "Loans" SET "Auto Charge Enabled"=true WHERE "Row ID"='DR70-CON-L';
+'@ | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+if($LASTEXITCODE){throw 'Legacy repayment concurrency setup failed'}
+$drDefault="UPDATE `"Loans`" SET `"Defaulted`"=true,`"Close Date`"=current_date,`"Closed By`"='synthetic' WHERE `"Row ID`"='DR70-CON-L';"
+$drUndo="UPDATE `"Loans`" SET `"Defaulted`"=false WHERE `"Row ID`"='DR70-CON-L';"
+$drDelete='DELETE FROM "Repayments" WHERE "Row ID"=''DR70-CON-R'';'
+Invoke-OriginalChargeRace 'repayment-edit-first' @'
+SET TIME ZONE 'Asia/Bangkok'; BEGIN;
+UPDATE "Repayments" SET "Principal Paid"=11::money,"Notes"='committed correction' WHERE "Row ID"='DR70-CON-R';
+\echo ORIGINAL_READY
+SELECT pg_sleep(2); COMMIT;
+'@ $drDefault 'Cashpool is busy'
+("SET TIME ZONE 'Asia/Bangkok';`n"+$drDefault+@'
+
+DO $$ BEGIN
+ ASSERT (SELECT "Default Loss Amount"=89::money AND "Outstanding Principal"=0 FROM "Loans" WHERE "Row ID"='DR70-CON-L');
+END $$;
+'@+$drUndo+@'
+
+DO $$ BEGIN
+ ASSERT (SELECT "Outstanding Principal"=89 FROM "Loans" WHERE "Row ID"='DR70-CON-L');
+ ASSERT (SELECT "Principal Paid"=11::money AND "Notes"='committed correction' FROM "Repayments" WHERE "Row ID"='DR70-CON-R');
+END $$;
+'@) | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+if($LASTEXITCODE){throw 'Repayment edit-first default retry/restoration failed'}
+Invoke-OriginalChargeRace 'repayment-default-first' ("SET TIME ZONE 'Asia/Bangkok'; BEGIN;`n"+$drDefault+"`n\echo ORIGINAL_READY`nSELECT pg_sleep(2); COMMIT;") $drDelete 'Cashpool is busy'
+@'
+DO $$ BEGIN
+ BEGIN
+  DELETE FROM "Repayments" WHERE "Row ID"='DR70-CON-R';
+  RAISE EXCEPTION 'Expected default repayment protection';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM NOT LIKE '%Undo Default%' THEN RAISE; END IF; END;
+ ASSERT (SELECT "Principal Paid"=11::money FROM "Repayments" WHERE "Row ID"='DR70-CON-R');
+END $$;
+'@ | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+if($LASTEXITCODE){throw 'Repayment delete retry did not reject while defaulted'}
+Invoke-OriginalChargeRace 'repayment-undo-first' ("SET TIME ZONE 'Asia/Bangkok'; BEGIN;`n"+$drUndo+"`n\echo ORIGINAL_READY`nSELECT pg_sleep(2); COMMIT;") 'UPDATE "Repayments" SET "Notes"=''after undo'' WHERE "Row ID"=''DR70-CON-R'';' 'Cashpool is busy'
+@'
+UPDATE "Repayments" SET "Notes"='after undo' WHERE "Row ID"='DR70-CON-R';
+DO $$ BEGIN ASSERT (SELECT "Outstanding Principal"=89 AND NOT "Defaulted" FROM "Loans" WHERE "Row ID"='DR70-CON-L'); END $$;
+'@ | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+if($LASTEXITCODE){throw 'Repayment edit retry after Undo failed'}
+Invoke-OriginalChargeRace 'repayment-stale-repeatable-read' @'
+SET TIME ZONE 'Asia/Bangkok';
+BEGIN ISOLATION LEVEL REPEATABLE READ;
+SELECT "Defaulted" FROM "Loans" WHERE "Row ID"='DR70-CON-L';
+\echo ORIGINAL_READY
+SELECT pg_sleep(2);
+DELETE FROM "Repayments" WHERE "Row ID"='DR70-CON-R';
+COMMIT;
+'@ $drDefault '' 'could not serialize access'
+# A pure parent lock exercises the new NOWAIT check without disabling other guards.
+("SET TIME ZONE 'Asia/Bangkok';`n"+$drUndo) | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+if($LASTEXITCODE){throw 'Repayment stale test Undo failed'}
+Invoke-OriginalChargeRace 'repayment-parent-row-lock' @'
+BEGIN;
+SELECT "Row ID" FROM "Loans" WHERE "Row ID"='DR70-CON-L' FOR UPDATE;
+\echo ORIGINAL_READY
+SELECT pg_sleep(2); COMMIT;
+'@ $drDelete 'Loan is busy'
+@'
+DO $$ BEGIN
+ ASSERT (SELECT "Principal Paid"=11::money AND "Notes"='after undo' FROM "Repayments" WHERE "Row ID"='DR70-CON-R');
+ ASSERT NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Row ID"='df10:10:DR70-CON-L');
+END $$;
+DELETE FROM "Repayments" WHERE "Row ID"='DR70-CON-R';
+DO $$ BEGIN ASSERT (SELECT "Outstanding Principal"=100 FROM "Loans" WHERE "Row ID"='DR70-CON-L'); END $$;
+'@ | & $psql -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $Port -U postgres -d postgres
+if($LASTEXITCODE){throw 'Repayment concurrent preservation/final ordinary deletion failed'}
+[pscustomobject]@{repaymentEditFirstDefaultBusyThenRetry=$true;defaultFirstDeleteBusyThenGuarded=$true;undoFirstEditBusyThenAllowed=$true;repaymentStaleRepeatableReadRejected=$true;repaymentParentLockNowait=$true}

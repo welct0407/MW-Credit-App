@@ -1,5 +1,7 @@
 # Loan Delete while defaulted — local V69 proof
 
+Historical V69 proof: the subsequent [V70 local candidate](default-repayment-v70-plan.md) closes the independent repayment UPDATE/DELETE gap. It is not applied to DEV. The local runner now defaults to V70; use `--expected-version 69` explicitly to reproduce the historical behavior below.
+
 The saved OLTP177 predicate, reported by the parent and matching the recorded [Loan Delete action](../../Documents/Data%20Dictionary/systems/appsheet/oltp/actions/loans-delete-e039a9a5.yaml), only checks that the loan has no payment allocations. That is insufficient for a defaulted loan with an independent legacy repayment. This task made no live database or app changes.
 
 Proposed minimal replacement, retaining any separate existing authorization condition and confirmation:
@@ -39,6 +41,7 @@ Run the standalone local proof only against an explicitly prepared localhost V69
 ```sh
 python scripts/database/Test-DefaultInspectionLocal.py \
   --port 55469 \
+  --expected-version 69 \
   --data-directory /workspace/r051-dev-recovery-bptrxi2l/data \
   --output /tmp/r051-default-inspection-maintained.json
 pwsh -NoProfile -File scripts/database/Test-CI.ps1
