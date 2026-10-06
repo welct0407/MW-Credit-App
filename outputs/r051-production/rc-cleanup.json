@@ -1,0 +1,29 @@
+{
+  "verifiedAt": "2026-10-06T19:44:44.104Z",
+  "deletedDefinitions": [
+    {
+      "id": "f4f6c990-3f03-4ef9-9575-f44cb1d3127f",
+      "internalName": "MW-OLTP-R051-RC1-578763613",
+      "version": "1.000009"
+    },
+    {
+      "id": "f27f40ce-3e8c-4bb5-a32a-777992ac2270",
+      "internalName": "MW-OLAP-R051-RC1-578763613",
+      "version": "1.000008"
+    },
+    {
+      "id": "54755dd8-2615-4302-9ed8-6382f67c7e99",
+      "internalName": "MW-OLTP-R051-RC2-578763613",
+      "version": "1.000005"
+    },
+    {
+      "id": "2dcbfc75-578b-473b-a3fb-39931e9cd929",
+      "internalName": "MW-OLAP-R051-RC2-578763613",
+      "version": "1.000005"
+    }
+  ],
+  "verification": "Each recorded candidate deleted through its editor/My Apps; refreshed Recent shows only four canonical DEV/PROD apps",
+  "sharedDataAndFilesDeleted": false,
+  "canonicalAppsPreserved": true,
+  "productRecoveryReference": "https://support.google.com/appsheet/answer/10104498?hl=en"
+}

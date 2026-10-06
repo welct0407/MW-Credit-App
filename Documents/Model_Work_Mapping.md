@@ -15,6 +15,8 @@ Owner-maintained routing preferences for Dots, effective **2 October 2026 (Asia/
 
 ## Routing decisions
 
+- **R051 support override — owner instruction, 6 October 2026, 08:25:52 UTC:** use **GPT-6 Astra / `gpt-6-astra` / Low / `low`** (Astra Light) for this task's supporting verification, evidence and scoped read-only preflight work. This overrides the corresponding defaults only for the R051 continuation; other work categories retain the table above. Follow the same availability disclosure and supported-dispatch rules below.
+
 - This file selects model/effort preferences; it does not authorize delegation or agent contact. Obtain explicit owner approval for each named outside agent before contacting it or delegating work to it. Model names and task categories are not approval for an individual outside agent. Apply all destination-specific permission controls before dispatch.
 - An explicit owner selection for the current task takes precedence. Otherwise use the matching row. Use Execution for clear, bounded work not covered by another row; use Design when the desired behavior itself needs resolution.
 - Split phases only when useful: Design or Troubleshooting resolves the uncertainty; Execution carries out the settled work. On-call retains responsibility for incident decisions while execution can perform the authorized repair. Verification that discovers an unexplained failure routes the diagnosis to Troubleshooting.

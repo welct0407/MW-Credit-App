@@ -1,0 +1,1169 @@
+{
+  "snapshot_at": "2026-10-06 15:28:32.680217+07:00",
+  "read_only": true,
+  "database": "loan_manager_dev",
+  "instance": "appsheet-pg-prod-20260914",
+  "host": "34.21.174.215",
+  "role": "postgres",
+  "version": 70,
+  "checksum": 124258995,
+  "transaction_read_only": "on",
+  "business_date": "2026-10-06",
+  "timezone": "Asia/Bangkok",
+  "other_active_or_open_sessions": 0,
+  "batches": {
+    "DAILY": {
+      "Borrowers": [
+        {
+          "Row ID": "SYN-R051-UI-DAILY-B",
+          "Ref Referrer": null,
+          "Ref Preferred Receiving Cash Account": null
+        }
+      ],
+      "Partners": [],
+      "Cash Accounts": [
+        {
+          "Row ID": "SYN-R051-UI-DAILY-DAD",
+          "Ref Cash Holder": "ch:dad"
+        },
+        {
+          "Row ID": "SYN-R051-UI-DAILY-LISA",
+          "Ref Cash Holder": "ch:lisa"
+        }
+      ],
+      "Loans": [
+        {
+          "Row ID": "SYN-R051-UI-DAILY",
+          "Defaulted": null,
+          "Loan Date": "2026-10-04",
+          "Loan Type": "ดอกเบี้ยรายวัน",
+          "Loan Status": "ยังไม่ปิดยอด",
+          "Principal Amount": "$100.00",
+          "Auto Charge Enabled": false,
+          "Outstanding Principal": 100.0,
+          "Current Daily Interest": "$10.00",
+          "Interest Payment Interval": null,
+          "Ref Borrowers": "SYN-R051-UI-DAILY-B",
+          "Ref Closing Payment": null,
+          "Ref Disbursed From Cash Account": "SYN-R051-UI-DAILY-LISA"
+        }
+      ],
+      "Charges": [
+        {
+          "Row ID": "SYN-R051-UI-DAILY-C",
+          "Charge Date": "2026-10-04",
+          "Interest Due": "$10.00",
+          "Payment Date": null,
+          "Interest Paid": 0,
+          "Principal Due": "$100.00",
+          "Principal Paid": 0,
+          "Ref Loans": "SYN-R051-UI-DAILY"
+        },
+        {
+          "Row ID": "SYN-R051-UI-DAILY-LATER",
+          "Charge Date": "2026-10-05",
+          "Interest Due": "$9.00",
+          "Payment Date": null,
+          "Interest Paid": 0,
+          "Principal Due": "$0.00",
+          "Principal Paid": 0,
+          "Ref Loans": "SYN-R051-UI-DAILY"
+        }
+      ],
+      "Payments": [],
+      "Payment Allocations": [],
+      "Repayments": [],
+      "Business Expenses": [],
+      "Cash Pool Contributions": [],
+      "Settlements": [],
+      "Cash Ledger": [
+        {
+          "Amount": 100.0,
+          "Row ID": "cash:LOAN:SYN-R051-UI-DAILY",
+          "Movement Date": "2026-10-04",
+          "Movement Type": "Loan Disbursement",
+          "Ref Loan": "SYN-R051-UI-DAILY",
+          "Ref Payment": null,
+          "Ref Settlement": null,
+          "Ref To Cash Holder": null,
+          "Ref To Cash Account": null,
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": "ch:lisa",
+          "Ref From Cash Account": "SYN-R051-UI-DAILY-LISA"
+        }
+      ]
+    },
+    "DEFAULT": {
+      "Borrowers": [
+        {
+          "Row ID": "SYN-R051-UI-DEFAULT-B",
+          "Ref Referrer": null,
+          "Ref Preferred Receiving Cash Account": null
+        }
+      ],
+      "Partners": [],
+      "Cash Accounts": [
+        {
+          "Row ID": "SYN-R051-UI-DEFAULT-DAD",
+          "Ref Cash Holder": "ch:dad"
+        },
+        {
+          "Row ID": "SYN-R051-UI-DEFAULT-LISA",
+          "Ref Cash Holder": "ch:lisa"
+        }
+      ],
+      "Loans": [
+        {
+          "Row ID": "SYN-R051-UI-DEFAULT",
+          "Defaulted": false,
+          "Loan Date": "2026-10-04",
+          "Loan Type": "ดอกเบี้ยรายวัน",
+          "Loan Status": "ยังไม่ปิดยอด",
+          "Principal Amount": "$100.00",
+          "Auto Charge Enabled": false,
+          "Outstanding Principal": 100.0,
+          "Current Daily Interest": "$10.00",
+          "Interest Payment Interval": 1,
+          "Ref Borrowers": "SYN-R051-UI-DEFAULT-B",
+          "Ref Closing Payment": null,
+          "Ref Disbursed From Cash Account": "SYN-R051-UI-DEFAULT-LISA"
+        }
+      ],
+      "Charges": [
+        {
+          "Row ID": "SYN-R051-UI-DEFAULT-C",
+          "Charge Date": "2026-10-06",
+          "Interest Due": "$10.00",
+          "Payment Date": null,
+          "Interest Paid": 0,
+          "Principal Due": "$100.00",
+          "Principal Paid": 0,
+          "Ref Loans": "SYN-R051-UI-DEFAULT"
+        }
+      ],
+      "Payments": [],
+      "Payment Allocations": [],
+      "Repayments": [],
+      "Business Expenses": [],
+      "Cash Pool Contributions": [],
+      "Settlements": [],
+      "Cash Ledger": [
+        {
+          "Amount": 100.0,
+          "Row ID": "cash:LOAN:SYN-R051-UI-DEFAULT",
+          "Movement Date": "2026-10-04",
+          "Movement Type": "Loan Disbursement",
+          "Ref Loan": "SYN-R051-UI-DEFAULT",
+          "Ref Payment": null,
+          "Ref Settlement": null,
+          "Ref To Cash Holder": null,
+          "Ref To Cash Account": null,
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": "ch:lisa",
+          "Ref From Cash Account": "SYN-R051-UI-DEFAULT-LISA"
+        }
+      ]
+    },
+    "LEGACY": {
+      "Borrowers": [
+        {
+          "Row ID": "SYN-R051-UI-LEGACY-B",
+          "Ref Referrer": null,
+          "Ref Preferred Receiving Cash Account": null
+        }
+      ],
+      "Partners": [],
+      "Cash Accounts": [
+        {
+          "Row ID": "SYN-R051-UI-LEGACY-DAD",
+          "Ref Cash Holder": "ch:dad"
+        },
+        {
+          "Row ID": "SYN-R051-UI-LEGACY-LISA",
+          "Ref Cash Holder": "ch:lisa"
+        },
+        {
+          "Row ID": "SYN-R051-UI-LEGACY-LISA2",
+          "Ref Cash Holder": "ch:lisa"
+        }
+      ],
+      "Loans": [
+        {
+          "Row ID": "SYN-R051-UI-LEGACY",
+          "Defaulted": null,
+          "Loan Date": "2026-10-04",
+          "Loan Type": "กำหนดวันชำระ",
+          "Loan Status": "ยังไม่ปิดยอด",
+          "Principal Amount": "$100.00",
+          "Auto Charge Enabled": false,
+          "Outstanding Principal": 100.0,
+          "Current Daily Interest": null,
+          "Interest Payment Interval": null,
+          "Ref Borrowers": "SYN-R051-UI-LEGACY-B",
+          "Ref Closing Payment": null,
+          "Ref Disbursed From Cash Account": "SYN-R051-UI-LEGACY-LISA"
+        }
+      ],
+      "Charges": [
+        {
+          "Row ID": "SYN-R051-UI-LEGACY-C",
+          "Charge Date": "2026-10-04",
+          "Interest Due": "$10.00",
+          "Payment Date": null,
+          "Interest Paid": 1.0,
+          "Principal Due": "$100.00",
+          "Principal Paid": 0.0,
+          "Ref Loans": "SYN-R051-UI-LEGACY"
+        }
+      ],
+      "Payments": [],
+      "Payment Allocations": [],
+      "Repayments": [
+        {
+          "Row ID": "SYN-R051-UI-LEGACY-R",
+          "Payment Date": "2026-10-06",
+          "Interest Paid": "$1.00",
+          "Principal Paid": "$0.00",
+          "Ref Loans": "SYN-R051-UI-LEGACY",
+          "Ref Charges": "SYN-R051-UI-LEGACY-C",
+          "Ref Payment": null,
+          "Ref Payment Allocation": null
+        }
+      ],
+      "Business Expenses": [],
+      "Cash Pool Contributions": [],
+      "Settlements": [],
+      "Cash Ledger": [
+        {
+          "Amount": 100.0,
+          "Row ID": "cash:LOAN:SYN-R051-UI-LEGACY",
+          "Movement Date": "2026-10-04",
+          "Movement Type": "Loan Disbursement",
+          "Ref Loan": "SYN-R051-UI-LEGACY",
+          "Ref Payment": null,
+          "Ref Settlement": null,
+          "Ref To Cash Holder": null,
+          "Ref To Cash Account": null,
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": "ch:lisa",
+          "Ref From Cash Account": "SYN-R051-UI-LEGACY-LISA"
+        }
+      ]
+    },
+    "CLOSE": {
+      "Borrowers": [
+        {
+          "Row ID": "SYN-R051-UI-CLOSE-B",
+          "Ref Referrer": "SYN-R051-UI-CLOSE-REF",
+          "Ref Preferred Receiving Cash Account": null
+        },
+        {
+          "Row ID": "SYN-R051-UI-CLOSE-REF",
+          "Ref Referrer": null,
+          "Ref Preferred Receiving Cash Account": null
+        }
+      ],
+      "Partners": [],
+      "Cash Accounts": [
+        {
+          "Row ID": "SYN-R051-UI-CLOSE-DAD",
+          "Ref Cash Holder": "ch:dad"
+        },
+        {
+          "Row ID": "SYN-R051-UI-CLOSE-LISA",
+          "Ref Cash Holder": "ch:lisa"
+        }
+      ],
+      "Loans": [
+        {
+          "Row ID": "SYN-R051-UI-CLOSE-L",
+          "Defaulted": null,
+          "Loan Date": "2026-10-04",
+          "Loan Type": "กำหนดวันชำระ",
+          "Loan Status": "ปิดยอดแล้ว",
+          "Principal Amount": "$100.00",
+          "Auto Charge Enabled": false,
+          "Outstanding Principal": 0.0,
+          "Current Daily Interest": null,
+          "Interest Payment Interval": null,
+          "Ref Borrowers": "SYN-R051-UI-CLOSE-B",
+          "Ref Closing Payment": "SYN-R051-UI-CLOSE-P",
+          "Ref Disbursed From Cash Account": "SYN-R051-UI-CLOSE-LISA"
+        }
+      ],
+      "Charges": [
+        {
+          "Row ID": "SYN-R051-UI-CLOSE-C",
+          "Charge Date": "2026-10-04",
+          "Interest Due": "$100.00",
+          "Payment Date": "2026-10-06",
+          "Interest Paid": 100.0,
+          "Principal Due": "$100.00",
+          "Principal Paid": 100.0,
+          "Ref Loans": "SYN-R051-UI-CLOSE-L"
+        }
+      ],
+      "Payments": [
+        {
+          "Row ID": "SYN-R051-UI-CLOSE-P",
+          "Status": "Posted",
+          "Payment Date": "2026-10-06",
+          "Amount Received": "$200.00",
+          "Delete Requested": false,
+          "Allocation Method": "Single Full",
+          "Ref Borrower": "SYN-R051-UI-CLOSE-B",
+          "Ref Target Loan": null,
+          "Ref Target Charge": "SYN-R051-UI-CLOSE-C",
+          "Ref Received By Cash Holder": "ch:dad",
+          "Ref Received By Cash Account": "SYN-R051-UI-CLOSE-DAD"
+        }
+      ],
+      "Payment Allocations": [
+        {
+          "Row ID": "pc6:19:SYN-R051-UI-CLOSE-P:SYN-R051-UI-CLOSE-C",
+          "Ref Charge": "SYN-R051-UI-CLOSE-C",
+          "Ref Payment": "SYN-R051-UI-CLOSE-P"
+        }
+      ],
+      "Repayments": [
+        {
+          "Row ID": "pc6:19:SYN-R051-UI-CLOSE-P:SYN-R051-UI-CLOSE-C",
+          "Payment Date": "2026-10-06",
+          "Interest Paid": "$100.00",
+          "Principal Paid": "$100.00",
+          "Ref Loans": "SYN-R051-UI-CLOSE-L",
+          "Ref Charges": "SYN-R051-UI-CLOSE-C",
+          "Ref Payment": "SYN-R051-UI-CLOSE-P",
+          "Ref Payment Allocation": "pc6:19:SYN-R051-UI-CLOSE-P:SYN-R051-UI-CLOSE-C"
+        }
+      ],
+      "Business Expenses": [
+        {
+          "Amount": "$10.00",
+          "Row ID": "rr1:SYN-R051-UI-CLOSE-L",
+          "Expense Date": "2026-10-06",
+          "Expense Category": "Referral Rebate / เงินคืนค่าแนะนำลูกค้า",
+          "Ref Related Loan": "SYN-R051-UI-CLOSE-L",
+          "Ref Payee Borrower": "SYN-R051-UI-CLOSE-REF",
+          "Ref Related Borrower": "SYN-R051-UI-CLOSE-B",
+          "Ref Paid By Cash Holder": "ch:lisa",
+          "Ref Paid By Cash Account": "<existing nonfixture reference>"
+        }
+      ],
+      "Cash Pool Contributions": [],
+      "Settlements": [],
+      "Cash Ledger": [
+        {
+          "Amount": 10.0,
+          "Row ID": "cash:EXPENSE:rr1:SYN-R051-UI-CLOSE-L",
+          "Movement Date": "2026-10-06",
+          "Movement Type": "Business Expense",
+          "Ref Loan": null,
+          "Ref Payment": null,
+          "Ref Settlement": null,
+          "Ref To Cash Holder": null,
+          "Ref To Cash Account": null,
+          "Ref Business Expense": "rr1:SYN-R051-UI-CLOSE-L",
+          "Ref From Cash Holder": "ch:lisa",
+          "Ref From Cash Account": "<existing nonfixture reference>"
+        },
+        {
+          "Amount": 100.0,
+          "Row ID": "cash:LOAN:SYN-R051-UI-CLOSE-L",
+          "Movement Date": "2026-10-04",
+          "Movement Type": "Loan Disbursement",
+          "Ref Loan": "SYN-R051-UI-CLOSE-L",
+          "Ref Payment": null,
+          "Ref Settlement": null,
+          "Ref To Cash Holder": null,
+          "Ref To Cash Account": null,
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": "ch:lisa",
+          "Ref From Cash Account": "SYN-R051-UI-CLOSE-LISA"
+        },
+        {
+          "Amount": 200.0,
+          "Row ID": "cash:PAYMENT:SYN-R051-UI-CLOSE-P",
+          "Movement Date": "2026-10-06",
+          "Movement Type": "Payment Receipt",
+          "Ref Loan": null,
+          "Ref Payment": "SYN-R051-UI-CLOSE-P",
+          "Ref Settlement": null,
+          "Ref To Cash Holder": "ch:dad",
+          "Ref To Cash Account": "SYN-R051-UI-CLOSE-DAD",
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": null,
+          "Ref From Cash Account": null
+        }
+      ]
+    },
+    "PREPARED": {
+      "Borrowers": [
+        {
+          "Row ID": "SYN-R051-UI-PREPARED-B",
+          "Ref Referrer": null,
+          "Ref Preferred Receiving Cash Account": null
+        }
+      ],
+      "Partners": [],
+      "Cash Accounts": [
+        {
+          "Row ID": "SYN-R051-UI-PREPARED-DAD",
+          "Ref Cash Holder": "ch:dad"
+        },
+        {
+          "Row ID": "SYN-R051-UI-PREPARED-LISA",
+          "Ref Cash Holder": "ch:lisa"
+        }
+      ],
+      "Loans": [
+        {
+          "Row ID": "SYN-R051-UI-PREPARED-L",
+          "Defaulted": null,
+          "Loan Date": "2026-10-04",
+          "Loan Type": "ดอกเบี้ยรายวัน",
+          "Loan Status": "ปิดยอดแล้ว",
+          "Principal Amount": "$100.00",
+          "Auto Charge Enabled": false,
+          "Outstanding Principal": 0.0,
+          "Current Daily Interest": "$0.00",
+          "Interest Payment Interval": null,
+          "Ref Borrowers": "SYN-R051-UI-PREPARED-B",
+          "Ref Closing Payment": "SYN-R051-UI-PREPARED-P",
+          "Ref Disbursed From Cash Account": "SYN-R051-UI-PREPARED-LISA"
+        }
+      ],
+      "Charges": [
+        {
+          "Row ID": "SYN-R051-UI-PREPARED-C",
+          "Charge Date": "2026-10-06",
+          "Interest Due": "$10.00",
+          "Payment Date": "2026-10-06",
+          "Interest Paid": 10.0,
+          "Principal Due": "$100.00",
+          "Principal Paid": 100.0,
+          "Ref Loans": "SYN-R051-UI-PREPARED-L"
+        }
+      ],
+      "Payments": [
+        {
+          "Row ID": "SYN-R051-UI-PREPARED-FIRST",
+          "Status": "Posted",
+          "Payment Date": "2026-10-06",
+          "Amount Received": "$10.00",
+          "Delete Requested": false,
+          "Allocation Method": "Single Full",
+          "Ref Borrower": "SYN-R051-UI-PREPARED-B",
+          "Ref Target Loan": null,
+          "Ref Target Charge": "SYN-R051-UI-PREPARED-C",
+          "Ref Received By Cash Holder": "ch:dad",
+          "Ref Received By Cash Account": "SYN-R051-UI-PREPARED-DAD"
+        },
+        {
+          "Row ID": "SYN-R051-UI-PREPARED-P",
+          "Status": "Posted",
+          "Payment Date": "2026-10-06",
+          "Amount Received": "$100.00",
+          "Delete Requested": false,
+          "Allocation Method": "Loan Close",
+          "Ref Borrower": "SYN-R051-UI-PREPARED-B",
+          "Ref Target Loan": "SYN-R051-UI-PREPARED-L",
+          "Ref Target Charge": "SYN-R051-UI-PREPARED-C",
+          "Ref Received By Cash Holder": "ch:dad",
+          "Ref Received By Cash Account": "SYN-R051-UI-PREPARED-DAD"
+        }
+      ],
+      "Payment Allocations": [
+        {
+          "Row ID": "pc6:22:SYN-R051-UI-PREPARED-P:SYN-R051-UI-PREPARED-C",
+          "Ref Charge": "SYN-R051-UI-PREPARED-C",
+          "Ref Payment": "SYN-R051-UI-PREPARED-P"
+        },
+        {
+          "Row ID": "pc6:26:SYN-R051-UI-PREPARED-FIRST:SYN-R051-UI-PREPARED-C",
+          "Ref Charge": "SYN-R051-UI-PREPARED-C",
+          "Ref Payment": "SYN-R051-UI-PREPARED-FIRST"
+        }
+      ],
+      "Repayments": [
+        {
+          "Row ID": "pc6:22:SYN-R051-UI-PREPARED-P:SYN-R051-UI-PREPARED-C",
+          "Payment Date": "2026-10-06",
+          "Interest Paid": "$0.00",
+          "Principal Paid": "$100.00",
+          "Ref Loans": "SYN-R051-UI-PREPARED-L",
+          "Ref Charges": "SYN-R051-UI-PREPARED-C",
+          "Ref Payment": "SYN-R051-UI-PREPARED-P",
+          "Ref Payment Allocation": "pc6:22:SYN-R051-UI-PREPARED-P:SYN-R051-UI-PREPARED-C"
+        },
+        {
+          "Row ID": "pc6:26:SYN-R051-UI-PREPARED-FIRST:SYN-R051-UI-PREPARED-C",
+          "Payment Date": "2026-10-06",
+          "Interest Paid": "$10.00",
+          "Principal Paid": "$0.00",
+          "Ref Loans": "SYN-R051-UI-PREPARED-L",
+          "Ref Charges": "SYN-R051-UI-PREPARED-C",
+          "Ref Payment": "SYN-R051-UI-PREPARED-FIRST",
+          "Ref Payment Allocation": "pc6:26:SYN-R051-UI-PREPARED-FIRST:SYN-R051-UI-PREPARED-C"
+        }
+      ],
+      "Business Expenses": [],
+      "Cash Pool Contributions": [],
+      "Settlements": [],
+      "Cash Ledger": [
+        {
+          "Amount": 100.0,
+          "Row ID": "cash:LOAN:SYN-R051-UI-PREPARED-L",
+          "Movement Date": "2026-10-04",
+          "Movement Type": "Loan Disbursement",
+          "Ref Loan": "SYN-R051-UI-PREPARED-L",
+          "Ref Payment": null,
+          "Ref Settlement": null,
+          "Ref To Cash Holder": null,
+          "Ref To Cash Account": null,
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": "ch:lisa",
+          "Ref From Cash Account": "SYN-R051-UI-PREPARED-LISA"
+        },
+        {
+          "Amount": 10.0,
+          "Row ID": "cash:PAYMENT:SYN-R051-UI-PREPARED-FIRST",
+          "Movement Date": "2026-10-06",
+          "Movement Type": "Payment Receipt",
+          "Ref Loan": null,
+          "Ref Payment": "SYN-R051-UI-PREPARED-FIRST",
+          "Ref Settlement": null,
+          "Ref To Cash Holder": "ch:dad",
+          "Ref To Cash Account": "SYN-R051-UI-PREPARED-DAD",
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": null,
+          "Ref From Cash Account": null
+        },
+        {
+          "Amount": 100.0,
+          "Row ID": "cash:PAYMENT:SYN-R051-UI-PREPARED-P",
+          "Movement Date": "2026-10-06",
+          "Movement Type": "Payment Receipt",
+          "Ref Loan": null,
+          "Ref Payment": "SYN-R051-UI-PREPARED-P",
+          "Ref Settlement": null,
+          "Ref To Cash Holder": "ch:dad",
+          "Ref To Cash Account": "SYN-R051-UI-PREPARED-DAD",
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": null,
+          "Ref From Cash Account": null
+        }
+      ]
+    },
+    "PARTNER-A": {
+      "Borrowers": [],
+      "Partners": [
+        {
+          "Row ID": "SYN-R051-UI-PARTNER-A",
+          "Partner Role": "A"
+        }
+      ],
+      "Cash Accounts": [
+        {
+          "Row ID": "SYN-R051-UI-PARTNER-A-DAD",
+          "Ref Cash Holder": "ch:dad"
+        },
+        {
+          "Row ID": "SYN-R051-UI-PARTNER-A-LISA",
+          "Ref Cash Holder": "ch:lisa"
+        },
+        {
+          "Row ID": "SYN-R051-UI-PARTNER-A-LISA2",
+          "Ref Cash Holder": "ch:lisa"
+        }
+      ],
+      "Loans": [],
+      "Charges": [],
+      "Payments": [],
+      "Payment Allocations": [],
+      "Repayments": [],
+      "Business Expenses": [],
+      "Cash Pool Contributions": [],
+      "Settlements": [],
+      "Cash Ledger": []
+    },
+    "REIMBURSE": {
+      "Borrowers": [],
+      "Partners": [],
+      "Cash Accounts": [],
+      "Loans": [],
+      "Charges": [],
+      "Payments": [],
+      "Payment Allocations": [],
+      "Repayments": [],
+      "Business Expenses": [],
+      "Cash Pool Contributions": [],
+      "Settlements": [],
+      "Cash Ledger": []
+    },
+    "ORIGINAL": {
+      "Borrowers": [
+        {
+          "Row ID": "SYN-R051-UI-B",
+          "Ref Referrer": null,
+          "Ref Preferred Receiving Cash Account": null
+        }
+      ],
+      "Loans": [
+        {
+          "Row ID": "SYN-R051-UI-L1",
+          "Defaulted": null,
+          "Loan Date": "2026-10-03",
+          "Loan Type": "กำหนดวันชำระ",
+          "Loan Status": "ยังไม่ปิดยอด",
+          "Principal Amount": "$100.00",
+          "Auto Charge Enabled": false,
+          "Outstanding Principal": 100.0,
+          "Current Daily Interest": null,
+          "Interest Payment Interval": null,
+          "Ref Borrowers": "SYN-R051-UI-B",
+          "Ref Closing Payment": null,
+          "Ref Disbursed From Cash Account": "SYN-R051-UI-LISA"
+        },
+        {
+          "Row ID": "SYN-R051-UI-L2",
+          "Defaulted": null,
+          "Loan Date": "2026-10-03",
+          "Loan Type": "กำหนดวันชำระ",
+          "Loan Status": "ยังไม่ปิดยอด",
+          "Principal Amount": "$100.00",
+          "Auto Charge Enabled": false,
+          "Outstanding Principal": 100.0,
+          "Current Daily Interest": null,
+          "Interest Payment Interval": null,
+          "Ref Borrowers": "SYN-R051-UI-B",
+          "Ref Closing Payment": null,
+          "Ref Disbursed From Cash Account": "SYN-R051-UI-LISA"
+        }
+      ],
+      "Charges": [
+        {
+          "Row ID": "SYN-R051-UI-C0",
+          "Charge Date": "2026-10-03",
+          "Interest Due": "$10.00",
+          "Payment Date": null,
+          "Interest Paid": 0,
+          "Principal Due": "$0.00",
+          "Principal Paid": 0,
+          "Ref Loans": "SYN-R051-UI-L2"
+        },
+        {
+          "Row ID": "SYN-R051-UI-C1",
+          "Charge Date": "2026-10-04",
+          "Interest Due": "$10.00",
+          "Payment Date": null,
+          "Interest Paid": 0,
+          "Principal Due": "$100.00",
+          "Principal Paid": 0,
+          "Ref Loans": "SYN-R051-UI-L1"
+        },
+        {
+          "Row ID": "SYN-R051-UI-C2",
+          "Charge Date": "2026-10-04",
+          "Interest Due": "$10.00",
+          "Payment Date": null,
+          "Interest Paid": 6.0,
+          "Principal Due": "$100.00",
+          "Principal Paid": 0.0,
+          "Ref Loans": "SYN-R051-UI-L2"
+        }
+      ],
+      "Payments": [
+        {
+          "Row ID": "Bx59mH6SCh4OMcWXvOpo6Y",
+          "Status": "Posted",
+          "Payment Date": "2026-10-05",
+          "Amount Received": "$1.00",
+          "Delete Requested": false,
+          "Allocation Method": "Lump Sum",
+          "Ref Borrower": "SYN-R051-UI-B",
+          "Ref Target Loan": null,
+          "Ref Target Charge": null,
+          "Ref Received By Cash Holder": "ch:dad",
+          "Ref Received By Cash Account": "SYN-R051-UI-DAD"
+        },
+        {
+          "Row ID": "SYN-R051-UI-P2",
+          "Status": "Posted",
+          "Payment Date": "2026-10-05",
+          "Amount Received": "$5.00",
+          "Delete Requested": false,
+          "Allocation Method": "Lump Sum",
+          "Ref Borrower": "SYN-R051-UI-B",
+          "Ref Target Loan": null,
+          "Ref Target Charge": null,
+          "Ref Received By Cash Holder": "ch:dad",
+          "Ref Received By Cash Account": "SYN-R051-UI-DAD"
+        }
+      ],
+      "Payment Allocations": [
+        {
+          "Row ID": "pc6:14:SYN-R051-UI-P2:SYN-R051-UI-C2",
+          "Ref Charge": "SYN-R051-UI-C2",
+          "Ref Payment": "SYN-R051-UI-P2"
+        },
+        {
+          "Row ID": "pc6:22:Bx59mH6SCh4OMcWXvOpo6Y:SYN-R051-UI-C2",
+          "Ref Charge": "SYN-R051-UI-C2",
+          "Ref Payment": "Bx59mH6SCh4OMcWXvOpo6Y"
+        }
+      ],
+      "Repayments": [
+        {
+          "Row ID": "pc6:14:SYN-R051-UI-P2:SYN-R051-UI-C2",
+          "Payment Date": "2026-10-05",
+          "Interest Paid": "$5.00",
+          "Principal Paid": "$0.00",
+          "Ref Loans": "SYN-R051-UI-L2",
+          "Ref Charges": "SYN-R051-UI-C2",
+          "Ref Payment": "SYN-R051-UI-P2",
+          "Ref Payment Allocation": "pc6:14:SYN-R051-UI-P2:SYN-R051-UI-C2"
+        },
+        {
+          "Row ID": "pc6:22:Bx59mH6SCh4OMcWXvOpo6Y:SYN-R051-UI-C2",
+          "Payment Date": "2026-10-05",
+          "Interest Paid": "$1.00",
+          "Principal Paid": "$0.00",
+          "Ref Loans": "SYN-R051-UI-L2",
+          "Ref Charges": "SYN-R051-UI-C2",
+          "Ref Payment": "Bx59mH6SCh4OMcWXvOpo6Y",
+          "Ref Payment Allocation": "pc6:22:Bx59mH6SCh4OMcWXvOpo6Y:SYN-R051-UI-C2"
+        }
+      ],
+      "Cash Accounts": [
+        {
+          "Row ID": "SYN-R051-UI-DAD",
+          "Ref Cash Holder": "ch:dad"
+        },
+        {
+          "Row ID": "SYN-R051-UI-LISA",
+          "Ref Cash Holder": "ch:lisa"
+        }
+      ],
+      "Business Expenses": [],
+      "Cash Ledger": [
+        {
+          "Amount": 100.0,
+          "Row ID": "cash:LOAN:SYN-R051-UI-L1",
+          "Movement Date": "2026-10-03",
+          "Movement Type": "Loan Disbursement",
+          "Ref Loan": "SYN-R051-UI-L1",
+          "Ref Payment": null,
+          "Ref Settlement": null,
+          "Ref To Cash Holder": null,
+          "Ref To Cash Account": null,
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": "ch:lisa",
+          "Ref From Cash Account": "SYN-R051-UI-LISA"
+        },
+        {
+          "Amount": 100.0,
+          "Row ID": "cash:LOAN:SYN-R051-UI-L2",
+          "Movement Date": "2026-10-03",
+          "Movement Type": "Loan Disbursement",
+          "Ref Loan": "SYN-R051-UI-L2",
+          "Ref Payment": null,
+          "Ref Settlement": null,
+          "Ref To Cash Holder": null,
+          "Ref To Cash Account": null,
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": "ch:lisa",
+          "Ref From Cash Account": "SYN-R051-UI-LISA"
+        },
+        {
+          "Amount": 1.0,
+          "Row ID": "cash:PAYMENT:Bx59mH6SCh4OMcWXvOpo6Y",
+          "Movement Date": "2026-10-05",
+          "Movement Type": "Payment Receipt",
+          "Ref Loan": null,
+          "Ref Payment": "Bx59mH6SCh4OMcWXvOpo6Y",
+          "Ref Settlement": null,
+          "Ref To Cash Holder": "ch:dad",
+          "Ref To Cash Account": "SYN-R051-UI-DAD",
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": null,
+          "Ref From Cash Account": null
+        },
+        {
+          "Amount": 5.0,
+          "Row ID": "cash:PAYMENT:SYN-R051-UI-P2",
+          "Movement Date": "2026-10-05",
+          "Movement Type": "Payment Receipt",
+          "Ref Loan": null,
+          "Ref Payment": "SYN-R051-UI-P2",
+          "Ref Settlement": null,
+          "Ref To Cash Holder": "ch:dad",
+          "Ref To Cash Account": "SYN-R051-UI-DAD",
+          "Ref Business Expense": null,
+          "Ref From Cash Holder": null,
+          "Ref From Cash Account": null
+        }
+      ]
+    }
+  },
+  "preflight": {
+    "DAILY": {
+      "batch": "DAILY",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "database": "loan_manager_dev",
+      "version": 70,
+      "plan": {
+        "batch": "DAILY",
+        "business_date": "2026-10-06",
+        "timezone": "Asia/Bangkok",
+        "source_keys": {
+          "Cash Accounts": [
+            "SYN-R051-UI-DAILY-DAD",
+            "SYN-R051-UI-DAILY-LISA"
+          ],
+          "Borrowers": [
+            "SYN-R051-UI-DAILY-B"
+          ],
+          "Loans": [
+            "SYN-R051-UI-DAILY"
+          ],
+          "Charges": [
+            "SYN-R051-UI-DAILY-C",
+            "SYN-R051-UI-DAILY-LATER"
+          ],
+          "Payments": [
+            "SYN-R051-UI-DAILY-P"
+          ]
+        },
+        "dates": {
+          "loan": "2026-10-04",
+          "charge": "2026-10-04",
+          "payment": "2026-10-04",
+          "later_charge": "2026-10-05"
+        },
+        "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      },
+      "contribution_date": "2026-10-07",
+      "settlement_available": null,
+      "settlement_positive_flow_permitted": false
+    },
+    "DEFAULT": {
+      "batch": "DEFAULT",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "database": "loan_manager_dev",
+      "version": 70,
+      "plan": {
+        "batch": "DEFAULT",
+        "business_date": "2026-10-06",
+        "timezone": "Asia/Bangkok",
+        "source_keys": {
+          "Cash Accounts": [
+            "SYN-R051-UI-DEFAULT-DAD",
+            "SYN-R051-UI-DEFAULT-LISA"
+          ],
+          "Borrowers": [
+            "SYN-R051-UI-DEFAULT-B"
+          ],
+          "Loans": [
+            "SYN-R051-UI-DEFAULT"
+          ],
+          "Charges": [
+            "SYN-R051-UI-DEFAULT-C"
+          ]
+        },
+        "dates": {
+          "loan": "2026-10-04",
+          "charge": "2026-10-06"
+        },
+        "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      },
+      "contribution_date": "2026-10-07",
+      "settlement_available": null,
+      "settlement_positive_flow_permitted": false
+    },
+    "LEGACY": {
+      "batch": "LEGACY",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "database": "loan_manager_dev",
+      "version": 70,
+      "plan": {
+        "batch": "LEGACY",
+        "business_date": "2026-10-06",
+        "timezone": "Asia/Bangkok",
+        "source_keys": {
+          "Cash Accounts": [
+            "SYN-R051-UI-LEGACY-DAD",
+            "SYN-R051-UI-LEGACY-LISA",
+            "SYN-R051-UI-LEGACY-LISA2"
+          ],
+          "Borrowers": [
+            "SYN-R051-UI-LEGACY-B"
+          ],
+          "Loans": [
+            "SYN-R051-UI-LEGACY"
+          ],
+          "Charges": [
+            "SYN-R051-UI-LEGACY-C"
+          ],
+          "Repayments": [
+            "SYN-R051-UI-LEGACY-R"
+          ]
+        },
+        "dates": {
+          "loan": "2026-10-04",
+          "charge": "2026-10-04",
+          "repayment": "2026-10-06"
+        },
+        "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      },
+      "contribution_date": "2026-10-07",
+      "settlement_available": null,
+      "settlement_positive_flow_permitted": false
+    },
+    "CLOSE": {
+      "batch": "CLOSE",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "database": "loan_manager_dev",
+      "version": 70,
+      "plan": {
+        "batch": "CLOSE",
+        "business_date": "2026-10-06",
+        "timezone": "Asia/Bangkok",
+        "source_keys": {
+          "Cash Accounts": [
+            "SYN-R051-UI-CLOSE-DAD",
+            "SYN-R051-UI-CLOSE-LISA"
+          ],
+          "Borrowers": [
+            "SYN-R051-UI-CLOSE-B",
+            "SYN-R051-UI-CLOSE-REF"
+          ],
+          "Loans": [
+            "SYN-R051-UI-CLOSE-L"
+          ],
+          "Charges": [
+            "SYN-R051-UI-CLOSE-C"
+          ],
+          "Payments": [
+            "SYN-R051-UI-CLOSE-P"
+          ]
+        },
+        "dates": {
+          "loan": "2026-10-04",
+          "charge": "2026-10-04",
+          "payment": "2026-10-06"
+        },
+        "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      },
+      "contribution_date": "2026-10-07",
+      "settlement_available": null,
+      "settlement_positive_flow_permitted": false
+    },
+    "PREPARED": {
+      "batch": "PREPARED",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "database": "loan_manager_dev",
+      "version": 70,
+      "plan": {
+        "batch": "PREPARED",
+        "business_date": "2026-10-06",
+        "timezone": "Asia/Bangkok",
+        "source_keys": {
+          "Cash Accounts": [
+            "SYN-R051-UI-PREPARED-DAD",
+            "SYN-R051-UI-PREPARED-LISA"
+          ],
+          "Borrowers": [
+            "SYN-R051-UI-PREPARED-B"
+          ],
+          "Loans": [
+            "SYN-R051-UI-PREPARED-L"
+          ],
+          "Charges": [
+            "SYN-R051-UI-PREPARED-C"
+          ],
+          "Payments": [
+            "SYN-R051-UI-PREPARED-FIRST",
+            "SYN-R051-UI-PREPARED-P"
+          ]
+        },
+        "dates": {
+          "loan": "2026-10-04",
+          "charge": "2026-10-06",
+          "payment": "2026-10-06"
+        },
+        "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      },
+      "contribution_date": "2026-10-07",
+      "settlement_available": null,
+      "settlement_positive_flow_permitted": false
+    },
+    "PARTNER-A": {
+      "batch": "PARTNER-A",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "database": "loan_manager_dev",
+      "version": 70,
+      "plan": {
+        "batch": "PARTNER-A",
+        "business_date": "2026-10-06",
+        "timezone": "Asia/Bangkok",
+        "source_keys": {
+          "Cash Accounts": [
+            "SYN-R051-UI-PARTNER-A-DAD",
+            "SYN-R051-UI-PARTNER-A-LISA",
+            "SYN-R051-UI-PARTNER-A-LISA2"
+          ],
+          "Partners": [
+            "SYN-R051-UI-PARTNER-A"
+          ]
+        },
+        "dates": {},
+        "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      },
+      "contribution_date": "2026-10-07",
+      "settlement_available": "78149.00",
+      "settlement_positive_flow_permitted": true
+    },
+    "REIMBURSE": {
+      "batch": "REIMBURSE",
+      "business_date": "2026-10-06",
+      "timezone": "Asia/Bangkok",
+      "database": "loan_manager_dev",
+      "version": 70,
+      "plan": {
+        "batch": "REIMBURSE",
+        "business_date": "2026-10-06",
+        "timezone": "Asia/Bangkok",
+        "source_keys": {
+          "Cash Accounts": [
+            "SYN-R051-UI-REIMBURSE-LISA",
+            "SYN-R051-UI-REIMBURSE-TOMMY1",
+            "SYN-R051-UI-REIMBURSE-TOMMY2"
+          ],
+          "Business Expenses": [
+            "SYN-R051-UI-REIMBURSE-E1",
+            "SYN-R051-UI-REIMBURSE-E2"
+          ]
+        },
+        "dates": {
+          "expense": "2026-10-06"
+        },
+        "generated_keys": "Capture from actual readback; GUI UNIQUEIDs are not preassigned"
+      },
+      "contribution_date": "2026-10-07",
+      "settlement_available": null,
+      "settlement_positive_flow_permitted": false
+    }
+  },
+  "notification_data_checks": [
+    {
+      "batch": "DAILY",
+      "table": "Borrowers",
+      "id": "SYN-R051-UI-DAILY-B",
+      "contact_or_integration_present": {
+        "Instagram Username": false
+      }
+    },
+    {
+      "batch": "DEFAULT",
+      "table": "Borrowers",
+      "id": "SYN-R051-UI-DEFAULT-B",
+      "contact_or_integration_present": {
+        "Instagram Username": false
+      }
+    },
+    {
+      "batch": "LEGACY",
+      "table": "Borrowers",
+      "id": "SYN-R051-UI-LEGACY-B",
+      "contact_or_integration_present": {
+        "Instagram Username": false
+      }
+    },
+    {
+      "batch": "CLOSE",
+      "table": "Borrowers",
+      "id": "SYN-R051-UI-CLOSE-B",
+      "contact_or_integration_present": {
+        "Instagram Username": false
+      }
+    },
+    {
+      "batch": "CLOSE",
+      "table": "Borrowers",
+      "id": "SYN-R051-UI-CLOSE-REF",
+      "contact_or_integration_present": {
+        "Instagram Username": false
+      }
+    },
+    {
+      "batch": "PREPARED",
+      "table": "Borrowers",
+      "id": "SYN-R051-UI-PREPARED-B",
+      "contact_or_integration_present": {
+        "Instagram Username": false
+      }
+    },
+    {
+      "batch": "PARTNER-A",
+      "table": "Partners",
+      "id": "SYN-R051-UI-PARTNER-A",
+      "contact_or_integration_present": {
+        "Email": false,
+        "Login Email": false,
+        "Instagram Username": false,
+        "IG Integration Enabled": false
+      }
+    },
+    {
+      "batch": "ORIGINAL",
+      "table": "Borrowers",
+      "id": "SYN-R051-UI-B",
+      "contact_or_integration_present": {
+        "Instagram Username": false
+      }
+    }
+  ],
+  "notification_limit": "Database contact flags only. Current AppSheet bot recipients/conditions and scheduler containment require browser-worker confirmation; no send or runtime notification test performed.",
+  "cleanup_limit": "Scoped inventory for coordination only; generated analytics/snapshot rows and any subsequent GUI changes need final fresh cleanup inventory. Existing nonfixture references are intentionally redacted.",
+  "source_commit": "289ee339d6e22d3ab80114cd4e3b58d14bedabc3",
+  "helper_sha256": {
+    "scripts/database/ReceiptCorrectionDev.py": "8c444e395afdc87084a9ed72cdcd583c1cf1b949e6f3d9f5a8e2debe865809b2",
+    "scripts/database/R051UiAdditionalFixtures.py": "bf536536bbe852f46cf74624d3864991519e5bc462b6c31b7dc29a9714201cb6"
+  },
+  "parent_reported_app_checkpoint": {
+    "at": "2026-10-06T08:24:03Z",
+    "OLTP": "1.000178",
+    "OLAP": "1.000053",
+    "change": "System Editor refresh / Automatic consistency check; parent reports generated process-schema normalization and inline ColumnToEdit Row ID, with no business guard edits; both editors No issues found.",
+    "independently_fetched_by_this_executor": false
+  },
+  "session_closed": true,
+  "parent_reported_frontend_saves": [
+    {
+      "app": "DEV OLTP",
+      "version": "1.000179",
+      "group": "PAY_NOTES",
+      "verified_saved": true,
+      "editor_diagnostics": "No issues found",
+      "save_disabled": true,
+      "undo_disabled": true,
+      "changes": {
+        "Invalid value error": "",
+        "Description": "หมายเหตุเพิ่มเติม (ไม่บังคับ) / Optional note."
+      },
+      "retained": {
+        "ValidIf": "TRUE",
+        "RequiredIf": "FALSE"
+      },
+      "database_writes": false,
+      "provenance": "Coordinator supplied verified browser-worker evidence; not independently fetched by this executor."
+    }
+  ]
+}

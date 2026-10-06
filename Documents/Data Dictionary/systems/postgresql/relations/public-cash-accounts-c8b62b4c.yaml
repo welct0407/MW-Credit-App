@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":

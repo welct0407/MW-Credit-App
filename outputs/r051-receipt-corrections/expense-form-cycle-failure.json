@@ -1,0 +1,55 @@
+{
+  "state": "SAVED_CANDIDATE_REJECTED_BY_SERVER",
+  "provenance": "Parent GUI report; raw audit remains private",
+  "app_version": "OLTP1.000172",
+  "error": "Expressions in schema Business Expenses_Schema have a circular definition. Check app formulas and initial values for column Ref Paid By Cash Holder",
+  "pre_save_diagnostics": "No issues",
+  "saved_runnable": false,
+  "cause": "Account Initial depends on holder; candidate holder Initial depends on account. Disjoint runtime branches did not avoid server dependency cycle.",
+  "recovery": "Parent confirms four candidate properties restored, preserving independent Loan changes; OLTP1.000173 runnable. Browser access currently blocked pending owner permission; no alternative route.",
+  "failed_candidate": {
+    "Ref Paid By Cash Account": {
+      "Valid_If": "IF(IN([Row ID], Business Expenses[Row ID]), SELECT(Cash Accounts[Row ID], OR([Active], [Row ID] = LOOKUP([_THISROW].[Row ID], \"Business Expenses\", \"Row ID\", \"Ref Paid By Cash Account\"))), SELECT(Cash Accounts[Row ID], AND([Active], [Ref Cash Holder] = [_THISROW].[Ref Paid By Cash Holder])))",
+      "initial_value": "UNCHANGED: preserve current saved account default and Reset on edit No. Prior159 baseline was ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = [_THISROW].[Ref Paid By Cash Holder]))); parent must compare current saved value, not infer current from old export.",
+      "Editable_If_status": "Backend gate passed; still proposed until saved authorization/default/holder clauses and actual form behavior are reconciled.",
+      "Editable_If_predicate_after_verified_V66": "OR(ISBLANK([Source Type]), [Source Type] = \"Manual\")",
+      "Editable_If_predicate": "OR(ISBLANK([Source Type]), [Source Type] = \"Manual\")",
+      "composition": "This is the complete source-eligibility predicate. Retain any independent existing role/access condition by AND-composing it; replace only the obsolete new-row-only restriction. No Cash Ledger table reference."
+    },
+    "Ref Paid By Cash Holder": {
+      "existing_row": "Derive/display from selected account; keep direct holder editing locked on existing records",
+      "new_row": "Parent confirms no Initial formula and Reset on edit No; candidate new-row branch returns blank, preserving manual holder selection. Existing account default remains unchanged.",
+      "integration_required": "Validate all dependent expressions together before save. Existing holder is reset from selected account and remains locked; when account blank, use persisted holder. New holder remains manual/blank. No self-reference or invented new-row fallback.",
+      "Editable_If_predicate": "AND(NOT(IN([Row ID], Business Expenses[Row ID])), OR(ISBLANK([Source Type]), [Source Type] = \"Manual\"))",
+      "composition": "Preserve independent role/access predicates. Existing-row payer correction uses selected account; holder remains manually locked. The complete Initial value_candidate now explicitly preserves the confirmed blank/manual new-row behavior; validate this coherent candidate together with the unchanged account default before save.",
+      "Initial value_candidate": "IF(IN([Row ID], Business Expenses[Row ID]), IF(ISNOTBLANK([Ref Paid By Cash Account]), [Ref Paid By Cash Account].[Ref Cash Holder], LOOKUP([Row ID], \"Business Expenses\", \"Row ID\", \"Ref Paid By Cash Holder\")), \"\")",
+      "Reset on edit_candidate": "AND(IN([Row ID], Business Expenses[Row ID]), OR(ISBLANK([Source Type]), [Source Type] = \"Manual\"))",
+      "App formula": "Blank; do not use an App formula because new-row holder must remain manually selectable."
+    },
+    "gate": "COMPILE-BEFORE-SAVE CANDIDATE. V66/V67 backend accepted. Confirm current account default, preserve saved role/access predicates, validate dependency graph then actual form save/sync. Do not stop solely for hypothetical cycle; if compiler actually rejects the account-default↔holder-initial dependency, retain last valid definitions and report exact error before redesign.",
+    "tests": [
+      "Compile all expressions together; open NEW manual expense with blank holder, select holder then verify unchanged default/filter; switch new holder and choose an eligible account, no forced derived holder or reset of manual selection.",
+      "Open existing manual expense without reimbursement: Lisa→Tommy account changes displayed locked holder immediately; save/full sync yields matching SQL account/holder and same cash key. Reverse to Lisa; then no-op save preserves source/cash.",
+      "Existing blank account retains persisted holder on ordinary metadata edit; inactive persisted account remains available but newly selected inactive account is absent/rejected; system/referral and access restrictions remain.",
+      "Using separate synthetic REIMBURSE batch, linked positive Tommy expense allows Tommy1→Tommy2 but rejects Lisa/nonpositive amount atomically. Reimbursement remains unchanged; after relink/delete, eligible cross-holder correction succeeds. Actual app permission/notification/no-duplicate checks required."
+    ],
+    "formula_validation": "Exact coherent candidate only. It references Business Expenses/Cash Accounts already present in OLTP, no Cash Ledger. Branch/dependency reasoning is an inference from documented Initial/Reset behavior; current GUI compilation and in-form recomputation are required proof.",
+    "server_limits": "Manual source eligibility is not full dependency authorization. V66 rejects changing a linked reimbursed expense to a non-Tommy payer or nonpositive amount; same-Tommy account corrections remain allowed. Cutover/inactive-account and independent references retain their existing database checks. No new reimbursement cap or client Cash Ledger lookup.",
+    "dependency_limit": "The prior saved account Initial expression depends on holder; proposed holder Initial depends on account. New/existing branches are disjoint at runtime, but official docs do not establish whether AppSheet dependency validation accepts that cycle. No local or GUI compile-pass claim.",
+    "primary_sources": [
+      {
+        "url": "https://support.google.com/appsheet/answer/10106509?hl=en",
+        "supports": "Initial expressions recompute until user supplies a value; Reset on edit reapplies initial value on editing. Does not prove cycle acceptance."
+      },
+      {
+        "url": "https://support.google.com/appsheet/answer/10106437?hl=en",
+        "supports": "Initial values remain overridable; App formulas are computed/read-only. Existing-row resets require the separate Reset property."
+      },
+      {
+        "url": "https://support.google.com/appsheet/answer/10107954?hl=en",
+        "supports": "Editable_If prevents manual input, not initial-value computation."
+      }
+    ]
+  },
+  "database_changes": false
+}

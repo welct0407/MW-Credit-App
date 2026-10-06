@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -253,6 +253,22 @@
       "delete_action": "a"
       "match_type": "s"
       "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Settlements"
+      "name": "zzzzzz_business_history_commit"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
   "indexes":
     "Settlements_pkey":
       "schema": "public"
@@ -341,6 +357,41 @@
       "enabled": "O"
       "internal": true
       "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a000_business_history_begin":
+      "schema": "public"
+      "relation": "Settlements"
+      "name": "a000_business_history_begin"
+      "definition": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Settlements\" FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION begin_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "begin_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a000_opening_consistency":
+      "schema": "public"
+      "relation": "Settlements"
+      "name": "a000_opening_consistency"
+      "definition": "CREATE TRIGGER a000_opening_consistency BEFORE UPDATE ON \"Settlements\" FOR EACH ROW EXECUTE FUNCTION\
+        \ guard_opening_included_source()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_opening_included_source()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a00_business_delete":
+      "schema": "public"
+      "relation": "Settlements"
+      "name": "a00_business_delete"
+      "definition": "CREATE TRIGGER a00_business_delete BEFORE DELETE ON \"Settlements\" FOR EACH ROW EXECUTE FUNCTION business_source_delete()"
+      "enabled": "O"
+      "internal": false
+      "routine": "business_source_delete()"
       "deferrable": false
       "initially_deferred": false
       "comment": null
@@ -451,6 +502,54 @@
       "routine": "refresh_reversed_settlement_analytics()"
       "deferrable": false
       "initially_deferred": false
+      "comment": null
+    "zzy_r051_opening":
+      "schema": "public"
+      "relation": "Settlements"
+      "name": "zzy_r051_opening"
+      "definition": "CREATE TRIGGER zzy_r051_opening AFTER DELETE OR UPDATE ON \"Settlements\" FOR EACH ROW EXECUTE FUNCTION\
+        \ r051_restate_opening_source('Settlement')"
+      "enabled": "O"
+      "internal": false
+      "routine": "r051_restate_opening_source()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzz_business_history":
+      "schema": "public"
+      "relation": "Settlements"
+      "name": "zzzz_business_history"
+      "definition": "CREATE TRIGGER zzzz_business_history AFTER INSERT OR DELETE OR UPDATE ON \"Settlements\" FOR EACH ROW\
+        \ EXECUTE FUNCTION business_history_refresh('Transfer Date')"
+      "enabled": "O"
+      "internal": false
+      "routine": "business_history_refresh()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzz_business_history_flush":
+      "schema": "public"
+      "relation": "Settlements"
+      "name": "zzzzz_business_history_flush"
+      "definition": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Settlements\" FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Settlements"
+      "name": "zzzzzz_business_history_commit"
+      "definition": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Settlements\"\
+        \ DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": true
+      "initially_deferred": true
       "comment": null
   "policies": {}
   "dependencies": []

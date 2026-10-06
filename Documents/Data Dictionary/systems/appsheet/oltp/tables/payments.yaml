@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -23,18 +23,18 @@
   "source_app": "OLTP"
   "source_table": "Payments"
   "binding":
-    "Are updates allowed?": "ALL_CHANGES"
-    "Column Order List":
-    - "_RowNumber"
-    "Data Source": "database-2"
-    "Partitioned across many files/sources?": "No"
-    "Partitioned across many worksheets?": "No"
-    "Schema": "Payments_Schema"
-    "Shared?": "Yes"
-    "Source Path": "Payments"
-    "Store for image and file capture": "MW Receipt Images PROD"
     "Table name": "Payments"
     "Visible?": "ALWAYS"
+    "Shared?": "Yes"
+    "Schema": "Payments_Schema"
+    "Are updates allowed?": "ADDS_AND_UPDATES"
+    "Source Path": "Payments"
+    "Data Source": "database-2"
+    "Store for image and file capture": "MW Receipt Images PROD"
+    "Column Order List":
+    - "_RowNumber"
+    "Partitioned across many files/sources?": "No"
+    "Partitioned across many worksheets?": "No"
   "schema":
     "Schema Name": "Payments_Schema"
     "Visible?": "ALWAYS"
@@ -52,27 +52,27 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "_RowNumber"
+        "Visible?": "ALWAYS"
         "Description": "Number of this row"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "Yes"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
         "Type": "Number"
         "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
           :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
           :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "Yes"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Row ID":
       "inventory":
         "App": "OLTP"
@@ -86,28 +86,28 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "Row ID"
+        "Visible?": "ALWAYS"
         "Description": "ID of this row"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Initial value": "UNIQUEID(\"PackedUUID\")"
-        "Key": "Yes"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "Yes"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "UNIQUEID(\"PackedUUID\")"
+        "System Defined?": "No"
+        "Key": "Yes"
+        "Part of Key?": "Yes"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Status":
       "inventory":
         "App": "OLTP"
@@ -121,23 +121,9 @@
         "Hidden": "No"
       "rules":
         "Column name": "Status"
+        "Visible?": "ALWAYS"
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"สถานะ\", \"Status\"), \"Status\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "=\"Processing\""
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Enum"
         "Type Qualifier": "{\"EnumValues\":[\"Processing\",\"Posted\",\"Error\"],\"AllowOtherValues\":false,\"AutoCompleteOtherValues\"\
           :true,\"BaseType\":\"Text\",\"BaseTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
@@ -145,8 +131,22 @@
           \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
           \":null}\",\"EnumInputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
           :null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=\"Processing\""
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Ref Borrower":
       "inventory":
         "App": "OLTP"
@@ -160,22 +160,9 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Borrower"
+        "Visible?": "ALWAYS"
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ผู้กู้\", \"Borrower\"), \"Ref Borrower\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -186,10 +173,24 @@
           \ Borrower], [Row ID] <> [_THISROW].[Row ID], IN([Status], LIST(\\\"Processing\\\", \\\"Error\\\"))))) = 0)\",\"\
           Error_Message_If_Invalid\":\"=\\\"ผู้กู้นี้มีรายการรับชำระที่กำลังประมวลผลหรือผิดพลาด กรุณาดำเนินการรายการเดิมให้เสร็จก่อน\
           \ / Finish or retry the existing payment for this borrower before creating another receipt.\\\"\",\"Show_If\":null,\"\
-          Required_If\":\"=NOT(IN([Row ID], Payments[Row ID]))\",\"Editable_If\":\"=AND(NOT(IN([Row ID], Payments[Row ID])),\
-          \ [Allocation Method] <> \\\"Selected Charges\\\")\",\"Reset_If\":null,\"Suggested_Values\":null}"
+          Required_If\":\"=NOT(IN([Row ID], Payments[Row ID]))\",\"Editable_If\":\"=OR(AND(NOT(IN([Row ID], Payments[Row ID])),\
+          \ [Allocation Method] <> \\\"Selected Charges\\\"), IN([Status], LIST(\\\"Posted\\\", \\\"Error\\\")))\",\"Reset_If\"\
+          :null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Borrowers"
         "ReferencedRootTableName": "Borrowers"
@@ -212,6 +213,7 @@
         "Hidden": "No"
       "rules":
         "Column name": "Amount Received"
+        "Visible?": "ALWAYS"
         "Description": "=IF(AND([Allocation Method] = \"Selected Charges\", NOT(IN([Row ID], Payments[Row ID]))), CONCATENATE(\"\
           เลือก / Selected: \", COUNT([Selected Charge IDs]), \" | เงินต้น / Principal: ฿\", SUM([Selected Charge IDs][Principal\
           \ Remaining]), \" | ดอกเบี้ย / Interest: ฿\", SUM([Selected Charge IDs][Interest Remaining]), \" | รวม / Total:\
@@ -219,36 +221,41 @@
           \ Outstanding]))"
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ยอดรับชำระ\", \"Amount Received\"), \"Amount Received\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "=IF([Allocation Method] = \"Selected Charges\", SUM([Selected Charge IDs][Amount Remaining]), \"\
-          \")"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=OR(IN([Row\
-          \ ID], Payments[Row ID]), AND([Allocation Method] = \\\"Loan Close\\\", ISNOTBLANK([Ref Target Loan]), [Ref Target\
-          \ Loan].[Ref Borrowers] = [Ref Borrower], [_THIS] > 0, [_THIS] = ROUND([_THIS])), AND([_THIS] > 0, [_THIS] = ROUND([_THIS]),\
-          \ [_THIS] <= [Eligible Outstanding], IF(IN([Allocation Method], LIST(\\\"Single Full\\\", \\\"Receive All\\\", \\\
-          \"First-day Auto\\\", \\\"Loan Close\\\", \\\"Selected Charges\\\")), [_THIS] = [Eligible Outstanding], TRUE)))\"\
-          ,\"Error_Message_If_Invalid\":\"=\\\"กรอกจำนวนเงินบาทเต็มจำนวนที่มากกว่าศูนย์และไม่เกินยอดค้างที่ชำระได้ วิธีชำระเต็มจำนวนต้องเท่ากับยอดค้าง\
-          \ / Enter a positive whole-baht amount within the eligible outstanding balance. Full-payment methods must equal\
-          \ that balance.\\\"\",\"Show_If\":null,\"Required_If\":\"=NOT(IN([Row ID], Payments[Row ID]))\",\"Editable_If\"\
-          :\"=AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] <> \\\"Selected Charges\\\")\",\"Reset_If\":null,\"\
-          Suggested_Values\":null}"
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=OR(AND(IN([Row\
+          \ ID], Payments[Row ID]), [Ref Borrower] = LOOKUP([Row ID], \\\"Payments\\\", \\\"Row ID\\\", \\\"Ref Borrower\\\
+          \"), [_THIS] = LOOKUP([Row ID], \\\"Payments\\\", \\\"Row ID\\\", \\\"Amount Received\\\"), [Payment Date] = LOOKUP([Row\
+          \ ID], \\\"Payments\\\", \\\"Row ID\\\", \\\"Payment Date\\\"), [Allocation Method] = LOOKUP([Row ID], \\\"Payments\\\
+          \", \\\"Row ID\\\", \\\"Allocation Method\\\"), [Ref Target Charge] = LOOKUP([Row ID], \\\"Payments\\\", \\\"Row\
+          \ ID\\\", \\\"Ref Target Charge\\\"), [Ref Target Loan] = LOOKUP([Row ID], \\\"Payments\\\", \\\"Row ID\\\", \\\"\
+          Ref Target Loan\\\"), TEXT([Selected Charge IDs]) = TEXT(LOOKUP([Row ID], \\\"Payments\\\", \\\"Row ID\\\", \\\"\
+          Selected Charge IDs\\\"))), AND(ISNOTBLANK([_THIS]), [_THIS] > 0, [_THIS] = ROUND([_THIS]), OR(AND(NOT(IN([Row ID],\
+          \ Payments[Row ID])), [Allocation Method] = \\\"Loan Close\\\", ISNOTBLANK([Ref Target Loan]), [Ref Target Loan].[Ref\
+          \ Borrowers] = [Ref Borrower]), AND([_THIS] <= [Eligible Outstanding], IF(IN([Allocation Method], LIST(\\\"Single\
+          \ Full\\\", \\\"Receive All\\\", \\\"First-day Auto\\\", \\\"Loan Close\\\", \\\"Selected Charges\\\")), [_THIS]\
+          \ = [Eligible Outstanding], TRUE)))))\",\"Error_Message_If_Invalid\":\"=\\\"กรอกจำนวนเงินบาทเต็มจำนวนที่มากกว่าศูนย์และไม่เกินยอดค้างที่ชำระได้\
+          \ วิธีชำระเต็มจำนวนต้องเท่ากับยอดค้าง / Enter a positive whole-baht amount within the eligible outstanding balance.\
+          \ Full-payment methods must equal that balance.\\\"\",\"Show_If\":null,\"Required_If\":\"=NOT(IN([Row ID], Payments[Row\
+          \ ID]))\",\"Editable_If\":\"=OR(AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] <> \\\"Selected Charges\\\
+          \"), IN([Status], LIST(\\\"Posted\\\", \\\"Error\\\")))\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=IF([Allocation Method] = \"Selected Charges\", SUM([Selected Charge IDs][Amount Remaining]), \"\
+          \")"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Payment Method":
       "inventory":
         "App": "OLTP"
@@ -262,33 +269,33 @@
         "Hidden": "No"
       "rules":
         "Column name": "Payment Method"
+        "Visible?": "ALWAYS"
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"วิธีรับชำระ\", \"Payment Method\"), \"Payment Method\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "=\"Bank Transfer\""
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Enum"
         "Type Qualifier": "{\"EnumValues\":[\"Bank Transfer\",\"Cash\",\"Net-off at Disbursement\"],\"AllowOtherValues\":false,\"\
           AutoCompleteOtherValues\":true,\"BaseType\":\"Text\",\"BaseTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\
           \":null,\\\"LongTextFormatting\\\":\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"\
           Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\
           \":null,\\\"Suggested_Values\\\":null}\",\"EnumInputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
-          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=NOT(IN([Row ID], Payments[Row ID]))\",\"Reset_If\"\
-          :null,\"Suggested_Values\":null}"
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=OR(NOT(IN([Row ID], Payments[Row ID])), IN([Status],\
+          \ LIST(\\\"Posted\\\", \\\"Error\\\")))\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=\"Bank Transfer\""
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Allocation Method":
       "inventory":
         "App": "OLTP"
@@ -302,24 +309,10 @@
         "Hidden": "No"
       "rules":
         "Column name": "Allocation Method"
+        "Visible?": "ALWAYS"
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"วิธีจัดสรร\", \"Allocation Method\"), \"Allocation Method\"\
           )"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "=\"Lump Sum\""
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Enum"
         "Type Qualifier": "{\"EnumValues\":[\"Single Full\",\"Single Partial\",\"Receive All\",\"Lump Sum\",\"First-day Auto\"\
           ,\"Loan Close\",\"Selected Charges\"],\"AllowOtherValues\":false,\"AutoCompleteOtherValues\":true,\"BaseType\":\"\
@@ -328,8 +321,22 @@
           \":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\"\
           ,\"EnumInputMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
           :null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=\"Lump Sum\""
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Bank Reference":
       "inventory":
         "App": "OLTP"
@@ -343,30 +350,30 @@
         "Hidden": "No"
       "rules":
         "Column name": "Bank Reference"
+        "Visible?": "ALWAYS"
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"เลขอ้างอิงธนาคาร\", \"Bank Reference\"), \"Bank Reference\"\
           )"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :\"=OR(NOT(IN([Row ID], Payments[Row ID])), [Status] <> \\\"Processing\\\")\",\"Reset_If\":null,\"Suggested_Values\"\
           :null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Notes":
       "inventory":
         "App": "OLTP"
@@ -380,37 +387,30 @@
         "Hidden": "No"
       "rules":
         "Column name": "Notes"
-        "Description": "=\"เมื่อแก้บัญชีหรือผู้รับเงินของรายการ Posted ให้เก็บข้อความเดิมและต่อท้ายเหตุผล / For a Posted payment\
-          \ account or cash-holder correction, keep the existing note and append the reason.\""
+        "Visible?": "ALWAYS"
+        "Description": "=\"หมายเหตุเพิ่มเติม (ไม่บังคับ) / Optional note.\""
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"หมายเหตุ\", \"Notes\"), \"Notes\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "LongText"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
-          :false,\"Valid_If\":\"=OR(NOT(AND(IN([Row ID], Payments[Row ID]), [Status] = \\\"Posted\\\", OR([Ref Received By\
-          \ Cash Account] <> [_THISROW_BEFORE].[Ref Received By Cash Account], [Ref Received By Cash Holder] <> [_THISROW_BEFORE].[Ref\
-          \ Received By Cash Holder]))), AND(ISNOTBLANK([_THIS]), [_THIS] <> [_THISROW_BEFORE].[Notes], OR(ISBLANK([_THISROW_BEFORE].[Notes]),\
-          \ STARTSWITH([_THIS], [_THISROW_BEFORE].[Notes]))))\",\"Error_Message_If_Invalid\":\"=\\\"รายการ Posted ที่แก้บัญชีหรือผู้รับเงินต้องเก็บข้อความเดิมและต่อท้ายเหตุผล\
-          \ / When changing the account or cash holder on a Posted payment, keep the existing note and append the reason.\\\
-          \"\",\"Show_If\":null,\"Required_If\":\"=AND(IN([Row ID], Payments[Row ID]), [Status] = \\\"Posted\\\", OR([Ref\
-          \ Received By Cash Account] <> [_THISROW_BEFORE].[Ref Received By Cash Account], [Ref Received By Cash Holder] <>\
-          \ [_THISROW_BEFORE].[Ref Received By Cash Holder]))\",\"Editable_If\":\"=OR(NOT(IN([Row ID], Payments[Row ID])),\
-          \ [Status] <> \\\"Processing\\\")\",\"Reset_If\":null,\"Suggested_Values\":null}"
+          :false,\"Valid_If\":\"=TRUE\",\"Error_Message_If_Invalid\":\"=\\\"\\\"\",\"Show_If\":null,\"Required_If\":\"=FALSE\"\
+          ,\"Editable_If\":\"=OR(NOT(IN([Row ID], Payments[Row ID])), [Status] <> \\\"Processing\\\")\",\"Reset_If\":null,\"\
+          Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Created By":
       "inventory":
         "App": "OLTP"
@@ -424,26 +424,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Created By"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "=USEREMAIL()"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Email"
         "Type Qualifier": "{\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=USEREMAIL()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Payment Date":
       "inventory":
         "App": "OLTP"
@@ -457,30 +457,30 @@
         "Hidden": "No"
       "rules":
         "Column name": "Payment Date"
+        "Visible?": "ALWAYS"
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"วันที่รับชำระ\", \"Payment Date\"), \"Payment Date\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "TODAY()"
-        "Key": "No"
-        "Label": "Yes"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Date"
         "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":\"=[_THIS] <= TODAY()\",\"Error_Message_If_Invalid\"\
           :\"=\\\"วันที่รับชำระต้องไม่เกินวันนี้ / Payment date must be today or earlier.\\\"\",\"Show_If\":null,\"Required_If\"\
-          :\"=NOT(IN([Row ID], Payments[Row ID]))\",\"Editable_If\":\"=NOT(IN([Row ID], Payments[Row ID]))\",\"Reset_If\"\
-          :null,\"Suggested_Values\":null}"
+          :\"=NOT(IN([Row ID], Payments[Row ID]))\",\"Editable_If\":\"=OR(NOT(IN([Row ID], Payments[Row ID])), IN([Status],\
+          \ LIST(\\\"Posted\\\", \\\"Error\\\")))\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "Yes"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "TODAY()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Created At":
       "inventory":
         "App": "OLTP"
@@ -494,27 +494,27 @@
         "Hidden": "No"
       "rules":
         "Column name": "Created At"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "=NOW()"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
           :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=FALSE\",\"Reset_If\"\
           :null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=NOW()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Processed At":
       "inventory":
         "App": "OLTP"
@@ -528,26 +528,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Processed At"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
           :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=FALSE\",\"Reset_If\"\
           :null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Ref Target Charge":
       "inventory":
         "App": "OLTP"
@@ -561,20 +561,7 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Target Charge"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Charges\",\"ReferencedRootTableName\":\"Charges\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -586,10 +573,23 @@
           ,\"Error_Message_If_Invalid\":null,\"Show_If\":\"=IN([Allocation Method], LIST(\\\"Single Full\\\", \\\"Single Partial\\\
           \", \\\"First-day Auto\\\", \\\"Loan Close\\\"))\",\"Required_If\":\"=OR(IN([Allocation Method], LIST(\\\"Single\
           \ Full\\\", \\\"Single Partial\\\", \\\"First-day Auto\\\")), AND([Allocation Method] = \\\"Loan Close\\\", ISBLANK([Ref\
-          \ Target Loan])))\",\"Editable_If\":\"=NOT(IN([Row ID], Payments[Row ID]))\",\"Reset_If\":null,\"Suggested_Values\"\
-          :null}"
+          \ Target Loan])))\",\"Editable_If\":\"=OR(NOT(IN([Row ID], Payments[Row ID])), IN([Status], LIST(\\\"Posted\\\"\
+          , \\\"Error\\\")))\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Charges"
         "ReferencedRootTableName": "Charges"
@@ -612,31 +612,34 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Target Loan"
+        "Visible?": "ALWAYS"
         "Display name": "=\"เงินกู้ที่ปิดยอด / Closing Loan\""
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\":\"\
           Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\
           \"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"\
           Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\"\
           :null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=FALSE\"\
-          ,\"Reset_If\":null,\"Suggested_Values\":null}"
+          ,\"Valid_If\":\"=SELECT(Loans[Row ID], AND([Ref Borrowers] = [_THISROW].[Ref Borrower], OR([Row ID] = [_THISROW].[Ref\
+          \ Target Loan], AND([Loan Status] = \\\"ยังไม่ปิดยอด\\\", [Loan Type] = \\\"ดอกเบี้ยรายวัน\\\", [Auto Charge Enabled],\
+          \ NOT([Defaulted])))))\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=[Allocation Method] = \\\"Loan Close\\\
+          \"\",\"Required_If\":null,\"Editable_If\":\"=AND(IN([Status], LIST(\\\"Posted\\\", \\\"Error\\\")), [Allocation\
+          \ Method] = \\\"Loan Close\\\")\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Loans"
         "ReferencedRootTableName": "Loans"
@@ -659,26 +662,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Planned Allocation Amount"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
           :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
           :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Posted Amount":
       "inventory":
         "App": "OLTP"
@@ -692,26 +695,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Posted Amount"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
           :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
           :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Ref Received By Cash Holder":
       "inventory":
         "App": "OLTP"
@@ -725,25 +728,10 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Received By Cash Holder"
+        "Visible?": "ALWAYS"
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"ผู้รับเงิน\", \"Received By\"), \"ผู้รับเงิน / Received By\"\
           )"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "=IF(ISNOTBLANK([Ref Received By Cash Account]), [Ref Received By Cash Account].[Ref Cash Holder],\
-          \ LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Ref Received By Cash Holder\"))"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "Yes"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -753,8 +741,23 @@
           ,\"Valid_If\":\"=Cash Holders[Row ID]\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":\"=OR(NOT(IN([Row\
           \ ID], Payments[Row ID])), ISNOTBLANK(LOOKUP([Row ID], \\\"Payments\\\", \\\"Row ID\\\", \\\"Ref Received By Cash\
           \ Holder\\\")))\",\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "Yes"
+        "Initial value": "=IF(ISNOTBLANK([Ref Received By Cash Account]), [Ref Received By Cash Account].[Ref Cash Holder],\
+          \ LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Ref Received By Cash Holder\"))"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Cash Holders"
         "ReferencedRootTableName": "Cash Holders"
@@ -777,31 +780,11 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Received By Cash Account"
-        "Description": "=IF(IN([Row ID], Payments[Row ID]), \"รับเข้าบัญชี / Received Into — append the correction reason\
-          \ to Notes\", \"รับเข้าบัญชี / Received Into\")"
+        "Visible?": "ALWAYS"
+        "Description": "=\"รับเข้าบัญชี / Received Into\""
         "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
           \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รับเข้าบัญชี\", \"Received Into\"), \"รับเข้าบัญชี / Received\
           \ Into\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "=IF([Allocation Method] = \"First-day Auto\", IF(ISNOTBLANK([Ref Target Charge].[Ref Loans].[Ref\
-          \ Disbursed From Cash Account]), [Ref Target Charge].[Ref Loans].[Ref Disbursed From Cash Account], ANY(SELECT(Cash\
-          \ Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = \"ch:lisa\")))), IF(AND(ISNOTBLANK([Ref\
-          \ Borrower].[Ref Preferred Receiving Cash Account]), [Ref Borrower].[Ref Preferred Receiving Cash Account].[Active]),\
-          \ [Ref Borrower].[Ref Preferred Receiving Cash Account], ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default\
-          \ Account], [Ref Cash Holder] = \"ch:dad\")))))"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -813,8 +796,27 @@
           ,\"Show_If\":null,\"Required_If\":\"=NOT(IN([Row ID], Payments[Row ID]))\",\"Editable_If\":\"=AND([Allocation Method]\
           \ <> \\\"First-day Auto\\\", OR(NOT(IN([Row ID], Payments[Row ID])), [Status] = \\\"Posted\\\"))\",\"Reset_If\"\
           :null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=IF([Allocation Method] = \"First-day Auto\", IF(ISNOTBLANK([Ref Target Charge].[Ref Loans].[Ref\
+          \ Disbursed From Cash Account]), [Ref Target Charge].[Ref Loans].[Ref Disbursed From Cash Account], ANY(SELECT(Cash\
+          \ Accounts[Row ID], AND([Active], [Default Account], [Ref Cash Holder] = \"ch:lisa\")))), IF(AND(ISNOTBLANK([Ref\
+          \ Borrower].[Ref Preferred Receiving Cash Account]), [Ref Borrower].[Ref Preferred Receiving Cash Account].[Active]),\
+          \ [Ref Borrower].[Ref Preferred Receiving Cash Account], ANY(SELECT(Cash Accounts[Row ID], AND([Active], [Default\
+          \ Account], [Ref Cash Holder] = \"ch:dad\")))))"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Cash Accounts"
         "ReferencedRootTableName": "Cash Accounts"
@@ -824,412 +826,6 @@
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "ReferencedKeyColumn": "Row ID"
         "IsAPartOf": false
-    "Related Payment Allocations":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Related Payment Allocations"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-      "rules":
-        "App formula": "REF_ROWS(\"Payment Allocations\", \"Ref Payment\")"
-        "Column name": "Related Payment Allocations"
-        "Description": "Payment Allocations entries that reference this entry in the Ref Payment column"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "NFC Scannable": "No"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payment Allocations\\\
-          \",\\\"ReferencedRootTableName\\\":\\\"Payment Allocations\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
-          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
-          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
-          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
-          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
-          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
-          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Related Repayments":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Related Repayments"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "REF_ROWS(\"Repayments\", \"Ref Payment\")"
-        "Column name": "Related Repayments"
-        "Description": "Repayments entries that reference this entry in the Ref Payment column"
-        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
-          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รายการชำระคืน\", \"Repayments\"), \"Related Repayments\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "NFC Scannable": "No"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Repayments\\\
-          \",\\\"ReferencedRootTableName\\\":\\\"Repayments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
-          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
-          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
-          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
-          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
-          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
-          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Eligible Charges":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Eligible Charges"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-      "rules":
-        "App formula": "=IF(IN([Status], LIST(\"Processing\", \"Error\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers]\
-          \ = [_THISROW].[Ref Borrower], [Amount Remaining] > 0, IFS(IN([_THISROW].[Allocation Method], LIST(\"Single Full\"\
-          , \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge], [_THISROW].[Allocation Method]\
-          \ = \"Loan Close\", [Ref Loans] = [_THISROW].[Ref Target Charge].[Ref Loans], IN([_THISROW].[Allocation Method],\
-          \ LIST(\"Receive All\", \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], [_THISROW].[Allocation Method]\
-          \ = \"Selected Charges\", AND(IN([Row ID], [_THISROW].[Selected Charge IDs]), [Charge Date] <= [_THISROW].[Payment\
-          \ Date]), TRUE, FALSE))), LIST())"
-        "Column name": "Eligible Charges"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Charges\\\"\
-          ,\\\"ReferencedRootTableName\\\":\\\"Charges\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
-          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
-          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
-          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
-          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
-          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
-          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Eligible Outstanding":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Eligible Outstanding"
-        "Type": "Price"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "Yes"
-      "rules":
-        "App formula": "=IF(IN([Status], LIST(\"Processing\", \"Error\")), SUM([Eligible Charges][Amount Remaining]), 0)"
-        "Column name": "Eligible Outstanding"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
-        "Type": "Price"
-        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
-          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Allocation Difference":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Allocation Difference"
-        "Type": "Price"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "=[Amount Received] - [Planned Allocation Amount]"
-        "Column name": "Allocation Difference"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
-        "Type": "Price"
-        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
-          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Posting Difference":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Posting Difference"
-        "Type": "Price"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "=[Amount Received] - [Posted Amount]"
-        "Column name": "Posting Difference"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
-        "Type": "Price"
-        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
-          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Visible Allocations":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Visible Allocations"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "=SELECT([Related Payment Allocations][Row ID], [Allocated Amount] > 0)"
-        "Column name": "Visible Allocations"
-        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
-          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รายการจัดสรร\", \"Allocations\"), \"รายการจัดสรร / Allocations\"\
-          )"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payment Allocations\\\
-          \",\\\"ReferencedRootTableName\\\":\\\"Payment Allocations\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
-          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
-          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
-          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
-          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
-          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
-          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Related Loans":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Related Loans"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")"
-        "Column name": "Related Loans"
-        "Description": "Loans entries that reference this entry in the Ref Closing Payment column"
-        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
-          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"สินเชื่อที่เกี่ยวข้อง\", \"Related Loans\"), \"Related Loans\"\
-          )"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "NFC Scannable": "No"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Loans\\\"\
-          ,\\\"ReferencedRootTableName\\\":\\\"Loans\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
-          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
-          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
-          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
-          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
-          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
-          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Payment Month":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Payment Month"
-        "Type": "Text"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "=TEXT([Payment Date], \"YYYY-MM\")"
-        "Column name": "Payment Month"
-        "Display name": "=\"เดือนที่ชำระ / Payment Month\""
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
-        "Type": "Text"
-        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
-          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
-          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Related Cash Account Statement Recents":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Related Cash Account Statement Recents"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "REF_ROWS(\"Cash Account Statement Recent\", \"Ref Payment\")"
-        "Column name": "Related Cash Account Statement Recents"
-        "Description": "Cash Account Statement Recent entries that reference this entry in the Ref Payment column"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "NFC Scannable": "No"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Account\
-          \ Statement Recent\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Account Statement Recent\\\",\\\"ReferencedType\\\
-          \":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\
-          \\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
-          \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\
-          \":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\"\
-          ,\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\
-          \":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\
-          \":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \"\
-          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
-          Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
     "IG Receipt ID":
       "inventory":
         "App": "OLTP"
@@ -1243,61 +839,26 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "IG Receipt ID"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "No"
-        "Visible?": "ALWAYS"
-    "Receipt Display At":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Receipt Display At"
-        "Type": "DateTime"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "=IF(ISNOTBLANK([Uploaded Receipt]), [Uploaded Receipt At], [Receipt Received At])"
-        "Column name": "Receipt Display At"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
         "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
         "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
         "System Defined?": "No"
-        "Type": "DateTime"
-        "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
-          :null,\"Error_Message_If_Invalid\":null,\"Show_If\":\"=AND(CONTEXT(\\\"ViewType\\\") <> \\\"form\\\", OR(ISNOTBLANK([Uploaded\
-          \ Receipt]), ISNOTBLANK([Receipt Image])))\",\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
-          :null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Receipt Image":
       "inventory":
         "App": "OLTP"
@@ -1311,63 +872,28 @@
         "Hidden": "No"
       "rules":
         "Column name": "Receipt Image"
+        "Visible?": "ALWAYS"
         "Display name": "=IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
           \ = \"ไทย\", \"รูปหลักฐานการชำระเงิน\", \"Receipt Image\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "Yes"
-        "System Defined?": "No"
         "Type": "Image"
         "Type Qualifier": "{\"AllowDrawing\":false,\"FolderLocation\":null,\"Valid_If\":null,\"Error_Message_If_Invalid\"\
           :null,\"Show_If\":\"=AND(CONTEXT(\\\"ViewType\\\") <> \\\"form\\\", ISNOTBLANK([Receipt Image]))\",\"Required_If\"\
           :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "No"
-        "Visible?": "ALWAYS"
-    "Receipt Preview":
-      "inventory":
-        "App": "OLTP"
-        "Table": "Payments"
-        "Column": "Receipt Preview"
-        "Type": "Image"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "Yes"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "=IF(ISNOTBLANK([Uploaded Receipt]), [Uploaded Receipt], [Receipt Image])"
-        "Column name": "Receipt Preview"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "Yes"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
         "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
         "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "Yes"
         "System Defined?": "No"
-        "Type": "Image"
-        "Type Qualifier": "{\"AllowDrawing\":false,\"FolderLocation\":\"=\\\"manual-receipts/prod\\\"\",\"Valid_If\":null,\"\
-          Error_Message_If_Invalid\":null,\"Show_If\":\"=AND(CONTEXT(\\\"ViewType\\\") <> \\\"form\\\", OR(ISNOTBLANK([Uploaded\
-          \ Receipt]), ISNOTBLANK([Receipt Image])))\",\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
-          :null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "Yes"
     "Receipt Received At":
       "inventory":
         "App": "OLTP"
@@ -1381,28 +907,28 @@
         "Hidden": "No"
       "rules":
         "Column name": "Receipt Received At"
+        "Visible?": "ALWAYS"
         "Display name": "=IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login Email])) = LOWER(TRIM(USEREMAIL()))))\
           \ = \"ไทย\", \"เวลารับหลักฐาน\", \"Receipt Received At\")"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
           :null,\"Error_Message_If_Invalid\":null,\"Show_If\":\"=AND(CONTEXT(\\\"ViewType\\\") <> \\\"form\\\", ISNOTBLANK([Receipt\
           \ Image]))\",\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Selected Charge IDs":
       "inventory":
         "App": "OLTP"
@@ -1416,22 +942,9 @@
         "Hidden": "No"
       "rules":
         "Column name": "Selected Charge IDs"
+        "Visible?": "ALWAYS"
         "Description": "=\"ชำระยอดคงเหลือเต็มจำนวนของแต่ละรายการที่เลือก / Fully settle only the selected remaining balances.\""
         "Display name": "=\"รายการที่เลือก / Selected Charges\""
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "EnumList"
         "Type Qualifier": "{\"ItemSeparator\":\" , \",\"EnumValues\":[],\"AllowOtherValues\":true,\"AutoCompleteOtherValues\"\
           :false,\"BaseType\":\"Ref\",\"BaseTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Charges\\\",\\\"ReferencedRootTableName\\\
@@ -1442,15 +955,28 @@
           :null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\
           \"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\"\
           :null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"EnumInputMode\":\"Dropdown\",\"Valid_If\":\"=IF(IN([Row ID], Payments[Row ID]), [Selected Charge IDs],\
-          \ ORDERBY(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], [Charge Date] <=\
-          \ [_THISROW].[Payment Date], [Amount Remaining] > 0)), [Charge Date], FALSE, [Row ID], FALSE))\",\"Error_Message_If_Invalid\"\
+          \":null}\",\"EnumInputMode\":\"Dropdown\",\"Valid_If\":\"=ORDERBY(SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers]\
+          \ = [_THISROW].[Ref Borrower], [Charge Date] <= [_THISROW].[Payment Date], OR([Amount Remaining] > 0, IN([_THISROW].[Row\
+          \ ID], [Related Payment Allocations][Ref Payment])))), [Charge Date], FALSE, [Row ID], FALSE)\",\"Error_Message_If_Invalid\"\
           :\"=\\\"เลือกรายการค้างชำระของผู้กู้รายนี้เท่านั้น / Select only this borrower’s outstanding charges dated on or\
           \ before the payment date.\\\"\",\"Show_If\":\"=[Allocation Method] = \\\"Selected Charges\\\"\",\"Required_If\"\
-          :\"=[Allocation Method] = \\\"Selected Charges\\\"\",\"Editable_If\":\"=NOT(IN([Row ID], Payments[Row ID]))\",\"\
-          Reset_If\":null,\"Suggested_Values\":null}"
+          :\"=[Allocation Method] = \\\"Selected Charges\\\"\",\"Editable_If\":\"=OR(NOT(IN([Row ID], Payments[Row ID])),\
+          \ IN([Status], LIST(\\\"Posted\\\", \\\"Error\\\")))\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Uploaded Receipt":
       "inventory":
         "App": "OLTP"
@@ -1464,28 +990,28 @@
         "Hidden": "No"
       "rules":
         "Column name": "Uploaded Receipt"
+        "Visible?": "ALWAYS"
         "Description": "=\"แนบรูปใบเสร็จ (ไม่บังคับ) / Optional receipt picture.\""
         "Display name": "=\"รูปใบเสร็จ / Upload Receipt\""
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "Yes"
-        "System Defined?": "No"
         "Type": "Image"
         "Type Qualifier": "{\"AllowDrawing\":false,\"FolderLocation\":\"=\\\"manual-receipts/prod\\\"\",\"Valid_If\":null,\"\
           Error_Message_If_Invalid\":null,\"Show_If\":\"=OR(CONTEXT(\\\"ViewType\\\") = \\\"form\\\", ISNOTBLANK([Uploaded\
           \ Receipt]))\",\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "Yes"
     "Uploaded Receipt At":
       "inventory":
         "App": "OLTP"
@@ -1499,407 +1025,588 @@
         "Hidden": "No"
       "rules":
         "Column name": "Uploaded Receipt At"
+        "Visible?": "ALWAYS"
         "Display name": "=\"เวลาอัปโหลดใบเสร็จ / Receipt Uploaded At\""
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
           :null,\"Error_Message_If_Invalid\":null,\"Show_If\":\"=AND(CONTEXT(\\\"ViewType\\\") <> \\\"form\\\", ISNOTBLANK([Uploaded\
           \ Receipt]))\",\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Delete Requested":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Delete Requested"
+        "Type": "Yes/No"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Delete Requested"
         "Visible?": "ALWAYS"
-  "editor":
-    "fields":
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Payments"
-      "label": "Table name"
-      "text": |-
-        Table name
-        Name for this table (user-visible)
-        ​
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Updates"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Adds"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Deletes"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Read-Only"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "science"
-      "controls": []
-      "label": "Are updates allowed?"
-      "text": |-
-        Are updates allowed?
-        Are adds, deletes and updates allowed?
-        Updates
-        Adds
-        Deletes
-        Read-Only
-        science
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Payments"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "7"
-      "label": "Source Path"
-      "text": |-
-        Source Path
-        A user-understandable path to the table data
-        - select a source -
-        Borrowers
-        Loans
-        Repayments
-        Statistics
-        Charges
-        Partners
-        Payment Allocations
-        Payments
-        Business Expenses
-        Loan Form Context
-        Cash Holders
-        Cash Holder Balances
-        Cash Accounts
-        Cash Statement Context
-        Cash Account Daily Summary Recent
-        Cash Account Statement Recent
-        Cash Account Balances
-        Cash Dashboard
-        - browse for more data -
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Add"
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "_RowNumber"
-      "label": "Column Order List"
-      "text": |-
-        Column Order List
-        The order of columns to retrieve from the provider (only applies to some storage providers)
-        drag_indicator
-        _RowNumber
-        ​
-        Add
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Copy Data to New Source"
-      "controls": []
-      "label": "Data Source"
-      "text": |-
-        Data Source
-        Name of the table data source
-        database-2
-        Copy Data to New Source
-    - "choices": []
-      "controls": []
-      "label": "Source Id"
-      "text": |-
-        Source Id
-        A provider-specific path to the table data (not user-visible)
-        Table=public.Payments__Payments
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Default"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "_Default"
-      "label": "Store for image and file capture"
-      "text": |-
-        Store for image and file capture
-        By default, images and files captured by the app are stored in the cloud file system associated with the app owner's account. You can explicitly add an object store and use it instead.
-        Default
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      "label": "Filter out all existing rows?"
-      "text": |-
-        Filter out all existing rows?
-        Used only in forms apps that collect new data rows but never show any pre-existing rows.
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": ""
-      "label": "Security filter"
-      "text": |-
-        Security filter
-        The app uses only those rows that match this (optional) filter condition. Use this filter to limit what each user can see.
-        =
-        science
-        ​
-    - "choices":
-      - "checked": "true"
-        "pressed": null
-        "role": "radio"
-        "text": "as app creator"
-      - "checked": "false"
-        "pressed": null
-        "role": "radio"
-        "text": "as app user"
-      "controls": []
-      "label": "Access mode"
-      "text": |-
-        Access mode
-        The app will access the spreadsheet using the app creator or app user credentials.
-        as app creator
-        as app user
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": true
-      "label": "Shared?"
-      "text": |-
-        Shared?
-        Is this table shared by all users? This option is normally checked. Before unchecking, carefully review 'Private Tables' in the documentation.
-    - "choices": []
-      "controls":
-      - "selected":
-        - ""
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": ""
-      "label": "Data locale"
-      "text": |-
-        Data locale
-        Locale used to read the table
-        Compatibility (For backward compatibility)
-        Amharic (Ethiopia)
-        Arabic (Algeria)
-        Arabic (Bahrain)
-        Arabic (Egypt)
-        Arabic (Iraq)
-        Arabic (Jordan)
-        Arabic (Kuwait)
-        Arabic (Lebanon)
-        Arabic (Libya)
-        Arabic (Morocco)
-        Arabic (Oman)
-        Arabic (Qatar)
-        Arabic (Saudi Arabia)
-        Arabic (Syria)
-        Arabic (Tunisia)
-        Arabic (United Arab Emirates)
-        Arabic (Yemen)
-        Armenian (Armenia)
-        Azerbaijani (Cyrillic, Azerbaijan)
-        Azerbaijani (Latin, Azerbaijan)
-        Bengali (India)
-        Bulgarian (Bulgaria)
-        Burmese (Myanmar)
-        Catalan (Catalan)
-        Chinese (Simplified, China)
-        Chinese (Traditional, Hong Kong SAR)
-        Chinese (Traditional, Taiwan)
-        Chinese Traditional (Malaysia)
-        Croatian (Croatia)
-        Czech (Czechia)
-        Danish (Denmark)
-        Dari (Afghanistan)
-        Dutch (Aruba)
-        Dutch (Belgium)
-        Dutch (Curaçao)
-        Dutch (Netherlands)
-        English (Australia)
-        English (Bahrain)
-        English (Belgium)
-        English (Brazil)
-        English (Canada)
-        English (Germany)
-        English (Hong Kong SAR)
-        English (India)
-        English (Ireland)
-        English (Kenya)
-        English (Malaysia)
-        English (New Zealand)
-        English (Norway)
-        English (Philippines)
-        English (Singapore)
-        English (South Africa)
-        English (Sri Lanka)
-        English (Tanzania)
-        English (United Kingdom)
-        English (United States)
-        Filipino (Philippines)
-        Finnish (Finland)
-        French (Belgium)
-        French (Cameroon)
-        French (Canada)
-        French (Côte d’Ivoire)
-        French (France)
-        French (Luxembourg)
-        French (Mali)
-        French (Morocco)
-        French (Senegal)
-        French (Switzerland)
-        French Congo (DRC)
-        Fulah (Latin, Senegal)
-        Georgian (Georgia)
-        German (Austria)
-        German (Germany)
-        German (Liechtenstein)
-        German (Luxembourg)
-        German (Switzerland)
-        Greek (Greece)
-        Gujarati (India)
-        Hausa (Latin, Nigeria)
-        Hebrew (Israel)
-        Hindi (India)
-        Hungarian (Hungary)
-        Igbo (Nigeria)
-        Indonesian (Indonesia)
-        Irish (Ireland)
-        Italian (Italy)
-        Italian (Switzerland)
-        Japanese (Japan)
-        Kannada (India)
-        Kinyarwanda (Rwanda)
-        Kiswahili (Kenya)
-        Kiswahili (Tanzania)
-        Korean (Korea)
-        Latvian (Latvia)
-        Lingala (Angola)
-        Lithuanian (Lithuania)
-        Malay (Brunei)
-        Malay (Malaysia)
-        Malayalam (India)
-        Marathi (India)
-        Mongolian (Mongolia)
-        Norwegian Bokmål (Norway)
-        Norwegian Nynorsk (Norway)
-        Oromo (Ethiopia)
-        Pashto (Afghanistan)
-        Persian (Iran)
-        Polish (Poland)
-        Portuguese (Angola)
-        Portuguese (Brazil)
-        Portuguese (Mozambique)
-        Portuguese (Portugal)
-        Romanian (Romania)
-        Russian (Russia)
-        Serbian (Cyrillic, Serbia)
-        Serbian (Latin, Serbia)
-        Serbian (Serbia)
-        Setswana (Botswana)
-        Sinhala (Sri Lanka)
-        Slovak (Slovakia)
-        Slovenian (Slovenia)
-        Spanish (Argentina)
-        Spanish (Bolivia)
-        Spanish (Chile)
-        Spanish (Colombia)
-        Spanish (Costa Rica)
-        Spanish (Dominican Republic)
-        Spanish (Ecuador)
-        Spanish (El Salvador)
-        Spanish (Guatemala)
-        Spanish (Honduras)
-        Spanish (Latin America)
-        Spanish (Latin America)
-        Spanish (Mexico)
-        Spanish (Nicaragua)
-        Spanish (Panama)
-        Spanish (Paraguay)
-        Spanish (Peru)
-        Spanish (Spain, International Sort)
-        Spanish (United States)
-        Spanish (Uruguay)
-        Spanish (Venezuela)
-        Swedish (Sweden)
-        Tamil (India)
-        Tamil (Sri Lanka)
-        Telugu (India)
-        Thai (Thailand)
-        Tigrinya (Ethiopia)
-        Turkish (Turkey)
-        Ukrainian (Ukraine)
-        Vietnamese (Vietnam)
-        Yoruba (Nigeria)
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": ""
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": "x"
-      "label": "Descriptive comment"
-      "text": |-
-        Descriptive comment
-        Comments help you and your collaborators better record and understand the structure of the app
-    "update_permissions_snapshot": |2-
-
-        - heading "Table settings" [level=5]
-        - button "close":
-        - heading "Table name" [level=6]
-        - text: Name for this table (user-visible)
-        - textbox: Payments
-        - heading "Are updates allowed?" [level=6]
-        - text: Are adds, deletes and updates allowed?
-        - button " Updates":
-          - text: 
-          - generic: Updates
-        - button " Adds":
-          - text: 
-          - generic: Adds
-        - button " Deletes":
-          - text: 
-          - generic: Deletes
-        - button "Read-Only"
-        - button "science"
-        - heading "Storage" [level=3]
-        - generic: 
-        - heading "Source Path" [level=6]
-        - text: A user-understandable path to the table data
-        - combobox "Select an option":
-          - option "- select a source -"
+        "Type": "Yes/No"
+        "Type Qualifier": "{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :\"=FALSE\",\"Required_If\":null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=FALSE"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Related Payment Allocations":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Related Payment Allocations"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Related Payment Allocations"
+        "Visible?": "ALWAYS"
+        "Description": "Payment Allocations entries that reference this entry in the Ref Payment column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payment Allocations\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Payment Allocations\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=REF_ROWS(\"Payment Allocations\", \"Ref Payment\")"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+    "Related Repayments":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Related Repayments"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Repayments"
+        "Visible?": "ALWAYS"
+        "Description": "Repayments entries that reference this entry in the Ref Payment column"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รายการชำระคืน\", \"Repayments\"), \"Related Repayments\")"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Repayments\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Repayments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=REF_ROWS(\"Repayments\", \"Ref Payment\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+    "Eligible Charges":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Eligible Charges"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Eligible Charges"
+        "Visible?": "ALWAYS"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Charges\\\"\
+          ,\\\"ReferencedRootTableName\\\":\\\"Charges\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=IF(AND(CONTEXT(\"Host\") = \"Server\", [Status] = \"Posted\"), LIST(), IF(IN([Status], LIST(\"Processing\"\
+          , \"Error\", \"Posted\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower],\
+          \ OR([Amount Remaining] > 0, IN([_THISROW].[Row ID], [Related Payment Allocations][Ref Payment])), IFS(IN([_THISROW].[Allocation\
+          \ Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge],\
+          \ [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = IF(ISNOTBLANK([_THISROW].[Ref Target Loan]), [_THISROW].[Ref\
+          \ Target Loan], [_THISROW].[Ref Target Charge].[Ref Loans]), IN([_THISROW].[Allocation Method], LIST(\"Receive All\"\
+          , \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], [_THISROW].[Allocation Method] = \"Selected Charges\"\
+          , AND(IN([Row ID], [_THISROW].[Selected Charge IDs]), [Charge Date] <= [_THISROW].[Payment Date]), TRUE, FALSE))),\
+          \ LIST()))"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Eligible Outstanding":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Eligible Outstanding"
+        "Type": "Price"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "Yes"
+      "rules":
+        "Column name": "Eligible Outstanding"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=IF(AND(CONTEXT(\"Host\") = \"Server\", [Status] = \"Posted\"), 0, SUM([Eligible Charges][Amount Remaining])\
+          \ + SUM(SELECT(Payment Allocations[Allocated Amount], AND([Ref Payment] = [_THISROW].[Row ID], IN([Ref Charge],\
+          \ [_THISROW].[Eligible Charges])))))"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Allocation Difference":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Allocation Difference"
+        "Type": "Price"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Allocation Difference"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=[Amount Received] - [Planned Allocation Amount]"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Posting Difference":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Posting Difference"
+        "Type": "Price"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Posting Difference"
+        "Visible?": "ALWAYS"
+        "Type": "Price"
+        "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
+          :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=[Amount Received] - [Posted Amount]"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Visible Allocations":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Visible Allocations"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Visible Allocations"
+        "Visible?": "ALWAYS"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"รายการจัดสรร\", \"Allocations\"), \"รายการจัดสรร / Allocations\"\
+          )"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payment Allocations\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Payment Allocations\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=SELECT([Related Payment Allocations][Row ID], [Allocated Amount] > 0)"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Related Loans":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Related Loans"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Loans"
+        "Visible?": "ALWAYS"
+        "Description": "Loans entries that reference this entry in the Ref Closing Payment column"
+        "Display name": "=IF(CONTEXT(\"View\") = \"Payments_Detail\", IF(ANY(SELECT(Partners[Language Preference], LOWER(TRIM([Login\
+          \ Email])) = LOWER(TRIM(USEREMAIL())))) = \"ไทย\", \"สินเชื่อที่เกี่ยวข้อง\", \"Related Loans\"), \"Related Loans\"\
+          )"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Loans\\\"\
+          ,\\\"ReferencedRootTableName\\\":\\\"Loans\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=REF_ROWS(\"Loans\", \"Ref Closing Payment\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+    "Payment Month":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Payment Month"
+        "Type": "Text"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Payment Month"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"เดือนที่ชำระ / Payment Month\""
+        "Type": "Text"
+        "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
+          :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
+          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=TEXT([Payment Date], \"YYYY-MM\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Related Cash Account Statement Recents":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Related Cash Account Statement Recents"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Cash Account Statement Recents"
+        "Visible?": "ALWAYS"
+        "Description": "Cash Account Statement Recent entries that reference this entry in the Ref Payment column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Account\
+          \ Statement Recent\\\",\\\"ReferencedRootTableName\\\":\\\"Cash Account Statement Recent\\\",\\\"ReferencedType\\\
+          \":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\
+          \\\\\"LongTextFormatting\\\\\\\":\\\\\\\"Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\
+          \\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\
+          \":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\"\
+          ,\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\
+          \":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"Show_If\\\":null,\\\"Required_If\\\
+          \":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"ItemSeparator\":\" , \"\
+          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
+          Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Cash Account Statement Recent\", \"Ref Payment\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+    "Receipt Preview":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Receipt Preview"
+        "Type": "Image"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "Yes"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Receipt Preview"
+        "Visible?": "ALWAYS"
+        "Type": "Image"
+        "Type Qualifier": "{\"AllowDrawing\":false,\"FolderLocation\":\"=\\\"manual-receipts/prod\\\"\",\"Valid_If\":null,\"\
+          Error_Message_If_Invalid\":null,\"Show_If\":\"=AND(CONTEXT(\\\"ViewType\\\") <> \\\"form\\\", OR(ISNOTBLANK([Uploaded\
+          \ Receipt]), ISNOTBLANK([Receipt Image])))\",\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
+        "App formula": "=IF(ISNOTBLANK([Uploaded Receipt]), [Uploaded Receipt], [Receipt Image])"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "Yes"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "Yes"
+    "Receipt Display At":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Receipt Display At"
+        "Type": "DateTime"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Receipt Display At"
+        "Visible?": "ALWAYS"
+        "Type": "DateTime"
+        "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
+          :null,\"Error_Message_If_Invalid\":null,\"Show_If\":\"=AND(CONTEXT(\\\"ViewType\\\") <> \\\"form\\\", OR(ISNOTBLANK([Uploaded\
+          \ Receipt]), ISNOTBLANK([Receipt Image])))\",\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
+        "App formula": "=IF(ISNOTBLANK([Uploaded Receipt]), [Uploaded Receipt At], [Receipt Received At])"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Correction Guidance":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Payments"
+        "Column": "Correction Guidance"
+        "Type": "Show"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Correction Guidance"
+        "Visible?": "ALWAYS"
+        "Display name": "=\"การแก้ไข / Corrections\""
+        "Type": "Show"
+        "Type Qualifier": "{\"Category\":\"Text\",\"Content\":\"=IFS(AND(IN([Row ID], Payments[Row ID]), [Status] = \\\"Processing\\\
+          \"), \\\"รายการนี้กำลังประมวลผล กรุณารอและซิงค์ก่อนแก้ไขหรือลบ อย่าส่งซ้ำ / This receipt is processing. Wait and\
+          \ sync before editing or deleting. Do not submit again.\\\", AND(IN([Row ID], Payments[Row ID]), [Status] = \\\"\
+          Error\\\"), \\\"ตรวจวันที่ ผู้กู้ ยอดเงิน และรายการที่รับชำระ แล้วซิงค์ ใช้ Retry สำหรับคำขอเดิมที่ยังไม่สำเร็จ\
+          \ / Review the date, borrower, amount and targets, then sync. Use Retry for an unchanged failed request.\\\", TRUE,\
+          \ \\\"กรอกเงินบาทเต็มจำนวนมากกว่า 0 ภายในยอดที่รับได้ วิธีชำระเต็มต้องเท่ากับยอดนั้น แก้ไขรายการลูกที่ใบรับชำระต้นทาง\
+          \ บันทึกและซิงค์ก่อนใช้ลบรายการรับชำระ / Enter positive whole baht within the eligible balance; full methods require\
+          \ that balance. Correct generated rows through this receipt. Save and sync before Delete receipt.\\\")\",\"Valid_If\"\
+          :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\"\
+          :null,\"Suggested_Values\":null}"
+        "App formula": "=IFS(AND(IN([Row ID], Payments[Row ID]), [Status] = \"Processing\"), \"รายการนี้กำลังประมวลผล กรุณารอและซิงค์ก่อนแก้ไขหรือลบ\
+          \ อย่าส่งซ้ำ / This receipt is processing. Wait and sync before editing or deleting. Do not submit again.\", AND(IN([Row\
+          \ ID], Payments[Row ID]), [Status] = \"Error\"), \"ตรวจวันที่ ผู้กู้ ยอดเงิน และรายการที่รับชำระ แล้วซิงค์ ใช้ Retry\
+          \ สำหรับคำขอเดิมที่ยังไม่สำเร็จ / Review the date, borrower, amount and targets, then sync. Use Retry for an unchanged\
+          \ failed request.\", TRUE, \"กรอกเงินบาทเต็มจำนวนมากกว่า 0 ภายในยอดที่รับได้ วิธีชำระเต็มต้องเท่ากับยอดนั้น แก้ไขรายการลูกที่ใบรับชำระต้นทาง\
+          \ บันทึกและซิงค์ก่อนใช้ลบรายการรับชำระ / Enter positive whole baht within the eligible balance; full methods require\
+          \ that balance. Correct generated rows through this receipt. Save and sync before Delete receipt.\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
 "evidence":
   "/content/columns":
     "reference": "outputs/r047-production/oltp-affected-definitions.json"

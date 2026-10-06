@@ -1,0 +1,91 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Repayments"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000194"
+  "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
+    \ view definition."
+  "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
+  "properties":
+    "column:Payment Date":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), AND(ISBLANK([Ref Payment]), OR(NOT(IN([Row ID], Repayments[Row\
+        \ ID])), AND(NOT([Ref Loans].[Defaulted] = TRUE), NOT([Ref Charges].[Ref Loans].[Defaulted] = TRUE), NOT(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\") = TRUE), NOT(LOOKUP(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Charges\"), \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\"\
+        , \"Defaulted\") = TRUE)))))"
+    "column:Principal Paid":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), AND(ISBLANK([Ref Payment]), OR(NOT(IN([Row ID], Repayments[Row\
+        \ ID])), AND(NOT([Ref Loans].[Defaulted] = TRUE), NOT([Ref Charges].[Ref Loans].[Defaulted] = TRUE), NOT(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\") = TRUE), NOT(LOOKUP(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Charges\"), \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\"\
+        , \"Defaulted\") = TRUE)))))"
+      "Invalid value error": "IF([_THIS] < 0, \"เงินต้นที่ชำระต้องไม่ติดลบ / Principal paid cannot be negative.\", \"เงินต้นที่ชำระเกินยอดเงินต้นที่เหลือของรายการนี้\
+        \ กรุณาตรวจยอดเรียกเก็บและรายการชำระที่เกี่ยวข้อง / Principal paid exceeds this charge remaining principal. Review\
+        \ the charge and related payments.\")"
+    "column:Interest Paid":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), AND(ISBLANK([Ref Payment]), OR(NOT(IN([Row ID], Repayments[Row\
+        \ ID])), AND(NOT([Ref Loans].[Defaulted] = TRUE), NOT([Ref Charges].[Ref Loans].[Defaulted] = TRUE), NOT(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\") = TRUE), NOT(LOOKUP(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Charges\"), \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\"\
+        , \"Defaulted\") = TRUE)))))"
+      "Invalid value error": "IF(AND([Principal Paid] = 0, [_THIS] = 0), \"ต้องมีเงินต้นหรือดอกเบี้ยที่ชำระอย่างน้อยหนึ่งรายการไม่เป็นศูนย์\
+        \ / Principal and interest paid cannot both be zero.\", \"ดอกเบี้ยที่ชำระเกินยอดดอกเบี้ยที่เหลือของรายการนี้ กรุณาตรวจยอดเรียกเก็บและรายการชำระที่เกี่ยวข้อง\
+        \ / Interest paid exceeds this charge remaining interest. Review the charge and related payments.\")"
+    "column:Notes":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), AND(ISBLANK([Ref Payment]), OR(NOT(IN([Row ID], Repayments[Row\
+        \ ID])), AND(NOT([Ref Loans].[Defaulted] = TRUE), NOT([Ref Charges].[Ref Loans].[Defaulted] = TRUE), NOT(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\") = TRUE), NOT(LOOKUP(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Charges\"), \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\"\
+        , \"Defaulted\") = TRUE)))))"
+    "column:Ref Charges":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), AND(ISBLANK([Ref Payment]), OR(NOT(IN([Row ID], Repayments[Row\
+        \ ID])), AND(NOT([Ref Loans].[Defaulted] = TRUE), NOT([Ref Charges].[Ref Loans].[Defaulted] = TRUE), NOT(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\") = TRUE), NOT(LOOKUP(LOOKUP(LOOKUP([Row\
+        \ ID], \"Repayments\", \"Row ID\", \"Ref Charges\"), \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\"\
+        , \"Defaulted\") = TRUE)))))"
+      "ValidIf": "SELECT(Charges[Row ID], NOT([Ref Loans].[Defaulted] = TRUE))"
+      "Invalid value error": "เลือกยอดเรียกเก็บจากสัญญาที่ยังไม่เป็นหนี้สูญ กรุณา Undo Default ก่อนย้ายรายการชำระ / Select\
+        \ a charge on a nondefaulted loan. Undo Default before reassigning this repayment."
+    "column:Correction Guidance":
+      "storage": "app-only"
+      "Type": "Show"
+      "Category": "Text"
+      "Show": true
+      "DisplayName": "การแก้ไข / Corrections"
+      "AppFormula": "IFS(OR([Ref Loans].[Defaulted] = TRUE, [Ref Charges].[Ref Loans].[Defaulted] = TRUE), \"รายการนี้อยู่ในสัญญาที่บันทึกหนี้สูญ\
+        \ กรุณาใช้ Undo Default ที่เงินกู้ก่อนแก้ไข ย้าย หรือลบ / This entry belongs to a defaulted loan. Use Undo Default\
+        \ on the related loan before editing, moving or deleting.\", ISNOTBLANK([Ref Payment]), \"รายการนี้สร้างจากใบรับชำระ\
+        \ กรุณาแก้ไขหรือลบที่ใบรับชำระต้นทาง / This entry was generated from a receipt. Edit or delete the source receipt.\"\
+        , TRUE, \"ตรวจยอดเรียกเก็บและรายการชำระที่เกี่ยวข้องก่อนแก้ไข เงินต้นต้องไม่ติดลบ และเงินต้นกับดอกเบี้ยต้องไม่เป็นศูนย์พร้อมกัน\
+        \ / Review the charge and related payments before correcting this independent repayment. Principal cannot be negative;\
+        \ principal and interest cannot both be zero.\")"
+      "Content": "IFS(OR([Ref Loans].[Defaulted] = TRUE, [Ref Charges].[Ref Loans].[Defaulted] = TRUE), \"รายการนี้อยู่ในสัญญาที่บันทึกหนี้สูญ\
+        \ กรุณาใช้ Undo Default ที่เงินกู้ก่อนแก้ไข ย้าย หรือลบ / This entry belongs to a defaulted loan. Use Undo Default\
+        \ on the related loan before editing, moving or deleting.\", ISNOTBLANK([Ref Payment]), \"รายการนี้สร้างจากใบรับชำระ\
+        \ กรุณาแก้ไขหรือลบที่ใบรับชำระต้นทาง / This entry was generated from a receipt. Edit or delete the source receipt.\"\
+        , TRUE, \"ตรวจยอดเรียกเก็บและรายการชำระที่เกี่ยวข้องก่อนแก้ไข เงินต้นต้องไม่ติดลบ และเงินต้นกับดอกเบี้ยต้องไม่เป็นศูนย์พร้อมกัน\
+        \ / Review the charge and related payments before correcting this independent repayment. Principal cannot be negative;\
+        \ principal and interest cannot both be zero.\")"
+  "evidence":
+    "column:Payment Date": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Principal Paid": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Interest Paid": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Notes": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Ref Charges": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Correction Guidance": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

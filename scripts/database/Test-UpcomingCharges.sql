@@ -1,5 +1,6 @@
 \set ON_ERROR_STOP on
 BEGIN;
+\ir Test-CoverageParity.sql
 \ir Test-CashAccountFixtures.sql
 CREATE FUNCTION pg_temp.check_upcoming(ok boolean,msg text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF ok IS DISTINCT FROM true THEN RAISE EXCEPTION 'Upcoming charge assertion: %',msg; END IF; END $$;
@@ -41,6 +42,7 @@ SELECT pg_temp.check_upcoming((SELECT count(*)=5 AND sum(s."Total Charge")=720
  SELECT 1 FROM public.oltp_upcoming_charge_events_v1 e WHERE e."Ref Borrower"=s."Ref Borrower"
  AND e."Due Date"=s."Due Date" AND e."As Of Date"=s."As Of Date" AND e."Borrower Due Date Rank"<=5
  )), 'borrower-summary slice preserves five distinct dates and all fifth-date loans');
+SELECT pg_temp.check_coverage_parity();
 -- Actual posted prepayment removes the row and shifts date rank; amounts are never subtracted twice.
 INSERT INTO public."Payments"("Row ID","Ref Borrower","Ref Received By Cash Account","Status","Amount Received","Payment Date","Allocation Method","Ref Target Charge")
 VALUES('UF-PART','UF-B','CI-DAD','Processing',50::money,public.olap_reporting_date(),'Single Partial','UF-C1');
@@ -51,6 +53,7 @@ SELECT pg_temp.check_upcoming(NOT EXISTS(SELECT 1 FROM public.oltp_upcoming_char
 SELECT pg_temp.check_upcoming((SELECT "Borrower Due Date Rank"=1 FROM public.oltp_upcoming_charge_events_v1 WHERE "Ref Loan"='UF-L1' AND "Due Date"=public.olap_reporting_date()+2),'rank shifts after full prepayment');
 SELECT pg_temp.check_upcoming(NOT EXISTS(SELECT 1 FROM public.oltp_upcoming_charge_summary_v1 WHERE "Ref Borrower"='UF-B' AND "Due Date"=public.olap_reporting_date()+1),'paid date removed from summary');
 SELECT pg_temp.check_upcoming(NOT EXISTS(SELECT 1 FROM public.oltp_upcoming_charge_summary_v2 WHERE "Ref Borrower"='UF-B' AND "Due Date"=public.olap_reporting_date()+1),'paid date also removed from V2 summary');
+SELECT pg_temp.check_coverage_parity();
 -- Isolate horizon boundary after retaining only two future recorded dates on a separate borrower.
 INSERT INTO public."Loans"("Ref Disbursed From Cash Account","Row ID","Ref Borrowers","Loan Date","Principal Amount","Loan Status","Loan Type","Auto Charge Enabled")
 VALUES('CI-LISA','UF-L3','UF-EMPTY',public.olap_reporting_date()-1,100::money,'ยังไม่ปิดยอด','กำหนดวันชำระ',false);
@@ -62,5 +65,6 @@ SELECT pg_temp.check_upcoming((SELECT "Displayed Dates"=1 FROM public.oltp_upcom
 SELECT pg_temp.check_upcoming((SELECT count(*)=1 AND sum("Total Charge")=7 FROM public.oltp_upcoming_charge_summary_v2 WHERE "Ref Borrower"='UF-EMPTY'),'V2 preserves inclusive three-month boundary');
 SELECT pg_temp.check_upcoming((SELECT bool_and((d+interval '3 months')::date-d::date<=93) FROM generate_series('2024-01-01'::date,'2028-12-31'::date,interval '1 day') d),'calendar cap fits existing guard including leap years');
 SELECT pg_temp.check_upcoming((SELECT count(*)=1 AND min("From Date")=public.olap_reporting_date()+1 AND min("Through Date")=public.olap_reporting_date()+7 FROM public.oltp_upcoming_charge_context_v1),'singleton context dates');
+SELECT pg_temp.check_coverage_parity();
 ROLLBACK;
 \echo Upcoming charge adapter integration checks passed

@@ -1,0 +1,43 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "assessment_lab.stamp_inputs()"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "assessment_lab.stamp_inputs()"
+    "definition": |
+      CREATE OR REPLACE FUNCTION assessment_lab.stamp_inputs()
+       RETURNS trigger
+       LANGUAGE plpgsql
+      AS $function$
+      BEGIN
+
+       -- FK unlink after borrower deletion preserves the last assessment snapshot.
+       IF TG_OP='UPDATE' AND pg_trigger_depth()>1 AND OLD."Ref Borrower" IS NOT NULL
+        AND NEW."Ref Borrower" IS NULL
+        AND (to_jsonb(NEW)-'Ref Borrower')=(to_jsonb(OLD)-'Ref Borrower')
+        AND NOT EXISTS(SELECT 1 FROM public."Borrowers" WHERE "Row ID"=OLD."Ref Borrower") THEN
+        RETURN NEW;
+       END IF;
+       NEW."SQL Source Fingerprint":=assessment_lab.fingerprint(assessment_lab.inputs(NEW."Ref Borrower"));
+       NEW."SQL Input Borrower":=NEW."Ref Borrower";
+       NEW."SQL Input Amount":=NEW."Proposed Loan Amount"::numeric;
+       NEW."SQL Input Rate":=NEW."Minimum Daily Profit Rate"::text::numeric;
+       RETURN NEW;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

@@ -1,0 +1,59 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.r051_restate_opening_source()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "r051_restate_opening_source"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.r051_restate_opening_source()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE kind text:=TG_ARGV[0]; o jsonb:=to_jsonb(OLD); n jsonb; f record; key text;
+       previous_setting text:=current_setting('r005.allow_cash_adjustment',true);
+      BEGIN
+       IF NOT EXISTS(SELECT 1 FROM public.r005_cash_cutover_sources WHERE source_type=kind AND source_row_id=OLD."Row ID") THEN RETURN NULL; END IF;
+       IF TG_OP='UPDATE' THEN n:=to_jsonb(NEW); END IF;
+       FOR f IN
+        SELECT day,account_id,holder_id,sum(amount) amount FROM (
+         SELECT day,account_id,holder_id,-amount amount FROM public.r051_historical_source_flow(kind,o)
+         UNION ALL SELECT * FROM public.r051_historical_source_flow(kind,n)
+        ) changes GROUP BY day,account_id,holder_id HAVING sum(amount)<>0 ORDER BY account_id,day
+       LOOP
+        key:='r051:opening:'||gen_random_uuid()::text;
+        PERFORM set_config('r005.allow_cash_adjustment','on',true);
+        INSERT INTO public."Cash Ledger"("Row ID","Movement Date","Movement Type","Amount","Ref From Cash Holder","Ref To Cash Holder","Ref From Cash Account","Ref To Cash Account","Notes","Created By")
+        VALUES(key,f.day,'Manual Correction',abs(f.amount),CASE WHEN f.amount<0 THEN f.holder_id END,CASE WHEN f.amount>0 THEN f.holder_id END,
+         CASE WHEN f.amount<0 THEN f.account_id END,CASE WHEN f.amount>0 THEN f.account_id END,
+         'R051 historical opening source restatement; not a new cash transfer. '||jsonb_build_object('source_type',kind,'source_id',OLD."Row ID",'operation',TG_OP,'delta',f.amount)::text,'SQL:R051');
+       END LOOP;
+       PERFORM set_config('r005.allow_cash_adjustment',coalesce(previous_setting,''),true);
+       RETURN NULL;
+      END $function$
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

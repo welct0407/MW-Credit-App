@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -523,7 +523,7 @@
       "relation": "Cash Ledger"
       "name": "Cash Ledger_Ref Business Expense_fkey"
       "kind": "f"
-      "definition": "FOREIGN KEY (\"Ref Business Expense\") REFERENCES \"Business Expenses\"(\"Row ID\") ON DELETE RESTRICT"
+      "definition": "FOREIGN KEY (\"Ref Business Expense\") REFERENCES \"Business Expenses\"(\"Row ID\") ON DELETE SET NULL"
       "deferrable": false
       "initially_deferred": false
       "validated": true
@@ -533,7 +533,7 @@
       - 1
       "referenced_relation": "\"Business Expenses\""
       "update_action": "a"
-      "delete_action": "r"
+      "delete_action": "n"
       "match_type": "s"
       "comment": null
     "Cash Ledger_Ref From Cash Account_fkey":
@@ -806,6 +806,22 @@
       "delete_action": " "
       "match_type": " "
       "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "zzzzzz_business_history_commit"
+      "kind": "t"
+      "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "deferrable": true
+      "initially_deferred": true
+      "validated": true
+      "column_numbers": null
+      "referenced_column_numbers": null
+      "referenced_relation": null
+      "update_action": " "
+      "delete_action": " "
+      "match_type": " "
+      "comment": null
   "indexes":
     "Cash Ledger_pkey":
       "schema": "public"
@@ -1027,30 +1043,6 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_c_17214":
-      "schema": "public"
-      "relation": "Cash Ledger"
-      "name": "RI_ConstraintTrigger_c_17214"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17214\" AFTER INSERT ON \"Cash Ledger\" FROM \"Business\
-        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
-      "enabled": "O"
-      "internal": true
-      "routine": "\"RI_FKey_check_ins\"()"
-      "deferrable": false
-      "initially_deferred": false
-      "comment": null
-    "RI_ConstraintTrigger_c_17215":
-      "schema": "public"
-      "relation": "Cash Ledger"
-      "name": "RI_ConstraintTrigger_c_17215"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_17215\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Business\
-        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
-      "enabled": "O"
-      "internal": true
-      "routine": "\"RI_FKey_check_upd\"()"
-      "deferrable": false
-      "initially_deferred": false
-      "comment": null
     "RI_ConstraintTrigger_c_17219":
       "schema": "public"
       "relation": "Cash Ledger"
@@ -1123,6 +1115,54 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
+    "RI_ConstraintTrigger_c_21404":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_21404"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_21404\" AFTER INSERT ON \"Cash Ledger\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_21405":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "RI_ConstraintTrigger_c_21405"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_21405\" AFTER UPDATE ON \"Cash Ledger\" FROM \"Business\
+        \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a000_business_history_begin":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "a000_business_history_begin"
+      "definition": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Cash Ledger\" FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION begin_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "begin_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a000_r051_history_account":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "a000_r051_history_account"
+      "definition": "CREATE TRIGGER a000_r051_history_account BEFORE INSERT OR DELETE OR UPDATE ON \"Cash Ledger\" FOR EACH\
+        \ ROW EXECUTE FUNCTION r051_attribute_historical_ledger()"
+      "enabled": "O"
+      "internal": false
+      "routine": "r051_attribute_historical_ledger()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "a0_ledger_cash_accounts":
       "schema": "public"
       "relation": "Cash Ledger"
@@ -1132,6 +1172,18 @@
       "enabled": "O"
       "internal": false
       "routine": "guard_ledger_cash_accounts()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "a1_linked_expense_reimbursement":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "a1_linked_expense_reimbursement"
+      "definition": "CREATE TRIGGER a1_linked_expense_reimbursement BEFORE INSERT OR UPDATE ON \"Cash Ledger\" FOR EACH ROW\
+        \ EXECUTE FUNCTION guard_linked_expense_reimbursement()"
+      "enabled": "O"
+      "internal": false
+      "routine": "guard_linked_expense_reimbursement()"
       "deferrable": false
       "initially_deferred": false
       "comment": null
@@ -1158,6 +1210,42 @@
       "routine": "agent_audit.capture_change()"
       "deferrable": false
       "initially_deferred": false
+      "comment": null
+    "zzzz_business_history":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "zzzz_business_history"
+      "definition": "CREATE TRIGGER zzzz_business_history AFTER INSERT OR DELETE OR UPDATE ON \"Cash Ledger\" FOR EACH ROW\
+        \ EXECUTE FUNCTION business_history_refresh('Movement Date')"
+      "enabled": "O"
+      "internal": false
+      "routine": "business_history_refresh()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzz_business_history_flush":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "zzzzz_business_history_flush"
+      "definition": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"Cash Ledger\" FOR EACH\
+        \ STATEMENT EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "zzzzzz_business_history_commit":
+      "schema": "public"
+      "relation": "Cash Ledger"
+      "name": "zzzzzz_business_history_commit"
+      "definition": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR UPDATE ON \"Cash Ledger\"\
+        \ DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+      "enabled": "O"
+      "internal": false
+      "routine": "flush_business_history()"
+      "deferrable": true
+      "initially_deferred": true
       "comment": null
   "policies": {}
   "dependencies": []

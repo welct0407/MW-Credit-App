@@ -1,0 +1,62 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "olap"
+  "kind": "table"
+  "name": "Cash Ledger"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393"
+  "version": "1.000056"
+  "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
+    \ view definition."
+  "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
+  "properties":
+    "column:Ref Business Expense":
+      "Invalid value error": "\"หากระบุค่าใช้จ่าย ให้เลือกค่าใช้จ่ายของ Tommy ที่มียอดมากกว่า 0 หรือเว้นว่างเมื่อไม่เชื่อมรายการ\
+        \ / If linking an expense, choose a positive Tommy-paid expense, or leave the link blank.\""
+      "Description": "\"ลบค่าใช้จ่ายแล้ว รายการโอนคืนเงินนี้ยังคงอยู่ ให้บันทึกเงินที่รับคืนจริงแยกต่างหาก / Deleting an expense\
+        \ retains its reimbursement transfer. Record any actual cash return separately.\""
+      "Required": false
+      "IsAPartOf": false
+      "ValidIf": "IF([Entry Origin] = \"System\", LIST([_THIS]), SELECT(Business Expenses[Row ID], AND([Amount] > 0, [Ref\
+        \ Paid By Cash Holder] = \"ch:tommy\")))"
+    "column:Ref From Cash Account":
+      "ValidIf": "SELECT(Cash Accounts[Row ID], AND([Ref Cash Holder] = [_THISROW].[Ref From Cash Holder], OR([Active], AND([Row\
+        \ ID] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\", \"Row ID\", \"Ref From Cash Account\"), AND(IN([_THISROW].[Row\
+        \ ID], Cash Ledger[Row ID]), [_THISROW].[Movement Date] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\", \"Row ID\"\
+        , \"Movement Date\"), [_THISROW].[Amount] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\", \"Row ID\", \"Amount\"),\
+        \ [_THISROW].[Ref From Cash Holder] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\", \"Row ID\", \"Ref From Cash Holder\"\
+        ), [_THISROW].[Ref To Cash Holder] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\", \"Row ID\", \"Ref To Cash Holder\"\
+        ), [_THISROW].[Ref From Cash Account] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\", \"Row ID\", \"Ref From Cash Account\"\
+        ), [_THISROW].[Ref To Cash Account] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\", \"Row ID\", \"Ref To Cash Account\"\
+        ))))))"
+      "Invalid value error": "\"เลือกบัญชีที่เปิดใช้งานและตรงกับผู้ถือเงินต้นทาง ก่อนเปลี่ยนจำนวน วันที่ หรือบัญชี / Choose\
+        \ an active account belonging to the sending cash holder before changing amount, date, or accounts.\""
+    "column:Ref To Cash Account":
+      "ValidIf": "SELECT(Cash Accounts[Row ID], AND([Ref Cash Holder] = [_THISROW].[Ref To Cash Holder], [Row ID] <> [_THISROW].[Ref\
+        \ From Cash Account], OR([Active], AND([Row ID] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\", \"Row ID\", \"Ref To\
+        \ Cash Account\"), AND(IN([_THISROW].[Row ID], Cash Ledger[Row ID]), [_THISROW].[Movement Date] = LOOKUP([_THISROW].[Row\
+        \ ID], \"Cash Ledger\", \"Row ID\", \"Movement Date\"), [_THISROW].[Amount] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\"\
+        , \"Row ID\", \"Amount\"), [_THISROW].[Ref From Cash Holder] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\", \"Row\
+        \ ID\", \"Ref From Cash Holder\"), [_THISROW].[Ref To Cash Holder] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\",\
+        \ \"Row ID\", \"Ref To Cash Holder\"), [_THISROW].[Ref From Cash Account] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\"\
+        , \"Row ID\", \"Ref From Cash Account\"), [_THISROW].[Ref To Cash Account] = LOOKUP([_THISROW].[Row ID], \"Cash Ledger\"\
+        , \"Row ID\", \"Ref To Cash Account\"))))))"
+      "Invalid value error": "\"เลือกบัญชีที่เปิดใช้งานของผู้รับ และต่างจากบัญชีต้นทาง / Choose an active account belonging\
+        \ to the receiving cash holder, different from the sending account.\""
+  "evidence":
+    "column:Ref Business Expense": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Ref From Cash Account": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Ref To Cash Account": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

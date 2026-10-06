@@ -1,0 +1,56 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Loans"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000194"
+  "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
+    \ view definition."
+  "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
+  "properties":
+    "column:Principal Amount":
+      "EditableIf": "OR(NOT(IN([Row ID], Loans[Row ID])), NOT([Defaulted] = TRUE))"
+      "ValidIf": "AND([_THIS] > 0, OR([Loan Type] <> \"ผ่อนชำระรายวัน\", MOD([_THIS], 1) = 0), OR(IN([Row ID], Loans[Row ID]),\
+        \ AND(COUNT(Loan Form Context[Row ID]) = 1, [_THIS] <= ANY(Loan Form Context[Available Cashpool]))), OR(NOT(IN([Row\
+        \ ID], Loans[Row ID])), AND([_THIS] >= SUM(SELECT(Repayments[Principal Paid], [Ref Loans] = [_THISROW].[Row ID])),\
+        \ [_THIS] >= SUM(SELECT(Charges[Principal Due], [Ref Loans] = [_THISROW].[Row ID])))))"
+      "Invalid value error": "IFS([_THIS] <= 0, \"เงินต้นต้องมากกว่า 0 / Principal must be greater than zero\", AND([Loan\
+        \ Type] = \"ผ่อนชำระรายวัน\", MOD([_THIS], 1) <> 0), \"เงินต้นผ่อนรายวันต้องเป็นจำนวนเต็มบาท / Daily installment principal\
+        \ must be whole baht\", AND(IN([Row ID], Loans[Row ID]), OR([_THIS] < SUM(SELECT(Repayments[Principal Paid], [Ref\
+        \ Loans] = [_THISROW].[Row ID])), [_THIS] < SUM(SELECT(Charges[Principal Due], [Ref Loans] = [_THISROW].[Row ID])))),\
+        \ \"เงินต้นต้องรองรับทั้งเงินต้นที่ชำระแล้วและยอดเงินต้นที่บันทึกไว้ กรุณาแก้ไขรายการต้นทางก่อนลดเงินต้น / Principal\
+        \ must cover both paid principal and recorded principal charges. Correct related sources before reducing it.\", COUNT(Loan\
+        \ Form Context[Row ID]) <> 1, \"กรุณาซิงค์เพื่อโหลดวงเงิน / Sync to load available cashpool\", TRUE, CONCATENATE(\"\
+        เงินต้นเกินเงินทุนคงเหลือ / Principal exceeds available cashpool: ฿\", ANY(Loan Form Context[Available Cashpool]),\
+        \ \". ลดเงินต้นหรือซิงค์หลังเพิ่มทุน / Reduce principal or sync after adding capital.\"))"
+    "column:Loan Type":
+      "ValidIf": "OR(NOT(IN([Row ID], Loans[Row ID])), [_THIS] <> \"ดอกเบี้ยรายวัน\", AND(ISNOTBLANK([Original Daily Interest\
+        \ Rate]), OR(NOT([Auto Charge Enabled] = TRUE), AND(ISNOTBLANK([Loan Date]), ISNOTBLANK([Interest Payment Interval]),\
+        \ [Interest Payment Interval] >= 1))))"
+      "Invalid value error": "IF(ISBLANK([Original Daily Interest Rate]), \"ไม่พบอัตราดอกเบี้ยเดิม กรุณาตรวจเงื่อนไขสัญญาก่อนเปลี่ยนเป็นดอกเบี้ยรายวัน\
+        \ / Original daily rate is unavailable. Review the original loan terms before entering daily mode.\", \"โหมดสร้างยอดอัตโนมัติต้องมีวันที่สัญญาและรอบชำระอย่างน้อย\
+        \ 1 วัน กรุณาตรวจเงื่อนไขก่อนเปลี่ยนประเภท / Automatic daily mode requires the loan date and a positive payment interval.\
+        \ Review the schedule before changing type.\")"
+    "column:Ref Borrowers":
+      "EditableIf": "OR(NOT(IN([Row ID], Loans[Row ID])), AND(NOT([Defaulted]), COUNT(SELECT(Repayments[Row ID], [Ref Loans]\
+        \ = [_THISROW].[Row ID])) = 0, COUNT(SELECT(Business Expenses[Row ID], AND([Ref Related Loan] = [_THISROW].[Row ID],\
+        \ ISNOTBLANK([Ref Related Borrower])))) = 0))"
+  "evidence":
+    "column:Principal Amount": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Loan Type": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Ref Borrowers": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

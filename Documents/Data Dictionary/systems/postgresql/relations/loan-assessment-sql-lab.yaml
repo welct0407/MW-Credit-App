@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -487,6 +487,24 @@
       "delete_action": " "
       "match_type": " "
       "comment": null
+    "r051_assessment_borrower":
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab"
+      "name": "r051_assessment_borrower"
+      "kind": "f"
+      "definition": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\") ON DELETE SET NULL NOT VALID"
+      "deferrable": false
+      "initially_deferred": false
+      "validated": false
+      "column_numbers":
+      - 3
+      "referenced_column_numbers":
+      - 1
+      "referenced_relation": "\"Borrowers\""
+      "update_action": "a"
+      "delete_action": "n"
+      "match_type": "s"
+      "comment": null
   "indexes":
     "Loan Assessment SQL Lab_pkey":
       "schema": "public"
@@ -507,6 +525,30 @@
       "access_method": "btree"
       "comment": null
   "triggers":
+    "RI_ConstraintTrigger_c_21414":
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab"
+      "name": "RI_ConstraintTrigger_c_21414"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_21414\" AFTER INSERT ON \"Loan Assessment SQL Lab\"\
+        \ FROM \"Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_ins\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_ins\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_c_21415":
+      "schema": "public"
+      "relation": "Loan Assessment SQL Lab"
+      "name": "RI_ConstraintTrigger_c_21415"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_c_21415\" AFTER UPDATE ON \"Loan Assessment SQL Lab\"\
+        \ FROM \"Borrowers\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_check_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_check_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
     "assessment_calculate":
       "schema": "public"
       "relation": "Loan Assessment SQL Lab"

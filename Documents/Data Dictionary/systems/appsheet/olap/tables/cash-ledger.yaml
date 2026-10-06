@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -28,7 +28,7 @@
     "Shared?": "Yes"
     "Schema": "Cash Ledger_Schema"
     "Are updates allowed?": "ALL_CHANGES"
-    "Expression for update mode": "=\"ADDS_AND_UPDATES\""
+    "Expression for update mode": "=\"ALL_CHANGES\""
     "Source Path": "Cash Ledger"
     "Data Source": "database-2"
     "Store for image and file capture": "_Default"
@@ -124,8 +124,9 @@
         "Visible?": "ALWAYS"
         "Type": "Date"
         "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
-          Required_If\":null,\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\"\
-          ,\"Reset_If\":null,\"Suggested_Values\":null}"
+          Required_If\":null,\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", OR(NOT(IN([Row ID], Cash Ledger[Row ID])),\
+          \ IN([Movement Type], LIST(\\\"Cash Handover\\\", \\\"Expense Reimbursement\\\"))))\",\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "Yes"
@@ -163,8 +164,8 @@
           \"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\":null}\",\"EnumInputMode\"\
           :\"Auto\",\"Valid_If\":\"=IF([Entry Origin] = \\\"System\\\", LIST([_THIS]), LIST(\\\"Cash Handover\\\", \\\"Expense\
           \ Reimbursement\\\"))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
-          :\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\"\
-          :null}"
+          :\"=AND([Entry Origin] = \\\"Manual\\\", OR(NOT(IN([Row ID], Cash Ledger[Row ID])), IN([Movement Type], LIST(\\\"\
+          Cash Handover\\\", \\\"Expense Reimbursement\\\"))))\",\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -198,8 +199,8 @@
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
           :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND([_THIS]\
           \ > 0, [_THIS] = FLOOR([_THIS]))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
-          :\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\"\
-          :null}"
+          :\"=AND([Entry Origin] = \\\"Manual\\\", OR(NOT(IN([Row ID], Cash Ledger[Row ID])), IN([Movement Type], LIST(\\\"\
+          Cash Handover\\\", \\\"Expense Reimbursement\\\"))))\",\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -419,6 +420,8 @@
       "rules":
         "Column name": "Ref Business Expense"
         "Visible?": "ALWAYS"
+        "Description": "=\"ลบค่าใช้จ่ายแล้ว รายการโอนคืนเงินนี้ยังคงอยู่ ให้บันทึกเงินที่รับคืนจริงแยกต่างหาก / Deleting an\
+          \ expense retains its reimbursement transfer. Record any actual cash return separately.\""
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Business Expenses\",\"ReferencedRootTableName\":\"Business Expenses\"\
           ,\"ReferencedType\":\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\
@@ -426,10 +429,12 @@
           \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
           ,\"Valid_If\":\"=IF([Entry Origin] = \\\"System\\\", LIST([_THIS]), SELECT(Business Expenses[Row ID], AND([Amount]\
-          \ > 0, [Ref Paid By Cash Holder] = \\\"ch:tommy\\\")))\",\"Error_Message_If_Invalid\":null,\"Show_If\":\"=OR([Entry\
-          \ Origin] = \\\"System\\\", [Movement Type] = \\\"Expense Reimbursement\\\")\",\"Required_If\":null,\"Editable_If\"\
-          :\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\"\
-          :null}"
+          \ > 0, [Ref Paid By Cash Holder] = \\\"ch:tommy\\\")))\",\"Error_Message_If_Invalid\":\"=\\\"หากระบุค่าใช้จ่าย ให้เลือกค่าใช้จ่ายของ\
+          \ Tommy ที่มียอดมากกว่า 0 หรือเว้นว่างเมื่อไม่เชื่อมรายการ / If linking an expense, choose a positive Tommy-paid\
+          \ expense, or leave the link blank.\\\"\",\"Show_If\":\"=OR([Entry Origin] = \\\"System\\\", [Movement Type] = \\\
+          \"Expense Reimbursement\\\")\",\"Required_If\":null,\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", OR(NOT(IN([Row\
+          \ ID], Cash Ledger[Row ID])), IN([Movement Type], LIST(\\\"Cash Handover\\\", \\\"Expense Reimbursement\\\"))))\"\
+          ,\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -755,11 +760,20 @@
           :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
           \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = [_THISROW].[Ref From Cash Holder]),\
-          \ AND(IN([_THISROW].[Row ID], Cash Ledger[Row ID]), [Row ID] = [_THISROW].[Ref From Cash Account])))\",\"Error_Message_If_Invalid\"\
-          :null,\"Show_If\":null,\"Required_If\":\"=AND(NOT(IN([Row ID], Cash Ledger[Row ID])), ISNOTBLANK([Ref From Cash\
-          \ Holder]))\",\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", NOT(IN([Row ID], Cash Ledger[Row ID])))\"\
-          ,\"Reset_If\":null,\"Suggested_Values\":null}"
+          ,\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], AND([Ref Cash Holder] = [_THISROW].[Ref From Cash Holder], OR([Active],\
+          \ AND([Row ID] = LOOKUP([_THISROW].[Row ID], \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Ref From Cash Account\\\"\
+          ), AND(IN([_THISROW].[Row ID], Cash Ledger[Row ID]), [_THISROW].[Movement Date] = LOOKUP([_THISROW].[Row ID], \\\
+          \"Cash Ledger\\\", \\\"Row ID\\\", \\\"Movement Date\\\"), [_THISROW].[Amount] = LOOKUP([_THISROW].[Row ID], \\\"\
+          Cash Ledger\\\", \\\"Row ID\\\", \\\"Amount\\\"), [_THISROW].[Ref From Cash Holder] = LOOKUP([_THISROW].[Row ID],\
+          \ \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Ref From Cash Holder\\\"), [_THISROW].[Ref To Cash Holder] = LOOKUP([_THISROW].[Row\
+          \ ID], \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Ref To Cash Holder\\\"), [_THISROW].[Ref From Cash Account] = LOOKUP([_THISROW].[Row\
+          \ ID], \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Ref From Cash Account\\\"), [_THISROW].[Ref To Cash Account] = LOOKUP([_THISROW].[Row\
+          \ ID], \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Ref To Cash Account\\\"))))))\",\"Error_Message_If_Invalid\":\"\
+          =\\\"เลือกบัญชีที่เปิดใช้งานและตรงกับผู้ถือเงินต้นทาง ก่อนเปลี่ยนจำนวน วันที่ หรือบัญชี / Choose an active account\
+          \ belonging to the sending cash holder before changing amount, date, or accounts.\\\"\",\"Show_If\":null,\"Required_If\"\
+          :\"=AND(NOT(IN([Row ID], Cash Ledger[Row ID])), ISNOTBLANK([Ref From Cash Holder]))\",\"Editable_If\":\"=AND([Entry\
+          \ Origin] = \\\"Manual\\\", OR(NOT(IN([Row ID], Cash Ledger[Row ID])), IN([Movement Type], LIST(\\\"Cash Handover\\\
+          \", \\\"Expense Reimbursement\\\"))))\",\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -807,11 +821,21 @@
           :\\\"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\
           \"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], OR(AND([Active], [Ref Cash Holder] = [_THISROW].[Ref To Cash Holder],\
-          \ [Row ID] <> [_THISROW].[Ref From Cash Account]), AND(IN([_THISROW].[Row ID], Cash Ledger[Row ID]), [Row ID] =\
-          \ [_THISROW].[Ref To Cash Account])))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":\"=AND(NOT(IN([Row\
-          \ ID], Cash Ledger[Row ID])), ISNOTBLANK([Ref To Cash Holder]))\",\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\
-          \", NOT(IN([Row ID], Cash Ledger[Row ID])))\",\"Reset_If\":null,\"Suggested_Values\":null}"
+          ,\"Valid_If\":\"=SELECT(Cash Accounts[Row ID], AND([Ref Cash Holder] = [_THISROW].[Ref To Cash Holder], [Row ID]\
+          \ <> [_THISROW].[Ref From Cash Account], OR([Active], AND([Row ID] = LOOKUP([_THISROW].[Row ID], \\\"Cash Ledger\\\
+          \", \\\"Row ID\\\", \\\"Ref To Cash Account\\\"), AND(IN([_THISROW].[Row ID], Cash Ledger[Row ID]), [_THISROW].[Movement\
+          \ Date] = LOOKUP([_THISROW].[Row ID], \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Movement Date\\\"), [_THISROW].[Amount]\
+          \ = LOOKUP([_THISROW].[Row ID], \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Amount\\\"), [_THISROW].[Ref From Cash\
+          \ Holder] = LOOKUP([_THISROW].[Row ID], \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Ref From Cash Holder\\\"), [_THISROW].[Ref\
+          \ To Cash Holder] = LOOKUP([_THISROW].[Row ID], \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Ref To Cash Holder\\\"\
+          ), [_THISROW].[Ref From Cash Account] = LOOKUP([_THISROW].[Row ID], \\\"Cash Ledger\\\", \\\"Row ID\\\", \\\"Ref\
+          \ From Cash Account\\\"), [_THISROW].[Ref To Cash Account] = LOOKUP([_THISROW].[Row ID], \\\"Cash Ledger\\\", \\\
+          \"Row ID\\\", \\\"Ref To Cash Account\\\"))))))\",\"Error_Message_If_Invalid\":\"=\\\"เลือกบัญชีที่เปิดใช้งานของผู้รับ\
+          \ และต่างจากบัญชีต้นทาง / Choose an active account belonging to the receiving cash holder, different from the sending\
+          \ account.\\\"\",\"Show_If\":null,\"Required_If\":\"=AND(NOT(IN([Row ID], Cash Ledger[Row ID])), ISNOTBLANK([Ref\
+          \ To Cash Holder]))\",\"Editable_If\":\"=AND([Entry Origin] = \\\"Manual\\\", OR(NOT(IN([Row ID], Cash Ledger[Row\
+          \ ID])), IN([Movement Type], LIST(\\\"Cash Handover\\\", \\\"Expense Reimbursement\\\"))))\",\"Reset_If\":null,\"\
+          Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -922,193 +946,3 @@
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "ReferencedKeyColumn": "Row ID"
         "IsAPartOf": false
-  "editor":
-    "fields":
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Cash Ledger"
-      "label": "Table name"
-      "text": |-
-        Table name
-        Name for this table (user-visible)
-        ​
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "\"ADDS_AND_UPDATES\""
-      "label": "Are updates allowed?"
-      "text": |-
-        Are updates allowed?
-        Are adds, deletes and updates allowed?
-        =
-        ​
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Cash Ledger"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "15"
-      "label": "Source Path"
-      "text": "Source PathA user-understandable path to the table data - select a source -olap_borrowers_analyticsolap_loans_analyticsolap_repayments_analyticsStatisticsolap_charges_analyticsLoan\
-        \ Assessment SQL Lab ViewCash Pool ContributionsPartnersSettlementsDaily AnalyticsPayment AllocationsPaymentsBusiness\
-        \ ExpensesCash HoldersCash Holder BalancesCash Ledgerolap_portfolio_summaryCash AccountsCash Account Balances- browse\
-        \ for more data -"
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Add"
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "_RowNumber"
-      "label": "Column Order List"
-      "text": "Column Order ListThe order of columns to retrieve from the provider (only applies to some storage providers)drag_indicator_RowNumber​Add"
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Copy Data to New Source"
-      "controls": []
-      "label": "Data Source"
-      "text": "Data SourceName of the table data sourcedatabase-2Copy Data to New Source"
-    - "choices": []
-      "controls": []
-      "label": "Source Id"
-      "text": "Source IdA provider-specific path to the table data (not user-visible)Table=public.Cash Ledger__Cash Ledger"
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Default"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "_Default"
-      "label": "Store for image and file capture"
-      "text": "Store for image and file captureBy default, images and files captured by the app are stored in the cloud file\
-        \ system associated with the app owner's account. You can explicitly add an object store and use it instead.Default"
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      "label": "Filter out all existing rows?"
-      "text": "Filter out all existing rows?Used only in forms apps that collect new data rows but never show any pre-existing\
-        \ rows."
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": ""
-      "label": "Security filter"
-      "text": "Security filterThe app uses only those rows that match this (optional) filter condition. Use this filter to\
-        \ limit what each user can see.=science​"
-    - "choices":
-      - "checked": "true"
-        "pressed": null
-        "role": "radio"
-        "text": "as app creator"
-      - "checked": "false"
-        "pressed": null
-        "role": "radio"
-        "text": "as app user"
-      "controls": []
-      "label": "Access mode"
-      "text": "Access modeThe app will access the spreadsheet using the app creator or app user credentials.as app creatoras\
-        \ app user"
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": true
-      "label": "Shared?"
-      "text": "Shared?Is this table shared by all users? This option is normally checked. Before unchecking, carefully review\
-        \ 'Private Tables' in the documentation."
-    - "choices": []
-      "controls":
-      - "selected":
-        - ""
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": ""
-      "label": "Data locale"
-      "text": "Data localeLocale used to read the tableCompatibility (For backward compatibility)Amharic (Ethiopia)Arabic\
-        \ (Algeria)Arabic (Bahrain)Arabic (Egypt)Arabic (Iraq)Arabic (Jordan)Arabic (Kuwait)Arabic (Lebanon)Arabic (Libya)Arabic\
-        \ (Morocco)Arabic (Oman)Arabic (Qatar)Arabic (Saudi Arabia)Arabic (Syria)Arabic (Tunisia)Arabic (United Arab Emirates)Arabic\
-        \ (Yemen)Armenian (Armenia)Azerbaijani (Cyrillic, Azerbaijan)Azerbaijani (Latin, Azerbaijan)Bengali (India)Bulgarian\
-        \ (Bulgaria)Burmese (Myanmar)Catalan (Catalan)Chinese (Simplified, China)Chinese (Traditional, Hong Kong SAR)Chinese\
-        \ (Traditional, Taiwan)Chinese Traditional (Malaysia)Croatian (Croatia)Czech (Czechia)Danish (Denmark)Dari (Afghanistan)Dutch\
-        \ (Aruba)Dutch (Belgium)Dutch (Curaçao)Dutch (Netherlands)English (Australia)English (Bahrain)English (Belgium)English\
-        \ (Brazil)English (Canada)English (Germany)English (Hong Kong SAR)English (India)English (Ireland)English (Kenya)English\
-        \ (Malaysia)English (New Zealand)English (Norway)English (Philippines)English (Singapore)English (South Africa)English\
-        \ (Sri Lanka)English (Tanzania)English (United Kingdom)English (United States)Filipino (Philippines)Finnish (Finland)French\
-        \ (Belgium)French (Cameroon)French (Canada)French (Côte d’Ivoire)French (France)French (Luxembourg)French (Mali)French\
-        \ (Morocco)French (Senegal)French (Switzerland)French Congo (DRC)Fulah (Latin, Senegal)Georgian (Georgia)German (Austria)German\
-        \ (Germany)German (Liechtenstein)German (Luxembourg)German (Switzerland)Greek (Greece)Gujarati (India)Hausa (Latin,\
-        \ Nigeria)Hebrew (Israel)Hindi (India)Hungarian (Hungary)Igbo (Nigeria)Indonesian (Indonesia)Irish (Ireland)Italian\
-        \ (Italy)Italian (Switzerland)Japanese (Japan)Kannada (India)Kinyarwanda (Rwanda)Kiswahili (Kenya)Kiswahili (Tanzania)Korean\
-        \ (Korea)Latvian (Latvia)Lingala (Angola)Lithuanian (Lithuania)Malay (Brunei)Malay (Malaysia)Malayalam (India)Marathi\
-        \ (India)Mongolian (Mongolia)Norwegian Bokmål (Norway)Norwegian Nynorsk (Norway)Oromo (Ethiopia)Pashto (Afghanistan)Persian\
-        \ (Iran)Polish (Poland)Portuguese (Angola)Portuguese (Brazil)Portuguese (Mozambique)Portuguese (Portugal)Romanian\
-        \ (Romania)Russian (Russia)Serbian (Cyrillic, Serbia)Serbian (Latin, Serbia)Serbian (Serbia)Setswana (Botswana)Sinhala\
-        \ (Sri Lanka)Slovak (Slovakia)Slovenian (Slovenia)Spanish (Argentina)Spanish (Bolivia)Spanish (Chile)Spanish (Colombia)Spanish\
-        \ (Costa Rica)Spanish (Dominican Republic)Spanish (Ecuador)Spanish (El Salvador)Spanish (Guatemala)Spanish (Honduras)Spanish\
-        \ (Latin America)Spanish (Latin America)Spanish (Mexico)Spanish (Nicaragua)Spanish (Panama)Spanish (Paraguay)Spanish\
-        \ (Peru)Spanish (Spain, International Sort)Spanish (United States)Spanish (Uruguay)Spanish (Venezuela)Swedish (Sweden)Tamil\
-        \ (India)Tamil (Sri Lanka)Telugu (India)Thai (Thailand)Tigrinya (Ethiopia)Turkish (Turkey)Ukrainian (Ukraine)Vietnamese\
-        \ (Vietnam)Yoruba (Nigeria)"
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": ""
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": "x"
-      "label": "Descriptive comment"
-      "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
-        \ app"
-    "update_permissions_snapshot": |2-
-
-        - heading "Table settings" [level=5]
-        - button "close":
-        - heading "Table name" [level=6]
-        - text: Name for this table (user-visible)
-        - textbox: Cash Ledger
-        - heading "Are updates allowed?" [level=6]
-        - text: Are adds, deletes and updates allowed?
-        - generic: =
-        - textbox: "\"ADDS_AND_UPDATES\""
-        - button:
-          - generic: 
-        - heading "Storage" [level=3]
-        - generic: 
-        - text: (ENTERPRISE Plan)
-        - heading "Security" [level=3]
-        - generic: 
-        - text: (APPSHEET CORE) (APPSHEET CORE) (APPSHEET CORE)
-        - heading "Localization" [level=3]
-        - generic: 
-        - heading "Documentation" [level=3]
-        - generic: 
-        - button "Done":
-          - generic: Done

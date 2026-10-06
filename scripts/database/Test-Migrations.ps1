@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$InterestReallocationConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency,[switch]$R008Concurrency)
+param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$InterestReallocationConcurrency,[switch]$PaymentCrudConcurrency,[switch]$ReceiptDeleteConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$ExpenseReimbursementConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency,[switch]$R008Concurrency)
 . "$PSScriptRoot/Common.ps1"
 $null = @(Get-MigrationManifest)
 $bin = Get-PgBin
@@ -50,6 +50,18 @@ try {
             & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres -f $TestSqlFile
             if ($LASTEXITCODE) { throw 'Supplemental SQL regression failed' }
         }
+        if ($BusinessExpensesConcurrency) {
+            & "$PSScriptRoot/Test-BusinessExpensesConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+        }
+        if ($ExpenseReimbursementConcurrency) {
+            & "$PSScriptRoot/Test-ExpenseReimbursementConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+        }
+        if ($PaymentCrudConcurrency) {
+            & "$PSScriptRoot/Test-PaymentCrudConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+        }
+        if ($ReceiptDeleteConcurrency) {
+            & "$PSScriptRoot/Test-ReceiptDeleteConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
+        }
         if ($InterestReallocationConcurrency) {
             & "$PSScriptRoot/Test-InterestReallocationConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
         }
@@ -67,9 +79,6 @@ try {
         }
         if ($DefaultLoanConcurrency) {
             & "$PSScriptRoot/Test-DefaultLoanConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
-        }
-        if ($BusinessExpensesConcurrency) {
-            & "$PSScriptRoot/Test-BusinessExpensesConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
         }
         if ($R002Concurrency) {
             & "$PSScriptRoot/Test-R002Concurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot

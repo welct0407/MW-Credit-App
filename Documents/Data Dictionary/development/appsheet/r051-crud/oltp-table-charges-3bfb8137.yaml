@@ -1,0 +1,90 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Charges"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000194"
+  "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
+    \ view definition."
+  "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
+  "properties":
+    "column:Charge Date":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), OR(NOT(IN([Row ID], Charges[Row ID])), AND(NOT([Ref Loans].[Defaulted]\
+        \ = TRUE), NOT(LOOKUP(LOOKUP([Row ID], \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\"\
+        ) = TRUE))))"
+    "column:Interest Due":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), OR(NOT(IN([Row ID], Charges[Row ID])), AND(NOT([Ref Loans].[Defaulted]\
+        \ = TRUE), NOT(LOOKUP(LOOKUP([Row ID], \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\"\
+        ) = TRUE))))"
+      "ValidIf": "AND(OR(COUNT(SELECT(Repayments[Row ID], [Ref Charges] = [_THISROW].[Row ID])) = 0, [_THIS] >= [Interest\
+        \ Paid]), OR([Principal Due] <> 0, [_THIS] <> 0, AND([Total Paid] = 0, COUNT(SELECT(Payment Allocations[Row ID], [Ref\
+        \ Charge] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Charge] = [_THISROW].[Row\
+        \ ID], OR([Allocated Amount] <> 0, [Ref Payment].[Status] <> \"Posted\")))) = 0)))"
+    "column:Principal Due":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), OR(NOT(IN([Row ID], Charges[Row ID])), AND(NOT([Ref Loans].[Defaulted]\
+        \ = TRUE), NOT(LOOKUP(LOOKUP([Row ID], \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\"\
+        ) = TRUE))))"
+      "ValidIf": "AND([_THIS] >= 0, [_THIS] >= IF(NOT(IN([Row ID], Charges[Row ID])), 0, [Principal Paid]))"
+    "column:Notes":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), OR(NOT(IN([Row ID], Charges[Row ID])), AND(NOT([Ref Loans].[Defaulted]\
+        \ = TRUE), NOT(LOOKUP(LOOKUP([Row ID], \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\"\
+        ) = TRUE))))"
+    "column:Ref Loans":
+      "EditableIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), OR(NOT(IN([Row ID], Charges[Row ID])), AND(NOT([Ref Loans].[Defaulted]\
+        \ = TRUE), NOT(LOOKUP(LOOKUP([Row ID], \"Charges\", \"Row ID\", \"Ref Loans\"), \"Loans\", \"Row ID\", \"Defaulted\"\
+        ) = TRUE), COUNT(SELECT(Repayments[Row ID], [Ref Charges] = [_THISROW].[Row ID])) = 0)))"
+      "ValidIf": "IF(NOT(IN([Row ID], Charges[Row ID])), Loans[Row ID], IF(COUNT(SELECT(Repayments[Row ID], [Ref Charges]\
+        \ = [_THISROW].[Row ID])) > 0, SELECT(Loans[Row ID], AND([Row ID] = LOOKUP([_THISROW].[Row ID], \"Charges\", \"Row\
+        \ ID\", \"Ref Loans\"), NOT([Defaulted] = TRUE))), SELECT(Loans[Row ID], NOT([Defaulted] = TRUE))))"
+    "column:Correction Guidance":
+      "storage": "app-only"
+      "Type": "Show"
+      "Category": "Text"
+      "Show": true
+      "DisplayName": "การแก้ไข / Corrections"
+      "AppFormula": "IFS(OR(STARTSWITH([Row ID], \"df10:\"), [Ref Loans].[Defaulted] = TRUE), \"รายการนี้เกิดจากหนี้สูญหรืออยู่ในสัญญาที่บันทึกหนี้สูญ\
+        \ กรุณาใช้ Undo Default ที่เงินกู้ หากยกเลิกแล้วให้ซิงค์และตรวจข้อมูลสัญญา / This entry is owned by Default or belongs\
+        \ to a defaulted loan. Use Undo Default on the loan. If already undone, sync and reconcile the loan.\", COUNT(SELECT(Repayments[Row\
+        \ ID], [Ref Charges] = [_THISROW].[Row ID])) > 0, \"รายการนี้มีการชำระแล้ว จึงลบหรือย้ายสัญญาไม่ได้ ยอดเงินต้นและดอกเบี้ยต้องรองรับส่วนที่ชำระแล้ว\
+        \ กรุณาแก้ไขใบรับชำระหรือรายการชำระที่เกี่ยวข้องก่อน / This charge has repayments and cannot be deleted or moved to\
+        \ another loan. Each component must cover its paid amount. Correct the related receipt or independent repayment first.\"\
+        , OR(COUNT(SELECT(Payment Allocations[Row ID], [Ref Charge] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payments[Row\
+        \ ID], [Ref Target Charge] = [_THISROW].[Row ID])) > 0), \"ยังลบรายการนี้ไม่ได้ เพราะใบรับชำระหรือรายการจัดสรรยังอ้างอิงอยู่\
+        \ กรุณาตรวจรายการต้นทางก่อน / This charge cannot be deleted while a receipt or allocation references it. Review the\
+        \ source receipt first.\", TRUE, \"ตรวจวันที่และสัญญาก่อนแก้ไขยอดเรียกเก็บ ยอดใหม่ต้องรองรับส่วนที่ชำระแล้ว รายการที่ใบรับชำระดูแลต้องแก้ไขผ่านต้นทาง\
+        \ / Review the charge date and loan before correction. Each component must cover its paid amount. Correct receipt-owned\
+        \ results through their source receipt.\")"
+      "Content": "IFS(OR(STARTSWITH([Row ID], \"df10:\"), [Ref Loans].[Defaulted] = TRUE), \"รายการนี้เกิดจากหนี้สูญหรืออยู่ในสัญญาที่บันทึกหนี้สูญ\
+        \ กรุณาใช้ Undo Default ที่เงินกู้ หากยกเลิกแล้วให้ซิงค์และตรวจข้อมูลสัญญา / This entry is owned by Default or belongs\
+        \ to a defaulted loan. Use Undo Default on the loan. If already undone, sync and reconcile the loan.\", COUNT(SELECT(Repayments[Row\
+        \ ID], [Ref Charges] = [_THISROW].[Row ID])) > 0, \"รายการนี้มีการชำระแล้ว จึงลบหรือย้ายสัญญาไม่ได้ ยอดเงินต้นและดอกเบี้ยต้องรองรับส่วนที่ชำระแล้ว\
+        \ กรุณาแก้ไขใบรับชำระหรือรายการชำระที่เกี่ยวข้องก่อน / This charge has repayments and cannot be deleted or moved to\
+        \ another loan. Each component must cover its paid amount. Correct the related receipt or independent repayment first.\"\
+        , OR(COUNT(SELECT(Payment Allocations[Row ID], [Ref Charge] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payments[Row\
+        \ ID], [Ref Target Charge] = [_THISROW].[Row ID])) > 0), \"ยังลบรายการนี้ไม่ได้ เพราะใบรับชำระหรือรายการจัดสรรยังอ้างอิงอยู่\
+        \ กรุณาตรวจรายการต้นทางก่อน / This charge cannot be deleted while a receipt or allocation references it. Review the\
+        \ source receipt first.\", TRUE, \"ตรวจวันที่และสัญญาก่อนแก้ไขยอดเรียกเก็บ ยอดใหม่ต้องรองรับส่วนที่ชำระแล้ว รายการที่ใบรับชำระดูแลต้องแก้ไขผ่านต้นทาง\
+        \ / Review the charge date and loan before correction. Each component must cover its paid amount. Correct receipt-owned\
+        \ results through their source receipt.\")"
+  "evidence":
+    "column:Charge Date": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Interest Due": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Principal Due": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Notes": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Ref Loans": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Correction Guidance": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

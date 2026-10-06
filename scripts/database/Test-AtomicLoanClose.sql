@@ -47,7 +47,7 @@ SELECT pg_temp.close_assert((SELECT bool_and("Loan Status"='ปิดยอด�
 SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Payments" p WHERE p."Row ID" LIKE 'AC7-P-%' AND p."Amount Received"::numeric IS DISTINCT FROM (SELECT sum(r."Principal Paid"::numeric+r."Interest Paid"::numeric) FROM "Repayments" r WHERE r."Ref Payment"=p."Row ID")),'ledger conservation');
 UPDATE "Payments" SET "Status"='Processing',"Amount Received"="Amount Received" WHERE "Row ID"='AC7-P-NONE';
 SELECT pg_temp.close_assert((SELECT "Status"='Posted' FROM "Payments" WHERE "Row ID"='AC7-P-NONE'),'stale retry no-op');
-SELECT pg_temp.close_reject($q$UPDATE "Payments" SET "Ref Target Loan"='AC7-OLD' WHERE "Row ID"='AC7-P-NONE'$q$,'target loan cannot be changed');
+SELECT pg_temp.close_reject($q$UPDATE "Payments" SET "Ref Target Loan"='AC7-OLD' WHERE "Row ID"='AC7-P-NONE'$q$,'open auto-enabled');
 SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-DOUBLE','AC7-B','AC7-NONE',current_date,'Loan Close','Processing')$q$,'open auto-enabled');
 SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-WRONG-P','AC7-OTHER','AC7-WRONG',current_date,'Loan Close','Processing')$q$,'must belong');
 SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-DUP-P','AC7-B','AC7-DUP',current_date,'Loan Close','Processing')$q$,'Multiple charges today');
@@ -61,5 +61,19 @@ CREATE TRIGGER zz_test_close_failure AFTER INSERT ON "Payments" FOR EACH ROW EXE
 SELECT pg_temp.close_reject($q$INSERT INTO "Payments"("Ref Received By Cash Account","Row ID","Ref Borrower","Ref Target Loan","Payment Date","Allocation Method","Status") VALUES ('CI-DAD','AC7-FAIL-P','AC7-B','AC7-ROLLBACK',current_date,'Loan Close','Processing')$q$,'Synthetic downstream failure');
 SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Charges" WHERE "Ref Loans"='AC7-ROLLBACK') AND NOT EXISTS(SELECT 1 FROM "Payments" WHERE "Row ID"='AC7-FAIL-P') AND NOT EXISTS(SELECT 1 FROM "Repayments" WHERE "Ref Loans"='AC7-ROLLBACK') AND NOT EXISTS(SELECT 1 FROM "Payment Allocations" WHERE "Ref Payment"='AC7-FAIL-P'),'failure removes charge receipt and ledger');
 SELECT pg_temp.close_assert((SELECT "Loan Status"='ยังไม่ปิดยอด' AND "Ref Closing Payment" IS NULL FROM "Loans" WHERE "Row ID"='AC7-ROLLBACK'),'failure restores loan state');
+-- Owner's simple inverse: retain prepared/augmented charge, reverse receipt/cash.
+SAVEPOINT close_delete;
+CREATE TEMP TABLE close_charge_before AS SELECT "Row ID","Principal Due","Interest Due","Notes" FROM "Charges" WHERE "Ref Loans"='AC7-PAID';
+UPDATE "Payments" SET "Delete Requested"=true WHERE "Row ID"='AC7-P-PAID';
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT pg_temp.close_assert((SELECT "Loan Status"='ยังไม่ปิดยอด' AND "Outstanding Principal"=100 AND "Ref Closing Payment" IS NULL FROM "Loans" WHERE "Row ID"='AC7-PAID'),'delete closing receipt reopens');
+SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Cash Ledger" WHERE "Ref Payment"='AC7-P-PAID'),'close cash removed');
+SELECT pg_temp.close_assert(EXISTS(SELECT 1 FROM "Payments" WHERE "Row ID"='AC7-PAID-FIRST'),'earlier receipt retained');
+SELECT pg_temp.close_assert(NOT EXISTS((SELECT "Row ID","Principal Due","Interest Due","Notes" FROM "Charges" WHERE "Ref Loans"='AC7-PAID' EXCEPT TABLE close_charge_before) UNION ALL (TABLE close_charge_before EXCEPT SELECT "Row ID","Principal Due","Interest Due","Notes" FROM "Charges" WHERE "Ref Loans"='AC7-PAID')),'prepared amounts retained for explicit edit');
+UPDATE "Charges" SET "Principal Due"=0::money WHERE "Row ID"='AC7-PAID-C';
+DELETE FROM "Payments" WHERE "Row ID"='AC7-P-NONE';
+DELETE FROM "Charges" WHERE "Ref Loans"='AC7-NONE';
+SELECT pg_temp.close_assert(NOT EXISTS(SELECT 1 FROM "Charges" WHERE "Ref Loans"='AC7-NONE'),'unreceived generated final charge separately deletable');
+ROLLBACK TO close_delete;
 SELECT 'Atomic Loan Close regressions passed' AS result;
 ROLLBACK;

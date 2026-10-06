@@ -1,0 +1,24 @@
+{
+  "database" : "loan_manager_dev",
+  "databaseType" : "PostgreSQL",
+  "exception" : null,
+  "flywayVersion" : "13.6.0",
+  "initialSchemaVersion" : "74",
+  "licenseFailed" : false,
+  "migrations" : [ {
+    "category" : "Versioned",
+    "description" : "payment related ids view",
+    "executionTime" : 1287,
+    "filepath" : "C:\\GitHub\\AppSheet-Loan-Project-r051\\database\\migrations\\V75__payment_related_ids_view.sql",
+    "type" : "SQL",
+    "version" : "75"
+  } ],
+  "migrationsExecuted" : 1,
+  "operation" : "migrate",
+  "schemaName" : "",
+  "success" : true,
+  "targetSchemaVersion" : "75",
+  "timestamp" : "2026-10-07T00:31:35.7282989+07:00",
+  "totalMigrationTime" : 1287,
+  "warnings" : [ ]
+}

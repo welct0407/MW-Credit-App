@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -26,6 +26,7 @@
       DECLARE changed boolean; holder text;
       BEGIN
        IF TG_OP='DELETE' THEN
+        IF OLD."Entry Origin"='System' AND pg_trigger_depth()>1 THEN RETURN OLD; END IF;
         IF OLD."Ref From Cash Account" IS NULL AND OLD."Ref To Cash Account" IS NULL AND EXISTS
          (SELECT 1 FROM public.r008_cash_account_cutover c JOIN public."Cash Accounts" a ON a."Row ID"=c."Ref Cash Account"
           WHERE a."Ref Cash Holder" IN (OLD."Ref From Cash Holder",OLD."Ref To Cash Holder")) THEN
@@ -37,11 +38,10 @@
         (SELECT 1 FROM public."Cash Ledger" l WHERE l."Row ID"=NEW."Row ID" AND
          (l."Amount",l."Ref From Cash Holder",l."Ref To Cash Holder",l."Ref From Cash Account",l."Ref To Cash Account") IS NOT DISTINCT FROM
          (NEW."Amount",NEW."Ref From Cash Holder",NEW."Ref To Cash Holder",NEW."Ref From Cash Account",NEW."Ref To Cash Account")) THEN RETURN NEW; END IF;
-       IF TG_OP='UPDATE' THEN changed:=(NEW."Amount",NEW."Ref From Cash Holder",NEW."Ref To Cash Holder",NEW."Ref From Cash Account",NEW."Ref To Cash Account") IS DISTINCT FROM
-       (OLD."Amount",OLD."Ref From Cash Holder",OLD."Ref To Cash Holder",OLD."Ref From Cash Account",OLD."Ref To Cash Account"); END IF;
+       IF TG_OP='UPDATE' THEN changed:=(NEW."Movement Date",NEW."Amount",NEW."Ref From Cash Holder",NEW."Ref To Cash Holder",NEW."Ref From Cash Account",NEW."Ref To Cash Account") IS DISTINCT FROM
+       (OLD."Movement Date",OLD."Amount",OLD."Ref From Cash Holder",OLD."Ref To Cash Holder",OLD."Ref From Cash Account",OLD."Ref To Cash Account"); END IF;
        IF NOT changed THEN RETURN NEW; END IF;
-       IF TG_OP='UPDATE' AND NEW."Entry Origin"='Manual' THEN
-        RAISE EXCEPTION 'Posted manual cash movement is immutable; record a compensating transfer'; END IF;
+
        IF NEW."Ref From Cash Account" IS NOT NULL THEN
         holder:=public.cash_account_holder(NEW."Ref From Cash Account",NEW."Entry Origin"='Manual' OR NOT EXISTS
          (SELECT 1 FROM public."Cash Ledger" WHERE "Row ID"=NEW."Row ID" AND "Ref From Cash Account"=NEW."Ref From Cash Account"));

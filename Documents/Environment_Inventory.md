@@ -1,5 +1,7 @@
 # Environment inventory
 
+**R051 production closure, 7 October 2026:** PROD OLTP **3.000270**, OLAP **1.100212**, both Deployed, saved and clear; DEV remains OLTP1.000206 / OLAP1.000056. Both databases are **V77**. Source corrections, retained reimbursement/assessment history, Lisa opening fallback and measured performance refinements are promoted. Native related lists and existing screens remain; the unused trial view is retired. All four RC definitions were deleted after read-only production validation; shared data/files/logos are preserved. R052 is the sole Open development release; independent R051 capture is complete. PR16 was merged into PR15 and its experimental branch retired. See [production evidence](../outputs/r051-production/README.md).
+
 **5 October 2026 owner closeout:** R050 is owner-accepted (including owner-reported mobile testing) and Released after final evidence/tag publication. Current retained rollout is SQL V58 / PROD OLTP3.000263 / OLAP1.100208 unchanged; this task performs no new live check. Coordinator-supplied Cloud task01a10596 completed VM-01 deallocation on 5 October at07:59:11.580 UTC, receipt generation17 completed with exactly one POST through the existing certificate controller. The direct owner shutdown request superseded the keep-running hold for that action; local idle state was unchanged. R016 reporting is accepted and Closed at owner direction; migration-key retirement evidence/final tag remain unresolved. R051 remains the sole Open release; R052 unchanged. [Exact acceptance, evidence limits and recovery](../Change%20Logs/CHANGE_NOTES_R050_R016_OWNER_CLOSEOUT_2026-10-05.md).
 
 **4 October 2026 — R050 operator audit hardening:** shared `loan_manager_dev` advanced from V57 to V58 under scoped owner approval and validated. SQL routines only; no AppSheet table/column metadata or definition change. Synthetic SQL regressions rolled back and all 12 checked business/audit snapshots were preserved. Parent cloud browser verified DEV OLTP 1.000159 / OLAP 1.000047 at 07:42 UTC under welct0407@mw-credit.com: both Deployed, Save disabled and no configuration warnings/errors shown; no app mutations. PROD now also has V58 with matching Debian modules `0aaedf13` and collector `f63d2c8`; natural relay runs and fresh health export passed, zero backlog/missing intents, original recovery fingerprints unchanged. The SQL/runtime difference is closed. AppSheet definitions were unchanged; parent verified PROD OLTP3.000263 / OLAP1.100208 Deployed, saved editors with no warnings/errors shown, and dashboard/Analytics load at 08:32–08:33 UTC. Grafana rule afz3o5cmmfabkb and all12 instances remained Normal across successive evaluations. Latest visible Resolved notification was 06:30:02 UTC from earlier recovery; no new maintenance firing or post-rollout resolved delivery is claimed. Scoped audit task complete; full-batch Released/tag is not claimed. R050 is Frozen at the bounded production rollout; R051 is the next Open development release. [Checks, source drafts and rollout/rollback](../Change%20Logs/CHANGE_NOTES_R050_DURABLE_OPERATOR_AUDIT_2026-10-04.md).
@@ -126,16 +128,16 @@ Google sign-in is Active with domain auto-signup blank. The two ordinary partner
 
 ## AppSheet and Cloud SQL checkpoint
 
-Latest metadata checkpoint: **24 September 2026**, from the [dictionary reconciliation](../outputs/dictionary-reconciliation-20260924/README.md). All four saved app versions below, their 74 environment-specific business-source bindings and both PostgreSQL V39 targets were read independently. AppDoc properties and original SQL catalog sections remained unchanged at the final comparison. This read-only checkpoint does not change product-release status; unaffected operational facts retain their earlier evidence.
+Historical full metadata checkpoint: **24 September 2026**, from the [dictionary reconciliation](../outputs/dictionary-reconciliation-20260924/README.md). The then-current four app versions, 74 environment-specific source bindings and both PostgreSQL V39 targets were read independently. Later versions below have their own dated evidence. The [6 October sanitized DEV app checkpoint](../outputs/r051-receipt-corrections/ui-saved-checkpoint-20261006.json) records parent-verified OLTP177/OLAP52; it is not a new full binding audit. Current SQL is recorded at the top of this inventory.
 
 ## App identities and bindings
 
-| Environment | App | App ID | Live version | SQL connection | SQL tables / views |
+| Environment | App | App ID | Recorded version | SQL connection | SQL tables / views |
 | --- | --- | --- | --- | --- | --- |
-| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000263 (R049 summary/drilldown) | database-2 | 22 |
-| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100208 (R048 original interest) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000159 (30 September readiness save/restoration) | database-3 | 22 |
-| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000047 (30 September readiness save/restoration) | database-3 | 19 |
+| Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000270 (R051 verified) | database-2 | 22 |
+| Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100212 (R051 verified) | database-2 | 19 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000206 (7 October: related-list experiment reverted; earlier eligibility guards retained; saved, No issues found; GUI/cleanup passed) | database-3 | 22 |
+| Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000056 (6 October: saved, No issues found; current GUI acceptance passed) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
 

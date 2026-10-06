@@ -1,0 +1,50 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.guard_charge_consistency()"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.guard_charge_consistency()"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.guard_charge_consistency()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE paid_p numeric; paid_i numeric;
+      BEGIN
+       IF TG_OP='DELETE' THEN
+        IF EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Charges"=OLD."Row ID") THEN
+         RAISE EXCEPTION 'Charge has receipts; reassign or delete those receipts first'; END IF;
+        RETURN OLD;
+       END IF;
+       IF TG_OP='UPDATE' THEN
+        IF NEW."Row ID" IS DISTINCT FROM OLD."Row ID" THEN RAISE EXCEPTION 'Charge key cannot change'; END IF;
+        IF (NEW."Ref Loans",NEW."Principal Due",NEW."Interest Due") IS NOT DISTINCT FROM (OLD."Ref Loans",OLD."Principal Due",OLD."Interest Due") THEN RETURN NEW; END IF;
+        IF NEW."Ref Loans" IS DISTINCT FROM OLD."Ref Loans" AND EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Charges"=OLD."Row ID") THEN
+         RAISE EXCEPTION 'Charge has receipts on its original loan; reassign them first'; END IF;
+       END IF;
+       -- Signed loss entries belong to the Default transition, not ordinary charges.
+       IF starts_with(NEW."Row ID",'df10:') THEN RETURN NEW; END IF;
+       SELECT coalesce(sum("Principal Paid"::numeric),0),coalesce(sum("Interest Paid"::numeric),0) INTO paid_p,paid_i
+        FROM public."Repayments" WHERE "Ref Charges"=NEW."Row ID";
+       IF EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Charges"=NEW."Row ID") AND (NEW."Principal Due"::numeric<paid_p OR NEW."Interest Due"::numeric<paid_i) THEN
+        RAISE EXCEPTION 'Charge amount cannot be less than its posted component payments'; END IF;
+       RETURN NEW;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

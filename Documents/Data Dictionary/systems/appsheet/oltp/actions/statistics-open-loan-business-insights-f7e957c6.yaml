@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
 "content":
   "definition":

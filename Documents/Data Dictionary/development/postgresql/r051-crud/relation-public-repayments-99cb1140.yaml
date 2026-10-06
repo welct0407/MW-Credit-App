@@ -1,0 +1,106 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.Repayments"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-trigger-performance/sql-definitions.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.Repayments"
+    "columns":
+    - "name": "Row ID"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "Payment Date"
+      "type": "date"
+      "not_null": false
+      "default": null
+    - "name": "Principal Paid"
+      "type": "money"
+      "not_null": false
+      "default": null
+    - "name": "Interest Paid"
+      "type": "money"
+      "not_null": false
+      "default": null
+    - "name": "Notes"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Ref Loans"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Ref Charges"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Created By"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Ref Payment"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Ref Payment Allocation"
+      "type": "text"
+      "not_null": false
+      "default": null
+    "constraints":
+      "Repayments_Row ID_not_null": "NOT NULL \"Row ID\""
+      "Repayments_pkey": "PRIMARY KEY (\"Row ID\")"
+      "appsheet_ref_02": "FOREIGN KEY (\"Ref Loans\") REFERENCES \"Loans\"(\"Row ID\")"
+      "appsheet_ref_03": "FOREIGN KEY (\"Ref Charges\") REFERENCES \"Charges\"(\"Row ID\")"
+      "appsheet_ref_04": "FOREIGN KEY (\"Ref Payment\") REFERENCES \"Payments\"(\"Row ID\")"
+      "appsheet_ref_05": "FOREIGN KEY (\"Ref Payment Allocation\") REFERENCES \"Payment Allocations\"(\"Row ID\")"
+      "vc_borrower_changed": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "vc_payment_changed": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "vc_repayment_changed": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+      "zzzzzz_business_history_commit": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+    "triggers":
+      "a000_business_history_begin": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\"\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION begin_business_history()"
+      "a001_parent_dirty": "CREATE TRIGGER a001_parent_dirty AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW\
+        \ EXECUTE FUNCTION r051_parent_dirty()"
+      "aa_cashpool_lock": "CREATE TRIGGER aa_cashpool_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH STATEMENT\
+        \ EXECUTE FUNCTION loan_cashpool_lock()"
+      "aa_vc_lock": "CREATE TRIGGER aa_vc_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE FUNCTION\
+        \ vc_lock_parents()"
+      "aa_vc_payment_lock": "CREATE TRIGGER aa_vc_payment_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH\
+        \ ROW EXECUTE FUNCTION vc_lock_payment_parents()"
+      "appsheet_blank_refs": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Repayments\" FOR EACH ROW EXECUTE\
+        \ FUNCTION appsheet_normalize_blank_refs('Ref Loans', 'Ref Charges', 'Ref Payment', 'Ref Payment Allocation')"
+      "default_posting_guard": "CREATE TRIGGER default_posting_guard BEFORE DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW\
+        \ EXECUTE FUNCTION default_posting_guard()"
+      "lump_sum_child_guard": "CREATE TRIGGER lump_sum_child_guard BEFORE INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR\
+        \ EACH ROW EXECUTE FUNCTION lump_sum_child_guard()"
+      "mw_agent_capture": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR EACH ROW\
+        \ EXECUTE FUNCTION agent_audit.capture_change()"
+      "vc_borrower_changed": "CREATE CONSTRAINT TRIGGER vc_borrower_changed AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\"\
+        \ DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_borrower_changed()"
+      "vc_payment_changed": "CREATE CONSTRAINT TRIGGER vc_payment_changed AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\"\
+        \ DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_payment_changed()"
+      "vc_repayment_changed": "CREATE CONSTRAINT TRIGGER vc_repayment_changed AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\"\
+        \ DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION vc_repayment_changed()"
+      "zzzz_business_history": "CREATE TRIGGER zzzz_business_history AFTER INSERT OR DELETE OR UPDATE ON \"Repayments\" FOR\
+        \ EACH ROW EXECUTE FUNCTION business_history_refresh('Payment Date')"
+      "zzzzz_business_history_flush": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"\
+        Repayments\" FOR EACH STATEMENT EXECUTE FUNCTION flush_business_history()"
+      "zzzzzz_business_history_commit": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR\
+        \ UPDATE ON \"Repayments\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+  "captured_at": "2026-10-06T14:11:33.381694+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

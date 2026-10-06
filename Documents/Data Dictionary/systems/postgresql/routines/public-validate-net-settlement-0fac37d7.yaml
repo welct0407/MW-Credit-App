@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -26,7 +26,7 @@
       DECLARE available numeric;
       BEGIN
        IF NEW."Status"='Cancelled' THEN RETURN NEW; END IF;
-       IF TG_OP='UPDATE' AND NEW."Amount" IS NOT DISTINCT FROM OLD."Amount"
+       IF TG_OP='UPDATE' AND OLD."Status" IS DISTINCT FROM 'Cancelled' AND NEW."Amount" IS NOT DISTINCT FROM OLD."Amount"
          AND NEW."Ref Partner" IS NOT DISTINCT FROM OLD."Ref Partner" THEN RETURN NEW; END IF;
        IF NEW."Ref Partner" IS NULL OR NEW."Amount" IS NULL OR NEW."Amount"::numeric<=0 THEN
         RAISE EXCEPTION 'Settlement requires a partner and a positive amount';

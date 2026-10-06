@@ -24,6 +24,7 @@ INSERT INTO "Charges"("Row ID","Ref Loans","Charge Date","Principal Due","Intere
 ('SC-B','SC-L1',current_date-3,100::money,100::money),
 ('SC-C','SC-L1',current_date-2,100::money,100::money),
 ('SC-D','SC-L2',current_date-1,200::money,100::money),
+('SC-E','SC-L2',current_date,150::money,100::money),
 ('SC-F','SC-L2',current_date+1,0::money,30::money),
 ('SC-X','SC-LX',current_date,0::money,10::money);
 INSERT INTO "Payments"("Row ID","Ref Borrower","Ref Received By Cash Account","Status","Amount Received","Payment Date","Allocation Method","Ref Target Charge")
@@ -64,8 +65,36 @@ SELECT pg_temp.assert((SELECT count(*)=2 FROM "Loans" WHERE "Row ID" IN ('SC-L1'
 SELECT public.post_payment('SC-P1');
 UPDATE "Payments" SET "Status"='Processing',"Notes"='Synthetic retry metadata' WHERE "Row ID"='SC-P1';
 SELECT pg_temp.assert((SELECT count(*)=3 FROM "Repayments" WHERE "Ref Payment"='SC-P1'),'retry no duplicate');
-SELECT pg_temp.reject($q$UPDATE "Payments" SET "Selected Charge IDs"='SC-A' WHERE "Row ID"='SC-P1'$q$,'selection cannot');
-SELECT pg_temp.reject($q$UPDATE "Payments" SET "Amount Received"=651::money WHERE "Row ID"='SC-P1'$q$,'financial inputs cannot');
+-- V59 posted selection replacement is supported when the new scope has the
+-- exact receipt capacity. Teardown must release only this receipt's children.
+SET CONSTRAINTS ALL IMMEDIATE;
+CREATE TEMP TABLE sc_other_receipt AS SELECT to_jsonb(t) r FROM "Payments" t WHERE "Row ID"='SC-PART';
+CREATE TEMP TABLE sc_other_children AS SELECT to_jsonb(t) r FROM "Repayments" t WHERE "Ref Payment"='SC-PART';
+CREATE TEMP TABLE sc_receipt_cash AS SELECT "Row ID" FROM "Cash Ledger" WHERE "Ref Payment"='SC-P1';
+UPDATE "Payments" SET "Selected Charge IDs"='SC-E , SC-A' WHERE "Row ID"='SC-P1';
+SELECT pg_temp.assert((SELECT "Status"='Posted' AND "Selected Charge IDs"='SC-A , SC-E' AND "Amount Received"=650::money AND "Posted Amount"=650 FROM "Payments" WHERE "Row ID"='SC-P1'),'compatible posted selection replacement');
+SELECT pg_temp.assert((SELECT array_agg("Ref Charge" ORDER BY "Ref Charge")=ARRAY['SC-A','SC-E'] AND sum("Allocated Principal"::numeric+"Allocated Interest"::numeric)=650 FROM "Payment Allocations" WHERE "Ref Payment"='SC-P1'),'new selection exact children');
+SELECT pg_temp.assert((SELECT count(*)=2 AND sum("Principal Paid"::numeric)=450 AND sum("Interest Paid"::numeric)=200 FROM "Repayments" WHERE "Ref Payment"='SC-P1'),'replacement component conservation');
+SELECT pg_temp.assert((SELECT array_agg("Amount Remaining" ORDER BY "Row ID")=ARRAY[200,150,300]::numeric[] FROM "Charges" WHERE "Row ID" IN ('SC-B','SC-C','SC-D')),'old selection released except other receipt');
+SELECT pg_temp.assert((SELECT count(*)=1 AND min("Row ID")=(SELECT "Row ID" FROM sc_receipt_cash) AND sum("Amount"::numeric)=650 FROM "Cash Ledger" WHERE "Ref Payment"='SC-P1'),'same unique cash key/value');
+SELECT pg_temp.assert((SELECT to_jsonb(t) FROM "Payments" t WHERE "Row ID"='SC-PART')=(SELECT r FROM sc_other_receipt) AND NOT EXISTS((SELECT r FROM sc_other_children EXCEPT SELECT to_jsonb(t) FROM "Repayments" t WHERE "Ref Payment"='SC-PART') UNION ALL (SELECT to_jsonb(t) FROM "Repayments" t WHERE "Ref Payment"='SC-PART' EXCEPT SELECT r FROM sc_other_children)),'unrelated partial source/repayment unchanged');
+UPDATE "Payments" SET "Selected Charge IDs"='SC-B , SC-C , SC-D' WHERE "Row ID"='SC-P1';
+SELECT pg_temp.assert((SELECT count(*)=3 AND sum("Principal Paid"::numeric)=400 AND sum("Interest Paid"::numeric)=250 FROM "Repayments" WHERE "Ref Payment"='SC-P1'),'reverse compatible selection restores components');
+SELECT pg_temp.assert((SELECT array_agg("Amount Remaining" ORDER BY "Row ID")=ARRAY[400,250]::numeric[] FROM "Charges" WHERE "Row ID" IN ('SC-A','SC-E')),'replacement target balances restored');
+CREATE TEMP TABLE sc_before_rejected_replacement AS
+SELECT 'source' kind,to_jsonb(t) r FROM "Payments" t WHERE "Row ID"='SC-P1'
+UNION ALL SELECT 'allocation',to_jsonb(t) FROM "Payment Allocations" t WHERE "Ref Payment"='SC-P1'
+UNION ALL SELECT 'repayment',to_jsonb(t) FROM "Repayments" t WHERE "Ref Payment"='SC-P1'
+UNION ALL SELECT 'cash',to_jsonb(t) FROM "Cash Ledger" t WHERE "Ref Payment"='SC-P1';
+SELECT pg_temp.reject($q$UPDATE "Payments" SET "Selected Charge IDs"='SC-A' WHERE "Row ID"='SC-P1'$q$,'Payment does not match');
+CREATE TEMP TABLE sc_after_rejected_replacement AS
+SELECT 'source' kind,to_jsonb(t) r FROM "Payments" t WHERE "Row ID"='SC-P1'
+UNION ALL SELECT 'allocation',to_jsonb(t) FROM "Payment Allocations" t WHERE "Ref Payment"='SC-P1'
+UNION ALL SELECT 'repayment',to_jsonb(t) FROM "Repayments" t WHERE "Ref Payment"='SC-P1'
+UNION ALL SELECT 'cash',to_jsonb(t) FROM "Cash Ledger" t WHERE "Ref Payment"='SC-P1';
+SELECT pg_temp.assert(NOT EXISTS((SELECT * FROM sc_before_rejected_replacement EXCEPT SELECT * FROM sc_after_rejected_replacement) UNION ALL (SELECT * FROM sc_after_rejected_replacement EXCEPT SELECT * FROM sc_before_rejected_replacement)),'incompatible replacement preserves exact source/children/cash');
+
+SELECT pg_temp.reject($q$UPDATE "Payments" SET "Amount Received"=651::money WHERE "Row ID"='SC-P1'$q$,'Payment does not match');
 SELECT pg_temp.reject($q$SELECT pg_temp.receive('SC-STALE','SC-B,SC-C,SC-D',650)$q$,'not eligible');
 SELECT pg_temp.receive('SC-SINGLE','SC-A',400);
 SELECT pg_temp.assert((SELECT count(*)=1 FROM "Payment Allocations" WHERE "Ref Payment"='SC-SINGLE'),'single selection supported');

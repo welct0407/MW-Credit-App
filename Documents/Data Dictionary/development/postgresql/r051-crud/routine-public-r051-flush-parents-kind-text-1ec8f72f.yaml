@@ -1,0 +1,30 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.r051_flush_parents(kind text)"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-trigger-performance/sql-definitions.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.r051_flush_parents(kind text)"
+    "definition": "CREATE OR REPLACE FUNCTION public.r051_flush_parents(kind text)\n RETURNS void\n LANGUAGE plpgsql\n SET\
+      \ search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE dirty jsonb:=coalesce(nullif(current_setting('r051_dirty.'||kind,true),'')::jsonb,'{}'::jsonb);\
+      \ k text;\r\nBEGIN\r\n IF dirty='{}'::jsonb THEN RETURN; END IF;\r\n PERFORM set_config('r051_dirty.'||kind,'',true);\r\
+      \n FOR k IN SELECT jsonb_object_keys(dirty) ORDER BY 1 LOOP\r\n  CASE kind\r\n   WHEN 'charge' THEN PERFORM public.vc_refresh_charge(k);\r\
+      \n   WHEN 'loan' THEN PERFORM public.vc_refresh_loan(k);\r\n   WHEN 'payment' THEN PERFORM public.vc_refresh_payment(k);\r\
+      \n   WHEN 'borrower' THEN PERFORM public.vc_refresh_borrower(k);\r\n   ELSE RAISE EXCEPTION 'Unknown parent refresh\
+      \ kind';\r\n  END CASE;\r\n END LOOP;\r\nEND $function$\n"
+  "captured_at": "2026-10-06T14:11:33.381694+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -26,6 +26,13 @@
       BEGIN
         IF TG_OP='INSERT' THEN
           IF coalesce(NEW."Defaulted",false) THEN RAISE EXCEPTION 'Create the loan before confirming default'; END IF;
+          RETURN NEW;
+        END IF;
+        IF coalesce(OLD."Defaulted",false) AND NEW."Defaulted"=false THEN
+          IF NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount" OR NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers" THEN
+            RAISE EXCEPTION 'Undo default before changing loan inputs'; END IF;
+          PERFORM public.undo_loan_default(OLD);
+          NEW."Default Loss Amount":=NULL; NEW."Loan Status":='ยังไม่ปิดยอด'; NEW."Close Date":=NULL; NEW."Closed By":=NULL;
           RETURN NEW;
         END IF;
         IF coalesce(OLD."Defaulted",false) THEN

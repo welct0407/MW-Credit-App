@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
 "content":
   "definition":
@@ -23,9 +23,9 @@
       \ Borrowers]\"},{\"ColumnToEdit\":\"Ref Target Charge\",\"NewColumnValue\":\"=[Row ID]\"},{\"ColumnToEdit\":\"Payment\
       \ Method\",\"NewColumnValue\":\"=\\\"Bank Transfer\\\"\"},{\"ColumnToEdit\":\"Allocation Method\",\"NewColumnValue\"\
       :\"=\\\"Single Full\\\"\"},{\"ColumnToEdit\":\"Notes\",\"NewColumnValue\":\"=[Notes]\"},{\"ColumnToEdit\":\"Created\
-      \ By\",\"NewColumnValue\":\"=USEREMAIL()\"},{\"ColumnToEdit\":\"Created At\",\"NewColumnValue\":\"=NOW()\"}],\"InputParametersUsed\"\
-      :null,\"Prominence\":\"Do_Not_Display\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"\
-      BulkApplicable\":true}"
+      \ By\",\"NewColumnValue\":\"=USEREMAIL()\"},{\"ColumnToEdit\":\"Created At\",\"NewColumnValue\":\"=NOW()\"},{\"ColumnToEdit\"\
+      :\"Delete Requested\",\"NewColumnValue\":\"=FALSE\"}],\"InputParametersUsed\":null,\"Prominence\":\"Do_Not_Display\"\
+      ,\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\":true}"
     "Do this": "ADD_RECORD_TO"
     "Only if this condition is true": "=AND([Amount Remaining] > 0, COUNT(SELECT(Payments[Row ID], AND([Ref Borrower] = [_THISROW].[Ref\
       \ Loans].[Ref Borrowers], IN([Status], LIST(\"Processing\", \"Error\"))))) = 0)"

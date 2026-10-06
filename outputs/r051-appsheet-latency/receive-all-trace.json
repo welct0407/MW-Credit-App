@@ -1,0 +1,17 @@
+{
+  "utc": "2026-10-06T15:54:50Z",
+  "version": "1.000200",
+  "operation": "R008 Borrower Commands Receive All",
+  "seconds": {
+    "total": 14.541,
+    "data_layer": 12.9654495,
+    "fetch_before": 0.2298052,
+    "ExecuteNonQuery": 1.1915051,
+    "GetRows_after": 1.2158293,
+    "ComputeVirtualColumns": 10.3012666,
+    "Related_Charges": 2.1472422,
+    "Submitted_Receipts": 1.4525182,
+    "CreateNotification": 1.5504127
+  },
+  "note": "Remaining slow command path, not a matched speed comparison. Parent/child times overlap; SQL calls include transport. Notifications unchanged and owner-only in DEV."
+}

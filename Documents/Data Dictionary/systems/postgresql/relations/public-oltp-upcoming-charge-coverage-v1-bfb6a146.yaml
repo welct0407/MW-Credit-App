@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r048-production/README.md"
+  "source": "outputs/r051-production/README.md"
 "content":
   "definition":
     "schema": "public"
@@ -27,6 +27,7 @@
                SELECT i_1.borrower_id,
                   i_1.loan_id,
                   i_1.reporting_date,
+                  LEAST((i_1.reporting_date + '3 mons'::interval)::date, i_1.reporting_date + 93) AS horizon_end,
                   s.due_date,
                   s.origin,
                   s.bucket,
@@ -44,11 +45,11 @@
                  FROM raw
                 GROUP BY raw.borrower_id
               ), dates AS (
-               SELECT oltp_upcoming_charge_events_v1."Ref Borrower" AS borrower_id,
-                  count(DISTINCT oltp_upcoming_charge_events_v1."Due Date")::integer AS displayed_dates
-                 FROM oltp_upcoming_charge_events_v1
-                WHERE oltp_upcoming_charge_events_v1."Borrower Due Date Rank" <= 5
-                GROUP BY oltp_upcoming_charge_events_v1."Ref Borrower"
+               SELECT raw.borrower_id,
+                  LEAST(count(DISTINCT raw.due_date), 5::bigint)::integer AS displayed_dates
+                 FROM raw
+                WHERE raw.due_date > raw.reporting_date AND raw.due_date <= raw.horizon_end AND (raw.principal + raw.interest) > 0::numeric AND (raw.origin = 'Recorded'::text OR raw.origin = 'Simulated'::text AND raw.eligible)
+                GROUP BY raw.borrower_id
               ), ctx AS (
                SELECT olap_reporting_date() AS t
               )
@@ -248,3 +249,38 @@
       "collation": "\"default\""
       "acl": null
       "comment": null
+  "constraints": {}
+  "indexes": {}
+  "triggers": {}
+  "policies": {}
+  "dependencies":
+  - "schema": "public"
+    "relation": "oltp_upcoming_charge_coverage_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "Borrowers"
+    "referenced_column": "Row ID"
+  - "schema": "public"
+    "relation": "oltp_upcoming_charge_coverage_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_forecast_inputs_v1"
+    "referenced_column": "borrower_id"
+  - "schema": "public"
+    "relation": "oltp_upcoming_charge_coverage_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_forecast_inputs_v1"
+    "referenced_column": "charges"
+  - "schema": "public"
+    "relation": "oltp_upcoming_charge_coverage_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_forecast_inputs_v1"
+    "referenced_column": "loan"
+  - "schema": "public"
+    "relation": "oltp_upcoming_charge_coverage_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_forecast_inputs_v1"
+    "referenced_column": "loan_id"
+  - "schema": "public"
+    "relation": "oltp_upcoming_charge_coverage_v1"
+    "referenced_schema": "public"
+    "referenced_relation": "reporting_forecast_inputs_v1"
+    "referenced_column": "reporting_date"

@@ -1,0 +1,69 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.move_payment_interest(a \"Payment Allocations\", n \"Payment Allocations\")"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.move_payment_interest(a \"Payment Allocations\", n \"Payment Allocations\")"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.move_payment_interest(a "Payment Allocations", n "Payment Allocations")
+       RETURNS "Payment Allocations"
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE p public."Payments"%ROWTYPE; c public."Charges"%ROWTYPE; source public."Charges"%ROWTYPE;
+       r public."Repayments"%ROWTYPE; remaining numeric; prior text;
+      BEGIN
+       IF pg_trigger_depth()<1 THEN RAISE EXCEPTION 'Move interest through Payment Allocations UPDATE'; END IF;
+       IF (to_jsonb(a)-'Ref Charge') IS DISTINCT FROM (to_jsonb(n)-'Ref Charge')
+        OR a."Allocated Principal"::numeric IS DISTINCT FROM 0 OR a."Allocated Interest"::numeric<=0
+        OR a."Allocated Amount" IS DISTINCT FROM a."Allocated Interest" THEN
+        RAISE EXCEPTION 'Change receipt amounts through Payments; allocation move only changes Ref Charge'; END IF;
+       IF NOT pg_try_advisory_xact_lock(9162026,2) THEN RAISE EXCEPTION 'Cash pool is busy; retry'; END IF;
+       SELECT * INTO STRICT p FROM public."Payments" WHERE "Row ID"=a."Ref Payment";
+       PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=p."Ref Borrower" FOR UPDATE NOWAIT;
+       SELECT * INTO STRICT p FROM public."Payments" WHERE "Row ID"=a."Ref Payment" FOR UPDATE NOWAIT;
+       IF p."Status"<>'Posted' OR p."Allocation Method"<>'Lump Sum' THEN
+        RAISE EXCEPTION 'Only a posted Lump Sum whole-interest allocation can move'; END IF;
+       PERFORM 1 FROM public."Charges" WHERE "Row ID" IN (a."Ref Charge",n."Ref Charge") ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
+       SELECT * INTO STRICT source FROM public."Charges" WHERE "Row ID"=a."Ref Charge";
+       SELECT * INTO STRICT c FROM public."Charges" WHERE "Row ID"=n."Ref Charge";
+       PERFORM 1 FROM public."Loans" WHERE "Row ID"=source."Ref Loans" AND "Ref Borrowers"=p."Ref Borrower"
+        AND "Loan Status"='ยังไม่ปิดยอด' AND NOT coalesce("Defaulted",false) FOR UPDATE NOWAIT;
+       IF NOT FOUND OR source."Ref Loans" IS DISTINCT FROM c."Ref Loans" OR c."Charge Date" IS NULL
+        OR c."Charge Date">p."Payment Date" OR starts_with(c."Row ID",'df10:') THEN
+        RAISE EXCEPTION 'Interest move requires an eligible charge on the same open loan'; END IF;
+       SELECT * INTO STRICT r FROM public."Repayments" WHERE "Ref Payment Allocation"=a."Row ID" FOR UPDATE NOWAIT;
+       IF r."Ref Payment" IS DISTINCT FROM p."Row ID" OR r."Ref Charges" IS DISTINCT FROM a."Ref Charge"
+        OR r."Ref Loans" IS DISTINCT FROM c."Ref Loans" OR r."Interest Paid" IS DISTINCT FROM a."Allocated Interest"
+        OR r."Principal Paid"::numeric IS DISTINCT FROM 0 THEN RAISE EXCEPTION 'Allocation and repayment disagree'; END IF;
+       SELECT c."Interest Due"::numeric-coalesce(sum("Interest Paid"::numeric),0) INTO remaining
+        FROM public."Repayments" WHERE "Ref Charges"=c."Row ID";
+       IF remaining<a."Allocated Interest"::numeric OR EXISTS(SELECT 1 FROM public."Payment Allocations"
+        WHERE "Ref Payment"=p."Row ID" AND "Ref Charge"=c."Row ID") THEN RAISE EXCEPTION 'Target charge capacity conflict'; END IF;
+       n."Charge Date Snapshot":=c."Charge Date";
+       n."Interest Remaining Snapshot":=remaining::money;
+       n."Principal Remaining Snapshot":=c."Principal Remaining"::money;
+       n."Amount Remaining Snapshot":=(remaining+c."Principal Remaining")::money;
+       prior:=current_setting('payment_crud.move',true);
+       PERFORM set_config('payment_crud.move',jsonb_build_object('repayment',r."Row ID",'target',c."Row ID")::text,true);
+       UPDATE public."Repayments" SET "Ref Charges"=c."Row ID" WHERE "Row ID"=r."Row ID";
+       PERFORM set_config('payment_crud.move',coalesce(prior,''),true);
+       RETURN n;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

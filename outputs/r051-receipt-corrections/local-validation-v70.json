@@ -1,0 +1,152 @@
+{
+  "state": "LOCAL_VALIDATION_PASS_UNAPPLIED",
+  "date_utc": "2026-10-06",
+  "starting_commit": "2ad45ad6",
+  "actual_dev_version": 69,
+  "prod_version": 58,
+  "migration": {
+    "path": "database/migrations/V70__protect_defaulted_legacy_repayments.sql",
+    "version": 70,
+    "sha256": "7a7cd48b1973976ffe957794e82cdfb3964106a046a1861401af3d3c04d08a55",
+    "flyway_checksum": 124258995
+  },
+  "source_sha256": {
+    "database/migrations/V70__protect_defaulted_legacy_repayments.sql": "7a7cd48b1973976ffe957794e82cdfb3964106a046a1861401af3d3c04d08a55",
+    "scripts/database/Test-DefaultRepayment.sql": "9306d6e78331922dfaa6bcac6cfe0bbe96f50a990907ebcb744f6680c27019d4",
+    "scripts/database/Test-DefaultRepaymentBeforeV70.sql": "e42136477700ebc4711d392bb2664f64707a8cf61da3a1eaa8ac9fa0daf365be",
+    "scripts/database/Test-DefaultRepaymentUpgrade.sql": "24ec2d985202df16bdbce6dfebef7013f721f2e0fc00db8b800113b575ecabed",
+    "scripts/database/Test-DefaultLoanConcurrency.ps1": "2ef014608241c4c7f1bb2739a33af776b12641a64b688db4150e30c245c61158",
+    "scripts/database/Test-DefaultInspectionLocal.py": "a463857a39b0b086f79edecccbbeba5550bf39379c671404be36bec5c6962a5c",
+    "scripts/database/Test-CI.ps1": "3588d79204fb2f192db94b79bd198b21a732ea1416ae41b455d8d398921efd57",
+    "scripts/database/Test-StatementBatch.sql": "52a7e25adb72313b030a3b3f7855f11e12aadda8cef05cd89fcbd37e2962c6d8"
+  },
+  "scope": "One existing function replaced; UPDATE/DELETE of non-generated Repayments check old/new direct and charge-derived loan default state. V69 charge/df10 rules unchanged; no INSERT, schema, privilege or relationship changes.",
+  "local_ci": {
+    "command": "pwsh -NoProfile -File scripts/database/Test-CI.ps1",
+    "exit_code": 0,
+    "private_log": "/tmp/r051-v70-ci.log",
+    "routes": [
+      {
+        "migrations": 70,
+        "pre_migration_target": null,
+        "second_run": 0,
+        "sql": "passed",
+        "concurrency": [
+          "BusinessExpenses",
+          "ExpenseReimbursement",
+          "PaymentCrud",
+          "ReceiptDelete",
+          "InterestReallocation",
+          "CorePayment",
+          "AtomicLoanClose",
+          "ChargeGeneration",
+          "DefaultLoan"
+        ],
+        "checksum_tampering_rejected": true,
+        "logs": "/tmp/r051-migration-test-d0525e9x"
+      },
+      {
+        "migrations": 51,
+        "pre_migration_target": 19,
+        "second_run": 0,
+        "sql": "passed",
+        "concurrency": [],
+        "checksum_tampering_rejected": true,
+        "logs": "/tmp/r051-migration-test-d58cza_6"
+      },
+      {
+        "migrations": 2,
+        "pre_migration_target": 68,
+        "second_run": 0,
+        "sql": "passed",
+        "concurrency": [],
+        "checksum_tampering_rejected": true,
+        "logs": "/tmp/r051-migration-test-5oczuuru"
+      },
+      {
+        "migrations": 1,
+        "pre_migration_target": 69,
+        "second_run": 0,
+        "sql": "passed",
+        "concurrency": [],
+        "checksum_tampering_rejected": true,
+        "logs": "/tmp/r051-migration-test-ae8fi4oq"
+      }
+    ],
+    "coverage": "Full SQL and nine concurrency suites include the new legacy repayment cases; separate V19, V68 and V69 seeded upgrade routes pass. All routes validate checksums, repeat migration no-op, schema export/normalization and checksum-tampering rejection."
+  },
+  "focused_sql": {
+    "exit_code": 0,
+    "private_log": "/tmp/r051-v70-focused.log"
+  },
+  "separate_request_proof": {
+    "historical69": {
+      "passed": true,
+      "scope": "Isolated localhost V69 copy only; no DEV transport or writes",
+      "correct_actor_fields": [
+        "Loans.Closed By",
+        "original Charges.Notes restoration JSON.actor",
+        "Repayments.Created By"
+      ],
+      "loss_charge_note": "Generic zero-cash description, not an actor field",
+      "observer_visibility": "Auto-enabled intermediate state invisible; observer saw open/autoFalse before commit and defaulted/autoFalse afterward",
+      "default_undo_exact_sources_and_cash": true,
+      "setup_undo_full_transaction_rollback_all26_equal": true,
+      "undo_all_nonanalytics_tables_equal": true,
+      "undo_analytics_timestamp_only_row_counts": {
+        "Daily Analytics": 2,
+        "Cash Account Daily Analytics": 54
+      },
+      "plain_default_parent_and_children_delete_rejected_unchanged": true,
+      "nondefault_unpaid_child_first_delete_passed": true,
+      "legacy_risk": {
+        "allocation_count": 0,
+        "historical_v69_unsafe_delete_committed": true,
+        "earlier_committed_delete_survives_failure": true,
+        "defaulted_outstanding_after_child_delete": 10.0,
+        "later_undo_does_not_restore_deleted_legacy_row": true
+      },
+      "actual_appsheet_request_order": "Not observed; this simulates independently committed requests",
+      "temporary_database_removed": true,
+      "original_local_database_all26_unchanged": true
+    },
+    "candidate70": {
+      "passed": true,
+      "scope": "Isolated localhost V70 copy only; no DEV transport or writes",
+      "correct_actor_fields": [
+        "Loans.Closed By",
+        "original Charges.Notes restoration JSON.actor",
+        "Repayments.Created By"
+      ],
+      "loss_charge_note": "Generic zero-cash description, not an actor field",
+      "observer_visibility": "Auto-enabled intermediate state invisible; observer saw open/autoFalse before commit and defaulted/autoFalse afterward",
+      "default_undo_exact_sources_and_cash": true,
+      "setup_undo_full_transaction_rollback_all26_equal": true,
+      "undo_all_nonanalytics_tables_equal": true,
+      "undo_analytics_timestamp_only_row_counts": {
+        "Daily Analytics": 2,
+        "Cash Account Daily Analytics": 54
+      },
+      "plain_default_parent_and_children_delete_rejected_unchanged": true,
+      "nondefault_unpaid_child_first_delete_passed": true,
+      "legacy_risk": {
+        "allocation_count": 0,
+        "v70_child_delete_and_update_rejected": true,
+        "separate_failed_requests_all26_unchanged": true,
+        "later_undo_exact_source_restoration": true,
+        "ordinary_delete_after_undo_passed": true
+      },
+      "actual_appsheet_request_order": "Not observed; this simulates independently committed requests",
+      "temporary_database_removed": true,
+      "original_local_database_all26_unchanged": true
+    },
+    "command_template": "/workspace/MW-Integration-Agent/.venv/bin/python scripts/database/Test-DefaultInspectionLocal.py --port 55469 --data-directory /workspace/r051-dev-recovery-bptrxi2l/data --expected-version VERSION --output /tmp/r051-v70-PROOF.json",
+    "both_exit_codes": 0,
+    "local_recovery": "Verified private V68 restore retained, migrated locally69 then70; each proof creates/drops a new local copy and verifies source all26 unchanged. No remote transport. Local server stopped afterward.",
+    "coverage_boundary": "Run separately locally; Windows CI does not invoke this Python proof.",
+    "test_expectation_correction": "With the legacy row retained on V70, original charge DELETE correctly fails first via Charge has receipts; only that expected test message changed, no migration change."
+  },
+  "frontend": "Owner requires bilingual explanations and built-in pre-save validation where supported; r051-frontend-guard-mapping.md tracks candidates versus saved/verified rules. GUI predicates not applied or compiled by this task.",
+  "next_gate": "Root review/publication; exact revision remote results at https://github.com/welct0407/AppSheet-Loan-Project/pull/15/checks . Any DEV application requires a separately coordinated window, fresh recovery/preflight and rollback acceptance; no live application authorized by this evidence.",
+  "live_effects": "No DEV/browser/PROD calls, migrations, fixture writes or notifications in this task; live fixture helpers remain strictV69."
+}

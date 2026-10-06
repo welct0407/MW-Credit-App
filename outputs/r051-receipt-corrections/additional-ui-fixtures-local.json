@@ -1,0 +1,34 @@
+{
+  "state": "prepared_not_applied",
+  "author": "GPT-6 Astra High",
+  "script_sha256": "aa8cefb11b2f7021f895e309a17e7800b634c7efd0fe19e9ae56f1e06c8ccc2b",
+  "local_fixture_batches": [
+    "DAILY",
+    "DEFAULT",
+    "LEGACY",
+    "CLOSE",
+    "PREPARED",
+    "PARTNER-A"
+  ],
+  "local_result": "all six seed / affected operation / exact cleanup cases passed; duplicate seed and stale cleanup inventory rejected",
+  "live_mutations": false,
+  "maintained_ci": {
+    "entrypoint": "Test-CI.ps1",
+    "migrations": 64,
+    "result": "passed",
+    "logs": [
+      "/tmp/r051-migration-test-0vr7ve_a",
+      "/tmp/r051-migration-test-ls5uy43e"
+    ]
+  },
+  "limitations": [
+    "GUI-generated IDs not yet known",
+    "Future contribution date and positive settlement eligibility require live read-only preflight",
+    "GUI delete sync investigation supersedes seeding; no write window currently used"
+  ],
+  "secondary_lisa_accounts": [
+    "SYN-R051-UI-LEGACY-LISA2",
+    "SYN-R051-UI-PARTNER-A-LISA2"
+  ],
+  "local_account_corrections": "loan and completed settlement Lisa\u2192Lisa2 assertions passed with one original source cash row"
+}

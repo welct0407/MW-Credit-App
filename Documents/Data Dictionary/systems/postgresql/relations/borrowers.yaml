@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -639,30 +639,6 @@
       "deferrable": false
       "initially_deferred": false
       "comment": null
-    "RI_ConstraintTrigger_a_16720":
-      "schema": "public"
-      "relation": "Borrowers"
-      "name": "RI_ConstraintTrigger_a_16720"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16720\" AFTER DELETE ON \"Borrowers\" FROM \"Loan\
-        \ Assessment\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_del\"()"
-      "enabled": "O"
-      "internal": true
-      "routine": "\"RI_FKey_noaction_del\"()"
-      "deferrable": false
-      "initially_deferred": false
-      "comment": null
-    "RI_ConstraintTrigger_a_16721":
-      "schema": "public"
-      "relation": "Borrowers"
-      "name": "RI_ConstraintTrigger_a_16721"
-      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_16721\" AFTER UPDATE ON \"Borrowers\" FROM \"Loan\
-        \ Assessment\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
-      "enabled": "O"
-      "internal": true
-      "routine": "\"RI_FKey_noaction_upd\"()"
-      "deferrable": false
-      "initially_deferred": false
-      "comment": null
     "RI_ConstraintTrigger_a_16745":
       "schema": "public"
       "relation": "Borrowers"
@@ -753,6 +729,54 @@
       "name": "RI_ConstraintTrigger_a_17070"
       "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_17070\" AFTER UPDATE ON \"Borrowers\" FROM \"Business\
         \ Expenses\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_21407":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_21407"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21407\" AFTER DELETE ON \"Borrowers\" FROM \"Loan\
+        \ Assessment\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_setnull_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_setnull_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_21408":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_21408"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21408\" AFTER UPDATE ON \"Borrowers\" FROM \"Loan\
+        \ Assessment\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_noaction_upd\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_21412":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_21412"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21412\" AFTER DELETE ON \"Borrowers\" FROM \"Loan\
+        \ Assessment SQL Lab\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_setnull_del\"()"
+      "enabled": "O"
+      "internal": true
+      "routine": "\"RI_FKey_setnull_del\"()"
+      "deferrable": false
+      "initially_deferred": false
+      "comment": null
+    "RI_ConstraintTrigger_a_21413":
+      "schema": "public"
+      "relation": "Borrowers"
+      "name": "RI_ConstraintTrigger_a_21413"
+      "definition": "CREATE CONSTRAINT TRIGGER \"RI_ConstraintTrigger_a_21413\" AFTER UPDATE ON \"Borrowers\" FROM \"Loan\
+        \ Assessment SQL Lab\" NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION \"RI_FKey_noaction_upd\"()"
       "enabled": "O"
       "internal": true
       "routine": "\"RI_FKey_noaction_upd\"()"

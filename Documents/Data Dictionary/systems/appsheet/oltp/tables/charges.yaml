@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -135,8 +135,16 @@
           \"Plain Text\\\",\\\"IsMulticolumnKey\\\":false,\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\":null,\\\"\
           Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\"\
           :null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":true,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
-          ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
-          Reset_If\":null,\"Suggested_Values\":null}"
+          ,\"Valid_If\":\"=IF(NOT(IN([Row ID], Charges[Row ID])), Loans[Row ID], IF(COUNT(SELECT(Repayments[Row ID], [Ref\
+          \ Charges] = [_THISROW].[Row ID])) > 0, SELECT(Loans[Row ID], AND([Row ID] = LOOKUP([_THISROW].[Row ID], \\\"Charges\\\
+          \", \\\"Row ID\\\", \\\"Ref Loans\\\"), NOT([Defaulted] = TRUE))), SELECT(Loans[Row ID], NOT([Defaulted] = TRUE))))\"\
+          ,\"Error_Message_If_Invalid\":\"=\\\"ย้ายยอดเรียกเก็บที่มีรายการชำระไม่ได้ กรุณาแก้ไขรายการชำระก่อน และ Undo Default\
+          \ ของสัญญาที่เกี่ยวข้องเมื่อจำเป็น / A paid charge cannot move to another loan. Correct linked payments first, and\
+          \ Undo Default on the related loan when needed.\\\"\",\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=AND(NOT(STARTSWITH([Row\
+          \ ID], \\\"df10:\\\")), OR(NOT(IN([Row ID], Charges[Row ID])), AND(NOT([Ref Loans].[Defaulted] = TRUE), NOT(LOOKUP(LOOKUP([Row\
+          \ ID], \\\"Charges\\\", \\\"Row ID\\\", \\\"Ref Loans\\\"), \\\"Loans\\\", \\\"Row ID\\\", \\\"Defaulted\\\") =\
+          \ TRUE), COUNT(SELECT(Repayments[Row ID], [Ref Charges] = [_THISROW].[Row ID])) = 0)))\",\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -175,28 +183,31 @@
         "Hidden": "No"
       "rules":
         "Column name": "Charge Date"
+        "Visible?": "ALWAYS"
         "Display name": "=\"วันที่ต้องชำระ / Charge Date\""
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "TODAY()"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "NFC Scannable": "No"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Date"
         "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
-          Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+          Required_If\":null,\"Editable_If\":\"=AND(NOT(STARTSWITH([Row ID], \\\"df10:\\\")), OR(NOT(IN([Row ID], Charges[Row\
+          \ ID])), AND(NOT([Ref Loans].[Defaulted] = TRUE), NOT(LOOKUP(LOOKUP([Row ID], \\\"Charges\\\", \\\"Row ID\\\", \\\
+          \"Ref Loans\\\"), \\\"Loans\\\", \\\"Row ID\\\", \\\"Defaulted\\\") = TRUE))))\",\"Reset_If\":null,\"Suggested_Values\"\
+          :null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "TODAY()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
     "Interest Due":
       "inventory":
         "App": "OLTP"
@@ -214,11 +225,19 @@
         "Display name": "=\"ดอกเบี้ยที่ต้องชำระ / Interest Due\""
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=OR([Principal\
-          \ Due] <> 0, [_THIS] <> 0, AND([Total Paid] = 0, COUNT(SELECT(Payment Allocations[Row ID], [Ref Charge] = [_THISROW].[Row\
-          \ ID])) > 0, COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Charge] = [_THISROW].[Row ID], OR([Allocated Amount]\
-          \ <> 0, [Ref Payment].[Status] <> \\\"Posted\\\")))) = 0))\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
-          Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND(OR(COUNT(SELECT(Repayments[Row\
+          \ ID], [Ref Charges] = [_THISROW].[Row ID])) = 0, [_THIS] >= [Interest Paid]), OR([Principal Due] <> 0, [_THIS]\
+          \ <> 0, AND([Total Paid] = 0, COUNT(SELECT(Payment Allocations[Row ID], [Ref Charge] = [_THISROW].[Row ID])) > 0,\
+          \ COUNT(SELECT(Payment Allocations[Row ID], AND([Ref Charge] = [_THISROW].[Row ID], OR([Allocated Amount] <> 0,\
+          \ [Ref Payment].[Status] <> \\\"Posted\\\")))) = 0)))\",\"Error_Message_If_Invalid\":\"=IF(AND(COUNT(SELECT(Repayments[Row\
+          \ ID], [Ref Charges] = [_THISROW].[Row ID])) > 0, [_THIS] < [Interest Paid]), \\\"ดอกเบี้ยต้องไม่น้อยกว่าดอกเบี้ยที่ชำระแล้ว\
+          \ กรุณาแก้ไขรายการชำระที่เกี่ยวข้องก่อนลดดอกเบี้ย / Interest due must cover paid interest. Correct related payments\
+          \ before reducing it.\\\", \\\"เงินต้นและดอกเบี้ยไม่ควรเป็นศูนย์พร้อมกัน ยกเว้นรายการศูนย์ที่ใบรับชำระดูแลอยู่ /\
+          \ Principal and interest due cannot both be zero, except a supported receipt-owned zero allocation.\\\")\",\"Show_If\"\
+          :null,\"Required_If\":null,\"Editable_If\":\"=AND(NOT(STARTSWITH([Row ID], \\\"df10:\\\")), OR(NOT(IN([Row ID],\
+          \ Charges[Row ID])), AND(NOT([Ref Loans].[Defaulted] = TRUE), NOT(LOOKUP(LOOKUP([Row ID], \\\"Charges\\\", \\\"\
+          Row ID\\\", \\\"Ref Loans\\\"), \\\"Loans\\\", \\\"Row ID\\\", \\\"Defaulted\\\") = TRUE))))\",\"Reset_If\":null,\"\
+          Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -253,9 +272,14 @@
         "Display name": "=\"เงินต้นที่ต้องชำระ / Principal Due\""
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
-          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=[_THIS]\
-          \ >= 0\",\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\"\
-          :null,\"Suggested_Values\":null}"
+          :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":\"=AND([_THIS]\
+          \ >= 0, [_THIS] >= IF(NOT(IN([Row ID], Charges[Row ID])), 0, [Principal Paid]))\",\"Error_Message_If_Invalid\":\"\
+          =\\\"เงินต้นต้องไม่ติดลบและต้องไม่น้อยกว่าเงินต้นที่ชำระแล้ว กรุณาแก้ไขรายการชำระที่เกี่ยวข้องก่อนลดเงินต้น / Principal\
+          \ due must be nonnegative and cover paid principal. Correct related payments before reducing it.\\\"\",\"Show_If\"\
+          :null,\"Required_If\":null,\"Editable_If\":\"=AND(NOT(STARTSWITH([Row ID], \\\"df10:\\\")), OR(NOT(IN([Row ID],\
+          \ Charges[Row ID])), AND(NOT([Ref Loans].[Defaulted] = TRUE), NOT(LOOKUP(LOOKUP([Row ID], \\\"Charges\\\", \\\"\
+          Row ID\\\", \\\"Ref Loans\\\"), \\\"Loans\\\", \\\"Row ID\\\", \\\"Defaulted\\\") = TRUE))))\",\"Reset_If\":null,\"\
+          Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -290,7 +314,9 @@
         "Type": "LongText"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
-          :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+          :\"=AND(NOT(STARTSWITH([Row ID], \\\"df10:\\\")), OR(NOT(IN([Row ID], Charges[Row ID])), AND(NOT([Ref Loans].[Defaulted]\
+          \ = TRUE), NOT(LOOKUP(LOOKUP([Row ID], \\\"Charges\\\", \\\"Row ID\\\", \\\"Ref Loans\\\"), \\\"Loans\\\", \\\"\
+          Row ID\\\", \\\"Defaulted\\\") = TRUE))))\",\"Reset_If\":null,\"Suggested_Values\":null}"
         "Read-Only": "No"
         "Hidden": "No"
         "Label": "No"
@@ -748,29 +774,29 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
-        "App formula": "=[Ref Loans].[Borrower Name]"
         "Column name": "Borrower Name"
+        "Visible?": "ALWAYS"
         "Display name": "=ชื่อผู้กู้"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Name"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=[Ref Loans].[Borrower Name]"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Related Repayments":
       "inventory":
         "App": "OLTP"
@@ -864,6 +890,7 @@
       "rules":
         "Column name": "Payment Status TE"
         "Visible?": "ALWAYS"
+        "Display name": "=\"สถานะการชำระเงิน / Payment Status\""
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
@@ -892,7 +919,6 @@
         "Searchable": "Yes"
         "Scannable": "No"
         "Sensitive data": "No"
-        "Display name": "=\"สถานะการชำระเงิน / Payment Status\""
     "Days Outstanding":
       "inventory":
         "App": "OLTP"
@@ -1118,475 +1144,86 @@
         "Read-only": "Yes"
         "Hidden": "No"
       "rules":
-        "App formula": "=CONCATENATE(TEXT([Charge Date], \"DD MMM YYYY\"), \" | ฿\", [Amount Remaining], \" | Loan \", [Ref\
-          \ Loans].[Loan Key])"
         "Column name": "Charge Selection Label"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "Yes"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=CONCATENATE(TEXT([Charge Date], \"DD MMM YYYY\"), \" | ฿\", [Amount Remaining], \" | Loan \", [Ref\
+          \ Loans].[Loan Key])"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "Yes"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Correction Guidance":
+      "inventory":
+        "App": "OLTP"
+        "Table": "Charges"
+        "Column": "Correction Guidance"
+        "Type": "Show"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Correction Guidance"
         "Visible?": "ALWAYS"
-  "editor":
-    "fields":
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Charges"
-      "label": "Table name"
-      "text": |-
-        Table name
-        Name for this table (user-visible)
-        ​
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Updates"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Adds"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Deletes"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Read-Only"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "science"
-      "controls": []
-      "label": "Are updates allowed?"
-      "text": |-
-        Are updates allowed?
-        Are adds, deletes and updates allowed?
-        Updates
-        Adds
-        Deletes
-        Read-Only
-        science
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Charges"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "4"
-      "label": "Source Path"
-      "text": |-
-        Source Path
-        A user-understandable path to the table data
-        - select a source -
-        Borrowers
-        Loans
-        Repayments
-        Statistics
-        Charges
-        Partners
-        Payment Allocations
-        Payments
-        Business Expenses
-        Loan Form Context
-        Cash Holders
-        Cash Holder Balances
-        Cash Accounts
-        Cash Statement Context
-        Cash Account Daily Summary Recent
-        Cash Account Statement Recent
-        Cash Account Balances
-        Cash Dashboard
-        - browse for more data -
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Add"
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "_RowNumber"
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Row ID"
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Ref Loans"
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Charge Date"
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Interest Due"
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Principal Due"
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Notes"
-      "label": "Column Order List"
-      "text": |-
-        Column Order List
-        The order of columns to retrieve from the provider (only applies to some storage providers)
-        drag_indicator
-        _RowNumber
-        ​
-        drag_indicator
-        Row ID
-        ​
-        drag_indicator
-        Ref Loans
-        ​
-        drag_indicator
-        Charge Date
-        ​
-        drag_indicator
-        Interest Due
-        ​
-        drag_indicator
-        Principal Due
-        ​
-        drag_indicator
-        Notes
-        ​
-        Add
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Copy Data to New Source"
-      "controls": []
-      "label": "Data Source"
-      "text": |-
-        Data Source
-        Name of the table data source
-        database-2
-        Copy Data to New Source
-    - "choices": []
-      "controls": []
-      "label": "Source Id"
-      "text": |-
-        Source Id
-        A provider-specific path to the table data (not user-visible)
-        Table=public.Charges__Charges
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Default"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "_Default"
-      "label": "Store for image and file capture"
-      "text": |-
-        Store for image and file capture
-        By default, images and files captured by the app are stored in the cloud file system associated with the app owner's account. You can explicitly add an object store and use it instead.
-        Default
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      "label": "Filter out all existing rows?"
-      "text": |-
-        Filter out all existing rows?
-        Used only in forms apps that collect new data rows but never show any pre-existing rows.
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": ""
-      "label": "Security filter"
-      "text": |-
-        Security filter
-        The app uses only those rows that match this (optional) filter condition. Use this filter to limit what each user can see.
-        =
-        science
-        ​
-    - "choices":
-      - "checked": "true"
-        "pressed": null
-        "role": "radio"
-        "text": "as app creator"
-      - "checked": "false"
-        "pressed": null
-        "role": "radio"
-        "text": "as app user"
-      "controls": []
-      "label": "Access mode"
-      "text": |-
-        Access mode
-        The app will access the spreadsheet using the app creator or app user credentials.
-        as app creator
-        as app user
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": true
-      "label": "Shared?"
-      "text": |-
-        Shared?
-        Is this table shared by all users? This option is normally checked. Before unchecking, carefully review 'Private Tables' in the documentation.
-    - "choices": []
-      "controls":
-      - "selected":
-        - ""
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": ""
-      "label": "Data locale"
-      "text": |-
-        Data locale
-        Locale used to read the table
-        Compatibility (For backward compatibility)
-        Amharic (Ethiopia)
-        Arabic (Algeria)
-        Arabic (Bahrain)
-        Arabic (Egypt)
-        Arabic (Iraq)
-        Arabic (Jordan)
-        Arabic (Kuwait)
-        Arabic (Lebanon)
-        Arabic (Libya)
-        Arabic (Morocco)
-        Arabic (Oman)
-        Arabic (Qatar)
-        Arabic (Saudi Arabia)
-        Arabic (Syria)
-        Arabic (Tunisia)
-        Arabic (United Arab Emirates)
-        Arabic (Yemen)
-        Armenian (Armenia)
-        Azerbaijani (Cyrillic, Azerbaijan)
-        Azerbaijani (Latin, Azerbaijan)
-        Bengali (India)
-        Bulgarian (Bulgaria)
-        Burmese (Myanmar)
-        Catalan (Catalan)
-        Chinese (Simplified, China)
-        Chinese (Traditional, Hong Kong SAR)
-        Chinese (Traditional, Taiwan)
-        Chinese Traditional (Malaysia)
-        Croatian (Croatia)
-        Czech (Czechia)
-        Danish (Denmark)
-        Dari (Afghanistan)
-        Dutch (Aruba)
-        Dutch (Belgium)
-        Dutch (Curaçao)
-        Dutch (Netherlands)
-        English (Australia)
-        English (Bahrain)
-        English (Belgium)
-        English (Brazil)
-        English (Canada)
-        English (Germany)
-        English (Hong Kong SAR)
-        English (India)
-        English (Ireland)
-        English (Kenya)
-        English (Malaysia)
-        English (New Zealand)
-        English (Norway)
-        English (Philippines)
-        English (Singapore)
-        English (South Africa)
-        English (Sri Lanka)
-        English (Tanzania)
-        English (United Kingdom)
-        English (United States)
-        Filipino (Philippines)
-        Finnish (Finland)
-        French (Belgium)
-        French (Cameroon)
-        French (Canada)
-        French (Côte d’Ivoire)
-        French (France)
-        French (Luxembourg)
-        French (Mali)
-        French (Morocco)
-        French (Senegal)
-        French (Switzerland)
-        French Congo (DRC)
-        Fulah (Latin, Senegal)
-        Georgian (Georgia)
-        German (Austria)
-        German (Germany)
-        German (Liechtenstein)
-        German (Luxembourg)
-        German (Switzerland)
-        Greek (Greece)
-        Gujarati (India)
-        Hausa (Latin, Nigeria)
-        Hebrew (Israel)
-        Hindi (India)
-        Hungarian (Hungary)
-        Igbo (Nigeria)
-        Indonesian (Indonesia)
-        Irish (Ireland)
-        Italian (Italy)
-        Italian (Switzerland)
-        Japanese (Japan)
-        Kannada (India)
-        Kinyarwanda (Rwanda)
-        Kiswahili (Kenya)
-        Kiswahili (Tanzania)
-        Korean (Korea)
-        Latvian (Latvia)
-        Lingala (Angola)
-        Lithuanian (Lithuania)
-        Malay (Brunei)
-        Malay (Malaysia)
-        Malayalam (India)
-        Marathi (India)
-        Mongolian (Mongolia)
-        Norwegian Bokmål (Norway)
-        Norwegian Nynorsk (Norway)
-        Oromo (Ethiopia)
-        Pashto (Afghanistan)
-        Persian (Iran)
-        Polish (Poland)
-        Portuguese (Angola)
-        Portuguese (Brazil)
-        Portuguese (Mozambique)
-        Portuguese (Portugal)
-        Romanian (Romania)
-        Russian (Russia)
-        Serbian (Cyrillic, Serbia)
-        Serbian (Latin, Serbia)
-        Serbian (Serbia)
-        Setswana (Botswana)
-        Sinhala (Sri Lanka)
-        Slovak (Slovakia)
-        Slovenian (Slovenia)
-        Spanish (Argentina)
-        Spanish (Bolivia)
-        Spanish (Chile)
-        Spanish (Colombia)
-        Spanish (Costa Rica)
-        Spanish (Dominican Republic)
-        Spanish (Ecuador)
-        Spanish (El Salvador)
-        Spanish (Guatemala)
-        Spanish (Honduras)
-        Spanish (Latin America)
-        Spanish (Latin America)
-        Spanish (Mexico)
-        Spanish (Nicaragua)
-        Spanish (Panama)
-        Spanish (Paraguay)
-        Spanish (Peru)
-        Spanish (Spain, International Sort)
-        Spanish (United States)
-        Spanish (Uruguay)
-        Spanish (Venezuela)
-        Swedish (Sweden)
-        Tamil (India)
-        Tamil (Sri Lanka)
-        Telugu (India)
-        Thai (Thailand)
-        Tigrinya (Ethiopia)
-        Turkish (Turkey)
-        Ukrainian (Ukraine)
-        Vietnamese (Vietnam)
-        Yoruba (Nigeria)
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": ""
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": "x"
-      "label": "Descriptive comment"
-      "text": |-
-        Descriptive comment
-        Comments help you and your collaborators better record and understand the structure of the app
-    "update_permissions_snapshot": |2-
-
-        - heading "Table settings" [level=5]
-        - button "close":
-        - heading "Table name" [level=6]
-        - text: Name for this table (user-visible)
-        - textbox: Charges
-        - heading "Are updates allowed?" [level=6]
-        - text: Are adds, deletes and updates allowed?
-        - button " Updates":
-          - text: 
-          - generic: Updates
-        - button " Adds":
-          - text: 
-          - generic: Adds
-        - button " Deletes":
-          - text: 
-          - generic: Deletes
-        - button "Read-Only"
-        - button "science"
-        - heading "Storage" [level=3]
-        - generic: 
-        - heading "Source Path" [level=6]
-        - text: A user-understandable path to the table data
-        - combobox "Select an option":
-          - option "- select a source -"
+        "Display name": "=\"การแก้ไข / Corrections\""
+        "Type": "Show"
+        "Type Qualifier": "{\"Category\":\"Text\",\"Content\":\"=IFS(OR(STARTSWITH([Row ID], \\\"df10:\\\"), [Ref Loans].[Defaulted]\
+          \ = TRUE), \\\"รายการนี้เกิดจากหนี้สูญหรืออยู่ในสัญญาที่บันทึกหนี้สูญ กรุณาใช้ Undo Default ที่เงินกู้ หากยกเลิกแล้วให้ซิงค์และตรวจข้อมูลสัญญา\
+          \ / This entry is owned by Default or belongs to a defaulted loan. Use Undo Default on the loan. If already undone,\
+          \ sync and reconcile the loan.\\\", COUNT(SELECT(Repayments[Row ID], [Ref Charges] = [_THISROW].[Row ID])) > 0,\
+          \ \\\"รายการนี้มีการชำระแล้ว จึงลบหรือย้ายสัญญาไม่ได้ ยอดเงินต้นและดอกเบี้ยต้องรองรับส่วนที่ชำระแล้ว กรุณาแก้ไขใบรับชำระหรือรายการชำระที่เกี่ยวข้องก่อน\
+          \ / This charge has repayments and cannot be deleted or moved to another loan. Each component must cover its paid\
+          \ amount. Correct the related receipt or independent repayment first.\\\", OR(COUNT(SELECT(Payment Allocations[Row\
+          \ ID], [Ref Charge] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payments[Row ID], [Ref Target Charge] = [_THISROW].[Row\
+          \ ID])) > 0), \\\"ยังลบรายการนี้ไม่ได้ เพราะใบรับชำระหรือรายการจัดสรรยังอ้างอิงอยู่ กรุณาตรวจรายการต้นทางก่อน /\
+          \ This charge cannot be deleted while a receipt or allocation references it. Review the source receipt first.\\\"\
+          , TRUE, \\\"ตรวจวันที่และสัญญาก่อนแก้ไขยอดเรียกเก็บ ยอดใหม่ต้องรองรับส่วนที่ชำระแล้ว รายการที่ใบรับชำระดูแลต้องแก้ไขผ่านต้นทาง\
+          \ / Review the charge date and loan before correction. Each component must cover its paid amount. Correct receipt-owned\
+          \ results through their source receipt.\\\")\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
+          Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "=IFS(OR(STARTSWITH([Row ID], \"df10:\"), [Ref Loans].[Defaulted] = TRUE), \"รายการนี้เกิดจากหนี้สูญหรืออยู่ในสัญญาที่บันทึกหนี้สูญ\
+          \ กรุณาใช้ Undo Default ที่เงินกู้ หากยกเลิกแล้วให้ซิงค์และตรวจข้อมูลสัญญา / This entry is owned by Default or belongs\
+          \ to a defaulted loan. Use Undo Default on the loan. If already undone, sync and reconcile the loan.\", COUNT(SELECT(Repayments[Row\
+          \ ID], [Ref Charges] = [_THISROW].[Row ID])) > 0, \"รายการนี้มีการชำระแล้ว จึงลบหรือย้ายสัญญาไม่ได้ ยอดเงินต้นและดอกเบี้ยต้องรองรับส่วนที่ชำระแล้ว\
+          \ กรุณาแก้ไขใบรับชำระหรือรายการชำระที่เกี่ยวข้องก่อน / This charge has repayments and cannot be deleted or moved\
+          \ to another loan. Each component must cover its paid amount. Correct the related receipt or independent repayment\
+          \ first.\", OR(COUNT(SELECT(Payment Allocations[Row ID], [Ref Charge] = [_THISROW].[Row ID])) > 0, COUNT(SELECT(Payments[Row\
+          \ ID], [Ref Target Charge] = [_THISROW].[Row ID])) > 0), \"ยังลบรายการนี้ไม่ได้ เพราะใบรับชำระหรือรายการจัดสรรยังอ้างอิงอยู่\
+          \ กรุณาตรวจรายการต้นทางก่อน / This charge cannot be deleted while a receipt or allocation references it. Review\
+          \ the source receipt first.\", TRUE, \"ตรวจวันที่และสัญญาก่อนแก้ไขยอดเรียกเก็บ ยอดใหม่ต้องรองรับส่วนที่ชำระแล้ว\
+          \ รายการที่ใบรับชำระดูแลต้องแก้ไขผ่านต้นทาง / Review the charge date and loan before correction. Each component\
+          \ must cover its paid amount. Correct receipt-owned results through their source receipt.\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
 "evidence":
   "/content/columns":
     "reference": "outputs/r047-production/oltp-affected-definitions.json"

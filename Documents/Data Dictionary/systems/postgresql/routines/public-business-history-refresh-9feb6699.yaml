@@ -1,0 +1,53 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_prod"
+  "kind": "routine"
+  "name": "public.business_history_refresh()"
+  "scope": "production"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-production/README.md"
+"content":
+  "definition":
+    "schema": "public"
+    "name": "business_history_refresh"
+    "arguments": ""
+    "kind": "f"
+    "arguments_with_defaults": ""
+    "result": "trigger"
+    "definition": "CREATE OR REPLACE FUNCTION public.business_history_refresh()\n RETURNS trigger\n LANGUAGE plpgsql\n SET\
+      \ search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE o jsonb:=CASE WHEN TG_OP='INSERT' THEN '{}'::jsonb\
+      \ ELSE to_jsonb(OLD) END;\r\n n jsonb:=CASE WHEN TG_OP='DELETE' THEN '{}'::jsonb ELSE to_jsonb(NEW) END;\r\n fields\
+      \ text[]; date_column text:=TG_ARGV[0]; d date; first_day date; last_day date;\r\nBEGIN\r\n fields:=CASE TG_TABLE_NAME\r\
+      \n  WHEN 'Loans' THEN ARRAY['Loan Date','Principal Amount','Loan Status','Close Date','Defaulted','Ref Borrowers']\r\
+      \n  WHEN 'Charges' THEN ARRAY['Charge Date','Principal Due','Interest Due','Ref Loans']\r\n  WHEN 'Business Expenses'\
+      \ THEN ARRAY['Expense Date','Amount','Partner A Expense','Partner B Expense']\r\n  WHEN 'Cash Ledger' THEN ARRAY['Movement\
+      \ Date','Amount','Movement Type','Ref From Cash Holder','Ref To Cash Holder','Ref From Cash Account','Ref To Cash Account']\r\
+      \n  WHEN 'Cash Pool Contributions' THEN ARRAY['Contribution Date','Amount','Transaction Type','Ref Partner']\r\n  WHEN\
+      \ 'Settlements' THEN ARRAY['Transfer Date','Amount','Status','Ref Partner']\r\n  WHEN 'Repayments' THEN ARRAY['Payment\
+      \ Date','Principal Paid','Interest Paid','Ref Loans','Ref Charges']\r\n  WHEN 'Partners' THEN ARRAY['Partner Role']\
+      \ END;\r\n IF TG_OP='UPDATE' AND NOT EXISTS(SELECT 1 FROM unnest(fields) k WHERE o->k IS DISTINCT FROM n->k) THEN RETURN\
+      \ NULL; END IF;\r\n d:=least((o->>date_column)::date,(n->>date_column)::date);\r\n IF TG_TABLE_NAME='Loans' AND TG_OP='UPDATE'\
+      \ AND\r\n  (o->'Loan Date',o->'Principal Amount',o->'Ref Borrowers') IS NOT DISTINCT FROM (n->'Loan Date',n->'Principal\
+      \ Amount',n->'Ref Borrowers') THEN\r\n  d:=least((o->>'Close Date')::date,(n->>'Close Date')::date);\r\n END IF;\r\n\
+      \ IF TG_TABLE_NAME='Partners' THEN\r\n  SELECT min(\"Contribution Date\") INTO d FROM public.\"Cash Pool Contributions\"\
+      \ WHERE \"Ref Partner\" IN (o->>'Row ID',n->>'Row ID');\r\n END IF;\r\n IF d IS NULL THEN RETURN NULL; END IF;\r\n IF\
+      \ TG_TABLE_NAME='Cash Ledger' THEN\r\n  PERFORM set_config('business_history.accounts',\r\n   (coalesce(nullif(current_setting('business_history.accounts',true),'')::jsonb,'{}'::jsonb)\
+      \ ||\r\n    coalesce((SELECT jsonb_object_agg(k,true) FROM unnest(ARRAY[o->>'Ref From Cash Account',o->>'Ref To Cash\
+      \ Account',n->>'Ref From Cash Account',n->>'Ref To Cash Account']) k WHERE k IS NOT NULL),'{}'::jsonb))::text,true);\r\
+      \n END IF;\r\n PERFORM public.request_business_history(d);\r\n RETURN NULL;\r\nEND $function$\n"
+    "owner": "postgres"
+    "language": "plpgsql"
+    "volatility": "v"
+    "strict": false
+    "security_definer": false
+    "leakproof": false
+    "parallel": "u"
+    "cost": 100.0
+    "rows": 0.0
+    "settings":
+    - "search_path=pg_catalog, public"
+    "acl": null
+    "comment": null
+    "extension": null

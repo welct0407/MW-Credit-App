@@ -1,0 +1,125 @@
+{
+  "state": "Initial source counts are historical. P1/E/H deleted; P2 and GUI-created Bx59mH6SCh4OMcWXvOpo6Y retained at six-seed readback. Six additional batches committed; REIMBURSE prepared only. See dated evidence.",
+  "namespace": "SYN-R051-UI-",
+  "target": "loan_manager_dev only",
+  "creation_script": "scripts/database/R051-UiFixtures.sql",
+  "cleanup_script": "scripts/database/R051-UiCleanup.sql",
+  "source_counts": {
+    "accounts": 2,
+    "borrowers": 1,
+    "loans": 2,
+    "charges": 3,
+    "payments": 2,
+    "manual_expenses": 1,
+    "manual_transfers": 1
+  },
+  "limits": "No contact/referrer, no partner/contribution changes, no real-record mutation. Existing available cash/pool must cover 200 synthetic disbursement; no balance top-up. SQL triggers create owned children and refresh derived reports temporarily. Cleanup all exact fixtures after GUI tests.",
+  "tests": [
+    "P1 amount20→25, accountDad→Lisa, metadata/no-op, delete and sync",
+    "P2 whole-interest allocation move C2→C0→C2; verify initial readback, then delete receipt via confirmed detail-only Delete receipt source command and sync",
+    "Manual expense1→2→delete",
+    "Manual handover1→2→delete",
+    "Unpaid charge/loan/borrrower parent deletion and IsAPartOf sync ordering, preserving unrelated source",
+    "Loan/charge OLAP readonly operational navigation into OLTP",
+    "Both apps warning/error checks and no duplicate/real sends"
+  ],
+  "broader_gui": "Every app Add-generated UNIQUEID must be captured and added to exact cleanup inventory, with refs verified against synthetic parents/accounts. Static seeded cleanup alone does not prove zero residue. Contributions/settlement tests need isolated future-date/entitlement plan before creation.",
+  "additional_gui_plan": {
+    "state": "DAILY, DEFAULT, LEGACY, CLOSE, PREPARED and PARTNER-A committed/read back on Bangkok6Oct; see six-ui-seed-readback.json. REIMBURSE not created.",
+    "contributions": {
+      "partner": "SYN-R051-UI-PARTNER-A",
+      "role": "A",
+      "delivery": "blank; no synthetic nonowner delivery address",
+      "date_rule": "Use a future date after every existing repayment and expense date (preflight read); retain existing app date validation. This avoids changing existing historical allocation shares.",
+      "gui_sequence": "Add Contribution10 → edit20/date+1 → add Withdrawal5 → delete Withdrawal → delete Contribution. Capture every generated key.",
+      "cleanup": "Exact captured contribution keys, then unreferenced synthetic partner after settlement cleanup."
+    },
+    "settlements": {
+      "partner": "SYN-R051-UI-PARTNER-A",
+      "account": "SYN-R051-UI-PARTNER-A-LISA",
+      "preflight": "partner_net_profit for the synthetic role must permit2 without modifying real entitlement/source rows or topping up balances. If unavailable, verify insufficient-entitlement rejection and report positive-flow test unavailable; never fabricate funding to bypass it.",
+      "gui_sequence": "Add Pending1 → Complete Transfer today → correct amount2/date/account within same synthetic accounts → Reverse Transfer → Complete → existing Cancel/Delete Settlement action. Keep working specialized actions.",
+      "cleanup": "Capture generated settlement ID; remove only exact synthetic source and its owned cash after testing.",
+      "alternate_account": "SYN-R051-UI-PARTNER-A-LISA2"
+    },
+    "daily": {
+      "loan": "SYN-R051-UI-DAILY",
+      "charge": "SYN-R051-UI-DAILY-C",
+      "later_charge": "SYN-R051-UI-DAILY-LATER",
+      "payment": "SYN-R051-UI-DAILY-P",
+      "baseline": "Loan100 dated today-2, original/current daily interest10, auto generation disabled. Charge today-2 principal100 interest10, receipt20 (interest10/principal10), later charge today-1 interest9.",
+      "gui_sequence": "Receipt20→30: current principal80/rate8, later booked9 unchanged. Delete receipt: principal100/rate10, later booked9 unchanged. Edit later unpaid charge9→10 separately.",
+      "cleanup": "Receipt before both charges, then loan; no auto-generated notifications."
+    },
+    "default": {
+      "loan": "SYN-R051-UI-DEFAULT",
+      "charge": "SYN-R051-UI-DEFAULT-C",
+      "baseline": "Loan100/current daily interest10, charge today principal100 interest10; no receipts. Create with auto-generation off; enable only during the bounded Default→Undo test and disable immediately afterward.",
+      "gui_sequence": "Existing Default Loan confirmation today with actual actor → check zero-cash loss and closed/default state → Undo Default → restored100/10 charge and outstanding100, no loss row/cash residue.",
+      "undo_action": {
+        "type": "Data: set the values of some columns in this row",
+        "column_values": {
+          "Defaulted": "FALSE"
+        },
+        "OnlyIf": "[Defaulted] = TRUE",
+        "confirmation": true,
+        "instruction": "Keep current access predicates. SQL restores known source components or returns a precise dependency error."
+      },
+      "cleanup": "Undo default first if still set, disable auto-generation, delete exact unpaid charge/loan. Track any scheduler-created rows causally owned by this synthetic loan; never touch unrelated rows."
+    },
+    "legacy_repayment": {
+      "loan": "SYN-R051-UI-LEGACY",
+      "charge": "SYN-R051-UI-LEGACY-C",
+      "repayment": "SYN-R051-UI-LEGACY-R",
+      "baseline": "Independent legacy row Ref Payment blank, principal0/interest1 against synthetic charge principal100/interest10; loan100. No new ordinary Add workflow is exposed.",
+      "gui_sequence": "Existing independent-row Edit interest1→2/date → Delete; materialized charge/loan values refresh, no fabricated source cash. Receipt-linked children stay source-managed.",
+      "cleanup": "Exact repayment first, then unpaid charge/loan."
+    },
+    "closure_referral": {
+      "borrower": "SYN-R051-UI-CLOSE-B",
+      "referrer": "SYN-R051-UI-CLOSE-REF",
+      "loan": "SYN-R051-UI-CLOSE-L",
+      "charge": "SYN-R051-UI-CLOSE-C",
+      "payment": "SYN-R051-UI-CLOSE-P",
+      "baseline": "Both synthetic borrowers have no contact details; only their mutual synthetic referrer link. Loan100 and charge principal100/interest100 dated today-2, receipt200 today closes. Expected referral10.",
+      "gui_sequence": "Closing receipt date today→today-1 follows source in close/referral date. Delete receipt reopens and removes only own referral/system cash. Prepared Loan Close charge behavior is separately tested from this ordinary full-payment closure.",
+      "cash_note": "Generated referral uses the existing DEV Lisa default account by design; capture its exact owned cash row. Do not change any real account default or original source record.",
+      "cleanup": "Receipt first, then charge/loan, borrower and unreferenced synthetic referrer."
+    },
+    "scope": "All generated GUI IDs must be captured with exact synthetic parent/account refs. Final cleanup compares nonfixture source-table fingerprints; derived analytics timestamps may legitimately regenerate. No real source deletion, external transfer, borrower message, production write or app-wide audit.",
+    "prepared_loan_close": {
+      "borrower": "SYN-R051-UI-PREPARED-B",
+      "loan": "SYN-R051-UI-PREPARED-L",
+      "charge": "SYN-R051-UI-PREPARED-C",
+      "first_receipt": "SYN-R051-UI-PREPARED-FIRST",
+      "close_receipt": "SYN-R051-UI-PREPARED-P",
+      "test": "Delete close receipt using source command; retain FIRST10 and augmented100P+10I charge, reopen principal100. Charge separately editable."
+    },
+    "exact_keymap": "additional-ui-keymap.json; recompute date plan at seed",
+    "reimbursement": {
+      "state": "PREPARED_NOT_CREATED",
+      "keymap": "additional-ui-keymap.json",
+      "accounts": [
+        "SYN-R051-UI-REIMBURSE-LISA",
+        "SYN-R051-UI-REIMBURSE-TOMMY1",
+        "SYN-R051-UI-REIMBURSE-TOMMY2"
+      ],
+      "expenses": [
+        "SYN-R051-UI-REIMBURSE-E1",
+        "SYN-R051-UI-REIMBURSE-E2"
+      ],
+      "gui_sequence": "Add manual reimbursement5 linked E1; edit6; same-Tommy source account correction; reject cross-holder/nonpositive expense while linked; relink E1→E2; E1 correction now allowed; delete reimbursement. Capture each generated key.",
+      "cleanup": "Exact captured manual reimbursement before expenses; owned nondefault accounts before last owned default. No original holder/account/default changes."
+    }
+  },
+  "source_counts_note": "Historical initial seed, not current database counts",
+  "gui_generated_ids": [
+    {
+      "table": "Payments",
+      "id": "Bx59mH6SCh4OMcWXvOpo6Y",
+      "borrower": "SYN-R051-UI-B",
+      "account": "SYN-R051-UI-DAD",
+      "cleanup": "Capture current children/cash and include exact source ID before reviewed cleanup; static initial cleanup alone is insufficient"
+    }
+  ]
+}

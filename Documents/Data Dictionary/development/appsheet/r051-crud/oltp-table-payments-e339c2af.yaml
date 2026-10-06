@@ -1,0 +1,119 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "table"
+  "name": "Payments"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000206"
+  "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
+    \ view definition."
+  "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
+  "properties":
+    "column:Notes":
+      "Invalid value error": ""
+      "Description": "หมายเหตุเพิ่มเติม (ไม่บังคับ) / Optional note."
+      "ValidIf": "TRUE"
+      "RequiredIf": "FALSE"
+    "column:Amount Received":
+      "ValidIf": "OR(AND(IN([Row ID], Payments[Row ID]), [Ref Borrower] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Ref\
+        \ Borrower\"), [_THIS] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Amount Received\"), [Payment Date] = LOOKUP([Row\
+        \ ID], \"Payments\", \"Row ID\", \"Payment Date\"), [Allocation Method] = LOOKUP([Row ID], \"Payments\", \"Row ID\"\
+        , \"Allocation Method\"), [Ref Target Charge] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Ref Target Charge\"),\
+        \ [Ref Target Loan] = LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Ref Target Loan\"), TEXT([Selected Charge IDs])\
+        \ = TEXT(LOOKUP([Row ID], \"Payments\", \"Row ID\", \"Selected Charge IDs\"))), AND(ISNOTBLANK([_THIS]), [_THIS] >\
+        \ 0, [_THIS] = ROUND([_THIS]), OR(AND(NOT(IN([Row ID], Payments[Row ID])), [Allocation Method] = \"Loan Close\", ISNOTBLANK([Ref\
+        \ Target Loan]), [Ref Target Loan].[Ref Borrowers] = [Ref Borrower]), AND([_THIS] <= [Eligible Outstanding], IF(IN([Allocation\
+        \ Method], LIST(\"Single Full\", \"Receive All\", \"First-day Auto\", \"Loan Close\", \"Selected Charges\")), [_THIS]\
+        \ = [Eligible Outstanding], TRUE)))))"
+    "column:Correction Guidance":
+      "table": "Payments"
+      "name": "Correction Guidance"
+      "storage": "app-only"
+      "Type": "Show"
+      "Category": "Text"
+      "Show": true
+      "Editable": false
+      "DisplayName": "การแก้ไข / Corrections"
+      "AppFormula": "IFS(AND(IN([Row ID], Payments[Row ID]), [Status] = \"Processing\"), \"รายการนี้กำลังประมวลผล กรุณารอและซิงค์ก่อนแก้ไขหรือลบ\
+        \ อย่าส่งซ้ำ / This receipt is processing. Wait and sync before editing or deleting. Do not submit again.\", AND(IN([Row\
+        \ ID], Payments[Row ID]), [Status] = \"Error\"), \"ตรวจวันที่ ผู้กู้ ยอดเงิน และรายการที่รับชำระ แล้วซิงค์ ใช้ Retry\
+        \ สำหรับคำขอเดิมที่ยังไม่สำเร็จ / Review the date, borrower, amount and targets, then sync. Use Retry for an unchanged\
+        \ failed request.\", TRUE, \"กรอกเงินบาทเต็มจำนวนมากกว่า 0 ภายในยอดที่รับได้ วิธีชำระเต็มต้องเท่ากับยอดนั้น แก้ไขรายการลูกที่ใบรับชำระต้นทาง\
+        \ บันทึกและซิงค์ก่อนใช้ลบรายการรับชำระ / Enter positive whole baht within the eligible balance; full methods require\
+        \ that balance. Correct generated rows through this receipt. Save and sync before Delete receipt.\")"
+      "Content": "IFS(AND(IN([Row ID], Payments[Row ID]), [Status] = \"Processing\"), \"รายการนี้กำลังประมวลผล กรุณารอและซิงค์ก่อนแก้ไขหรือลบ\
+        \ อย่าส่งซ้ำ / This receipt is processing. Wait and sync before editing or deleting. Do not submit again.\", AND(IN([Row\
+        \ ID], Payments[Row ID]), [Status] = \"Error\"), \"ตรวจวันที่ ผู้กู้ ยอดเงิน และรายการที่รับชำระ แล้วซิงค์ ใช้ Retry\
+        \ สำหรับคำขอเดิมที่ยังไม่สำเร็จ / Review the date, borrower, amount and targets, then sync. Use Retry for an unchanged\
+        \ failed request.\", TRUE, \"กรอกเงินบาทเต็มจำนวนมากกว่า 0 ภายในยอดที่รับได้ วิธีชำระเต็มต้องเท่ากับยอดนั้น แก้ไขรายการลูกที่ใบรับชำระต้นทาง\
+        \ บันทึกและซิงค์ก่อนใช้ลบรายการรับชำระ / Enter positive whole baht within the eligible balance; full methods require\
+        \ that balance. Correct generated rows through this receipt. Save and sync before Delete receipt.\")"
+    "column:Delete Requested":
+      "Type": "Yes/No"
+      "Initial value": "FALSE"
+      "App formula": ""
+      "Show_If": "FALSE"
+      "Editable_If": "FALSE"
+      "Reset on edit": false
+    "Are updates allowed?": "ADDS_AND_UPDATES"
+    "column:Eligible Charges":
+      "AppFormula": "IF(AND(CONTEXT(\"Host\") = \"Server\", [Status] = \"Posted\"), LIST(), IF(IN([Status], LIST(\"Processing\"\
+        , \"Error\", \"Posted\")), SELECT(Charges[Row ID], AND([Ref Loans].[Ref Borrowers] = [_THISROW].[Ref Borrower], OR([Amount\
+        \ Remaining] > 0, IN([_THISROW].[Row ID], [Related Payment Allocations][Ref Payment])), IFS(IN([_THISROW].[Allocation\
+        \ Method], LIST(\"Single Full\", \"Single Partial\", \"First-day Auto\")), [Row ID] = [_THISROW].[Ref Target Charge],\
+        \ [_THISROW].[Allocation Method] = \"Loan Close\", [Ref Loans] = IF(ISNOTBLANK([_THISROW].[Ref Target Loan]), [_THISROW].[Ref\
+        \ Target Loan], [_THISROW].[Ref Target Charge].[Ref Loans]), IN([_THISROW].[Allocation Method], LIST(\"Receive All\"\
+        , \"Lump Sum\")), [Charge Date] <= [_THISROW].[Payment Date], [_THISROW].[Allocation Method] = \"Selected Charges\"\
+        , AND(IN([Row ID], [_THISROW].[Selected Charge IDs]), [Charge Date] <= [_THISROW].[Payment Date]), TRUE, FALSE))),\
+        \ LIST()))"
+    "column:Eligible Outstanding":
+      "AppFormula": "IF(AND(CONTEXT(\"Host\") = \"Server\", [Status] = \"Posted\"), 0, SUM([Eligible Charges][Amount Remaining])\
+        \ + SUM(SELECT(Payment Allocations[Allocated Amount], AND([Ref Payment] = [_THISROW].[Row ID], IN([Ref Charge], [_THISROW].[Eligible\
+        \ Charges])))))"
+    "column:Related Repayments":
+      "AppFormula": "REF_ROWS(\"Repayments\", \"Ref Payment\")"
+    "column:Related Payment Allocations":
+      "AppFormula": "REF_ROWS(\"Payment Allocations\", \"Ref Payment\")"
+    "column:Related Loans":
+      "AppFormula": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")"
+    "column:Visible Allocations":
+      "AppFormula": "SELECT([Related Payment Allocations][Row ID], [Allocated Amount] > 0)"
+  "evidence":
+    "column:Notes": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Amount Received": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Correction Guidance": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "column:Delete Requested": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "Are updates allowed?": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+  "related_list_experiment":
+    "status": "Original formulas restored; helper binding removed"
+    "evidence": "outputs/r051-related-list-views/README.md"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."
+"evidence":
+  "/content/version":
+    "reference": "outputs/r051-appsheet-latency/formula-trial.json"
+    "reason": "Saved DEV OLTP200 server-only Posted guards; form logic preserved; exact current AppDoc readback and bounded\
+      \ GUI tests."
+    "state": "value"
+  "/content/properties/column:Eligible Charges":
+    "reference": "outputs/r051-appsheet-latency/formula-trial.json"
+    "reason": "Saved DEV OLTP200 server-only Posted guards; form logic preserved; exact current AppDoc readback and bounded\
+      \ GUI tests."
+    "state": "value"
+  "/content/properties/column:Eligible Outstanding":
+    "reference": "outputs/r051-appsheet-latency/formula-trial.json"
+    "reason": "Saved DEV OLTP200 server-only Posted guards; form logic preserved; exact current AppDoc readback and bounded\
+      \ GUI tests."
+    "state": "value"

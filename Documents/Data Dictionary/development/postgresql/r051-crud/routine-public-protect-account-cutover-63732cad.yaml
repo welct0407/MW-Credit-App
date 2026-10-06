@@ -1,0 +1,37 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.protect_account_cutover()"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.protect_account_cutover()"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.protect_account_cutover()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       IF TG_OP='UPDATE' AND pg_trigger_depth()>1 AND current_setting('r051.restate_account_opening',true)='on'
+        AND (to_jsonb(NEW)-ARRAY['Opening Balance','Notes'])=(to_jsonb(OLD)-ARRAY['Opening Balance','Notes'])
+        AND left(NEW."Notes",length(OLD."Notes"))=OLD."Notes" THEN RETURN NEW; END IF;
+       IF TG_OP<>'INSERT' OR current_setting('r008.initializing',true) IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION 'Account openings are immutable and require the controlled initializer'; END IF;
+       RETURN NEW;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

@@ -1,0 +1,62 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.guard_cash_account()"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.guard_cash_account()"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.guard_cash_account()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       IF TG_OP='DELETE' THEN
+        IF NOT pg_try_advisory_xact_lock(hashtextextended('cash-account:'||OLD."Ref Cash Holder",0)) THEN RAISE EXCEPTION 'Cash accounts are busy; sync and retry'; END IF;
+        IF OLD."Default Account" AND EXISTS(SELECT 1 FROM public."Cash Accounts" WHERE "Ref Cash Holder"=OLD."Ref Cash Holder" AND "Active" AND "Row ID"<>OLD."Row ID") THEN
+         RAISE EXCEPTION 'Choose a replacement default account before deletion'; END IF;
+        RETURN OLD; -- References and opening balances still protect used accounts.
+       END IF;
+       IF TG_OP='UPDATE' AND (NEW."Row ID",NEW."Ref Cash Holder",NEW."Created At") IS DISTINCT FROM
+       (OLD."Row ID",OLD."Ref Cash Holder",OLD."Created At") THEN
+        RAISE EXCEPTION 'Cash account identity, holder and creation time are immutable';
+       END IF;
+       -- Try-lock serializes default changes without waiting behind a transfer holding an account.
+       IF NOT pg_try_advisory_xact_lock(hashtextextended('cash-account:'||NEW."Ref Cash Holder",0)) THEN
+        RAISE EXCEPTION 'Cash accounts are busy; sync and retry';
+       END IF;
+       IF NOT NEW."Active" AND NEW."Default Account" THEN
+        RAISE EXCEPTION 'An inactive cash account cannot be default';
+       END IF;
+       IF TG_OP='UPDATE' AND OLD."Default Account" AND NOT NEW."Active" AND EXISTS
+        (SELECT 1 FROM public."Cash Accounts" WHERE "Ref Cash Holder"=NEW."Ref Cash Holder"
+         AND "Row ID"<>NEW."Row ID" AND "Active") THEN
+        RAISE EXCEPTION 'Select a replacement default before deactivating this account';
+       END IF;
+       IF NEW."Active" AND (TG_OP='INSERT' OR NOT OLD."Active") AND NOT EXISTS(SELECT 1 FROM public."Cash Accounts"
+        WHERE "Ref Cash Holder"=NEW."Ref Cash Holder" AND "Active" AND "Row ID"<>NEW."Row ID") THEN
+        NEW."Default Account":=true;
+       END IF;
+       IF NEW."Default Account" THEN
+        UPDATE public."Cash Accounts" SET "Default Account"=false
+        WHERE "Ref Cash Holder"=NEW."Ref Cash Holder" AND "Row ID"<>NEW."Row ID" AND "Default Account";
+       END IF;
+       RETURN NEW;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

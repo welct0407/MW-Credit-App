@@ -1,0 +1,157 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.refresh_daily_analytics_scoped(p_from date, p_to date, p_accounts text[])"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-trigger-performance/sql-definitions.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.refresh_daily_analytics_scoped(p_from date, p_to date, p_accounts text[])"
+    "definition": "CREATE OR REPLACE FUNCTION public.refresh_daily_analytics_scoped(p_from date, p_to date, p_accounts text[])\n\
+      \ RETURNS integer\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\n SET plan_cache_mode TO 'force_custom_plan'\n\
+      AS $function$\r\nDECLARE refreshed_days integer;\r\nBEGIN\r\n IF p_from IS NULL OR p_to IS NULL OR p_from>p_to\r\n \
+      \   OR p_to>(statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date THEN\r\n   RAISE EXCEPTION 'Analytics requires\
+      \ a valid date range ending no later than Bangkok today';\r\n END IF;\r\n IF NOT pg_try_advisory_xact_lock(7112026,7)\
+      \ THEN\r\n   RAISE EXCEPTION 'Analytics refresh is busy; sync and retry';\r\n END IF;\r\n -- Missing account snapshots\
+      \ require a full rebuild of account coverage.\r\n IF p_accounts IS NOT NULL AND EXISTS (\r\n  SELECT 1 FROM public.\"\
+      Cash Accounts\" a CROSS JOIN generate_series(0,p_to-p_from) d\r\n  WHERE NOT EXISTS(SELECT 1 FROM public.\"Cash Account\
+      \ Daily Analytics\" s\r\n   WHERE s.\"Ref Cash Account\"=a.\"Row ID\" AND s.\"Snapshot Date\"=p_from+d)\r\n ) THEN p_accounts:=NULL;\
+      \ END IF;\r\n -- One statement provides one consistent source snapshot for every requested date.\r\n -- Model 3 corrects\
+      \ partially paid pending charges. Existing gross/net profit semantics\r\n -- remain compatible; new per-role inputs\
+      \ retain the governed rounded allocation rules.\r\n WITH dates AS (\r\n   SELECT p_from+i AS d FROM generate_series(0,p_to-p_from)\
+      \ i\r\n ), contributions AS MATERIALIZED (\r\n   SELECT c.\"Contribution Date\" AS d,p.\"Partner Role\" AS role,\r\n\
+      \     CASE WHEN c.\"Transaction Type\"='Contribution' THEN c.\"Amount\"::numeric\r\n       ELSE -c.\"Amount\"::numeric\
+      \ END AS net\r\n   FROM public.\"Cash Pool Contributions\" c\r\n   LEFT JOIN public.\"Partners\" p ON p.\"Row ID\"=c.\"\
+      Ref Partner\"\r\n ), repayment_days AS MATERIALIZED (\r\n   SELECT \"Payment Date\" AS d,sum(\"Principal Paid\"::numeric)\
+      \ AS principal,\r\n     sum(\"Interest Paid\"::numeric) AS interest,count(*) AS repayments\r\n   FROM public.\"Repayments\"\
+      \ GROUP BY \"Payment Date\"\r\n ), profit_days AS MATERIALIZED (\r\n   SELECT r.d,CASE WHEN c.pool>0 THEN r.interest*coalesce(c.ab,0)/c.pool\
+      \ ELSE 0 END AS profit\r\n   FROM repayment_days r CROSS JOIN LATERAL (\r\n     SELECT sum(net) AS pool,sum(net) FILTER(WHERE\
+      \ role IN ('A','B')) AS ab\r\n     FROM contributions WHERE d<=r.d\r\n   ) c\r\n ), charge_payments AS MATERIALIZED\
+      \ (\r\n   SELECT \"Ref Charges\" charge,\"Payment Date\" d,\r\n    sum(coalesce(\"Principal Paid\"::numeric,0)+coalesce(\"\
+      Interest Paid\"::numeric,0)) paid\r\n   FROM public.\"Repayments\" WHERE \"Payment Date\"<=p_to GROUP BY 1,2\r\n ),\
+      \ charge_events AS MATERIALIZED (\r\n   SELECT c.\"Row ID\" charge,c.\"Charge Date\" d,\r\n    coalesce(c.\"Principal\
+      \ Due\"::numeric,0)+coalesce(c.\"Interest Due\"::numeric,0) due,\r\n    coalesce(sum(cp.paid),0) paid\r\n   FROM public.\"\
+      Charges\" c LEFT JOIN charge_payments cp\r\n    ON cp.charge=c.\"Row ID\" AND cp.d<=c.\"Charge Date\"\r\n   WHERE p_to-p_from>=3\
+      \ AND c.\"Charge Date\"<=p_to GROUP BY 1,2,3\r\n   UNION ALL\r\n   SELECT c.\"Row ID\",cp.d,coalesce(c.\"Principal Due\"\
+      ::numeric,0)+coalesce(c.\"Interest Due\"::numeric,0),cp.paid\r\n   FROM public.\"Charges\" c JOIN charge_payments cp\
+      \ ON cp.charge=c.\"Row ID\" AND cp.d>c.\"Charge Date\"\r\n   WHERE p_to-p_from>=3 AND c.\"Charge Date\"<=p_to\r\n ),\
+      \ charge_positions AS (\r\n   SELECT charge,d,greatest(due-sum(paid) OVER(PARTITION BY charge ORDER BY d ROWS UNBOUNDED\
+      \ PRECEDING),0) pending\r\n   FROM charge_events\r\n ), pending_changes AS (\r\n   SELECT d,pending-coalesce(lag(pending)\
+      \ OVER(PARTITION BY charge ORDER BY d),0) delta FROM charge_positions\r\n ), pending_days AS MATERIALIZED (\r\n   SELECT\
+      \ d,sum(delta) delta FROM pending_changes GROUP BY d\r\n ), expenses AS MATERIALIZED (\r\n   SELECT \"Expense Date\"\
+      \ d,sum(\"Amount\"::numeric) expense FROM public.\"Business Expenses\" GROUP BY 1\r\n ), partner_income AS MATERIALIZED\
+      \ (\r\n   -- Keep the governed per-repayment rounded allocation, but filter its inputs\r\n   -- before aggregation instead\
+      \ of evaluating the all-history running report.\r\n   SELECT dates.d,coalesce(i.pa,0)-coalesce(e.pa,0) pa,coalesce(i.pb,0)-coalesce(e.pb,0)\
+      \ pb\r\n   FROM dates LEFT JOIN (\r\n    SELECT \"Payment Date\" d,sum(\"Partner A Profit\") pa,sum(\"Partner B Profit\"\
+      ) pb\r\n    FROM public.olap_repayments_analytics WHERE \"Payment Date\" BETWEEN p_from AND p_to GROUP BY 1\r\n   )\
+      \ i USING(d) LEFT JOIN (\r\n    SELECT \"Expense Date\" d,sum(\"Partner A Expense\"::numeric) pa,sum(\"Partner B Expense\"\
+      ::numeric) pb\r\n    FROM public.\"Business Expenses\" WHERE \"Expense Date\" BETWEEN p_from AND p_to GROUP BY 1\r\n\
+      \   ) e USING(d)\r\n ), settlements AS MATERIALIZED (\r\n   SELECT s.\"Transfer Date\" d,sum(s.\"Amount\"::numeric)\
+      \ amount,\r\n    coalesce(sum(s.\"Amount\"::numeric) FILTER(WHERE p.\"Partner Role\"='A'),0) pa,\r\n    coalesce(sum(s.\"\
+      Amount\"::numeric) FILTER(WHERE p.\"Partner Role\"='B'),0) pb\r\n   FROM public.\"Settlements\" s LEFT JOIN public.\"\
+      Partners\" p ON p.\"Row ID\"=s.\"Ref Partner\"\r\n   WHERE s.\"Status\"='Completed' AND s.\"Transfer Date\"<=p_to GROUP\
+      \ BY 1\r\n ), ledger AS MATERIALIZED (\r\n   SELECT \"Movement Date\" d,\"Ref From Cash Account\" from_account,\"Ref\
+      \ To Cash Account\" to_account,\"Amount\" amount\r\n   FROM public.\"Cash Ledger\" WHERE \"Movement Date\"<=p_to\r\n\
+      \ ), account_flows AS MATERIALIZED (\r\n   SELECT account,d,sum(greatest(signed,0)) cash_in,sum(greatest(-signed,0))\
+      \ cash_out,count(*) n\r\n   FROM ledger CROSS JOIN LATERAL (VALUES (from_account,-amount),(to_account,amount)) v(account,signed)\r\
+      \n   WHERE account IS NOT NULL GROUP BY 1,2\r\n ), consolidated_flows AS MATERIALIZED (\r\n   SELECT d,sum(greatest(signed,0))\
+      \ cash_in,sum(greatest(-signed,0)) cash_out\r\n   FROM (SELECT d,(CASE WHEN to_account IS NOT NULL THEN amount ELSE\
+      \ 0 END)\r\n    -(CASE WHEN from_account IS NOT NULL THEN amount ELSE 0 END) signed FROM ledger) v GROUP BY 1\r\n ),\
+      \ account_seed AS MATERIALIZED (\r\n   SELECT a.\"Row ID\" account,(c.\"Cutover At\" AT TIME ZONE 'Asia/Bangkok')::date\
+      \ available,\r\n    c.\"Opening Balance\"-c.\"Baseline Cash In\"+c.\"Baseline Cash Out\"\r\n     +coalesce(sum(f.cash_in-f.cash_out),0)\
+      \ opening\r\n   FROM public.\"Cash Accounts\" a LEFT JOIN public.r008_cash_account_cutover c ON c.\"Ref Cash Account\"\
+      =a.\"Row ID\"\r\n   LEFT JOIN account_flows f ON f.account=a.\"Row ID\" AND f.d<p_from\r\n   WHERE p_accounts IS NULL\
+      \ OR a.\"Row ID\"=ANY(p_accounts)\r\n   GROUP BY a.\"Row ID\",c.\"Cutover At\",c.\"Opening Balance\",c.\"Baseline Cash\
+      \ In\",c.\"Baseline Cash Out\"\r\n ), account_grid AS (\r\n   SELECT a.*,d.d,coalesce(f.cash_in,0) cash_in,coalesce(f.cash_out,0)\
+      \ cash_out,coalesce(f.n,0) n\r\n   FROM account_seed a CROSS JOIN dates d LEFT JOIN account_flows f ON f.account=a.account\
+      \ AND f.d=d.d\r\n ), account_positions AS (\r\n   SELECT *,CASE WHEN d>=available THEN opening+sum(cash_in-cash_out)\
+      \ OVER\r\n    (PARTITION BY account ORDER BY d ROWS UNBOUNDED PRECEDING) END closing FROM account_grid\r\n ), computed_accounts\
+      \ AS MATERIALIZED (\r\n   SELECT jsonb_build_array(account,d)::text AS \"Row ID\",d AS \"Snapshot Date\",account AS\
+      \ \"Ref Cash Account\",statement_timestamp() AT TIME ZONE 'Asia/Bangkok' AS \"Generated At\",3 AS \"Model Version\"\
+      ,\r\n    cash_in AS \"Money In\",cash_out AS \"Money Out\",closing-cash_in+cash_out AS \"Opening Balance\",closing AS\
+      \ \"Closing Balance\",n AS \"Transaction Count\",available AS \"Available From\",\r\n    CASE WHEN available IS NULL\
+      \ THEN 'Opening not initialized' WHEN d<available THEN 'Before known opening' ELSE 'Available' END AS \"Balance Status\"\
+      \r\n   FROM account_positions\r\n ), saved_accounts AS (\r\n   INSERT INTO public.\"Cash Account Daily Analytics\"(\"\
+      Row ID\",\"Snapshot Date\",\"Ref Cash Account\",\"Generated At\",\"Model Version\",\"Money In\",\"Money Out\",\"Opening\
+      \ Balance\",\"Closing Balance\",\"Transaction Count\",\"Available From\",\"Balance Status\")\r\n   SELECT * FROM computed_accounts\r\
+      \n   ON CONFLICT (\"Snapshot Date\",\"Ref Cash Account\") DO UPDATE SET\r\n    \"Generated At\"=EXCLUDED.\"Generated\
+      \ At\",\"Model Version\"=EXCLUDED.\"Model Version\",\r\n    \"Money In\"=EXCLUDED.\"Money In\",\"Money Out\"=EXCLUDED.\"\
+      Money Out\",\r\n    \"Opening Balance\"=EXCLUDED.\"Opening Balance\",\"Closing Balance\"=EXCLUDED.\"Closing Balance\"\
+      ,\r\n    \"Transaction Count\"=EXCLUDED.\"Transaction Count\",\"Available From\"=EXCLUDED.\"Available From\",\"Balance\
+      \ Status\"=EXCLUDED.\"Balance Status\"\r\n   WHERE p_accounts IS NULL OR\r\n    (to_jsonb(\"Cash Account Daily Analytics\"\
+      )-'Generated At') IS DISTINCT FROM (to_jsonb(EXCLUDED)-'Generated At')\r\n   RETURNING *\r\n ), all_accounts AS (\r\n\
+      \   SELECT * FROM computed_accounts\r\n   UNION ALL\r\n   SELECT \"Row ID\",\"Snapshot Date\",\"Ref Cash Account\",\"\
+      Generated At\",\"Model Version\",\"Money In\",\"Money Out\",\"Opening Balance\",\"Closing Balance\",\"Transaction Count\"\
+      ,\"Available From\",\"Balance Status\" FROM public.\"Cash Account Daily Analytics\"\r\n   WHERE p_accounts IS NOT NULL\
+      \ AND NOT (\"Ref Cash Account\"=ANY(p_accounts)) AND \"Snapshot Date\" BETWEEN p_from AND p_to\r\n ), cash_positions\
+      \ AS (\r\n   SELECT \"Snapshot Date\" d,\r\n    CASE WHEN bool_and(\"Closing Balance\" IS NOT NULL) THEN sum(\"Closing\
+      \ Balance\") END closing,\r\n    CASE WHEN bool_and(\"Opening Balance\" IS NOT NULL) THEN sum(\"Opening Balance\") END\
+      \ opening,\r\n    CASE WHEN bool_and(\"Available From\" IS NOT NULL) THEN max(\"Available From\") END available,\r\n\
+      \    CASE WHEN bool_and(\"Closing Balance\" IS NOT NULL) THEN 'Available'\r\n     WHEN bool_and(\"Available From\" IS\
+      \ NOT NULL) THEN 'Before known opening' ELSE 'Opening not initialized' END status\r\n   FROM all_accounts GROUP BY 1\r\
+      \n ), metrics AS (\r\n   SELECT dates.d,l.issued,l.loans,l.issued_eod,l.active,l.borrowers,\r\n     r.principal,r.interest,r.repayments,r.returned_eod,c.pending,p.pool,\r\
+      \n     coalesce((SELECT sum(profit) FROM profit_days WHERE d<=dates.d),0)\r\n       -coalesce((SELECT sum(\"Amount\"\
+      ::numeric) FROM public.\"Settlements\"\r\n          WHERE \"Status\"='Completed' AND \"Transfer Date\"<=dates.d),0)\
+      \ AS unsettled\r\n   FROM dates\r\n   CROSS JOIN LATERAL (\r\n     SELECT coalesce(sum(\"Principal Amount\"::numeric)\
+      \ FILTER(WHERE \"Loan Date\"=dates.d),0) AS issued,\r\n       count(*) FILTER(WHERE \"Loan Date\"=dates.d) AS loans,\r\
+      \n       coalesce(sum(\"Principal Amount\"::numeric),0) AS issued_eod,\r\n       count(*) FILTER(WHERE \"Close Date\"\
+      \ IS NULL OR \"Close Date\">dates.d) AS active,\r\n       count(DISTINCT coalesce(\"Ref Borrowers\",'')) FILTER(WHERE\
+      \ \"Close Date\" IS NULL OR \"Close Date\">dates.d) AS borrowers\r\n     FROM public.\"Loans\" WHERE \"Loan Date\"<=dates.d\r\
+      \n   ) l\r\n   CROSS JOIN LATERAL (\r\n     SELECT coalesce(sum(principal) FILTER(WHERE d=dates.d),0) AS principal,\r\
+      \n       coalesce(sum(interest) FILTER(WHERE d=dates.d),0) AS interest,\r\n       coalesce(sum(repayments) FILTER(WHERE\
+      \ d=dates.d),0) AS repayments,\r\n       coalesce(sum(principal),0) AS returned_eod\r\n     FROM repayment_days WHERE\
+      \ d<=dates.d\r\n   ) r\r\n   CROSS JOIN LATERAL (\r\n    SELECT coalesce(sum(delta),0) pending FROM pending_days WHERE\
+      \ d<=dates.d HAVING p_to-p_from>=3\r\n    UNION ALL\r\n    SELECT coalesce(sum(greatest(coalesce(c.\"Principal Due\"\
+      ::numeric,0)+coalesce(c.\"Interest Due\"::numeric,0)-coalesce(cp.paid,0),0)),0)\r\n    FROM public.\"Charges\" c LEFT\
+      \ JOIN (SELECT charge,sum(paid) paid FROM charge_payments WHERE d<=dates.d GROUP BY charge) cp\r\n     ON cp.charge=c.\"\
+      Row ID\" WHERE c.\"Charge Date\"<=dates.d HAVING p_to-p_from<3\r\n   ) c\r\n   CROSS JOIN LATERAL (SELECT coalesce(sum(net),0)\
+      \ AS pool FROM contributions WHERE d<=dates.d) p\r\n )\r\n INSERT INTO public.\"Daily Analytics\"(\"Row ID\",\"Snapshot\
+      \ Date\",\"Generated At\",\"Model Version\",\r\n   \"Principal Issued\",\"Loans Issued\",\"Principal Returned\",\"Interest\
+      \ Received\",\"Repayments Count\",\r\n   \"Outstanding Principal EOD\",\"Active Loans EOD\",\"Active Borrowers EOD\"\
+      ,\"Pending Charges EOD\",\r\n   \"Total Cash Pool EOD\",\"Available Cash EOD\",\"Unsettled Profit EOD\",\"Business Expenses\"\
+      ,\"Net Profit\",\"Net Unsettled Profit EOD\",\r\n   \"Capital Contributed\",\"Capital Withdrawn\",\"Partner Settlements\"\
+      ,\"Partner A Net Profit\",\"Partner B Net Profit\",\"Partner A Settlements\",\"Partner B Settlements\",\"Cash Money\
+      \ In\",\"Cash Money Out\",\"Cash Opening Balance\",\"Cash Balance EOD\",\"Cash Available From\",\"Cash Balance Status\"\
+      )\r\n SELECT 'da11:'||metrics.d::text,metrics.d,statement_timestamp() AT TIME ZONE 'Asia/Bangkok',3,\r\n   issued::money,loans::integer,principal::money,interest::money,repayments::integer,\r\
+      \n   (issued_eod-returned_eod)::money,active::integer,borrowers::integer,pending::money,\r\n   pool::money,(pool+returned_eod-issued_eod)::money,unsettled::money,\r\
+      \n   coalesce((SELECT sum(\"Amount\") FROM public.\"Business Expenses\" WHERE \"Expense Date\"=metrics.d),0::money),\r\
+      \n   interest::money-coalesce((SELECT sum(\"Amount\") FROM public.\"Business Expenses\" WHERE \"Expense Date\"=metrics.d),0::money),\r\
+      \n   unsettled::money-coalesce((SELECT sum(\"Amount\") FROM public.\"Business Expenses\" WHERE \"Expense Date\"<=metrics.d),0::money)\r\
+      \n ,coalesce((SELECT sum(\"Amount\"::numeric) FROM public.\"Cash Pool Contributions\" WHERE \"Contribution Date\"=metrics.d\
+      \ AND \"Transaction Type\"='Contribution'),0)\r\n ,coalesce((SELECT sum(\"Amount\"::numeric) FROM public.\"Cash Pool\
+      \ Contributions\" WHERE \"Contribution Date\"=metrics.d AND \"Transaction Type\" IS DISTINCT FROM 'Contribution'),0)\r\
+      \n ,coalesce(s.amount,0),coalesce(pi.pa,0),coalesce(pi.pb,0),coalesce(s.pa,0),coalesce(s.pb,0)\r\n ,coalesce(cf.cash_in,0),coalesce(cf.cash_out,0),cp.opening,cp.closing,cp.available,coalesce(cp.status,'Opening\
+      \ not initialized')\r\n FROM metrics LEFT JOIN settlements s ON s.d=metrics.d LEFT JOIN partner_income pi ON pi.d=metrics.d\r\
+      \n LEFT JOIN consolidated_flows cf ON cf.d=metrics.d LEFT JOIN cash_positions cp ON cp.d=metrics.d\r\n ORDER BY metrics.d\r\
+      \n ON CONFLICT (\"Snapshot Date\") DO UPDATE SET\r\n   \"Generated At\"=EXCLUDED.\"Generated At\",\"Model Version\"\
+      =EXCLUDED.\"Model Version\",\r\n   \"Principal Issued\"=EXCLUDED.\"Principal Issued\",\"Loans Issued\"=EXCLUDED.\"Loans\
+      \ Issued\",\r\n   \"Principal Returned\"=EXCLUDED.\"Principal Returned\",\"Interest Received\"=EXCLUDED.\"Interest Received\"\
+      ,\r\n   \"Repayments Count\"=EXCLUDED.\"Repayments Count\",\"Outstanding Principal EOD\"=EXCLUDED.\"Outstanding Principal\
+      \ EOD\",\r\n   \"Active Loans EOD\"=EXCLUDED.\"Active Loans EOD\",\"Active Borrowers EOD\"=EXCLUDED.\"Active Borrowers\
+      \ EOD\",\r\n   \"Pending Charges EOD\"=EXCLUDED.\"Pending Charges EOD\",\"Total Cash Pool EOD\"=EXCLUDED.\"Total Cash\
+      \ Pool EOD\",\r\n   \"Available Cash EOD\"=EXCLUDED.\"Available Cash EOD\",\"Unsettled Profit EOD\"=EXCLUDED.\"Unsettled\
+      \ Profit EOD\",\r\n   \"Business Expenses\"=EXCLUDED.\"Business Expenses\",\"Net Profit\"=EXCLUDED.\"Net Profit\",\r\
+      \n   \"Net Unsettled Profit EOD\"=EXCLUDED.\"Net Unsettled Profit EOD\",\r\n   \"Capital Contributed\"=EXCLUDED.\"Capital\
+      \ Contributed\",\r\n   \"Capital Withdrawn\"=EXCLUDED.\"Capital Withdrawn\",\r\n   \"Partner Settlements\"=EXCLUDED.\"\
+      Partner Settlements\",\r\n   \"Partner A Net Profit\"=EXCLUDED.\"Partner A Net Profit\",\r\n   \"Partner B Net Profit\"\
+      =EXCLUDED.\"Partner B Net Profit\",\r\n   \"Partner A Settlements\"=EXCLUDED.\"Partner A Settlements\",\r\n   \"Partner\
+      \ B Settlements\"=EXCLUDED.\"Partner B Settlements\",\r\n   \"Cash Money In\"=EXCLUDED.\"Cash Money In\",\r\n   \"Cash\
+      \ Money Out\"=EXCLUDED.\"Cash Money Out\",\r\n   \"Cash Opening Balance\"=EXCLUDED.\"Cash Opening Balance\",\r\n   \"\
+      Cash Balance EOD\"=EXCLUDED.\"Cash Balance EOD\",\r\n   \"Cash Available From\"=EXCLUDED.\"Cash Available From\",\r\n\
+      \   \"Cash Balance Status\"=EXCLUDED.\"Cash Balance Status\"\r\n WHERE p_accounts IS NULL OR\r\n  (to_jsonb(\"Daily\
+      \ Analytics\")-'Generated At') IS DISTINCT FROM (to_jsonb(EXCLUDED)-'Generated At');\r\n GET DIAGNOSTICS refreshed_days=ROW_COUNT;\r\
+      \n RETURN refreshed_days;\r\nEND $function$\n"
+  "captured_at": "2026-10-06T14:11:33.381694+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

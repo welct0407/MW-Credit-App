@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/r047-production/postgresql-affected-definitions.json"
+  "source": "outputs/r051-production/README.md"
 "content":
   "definition":
     "schema": "public"
@@ -16,17 +16,31 @@
     "kind": "f"
     "arguments_with_defaults": ""
     "result": "trigger"
-    "definition": "CREATE OR REPLACE FUNCTION public.guard_selected_charge_scope()\n RETURNS trigger\n LANGUAGE plpgsql\n\
-      \ SET search_path TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE ids text[];\r\nBEGIN\r\n ids:=public.selected_charge_ids(NEW.\"\
-      Selected Charge IDs\");\r\n NEW.\"Selected Charge IDs\":=nullif(array_to_string(ids,' , '),'');\r\n IF TG_OP='UPDATE'\
-      \ AND NEW.\"Selected Charge IDs\" IS DISTINCT FROM OLD.\"Selected Charge IDs\"\r\n  AND (OLD.\"Status\"='Posted'\r\n\
-      \   OR EXISTS(SELECT 1 FROM public.\"Payment Allocations\" WHERE \"Ref Payment\"=OLD.\"Row ID\")\r\n   OR EXISTS(SELECT\
-      \ 1 FROM public.\"Repayments\" WHERE \"Ref Payment\"=OLD.\"Row ID\")) THEN\r\n  RAISE EXCEPTION 'Prepared or posted\
-      \ payment selection cannot be changed';\r\n END IF;\r\n IF NEW.\"Allocation Method\"='Selected Charges' THEN\r\n  IF\
-      \ cardinality(ids)=0 THEN RAISE EXCEPTION 'Select at least one charge'; END IF;\r\n  IF nullif(btrim(NEW.\"Ref Target\
-      \ Charge\"),'') IS NOT NULL OR nullif(btrim(NEW.\"Ref Target Loan\"),'') IS NOT NULL THEN\r\n   RAISE EXCEPTION 'Selected\
-      \ Charges cannot also target a single charge or loan';\r\n  END IF;\r\n ELSIF cardinality(ids)>0 THEN\r\n  RAISE EXCEPTION\
-      \ 'Selected charge keys require the Selected Charges allocation method';\r\n END IF;\r\n RETURN NEW;\r\nEND $function$\n"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.guard_selected_charge_scope()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE ids text[];
+      BEGIN
+       ids:=public.selected_charge_ids(NEW."Selected Charge IDs");
+       NEW."Selected Charge IDs":=nullif(array_to_string(ids,' , '),'');
+       IF TG_OP='UPDATE' AND NEW."Selected Charge IDs" IS DISTINCT FROM OLD."Selected Charge IDs"
+        AND (EXISTS(SELECT 1 FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID")
+         OR EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID")) THEN
+        RAISE EXCEPTION 'Prepared or posted payment selection cannot be changed';
+       END IF;
+       IF NEW."Allocation Method"='Selected Charges' THEN
+        IF cardinality(ids)=0 THEN RAISE EXCEPTION 'Select at least one charge'; END IF;
+        IF nullif(btrim(NEW."Ref Target Charge"),'') IS NOT NULL OR nullif(btrim(NEW."Ref Target Loan"),'') IS NOT NULL THEN
+         RAISE EXCEPTION 'Selected Charges cannot also target a single charge or loan';
+        END IF;
+       ELSIF cardinality(ids)>0 THEN
+        RAISE EXCEPTION 'Selected charge keys require the Selected Charges allocation method';
+       END IF;
+       RETURN NEW;
+      END $function$
     "owner": "postgres"
     "language": "plpgsql"
     "volatility": "v"

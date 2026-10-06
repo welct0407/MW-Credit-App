@@ -1,0 +1,108 @@
+{
+  "state": "DEV_PASS_SINGLE_GUI_DELETE_AND_ADD_PASS_BROADER_ACCEPTANCE_PENDING",
+  "migration": "V65__appsheet_receipt_delete_request.sql",
+  "sha256": "72743f3848aaafbaefde7fa15921733ae332bd9209c8da45638fb836aeb3e60b",
+  "actual_dev_version": 67,
+  "cause": {
+    "provenance": "parent supplied exact AppSheet audit and independent SQL readback",
+    "app_version": "1.000167",
+    "request": "98125433",
+    "original_utc": "2026-10-05T18:43:48.966Z",
+    "error": "P0001 Database-posted allocation/repayment is immutable; edit its Payments source",
+    "stack": "CascadingDeleteDispatchVictimsAsync / CascadingDeleteAsync",
+    "state": "P1 source/children/cash preserved; later successful sync does not turn failed delete into success"
+  },
+  "database_design": [
+    "Payments-only Delete Requested Boolean DEFAULT false; applied V67 validated IS NOT NULL CHECK retains non-null values with nullable column metadata",
+    "BEFORE rejects true on INSERT and command combined with other source edits",
+    "Last AFTER UPDATE executes ordinary source DELETE; existing locks/dependencies/owned effects remain",
+    "SECURITY INVOKER; no grants, actor label authorization or child-guard weakening",
+    "No persistent command row after success; failure rolls request back; missing-row SQL retry changes zero rows"
+  ],
+  "ui_after_apply": {
+    "Payments_table_update_mode": "ADDS_AND_UPDATES",
+    "Submitted Receipt Payments_slice_update_mode": "UPDATES_ONLY",
+    "Delete Requested": {
+      "Type": "Yes/No",
+      "Show_If": "FALSE",
+      "Editable_If": "FALSE",
+      "Initial value": "FALSE",
+      "AppFormula": "",
+      "Reset on edit": false
+    },
+    "custom_action": {
+      "name": "Delete receipt",
+      "type": "Data: set the values of some columns in this row",
+      "set": {
+        "Delete Requested": "TRUE"
+      },
+      "confirmation": true,
+      "confirmation_message": "Delete this receipt?",
+      "OnlyIf_predicate": "AND(CONTEXT(\"ViewType\") = \"Detail\", IN([Row ID], Payments[Row ID]), NOT([Delete Requested]))",
+      "access": "Compose with any existing authorization predicates; retain row/security filters",
+      "bulk": "Initial candidate detail-only; do not expose multi-select until actual GUI bulk semantics are tested"
+    },
+    "native_delete": "Suppress through table/slice update permissions and verify every detail/inline/bulk/system action after regeneration",
+    "relationships": "Ref and IsAPartOf unchanged; no new parent cascade behavior",
+    "OLAP": "Regenerate only affected Payments mirror schema; remain readonly with operational OLTP navigation",
+    "proof": "Source UPDATE whose AFTER trigger deletes row must save+fullsync without missing-row error; verify actual audit and independent SQL"
+  },
+  "local_tests": {
+    "maintained_ci": "passed",
+    "migrations": 65,
+    "concurrency_suites": 8,
+    "logs": [
+      "r051-migration-test-pjrof_7q",
+      "r051-migration-test-_8_ykm7q"
+    ],
+    "cases": [
+      "INSERT true/mixed edits rejected",
+      "direct pc6 child deletion still rejected",
+      "UPDATE RETURNING acknowledges one row while parent absent after statement",
+      "later receipt preserved; loan/cash/closure/referral reconcile",
+      "Loan Close augmented charge retained",
+      "default and opening dependencies reject with flag false",
+      "multirow final failure rollback and valid deferred multirow atomicity",
+      "canonical daily and account snapshot parity",
+      "same-row and other receipt contention",
+      "statement cancel and connection loss before commit rollback",
+      "UPDATE-only role denied DELETE through invoker",
+      "committed-outcome SQL retry returns zero without recreation"
+    ]
+  },
+  "next": [
+    "Parent explicitly coordinates apply window; no live apply in this preparation",
+    "Reconcile old queued native delete before opening GUI; do not weaken guard or replay it",
+    "Regenerate affected Payments table metadata and capture overrides in both apps",
+    "Single synthetic custom action save/fullsync/audit/SQL proof before broader GUI continuation"
+  ],
+  "limits": [
+    "Connector sync behavior unproven until GUI test",
+    "SQL multirow atomicity does not establish AppSheet bulk atomicity; bulk GUI untested",
+    "No automatic receipt-bearing Borrower/Loan/Charge cascade expansion",
+    "Six additional GUI batches prepared, uncreated",
+    "Expense source revalidation after separate manual reimbursement remains unresolved; no broad account unlock"
+  ],
+  "live_harness_local_rehearsal": {
+    "script": "Test-ReceiptDeleteDev.py",
+    "passed": true,
+    "fingerprints_compared": 26,
+    "fingerprints_unchanged": true,
+    "scope": "private loopback restored copy, not DEV execution"
+  },
+  "dev_gate": {
+    "version": 65,
+    "checksum": -2087638333,
+    "fresh_recovery": "recovery-v64.json",
+    "acceptance": "dev-receipt-delete-v65.json",
+    "state": "Applied/validated; rollback-only DEV pass; GUI action/save/full-sync proof pending; additional persistent batches not created"
+  },
+  "completed_dev_steps": [
+    "Fresh V64 backup restored with26 fingerprints matching",
+    "Pinned V65 applied and validated;25 non-history tables preserved with new Payments flag normalized",
+    "Rollback-only receipt-command acceptance passed; all26 fingerprints unchanged",
+    "Original GUI fixture readback unchanged at19:24:28UTC; window released"
+  ],
+  "v67_status": "DEV V67 is validated. Parent-confirmed OLTP1.000170 / OLAP1.000052 are validated; one confirmed detail-only receipt delete and one new receipt Add pass GUI audit, full sync and independent SQL readback. P1 and both old/current owned keys are absent, P2 is preserved, and generated receipt Bx59mH6SCh4OMcWXvOpo6Y is Posted1 with one allocation/repayment/cash. No replay or duplicate was observed in the bounded evidence. Broad lifecycle tests, all creation-action paths, app-role reimbursement proof and exact cleanup remain pending. Additional batches are prepared only, not created. PROD is untouched.",
+  "current_gui_proof": "gui-receipt-delete-create-evidence.json"
+}

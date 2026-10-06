@@ -1,0 +1,1422 @@
+{
+  "label": "baseline-pinned",
+  "scope": "Private restored DEV data; synthetic rollback operations; DB timing only, not AppSheet latency",
+  "samples": 5,
+  "candidate_sha256": null,
+  "cases": {
+    "receipt_add": {
+      "median_ms": 40.12920000059239,
+      "min_ms": 39.2760000013368,
+      "max_ms": 42.74319999967702,
+      "samples_ms": [
+        42.74319999967702,
+        40.25949999959266,
+        39.28100000121049,
+        39.2760000013368,
+        40.12920000059239
+      ],
+      "last_function_profile": {
+        "public.post_payment": {
+          "calls": 1,
+          "total_ms": 12.924499999999998,
+          "self_ms": 4.8415
+        },
+        "public.prepare_loan_close": {
+          "calls": 2,
+          "total_ms": 0.1507,
+          "self_ms": 0.07900000000000001
+        },
+        "public.process_lump_sum": {
+          "calls": 2,
+          "total_ms": 12.9383,
+          "self_ms": 0.017299999999999996
+        },
+        "public.referral_loan_closed": {
+          "calls": 1,
+          "total_ms": 0.0067,
+          "self_ms": 0.0067
+        },
+        "public.refresh_daily_analytics": {
+          "calls": 1,
+          "total_ms": 14.740099999999984,
+          "self_ms": 14.740099999999984
+        },
+        "public.vc_daily_interest": {
+          "calls": 9,
+          "total_ms": 0.11679999999999996,
+          "self_ms": 0.11679999999999996
+        },
+        "public.vc_daily_interest_row": {
+          "calls": 1,
+          "total_ms": 0.012499999999999997,
+          "self_ms": 0.0037999999999999996
+        },
+        "public.vc_loan_row": {
+          "calls": 1,
+          "total_ms": 0.14039999999999997,
+          "self_ms": 0.1109
+        },
+        "agent_audit.capture_change": {
+          "calls": 20,
+          "total_ms": 0.09280000000000002,
+          "self_ms": 0.09280000000000002
+        },
+        "public.vc_lock_daily_parent": {
+          "calls": 1,
+          "total_ms": 0.0078000000000000005,
+          "self_ms": 0.0078000000000000005
+        },
+        "public.apply_principal_daily_interest": {
+          "calls": 1,
+          "total_ms": 0.021399999999999995,
+          "self_ms": 0.012499999999999997
+        },
+        "public.appsheet_normalize_blank_refs": {
+          "calls": 19,
+          "total_ms": 0.5996000000000001,
+          "self_ms": 0.5996000000000001
+        },
+        "public.begin_business_history": {
+          "calls": 29,
+          "total_ms": 0.11720000000000003,
+          "self_ms": 0.11720000000000003
+        },
+        "public.business_history_refresh": {
+          "calls": 12,
+          "total_ms": 0.5689,
+          "self_ms": 0.5231999999999999
+        },
+        "public.cash_account_holder": {
+          "calls": 4,
+          "total_ms": 0.1267999999999999,
+          "self_ms": 0.1267999999999999
+        },
+        "public.cash_source_changed": {
+          "calls": 2,
+          "total_ms": 1.2931999999999997,
+          "self_ms": 0.0155
+        },
+        "public.close_payment_loans": {
+          "calls": 1,
+          "total_ms": 0.6413,
+          "self_ms": 0.6256
+        },
+        "public.closing_payment_guard": {
+          "calls": 1,
+          "total_ms": 0.029700000000000004,
+          "self_ms": 0.029700000000000004
+        },
+        "public.default_loan_transition": {
+          "calls": 1,
+          "total_ms": 0.008300000000000002,
+          "self_ms": 0.008300000000000002
+        },
+        "public.default_posting_guard": {
+          "calls": 5,
+          "total_ms": 0.1448,
+          "self_ms": 0.1448
+        },
+        "public.flush_business_history": {
+          "calls": 48,
+          "total_ms": 15.267800000000022,
+          "self_ms": 0.5277000000000003
+        },
+        "public.guard_cash_ledger": {
+          "calls": 2,
+          "total_ms": 0.11930000000000007,
+          "self_ms": 0.11930000000000007
+        },
+        "public.guard_selected_charge_scope": {
+          "calls": 2,
+          "total_ms": 0.09580000000000001,
+          "self_ms": 0.0897
+        },
+        "public.guard_charge_consistency": {
+          "calls": 5,
+          "total_ms": 0.03170000000000006,
+          "self_ms": 0.03170000000000006
+        },
+        "public.guard_ledger_cash_accounts": {
+          "calls": 2,
+          "total_ms": 0.2553000000000001,
+          "self_ms": 0.2286999999999999
+        },
+        "public.guard_linked_expense_reimbursement": {
+          "calls": 2,
+          "total_ms": 0.0075,
+          "self_ms": 0.0075
+        },
+        "public.guard_loan_consistency": {
+          "calls": 1,
+          "total_ms": 0.3236,
+          "self_ms": 0.3236
+        },
+        "public.guard_opening_included_source": {
+          "calls": 2,
+          "total_ms": 0.17049999999999998,
+          "self_ms": 0.17049999999999998
+        },
+        "public.guard_payment_receipt_evidence": {
+          "calls": 2,
+          "total_ms": 0.3054,
+          "self_ms": 0.3054
+        },
+        "public.guard_source_cash_account": {
+          "calls": 3,
+          "total_ms": 0.1713,
+          "self_ms": 0.07110000000000002
+        },
+        "public.guard_source_cash_holder": {
+          "calls": 2,
+          "total_ms": 0.1094,
+          "self_ms": 0.1094
+        },
+        "public.loan_cashpool_lock": {
+          "calls": 7,
+          "total_ms": 0.016100000000000003,
+          "self_ms": 0.016100000000000003
+        },
+        "public.lump_sum_child_guard": {
+          "calls": 10,
+          "total_ms": 0.6828,
+          "self_ms": 0.6828
+        },
+        "public.lump_sum_receipt_guard": {
+          "calls": 2,
+          "total_ms": 1.1059999999999999,
+          "self_ms": 1.1059999999999999
+        },
+        "public.original_daily_interest_rate": {
+          "calls": 1,
+          "total_ms": 0.008899999999999998,
+          "self_ms": 0.008899999999999998
+        },
+        "public.payment_charge_balances": {
+          "calls": 3,
+          "total_ms": 1.1182999999999998,
+          "self_ms": 1.1182999999999998
+        },
+        "public.payment_crud_finish": {
+          "calls": 1,
+          "total_ms": 0.026999999999999996,
+          "self_ms": 0.0131
+        },
+        "public.payment_crud_prepare": {
+          "calls": 1,
+          "total_ms": 0.027600000000000003,
+          "self_ms": 0.014
+        },
+        "public.payment_delete_request_guard": {
+          "calls": 2,
+          "total_ms": 0.024800000000000003,
+          "self_ms": 0.024800000000000003
+        },
+        "public.payment_inputs": {
+          "calls": 6,
+          "total_ms": 0.09919999999999998,
+          "self_ms": 0.09919999999999998
+        },
+        "public.payment_receipt_upload_stamp": {
+          "calls": 2,
+          "total_ms": 0.0124,
+          "self_ms": 0.0124
+        },
+        "public.r051_attribute_historical_ledger": {
+          "calls": 2,
+          "total_ms": 0.0218,
+          "self_ms": 0.0218
+        },
+        "public.r051_restate_opening_source": {
+          "calls": 2,
+          "total_ms": 0.218,
+          "self_ms": 0.218
+        },
+        "public.request_business_history": {
+          "calls": 6,
+          "total_ms": 0.04570000000000002,
+          "self_ms": 0.04570000000000002
+        },
+        "public.selected_charge_ids": {
+          "calls": 2,
+          "total_ms": 0.0060999999999999995,
+          "self_ms": 0.0060999999999999995
+        },
+        "public.vc_charge_values": {
+          "calls": 10,
+          "total_ms": 0.7580999999999998,
+          "self_ms": 0.7580999999999998
+        },
+        "public.sync_cash_ledger": {
+          "calls": 2,
+          "total_ms": 1.2777000000000003,
+          "self_ms": 0.7873999999999999
+        },
+        "public.vc_borrower_changed": {
+          "calls": 6,
+          "total_ms": 2.4831000000000003,
+          "self_ms": 0.6222999999999999
+        },
+        "public.vc_borrower_row": {
+          "calls": 1,
+          "total_ms": 0.2649999999999997,
+          "self_ms": 0.015599999999999989
+        },
+        "public.vc_borrower_values": {
+          "calls": 7,
+          "total_ms": 1.5682,
+          "self_ms": 1.4682
+        },
+        "public.vc_charge_row": {
+          "calls": 5,
+          "total_ms": 0.43310000000000004,
+          "self_ms": 0.065
+        },
+        "public.vc_lock_parents": {
+          "calls": 11,
+          "total_ms": 1.6822,
+          "self_ms": 1.6822
+        },
+        "public.vc_lock_payment_parents": {
+          "calls": 10,
+          "total_ms": 1.5031999999999999,
+          "self_ms": 1.5031999999999999
+        },
+        "public.vc_payment_changed": {
+          "calls": 10,
+          "total_ms": 1.2863,
+          "self_ms": 0.3479
+        },
+        "public.vc_payment_row": {
+          "calls": 2,
+          "total_ms": 0.25639999999999996,
+          "self_ms": 0.25639999999999996
+        },
+        "public.vc_refresh_borrower": {
+          "calls": 6,
+          "total_ms": 1.8608000000000002,
+          "self_ms": 0.24540000000000006
+        },
+        "public.vc_refresh_charge": {
+          "calls": 5,
+          "total_ms": 2.8975,
+          "self_ms": 0.8016000000000001
+        },
+        "public.vc_refresh_loan": {
+          "calls": 5,
+          "total_ms": 2.8238,
+          "self_ms": 1.4798999999999998
+        },
+        "public.vc_refresh_payment": {
+          "calls": 10,
+          "total_ms": 0.9384,
+          "self_ms": 0.8919
+        },
+        "public.vc_repayment_changed": {
+          "calls": 5,
+          "total_ms": 5.9621,
+          "self_ms": 0.24080000000000001
+        }
+      }
+    },
+    "receipt_amount": {
+      "median_ms": 42.443600001206505,
+      "min_ms": 42.09340000124939,
+      "max_ms": 43.52620000099705,
+      "samples_ms": [
+        42.15999999905762,
+        42.09340000124939,
+        43.52620000099705,
+        42.61989999940852,
+        42.443600001206505
+      ],
+      "last_function_profile": {
+        "public.post_payment": {
+          "calls": 1,
+          "total_ms": 7.2851,
+          "self_ms": 1.843
+        },
+        "public.prepare_loan_close": {
+          "calls": 2,
+          "total_ms": 0.0796,
+          "self_ms": 0.05609999999999998
+        },
+        "public.process_lump_sum": {
+          "calls": 2,
+          "total_ms": 7.2962000000000025,
+          "self_ms": 0.014600000000000002
+        },
+        "public.referral_loan_closed": {
+          "calls": 1,
+          "total_ms": 0.0039000000000000007,
+          "self_ms": 0.0039000000000000007
+        },
+        "public.refresh_daily_analytics": {
+          "calls": 1,
+          "total_ms": 15.031299999999987,
+          "self_ms": 15.031299999999987
+        },
+        "public.vc_daily_interest": {
+          "calls": 15,
+          "total_ms": 0.1664,
+          "self_ms": 0.1664
+        },
+        "public.vc_daily_interest_row": {
+          "calls": 1,
+          "total_ms": 0.012400000000000008,
+          "self_ms": 0.003799999999999998
+        },
+        "public.vc_loan_row": {
+          "calls": 1,
+          "total_ms": 0.1281,
+          "self_ms": 0.10440000000000005
+        },
+        "agent_audit.capture_change": {
+          "calls": 28,
+          "total_ms": 0.09179999999999999,
+          "self_ms": 0.09179999999999999
+        },
+        "public.vc_lock_daily_parent": {
+          "calls": 1,
+          "total_ms": 0.004300000000000005,
+          "self_ms": 0.004300000000000005
+        },
+        "public.apply_principal_daily_interest": {
+          "calls": 1,
+          "total_ms": 0.015699999999999992,
+          "self_ms": 0.008100000000000003
+        },
+        "public.appsheet_normalize_blank_refs": {
+          "calls": 17,
+          "total_ms": 0.5041000000000002,
+          "self_ms": 0.5041000000000002
+        },
+        "public.begin_business_history": {
+          "calls": 55,
+          "total_ms": 0.1604,
+          "self_ms": 0.1604
+        },
+        "public.business_history_refresh": {
+          "calls": 14,
+          "total_ms": 0.4745999999999997,
+          "self_ms": 0.3944000000000001
+        },
+        "public.cash_account_holder": {
+          "calls": 5,
+          "total_ms": 0.1393000000000002,
+          "self_ms": 0.1393000000000002
+        },
+        "public.cash_source_changed": {
+          "calls": 2,
+          "total_ms": 1.1486999999999998,
+          "self_ms": 0.016100000000000003
+        },
+        "public.close_payment_loans": {
+          "calls": 1,
+          "total_ms": 0.1157999999999999,
+          "self_ms": 0.10450000000000004
+        },
+        "public.closing_payment_guard": {
+          "calls": 1,
+          "total_ms": 0.027900000000000036,
+          "self_ms": 0.027900000000000036
+        },
+        "public.default_loan_transition": {
+          "calls": 1,
+          "total_ms": 0.005600000000000001,
+          "self_ms": 0.005600000000000001
+        },
+        "public.default_posting_guard": {
+          "calls": 6,
+          "total_ms": 0.44710000000000005,
+          "self_ms": 0.44710000000000005
+        },
+        "public.flush_business_history": {
+          "calls": 82,
+          "total_ms": 15.4058,
+          "self_ms": 0.3745000000000003
+        },
+        "public.guard_cash_ledger": {
+          "calls": 3,
+          "total_ms": 0.0817,
+          "self_ms": 0.0817
+        },
+        "public.guard_selected_charge_scope": {
+          "calls": 2,
+          "total_ms": 0.05960000000000004,
+          "self_ms": 0.05459999999999998
+        },
+        "public.guard_charge_consistency": {
+          "calls": 1,
+          "total_ms": 0.006800000000000028,
+          "self_ms": 0.006800000000000028
+        },
+        "public.guard_ledger_cash_accounts": {
+          "calls": 3,
+          "total_ms": 0.22779999999999978,
+          "self_ms": 0.18309999999999982
+        },
+        "public.guard_linked_expense_reimbursement": {
+          "calls": 3,
+          "total_ms": 0.0087,
+          "self_ms": 0.0087
+        },
+        "public.guard_loan_consistency": {
+          "calls": 1,
+          "total_ms": 0.04039999999999999,
+          "self_ms": 0.04039999999999999
+        },
+        "public.guard_opening_included_source": {
+          "calls": 3,
+          "total_ms": 0.15909999999999996,
+          "self_ms": 0.15909999999999996
+        },
+        "public.guard_payment_receipt_evidence": {
+          "calls": 2,
+          "total_ms": 0.06669999999999998,
+          "self_ms": 0.06669999999999998
+        },
+        "public.guard_source_cash_account": {
+          "calls": 3,
+          "total_ms": 0.14869999999999983,
+          "self_ms": 0.05409999999999998
+        },
+        "public.guard_source_cash_holder": {
+          "calls": 2,
+          "total_ms": 0.043399999999999994,
+          "self_ms": 0.043399999999999994
+        },
+        "public.loan_cashpool_lock": {
+          "calls": 14,
+          "total_ms": 0.02560000000000001,
+          "self_ms": 0.02560000000000001
+        },
+        "public.lump_sum_child_guard": {
+          "calls": 22,
+          "total_ms": 0.49239999999999995,
+          "self_ms": 0.49239999999999995
+        },
+        "public.lump_sum_receipt_guard": {
+          "calls": 2,
+          "total_ms": 0.6530999999999998,
+          "self_ms": 0.6530999999999998
+        },
+        "public.original_daily_interest_rate": {
+          "calls": 1,
+          "total_ms": 0.007600000000000003,
+          "self_ms": 0.007600000000000003
+        },
+        "public.payment_charge_balances": {
+          "calls": 3,
+          "total_ms": 0.3384999999999998,
+          "self_ms": 0.3384999999999998
+        },
+        "public.payment_crud_finish": {
+          "calls": 2,
+          "total_ms": 0.7313,
+          "self_ms": 0.7002
+        },
+        "public.payment_crud_prepare": {
+          "calls": 2,
+          "total_ms": 5.4138,
+          "self_ms": 2.9709
+        },
+        "public.payment_delete_request_guard": {
+          "calls": 2,
+          "total_ms": 0.0074,
+          "self_ms": 0.0074
+        },
+        "public.payment_inputs": {
+          "calls": 12,
+          "total_ms": 0.06939999999999999,
+          "self_ms": 0.06939999999999999
+        },
+        "public.payment_receipt_upload_stamp": {
+          "calls": 2,
+          "total_ms": 0.009299999999999996,
+          "self_ms": 0.009299999999999996
+        },
+        "public.r051_attribute_historical_ledger": {
+          "calls": 3,
+          "total_ms": 0.0756,
+          "self_ms": 0.0756
+        },
+        "public.r051_restate_opening_source": {
+          "calls": 3,
+          "total_ms": 0.1058,
+          "self_ms": 0.1058
+        },
+        "public.request_business_history": {
+          "calls": 13,
+          "total_ms": 0.08979999999999999,
+          "self_ms": 0.08979999999999999
+        },
+        "public.selected_charge_ids": {
+          "calls": 2,
+          "total_ms": 0.005000000000000001,
+          "self_ms": 0.005000000000000001
+        },
+        "public.vc_charge_values": {
+          "calls": 12,
+          "total_ms": 0.9405999999999999,
+          "self_ms": 0.9405999999999999
+        },
+        "public.sync_cash_ledger": {
+          "calls": 2,
+          "total_ms": 1.1326,
+          "self_ms": 0.6502999999999997
+        },
+        "public.vc_borrower_changed": {
+          "calls": 12,
+          "total_ms": 4.326400000000001,
+          "self_ms": 0.9118999999999997
+        },
+        "public.vc_borrower_row": {
+          "calls": 1,
+          "total_ms": 0.25970000000000004,
+          "self_ms": 0.01630000000000001
+        },
+        "public.vc_borrower_values": {
+          "calls": 13,
+          "total_ms": 2.9225000000000003,
+          "self_ms": 2.7727000000000004
+        },
+        "public.vc_charge_row": {
+          "calls": 1,
+          "total_ms": 0.08660000000000023,
+          "self_ms": 0.014400000000000024
+        },
+        "public.vc_lock_parents": {
+          "calls": 13,
+          "total_ms": 1.442400000000001,
+          "self_ms": 1.442400000000001
+        },
+        "public.vc_lock_payment_parents": {
+          "calls": 22,
+          "total_ms": 2.6933,
+          "self_ms": 2.6933
+        },
+        "public.vc_payment_changed": {
+          "calls": 22,
+          "total_ms": 2.2023,
+          "self_ms": 0.6732
+        },
+        "public.vc_payment_row": {
+          "calls": 2,
+          "total_ms": 0.09020000000000006,
+          "self_ms": 0.09020000000000006
+        },
+        "public.vc_refresh_borrower": {
+          "calls": 12,
+          "total_ms": 3.4145000000000003,
+          "self_ms": 0.44209999999999994
+        },
+        "public.vc_refresh_charge": {
+          "calls": 11,
+          "total_ms": 1.7974999999999994,
+          "self_ms": 0.5428000000000002
+        },
+        "public.vc_refresh_loan": {
+          "calls": 11,
+          "total_ms": 3.2958,
+          "self_ms": 2.3332999999999995
+        },
+        "public.vc_refresh_payment": {
+          "calls": 22,
+          "total_ms": 1.5290999999999997,
+          "self_ms": 1.4370000000000003
+        },
+        "public.vc_repayment_changed": {
+          "calls": 11,
+          "total_ms": 5.588799999999999,
+          "self_ms": 0.49549999999999994
+        }
+      }
+    },
+    "receipt_delete": {
+      "median_ms": 30.66680000119959,
+      "min_ms": 29.543599999669823,
+      "max_ms": 46.81900000105088,
+      "samples_ms": [
+        46.81900000105088,
+        35.64559999904304,
+        29.543599999669823,
+        29.579200001535355,
+        30.66680000119959
+      ],
+      "last_function_profile": {
+        "public.referral_loan_closed": {
+          "calls": 1,
+          "total_ms": 0.004299999999999999,
+          "self_ms": 0.004299999999999999
+        },
+        "public.refresh_daily_analytics": {
+          "calls": 1,
+          "total_ms": 14.907199999999989,
+          "self_ms": 14.907199999999989
+        },
+        "public.vc_daily_interest": {
+          "calls": 9,
+          "total_ms": 0.10439999999999999,
+          "self_ms": 0.10439999999999999
+        },
+        "public.vc_daily_interest_row": {
+          "calls": 1,
+          "total_ms": 0.012499999999999997,
+          "self_ms": 0.0039000000000000007
+        },
+        "public.vc_loan_row": {
+          "calls": 1,
+          "total_ms": 0.11519999999999997,
+          "self_ms": 0.09159999999999999
+        },
+        "agent_audit.capture_change": {
+          "calls": 19,
+          "total_ms": 0.07250000000000001,
+          "self_ms": 0.07250000000000001
+        },
+        "public.vc_lock_daily_parent": {
+          "calls": 1,
+          "total_ms": 0.0045,
+          "self_ms": 0.0045
+        },
+        "public.apply_principal_daily_interest": {
+          "calls": 1,
+          "total_ms": 0.0157,
+          "self_ms": 0.0076999999999999985
+        },
+        "public.appsheet_normalize_blank_refs": {
+          "calls": 7,
+          "total_ms": 0.12359999999999993,
+          "self_ms": 0.12359999999999993
+        },
+        "public.begin_business_history": {
+          "calls": 24,
+          "total_ms": 0.08459999999999998,
+          "self_ms": 0.08459999999999998
+        },
+        "public.business_history_refresh": {
+          "calls": 12,
+          "total_ms": 0.4969999999999999,
+          "self_ms": 0.4273
+        },
+        "public.cash_account_holder": {
+          "calls": 1,
+          "total_ms": 0.035599999999999965,
+          "self_ms": 0.035599999999999965
+        },
+        "public.closing_payment_guard": {
+          "calls": 1,
+          "total_ms": 0.02990000000000001,
+          "self_ms": 0.02990000000000001
+        },
+        "public.default_loan_transition": {
+          "calls": 1,
+          "total_ms": 0.004899999999999998,
+          "self_ms": 0.004899999999999998
+        },
+        "public.default_posting_guard": {
+          "calls": 10,
+          "total_ms": 0.5758000000000001,
+          "self_ms": 0.5758000000000001
+        },
+        "public.flush_business_history": {
+          "calls": 42,
+          "total_ms": 15.181700000000006,
+          "self_ms": 0.2745000000000002
+        },
+        "public.guard_cash_ledger": {
+          "calls": 1,
+          "total_ms": 0.017000000000000015,
+          "self_ms": 0.017000000000000015
+        },
+        "public.guard_charge_consistency": {
+          "calls": 5,
+          "total_ms": 0.02290000000000003,
+          "self_ms": 0.02290000000000003
+        },
+        "public.guard_ledger_cash_accounts": {
+          "calls": 1,
+          "total_ms": 0.006700000000000039,
+          "self_ms": 0.006700000000000039
+        },
+        "public.guard_loan_consistency": {
+          "calls": 1,
+          "total_ms": 0.041299999999999976,
+          "self_ms": 0.041299999999999976
+        },
+        "public.guard_opening_included_source": {
+          "calls": 1,
+          "total_ms": 0.06089999999999998,
+          "self_ms": 0.06089999999999998
+        },
+        "public.guard_source_cash_account": {
+          "calls": 1,
+          "total_ms": 0.055299999999999905,
+          "self_ms": 0.019700000000000023
+        },
+        "public.loan_cashpool_lock": {
+          "calls": 6,
+          "total_ms": 0.0119,
+          "self_ms": 0.0119
+        },
+        "public.lump_sum_child_guard": {
+          "calls": 10,
+          "total_ms": 0.03760000000000008,
+          "self_ms": 0.03760000000000008
+        },
+        "public.lump_sum_receipt_guard": {
+          "calls": 1,
+          "total_ms": 0.005700000000000038,
+          "self_ms": 0.005700000000000038
+        },
+        "public.original_daily_interest_rate": {
+          "calls": 1,
+          "total_ms": 0.007999999999999997,
+          "self_ms": 0.007999999999999997
+        },
+        "public.payment_crud_finish": {
+          "calls": 1,
+          "total_ms": 0.2572,
+          "self_ms": 0.24799999999999997
+        },
+        "public.payment_crud_prepare": {
+          "calls": 1,
+          "total_ms": 5.6792,
+          "self_ms": 3.1306000000000003
+        },
+        "public.r051_attribute_historical_ledger": {
+          "calls": 1,
+          "total_ms": 0.029700000000000004,
+          "self_ms": 0.029700000000000004
+        },
+        "public.r051_restate_opening_source": {
+          "calls": 2,
+          "total_ms": 0.09029999999999999,
+          "self_ms": 0.09029999999999999
+        },
+        "public.request_business_history": {
+          "calls": 7,
+          "total_ms": 0.0789,
+          "self_ms": 0.0789
+        },
+        "public.vc_charge_values": {
+          "calls": 10,
+          "total_ms": 0.6979000000000002,
+          "self_ms": 0.6979000000000002
+        },
+        "public.vc_borrower_changed": {
+          "calls": 6,
+          "total_ms": 2.5744000000000002,
+          "self_ms": 0.4992
+        },
+        "public.vc_borrower_row": {
+          "calls": 1,
+          "total_ms": 0.28069999999999995,
+          "self_ms": 0.0172
+        },
+        "public.vc_borrower_values": {
+          "calls": 7,
+          "total_ms": 1.7487000000000004,
+          "self_ms": 1.6607999999999996
+        },
+        "public.vc_charge_row": {
+          "calls": 5,
+          "total_ms": 0.39670000000000005,
+          "self_ms": 0.06509999999999999
+        },
+        "public.vc_lock_parents": {
+          "calls": 11,
+          "total_ms": 1.3094000000000001,
+          "self_ms": 1.3094000000000001
+        },
+        "public.vc_lock_payment_parents": {
+          "calls": 10,
+          "total_ms": 1.1939,
+          "self_ms": 1.1939
+        },
+        "public.vc_payment_changed": {
+          "calls": 10,
+          "total_ms": 0.9540000000000002,
+          "self_ms": 0.3324
+        },
+        "public.vc_refresh_borrower": {
+          "calls": 6,
+          "total_ms": 2.0751999999999997,
+          "self_ms": 0.2751
+        },
+        "public.vc_refresh_charge": {
+          "calls": 5,
+          "total_ms": 2.4909,
+          "self_ms": 0.5128000000000001
+        },
+        "public.vc_refresh_loan": {
+          "calls": 5,
+          "total_ms": 2.1564,
+          "self_ms": 1.1922
+        },
+        "public.vc_refresh_payment": {
+          "calls": 10,
+          "total_ms": 0.6215999999999999,
+          "self_ms": 0.5769000000000001
+        },
+        "public.vc_repayment_changed": {
+          "calls": 5,
+          "total_ms": 4.902200000000001,
+          "self_ms": 0.2549
+        }
+      }
+    },
+    "receipt_backdated": {
+      "median_ms": 109.76539999865054,
+      "min_ms": 109.15270000077726,
+      "max_ms": 110.5797000000166,
+      "samples_ms": [
+        109.15270000077726,
+        110.5797000000166,
+        109.76539999865054,
+        110.4775999992853,
+        109.52559999896039
+      ],
+      "last_function_profile": {
+        "public.post_payment": {
+          "calls": 1,
+          "total_ms": 6.886399999999998,
+          "self_ms": 1.7536000000000005
+        },
+        "public.prepare_loan_close": {
+          "calls": 2,
+          "total_ms": 0.07479999999999999,
+          "self_ms": 0.052199999999999996
+        },
+        "public.process_lump_sum": {
+          "calls": 2,
+          "total_ms": 6.895499999999998,
+          "self_ms": 0.011399999999999999
+        },
+        "public.referral_loan_closed": {
+          "calls": 1,
+          "total_ms": 0.0038000000000000004,
+          "self_ms": 0.0038000000000000004
+        },
+        "public.refresh_daily_analytics": {
+          "calls": 1,
+          "total_ms": 80.1592,
+          "self_ms": 80.1592
+        },
+        "public.vc_daily_interest": {
+          "calls": 15,
+          "total_ms": 0.1761,
+          "self_ms": 0.1761
+        },
+        "public.vc_daily_interest_row": {
+          "calls": 1,
+          "total_ms": 0.012699999999999996,
+          "self_ms": 0.0040999999999999995
+        },
+        "public.vc_loan_row": {
+          "calls": 1,
+          "total_ms": 0.127,
+          "self_ms": 0.10279999999999997
+        },
+        "agent_audit.capture_change": {
+          "calls": 33,
+          "total_ms": 0.10719999999999999,
+          "self_ms": 0.10719999999999999
+        },
+        "public.vc_lock_daily_parent": {
+          "calls": 1,
+          "total_ms": 0.004399999999999999,
+          "self_ms": 0.004399999999999999
+        },
+        "public.apply_principal_daily_interest": {
+          "calls": 1,
+          "total_ms": 0.016100000000000003,
+          "self_ms": 0.008199999999999999
+        },
+        "public.appsheet_normalize_blank_refs": {
+          "calls": 22,
+          "total_ms": 0.5564,
+          "self_ms": 0.5564
+        },
+        "public.begin_business_history": {
+          "calls": 55,
+          "total_ms": 0.1585,
+          "self_ms": 0.1585
+        },
+        "public.business_history_refresh": {
+          "calls": 19,
+          "total_ms": 0.6978000000000002,
+          "self_ms": 0.6199999999999999
+        },
+        "public.cash_account_holder": {
+          "calls": 5,
+          "total_ms": 0.13440000000000002,
+          "self_ms": 0.13440000000000002
+        },
+        "public.cash_source_changed": {
+          "calls": 2,
+          "total_ms": 1.1033,
+          "self_ms": 0.016299999999999995
+        },
+        "public.close_payment_loans": {
+          "calls": 1,
+          "total_ms": 0.10289999999999999,
+          "self_ms": 0.09570000000000001
+        },
+        "public.closing_payment_guard": {
+          "calls": 1,
+          "total_ms": 0.028399999999999995,
+          "self_ms": 0.028399999999999995
+        },
+        "public.default_loan_transition": {
+          "calls": 1,
+          "total_ms": 0.0052000000000000015,
+          "self_ms": 0.0052000000000000015
+        },
+        "public.default_posting_guard": {
+          "calls": 11,
+          "total_ms": 0.5930000000000001,
+          "self_ms": 0.5930000000000001
+        },
+        "public.flush_business_history": {
+          "calls": 87,
+          "total_ms": 80.54769999999999,
+          "self_ms": 0.38850000000000007
+        },
+        "public.guard_cash_ledger": {
+          "calls": 3,
+          "total_ms": 0.07940000000000003,
+          "self_ms": 0.07940000000000003
+        },
+        "public.guard_selected_charge_scope": {
+          "calls": 2,
+          "total_ms": 0.05399999999999999,
+          "self_ms": 0.050399999999999986
+        },
+        "public.guard_charge_consistency": {
+          "calls": 6,
+          "total_ms": 0.026100000000000012,
+          "self_ms": 0.026100000000000012
+        },
+        "public.guard_ledger_cash_accounts": {
+          "calls": 3,
+          "total_ms": 0.22320000000000007,
+          "self_ms": 0.17900000000000016
+        },
+        "public.guard_linked_expense_reimbursement": {
+          "calls": 3,
+          "total_ms": 0.009099999999999997,
+          "self_ms": 0.009099999999999997
+        },
+        "public.guard_loan_consistency": {
+          "calls": 1,
+          "total_ms": 0.04149999999999998,
+          "self_ms": 0.04149999999999998
+        },
+        "public.guard_opening_included_source": {
+          "calls": 3,
+          "total_ms": 0.15460000000000002,
+          "self_ms": 0.15460000000000002
+        },
+        "public.guard_payment_receipt_evidence": {
+          "calls": 2,
+          "total_ms": 0.05679999999999996,
+          "self_ms": 0.05679999999999996
+        },
+        "public.guard_source_cash_account": {
+          "calls": 3,
+          "total_ms": 0.1381,
+          "self_ms": 0.0479
+        },
+        "public.guard_source_cash_holder": {
+          "calls": 2,
+          "total_ms": 0.03790000000000002,
+          "self_ms": 0.03790000000000002
+        },
+        "public.loan_cashpool_lock": {
+          "calls": 14,
+          "total_ms": 0.0244,
+          "self_ms": 0.0244
+        },
+        "public.lump_sum_child_guard": {
+          "calls": 22,
+          "total_ms": 0.4678,
+          "self_ms": 0.4678
+        },
+        "public.lump_sum_receipt_guard": {
+          "calls": 2,
+          "total_ms": 0.6044999999999998,
+          "self_ms": 0.6044999999999998
+        },
+        "public.original_daily_interest_rate": {
+          "calls": 1,
+          "total_ms": 0.0079,
+          "self_ms": 0.0079
+        },
+        "public.payment_charge_balances": {
+          "calls": 3,
+          "total_ms": 0.3339000000000001,
+          "self_ms": 0.3339000000000001
+        },
+        "public.payment_crud_finish": {
+          "calls": 2,
+          "total_ms": 0.5371,
+          "self_ms": 0.5063
+        },
+        "public.payment_crud_prepare": {
+          "calls": 2,
+          "total_ms": 5.6089,
+          "self_ms": 3.1635999999999997
+        },
+        "public.payment_delete_request_guard": {
+          "calls": 2,
+          "total_ms": 0.005799999999999998,
+          "self_ms": 0.005799999999999998
+        },
+        "public.payment_inputs": {
+          "calls": 12,
+          "total_ms": 0.06620000000000001,
+          "self_ms": 0.06620000000000001
+        },
+        "public.payment_receipt_upload_stamp": {
+          "calls": 2,
+          "total_ms": 0.0075000000000000015,
+          "self_ms": 0.0075000000000000015
+        },
+        "public.r051_attribute_historical_ledger": {
+          "calls": 3,
+          "total_ms": 0.045000000000000005,
+          "self_ms": 0.045000000000000005
+        },
+        "public.r051_restate_opening_source": {
+          "calls": 3,
+          "total_ms": 0.10699999999999998,
+          "self_ms": 0.10699999999999998
+        },
+        "public.request_business_history": {
+          "calls": 13,
+          "total_ms": 0.0872,
+          "self_ms": 0.0872
+        },
+        "public.selected_charge_ids": {
+          "calls": 2,
+          "total_ms": 0.003599999999999999,
+          "self_ms": 0.003599999999999999
+        },
+        "public.vc_charge_values": {
+          "calls": 17,
+          "total_ms": 1.2555,
+          "self_ms": 1.2555
+        },
+        "public.sync_cash_ledger": {
+          "calls": 2,
+          "total_ms": 1.0870000000000002,
+          "self_ms": 0.6444999999999999
+        },
+        "public.vc_borrower_changed": {
+          "calls": 12,
+          "total_ms": 4.4934,
+          "self_ms": 0.9467000000000001
+        },
+        "public.vc_borrower_row": {
+          "calls": 1,
+          "total_ms": 0.2641,
+          "self_ms": 0.016800000000000002
+        },
+        "public.vc_borrower_values": {
+          "calls": 13,
+          "total_ms": 3.0348,
+          "self_ms": 2.8754
+        },
+        "public.vc_charge_row": {
+          "calls": 6,
+          "total_ms": 0.4857,
+          "self_ms": 0.07599999999999998
+        },
+        "public.vc_lock_parents": {
+          "calls": 18,
+          "total_ms": 2.0629000000000004,
+          "self_ms": 2.0629000000000004
+        },
+        "public.vc_lock_payment_parents": {
+          "calls": 22,
+          "total_ms": 2.6366000000000005,
+          "self_ms": 2.6366000000000005
+        },
+        "public.vc_payment_changed": {
+          "calls": 22,
+          "total_ms": 2.2003,
+          "self_ms": 0.6662
+        },
+        "public.vc_payment_row": {
+          "calls": 2,
+          "total_ms": 0.08440000000000003,
+          "self_ms": 0.08440000000000003
+        },
+        "public.vc_refresh_borrower": {
+          "calls": 12,
+          "total_ms": 3.5467,
+          "self_ms": 0.4599
+        },
+        "public.vc_refresh_charge": {
+          "calls": 11,
+          "total_ms": 3.7027,
+          "self_ms": 0.9422999999999999
+        },
+        "public.vc_refresh_loan": {
+          "calls": 11,
+          "total_ms": 3.3158000000000003,
+          "self_ms": 2.363
+        },
+        "public.vc_refresh_payment": {
+          "calls": 22,
+          "total_ms": 1.5341000000000002,
+          "self_ms": 1.4409
+        },
+        "public.vc_repayment_changed": {
+          "calls": 11,
+          "total_ms": 7.517,
+          "self_ms": 0.49849999999999994
+        }
+      }
+    },
+    "receipt_metadata": {
+      "median_ms": 1.2948999992659083,
+      "min_ms": 1.2741000009555137,
+      "max_ms": 1.5134999994188547,
+      "samples_ms": [
+        1.3511999986803858,
+        1.2766999989253236,
+        1.2741000009555137,
+        1.2948999992659083,
+        1.5134999994188547
+      ],
+      "last_function_profile": {
+        "public.prepare_loan_close": {
+          "calls": 1,
+          "total_ms": 0.026100000000000012,
+          "self_ms": 0.014500000000000013
+        },
+        "public.process_lump_sum": {
+          "calls": 1,
+          "total_ms": 0.003900000000001569,
+          "self_ms": 0.0039000000000000007
+        },
+        "agent_audit.capture_change": {
+          "calls": 1,
+          "total_ms": 0.006000000000000005,
+          "self_ms": 0.006000000000000005
+        },
+        "public.appsheet_normalize_blank_refs": {
+          "calls": 1,
+          "total_ms": 0.07869999999999999,
+          "self_ms": 0.07869999999999999
+        },
+        "public.begin_business_history": {
+          "calls": 1,
+          "total_ms": 0.0116,
+          "self_ms": 0.0116
+        },
+        "public.cash_account_holder": {
+          "calls": 1,
+          "total_ms": 0.037800000000000056,
+          "self_ms": 0.037800000000000056
+        },
+        "public.flush_business_history": {
+          "calls": 2,
+          "total_ms": 0.022000000000048203,
+          "self_ms": 0.021999999999999797
+        },
+        "public.guard_selected_charge_scope": {
+          "calls": 1,
+          "total_ms": 0.030799999999999966,
+          "self_ms": 0.02820000000000003
+        },
+        "public.guard_opening_included_source": {
+          "calls": 1,
+          "total_ms": 0.054900000000000004,
+          "self_ms": 0.054900000000000004
+        },
+        "public.guard_payment_receipt_evidence": {
+          "calls": 1,
+          "total_ms": 0.0353,
+          "self_ms": 0.0353
+        },
+        "public.guard_source_cash_account": {
+          "calls": 1,
+          "total_ms": 0.05840000000000001,
+          "self_ms": 0.020600000000000007
+        },
+        "public.guard_source_cash_holder": {
+          "calls": 1,
+          "total_ms": 0.02180000000000004,
+          "self_ms": 0.02180000000000004
+        },
+        "public.lump_sum_receipt_guard": {
+          "calls": 1,
+          "total_ms": 0.05030000000000001,
+          "self_ms": 0.05030000000000001
+        },
+        "public.payment_crud_finish": {
+          "calls": 1,
+          "total_ms": 0.01859999999999999,
+          "self_ms": 0.007800000000000001
+        },
+        "public.payment_crud_prepare": {
+          "calls": 1,
+          "total_ms": 0.020000000000000004,
+          "self_ms": 0.0069
+        },
+        "public.payment_delete_request_guard": {
+          "calls": 1,
+          "total_ms": 0.004400000000000001,
+          "self_ms": 0.004400000000000001
+        },
+        "public.payment_inputs": {
+          "calls": 6,
+          "total_ms": 0.035500000000000004,
+          "self_ms": 0.035500000000000004
+        },
+        "public.payment_receipt_upload_stamp": {
+          "calls": 1,
+          "total_ms": 0.005199999999999996,
+          "self_ms": 0.005199999999999996
+        },
+        "public.r051_restate_opening_source": {
+          "calls": 1,
+          "total_ms": 0.03799999999999998,
+          "self_ms": 0.03799999999999998
+        },
+        "public.selected_charge_ids": {
+          "calls": 1,
+          "total_ms": 0.002599999999999998,
+          "self_ms": 0.002599999999999998
+        },
+        "public.vc_payment_row": {
+          "calls": 1,
+          "total_ms": 0.05109999999999992,
+          "self_ms": 0.05109999999999992
+        }
+      }
+    },
+    "expense_amount": {
+      "median_ms": 21.683800001483178,
+      "min_ms": 20.936300001267227,
+      "max_ms": 24.916500000472297,
+      "samples_ms": [
+        20.936300001267227,
+        21.683800001483178,
+        21.88650000061898,
+        24.916500000472297,
+        21.48699999997916
+      ],
+      "last_function_profile": {
+        "public.refresh_daily_analytics": {
+          "calls": 1,
+          "total_ms": 18.540300000000002,
+          "self_ms": 18.540300000000002
+        },
+        "agent_audit.capture_change": {
+          "calls": 2,
+          "total_ms": 0.0126,
+          "self_ms": 0.0126
+        },
+        "public.appsheet_normalize_blank_refs": {
+          "calls": 1,
+          "total_ms": 0.04410000000000003,
+          "self_ms": 0.04410000000000003
+        },
+        "public.begin_business_history": {
+          "calls": 3,
+          "total_ms": 0.020800000000000013,
+          "self_ms": 0.020800000000000013
+        },
+        "public.business_history_refresh": {
+          "calls": 2,
+          "total_ms": 0.1358999999999999,
+          "self_ms": 0.11959999999999993
+        },
+        "public.calculate_business_expense": {
+          "calls": 1,
+          "total_ms": 0.127,
+          "self_ms": 0.054900000000000004
+        },
+        "public.cash_account_holder": {
+          "calls": 3,
+          "total_ms": 0.08620000000000005,
+          "self_ms": 0.08620000000000005
+        },
+        "public.cash_source_changed": {
+          "calls": 1,
+          "total_ms": 0.8316999999999997,
+          "self_ms": 0.010500000000000002
+        },
+        "public.expense_allocation_lock": {
+          "calls": 1,
+          "total_ms": 0.0037999999999999996,
+          "self_ms": 0.0037999999999999996
+        },
+        "public.flush_business_history": {
+          "calls": 5,
+          "total_ms": 18.72970000000001,
+          "self_ms": 0.1894
+        },
+        "public.guard_cash_ledger": {
+          "calls": 2,
+          "total_ms": 0.05570000000000003,
+          "self_ms": 0.05570000000000003
+        },
+        "public.guard_ledger_cash_accounts": {
+          "calls": 2,
+          "total_ms": 0.16809999999999992,
+          "self_ms": 0.12260000000000004
+        },
+        "public.guard_linked_expense_reimbursement": {
+          "calls": 3,
+          "total_ms": 0.20299999999999999,
+          "self_ms": 0.20299999999999999
+        },
+        "public.guard_opening_included_source": {
+          "calls": 1,
+          "total_ms": 0.099,
+          "self_ms": 0.099
+        },
+        "public.guard_source_cash_account": {
+          "calls": 1,
+          "total_ms": 0.06369999999999998,
+          "self_ms": 0.02300000000000002
+        },
+        "public.guard_source_cash_holder": {
+          "calls": 1,
+          "total_ms": 0.029700000000000004,
+          "self_ms": 0.029700000000000004
+        },
+        "public.partner_pool_share_at_date": {
+          "calls": 1,
+          "total_ms": 0.0721,
+          "self_ms": 0.0721
+        },
+        "public.r051_attribute_historical_ledger": {
+          "calls": 2,
+          "total_ms": 0.043100000000000006,
+          "self_ms": 0.043100000000000006
+        },
+        "public.r051_restate_opening_source": {
+          "calls": 1,
+          "total_ms": 0.1031,
+          "self_ms": 0.1031
+        },
+        "public.request_business_history": {
+          "calls": 2,
+          "total_ms": 0.01629999999999998,
+          "self_ms": 0.01629999999999998
+        },
+        "public.sync_cash_ledger": {
+          "calls": 1,
+          "total_ms": 0.8211999999999997,
+          "self_ms": 0.4603999999999999
+        }
+      }
+    }
+  }
+}

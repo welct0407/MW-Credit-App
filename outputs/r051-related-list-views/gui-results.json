@@ -1,0 +1,26 @@
+{
+  "date_local": "2026-10-07",
+  "oltp": "1.000206",
+  "olap": "1.000056",
+  "sql": 76,
+  "both_editors": "Saved; No issues found",
+  "final_runtime_sync": "Successful; exact synthetic Payments search empty",
+  "tests": {
+    "correction": "25/26 baht matched original inline contents/order",
+    "new_receipt": "5 baht; two repayments/allocations4+1; fresh after ordinary save/sync",
+    "repayment_navigation": "Correct child detail and source receipt guidance",
+    "delete_new_receipt": "Original26-baht receipt only",
+    "loan_close": "1034 baht; four repayments/allocations; Related Loans count1; principal0",
+    "delete_loan_close": "Active principal1000; original26-baht receipt retained",
+    "cleanup": "Exact task-owned fixtures removed;22 source/audit tables unchanged"
+  },
+  "limitations": [
+    "Offline behavior unverified; candidate reverted",
+    "Server durations do not establish end-to-end client gain"
+  ],
+  "notification_containment": {
+    "nonowner_delivery_addresses": 0,
+    "owner_actor_count": 1
+  },
+  "production": "No writes"
+}

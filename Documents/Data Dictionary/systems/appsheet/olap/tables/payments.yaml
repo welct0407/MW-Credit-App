@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-olap-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
   "previous_record":
     "commit": "dffa437c29a762f5b87a10b14a32063da8df07aa"
@@ -23,18 +23,18 @@
   "source_app": "OLAP"
   "source_table": "Payments"
   "binding":
-    "Are updates allowed?": "READ_ONLY"
-    "Column Order List":
-    - "_RowNumber"
-    "Data Source": "database-2"
-    "Partitioned across many files/sources?": "No"
-    "Partitioned across many worksheets?": "No"
-    "Schema": "Payments_Schema"
-    "Shared?": "Yes"
-    "Source Path": "Payments"
-    "Store for image and file capture": "MW Receipt Images PROD"
     "Table name": "Payments"
     "Visible?": "ALWAYS"
+    "Shared?": "Yes"
+    "Schema": "Payments_Schema"
+    "Are updates allowed?": "READ_ONLY"
+    "Source Path": "Payments"
+    "Data Source": "database-2"
+    "Store for image and file capture": "MW Receipt Images PROD"
+    "Column Order List":
+    - "_RowNumber"
+    "Partitioned across many files/sources?": "No"
+    "Partitioned across many worksheets?": "No"
   "schema":
     "Schema Name": "Payments_Schema"
     "Visible?": "ALWAYS"
@@ -52,27 +52,27 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "_RowNumber"
+        "Visible?": "ALWAYS"
         "Description": "Number of this row"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "Yes"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
         "Type": "Number"
         "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"NumericDigits\":null,\"ShowThousandsSeparator\"\
           :true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
           :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "Yes"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Row ID":
       "inventory":
         "App": "OLAP"
@@ -86,28 +86,28 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "Row ID"
+        "Visible?": "ALWAYS"
         "Description": "ID of this row"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Initial value": "UNIQUEID(\"PackedUUID\")"
-        "Key": "Yes"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "Yes"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "UNIQUEID(\"PackedUUID\")"
+        "System Defined?": "No"
+        "Key": "Yes"
+        "Part of Key?": "Yes"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Status":
       "inventory":
         "App": "OLAP"
@@ -121,26 +121,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Status"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Ref Borrower":
       "inventory":
         "App": "OLAP"
@@ -154,20 +154,7 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Borrower"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Borrowers\",\"ReferencedRootTableName\":\"Borrowers\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -176,8 +163,21 @@
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
           ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
           Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Borrowers"
         "ReferencedRootTableName": "Borrowers"
@@ -200,26 +200,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Amount Received"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Price"
         "Type Qualifier": "{\"CurrencySymbol\":\"฿\",\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\"\
           :0,\"NumericDigits\":null,\"ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\"\
           :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Payment Method":
       "inventory":
         "App": "OLAP"
@@ -233,26 +233,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Payment Method"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Allocation Method":
       "inventory":
         "App": "OLAP"
@@ -266,26 +266,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Allocation Method"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Bank Reference":
       "inventory":
         "App": "OLAP"
@@ -299,26 +299,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Bank Reference"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Notes":
       "inventory":
         "App": "OLAP"
@@ -332,26 +332,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Notes"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "LongText"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Created By":
       "inventory":
         "App": "OLAP"
@@ -365,25 +365,25 @@
         "Hidden": "No"
       "rules":
         "Column name": "Created By"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Email"
         "Type Qualifier": "{\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Payment Date":
       "inventory":
         "App": "OLAP"
@@ -397,26 +397,26 @@
         "Hidden": "No"
       "rules":
         "Column name": "Payment Date"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "TODAY()"
-        "Key": "No"
-        "Label": "Yes"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Date"
         "Type Qualifier": "{\"UseLongDateFormat\":false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"\
           Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "Yes"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "TODAY()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Created At":
       "inventory":
         "App": "OLAP"
@@ -430,27 +430,27 @@
         "Hidden": "No"
       "rules":
         "Column name": "Created At"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "NOW()"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
           :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\"\
           :null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "NOW()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Processed At":
       "inventory":
         "App": "OLAP"
@@ -464,27 +464,27 @@
         "Hidden": "No"
       "rules":
         "Column name": "Processed At"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Initial value": "NOW()"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
           :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\"\
           :null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "NOW()"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Ref Target Charge":
       "inventory":
         "App": "OLAP"
@@ -498,20 +498,7 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Target Charge"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Charges\",\"ReferencedRootTableName\":\"Charges\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -520,8 +507,21 @@
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
           ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
           Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Charges"
         "ReferencedRootTableName": "Charges"
@@ -544,21 +544,8 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Target Loan"
+        "Visible?": "ALWAYS"
         "Display name": "=\"เงินกู้ที่ปิดยอด / Closing Loan\""
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Loans\",\"ReferencedRootTableName\":\"Loans\",\"ReferencedType\":\"\
           Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\":\\\
@@ -567,8 +554,21 @@
           :null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
           ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
           Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Loans"
         "ReferencedRootTableName": "Loans"
@@ -591,26 +591,26 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "Planned Allocation Amount"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Decimal"
         "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":2,\"NumericDigits\":null,\"\
           ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"\
           Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Posted Amount":
       "inventory":
         "App": "OLAP"
@@ -624,26 +624,26 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "Posted Amount"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Decimal"
         "Type Qualifier": "{\"MaxValue\":null,\"MinValue\":null,\"StepValue\":null,\"DecimalDigits\":2,\"NumericDigits\":null,\"\
           ShowThousandsSeparator\":true,\"NumberDisplayMode\":\"Auto\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"\
           Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Ref Received By Cash Holder":
       "inventory":
         "App": "OLAP"
@@ -657,21 +657,8 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Received By Cash Holder"
+        "Visible?": "ALWAYS"
         "Display name": "=\"ผู้รับเงิน / Received By\""
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Cash Holders\",\"ReferencedRootTableName\":\"Cash Holders\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -680,8 +667,21 @@
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
           ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"\
           Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Cash Holders"
         "ReferencedRootTableName": "Cash Holders"
@@ -704,20 +704,7 @@
         "Hidden": "No"
       "rules":
         "Column name": "Ref Received By Cash Account"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "No"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Ref"
         "Type Qualifier": "{\"ReferencedTableName\":\"Cash Accounts\",\"ReferencedRootTableName\":\"Cash Accounts\",\"ReferencedType\"\
           :\"Text\",\"ReferencedTypeQualifier\":\"{\\\"MaxLength\\\":null,\\\"MinLength\\\":null,\\\"LongTextFormatting\\\"\
@@ -726,8 +713,21 @@
           \":null}\",\"ReferencedKeyColumn\":\"Row ID\",\"IsAPartOf\":false,\"RelationshipName\":null,\"InputMode\":\"Auto\"\
           ,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":\"=FALSE\"\
           ,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "Sensitive data": "No"
       "relationship":
         "ReferencedTableName": "Cash Accounts"
         "ReferencedRootTableName": "Cash Accounts"
@@ -737,178 +737,6 @@
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
         "ReferencedKeyColumn": "Row ID"
         "IsAPartOf": false
-    "Related Repayments":
-      "inventory":
-        "App": "OLAP"
-        "Table": "Payments"
-        "Column": "Related Repayments"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "REF_ROWS(\"Repayments\", \"Ref Payment\")"
-        "Column name": "Related Repayments"
-        "Description": "Repayments entries that reference this entry in the Ref Payment column"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "NFC Scannable": "No"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Repayments\\\
-          \",\\\"ReferencedRootTableName\\\":\\\"Repayments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
-          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
-          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
-          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
-          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
-          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
-          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Related Payment Allocations":
-      "inventory":
-        "App": "OLAP"
-        "Table": "Payments"
-        "Column": "Related Payment Allocations"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "REF_ROWS(\"Payment Allocations\", \"Ref Payment\")"
-        "Column name": "Related Payment Allocations"
-        "Description": "Payment Allocations entries that reference this entry in the Ref Payment column"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "NFC Scannable": "No"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payment Allocations\\\
-          \",\\\"ReferencedRootTableName\\\":\\\"Payment Allocations\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
-          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
-          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
-          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
-          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
-          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
-          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Related Loans":
-      "inventory":
-        "App": "OLAP"
-        "Table": "Payments"
-        "Column": "Related Loans"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")"
-        "Column name": "Related Loans"
-        "Description": "Loans entries that reference this entry in the Ref Closing Payment column"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "NFC Scannable": "No"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Loans\\\"\
-          ,\\\"ReferencedRootTableName\\\":\\\"Loans\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
-          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
-          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
-          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
-          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
-          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
-          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
-    "Related Cash Ledgers":
-      "inventory":
-        "App": "OLAP"
-        "Table": "Payments"
-        "Column": "Related Cash Ledgers"
-        "Type": "List"
-        "Virtual": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "Read-only": "Yes"
-        "Hidden": "No"
-      "rules":
-        "App formula": "REF_ROWS(\"Cash Ledger\", \"Ref Payment\")"
-        "Column name": "Related Cash Ledgers"
-        "Description": "Cash Ledger entries that reference this entry in the Ref Payment column"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "No"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "NFC Scannable": "No"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "Yes"
-        "Sensitive data": "No"
-        "System Defined?": "Yes"
-        "Type": "List"
-        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Ledger\\\
-          \",\\\"ReferencedRootTableName\\\":\\\"Cash Ledger\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
-          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
-          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
-          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
-          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
-          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
-          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
-          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
-          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
-        "Virtual?": "Yes"
-        "Visible?": "ALWAYS"
     "IG Receipt ID":
       "inventory":
         "App": "OLAP"
@@ -922,26 +750,26 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "IG Receipt ID"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Text"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Receipt Image":
       "inventory":
         "App": "OLAP"
@@ -955,25 +783,25 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "Receipt Image"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "Yes"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Image"
         "Type Qualifier": "{\"AllowDrawing\":false,\"FolderLocation\":null,\"Valid_If\":null,\"Error_Message_If_Invalid\"\
           :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "Yes"
     "Receipt Received At":
       "inventory":
         "App": "OLAP"
@@ -987,26 +815,26 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "Receipt Received At"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
           :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\"\
           :null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Selected Charge IDs":
       "inventory":
         "App": "OLAP"
@@ -1020,27 +848,27 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "Selected Charge IDs"
+        "Visible?": "ALWAYS"
         "Description": "=\"Selected-charge scope recorded by OLTP; review the posted payment allocations.\""
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
         "Type": "LongText"
         "Type Qualifier": "{\"MaxLength\":null,\"MinLength\":null,\"LongTextFormatting\":\"Plain Text\",\"IsMulticolumnKey\"\
           :false,\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\"\
           :null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
     "Uploaded Receipt":
       "inventory":
         "App": "OLAP"
@@ -1054,25 +882,25 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "Uploaded Receipt"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "Yes"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "Image"
         "Type Qualifier": "{\"AllowDrawing\":false,\"FolderLocation\":null,\"Valid_If\":null,\"Error_Message_If_Invalid\"\
           :null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
-        "Visible?": "ALWAYS"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "Yes"
     "Uploaded Receipt At":
       "inventory":
         "App": "OLAP"
@@ -1086,242 +914,231 @@
         "Hidden": "Yes"
       "rules":
         "Column name": "Uploaded Receipt At"
-        "Editable Initial Value?": "Yes"
-        "Fixed definition?": "No"
-        "Formula version": "0"
-        "Hidden": "Yes"
-        "Key": "No"
-        "Label": "No"
-        "LocaleName": "en-US"
-        "Part of Key?": "No"
-        "Read-Only": "Yes"
-        "Reset on edit?": "No"
-        "Scannable": "No"
-        "Searchable": "No"
-        "Sensitive data": "No"
-        "System Defined?": "No"
+        "Visible?": "ALWAYS"
         "Type": "DateTime"
         "Type Qualifier": "{\"MinValue\":null,\"MaxValue\":null,\"UseLongDateFormat\":false,\"IgnoreSeconds\":false,\"Valid_If\"\
           :null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\":null,\"Editable_If\":null,\"Reset_If\"\
           :null,\"Suggested_Values\":null}"
+        "Read-Only": "Yes"
+        "Hidden": "Yes"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
         "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Delete Requested":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Payments"
+        "Column": "Delete Requested"
+        "Type": "Yes/No"
+        "Virtual": "No"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "No"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Delete Requested"
         "Visible?": "ALWAYS"
-  "editor":
-    "fields":
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "Payments"
-      "label": "Table name"
-      "text": |-
-        Table name
-        Name for this table (user-visible)
-        ​
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Updates"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Adds"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Deletes"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Read-Only"
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "science"
-      "controls": []
-      "label": "Are updates allowed?"
-      "text": |-
-        Are updates allowed?
-        Are adds, deletes and updates allowed?
-        Updates
-        Adds
-        Deletes
-        Read-Only
-        science
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Payments"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "11"
-      "label": "Source Path"
-      "text": "Source PathA user-understandable path to the table data - select a source -olap_borrowers_analyticsolap_loans_analyticsolap_repayments_analyticsStatisticsolap_charges_analyticsLoan\
-        \ Assessment SQL Lab ViewCash Pool ContributionsPartnersSettlementsDaily AnalyticsPayment AllocationsPaymentsBusiness\
-        \ ExpensesCash HoldersCash Holder BalancesCash Ledgerolap_portfolio_summaryCash AccountsCash Account Balances- browse\
-        \ for more data -"
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": ""
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Add"
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": "_RowNumber"
-      "label": "Column Order List"
-      "text": "Column Order ListThe order of columns to retrieve from the provider (only applies to some storage providers)drag_indicator_RowNumber​Add"
-    - "choices":
-      - "checked": null
-        "pressed": null
-        "role": null
-        "text": "Copy Data to New Source"
-      "controls": []
-      "label": "Data Source"
-      "text": "Data SourceName of the table data sourcedatabase-2Copy Data to New Source"
-    - "choices": []
-      "controls": []
-      "label": "Source Id"
-      "text": "Source IdA provider-specific path to the table data (not user-visible)Table=public.Payments__Payments"
-    - "choices": []
-      "controls":
-      - "selected":
-        - "Default"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "_Default"
-      "label": "Store for image and file capture"
-      "text": "Store for image and file captureBy default, images and files captured by the app are stored in the cloud file\
-        \ system associated with the app owner's account. You can explicitly add an object store and use it instead.Default"
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": false
-      "label": "Filter out all existing rows?"
-      "text": "Filter out all existing rows?Used only in forms apps that collect new data rows but never show any pre-existing\
-        \ rows."
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "text"
-        "value": ""
-      "label": "Security filter"
-      "text": "Security filterThe app uses only those rows that match this (optional) filter condition. Use this filter to\
-        \ limit what each user can see.=science​"
-    - "choices":
-      - "checked": "true"
-        "pressed": null
-        "role": "radio"
-        "text": "as app creator"
-      - "checked": "false"
-        "pressed": null
-        "role": "radio"
-        "text": "as app user"
-      "controls": []
-      "label": "Access mode"
-      "text": "Access modeThe app will access the spreadsheet using the app creator or app user credentials.as app creatoras\
-        \ app user"
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "INPUT"
-        "type": "checkbox"
-        "value": true
-      "label": "Shared?"
-      "text": "Shared?Is this table shared by all users? This option is normally checked. Before unchecking, carefully review\
-        \ 'Private Tables' in the documentation."
-    - "choices": []
-      "controls":
-      - "selected":
-        - "5 minutes"
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": "FIVE_MINUTE"
-      "label": "Server caching interval"
-      "text": "Server caching intervalHow long should the data of this table be cached in AppSheet servers if the 'Server\
-        \ Caching' option is enabled?5 minutes30 minutesone hourone day"
-    - "choices": []
-      "controls":
-      - "selected":
-        - ""
-        "tag": "SELECT"
-        "type": "select-one"
-        "value": ""
-      "label": "Data locale"
-      "text": "Data localeLocale used to read the tableCompatibility (For backward compatibility)Amharic (Ethiopia)Arabic\
-        \ (Algeria)Arabic (Bahrain)Arabic (Egypt)Arabic (Iraq)Arabic (Jordan)Arabic (Kuwait)Arabic (Lebanon)Arabic (Libya)Arabic\
-        \ (Morocco)Arabic (Oman)Arabic (Qatar)Arabic (Saudi Arabia)Arabic (Syria)Arabic (Tunisia)Arabic (United Arab Emirates)Arabic\
-        \ (Yemen)Armenian (Armenia)Azerbaijani (Cyrillic, Azerbaijan)Azerbaijani (Latin, Azerbaijan)Bengali (India)Bulgarian\
-        \ (Bulgaria)Burmese (Myanmar)Catalan (Catalan)Chinese (Simplified, China)Chinese (Traditional, Hong Kong SAR)Chinese\
-        \ (Traditional, Taiwan)Chinese Traditional (Malaysia)Croatian (Croatia)Czech (Czechia)Danish (Denmark)Dari (Afghanistan)Dutch\
-        \ (Aruba)Dutch (Belgium)Dutch (Curaçao)Dutch (Netherlands)English (Australia)English (Bahrain)English (Belgium)English\
-        \ (Brazil)English (Canada)English (Germany)English (Hong Kong SAR)English (India)English (Ireland)English (Kenya)English\
-        \ (Malaysia)English (New Zealand)English (Norway)English (Philippines)English (Singapore)English (South Africa)English\
-        \ (Sri Lanka)English (Tanzania)English (United Kingdom)English (United States)Filipino (Philippines)Finnish (Finland)French\
-        \ (Belgium)French (Cameroon)French (Canada)French (Côte d’Ivoire)French (France)French (Luxembourg)French (Mali)French\
-        \ (Morocco)French (Senegal)French (Switzerland)French Congo (DRC)Fulah (Latin, Senegal)Georgian (Georgia)German (Austria)German\
-        \ (Germany)German (Liechtenstein)German (Luxembourg)German (Switzerland)Greek (Greece)Gujarati (India)Hausa (Latin,\
-        \ Nigeria)Hebrew (Israel)Hindi (India)Hungarian (Hungary)Igbo (Nigeria)Indonesian (Indonesia)Irish (Ireland)Italian\
-        \ (Italy)Italian (Switzerland)Japanese (Japan)Kannada (India)Kinyarwanda (Rwanda)Kiswahili (Kenya)Kiswahili (Tanzania)Korean\
-        \ (Korea)Latvian (Latvia)Lingala (Angola)Lithuanian (Lithuania)Malay (Brunei)Malay (Malaysia)Malayalam (India)Marathi\
-        \ (India)Mongolian (Mongolia)Norwegian Bokmål (Norway)Norwegian Nynorsk (Norway)Oromo (Ethiopia)Pashto (Afghanistan)Persian\
-        \ (Iran)Polish (Poland)Portuguese (Angola)Portuguese (Brazil)Portuguese (Mozambique)Portuguese (Portugal)Romanian\
-        \ (Romania)Russian (Russia)Serbian (Cyrillic, Serbia)Serbian (Latin, Serbia)Serbian (Serbia)Setswana (Botswana)Sinhala\
-        \ (Sri Lanka)Slovak (Slovakia)Slovenian (Slovenia)Spanish (Argentina)Spanish (Bolivia)Spanish (Chile)Spanish (Colombia)Spanish\
-        \ (Costa Rica)Spanish (Dominican Republic)Spanish (Ecuador)Spanish (El Salvador)Spanish (Guatemala)Spanish (Honduras)Spanish\
-        \ (Latin America)Spanish (Latin America)Spanish (Mexico)Spanish (Nicaragua)Spanish (Panama)Spanish (Paraguay)Spanish\
-        \ (Peru)Spanish (Spain, International Sort)Spanish (United States)Spanish (Uruguay)Spanish (Venezuela)Swedish (Sweden)Tamil\
-        \ (India)Tamil (Sri Lanka)Telugu (India)Thai (Thailand)Tigrinya (Ethiopia)Turkish (Turkey)Ukrainian (Ukraine)Vietnamese\
-        \ (Vietnam)Yoruba (Nigeria)"
-    - "choices": []
-      "controls":
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": ""
-      - "selected": null
-        "tag": "TEXTAREA"
-        "type": "textarea"
-        "value": "x"
-      "label": "Descriptive comment"
-      "text": "Descriptive commentComments help you and your collaborators better record and understand the structure of the\
-        \ app"
-    "update_permissions_snapshot": |2-
-
-        - heading "Table settings" [level=5]
-        - button "close":
-        - heading "Table name" [level=6]
-        - text: Name for this table (user-visible)
-        - textbox: Payments
-        - heading "Are updates allowed?" [level=6]
-        - text: Are adds, deletes and updates allowed?
-        - button " Updates":
-          - text: 
-          - generic: Updates
-        - button " Adds":
-          - text: 
-          - generic: Adds
-        - button " Deletes":
-          - text: 
-          - generic: Deletes
-        - button "Read-Only"
-        - button "science"
-        - heading "Storage" [level=3]
-        - generic: 
-        - text: (ENTERPRISE Plan)
-        - heading "Security" [level=3]
-        - generic: 
-        - text: (APPSHEET CORE) (APPSHEET CORE) (APPSHEET CORE)
+        "Type": "Yes/No"
+        "Type Qualifier": "{\"YesLabel\":\"\",\"NoLabel\":\"\",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\"\
+          :\"=FALSE\",\"Required_If\":null,\"Editable_If\":\"=FALSE\",\"Reset_If\":null,\"Suggested_Values\":null}"
+        "Read-Only": "No"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "Initial value": "=FALSE"
+        "System Defined?": "No"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "No"
+        "LocaleName": "en-US"
+        "Searchable": "No"
+        "Scannable": "No"
+        "Sensitive data": "No"
+    "Related Repayments":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Payments"
+        "Column": "Related Repayments"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Repayments"
+        "Visible?": "ALWAYS"
+        "Description": "Repayments entries that reference this entry in the Ref Payment column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Repayments\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Repayments\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Repayments\", \"Ref Payment\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+    "Related Payment Allocations":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Payments"
+        "Column": "Related Payment Allocations"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Payment Allocations"
+        "Visible?": "ALWAYS"
+        "Description": "Payment Allocations entries that reference this entry in the Ref Payment column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Payment Allocations\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Payment Allocations\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Payment Allocations\", \"Ref Payment\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+    "Related Loans":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Payments"
+        "Column": "Related Loans"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Loans"
+        "Visible?": "ALWAYS"
+        "Description": "Loans entries that reference this entry in the Ref Closing Payment column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Loans\\\"\
+          ,\\\"ReferencedRootTableName\\\":\\\"Loans\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
+    "Related Cash Ledgers":
+      "inventory":
+        "App": "OLAP"
+        "Table": "Payments"
+        "Column": "Related Cash Ledgers"
+        "Type": "List"
+        "Virtual": "Yes"
+        "Key": "No"
+        "Label": "No"
+        "Read-only": "Yes"
+        "Hidden": "No"
+      "rules":
+        "Column name": "Related Cash Ledgers"
+        "Visible?": "ALWAYS"
+        "Description": "Cash Ledger entries that reference this entry in the Ref Payment column"
+        "Type": "List"
+        "Type Qualifier": "{\"ElementType\":\"Ref\",\"ElementTypeQualifier\":\"{\\\"ReferencedTableName\\\":\\\"Cash Ledger\\\
+          \",\\\"ReferencedRootTableName\\\":\\\"Cash Ledger\\\",\\\"ReferencedType\\\":\\\"Text\\\",\\\"ReferencedTypeQualifier\\\
+          \":\\\"{\\\\\\\"MaxLength\\\\\\\":null,\\\\\\\"MinLength\\\\\\\":null,\\\\\\\"LongTextFormatting\\\\\\\":\\\\\\\"\
+          Plain Text\\\\\\\",\\\\\\\"IsMulticolumnKey\\\\\\\":false,\\\\\\\"Valid_If\\\\\\\":null,\\\\\\\"Error_Message_If_Invalid\\\
+          \\\\\":null,\\\\\\\"Show_If\\\\\\\":null,\\\\\\\"Required_If\\\\\\\":null,\\\\\\\"Editable_If\\\\\\\":null,\\\\\\\
+          \"Reset_If\\\\\\\":null,\\\\\\\"Suggested_Values\\\\\\\":null}\\\",\\\"ReferencedKeyColumn\\\":\\\"Row ID\\\",\\\
+          \"IsAPartOf\\\":false,\\\"RelationshipName\\\":null,\\\"InputMode\\\":\\\"Auto\\\",\\\"Valid_If\\\":null,\\\"Error_Message_If_Invalid\\\
+          \":null,\\\"Show_If\\\":null,\\\"Required_If\\\":null,\\\"Editable_If\\\":null,\\\"Reset_If\\\":null,\\\"Suggested_Values\\\
+          \":null}\",\"ItemSeparator\":\" , \",\"Valid_If\":null,\"Error_Message_If_Invalid\":null,\"Show_If\":null,\"Required_If\"\
+          :null,\"Editable_If\":null,\"Reset_If\":null,\"Suggested_Values\":null}"
+        "App formula": "REF_ROWS(\"Cash Ledger\", \"Ref Payment\")"
+        "Read-Only": "Yes"
+        "Hidden": "No"
+        "Label": "No"
+        "Formula version": "0"
+        "Reset on edit?": "No"
+        "System Defined?": "Yes"
+        "Key": "No"
+        "Part of Key?": "No"
+        "Fixed definition?": "No"
+        "Editable Initial Value?": "Yes"
+        "Virtual?": "Yes"
+        "LocaleName": "en-US"
+        "Searchable": "Yes"
+        "Scannable": "No"
+        "NFC Scannable": "No"
+        "Sensitive data": "No"
 "evidence":
   "/content/binding":
     "reference": "outputs/r047-production/olap-affected-definitions.json"

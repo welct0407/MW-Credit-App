@@ -1,0 +1,60 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "assessment_lab.calculate_row()"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "assessment_lab.calculate_row()"
+    "definition": |
+      CREATE OR REPLACE FUNCTION assessment_lab.calculate_row()
+       RETURNS trigger
+       LANGUAGE plpgsql
+      AS $function$
+      DECLARE j jsonb; r record; started timestamptz:=clock_timestamp();
+      BEGIN
+
+       -- FK unlink after borrower deletion preserves the last assessment snapshot.
+       IF TG_OP='UPDATE' AND pg_trigger_depth()>1 AND OLD."Ref Borrower" IS NOT NULL
+        AND NEW."Ref Borrower" IS NULL
+        AND (to_jsonb(NEW)-'Ref Borrower')=(to_jsonb(OLD)-'Ref Borrower')
+        AND NOT EXISTS(SELECT 1 FROM public."Borrowers" WHERE "Row ID"=OLD."Ref Borrower") THEN
+        RETURN NEW;
+       END IF;
+       NEW."SQL As Of":=(started AT TIME ZONE 'Asia/Bangkok')::date;
+       NEW."SQL Calculated At":=started AT TIME ZONE 'Asia/Bangkok';
+       NEW."SQL Forecast Start":=coalesce(NEW."SQL Forecast Start",date '2026-08-01');
+       NEW."SQL Forecast End":=coalesce(NEW."SQL Forecast End",date '2026-12-31');
+       IF NEW."SQL Forecast End"<NEW."SQL As Of" OR NEW."SQL Forecast Start">NEW."SQL As Of" OR NEW."SQL Forecast End"-NEW."SQL Forecast Start">3660 THEN
+        RAISE EXCEPTION 'Forecast window must include today and cannot exceed 3660 days';
+       END IF;
+       j:=assessment_lab.inputs(NEW."Ref Borrower");
+       SELECT coalesce(sum((x->>'outstanding')::numeric),0),coalesce(sum((x->>'received_interest')::numeric),0)
+       INTO NEW."SQL Current Principal",NEW."SQL Interest Received" FROM jsonb_array_elements(j->'loans') x;
+       NEW."SQL Eligible Date":=NULL; NEW."SQL Eligible Interest":=NULL; NEW."SQL Eligible Principal":=NULL;
+       NEW."SQL Eligible Profit":=NULL; NEW."SQL Eligible Coverage":=NULL; NEW."SQL Eligible Margin":=NULL; NEW."SQL Current Margin":=NULL;
+       FOR r IN SELECT * FROM assessment_lab.forecast(j->'loans',j->'charges',coalesce(NEW."Proposed Loan Amount"::numeric,0),coalesce(NEW."Minimum Daily Profit Rate"::text::numeric,0),NEW."SQL As Of",NEW."SQL Forecast Start",NEW."SQL Forecast End") LOOP
+        IF r.day=NEW."SQL As Of" THEN NEW."SQL Current Margin":=r.margin; END IF;
+        IF NEW."SQL Eligible Date" IS NULL AND r.day>=NEW."SQL As Of" AND r.margin>=0
+           AND nullif(NEW."Ref Borrower",'') IS NOT NULL AND NEW."Proposed Loan Amount"::numeric>0 AND NEW."Minimum Daily Profit Rate">0 THEN
+         NEW."SQL Eligible Date":=r.day; NEW."SQL Eligible Interest":=r.interest; NEW."SQL Eligible Principal":=r.principal;
+         NEW."SQL Eligible Profit":=r.minimum_profit; NEW."SQL Eligible Coverage":=r.coverage; NEW."SQL Eligible Margin":=r.margin;
+        END IF;
+       END LOOP;
+       RETURN NEW;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

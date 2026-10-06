@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -24,7 +24,12 @@
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
       BEGIN
-       IF TG_OP='DELETE' THEN RAISE EXCEPTION 'Cash accounts are retained; deactivate instead'; END IF;
+       IF TG_OP='DELETE' THEN
+        IF NOT pg_try_advisory_xact_lock(hashtextextended('cash-account:'||OLD."Ref Cash Holder",0)) THEN RAISE EXCEPTION 'Cash accounts are busy; sync and retry'; END IF;
+        IF OLD."Default Account" AND EXISTS(SELECT 1 FROM public."Cash Accounts" WHERE "Ref Cash Holder"=OLD."Ref Cash Holder" AND "Active" AND "Row ID"<>OLD."Row ID") THEN
+         RAISE EXCEPTION 'Choose a replacement default account before deletion'; END IF;
+        RETURN OLD; -- References and opening balances still protect used accounts.
+       END IF;
        IF TG_OP='UPDATE' AND (NEW."Row ID",NEW."Ref Cash Holder",NEW."Created At") IS DISTINCT FROM
        (OLD."Row ID",OLD."Ref Cash Holder",OLD."Created At") THEN
         RAISE EXCEPTION 'Cash account identity, holder and creation time are immutable';

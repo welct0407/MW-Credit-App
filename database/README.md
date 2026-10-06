@@ -1,6 +1,6 @@
 # PostgreSQL development with Flyway
 
-Current 4 October 2026: DEV and PROD are **V58**, checksum `1886180782`; V57 remains `-211958320`. V58 hardens canonical operator dispatch; production readback and Flyway validation passed. Check actual history before assigning V59 or later.
+Current R051 production closure, 7 October 2026: **DEV and PROD V77**, validated. The pinned nineteen migrations V59–77 were applied after a verified private production backup/restore rehearsal. V77 retires the rejected related-list helper; V75/V76 remain immutable. All122 relevant routine hashes match across environments. App upgrades and read-only GUI validation passed. Performance measurements remain bounded samples, not an overall sync-speed claim. [Production evidence](../outputs/r051-production/README.md).
 
 Historical R049 checkpoint: DEV and PROD were **V56**. V56 adds a compatible read-only upcoming summary V2 provider; V1 is unchanged. Full CI and verified DEV/PROD restore rehearsals passed. The pinned migration applied to PROD before normal App Upgrade to OLTP3.000263, and post-migration validation passed. Next migration must be V57 or higher after checking current history. [Production evidence](../outputs/r049-production/README.md) · [DEV handover](../outputs/r049-upcoming-summary/HANDOVER.md).
 

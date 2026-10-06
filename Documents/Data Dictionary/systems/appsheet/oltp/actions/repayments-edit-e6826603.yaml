@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-oltp-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "AppDoc exposed properties; editor-only gaps tracked in run coverage"
 "content":
   "definition":
@@ -21,7 +21,8 @@
       :\"Display_Overlay\",\"NeedsConfirmation\":false,\"ConfirmationMessage\":\"\",\"ModifiesData\":true,\"BulkApplicable\"\
       :false}"
     "Do this": "EDIT_RECORD"
-    "Only if this condition is true": "=ISBLANK([Ref Payment])"
+    "Only if this condition is true": "=AND(NOT(STARTSWITH([Row ID], \"df10:\")), AND(ISBLANK([Ref Payment]), NOT([Ref Loans].[Defaulted]\
+      \ = TRUE), NOT([Ref Charges].[Ref Loans].[Defaulted] = TRUE)))"
     "Disable automatic updates?": "No"
     "Action icon": ""
     "For a record of this table": "Repayments"

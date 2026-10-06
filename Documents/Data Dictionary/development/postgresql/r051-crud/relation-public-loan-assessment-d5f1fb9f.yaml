@@ -1,0 +1,51 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.Loan Assessment"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Promoted to PROD 2026-10-07; closed, retained as dated DEV evidence"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.Loan Assessment"
+    "columns":
+    - "name": "Row ID"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "Assessment ID"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Ref Borrower"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Proposed Loan Amount"
+      "type": "money"
+      "not_null": false
+      "default": null
+    - "name": "Minimum Daily Profit Rate"
+      "type": "real"
+      "not_null": false
+      "default": null
+    "constraints":
+      "Loan Assessment_Row ID_not_null": "NOT NULL \"Row ID\""
+      "Loan Assessment_pkey": "PRIMARY KEY (\"Row ID\")"
+      "appsheet_ref_07": "FOREIGN KEY (\"Ref Borrower\") REFERENCES \"Borrowers\"(\"Row ID\") ON DELETE SET NULL"
+    "triggers":
+      "appsheet_blank_refs": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Loan Assessment\" FOR EACH ROW\
+        \ EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Borrower')"
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"
+  "production_delivery":
+    "evidence": "outputs/r051-production/README.md"
+    "OLTP": "3.000270"
+    "OLAP": "1.100212"
+    "PostgreSQL": "77"
+    "remaining_feature_difference": "None; environment bindings remain intentional."

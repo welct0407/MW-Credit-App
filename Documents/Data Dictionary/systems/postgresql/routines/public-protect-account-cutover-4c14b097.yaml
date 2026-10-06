@@ -7,7 +7,7 @@
   "scope": "production"
 "verification":
   "status": "documented"
-  "source": "outputs/dictionary-reconciliation-20260924/production-postgresql-observations.json"
+  "source": "outputs/r051-production/README.md"
   "coverage": "catalog metadata"
 "content":
   "definition":
@@ -24,9 +24,11 @@
        SET search_path TO 'pg_catalog', 'public'
       AS $function$
       BEGIN
+       IF TG_OP='UPDATE' AND pg_trigger_depth()>1 AND current_setting('r051.restate_account_opening',true)='on'
+        AND (to_jsonb(NEW)-ARRAY['Opening Balance','Notes'])=(to_jsonb(OLD)-ARRAY['Opening Balance','Notes'])
+        AND left(NEW."Notes",length(OLD."Notes"))=OLD."Notes" THEN RETURN NEW; END IF;
        IF TG_OP<>'INSERT' OR current_setting('r008.initializing',true) IS DISTINCT FROM 'on' THEN
-        RAISE EXCEPTION 'Account openings are immutable and require the controlled initializer';
-       END IF;
+        RAISE EXCEPTION 'Account openings are immutable and require the controlled initializer'; END IF;
        RETURN NEW;
       END $function$
     "owner": "postgres"
