@@ -26,4 +26,9 @@
 \ir Test-DefaultRepayment.sql
 \ir Test-R051RelaxedPolicy.sql
 \ir Test-TriggerPerformance.sql
-\ir Test-PaymentRelatedIds.sql
+-- V77 retires the rejected AppSheet experiment; native reverse Refs remain.
+DO $$ BEGIN
+ IF to_regclass('public.oltp_payment_related_ids_v1') IS NOT NULL THEN
+  RAISE EXCEPTION 'Retired experimental related-ID view still exists';
+ END IF;
+END $$;

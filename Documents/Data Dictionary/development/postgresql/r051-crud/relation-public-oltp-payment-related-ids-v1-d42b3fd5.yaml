@@ -7,10 +7,10 @@
   "scope": "development:R051-crud"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-related-list-views/v76-after-contract.json"
+  "source": "database/migrations/V77__retire_unused_payment_related_ids_view.sql"
 "content":
   "release": "R051"
-  "status": "Applied DEV V76; dormant after AppSheet experiment rollback; PROD unchanged"
+  "status": "Retired in DEV V77; no AppSheet or SQL consumer retained"
   "database": "loan_manager_dev"
   "captured_at": "2026-10-06T17:44:22.749668+00:00"
   "catalog_observation":
@@ -49,4 +49,4 @@
       - "text"
     - - "Visible Allocation IDs"
       - "text"
-  "consumers": "No AppSheet binding retained. No physical ID-list columns, cache, triggers or grants added."
+  "consumers": "None; V75/V76 definitions below are dated historical evidence, not current live objects."

@@ -1,6 +1,6 @@
 # R051 DEV CRUD delta
 
-Current DEV: OLTP1.000206 / OLAP1.000056 / PostgreSQL V76, 7 October 2026. Both editors are saved and clear; current GUI acceptance, SQL regression and exact synthetic cleanup are complete. R051 is Open; no production definition is changed. [Completion](../../outputs/r051-receipt-corrections/vm01-completion-20261006.md).
+Current DEV: OLTP1.000206 / OLAP1.000056 / PostgreSQL V77, 7 October 2026. Both editors are saved and clear; current GUI acceptance, SQL regression and exact synthetic cleanup are complete. R051 is Frozen for owner-authorized promotion; production changes are recorded in its promotion checklist. [Completion](../../outputs/r051-receipt-corrections/vm01-completion-20261006.md).
 
 Payments are editable source records. Financial changes atomically reconcile allocations, repayments, account cash, parent balances and payment-owned closure/referral; metadata changes do not repost. The hidden Delete Requested flag and detail-only Delete receipt action avoid AppSheet's historical child-first native-delete failure. Generated child amounts remain source-managed; eligible whole-interest allocations may change charge within the same loan. Unrelated receipts remain intact.
 
@@ -21,3 +21,5 @@ AppSheet latency candidate: OLTP200 guards Payments Eligible Charges and Eligibl
 V74 transparent performance refinement: the existing upcoming coverage view reuses one forecast evaluation for issues and first-five-date coverage. Its exact columns, keys, permissions, notes and freshness are unchanged. The new DEV relation overlay contains the saved catalog definition; production YAML is unchanged. [Query parity, timing and unchanged GUI](../../outputs/r051-transparent-performance/README.md).
 
 V75/V76 related-list experiment: an ordinary computed view remains dormant after candidate204 failed to establish an overall save/sync improvement. Original Payments related-list formulas restored in205; helper binding removed in206, preserving22 business tables plus user settings. SQL definition and restored four formulas are documented in the selected DEV overlays. [Measured result and rollback](../../outputs/r051-related-list-views/README.md).
+
+V77 removes the rejected related-list SQL helper with RESTRICT. Native AppSheet formulas and table membership remain as tested in206; immutable V75/V76 files and dated experiment evidence remain.
