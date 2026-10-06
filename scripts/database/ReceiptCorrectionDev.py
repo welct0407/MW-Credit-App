@@ -72,8 +72,8 @@ def fingerprints(c):
 
 
 def backup(expected_version=58):
-    if expected_version not in (58,64,65,67,68):
-        raise ValueError("Only reviewed V58/V64/V65/V67/V68 recovery is supported")
+    if expected_version not in (58,64,65,67,68,69):
+        raise ValueError("Only reviewed V58/V64/V65/V67/V68/V69 recovery is supported")
     import psycopg
     root = Path(tempfile.mkdtemp(prefix='r051-dev-recovery-', dir='/workspace'))
     root.chmod(0o700)
@@ -86,6 +86,8 @@ def backup(expected_version=58):
         version = c.execute('SELECT max(version::integer) FROM public.flyway_schema_history WHERE success').fetchone()[0]
         if version != expected_version:
             raise ValueError('Unexpected DEV recovery baseline version')
+        if expected_version==69 and c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()!=('69',245428688):
+            raise ValueError('Expected exact V69 recovery checksum')
         print(json.dumps(dict(stage='verified_recovery_target',database='loan_manager_dev',instance='appsheet-pg-prod-20260914',host='34.21.174.215',version=version)),flush=True)
         before = fingerprints(c)
         snapshot = c.execute('SELECT pg_export_snapshot()').fetchone()[0]
@@ -134,30 +136,40 @@ def source_hashes():
             for p in sorted((REPO/'database/migrations').glob('*.sql'))}
 
 
-def migrate(target_version=60):
-    if target_version not in (60,61,62,63,64,65,66,67,68,69):raise ValueError('Only reviewed R051 DEV batches are supported')
-    recovery_name='recovery-v68.json' if target_version==69 else 'recovery-v67.json' if target_version==68 else 'recovery-v65.json' if target_version>=66 else ('recovery-v64.json' if target_version==65 else 'recovery.json')
+def migrate(target_version=60,expected_commit=None,window_reference=None):
+    if target_version not in (60,61,62,63,64,65,66,67,68,69,70):raise ValueError('Only reviewed R051 DEV batches are supported')
+    if target_version==70:
+        if not expected_commit or len(expected_commit)!=40 or not window_reference:
+            raise ValueError('Exact published commit and coordinated DEV window reference required')
+        head=subprocess.run(['git','rev-parse','HEAD'],cwd=REPO,check=True,capture_output=True,text=True).stdout.strip()
+        dirty=subprocess.run(['git','status','--porcelain','--','scripts/database','database/migrations'],cwd=REPO,check=True,capture_output=True,text=True).stdout.strip()
+        if head!=expected_commit or dirty:raise ValueError('Published execution source changed; review before migration')
+    recovery_name='recovery-v69.json' if target_version==70 else 'recovery-v68.json'  if target_version==69 else 'recovery-v67.json' if target_version==68 else 'recovery-v65.json' if target_version>=66 else ('recovery-v64.json' if target_version==65 else 'recovery.json')
     recovery = json.loads((REPO/'outputs/r051-receipt-corrections'/recovery_name).read_text())
     artifact = Path('/workspace')/recovery['private_artifact_reference']/'before.dump'
-    if (not recovery['restored_fingerprints_match'] or recovery['baseline_version'] != (68 if target_version==69 else 67 if target_version==68 else (65 if target_version>=66 else (64 if target_version==65 else 58)))
+    if (not recovery['restored_fingerprints_match'] or recovery['baseline_version'] != (69 if target_version==70 else 68 if target_version==69 else 67 if target_version==68 else (65 if target_version>=66 else (64 if target_version==65 else 58)))
             or hashlib.sha256(artifact.read_bytes()).hexdigest() != recovery['sha256']):
         raise ValueError('Verified DEV recovery missing or changed')
     hashes = source_hashes()
-    validation_name='local-validation-v69.json' if target_version==69 else 'local-validation-v68.json' if target_version==68 else 'local-validation-v67.json' if target_version>=66 else 'local-validation.json'
+    validation_name='deployment-validation-v70.json' if target_version==70 else 'local-validation-v69.json' if target_version==69 else 'local-validation-v68.json' if target_version==68 else 'local-validation-v67.json' if target_version>=66 else 'local-validation.json'
     validation=json.loads((REPO/'outputs/r051-receipt-corrections'/validation_name).read_text())
     if not validation['passed'] or validation['source_sha256'] != hashes:
         raise ValueError('Exact migration source has not passed maintained local CI')
+    if target_version==70:
+        if not validation.get('execution_source_sha256') or any(hashlib.sha256((REPO/p).read_bytes()).hexdigest()!=h for p,h in validation['execution_source_sha256'].items()):
+            raise ValueError('Reviewed V70 execution source changed')
     if target_version>=66:
         pins={'V66__linked_expense_reimbursement_consistency.sql':'b0ac780016bbf53011f7ec11037c59e8f0b23fbc521a939343bb30b2945d6dc9',
               'V67__receipt_delete_flag_required_check.sql':'3456e4a7c33eef4e9dfe66e910b2224a10843a313298da082177e913be52e430'}
         if target_version>=68:pins['V68__daily_type_conversion_uses_original_rate.sql']='2e9b4921e1aa6380f5537262a693bc859e591ef4bdd37ad5c95e2018a9b2abae'
-        if target_version==69:pins['V69__protect_original_defaulted_charges.sql']='c3df8be18e2b8b5dfc69039ef3183c62e34dda749291e7da977809fafbca2296'
+        if target_version>=69:pins['V69__protect_original_defaulted_charges.sql']='c3df8be18e2b8b5dfc69039ef3183c62e34dda749291e7da977809fafbca2296'
+        if target_version==70:pins['V70__protect_defaulted_legacy_repayments.sql']='7a7cd48b1973976ffe957794e82cdfb3964106a046a1861401af3d3c04d08a55'
         if any(hashes.get(k)!=v for k,v in pins.items()):raise ValueError('Reviewed immutable migration pin mismatch')
     def apply(c, params):
         if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
             raise ValueError('DEV target changed')
         before = c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank').fetchall()
-        if before[-1] != {60:('58',1886180782),61:('60',1434947825),62:('61',-209051559),63:('62',-2039538011),64:('63',-1466229726),65:('64',1504057228),66:('65',-2087638333),67:('66',1095016248),68:('67',1721477385),69:('68',-79096429)}[target_version]:
+        if before[-1] != {60:('58',1886180782),61:('60',1434947825),62:('61',-209051559),63:('62',-2039538011),64:('63',-1466229726),65:('64',1504057228),66:('65',-2087638333),67:('66',1095016248),68:('67',1721477385),69:('68',-79096429),70:('69',245428688)}[target_version]:
             raise ValueError('Expected reviewed DEV history; reconcile before proceeding')
         preservation = None
         def preserved_rows():
@@ -210,7 +222,7 @@ def migrate(target_version=60):
         added=after[len(before):]
         if after[:len(before)] != before or [v for v,ch in added] != (['59','60'] if target_version==60 else [str(target_version)]) or source_hashes()!=hashes:
             raise ValueError('Migration/history/source mismatch')
-        if target_version>=66 and added != [(str(target_version),{66:1095016248,67:1721477385,68:-79096429,69:245428688}[target_version])]:
+        if target_version>=66 and added != [(str(target_version),{66:1095016248,67:1721477385,68:-79096429,69:245428688,70:124258995}[target_version])]:
             raise ValueError('Applied reviewed checksum mismatch; do not replay')
         if preservation is not None:
             if preserved_rows() != preservation or c.execute('SELECT count(*) FROM "Payments" WHERE "Delete Requested"').fetchone()[0]:
@@ -328,8 +340,8 @@ VALUES ('DEV-R051-DAD','ch:dad','R051 rollback synthetic Dad','Synthetic'),
 def verify_ui_fixture_target(c):
     if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
         raise ValueError('DEV target changed')
-    if c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone() != ('69',245428688):
-        raise ValueError('Expected validated V69/checksum245428688')
+    if c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone() != ('70',124258995):
+        raise ValueError('Expected validated V70/checksum124258995')
 
 
 def ui_fixtures(mode, browser_reference):
@@ -379,8 +391,10 @@ def ui_fixtures(mode, browser_reference):
 if __name__ == '__main__':
     import argparse
     p = argparse.ArgumentParser()
-    p.add_argument('mode', choices=['backup','backup-v64','backup-v65','backup-v67','backup-v68','migrate','migrate-refinement','migrate-planning','migrate-coalescing','migrate-aggregate','migrate-receipt-delete','migrate-reimbursement','migrate-flag-metadata','migrate-daily-conversion','migrate-default-charge-guard','test','test-business','test-business-monolithic','ui-create','ui-cleanup'])
+    p.add_argument('mode', choices=['backup','backup-v64','backup-v65','backup-v67','backup-v68','backup-v69','migrate','migrate-refinement','migrate-planning','migrate-coalescing','migrate-aggregate','migrate-receipt-delete','migrate-reimbursement','migrate-flag-metadata','migrate-daily-conversion','migrate-default-charge-guard','migrate-default-repayment-guard','test','test-business','test-business-monolithic','ui-create','ui-cleanup'])
     p.add_argument('--browser-ready-reference')
+    p.add_argument('--expected-commit')
+    p.add_argument('--window-reference')
     args = p.parse_args()
-    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'backup-v64':lambda:backup(64),'backup-v65':lambda:backup(65),'backup-v67':lambda:backup(67),'backup-v68':lambda:backup(68),'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'migrate-aggregate':lambda:migrate(64),'migrate-receipt-delete':lambda:migrate(65),'migrate-reimbursement':lambda:migrate(66),'migrate-flag-metadata':lambda:migrate(67),'migrate-daily-conversion':lambda:migrate(68),'migrate-default-charge-guard':lambda:migrate(69),'test':test,'test-business':lambda:test(True),'test-business-monolithic':lambda:test(True,False)}[args.mode]()
+    result=ui_fixtures(args.mode,args.browser_ready_reference) if args.mode.startswith('ui-') else {'backup':backup,'backup-v64':lambda:backup(64),'backup-v65':lambda:backup(65),'backup-v67':lambda:backup(67),'backup-v68':lambda:backup(68),'backup-v69':lambda:backup(69),'migrate':migrate,'migrate-refinement':lambda:migrate(61),'migrate-planning':lambda:migrate(62),'migrate-coalescing':lambda:migrate(63),'migrate-aggregate':lambda:migrate(64),'migrate-receipt-delete':lambda:migrate(65),'migrate-reimbursement':lambda:migrate(66),'migrate-flag-metadata':lambda:migrate(67),'migrate-daily-conversion':lambda:migrate(68),'migrate-default-charge-guard':lambda:migrate(69),'migrate-default-repayment-guard':lambda:migrate(70,args.expected_commit,args.window_reference),'test':test,'test-business':lambda:test(True),'test-business-monolithic':lambda:test(True,False)}[args.mode]()
     print(json.dumps(result))

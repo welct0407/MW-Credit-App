@@ -1,4 +1,4 @@
-"""Local-only V69 GUI fixture/date/key rehearsal; never uses DEV transport."""
+"""Local-only V70 GUI fixture/date/key rehearsal; never uses DEV transport."""
 import argparse
 import tempfile
 import hashlib
@@ -15,13 +15,13 @@ def run(port,data_directory):
         def __init__(self,identity,version):self.answers=iter([identity,version])
         def execute(self,*args):self.answer=next(self.answers);return self
         def fetchone(self):return self.answer
-    for identity,version in [(('loan_manager_prod','postgres'),('69',245428688)),(('loan_manager_dev','postgres'),('68',-79096429)),(('loan_manager_dev','postgres'),('69',245428689))]:
+    for identity,version in [(('loan_manager_prod','postgres'),('70',124258995)),(('loan_manager_dev','postgres'),('69',245428688)),(('loan_manager_dev','postgres'),('70',124258996))]:
         for verify in (fixtures.verify_target,transport.verify_ui_fixture_target):
             try:verify(GuardProbe(identity,version))
             except ValueError:pass
             else:raise AssertionError('Wrong target/version/checksum accepted')
     for verify in (fixtures.verify_target,transport.verify_ui_fixture_target):
-        verify(GuardProbe(('loan_manager_dev','postgres'),('69',245428688)))
+        verify(GuardProbe(('loan_manager_dev','postgres'),('70',124258995)))
     assert not fixtures.private_state_path_allowed(Path(fixtures.__file__).resolve().parents[2]/'private.json')
     with tempfile.TemporaryDirectory(prefix='r051-state-classification-') as d:
         private=Path(d);assert fixtures.private_state_path_allowed(private/'state.json')
@@ -31,7 +31,7 @@ def run(port,data_directory):
         if Path(c.execute('SHOW data_directory').fetchone()[0]).resolve()!=data_directory.resolve():
             raise ValueError('Expected exact private local cluster')
         assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==('postgres','127.0.0.1')
-        assert c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()==('69',245428688)
+        assert c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()==('70',124258995)
         c.rollback()
         # Production guard correctly rejects this private postgres database.
         try:fixtures.verify_target(c)
@@ -56,7 +56,7 @@ def run(port,data_directory):
             try:
                 fixtures.setup(c)
                 pre=fixtures.preflight(c,batch)
-                assert pre['version']==69 and pre['timezone']=='Asia/Bangkok'
+                assert pre['version']==70 and pre['timezone']=='Asia/Bangkok'
                 original_accounts={table:c.execute('SELECT to_jsonb(t) FROM "'+table+'" t ORDER BY "Row ID"').fetchall() for table in ('Cash Accounts','Cash Holders')} if batch=='REIMBURSE' else None
                 seeded=fixtures.seed(c,batch)
                 for table,keys in pre['plan']['source_keys'].items():
@@ -122,7 +122,7 @@ def run(port,data_directory):
         finally:c.rollback()
         c.execute("SET LOCAL timezone='UTC'");assert transport.fingerprints(c)==before;c.rollback()
         fixtures.insert=real_insert
-        return {'passed':True,'scope':'LOCAL restored V69; seven additional workflows plus original seed/readback/exact cleanup rolled back; no DEV access',
+        return {'passed':True,'scope':'LOCAL restored V70; seven additional workflows plus original seed/readback/exact cleanup rolled back; no DEV access',
                 'original_fixture_scripts':{'seed_readback_cleanup_passed':True,'derived_account_snapshots_removed':True,'copied_current_gui_rows_preserved':True,'live_generated_key_cleanup_ready':False},
                 'explicit_old_holder_payload':{'unlinked_cross_holder_derived':True,'linked_cross_holder_rejected_full_source_cash_preserved':True},'strict_identity_version_checksum_cases':8,'private_state_path_cases':4,'bangkok_midnight_boundary_cases':2,'table_fingerprints_unchanged':len(before),'batches':results,
                 'fixture_script_sha256':hashlib.sha256(Path(fixtures.__file__).read_bytes()).hexdigest()}
