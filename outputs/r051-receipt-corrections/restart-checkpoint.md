@@ -1,5 +1,7 @@
 # R051 restart checkpoint — 6 October 2026
 
+**Historical pre-reboot state:** browser work subsequently resumed with owner approval. Continue from the [OLTP183 receipt checkpoint](receipt-frontend-checkpoint-20261006.json) and [08:28 read-only Dev preflight](dev-resume-preflight-20261006.json); the unresolved-browser statements below describe the earlier handoff. Remaining fixture coordination and acceptance boundaries still apply.
+
 Owner instruction at **07:45 UTC**: finish work outside the browser, preserve the current app/data state, then reboot Dots. Backend implementation and required local tests are complete; no additional backend change is needed for this checkpoint. Browser approval remains unresolved. Do not bypass the denial through another browser, API, VM or app-access route.
 
 ## Repository and completed backend
