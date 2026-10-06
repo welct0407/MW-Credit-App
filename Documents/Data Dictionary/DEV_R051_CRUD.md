@@ -1,6 +1,6 @@
 # R051 DEV CRUD delta
 
-Current DEV: OLTP1.000194 / OLAP1.000056 / PostgreSQL V73, 6 October 2026. Both editors are saved and clear; current GUI acceptance, SQL regression and exact synthetic cleanup are complete. R051 is Open; no production definition is changed. [Completion](../../outputs/r051-receipt-corrections/vm01-completion-20261006.md).
+Current DEV: OLTP1.000198 / OLAP1.000056 / PostgreSQL V73, 6 October 2026. Both editors are saved and clear; current GUI acceptance, SQL regression and exact synthetic cleanup are complete. R051 is Open; no production definition is changed. [Completion](../../outputs/r051-receipt-corrections/vm01-completion-20261006.md).
 
 Payments are editable source records. Financial changes atomically reconcile allocations, repayments, account cash, parent balances and payment-owned closure/referral; metadata changes do not repost. The hidden Delete Requested flag and detail-only Delete receipt action avoid AppSheet's historical child-first native-delete failure. Generated child amounts remain source-managed; eligible whole-interest allocations may change charge within the same loan. Unrelated receipts remain intact.
 
@@ -15,3 +15,5 @@ OLAP retains manual transfer, contribution and settlement ownership. Settlement 
 Exact selected DEV overlays are under [AppSheet R051](development/appsheet/r051-crud) and [PostgreSQL R051](development/postgresql/r051-crud). They contain 27 AppSheet objects, 51 routines and 11 relations, with property-level coverage stated explicitly; these are not a complete AppDoc export. [Saved app properties](../../outputs/r051-receipt-corrections/vm01-app-properties-20261006.json) and [live SQL definitions](../../outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json) support the overlays. Existing production YAML remains the production reference.
 
 V73 performance refinement: ten routines and three relations were captured and merged into the existing DEV overlays (seven new routine entries and one newly covered relation). Scoped account/date history, transaction-local deferred parent coalescing, unchanged-row avoidance and bounded/cumulative queries preserve the existing financial/model contracts. [Catalog](../../outputs/r051-trigger-performance/sql-definitions.json) · [Measurement and GUI evidence](../../outputs/r051-trigger-performance/README.md).
+
+Common receiving/sync investigation: OLTP198 restores the original Eligible Charges formula after an unproven performance trial; no net financial/model/table-membership change. Its exact saved value is included in the Payments overlay. V73 remains unchanged. [Measurements and final preservation](../../outputs/r051-payment-performance/README.md).

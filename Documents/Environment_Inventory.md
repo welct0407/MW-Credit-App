@@ -1,5 +1,7 @@
 # Environment inventory
 
+**R051 common receiving/sync investigation, 6 October 2026:** final DEV OLTP1.000198 / OLAP1.000056, both saved and clear; V73 unchanged. Common DB medians37–68ms; app eligibility trial rejected for lack of demonstrated speed gain and original formula restored exactly.22 business tables plus user settings explain23 sync entries; no table removed. Current synthetic GUI/cleanup passed and23 existing source/audit/history tables match the verified backup. R051 Open, PR15 draft, PROD untouched. [Evidence and table-reduction review](../outputs/r051-payment-performance/README.md).
+
 **R051 performance continuation, 6 October 2026:** DEV V73/checksum1165230041 applied and validated; OLTP1.000194 / OLAP1.000056 unchanged, saved and clear. Scoped synchronous history, coalesced parent refresh, unchanged-row avoidance and measured query rewrites passed full SQL/concurrency and current GUI checks. Live backdated receipt timing138→66ms; ordinary receipt timings improved12–19%; expense sample did not improve. Exact cleanup preserved22 existing source/audit tables. R051 Open, PR15 draft, PROD untouched. [Measurements and recovery](../outputs/r051-trigger-performance/README.md).
 
 **R051 CRUD DEV completion, 6 October 2026:** canonical OLTP1.000194 / OLAP1.000056, both saved, Deployed and showing No issues found; DEV SQL V72/checksum-1995290851. V71 retains reimbursement transfers and optional assessment snapshots after source deletion. V72 reconciles historical opening sources using recorded attribution, with Lisa as the approved fallback. Current GUI lifecycle tests and full Windows SQL/concurrency/upgrade suite passed. All R051 task fixtures were removed; 22 nonfixture source/audit tables exactly match the verified pre-change restore, with zero task residue and zero non-owner delivery addresses. Derived analytics/statistics were recomputed and are reported separately. No restrictive views, PROD work or merge. R051 remains Open and PR15 draft; owner acceptance and production promotion are separate. [Final evidence](../outputs/r051-receipt-corrections/vm01-completion-20261006.md).
@@ -138,7 +140,7 @@ Historical full metadata checkpoint: **24 September 2026**, from the [dictionary
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000263 (R049 summary/drilldown) | database-2 | 22 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100208 (R048 original interest) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000194 (6 October: saved, No issues found; current GUI acceptance passed) | database-3 | 22 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000198 (6 October: original eligibility formula restored; saved, No issues found; sync passed) | database-3 | 22 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000056 (6 October: saved, No issues found; current GUI acceptance passed) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:
