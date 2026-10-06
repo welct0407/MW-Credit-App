@@ -1,0 +1,110 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.oltp_upcoming_charge_coverage_v1"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-transparent-performance/after-contract.json"
+"content":
+  "release": "R051"
+  "status": "Applied DEV V74; PROD unchanged"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.oltp_upcoming_charge_coverage_v1"
+    "view_definition": |2-
+       WITH raw AS MATERIALIZED (
+               SELECT i_1.borrower_id,
+                  i_1.loan_id,
+                  i_1.reporting_date,
+                  LEAST((i_1.reporting_date + '3 mons'::interval)::date, i_1.reporting_date + 93) AS horizon_end,
+                  s.due_date,
+                  s.origin,
+                  s.bucket,
+                  s.principal,
+                  s.interest,
+                  s.eligible,
+                  s.issue
+                 FROM reporting_forecast_inputs_v1 i_1
+                   LEFT JOIN LATERAL forecast_schedule_v1(i_1.loan, i_1.charges, i_1.reporting_date, LEAST((i_1.reporting_date + '3 mons'::interval)::date, i_1.reporting_date + 93)) s(due_date, origin, bucket, principal, interest, eligible, issue) ON true
+              ), issues AS (
+               SELECT raw.borrower_id,
+                  count(DISTINCT raw.loan_id) FILTER (WHERE raw.origin = 'Notice'::text AND raw.bucket = 'Recorded plan only'::text)::integer AS manual_loans,
+                  count(DISTINCT raw.loan_id) FILTER (WHERE raw.origin = 'Exception'::text OR raw.origin = 'Recorded'::text AND raw.bucket = 'Recovery only'::text AND raw.due_date > raw.reporting_date)::integer AS review_loans,
+                  string_agg(DISTINCT raw.issue, '; '::text ORDER BY raw.issue) FILTER (WHERE raw.origin = 'Exception'::text) AS issue_text
+                 FROM raw
+                GROUP BY raw.borrower_id
+              ), dates AS (
+               SELECT raw.borrower_id,
+                  LEAST(count(DISTINCT raw.due_date), 5::bigint)::integer AS displayed_dates
+                 FROM raw
+                WHERE raw.due_date > raw.reporting_date AND raw.due_date <= raw.horizon_end AND (raw.principal + raw.interest) > 0::numeric AND (raw.origin = 'Recorded'::text OR raw.origin = 'Simulated'::text AND raw.eligible)
+                GROUP BY raw.borrower_id
+              ), ctx AS (
+               SELECT olap_reporting_date() AS t
+              )
+       SELECT b."Row ID",
+          b."Row ID" AS "Ref Borrower",
+          ctx.t AS "As Of Date",
+          LEAST((ctx.t + '3 mons'::interval)::date, ctx.t + 93) AS "Horizon End",
+          statement_timestamp() AS "Calculated At",
+          COALESCE(d.displayed_dates, 0) AS "Displayed Dates",
+          COALESCE(i.manual_loans, 0) AS "Recorded Only Loans",
+          COALESCE(i.review_loans, 0) AS "Review Loans",
+          ((
+              CASE
+                  WHEN COALESCE(i.review_loans, 0) > 0 THEN 'Incomplete / review required. '::text
+                  ELSE ''::text
+              END ||
+              CASE
+                  WHEN COALESCE(d.displayed_dates, 0) = 0 THEN 'No upcoming charges within 3 months.'::text
+                  ELSE ('Showing '::text || d.displayed_dates) || ' due dates within 3 months.'::text
+              END) ||
+              CASE
+                  WHEN COALESCE(i.manual_loans, 0) > 0 THEN ' Auto-off loans: recorded settlement charges only.'::text
+                  ELSE ''::text
+              END) ||
+              CASE
+                  WHEN i.issue_text IS NOT NULL THEN ' '::text || i.issue_text
+                  ELSE ''::text
+              END AS "Coverage Note"
+         FROM "Borrowers" b
+           CROSS JOIN ctx
+           LEFT JOIN issues i ON i.borrower_id = b."Row ID"
+           LEFT JOIN dates d ON d.borrower_id = b."Row ID";
+    "columns":
+    - - "Row ID"
+      - "text"
+      - false
+    - - "Ref Borrower"
+      - "text"
+      - false
+    - - "As Of Date"
+      - "date"
+      - false
+    - - "Horizon End"
+      - "date"
+      - false
+    - - "Calculated At"
+      - "timestamp with time zone"
+      - false
+    - - "Displayed Dates"
+      - "integer"
+      - false
+    - - "Recorded Only Loans"
+      - "integer"
+      - false
+    - - "Review Loans"
+      - "integer"
+      - false
+    - - "Coverage Note"
+      - "text"
+      - false
+    "acl_owner":
+    - "{postgres=arwdDxtm/postgres}"
+    - 16390
+  "captured_at": "2026-10-06T16:47:47.686070+00:00"
+  "behavior": "Same keys, columns, notes, counts and live freshness. One statement-local forecast evaluation reused; no result\
+    \ cache."

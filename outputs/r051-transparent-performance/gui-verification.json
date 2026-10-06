@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-06",
+  "timezone": "Asia/Bangkok",
+  "browser": "Chrome work profile, welct0407@mw-credit.com",
+  "oltp": {"app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad", "version": "1.000200", "definition_changed": false, "saved": true, "editor_issues": 0},
+  "olap": {"app_id": "9f3422be-bc87-4a5a-a42a-67528ee80393", "version": "1.000056", "definition_changed": false, "saved": true, "editor_issues": 0},
+  "upcoming_charges": {"loaded_before_and_after": true, "visible_business_content_exact_match": true, "excluded_transient_text": ["Pull to sync.", "Last updated ..."], "additional_clicks_or_layout_changes": false},
+  "baseline_syncs": [
+    {"utc": "2026-10-06T16:44:12Z", "seconds": 2.520},
+    {"utc": "2026-10-06T16:44:46Z", "seconds": 3.084},
+    {"utc": "2026-10-06T16:45:18Z", "seconds": 2.916}
+  ],
+  "candidate_syncs": [
+    {"utc": "2026-10-06T16:47:55Z", "seconds": 2.523},
+    {"utc": "2026-10-06T16:48:25Z", "seconds": 2.916},
+    {"utc": "2026-10-06T16:49:09Z", "seconds": 4.103}
+  ],
+  "all_six_syncs": "Successful, non-preview, manually triggered from the same DEV browser app",
+  "baseline_median_seconds": 2.916,
+  "candidate_median_seconds": 2.916,
+  "conclusion": "No demonstrated overall sync improvement; SQL query improvement is measured separately",
+  "new_financial_gui_writes": 0,
+  "production_mutations": 0
+}
