@@ -1,6 +1,6 @@
 # R051 DEV CRUD delta
 
-Prepared, not applied: [V69 original default-charge protection](../../outputs/r051-receipt-corrections/default-charge-v69-plan.json) rejects source UPDATE/DELETE while the old or new parent loan is defaulted. It preserves derived cache refresh and exact internal Default/Undo component restoration. Existing trigger attachments, fields, grants and relationships are unchanged; actual DEV remains V68.
+Applied DEV V69: [original default-charge protection](../../outputs/r051-receipt-corrections/default-charge-v69-actual-summary.json) rejects source UPDATE/DELETE while the old or new parent loan is defaulted. It preserves derived cache refresh and exact internal Default/Undo component restoration. Existing trigger attachments, fields, grants and relationships are unchanged. Actual DEV rollback acceptance and independent fixture preservation passed; PROD remains V58.
 
 DEV V59–V64 changes function/trigger behavior only: no new business tables, columns, enum values, role grants or app table bindings. Existing production YAML exports remain production reference. Applied DEV V65 adds one hidden Payments.`Delete Requested` Boolean (default false; V67 validated IS NOT NULL CHECK replaces the original column NOT NULL attribute) and a detail-only update action to invoke atomic source deletion; see the [candidate plan](../../outputs/r051-receipt-corrections/receipt-delete-v65-plan.json). DEV apply/test and browser evidence are recorded in [R051 evidence](../../outputs/r051-receipt-corrections/README.md).
 

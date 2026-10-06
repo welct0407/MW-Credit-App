@@ -1,7 +1,7 @@
 {
   "release": "R051 Open",
-  "state": "LOCAL_PASS_NOT_APPLIED",
-  "actual_dev_version": 68,
+  "state": "DEV_APPLIED_VALIDATED_ACCEPTANCE_PASS",
+  "actual_dev_version": 69,
   "production_version": 58,
   "migration": "V69__protect_original_defaulted_charges.sql",
   "sha256": "c3df8be18e2b8b5dfc69039ef3183c62e34dda749291e7da977809fafbca2296",
@@ -79,15 +79,15 @@
     "default": "Exact loss charge/repayment, zero cash and intact component restoration evidence verified.",
     "undo": "Loss rows absent; original100P/10I charge and open loan restored; unrelated fixtures preserved.",
     "auto_charge_at_last_verified_undo": true,
-    "next_step": "Exclusive DEV window authorized; await exact candidate Windows CI, fresh V68 restore proof and root explicit apply clearance. V69 remains unapplied; no seventh seed.",
+    "next_step": "Historical V68 GUI checkpoint preserved; V69 subsequently applied and accepted. See actual_evidence. GUI continuation and fixture-helper pin alignment remain separately coordinated.",
     "disable_readback_utc": "2026-10-06T03:32:46.306435Z",
     "auto_charge_at_last_verified_disable": false,
     "disable": "Auto Charge Enabled=false; only expected loan forecast and borrower active daily interest changed from10 to0. Original100P/10I charge, cash and unrelated fixture rows unchanged; loss rows absent; no new charges or conflicting active/open sessions observed. DEV68/-79096429 verified in a read-only repeatable-read snapshot."
   },
   "flyway_checksum": 245428688,
   "execution_package": {
-    "state": "LOCAL_CI_AND_HARNESS_PASS_FRESH_RECOVERY_VERIFIED_AWAIT_EXACT_WINDOWS_CI_AND_ROOT_APPLY_CLEARANCE",
-    "window": "Parent released exclusive DEV database window after 03:32:46 disabled readback; root explicit apply clearance still required after exact candidate Windows CI and recovery proof.",
+    "state": "DEV69_APPLIED_VALIDATED_ROLLBACK_ACCEPTANCE_AND_INDEPENDENT_READBACK_PASS",
+    "window": "Exclusive DEV window completed and released after independent03:50:29UTC readback; no further backend writes.",
     "commands": [
       "python scripts/database/ReceiptCorrectionDev.py backup-v68",
       "python scripts/database/Test-DefaultChargeDev.py preflight --expected-version 68",
@@ -97,11 +97,12 @@
     ],
     "recovery": "Fresh private V68 dump, isolated restore and all26 table fingerprint comparison. Before migration compare recovered business rows; apply V69 only. Preserve original backups. Failed or unknown client outcome records actual history and preservation; no automatic replay, history editing, casual shared DEV restore or backfill. Review a forward fix if needed.",
     "acceptance": "Two new synthetic10-principal/1-daily loans and own Lisa account, no funding, all changes rollback. Original charge destructive updates/deletes/moves and forged context reject; generated loss edits reject; cache recomputes; Default/Undo preserves charge and cash; ordinary post-Undo CRUD works. All26 fingerprints and existing GUI fixture fingerprints unchanged after rollback.",
-    "local_harness_rehearsal": "Passed on disposable V69 using principal10/daily1 loans; all26 tables unchanged after rollback, no residue, no funding or grants. Existing GUI fixtures absent there, so their live preservation remains pending DEV acceptance. Local server stopped.",
+    "local_harness_rehearsal": "Passed on disposable V69 using principal 10/daily 1 loans; all 26 tables unchanged after rollback, no residue, funding or grants. Existing GUI fixtures were absent locally; their preservation was subsequently verified by actual DEV acceptance and independent readback. Local server stopped.",
     "preservation": "Migration compares25 non-history tables; acceptance compares all26 including unchanged Flyway history. Preflight proves DEFAULT off/interval1/original charge110/loss absent, DAILY-P absent and seventh absent. Do not waive scheduled analytics fingerprint changes.",
     "fixture_tools": "Existing additional-fixture and original UI seed/cleanup helpers remain strict V68. Align/retest their pins after verified V69, before a separately authorized seed or cleanup; this package does not make those tools V69-ready.",
     "validation_evidence": "local-validation-v69.json",
     "recovery_evidence": "recovery-v68.json",
     "recovery_sha256": "174ed66a0e61946e37541889e4b03954ac165810df54f867e67b0f3663ce0c2d"
-  }
+  },
+  "actual_evidence": "default-charge-v69-actual-summary.json"
 }
