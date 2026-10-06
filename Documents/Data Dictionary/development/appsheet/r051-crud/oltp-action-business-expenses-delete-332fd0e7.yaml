@@ -1,0 +1,25 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Business Expenses.Delete"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+"content":
+  "release": "R051"
+  "status": "Open DEV implementation; PROD unchanged"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000194"
+  "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
+    \ view definition."
+  "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
+  "properties":
+    "Confirmation Message": "\"ลบค่าใช้จ่ายนี้หรือไม่? รายการโอนคืนเงินที่มีอยู่ยังคงอยู่ ให้บันทึกเงินที่รับคืนจริงแยกต่างหาก\
+      \ / Delete this expense? Existing reimbursement transfers remain. Record any actual cash return separately.\""
+    "Needs confirmation?": true
+  "evidence":
+    "Confirmation Message": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+    "Needs confirmation?": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"

@@ -1,0 +1,49 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.business_history_refresh()"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Applied DEV V72; PROD unchanged"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.business_history_refresh()"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.business_history_refresh()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE o jsonb:=CASE WHEN TG_OP='INSERT' THEN '{}'::jsonb ELSE to_jsonb(OLD) END;
+       n jsonb:=CASE WHEN TG_OP='DELETE' THEN '{}'::jsonb ELSE to_jsonb(NEW) END;
+       fields text[]; date_column text:=TG_ARGV[0]; d date; first_day date; last_day date;
+      BEGIN
+       fields:=CASE TG_TABLE_NAME
+        WHEN 'Loans' THEN ARRAY['Loan Date','Principal Amount','Loan Status','Close Date','Defaulted','Ref Borrowers']
+        WHEN 'Charges' THEN ARRAY['Charge Date','Principal Due','Interest Due','Ref Loans']
+        WHEN 'Business Expenses' THEN ARRAY['Expense Date','Amount','Partner A Expense','Partner B Expense']
+        WHEN 'Cash Ledger' THEN ARRAY['Movement Date','Amount','Movement Type','Ref From Cash Holder','Ref To Cash Holder','Ref From Cash Account','Ref To Cash Account']
+        WHEN 'Cash Pool Contributions' THEN ARRAY['Contribution Date','Amount','Transaction Type','Ref Partner']
+        WHEN 'Settlements' THEN ARRAY['Transfer Date','Amount','Status','Ref Partner']
+        WHEN 'Repayments' THEN ARRAY['Payment Date','Principal Paid','Interest Paid','Ref Loans','Ref Charges']
+        WHEN 'Partners' THEN ARRAY['Partner Role'] END;
+       IF TG_OP='UPDATE' AND NOT EXISTS(SELECT 1 FROM unnest(fields) k WHERE o->k IS DISTINCT FROM n->k) THEN RETURN NULL; END IF;
+       d:=least((o->>date_column)::date,(n->>date_column)::date);
+       IF TG_TABLE_NAME='Loans' AND TG_OP='UPDATE' AND
+        (o->'Loan Date',o->'Principal Amount',o->'Ref Borrowers') IS NOT DISTINCT FROM (n->'Loan Date',n->'Principal Amount',n->'Ref Borrowers') THEN
+        d:=least((o->>'Close Date')::date,(n->>'Close Date')::date);
+       END IF;
+       IF TG_TABLE_NAME='Partners' THEN
+        SELECT min("Contribution Date") INTO d FROM public."Cash Pool Contributions" WHERE "Ref Partner" IN (o->>'Row ID',n->>'Row ID');
+       END IF;
+       IF d IS NULL THEN RETURN NULL; END IF;
+       PERFORM public.request_business_history(d);
+       RETURN NULL;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"

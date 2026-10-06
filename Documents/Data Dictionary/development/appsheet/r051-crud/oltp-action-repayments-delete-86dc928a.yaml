@@ -1,0 +1,23 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Repayments.Delete"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+"content":
+  "release": "R051"
+  "status": "Open DEV implementation; PROD unchanged"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000194"
+  "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
+    \ view definition."
+  "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
+  "properties":
+    "OnlyIf": "AND(NOT(STARTSWITH([Row ID], \"df10:\")), AND(ISBLANK([Ref Payment]), NOT([Ref Loans].[Defaulted] = TRUE),\
+      \ NOT([Ref Charges].[Ref Loans].[Defaulted] = TRUE)))"
+  "evidence":
+    "OnlyIf": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"

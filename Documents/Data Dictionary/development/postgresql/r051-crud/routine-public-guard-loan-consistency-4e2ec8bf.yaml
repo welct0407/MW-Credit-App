@@ -1,0 +1,37 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.guard_loan_consistency()"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Applied DEV V72; PROD unchanged"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.guard_loan_consistency()"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.guard_loan_consistency()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       IF NEW."Row ID" IS DISTINCT FROM OLD."Row ID" THEN RAISE EXCEPTION 'Loan key cannot change'; END IF;
+       IF NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers" AND EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Loans"=OLD."Row ID") THEN
+        RAISE EXCEPTION 'Loan has receipts for its original borrower; reassign them first'; END IF;
+       IF NEW."Ref Borrowers" IS DISTINCT FROM OLD."Ref Borrowers" AND EXISTS(SELECT 1 FROM public."Business Expenses"
+        WHERE "Ref Related Loan"=OLD."Row ID" AND "Ref Related Borrower" IS NOT NULL AND "Ref Related Borrower" IS DISTINCT FROM NEW."Ref Borrowers") THEN
+        RAISE EXCEPTION 'Related expense borrower must be corrected before moving this loan'; END IF;
+       IF NEW."Principal Amount" IS DISTINCT FROM OLD."Principal Amount" AND
+        (NEW."Principal Amount"::numeric<=0 OR NEW."Principal Amount" IS NULL OR NEW."Principal Amount"::numeric<
+         (SELECT coalesce(sum("Principal Paid"::numeric),0) FROM public."Repayments" WHERE "Ref Loans"=OLD."Row ID") OR NEW."Principal Amount"::numeric<
+         (SELECT coalesce(sum("Principal Due"::numeric),0) FROM public."Charges" WHERE "Ref Loans"=OLD."Row ID")) THEN
+        RAISE EXCEPTION 'Loan principal must cover its posted principal and recorded principal charges'; END IF;
+       RETURN NEW;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"

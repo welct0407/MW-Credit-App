@@ -38,7 +38,8 @@ END $$;
 SELECT pg_temp.reject_reimbursement($q$UPDATE "Business Expenses" SET "Ref Paid By Cash Account"='CI-LISA',"Ref Paid By Cash Holder"='ch:lisa' WHERE "Row ID"='REIM66-E'$q$,'Correct linked reimbursement');
 SELECT pg_temp.reject_reimbursement($q$UPDATE "Business Expenses" SET "Amount"=0::money WHERE "Row ID"='REIM66-E'$q$,'Correct linked reimbursement');
 SELECT pg_temp.reject_reimbursement($q$UPDATE "Business Expenses" SET "Amount"=(-1)::money,"Notes"='Synthetic adjustment' WHERE "Row ID"='REIM66-E'$q$,'Correct linked reimbursement');
-SELECT pg_temp.reject_reimbursement($q$DELETE FROM "Business Expenses" WHERE "Row ID"='REIM66-E'$q$,'foreign key constraint');
+-- R051 now permits expense deletion and retains/unlinks its independent transfer;
+-- the dedicated relaxed-policy suite checks that path and accounting effects.
 UPDATE "Business Expenses" SET "Ref Paid By Cash Account"='REIM66-T2',"Amount"=3::money,"Expense Date"=current_date-1 WHERE "Row ID"='REIM66-E';
 DO $$ BEGIN
  ASSERT (SELECT "Ref Paid By Cash Holder"='ch:tommy' AND "Amount"=3::money FROM "Business Expenses" WHERE "Row ID"='REIM66-E'),'same payer and positive amount remain editable; no invented reimbursement cap';

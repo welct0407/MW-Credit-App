@@ -1,0 +1,31 @@
+{
+  "release": "R051",
+  "status": "DEV CRUD complete; release Open; PR draft; no promotion",
+  "oltp": {
+    "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
+    "version": "1.000194",
+    "rollback": "1.000186",
+    "issues": 0
+  },
+  "olap": {
+    "id": "9f3422be-bc87-4a5a-a42a-67528ee80393",
+    "version": "1.000056",
+    "rollback": "1.000054",
+    "issues": 0
+  },
+  "database": "loan_manager_dev",
+  "flyway_version": "72",
+  "migration_checksums": {
+    "71": 1702601106,
+    "72": -1995290851
+  },
+  "starting_commit": "04e3f2713ac0d81c831d0d5fb44f5b101e85e8b1",
+  "publication_commit": "Git commit containing this manifest; verify PR15 head/checks",
+  "source_preservation": "vm01-final-preservation.json",
+  "gui_tests": "vm01-gui-tests-20261006.md",
+  "local_sql_ci": "vm01-v72-validation.json",
+  "migration_sha256": {
+    "V71__retain_reimbursement_and_optional_assessment_history.sql": "4dddaf12fb5a62d32b92033a21fd64f43ab8484ddaa9a64d6a5376f4073624aa",
+    "V72__historical_source_opening_adjustments.sql": "b7e79fd5793a8e3e5422882f02a6ff16817af25e592764211a14e0268a5a29b9"
+  }
+}

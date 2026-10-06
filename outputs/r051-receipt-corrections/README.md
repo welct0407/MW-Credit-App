@@ -1,5 +1,12 @@
 # R051 CRUD evidence
 
+**Current: CRUD DEV implementation and bounded acceptance complete — OLTP194 / OLAP56 / SQL72.** [Completion and recovery](vm01-completion-20261006.md) · [GUI tests](vm01-gui-tests-20261006.md) · [Final source preservation](vm01-final-preservation.json). R051 stays Open; PR15 stays draft; no PROD promotion.
+
+## Dated implementation and handover evidence
+
+The entries below describe their recorded checkpoints and are superseded for current status by the completion record.
+
+
 **Owner stop / VM-01 handover, 6 October 2026 09:44:44 UTC:** [Main handover](vm01-handover-20261006.md) and its exact OLTP/OLAP appendices supersede earlier current-state summaries below. DEV remains V70/checksum124258995. Saved OLTP1.000185 passed actual runtime sync and bounded canceled receipt/repayment/Charge draft checks; partial Loan edits remain unsaved and Loan Type/guidance calls were denied/unapplied. OLAP1.000054 saved settlement guards/guidance; post54 runtime sync/forms/explicit diagnostics are unverified, with one later reimbursement-link error-text edit unsaved. No final browser form submissions or financial writes. Latest owner directions on reimbursed-expense deletion, removal of the optional-assessment deletion blocker, and opening-source adjustment remain unimplemented and supersede older restrictive proposals. No hidden-dependency views were added. Six fixture batches remain; REIMBURSE unseeded. Broad acceptance/cleanup pending; R051 Open, PR15 draft, PROD untouched. All implementation/browser work stopped; only this documentation/publication continued.
 
 **Repayment frontend checkpoint:** [OLTP184 saved/runtime evidence](repayment-frontend-checkpoint-20261006.json) records four-parent default guards, retained amount/date rules, bilingual explanations and view links. Full sync and generated P2 source-ownership prevention/navigation passed without submissions. Defaulted and independent legacy cases remain pending.

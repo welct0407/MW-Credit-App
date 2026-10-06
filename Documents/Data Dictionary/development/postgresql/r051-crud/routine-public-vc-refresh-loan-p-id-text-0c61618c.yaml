@@ -1,0 +1,33 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.vc_refresh_loan(p_id text)"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Applied DEV V72; PROD unchanged"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.vc_refresh_loan(p_id text)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.vc_refresh_loan(p_id text)
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+       IF pg_trigger_depth()>=2 AND p_id=nullif(current_setting('business_crud.default',true),'') THEN RETURN; END IF;
+       UPDATE public."Loans" l SET "Total Interest Received"=v.i,"Total Principal Received"=v.p,
+        "Total Amount Received"=v.a,"Outstanding Principal"=coalesce(l."Principal Amount"::numeric,0)-v.p
+       FROM (SELECT coalesce(sum("Interest Paid"::numeric),0) i,coalesce(sum("Principal Paid"::numeric),0) p,
+        coalesce(sum(coalesce("Principal Paid"::numeric,0)+coalesce("Interest Paid"::numeric,0)),0) a
+        FROM public."Repayments" WHERE "Ref Loans"=p_id) v
+       WHERE l."Row ID"=p_id AND ROW(l."Total Interest Received",l."Total Principal Received",l."Total Amount Received",l."Outstanding Principal")
+       IS DISTINCT FROM ROW(v.i,v.p,v.a,coalesce(l."Principal Amount"::numeric,0)-v.p);
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"

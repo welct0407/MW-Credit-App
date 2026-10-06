@@ -1,0 +1,32 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.r051_historical_account(account_id text, holder_id text)"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Applied DEV V72; PROD unchanged"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.r051_historical_account(account_id text, holder_id text)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.r051_historical_account(account_id text, holder_id text)
+       RETURNS text
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE result text; n integer;
+      BEGIN
+       IF account_id IS NOT NULL THEN RETURN account_id; END IF;
+       -- Owner's explicit missing-attribution rule is Lisa. Preserve known holders.
+       SELECT count(*),min("Row ID") INTO n,result FROM public."Cash Accounts"
+       WHERE "Ref Cash Holder"=coalesce(holder_id,'ch:lisa') AND "Default Account";
+       IF n<>1 THEN RAISE EXCEPTION 'Historical correction requires one recorded default account for holder %',coalesce(holder_id,'ch:lisa'); END IF;
+       RETURN result;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"

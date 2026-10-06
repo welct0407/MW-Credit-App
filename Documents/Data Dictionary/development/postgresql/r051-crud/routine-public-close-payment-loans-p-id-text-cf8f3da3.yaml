@@ -1,0 +1,40 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.close_payment_loans(p_id text)"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Applied DEV V72; PROD unchanged"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.close_payment_loans(p_id text)"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.close_payment_loans(p_id text)
+       RETURNS void
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      BEGIN
+        UPDATE public."Loans" l SET "Loan Status"='ปิดยอดแล้ว',
+          "Close Date"=CASE WHEN coalesce(nullif(current_setting('payment_crud.parents',true),'')::jsonb,'{}') ? p_id
+            THEN p."Payment Date" ELSE (statement_timestamp() AT TIME ZONE 'Asia/Bangkok')::date END,
+          "Closed By"=p."Created By", "Ref Closing Payment"=p."Row ID"
+        FROM public."Payments" p
+        WHERE p."Row ID"=p_id AND l."Loan Status"='ยังไม่ปิดยอด'
+          AND l."Row ID" IN (SELECT r."Ref Loans" FROM public."Repayments" r WHERE r."Ref Payment"=p_id)
+          AND l."Principal Amount"::numeric <=
+            (SELECT coalesce(sum(r."Principal Paid"::numeric),0) FROM public."Repayments" r WHERE r."Ref Loans"=l."Row ID")
+          AND NOT EXISTS (
+            SELECT 1 FROM public."Charges" c WHERE c."Ref Loans"=l."Row ID"
+            AND (c."Principal Due" IS NULL OR c."Interest Due" IS NULL OR
+              c."Principal Due"::numeric+c."Interest Due"::numeric >
+                (SELECT coalesce(sum(r."Principal Paid"::numeric+r."Interest Paid"::numeric),0)
+                 FROM public."Repayments" r WHERE r."Ref Charges"=c."Row ID")));
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"

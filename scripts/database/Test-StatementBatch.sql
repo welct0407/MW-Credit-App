@@ -24,3 +24,4 @@
 
 \ir Test-DefaultInspection.sql
 \ir Test-DefaultRepayment.sql
+\ir Test-R051RelaxedPolicy.sql

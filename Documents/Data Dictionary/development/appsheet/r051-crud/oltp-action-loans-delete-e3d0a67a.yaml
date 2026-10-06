@@ -1,0 +1,26 @@
+"format": 1
+"identity":
+  "system": "appsheet"
+  "component": "oltp"
+  "kind": "action"
+  "name": "Loans.Delete"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+"content":
+  "release": "R051"
+  "status": "Open DEV implementation; PROD unchanged"
+  "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
+  "version": "1.000194"
+  "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
+    \ view definition."
+  "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
+  "properties":
+    "OnlyIf": "AND(NOT([Defaulted] = TRUE), COUNT(SELECT(Payment Allocations[Row ID], [Ref Charge].[Ref Loans] = [_THISROW].[Row\
+      \ ID])) = 0, COUNT(SELECT(Repayments[Row ID], OR([Ref Loans] = [_THISROW].[Row ID], [Ref Charges].[Ref Loans] = [_THISROW].[Row\
+      \ ID]))) = 0, COUNT(SELECT(Payments[Row ID], OR([Ref Target Loan] = [_THISROW].[Row ID], [Ref Target Charge].[Ref Loans]\
+      \ = [_THISROW].[Row ID]))) = 0, COUNT(SELECT(Business Expenses[Row ID], [Ref Related Loan] = [_THISROW].[Row ID])) =\
+      \ 0)"
+  "evidence":
+    "OnlyIf": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"

@@ -1,0 +1,83 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.payment_crud_prepare()"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Applied DEV V72; PROD unchanged"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.payment_crud_prepare()"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.payment_crud_prepare()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      #variable_conflict use_column
+      DECLARE b text; l public."Loans"%ROWTYPE; context_before text; owned jsonb;
+      BEGIN
+       IF TG_OP='UPDATE' AND NEW."Row ID" IS DISTINCT FROM OLD."Row ID" THEN
+        RAISE EXCEPTION 'Payment key cannot be changed'; END IF;
+       IF TG_OP='UPDATE' AND public.payment_inputs(NEW) IS NOT DISTINCT FROM public.payment_inputs(OLD) THEN RETURN NEW; END IF;
+       IF NOT pg_try_advisory_xact_lock(9162026,2) THEN RAISE EXCEPTION 'Cash pool is busy; retry'; END IF;
+       FOR b IN SELECT DISTINCT k COLLATE "C" FROM unnest(ARRAY[OLD."Ref Borrower",CASE WHEN TG_OP='UPDATE' THEN NEW."Ref Borrower" END]) k
+        WHERE k IS NOT NULL ORDER BY k COLLATE "C" LOOP
+        PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=b FOR UPDATE NOWAIT;
+       END LOOP;
+       -- Loan Close prepared charges remain separately editable booked obligations.
+       PERFORM 1 FROM public."Loans" WHERE "Ref Borrowers" IN (OLD."Ref Borrower",CASE WHEN TG_OP='UPDATE' THEN NEW."Ref Borrower" END)
+        ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
+       PERFORM 1 FROM public."Charges" WHERE "Ref Loans" IN (SELECT "Row ID" FROM public."Loans"
+        WHERE "Ref Borrowers" IN (OLD."Ref Borrower",CASE WHEN TG_OP='UPDATE' THEN NEW."Ref Borrower" END))
+        ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
+       PERFORM 1 FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID" ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
+       PERFORM 1 FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID" ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
+       PERFORM 1 FROM public."Cash Ledger" WHERE "Ref Payment"=OLD."Row ID" ORDER BY "Row ID" COLLATE "C" FOR UPDATE NOWAIT;
+       IF EXISTS(SELECT 1 FROM public."Repayments" r JOIN public."Loans" l ON l."Row ID"=r."Ref Loans"
+        WHERE r."Ref Payment"=OLD."Row ID" AND l."Defaulted" IS TRUE) THEN
+        RAISE EXCEPTION 'Payment has a later loan default/write-off; reconcile that default first'; END IF;
+       SELECT coalesce(jsonb_agg(to_jsonb(x)),'[]') INTO owned FROM public."Loans" x WHERE x."Row ID" IN
+        (SELECT "Ref Loans" FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID");
+       IF EXISTS(SELECT 1 FROM jsonb_array_elements(owned) j WHERE j->>'Loan Status'='ปิดยอดแล้ว' AND j->>'Ref Closing Payment' IS NULL) THEN
+        RAISE EXCEPTION 'Manually closed loan must be reopened explicitly before its receipt changes'; END IF;
+       PERFORM set_config('payment_crud.parents',
+        (coalesce(nullif(current_setting('payment_crud.parents',true),'')::jsonb,'{}')||jsonb_build_object(OLD."Row ID",owned))::text,true);
+       context_before:=current_setting('payment_crud.id',true);
+       PERFORM set_config('payment_crud.id',OLD."Row ID",true);
+       -- A payment-controlled closure is reversible. Manually closed/defaulted loans
+       -- are not inferred from balances and are never silently reopened.
+       FOR l IN SELECT x.* FROM public."Loans" x WHERE x."Ref Closing Payment" IS NOT NULL
+        AND (x."Ref Closing Payment"=OLD."Row ID" OR x."Row ID" IN
+         (SELECT "Ref Loans" FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID"))
+        ORDER BY x."Row ID" COLLATE "C" LOOP
+        IF l."Defaulted" IS TRUE THEN RAISE EXCEPTION 'Defaulted loan requires explicit default reconciliation'; END IF;
+        DELETE FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Business Expense'
+         AND "Ref Business Expense" IN (SELECT "Row ID" FROM public."Business Expenses"
+          WHERE "Ref Related Loan"=l."Row ID" AND "Source Type"='Referral Rebate');
+        DELETE FROM public."Business Expenses" WHERE "Ref Related Loan"=l."Row ID" AND "Source Type"='Referral Rebate';
+        -- Only the receipt which owns the closure is reopened before reposting.
+        -- A later receipt's closure is checked against final balances in finish().
+        IF l."Ref Closing Payment"=OLD."Row ID" THEN
+         UPDATE public."Loans" SET "Loan Status"='ยังไม่ปิดยอด',"Ref Closing Payment"=NULL,"Close Date"=NULL,"Closed By"=NULL
+          WHERE "Row ID"=l."Row ID";
+        END IF;
+       END LOOP;
+       DELETE FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID";
+       DELETE FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID";
+       IF TG_OP='DELETE' THEN
+        DELETE FROM public."Cash Ledger" WHERE "Entry Origin"='System' AND "Source Type"='Payment' AND "Ref Payment"=OLD."Row ID";
+       ELSE
+        NEW."Status":='Processing'; NEW."Processed At":=NULL;
+       END IF;
+       PERFORM set_config('payment_crud.id',coalesce(context_before,''),true);
+       IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+       RETURN NEW;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"

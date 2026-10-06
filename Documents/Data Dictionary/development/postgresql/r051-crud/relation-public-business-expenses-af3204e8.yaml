@@ -1,0 +1,173 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "relation"
+  "name": "public.Business Expenses"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Applied DEV V72; PROD unchanged"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.Business Expenses"
+    "columns":
+    - "name": "Row ID"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "Expense Date"
+      "type": "date"
+      "not_null": true
+      "default": null
+    - "name": "Expense Category"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "Amount"
+      "type": "money"
+      "not_null": true
+      "default": null
+    - "name": "Payee Name"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Ref Payee Borrower"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Ref Related Borrower"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Ref Related Loan"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Notes"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Source Type"
+      "type": "text"
+      "not_null": true
+      "default": "'Manual'::text"
+    - "name": "Source Key"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Gross Profit Basis"
+      "type": "money"
+      "not_null": false
+      "default": null
+    - "name": "Allocation Basis"
+      "type": "text"
+      "not_null": true
+      "default": null
+    - "name": "Partner A Share"
+      "type": "numeric"
+      "not_null": true
+      "default": null
+    - "name": "Partner B Share"
+      "type": "numeric"
+      "not_null": true
+      "default": null
+    - "name": "Partner A Expense"
+      "type": "money"
+      "not_null": true
+      "default": null
+    - "name": "Partner B Expense"
+      "type": "money"
+      "not_null": true
+      "default": null
+    - "name": "Rule Version"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Created At"
+      "type": "timestamp without time zone"
+      "not_null": true
+      "default": "(statement_timestamp() AT TIME ZONE 'Asia/Bangkok'::text)"
+    - "name": "Created By"
+      "type": "text"
+      "not_null": true
+      "default": "'SQL'::text"
+    - "name": "Ref Paid By Cash Holder"
+      "type": "text"
+      "not_null": false
+      "default": null
+    - "name": "Ref Paid By Cash Account"
+      "type": "text"
+      "not_null": false
+      "default": null
+    "constraints":
+      "Business Expenses_Allocation Basis_not_null": "NOT NULL \"Allocation Basis\""
+      "Business Expenses_Amount_check": "CHECK (\"Amount\"::numeric <> 0::numeric AND \"Amount\"::numeric = round(\"Amount\"\
+        ::numeric))"
+      "Business Expenses_Amount_not_null": "NOT NULL \"Amount\""
+      "Business Expenses_Created At_not_null": "NOT NULL \"Created At\""
+      "Business Expenses_Created By_not_null": "NOT NULL \"Created By\""
+      "Business Expenses_Expense Category_check": "CHECK (btrim(\"Expense Category\") <> ''::text)"
+      "Business Expenses_Expense Category_not_null": "NOT NULL \"Expense Category\""
+      "Business Expenses_Expense Date_not_null": "NOT NULL \"Expense Date\""
+      "Business Expenses_Partner A Expense_not_null": "NOT NULL \"Partner A Expense\""
+      "Business Expenses_Partner A Share_not_null": "NOT NULL \"Partner A Share\""
+      "Business Expenses_Partner B Expense_not_null": "NOT NULL \"Partner B Expense\""
+      "Business Expenses_Partner B Share_not_null": "NOT NULL \"Partner B Share\""
+      "Business Expenses_Ref Paid By Cash Account_fkey": "FOREIGN KEY (\"Ref Paid By Cash Account\") REFERENCES \"Cash Accounts\"\
+        (\"Row ID\") ON DELETE RESTRICT"
+      "Business Expenses_Ref Paid By Cash Holder_fkey": "FOREIGN KEY (\"Ref Paid By Cash Holder\") REFERENCES \"Cash Holders\"\
+        (\"Row ID\") ON DELETE RESTRICT"
+      "Business Expenses_Ref Payee Borrower_fkey": "FOREIGN KEY (\"Ref Payee Borrower\") REFERENCES \"Borrowers\"(\"Row ID\"\
+        )"
+      "Business Expenses_Ref Related Borrower_fkey": "FOREIGN KEY (\"Ref Related Borrower\") REFERENCES \"Borrowers\"(\"Row\
+        \ ID\")"
+      "Business Expenses_Ref Related Loan_fkey": "FOREIGN KEY (\"Ref Related Loan\") REFERENCES \"Loans\"(\"Row ID\")"
+      "Business Expenses_Row ID_not_null": "NOT NULL \"Row ID\""
+      "Business Expenses_Source Type_check": "CHECK (\"Source Type\" = ANY (ARRAY['Manual'::text, 'Referral Rebate'::text]))"
+      "Business Expenses_Source Type_not_null": "NOT NULL \"Source Type\""
+      "Business Expenses_check": "CHECK ((\"Partner A Expense\" + \"Partner B Expense\") = \"Amount\")"
+      "Business Expenses_check1": "CHECK ((\"Partner A Share\" + \"Partner B Share\") = 1::numeric)"
+      "Business Expenses_check2": "CHECK (\"Source Type\" <> 'Referral Rebate'::text OR \"Amount\"::numeric > 0::numeric AND\
+        \ \"Ref Related Loan\" IS NOT NULL AND \"Ref Related Borrower\" IS NOT NULL AND \"Ref Payee Borrower\" IS NOT NULL\
+        \ AND \"Source Key\" = ('REFERRAL_REBATE:'::text || \"Ref Related Loan\") AND \"Rule Version\" = 'REFERRAL_REBATE_V1'::text)"
+      "Business Expenses_pkey": "PRIMARY KEY (\"Row ID\")"
+      "zzzzzz_business_history_commit": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+    "triggers":
+      "a000_business_history_begin": "CREATE TRIGGER a000_business_history_begin BEFORE INSERT OR DELETE OR UPDATE ON \"Business\
+        \ Expenses\" FOR EACH STATEMENT EXECUTE FUNCTION begin_business_history()"
+      "a000_opening_consistency": "CREATE TRIGGER a000_opening_consistency BEFORE UPDATE ON \"Business Expenses\" FOR EACH\
+        \ ROW EXECUTE FUNCTION guard_opening_included_source()"
+      "a00_business_delete": "CREATE TRIGGER a00_business_delete BEFORE DELETE ON \"Business Expenses\" FOR EACH ROW EXECUTE\
+        \ FUNCTION business_source_delete()"
+      "a0_cash_account": "CREATE TRIGGER a0_cash_account BEFORE INSERT OR UPDATE ON \"Business Expenses\" FOR EACH ROW EXECUTE\
+        \ FUNCTION guard_source_cash_account()"
+      "a1_linked_expense_reimbursement": "CREATE TRIGGER a1_linked_expense_reimbursement BEFORE UPDATE ON \"Business Expenses\"\
+        \ FOR EACH ROW EXECUTE FUNCTION guard_linked_expense_reimbursement()"
+      "aa_cash_holder": "CREATE TRIGGER aa_cash_holder BEFORE INSERT OR UPDATE ON \"Business Expenses\" FOR EACH ROW EXECUTE\
+        \ FUNCTION guard_source_cash_holder()"
+      "aa_cash_identity": "CREATE TRIGGER aa_cash_identity BEFORE UPDATE OF \"Row ID\" ON \"Business Expenses\" FOR EACH ROW\
+        \ EXECUTE FUNCTION guard_cash_source_identity()"
+      "appsheet_blank_refs": "CREATE TRIGGER appsheet_blank_refs BEFORE INSERT OR UPDATE ON \"Business Expenses\" FOR EACH\
+        \ ROW EXECUTE FUNCTION appsheet_normalize_blank_refs('Ref Payee Borrower', 'Ref Related Borrower', 'Ref Related Loan')"
+      "calculate_business_expense": "CREATE TRIGGER calculate_business_expense BEFORE INSERT OR DELETE OR UPDATE ON \"Business\
+        \ Expenses\" FOR EACH ROW EXECUTE FUNCTION calculate_business_expense()"
+      "expense_allocation_lock": "CREATE TRIGGER expense_allocation_lock BEFORE INSERT OR DELETE OR UPDATE ON \"Business Expenses\"\
+        \ FOR EACH STATEMENT EXECUTE FUNCTION expense_allocation_lock()"
+      "mw_agent_capture": "CREATE TRIGGER mw_agent_capture AFTER INSERT OR DELETE OR UPDATE ON \"Business Expenses\" FOR EACH\
+        \ ROW EXECUTE FUNCTION agent_audit.capture_change()"
+      "zz_cash_source": "CREATE TRIGGER zz_cash_source AFTER INSERT OR UPDATE OF \"Amount\", \"Expense Date\", \"Ref Paid\
+        \ By Cash Holder\", \"Ref Paid By Cash Account\" ON \"Business Expenses\" FOR EACH ROW EXECUTE FUNCTION cash_source_changed('Business\
+        \ Expense')"
+      "zzy_r051_opening": "CREATE TRIGGER zzy_r051_opening AFTER DELETE OR UPDATE ON \"Business Expenses\" FOR EACH ROW EXECUTE\
+        \ FUNCTION r051_restate_opening_source('Business Expense')"
+      "zzzz_business_history": "CREATE TRIGGER zzzz_business_history AFTER INSERT OR DELETE OR UPDATE ON \"Business Expenses\"\
+        \ FOR EACH ROW EXECUTE FUNCTION business_history_refresh('Expense Date')"
+      "zzzzz_business_history_flush": "CREATE TRIGGER zzzzz_business_history_flush AFTER INSERT OR DELETE OR UPDATE ON \"\
+        Business Expenses\" FOR EACH STATEMENT EXECUTE FUNCTION flush_business_history()"
+      "zzzzzz_business_history_commit": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR\
+        \ UPDATE ON \"Business Expenses\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"

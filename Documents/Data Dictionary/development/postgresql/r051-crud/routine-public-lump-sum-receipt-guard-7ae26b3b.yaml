@@ -1,0 +1,50 @@
+"format": 1
+"identity":
+  "system": "postgresql"
+  "component": "loan_manager_dev"
+  "kind": "routine"
+  "name": "public.lump_sum_receipt_guard()"
+  "scope": "development:R051-crud"
+"verification":
+  "status": "documented"
+  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+"content":
+  "release": "R051"
+  "status": "Applied DEV V72; PROD unchanged"
+  "database": "loan_manager_dev"
+  "catalog_observation":
+    "name": "public.lump_sum_receipt_guard()"
+    "definition": |
+      CREATE OR REPLACE FUNCTION public.lump_sum_receipt_guard()
+       RETURNS trigger
+       LANGUAGE plpgsql
+       SET search_path TO 'pg_catalog', 'public'
+      AS $function$
+      DECLARE prepared boolean;
+      BEGIN
+        IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+        PERFORM 1 FROM public."Borrowers" WHERE "Row ID"=NEW."Ref Borrower" FOR UPDATE;
+        IF TG_OP='INSERT' AND NEW."Status" IS DISTINCT FROM 'Processing' THEN
+          RAISE EXCEPTION 'New payments must start in Processing';
+        END IF;
+        IF TG_OP='UPDATE' THEN
+          SELECT EXISTS(SELECT 1 FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID")
+            OR EXISTS(SELECT 1 FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID") INTO prepared;
+          IF OLD."Status"='Posted' AND prepared THEN
+            NEW."Status":=OLD."Status"; NEW."Processed At":=OLD."Processed At";
+          ELSIF NEW."Status"='Posted' AND (NOT prepared OR
+            NEW."Amount Received"::numeric IS DISTINCT FROM (SELECT sum("Allocated Amount"::numeric) FROM public."Payment Allocations" WHERE "Ref Payment"=OLD."Row ID") OR
+            NEW."Amount Received"::numeric IS DISTINCT FROM (SELECT sum("Principal Paid"::numeric+"Interest Paid"::numeric) FROM public."Repayments" WHERE "Ref Payment"=OLD."Row ID") OR
+            EXISTS(SELECT 1 FROM public."Payment Allocations" a FULL JOIN public."Repayments" r ON r."Ref Payment Allocation"=a."Row ID"
+              WHERE (a."Ref Payment"=OLD."Row ID" OR r."Ref Payment"=OLD."Row ID") AND
+                (a."Row ID" IS NULL OR r."Row ID" IS NULL OR a."Ref Payment" IS DISTINCT FROM r."Ref Payment"
+                 OR a."Ref Charge" IS DISTINCT FROM r."Ref Charges" OR a."Allocated Interest" IS DISTINCT FROM r."Interest Paid"
+                 OR a."Allocated Principal" IS DISTINCT FROM r."Principal Paid" OR a."Allocated Amount"::numeric<=0
+                 OR a."Allocated Interest"::numeric<0 OR a."Allocated Principal"::numeric<0
+                 OR a."Allocated Amount"::numeric<>a."Allocated Interest"::numeric+a."Allocated Principal"::numeric))) THEN
+            RAISE EXCEPTION 'Cannot mark an unreconciled payment Posted';
+          END IF;
+        END IF;
+        RETURN NEW;
+      END $function$
+  "captured_at": "2026-10-06T12:13:22.006330+00:00"
