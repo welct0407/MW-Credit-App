@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),{powerHistory}=require('./azure-power-history');
+const from=Date.parse('2026-10-03T16:00:00Z'),to=from+86400000;
+const row=(op,min,status='Succeeded',correlationId=op+min)=>({eventTimestamp:new Date(from+min*60000).toISOString(),operationName:{value:'Microsoft.Compute/virtualMachines/'+op+'/action'},status:{value:status},correlationId});
+const input={value:[row('start',-60),row('deallocate',60),row('deallocate',60),row('start',90,'Failed'),row('start',120),row('restart',180)]};
+const r=powerHistory(input,{from,to,complete:true});assert.equal(r.completedOperations,4);
+assert.deepEqual(r.intervals.map(x=>x.state),['recorded_started','recorded_deallocated','recorded_started','unknown']);
+assert.equal(r.intervals[1].to-r.intervals[1].from,3600000);
+assert.equal(powerHistory({value:[]},{from,to,complete:true}).intervals[0].state,'unknown');
+assert.throws(()=>powerHistory({...input,nextLink:'https://example'},{from,to,complete:true}),/pages/);
+assert.throws(()=>powerHistory(input,{from,to}),/pages/);
+console.log('PASS: completed operations, failed start exclusion, correlation deduplication, initial state and restart gaps');

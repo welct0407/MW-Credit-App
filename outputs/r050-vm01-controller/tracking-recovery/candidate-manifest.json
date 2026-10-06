@@ -1,0 +1,42 @@
+{
+  "status": "TESTED_CANDIDATE_NOT_DEPLOYED_RECOVERY_NOT_APPLIED",
+  "sourceParentCommit": "12add518658f339a9b09c336f129ecefadea0145",
+  "deployedSourceCommit": "614ea6496bcd796611080e69f8fc78276304bb8a",
+  "sourceHashes": {
+    "src/arm.ts": "ae72f376aaac26ed9a67a0202e18f6fa6041e723cdd4180ac2cfc1f621e707b1",
+    "src/controller.ts": "4c37eb1f6585b7f7c9c08e5a73741f4171d97f35a3d74a498855b1d889ad47b7",
+    "src/ledger.ts": "be60801804cf24b77ecd4066634089ca05ff32efa664067383bc02fd79821714",
+    "src/types.ts": "19949d2f2155f1c5b4f5fc79b9e221e5dcca4920950b2eddd1c20305e4c044ab",
+    "scripts/recovery-evidence.ts": "1fa416dc8edabb6422422ef82126e27ae75fa6313bef85013913a10c986a9b9d",
+    "scripts/reconcile-recovered-deallocate.ts": "148324516dc30e635d599fe2bd0bd5e6b74641bb96a69b691e4948b1992cb51f",
+    "tests/tracking-recovery.test.mjs": "d6d9d5bd7522b4d664e57b20f2719b84dd6d213a9e094d6f67214a0e7f0297c2"
+  },
+  "parentPackageSha256": "1e385975602486f5c80d628916037820d2a30a7064856989c26750497870f87a",
+  "proofSha256": "f3851f03750d0772ad3916cf6596b11679441475adac985cf2fecfe42dcbe602",
+  "tests": {
+    "passed": 45,
+    "failed": 0,
+    "skipped": 0
+  },
+  "strictTypeScript": "PASS",
+  "liveReadOnlyRecoveryVerification": "PASS 2026-10-02T08:25:32Z",
+  "changes": "Safe missing/rejected-header diagnosis and verified fixed-endpoint request-ID candidate tracking. Historical recovery administrator tool excluded from deployed package.",
+  "vmPowerRequests": 0,
+  "liveLedgerWrites": 0,
+  "liveSettingsWrites": 0,
+  "packageSha256": "6629b67f0cae7520f4c3702e6b852c1073b17f6ae391698a961d2835bc17e961",
+  "packageBytes": 15877742,
+  "changedZipEntries": [
+    "dist/src/arm.js",
+    "dist/src/controller.js",
+    "dist/src/ledger.js",
+    "SOURCE_MANIFEST.json"
+  ],
+  "unchangedDependencyEntries": 9726,
+  "runtimeHashes": {
+    "dist/src/arm.js": "8521bc284f262ee1f66f7e86305302215ab01aa409d3594bed805ce49cb93fb6",
+    "dist/src/controller.js": "795d17f772dc449b5c8edce3dd3740f4d4c4c96efe55cdb4c130751bf49a5ddb",
+    "dist/src/ledger.js": "00310d6181253d580a839c010b419c7850dc3a1f485b98a38377cb3f0ab4ccf9",
+    "dist/src/types.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+  }
+}

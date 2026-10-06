@@ -1,0 +1,21 @@
+{
+  "format": "Agent Plugins 1.0 with legacy compatibility overlay",
+  "version": "0.1.1",
+  "schemaValidation": "official manifest and portable MCP schema passed; cloud app binding/legacy metadata equality verified",
+  "archive": "mw-grafana-events.zip",
+  "sha256": "94fa9dad10ea27e030fd787d2eb812eb71fed8d20ab74d37879f3c6d0fee905b",
+  "bytes": 3164,
+  "entries": [
+    "mw-grafana-events/.app.json",
+    "mw-grafana-events/.codex-plugin/plugin.json",
+    "mw-grafana-events/.mcp.json",
+    "mw-grafana-events/README.md",
+    "mw-grafana-events/mcp.json",
+    "mw-grafana-events/plugin.json"
+  ],
+  "accountPluginUpdate": "parent verified; this executor reconciled source only",
+  "cloudAppId": "asdk_app_6ac0b2c350fc8191b08fbc67fca9696e",
+  "parentVerifiedRelease": "pluginrel_6ac0b48291e8819199551306c78a187f",
+  "authentication": "request_failed; unresolved; diagnostic-only server update",
+  "authenticatedToolDiscovery": "pending"
+}

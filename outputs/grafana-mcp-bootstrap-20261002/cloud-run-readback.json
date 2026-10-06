@@ -1,0 +1,67 @@
+{
+  "project": "clever-oasis-508610-n7",
+  "region": "asia-southeast1",
+  "service": "mw-grafana-events",
+  "url": "https://mw-grafana-events-pvrgvyg3oq-as.a.run.app",
+  "revision": "mw-grafana-events-00001-rnj",
+  "Ready": true,
+  "image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap@sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154",
+  "resolvedImageDigest": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bootstrap@sha256:ac81052e56736854c7c3c937031db309c78d3f1da7fd58ceb3318c294bfa0154",
+  "runtimeServiceAccount": "mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "ingress": "all",
+  "invokerIamDisabled": true,
+  "minInstances": 0,
+  "maxInstances": 2,
+  "cpu": "1",
+  "memory": "512Mi",
+  "concurrency": 20,
+  "timeoutSeconds": 300,
+  "environment": [
+    {
+      "name": "OWNER_ENABLED",
+      "value": "false"
+    }
+  ],
+  "mountedSecrets": false,
+  "indexes": [
+    {
+      "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/oauth/indexes/CICAgJim14AK",
+      "state": "READY"
+    },
+    {
+      "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/deliveries/indexes/CICAgOjXh4EK",
+      "state": "READY"
+    },
+    {
+      "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events/collectionGroups/oauth/indexes/CICAgJiUpoMK",
+      "state": "READY"
+    }
+  ],
+  "ttls": [
+    {
+      "collectionGroup": "events",
+      "state": "ACTIVE"
+    },
+    {
+      "collectionGroup": "deliveries",
+      "state": "ACTIVE"
+    },
+    {
+      "collectionGroup": "subscriptions",
+      "state": "ACTIVE"
+    },
+    {
+      "collectionGroup": "oauth",
+      "state": "ACTIVE"
+    },
+    {
+      "collectionGroup": "googleStates",
+      "state": "ACTIVE"
+    },
+    {
+      "collectionGroup": "revokedGrants",
+      "state": "ACTIVE"
+    }
+  ],
+  "scheduler": "absent"
+}

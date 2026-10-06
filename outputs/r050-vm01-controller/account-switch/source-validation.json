@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-02T01:02:20.649104+00:00",
+  "status": "ACCOUNT_SWITCH_CONFIGURATION_VERIFIED_AUTHENTICATED_ACCEPTANCE_PENDING",
+  "sourceParentCommit": "ab4fb7c799e0f34ee073bf2031ce0c14443c7ac1",
+  "branch": "feat/vm01-controller-source",
+  "source": {
+    "fileCount": 43,
+    "treeSha256": "99ca0d97aba83ce41e992167043f7972e8abbb160274a095ee950dc0b70710e2",
+    "algorithm": "SHA256 of sorted module-relative path + NUL + file SHA256 + LF"
+  },
+  "checks": {
+    "focusedInfrastructureTests": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "output": "tests.log"
+    },
+    "realConfigurationParserOfflineWithLivePublicSettings": "PASS",
+    "exampleManifestLiveBrowserIdentityAgreement": "PASS",
+    "sourceLogicAndLockedDependenciesUnchanged": "PASS",
+    "originalBootstrapArtifactsUnchanged": "PASS",
+    "previous46TestRepairEvidence": "Unchanged at parent ab4fb7c; full suite not repeated for parameter/docs/evidence change",
+    "moduleAndEvidenceJsonParsing": "PASS",
+    "localDocumentationLinks": "PASS",
+    "gitWhitespace": "PASS",
+    "sanitizedEvidence": "PASS"
+  },
+  "sourceCodeChanged": false,
+  "deployedSourceCommit": "e02501786af5f8a9ca7073c08244eb6afc4e08af",
+  "codeRedeployed": false,
+  "vmPowerRequests": 0,
+  "userAuthenticatedStatus": "PENDING_NOT_TESTED",
+  "formerUserAuthenticatedTokenRejection": "PENDING_NOT_TESTED",
+  "sourcePublishingScope": "Existing draft PR2; no merge",
+  "localDocumentationLinksChecked": 57,
+  "changedJsonFilesParsed": 6,
+  "hashes": {
+    "focusedTestLogSha256": "edd9ec6815bea193405f10cfbdfaf01ebc9874f249d64e26b4e726719eff0ea5",
+    "receiptSha256": "1e85c1a035b21829f877483cc58780898d1aaf184ce625535c1a57ca4d0a213a"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "phase": "baseline",
+  "time": "2026-10-04T16:12:00.212759+00:00",
+  "actor": "codex-cloud@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "runtime": "mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com",
+  "ready_revision": "mw-grafana-events-00014-s6x",
+  "traffic": [
+    {
+      "percent": 100,
+      "revisionName": "mw-grafana-events-00014-s6x"
+    }
+  ],
+  "rollback_image": "asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-monitoring/grafana-mcp-bridge@sha256:97cdf2fd8620353039b9ee1cd50566ceada01157383dc8653f1a77d61b8456c4",
+  "monitoring_flag": "absent",
+  "monitoring_api_enabled": true,
+  "matching_index": [],
+  "metric_writer_direct_grant": false,
+  "private_configuration_backup": "/tmp/grafana-row5-live-20261004"
+}

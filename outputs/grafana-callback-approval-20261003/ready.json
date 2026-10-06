@@ -1,0 +1,15 @@
+{
+  "readyRevision": "mw-grafana-events-00009-487",
+  "trafficPercent": 100,
+  "callbackHosts": [
+    "connectors.api.openai.com"
+  ],
+  "captureFlag": false,
+  "imageUnchanged": true,
+  "readinessRecordedUtc": "2026-10-03T09:59:09.848142+00:00",
+  "httpsChecksPassed": 5,
+  "rollback": "mw-grafana-events-00008-6r2",
+  "parentSubscription": "ready for synthetic-only creation; not created by executor",
+  "Scheduler": "absent",
+  "GrafanaRouting": "unchanged"
+}

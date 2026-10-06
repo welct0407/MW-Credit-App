@@ -1,0 +1,64 @@
+{
+  "project": "clever-oasis-508610-n7",
+  "region": "asia-southeast1",
+  "database": "mw-grafana-events",
+  "dedicatedProjectRoles": {
+    "mw-grafana-events@clever-oasis-508610-n7.iam.gserviceaccount.com": [
+      {
+        "role": "roles/datastore.user",
+        "condition": {
+          "description": "Bridge database only",
+          "expression": "resource.name==\"projects/clever-oasis-508610-n7/databases/mw-grafana-events\"",
+          "title": "mw-grafana-database"
+        }
+      }
+    ],
+    "mw-grafana-dispatch@clever-oasis-508610-n7.iam.gserviceaccount.com": []
+  },
+  "databaseConfiguration": {
+    "name": "projects/clever-oasis-508610-n7/databases/mw-grafana-events",
+    "locationId": "asia-southeast1",
+    "databaseEdition": "STANDARD",
+    "type": "FIRESTORE_NATIVE",
+    "deleteProtectionState": "DELETE_PROTECTION_ENABLED",
+    "pointInTimeRecoveryEnablement": "POINT_IN_TIME_RECOVERY_DISABLED"
+  },
+  "repository": {
+    "name": "projects/clever-oasis-508610-n7/locations/asia-southeast1/repositories/mw-monitoring",
+    "format": "DOCKER",
+    "description": "grafana-mcp-bootstrap-v1"
+  },
+  "secrets": [
+    {
+      "name": "mw-grafana-hmac",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    },
+    {
+      "name": "mw-grafana-state-key",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    },
+    {
+      "name": "mw-grafana-cookie-keys",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    },
+    {
+      "name": "mw-grafana-oauth-jwks",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    },
+    {
+      "name": "mw-grafana-google-client-secret",
+      "versionCount": 0,
+      "runtimeAccessor": true,
+      "dispatchBinding": false
+    }
+  ],
+  "scope": "Partial-creation readback before index/TTL/logging resume"
+}

@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency,[switch]$R008Concurrency)
+param([string]$TestSqlFile,[string]$PreMigrationSqlFile,[int]$PreMigrationTarget,[switch]$LumpSumConcurrency,[switch]$InterestReallocationConcurrency,[switch]$CorePaymentConcurrency,[switch]$AtomicLoanCloseConcurrency,[switch]$ChargeGenerationConcurrency,[switch]$DefaultLoanConcurrency,[switch]$BusinessExpensesConcurrency,[switch]$R002Concurrency,[switch]$R005Concurrency,[switch]$R008Concurrency)
 . "$PSScriptRoot/Common.ps1"
 $null = @(Get-MigrationManifest)
 $bin = Get-PgBin
@@ -49,6 +49,9 @@ try {
         if ($TestSqlFile) {
             & (Join-Path $bin 'psql.exe') -X -v ON_ERROR_STOP=1 -h 127.0.0.1 -p $port -U postgres -d postgres -f $TestSqlFile
             if ($LASTEXITCODE) { throw 'Supplemental SQL regression failed' }
+        }
+        if ($InterestReallocationConcurrency) {
+            & "$PSScriptRoot/Test-InterestReallocationConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
         }
         if ($LumpSumConcurrency) {
             & "$PSScriptRoot/Test-LumpSumConcurrency.ps1" -PgBin $bin -Port $port -OutputDirectory $testRoot
