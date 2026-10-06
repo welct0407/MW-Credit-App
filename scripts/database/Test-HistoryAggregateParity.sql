@@ -2,27 +2,8 @@
 BEGIN;
 SET LOCAL timezone='Asia/Bangkok';
 \ir Test-CashAccountFixtures.sql
--- Reconstruct the retained V37 correlated calculation as a temporary reference.
--- Only the dated charge-payment lookup differs; compare complete persisted rows.
-DO $test$
-DECLARE definition text:=pg_get_functiondef('public.refresh_daily_analytics(date,date)'::regprocedure);
- grouped text:=$grouped$coalesce(cp.paid,0),0)),0) AS pending
-     FROM public."Charges" c LEFT JOIN (
-       SELECT charge,sum(paid) AS paid FROM charge_payments WHERE d<=dates.d GROUP BY charge
-     ) cp ON cp.charge=c."Row ID" WHERE c."Charge Date"<=dates.d$grouped$;
- correlated text:=$correlated$coalesce((SELECT sum(paid) FROM charge_payments cp WHERE cp.charge=c."Row ID" AND cp.d<=dates.d),0),0)),0) AS pending
-     FROM public."Charges" c WHERE c."Charge Date"<=dates.d$correlated$;
-BEGIN
- -- Flyway/psql can preserve different line endings on Windows. Normalize only
- -- carriage returns before matching the exact retained calculation fragment.
- definition:=replace(definition,chr(13),'');
- grouped:=replace(grouped,chr(13),'');
- correlated:=replace(correlated,chr(13),'');
- ASSERT position(grouped in definition)>0,'Expected grouped implementation';
- definition:=replace(definition,'public.refresh_daily_analytics(','pg_temp.refresh_daily_analytics_reference(');
- definition:=replace(definition,grouped,correlated);
- EXECUTE definition;
-END $test$;
+-- Compare complete rows against an independent retained implementation.
+\ir Test-HistoryReference.sql
 CREATE FUNCTION pg_temp.history_parity(label text) RETURNS void LANGUAGE plpgsql AS $$
 DECLARE first_day date:=public.analytics_history_start(); actual jsonb; reference jsonb;
 BEGIN

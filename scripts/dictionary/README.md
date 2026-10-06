@@ -1,5 +1,7 @@
 # Dictionary tooling
 
+R051 performance: `capture_r051_performance.py` reads the ten affected V73 routines and three relations; `close_r051_performance.py --apply` updates only their guarded DEV overlays. [Evidence](../../outputs/r051-trigger-performance/README.md).
+
 R051: `capture_r051_crud.py` reads only affected DEV V72 catalog definitions. `close_r051_crud.py` previews (or `--apply` writes) guarded selected-property DEV overlays at OLTP194/OLAP56: 27 AppSheet objects, 44 routines and 10 relations. Saved UI readbacks/checkpoints and SQL metadata are linked; unlisted properties are not claimed as a full export. Neither helper mutates live definitions. [Current delta](../../Documents/Data%20Dictionary/DEV_R051_CRUD.md).
 
 R049: `close_r049_upcoming.py` validates the private before/after AppDoc captures, independently parses final HTML, checks the exact 12-object change set, and writes guarded DEV-only overlays plus the existing SQL overlay status (`--apply`; preview by default). `capture_r049_upcoming_production.py` reads the V2 SQL provider from PROD; `close_r049_upcoming_production.py` previews/applies guarded canonical PROD definitions and closes dated DEV overlays from the saved AppDoc and SQL metadata. These helpers do not mutate live apps or databases. [DEV evidence](../../outputs/r049-upcoming-summary/HANDOVER.md) · [PROD evidence](../../outputs/r049-production/README.md).

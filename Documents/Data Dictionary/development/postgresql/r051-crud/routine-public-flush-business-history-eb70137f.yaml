@@ -7,36 +7,24 @@
   "scope": "development:R051-crud"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+  "source": "outputs/r051-trigger-performance/sql-definitions.json"
 "content":
   "release": "R051"
-  "status": "Applied DEV V72; PROD unchanged"
+  "status": "Applied DEV V73; PROD unchanged"
   "database": "loan_manager_dev"
   "catalog_observation":
     "name": "public.flush_business_history()"
-    "definition": |
-      CREATE OR REPLACE FUNCTION public.flush_business_history()
-       RETURNS trigger
-       LANGUAGE plpgsql
-       SET search_path TO 'pg_catalog', 'public'
-      AS $function$
-      DECLARE d date; first_day date; last_day date;
-      BEGIN
-       -- Nested statements contribute dates; only the outer source statement flushes.
-       IF pg_trigger_depth()>1 THEN RETURN NULL; END IF;
-       IF TG_LEVEL='STATEMENT' THEN
-        PERFORM set_config('business_history.statement_active','off',true);
-       ELSIF current_setting('business_history.statement_active',true)='on' THEN
-        -- An immediate constraint callback still belongs to its unfinished statement.
-        RETURN NULL;
-       END IF;
-       d:=nullif(current_setting('business_history.from',true),'')::date;
-       IF d IS NULL THEN RETURN NULL; END IF;
-       PERFORM set_config('business_history.from','',true);
-       SELECT min(snapshot_day),max(snapshot_day) INTO first_day,last_day FROM (
-        SELECT "Snapshot Date" snapshot_day FROM public."Daily Analytics" WHERE "Snapshot Date">=d
-        UNION ALL SELECT "Snapshot Date" FROM public."Cash Account Daily Analytics" WHERE "Snapshot Date">=d) snapshots;
-       IF first_day IS NOT NULL THEN PERFORM public.refresh_daily_analytics(first_day,last_day); END IF;
-       RETURN NULL;
-      END $function$
-  "captured_at": "2026-10-06T12:13:22.006330+00:00"
+    "definition": "CREATE OR REPLACE FUNCTION public.flush_business_history()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path\
+      \ TO 'pg_catalog', 'public'\nAS $function$\r\nDECLARE d date; first_day date; last_day date; accounts text[];\r\nBEGIN\r\
+      \n -- Nested statements contribute dates; only the outer source statement flushes.\r\n IF pg_trigger_depth()>1 THEN\
+      \ RETURN NULL; END IF;\r\n IF TG_LEVEL='STATEMENT' THEN\r\n  PERFORM set_config('business_history.statement_active','off',true);\r\
+      \n ELSIF current_setting('business_history.statement_active',true)='on' THEN\r\n  -- An immediate constraint callback\
+      \ still belongs to its unfinished statement.\r\n  RETURN NULL;\r\n END IF;\r\n d:=nullif(current_setting('business_history.from',true),'')::date;\r\
+      \n IF d IS NULL THEN RETURN NULL; END IF;\r\n PERFORM set_config('business_history.from','',true);\r\n SELECT coalesce(array_agg(k),ARRAY[]::text[])\
+      \ INTO accounts FROM jsonb_object_keys(coalesce(nullif(current_setting('business_history.accounts',true),'')::jsonb,'{}'::jsonb))\
+      \ k;\r\n PERFORM set_config('business_history.accounts','',true);\r\n SELECT min(snapshot_day),max(snapshot_day) INTO\
+      \ first_day,last_day FROM (\r\n  SELECT \"Snapshot Date\" snapshot_day FROM public.\"Daily Analytics\" WHERE \"Snapshot\
+      \ Date\">=d\r\n  UNION ALL SELECT \"Snapshot Date\" FROM public.\"Cash Account Daily Analytics\" WHERE \"Snapshot Date\"\
+      >=d) snapshots;\r\n IF first_day IS NOT NULL THEN PERFORM public.refresh_daily_analytics_scoped(first_day,last_day,accounts);\
+      \ END IF;\r\n RETURN NULL;\r\nEND $function$\n"
+  "captured_at": "2026-10-06T14:11:33.381694+00:00"

@@ -1,0 +1,100 @@
+{
+  "at": "2026-10-06T14:11:16.729631+00:00",
+  "database": "loan_manager_dev",
+  "version": 73,
+  "checksum": 1165230041,
+  "scope": "Rollback-only synthetic sources; DML and deferred effects; no app delivery",
+  "function_tracking_available": false,
+  "select_one_roundtrip_median_ms": 2.6550000002316665,
+  "cases": {
+    "receipt_add": {
+      "client_dml_plus_deferred_median_ms": 46.70079999959853,
+      "dml_server_execution_median_ms": 33.006,
+      "samples_ms": [
+        55.62899999858928,
+        46.70079999959853,
+        46.35930000040389
+      ],
+      "last_function_profile": {}
+    },
+    "receipt_amount": {
+      "client_dml_plus_deferred_median_ms": 48.23639999995066,
+      "dml_server_execution_median_ms": 36.846,
+      "samples_ms": [
+        48.23639999995066,
+        47.30059999928926,
+        48.35040000034496
+      ],
+      "last_function_profile": {}
+    },
+    "receipt_delete": {
+      "client_dml_plus_deferred_median_ms": 37.78460000103223,
+      "dml_server_execution_median_ms": 25.383,
+      "samples_ms": [
+        37.78460000103223,
+        50.72160000054282,
+        33.99589999935415
+      ],
+      "last_function_profile": {}
+    },
+    "receipt_backdated": {
+      "client_dml_plus_deferred_median_ms": 66.43409999924188,
+      "dml_server_execution_median_ms": 52.85,
+      "samples_ms": [
+        65.79919999967387,
+        108.06109999975888,
+        66.43409999924188
+      ],
+      "last_function_profile": {}
+    },
+    "receipt_metadata": {
+      "client_dml_plus_deferred_median_ms": 7.024099999398459,
+      "dml_server_execution_median_ms": 1.396,
+      "samples_ms": [
+        6.986700000197743,
+        7.024099999398459,
+        7.471000000805361
+      ],
+      "last_function_profile": {}
+    },
+    "expense_amount": {
+      "client_dml_plus_deferred_median_ms": 39.93790000095032,
+      "dml_server_execution_median_ms": 34.044,
+      "samples_ms": [
+        39.93790000095032,
+        46.0480000001553,
+        26.684899999963818
+      ],
+      "last_function_profile": {}
+    }
+  },
+  "unchanged_tables": {
+    "agent_audit.commits": true,
+    "agent_audit.exports": true,
+    "agent_audit.row_changes": true,
+    "public.Borrowers": true,
+    "public.Business Expenses": true,
+    "public.Calendar": true,
+    "public.Cash Account Daily Analytics": true,
+    "public.Cash Accounts": true,
+    "public.Cash Holders": true,
+    "public.Cash Ledger": true,
+    "public.Cash Pool Contributions": true,
+    "public.Cash Statement Context": true,
+    "public.Charges": true,
+    "public.Daily Analytics": true,
+    "public.Loan Assessment": true,
+    "public.Loan Assessment SQL Lab": true,
+    "public.Loans": true,
+    "public.Partners": true,
+    "public.Payment Allocations": true,
+    "public.Payments": true,
+    "public.Repayments": true,
+    "public.Settlements": true,
+    "public.Statistics": true,
+    "public.flyway_schema_history": true,
+    "public.r005_cash_cutover_sources": true,
+    "public.r008_cash_account_cutover": true
+  },
+  "all_rollback_fingerprints_equal": true
+}

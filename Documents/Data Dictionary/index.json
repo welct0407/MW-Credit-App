@@ -4449,6 +4449,16 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r051-crud/relation-public-payment-allocations-8b7d74b8.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.Payment Allocations",
+      "scope": "development:R051-crud",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r051-crud/relation-public-payments-d5d5eb7c.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
@@ -4829,6 +4839,16 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r051-crud/routine-public-r051-flush-parents-kind-text-1ec8f72f.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.r051_flush_parents(kind text)",
+      "scope": "development:R051-crud",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r051-crud/routine-public-r051-historical-account-account-id-text-holder-id-text-66875872.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
@@ -4849,6 +4869,26 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r051-crud/routine-public-r051-parent-dirty-495f383e.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.r051_parent_dirty()",
+      "scope": "development:R051-crud",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r051-crud/routine-public-r051-queue-parent-kind-text-ids-text-314817a4.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.r051_queue_parent(kind text, ids text[])",
+      "scope": "development:R051-crud",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r051-crud/routine-public-r051-restate-opening-source-635589bc.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
@@ -4864,6 +4904,16 @@
       "component": "loan_manager_dev",
       "kind": "routine",
       "name": "public.refresh_daily_analytics(p_from date, p_to date)",
+      "scope": "development:R051-crud",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r051-crud/routine-public-refresh-daily-analytics-scoped-p-from-date-p-to-date-p-accounts-text-67d5ba22.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.refresh_daily_analytics_scoped(p_from date, p_to date, p_accounts text[])",
       "scope": "development:R051-crud",
       "status": "documented",
       "lookup": []
@@ -4899,6 +4949,26 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r051-crud/routine-public-vc-borrower-changed-65d4598b.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.vc_borrower_changed()",
+      "scope": "development:R051-crud",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r051-crud/routine-public-vc-payment-changed-54cf93ba.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.vc_payment_changed()",
+      "scope": "development:R051-crud",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r051-crud/routine-public-vc-refresh-loan-p-id-text-0c61618c.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",
@@ -4914,6 +4984,16 @@
       "component": "loan_manager_dev",
       "kind": "routine",
       "name": "public.vc_refresh_payment(p_id text)",
+      "scope": "development:R051-crud",
+      "status": "documented",
+      "lookup": []
+    },
+    {
+      "file": "development/postgresql/r051-crud/routine-public-vc-repayment-changed-f39d46de.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "routine",
+      "name": "public.vc_repayment_changed()",
       "scope": "development:R051-crud",
       "status": "documented",
       "lookup": []

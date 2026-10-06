@@ -7,10 +7,10 @@
   "scope": "development:R051-crud"
 "verification":
   "status": "documented"
-  "source": "outputs/r051-receipt-corrections/vm01-sql-definitions-20261006.json"
+  "source": "outputs/r051-trigger-performance/sql-definitions.json"
 "content":
   "release": "R051"
-  "status": "Applied DEV V72; PROD unchanged"
+  "status": "Applied DEV V73; PROD unchanged"
   "database": "loan_manager_dev"
   "catalog_observation":
     "name": "public.Loans"
@@ -160,6 +160,8 @@
         \ FOR EACH STATEMENT EXECUTE FUNCTION begin_business_history()"
       "a000_opening_consistency": "CREATE TRIGGER a000_opening_consistency BEFORE UPDATE ON \"Loans\" FOR EACH ROW EXECUTE\
         \ FUNCTION guard_opening_included_source()"
+      "a001_parent_dirty": "CREATE TRIGGER a001_parent_dirty AFTER INSERT OR DELETE OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE\
+        \ FUNCTION r051_parent_dirty()"
       "a00_business_delete": "CREATE TRIGGER a00_business_delete BEFORE DELETE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION\
         \ business_source_delete()"
       "a0_cash_account": "CREATE TRIGGER a0_cash_account BEFORE INSERT OR UPDATE ON \"Loans\" FOR EACH ROW EXECUTE FUNCTION\
@@ -208,4 +210,4 @@
         Loans\" FOR EACH STATEMENT EXECUTE FUNCTION flush_business_history()"
       "zzzzzz_business_history_commit": "CREATE CONSTRAINT TRIGGER zzzzzz_business_history_commit AFTER INSERT OR DELETE OR\
         \ UPDATE ON \"Loans\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION flush_business_history()"
-  "captured_at": "2026-10-06T12:13:22.006330+00:00"
+  "captured_at": "2026-10-06T14:11:33.381694+00:00"
