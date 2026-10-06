@@ -4449,6 +4449,16 @@
       "lookup": []
     },
     {
+      "file": "development/postgresql/r051-crud/relation-public-oltp-payment-related-ids-v1-d42b3fd5.yaml",
+      "system": "postgresql",
+      "component": "loan_manager_dev",
+      "kind": "relation",
+      "name": "public.oltp_payment_related_ids_v1",
+      "scope": "development:R051-crud",
+      "status": "documented",
+      "lookup": []
+    },
+    {
       "file": "development/postgresql/r051-crud/relation-public-oltp-upcoming-charge-coverage-v1-4b1dcdb4.yaml",
       "system": "postgresql",
       "component": "loan_manager_dev",

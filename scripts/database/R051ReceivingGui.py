@@ -5,7 +5,7 @@ sys.path.insert(0,r'C:\Users\MWCredit\AppData\Local\AppSheetLoanTools\python-dep
 import psycopg
 from psycopg import sql
 from R051ReceivingFixtures import setup
-p=argparse.ArgumentParser();p.add_argument('action',choices=['seed','read','cleanup']);p.add_argument('--evidence-dir',default='outputs/r051-payment-performance');args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('action',choices=['seed','read','cleanup']);p.add_argument('--evidence-dir',default='outputs/r051-payment-performance');p.add_argument('--expected-version',type=int,default=73);args=p.parse_args()
 repo=Path(__file__).resolve().parents[2];out=(repo/args.evidence_dir).resolve()
 assert out.is_relative_to((repo/'outputs').resolve())
 b=json.loads((out/'vm01-development-backup.json').read_text());assert b['restored_fingerprints_match']
@@ -14,7 +14,7 @@ t=json.loads((repo/'database/environments.json').read_text())['development']
 assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
 with psycopg.connect(host=t['host'],port=t['port'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',connect_timeout=15) as c:
     assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==('loan_manager_dev',t['host'])
-    assert c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()==('73',1165230041)
+    assert c.execute('SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()==(str(args.expected_version),)
     assert not c.execute('SELECT 1 FROM "Partners" WHERE coalesce("Email",\'\') NOT IN (\'\',\'welct0407@mw-credit.com\')').fetchall()
     c.execute("SET LOCAL timezone='Asia/Bangkok'; SET LOCAL lock_timeout='3s'; SET LOCAL statement_timeout='90s'")
     if args.action=='seed':

@@ -12,7 +12,7 @@
   "release": "R051"
   "status": "Open DEV implementation; PROD unchanged"
   "app_id": "500b27b6-884a-41e8-a9ec-df801b0110ad"
-  "version": "1.000200"
+  "version": "1.000206"
   "coverage": "Selected saved properties only; unlisted properties retained. UI-relative placement is not a full serialized\
     \ view definition."
   "source_representation": "AppSheet current editor fields and reviewed saved checkpoints"
@@ -78,12 +78,23 @@
       "AppFormula": "IF(AND(CONTEXT(\"Host\") = \"Server\", [Status] = \"Posted\"), 0, SUM([Eligible Charges][Amount Remaining])\
         \ + SUM(SELECT(Payment Allocations[Allocated Amount], AND([Ref Payment] = [_THISROW].[Row ID], IN([Ref Charge], [_THISROW].[Eligible\
         \ Charges])))))"
+    "column:Related Repayments":
+      "AppFormula": "REF_ROWS(\"Repayments\", \"Ref Payment\")"
+    "column:Related Payment Allocations":
+      "AppFormula": "REF_ROWS(\"Payment Allocations\", \"Ref Payment\")"
+    "column:Related Loans":
+      "AppFormula": "REF_ROWS(\"Loans\", \"Ref Closing Payment\")"
+    "column:Visible Allocations":
+      "AppFormula": "SELECT([Related Payment Allocations][Row ID], [Allocated Amount] > 0)"
   "evidence":
     "column:Notes": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
     "column:Amount Received": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
     "column:Correction Guidance": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
     "column:Delete Requested": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
     "Are updates allowed?": "outputs/r051-receipt-corrections/vm01-gui-tests-20261006.md"
+  "related_list_experiment":
+    "status": "Original formulas restored; helper binding removed"
+    "evidence": "outputs/r051-related-list-views/README.md"
 "evidence":
   "/content/version":
     "reference": "outputs/r051-appsheet-latency/formula-trial.json"

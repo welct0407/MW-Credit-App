@@ -1,6 +1,6 @@
 # Environment inventory
 
-**R051 same-experience experiment, 6 October 2026:** DEV V74/checksum-530937726 reuses the existing forecast coverage calculation, preserving its exact columns, keys, notes and freshness. OLTP1.000200 / OLAP1.000056 definitions are unchanged and both saved editors are clear. Production read-only query median225→101ms; DEV306→154ms; manual sync median2.916s before and after, so no overall sync gain is claimed. All25 non-Flyway data tables preserved; R051 Open, draft PR16, PROD unchanged. [Experiment and recovery](../outputs/r051-transparent-performance/README.md).
+**R051 related-list experiment, 7 October 2026:** final DEV OLTP1.000206 / OLAP1.000056 / SQL V76 (checksum -293982148), both saved editors clear. The ordinary SQL-view candidate replaced four Payments formulas while retaining inline displays. Three-edit median3.261→2.494s, but manual sync2.985→3.450s and paired edit-plus-sync6.821→6.593s were inconclusive overall. Candidate reverted: original formulas restored and extra AppSheet binding removed;22 business tables plus user settings remain. The additive SQL view is dormant. V74 forecast and earlier eligibility guards remain. Bounded GUI/SQL tests and22-table cleanup preservation passed; owner-only delivery verified. R051 Open, PR16 draft, PROD unchanged. [Experiment, measurements and recovery](../outputs/r051-related-list-views/README.md).
 
 **R051 AppSheet latency experiment, 6 October 2026:** DEV OLTP1.000200 retains server-only Posted guards on the two hidden receipt eligibility fields; OLAP1.000056 and V73 unchanged. Three matched correction saves: median3.633→2.694s (25.8% lower); general sync/all-channel improvement is unproven. New receipt, correction/full-amount validation and synthetic delete passed; cleanup preserved23 existing source/audit/history tables and owner-only delivery.22 business tables plus user settings remain. R051 Open; separate experiment branch stacked on draft PR15; PROD untouched. [Current candidate, measurements and rollback](../outputs/r051-appsheet-latency/README.md).
 
@@ -142,7 +142,7 @@ Historical full metadata checkpoint: **24 September 2026**, from the [dictionary
 | --- | --- | --- | --- | --- | --- |
 | Production OLTP | Loan Manager ผู้จัดการสินเชื่อ | 93844270-6aa5-420b-a960-bcdf08abd357 | 3.000263 (R049 summary/drilldown) | database-2 | 22 |
 | Production OLAP | Loan Business Insights | e74dd368-654f-44d7-bccf-83cf361d1cdb | 1.100208 (R048 original interest) | database-2 | 19 |
-| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000200 (6 October: two server-only Posted eligibility guards; saved, No issues found; bounded GUI/cleanup passed) | database-3 | 22 |
+| Development OLTP replacement | MW-OLTP-DEV-20260919 | 500b27b6-884a-41e8-a9ec-df801b0110ad | 1.000206 (7 October: related-list experiment reverted; earlier eligibility guards retained; saved, No issues found; GUI/cleanup passed) | database-3 | 22 |
 | Development OLAP replacement | MW-OLAP-DEV-20260919 | 9f3422be-bc87-4a5a-a42a-67528ee80393 | 1.000056 (6 October: saved, No issues found; current GUI acceptance passed) | database-3 | 19 |
 
 All four canonical apps are recorded Deployed. Internal names:

@@ -19,6 +19,7 @@ from psycopg import sql
 repo = Path(__file__).resolve().parents[2]
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--evidence-dir', default='outputs/r051-payment-performance')
+p.add_argument('--expected-version', type=int, default=73)
 args = p.parse_args()
 evidence_dir = (repo / args.evidence_dir).resolve()
 assert evidence_dir.is_relative_to((repo / 'outputs').resolve())
@@ -33,7 +34,7 @@ folder.mkdir(parents=True, exist_ok=False)
 pgbin = Path(os.environ['LOCALAPPDATA']) / 'AppSheetLoanTools/postgresql-18.6-3/pgsql/bin'
 password = Path(target['passwordFile']).read_text().strip()
 env = dict(os.environ, PGPASSWORD=password, PGSSLMODE='require')
-dump = folder / 'development-before-v74.dump'
+dump = folder / f'development-at-v{args.expected_version}.dump'
 startup = dict(creationflags=subprocess.CREATE_NO_WINDOW) if os.name == 'nt' else {}
 
 
@@ -55,7 +56,7 @@ with psycopg.connect(host=target['host'], port=target['port'], dbname=target['da
     c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
     c.execute("SET LOCAL timezone='UTC'")
     assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone() == (target['database'], target['host'])
-    assert c.execute('SELECT max(version::integer) FROM public.flyway_schema_history WHERE success').fetchone()[0] == 73
+    assert c.execute('SELECT max(version::integer) FROM public.flyway_schema_history WHERE success').fetchone()[0] == args.expected_version
     baseline = fingerprint(c)
     snapshot = c.execute('SELECT pg_export_snapshot()').fetchone()[0]
     run([str(pgbin / 'pg_dump.exe'), '-h', target['host'], '-p', str(target['port']), '-U', target['user'], '-d', target['database'], '-Fc', '--no-owner', '--no-privileges', '--schema=public', '--schema=assessment_lab', '--schema=agent_audit', '--snapshot=' + snapshot, '--file=' + str(dump)], 'dump.log', env)
@@ -83,7 +84,7 @@ try:
             c.execute(migration.read_text(encoding='utf-8'))
         assert fingerprint(c) == baseline, 'Migration unexpectedly changed existing rows'
         c.rollback()
-    evidence = {'at': stamp, 'environment': 'development', 'instance': target['instance'], 'host': target['host'], 'database': target['database'], 'baseline_version': 73,
+    evidence = {'at': stamp, 'environment': 'development', 'instance': target['instance'], 'host': target['host'], 'database': target['database'], 'baseline_version': args.expected_version,
                 'backup_file': str(dump), 'backup_sha256': hashlib.sha256(dump.read_bytes()).hexdigest(), 'restored_fingerprints_match': True, 'table_count': len(baseline),
                 'migrations_rehearsed': [], 'existing_values_unchanged': True,
                 'migration_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in migrations},
