@@ -1,5 +1,5 @@
 {
-  "gate": "DEV V68 is applied/validated (checksum−79096429); rollback-only conversion acceptance passed, preserving all26 fingerprints and original plus six GUI fixtures. The backend entering-daily gap is fixed; actual loan form/full-sync and other cross-type schedules remain unverified. Parent last confirms restored OLTP1.000173 runnable / OLAP1.000052; browser access awaits owner permission. Six lifecycle batches remain committed, seventh REIMBURSE prepared only. Expense preview, borrower Delete availability, broad GUI acceptance and cleanup remain pending. PROD58 is untouched.",
+  "gate": "DEV69/checksum245428688 applied and accepted; original/six fixture preservation and DEFAULT auto=false verified at03:50:29UTC. Helpers now require exact69 and pass local rehearsal; maintained final CI status is in helper-v69-validation.json. Six batches already exist with later GUI corrections; seventh REIMBURSE uncreated. Scoped GUI testing resumed, broader acceptance/cleanup pending; dated app versions below are not a fresh audit. PROD58 untouched.",
   "baseline": {
     "oltp": {
       "id": "500b27b6-884a-41e8-a9ec-df801b0110ad",
@@ -594,5 +594,6 @@
       "dev-daily-conversion-preflight-v68.json"
     ]
   },
-  "embedded_history_warning": "Embedded baseline/readbacks/seed SQL are historical. Do not replay them as a current fixture instruction; use current additional-ui-keymap.json and strict68 helper. Six batches exist, REIMBURSE uncreated."
+  "embedded_history_warning": "Embedded baseline/readbacks/seed SQL are historical. Do not replay them; use current additional-ui-keymap.json and strict69 helper. Six batches exist, REIMBURSE uncreated. Original static cleanup does not cover GUI-created IDs; reconcile exact current inventory before any authorized cleanup.",
+  "remaining_gui_guidance": "additional-ui-fixtures.md#remaining-gui-acceptance"
 }

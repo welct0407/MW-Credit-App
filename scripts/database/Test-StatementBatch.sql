@@ -18,3 +18,6 @@
 \ir Test-ReceiptDeleteFlagMetadata.sql
 \ir Test-LoanCorrections.sql
 \ir Test-DailyTypeConversion.sql
+
+-- Original GUI fixture seed/cleanup remains compatible with current derived snapshots.
+\ir Test-UiFixtures.sql

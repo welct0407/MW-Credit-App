@@ -2,8 +2,8 @@
   "state": "Six batches committed and independently read back at21:21:22UTC; REIMBURSE locally prepared only. See six-ui-seed-readback.json; current GUI edits may supersede this dated baseline.",
   "prepared_business_date": "2026-10-06",
   "timezone": "Asia/Bangkok",
-  "expected_dev_version": 68,
-  "expected_checksum": -79096429,
+  "expected_dev_version": 69,
+  "expected_checksum": 245428688,
   "batches": [
     {
       "batch": "DAILY",
@@ -198,16 +198,17 @@
   ],
   "gates": [
     "Current parent write window and no-send/owner-only routing",
-    "Fresh exact DEV68 preflight, current Bangkok date and namespace readback immediately before seed",
+    "Fresh exact DEV69 preflight, current Bangkok date and namespace readback immediately before seed",
     "PARTNER-A actual future contribution date and current settlement entitlement; no fake funding",
     "Capture GUI/scheduler generated IDs; never replay unknown commit",
     "REIMBURSE requires a new coordinated write window, fresh target/date/collision preflight, reviewed containment and recovery. No seventh seed authorized by this preparation."
   ],
-  "current_helper_sha256": "e743aafbc3e73b67d89f0abb2ee9af6acef82108df18e60964d449f9ee334f3e",
+  "current_helper_sha256": "d1bd2a60ff63c4f713979251e1d48a3d96bb01c87ed1d0e5651ee2ae2ec2f5eb",
   "future_daily_seed_schedule": {
     "interval": 1,
     "anchor": null,
     "auto_charge": false,
     "existing_live_repair": "DEFAULT only; see default-fixture-interval-repair.json"
-  }
+  },
+  "current_validation": "local-fixture-helpers-v69.json"
 }

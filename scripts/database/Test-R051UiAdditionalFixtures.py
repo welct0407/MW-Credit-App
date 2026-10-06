@@ -1,4 +1,4 @@
-"""Local-only V68 GUI fixture/date/key rehearsal; never uses DEV transport."""
+"""Local-only V69 GUI fixture/date/key rehearsal; never uses DEV transport."""
 import argparse
 import tempfile
 import hashlib
@@ -15,11 +15,13 @@ def run(port,data_directory):
         def __init__(self,identity,version):self.answers=iter([identity,version])
         def execute(self,*args):self.answer=next(self.answers);return self
         def fetchone(self):return self.answer
-    for identity,version in [(('loan_manager_prod','postgres'),('68',-79096429)),(('loan_manager_dev','postgres'),('67',1721477385)),(('loan_manager_dev','postgres'),('68',-79096428))]:
-        try:fixtures.verify_target(GuardProbe(identity,version))
-        except ValueError:pass
-        else:raise AssertionError('Wrong target/version/checksum accepted')
-    fixtures.verify_target(GuardProbe(('loan_manager_dev','postgres'),('68',-79096429)))
+    for identity,version in [(('loan_manager_prod','postgres'),('69',245428688)),(('loan_manager_dev','postgres'),('68',-79096429)),(('loan_manager_dev','postgres'),('69',245428689))]:
+        for verify in (fixtures.verify_target,transport.verify_ui_fixture_target):
+            try:verify(GuardProbe(identity,version))
+            except ValueError:pass
+            else:raise AssertionError('Wrong target/version/checksum accepted')
+    for verify in (fixtures.verify_target,transport.verify_ui_fixture_target):
+        verify(GuardProbe(('loan_manager_dev','postgres'),('69',245428688)))
     assert not fixtures.private_state_path_allowed(Path(fixtures.__file__).resolve().parents[2]/'private.json')
     with tempfile.TemporaryDirectory(prefix='r051-state-classification-') as d:
         private=Path(d);assert fixtures.private_state_path_allowed(private/'state.json')
@@ -29,7 +31,7 @@ def run(port,data_directory):
         if Path(c.execute('SHOW data_directory').fetchone()[0]).resolve()!=data_directory.resolve():
             raise ValueError('Expected exact private local cluster')
         assert c.execute('SELECT current_database(),host(inet_server_addr())').fetchone()==('postgres','127.0.0.1')
-        assert c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()==('68',-79096429)
+        assert c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone()==('69',245428688)
         c.rollback()
         # Production guard correctly rejects this private postgres database.
         try:fixtures.verify_target(c)
@@ -41,12 +43,20 @@ def run(port,data_directory):
             assert c.execute("SELECT (%s::timestamptz AT TIME ZONE current_setting('TimeZone'))::date",[timestamp]).fetchone()[0]==expected
         c.rollback()
         c.execute("SET LOCAL timezone='UTC'");before=transport.fingerprints(c);c.rollback()
+        # Local-only alternate namespace preserves copied current GUI fixture rows.
+        fixtures.PREFIX='LOCAL-R051-UI-'
+        real_insert=fixtures.insert
+        def local_insert(connection,table,values):
+            values=dict(values)
+            if table=='Cash Accounts':values['Account Label']='LOCAL '+values['Account Label']
+            return real_insert(connection,table,values)
+        fixtures.insert=local_insert
         results=[]
         for batch in fixtures.BATCHES:
             try:
                 fixtures.setup(c)
                 pre=fixtures.preflight(c,batch)
-                assert pre['version']==68 and pre['timezone']=='Asia/Bangkok'
+                assert pre['version']==69 and pre['timezone']=='Asia/Bangkok'
                 original_accounts={table:c.execute('SELECT to_jsonb(t) FROM "'+table+'" t ORDER BY "Row ID"').fetchall() for table in ('Cash Accounts','Cash Holders')} if batch=='REIMBURSE' else None
                 seeded=fixtures.seed(c,batch)
                 for table,keys in pre['plan']['source_keys'].items():
@@ -96,8 +106,25 @@ def run(port,data_directory):
                 results.append({'batch':batch,'passed':True,'plan':pre['plan']})
             finally:c.rollback()
             c.execute("SET LOCAL timezone='UTC'");assert transport.fingerprints(c)==before;c.rollback()
-        return {'passed':True,'scope':'LOCAL restored V68; seven seed/readback/exact cleanup workflows rolled back; no DEV access',
-                'explicit_old_holder_payload':{'unlinked_cross_holder_derived':True,'linked_cross_holder_rejected_full_source_cash_preserved':True},'strict_identity_version_checksum_cases':4,'private_state_path_cases':4,'bangkok_midnight_boundary_cases':2,'table_fingerprints_unchanged':len(before),'batches':results,
+        # Rehearse the original scripts with a separate local-only namespace.
+        # Copied live GUI rows, including unknown generated receipt IDs, stay intact.
+        original_prefix='LOCAL-R051-ORIGINAL-'
+        try:
+            fixtures.setup(c)
+            for filename in ('R051-UiFixtures.sql','R051-UiCleanup.sql'):
+                body=(Path(__file__).parent/filename).read_text().replace('SYN-R051-UI-',original_prefix).replace('SYNTHETIC R051 UI','LOCAL R051 ORIGINAL')
+                c.execute(body)
+                if filename=='R051-UiFixtures.sql':
+                    assert c.execute('SELECT count(*) FROM "Payments" WHERE "Row ID"=ANY(%s) AND "Status"=\'Posted\' ',[[original_prefix+'P1',original_prefix+'P2']]).fetchone()[0]==2
+                    assert c.execute('SELECT count(*) FROM "Cash Ledger" WHERE "Ref Loan"=ANY(%s)',[[original_prefix+'L1',original_prefix+'L2']]).fetchone()[0]==2
+            for table in ('Borrowers','Loans','Charges','Payments','Payment Allocations','Repayments','Business Expenses','Cash Ledger','Cash Accounts','Cash Account Daily Analytics'):
+                assert c.execute('SELECT count(*) FROM "'+table+'" t WHERE row_to_json(t)::text LIKE %s',['%'+original_prefix+'%']).fetchone()[0]==0,table
+        finally:c.rollback()
+        c.execute("SET LOCAL timezone='UTC'");assert transport.fingerprints(c)==before;c.rollback()
+        fixtures.insert=real_insert
+        return {'passed':True,'scope':'LOCAL restored V69; seven additional workflows plus original seed/readback/exact cleanup rolled back; no DEV access',
+                'original_fixture_scripts':{'seed_readback_cleanup_passed':True,'derived_account_snapshots_removed':True,'copied_current_gui_rows_preserved':True,'live_generated_key_cleanup_ready':False},
+                'explicit_old_holder_payload':{'unlinked_cross_holder_derived':True,'linked_cross_holder_rejected_full_source_cash_preserved':True},'strict_identity_version_checksum_cases':8,'private_state_path_cases':4,'bangkok_midnight_boundary_cases':2,'table_fingerprints_unchanged':len(before),'batches':results,
                 'fixture_script_sha256':hashlib.sha256(Path(fixtures.__file__).read_bytes()).hexdigest()}
 
 

@@ -325,6 +325,13 @@ VALUES ('DEV-R051-DAD','ch:dad','R051 rollback synthetic Dad','Synthetic'),
 
 
 
+def verify_ui_fixture_target(c):
+    if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
+        raise ValueError('DEV target changed')
+    if c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone() != ('69',245428688):
+        raise ValueError('Expected validated V69/checksum245428688')
+
+
 def ui_fixtures(mode, browser_reference):
     if not browser_reference:
         raise ValueError('Browser notification-containment readiness reference required')
@@ -333,8 +340,7 @@ def ui_fixtures(mode, browser_reference):
         raise ValueError('Fixture state exists; reconcile before any retry')
     script = REPO/'scripts/database'/('R051-UiFixtures.sql' if mode=='ui-create' else 'R051-UiCleanup.sql')
     def perform(c, params):
-        if c.execute('SELECT current_database(),session_user').fetchone() != ('loan_manager_dev','postgres'):
-            raise ValueError('DEV target changed')
+        verify_ui_fixture_target(c)
         c.execute("SET LOCAL timezone='UTC'")
         private_state=None
         if mode=='ui-create':
@@ -344,8 +350,6 @@ def ui_fixtures(mode, browser_reference):
             prior=json.loads(manifest.read_text())
             private_state=Path('/workspace')/prior['private_baseline_reference']
         c.execute("SET LOCAL timezone='Asia/Bangkok'")
-        if c.execute('SELECT version,checksum FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').fetchone() != ('68',-79096429):
-            raise ValueError('Expected validated V68/checksum-79096429')
         if mode=='ui-create':
             if c.execute('SELECT EXISTS(SELECT 1 FROM public."Borrowers" WHERE "Row ID" LIKE \'SYN-R051-UI-%\')').fetchone()[0]:
                 raise ValueError('Reserved namespace is not empty')

@@ -99,7 +99,7 @@
     "acceptance": "Two new synthetic10-principal/1-daily loans and own Lisa account, no funding, all changes rollback. Original charge destructive updates/deletes/moves and forged context reject; generated loss edits reject; cache recomputes; Default/Undo preserves charge and cash; ordinary post-Undo CRUD works. All26 fingerprints and existing GUI fixture fingerprints unchanged after rollback.",
     "local_harness_rehearsal": "Passed on disposable V69 using principal 10/daily 1 loans; all 26 tables unchanged after rollback, no residue, funding or grants. Existing GUI fixtures were absent locally; their preservation was subsequently verified by actual DEV acceptance and independent readback. Local server stopped.",
     "preservation": "Migration compares25 non-history tables; acceptance compares all26 including unchanged Flyway history. Preflight proves DEFAULT off/interval1/original charge110/loss absent, DAILY-P absent and seventh absent. Do not waive scheduled analytics fingerprint changes.",
-    "fixture_tools": "Existing additional-fixture and original UI seed/cleanup helpers remain strict V68. Align/retest their pins after verified V69, before a separately authorized seed or cleanup; this package does not make those tools V69-ready.",
+    "fixture_tools": "Subsequent helper alignment now requires exact V69/checksum245428688; seven additional workflows and original scripts pass local rehearsal/full CI. See helper-v69-validation.json. Original live GUI-generated keys still require inventory reconciliation before cleanup; no seed or cleanup performed.",
     "validation_evidence": "local-validation-v69.json",
     "recovery_evidence": "recovery-v68.json",
     "recovery_sha256": "174ed66a0e61946e37541889e4b03954ac165810df54f867e67b0f3663ce0c2d"
