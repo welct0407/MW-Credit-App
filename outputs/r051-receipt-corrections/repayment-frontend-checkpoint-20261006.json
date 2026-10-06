@@ -58,10 +58,10 @@
       "Guidance checks current parents; if a form has changed away from a defaulted old parent, fields can remain locked by LOOKUP while the visible reason no longer names that old parent. This transition needs runtime inspection.",
       "V70 generated df10 immutability and scoped Undo remain authoritative; this UI does not replace those context rules.",
       "V70 attachments are UPDATE/DELETE only. New-row allowance is not proof of SQL INSERT protection or new raw Repayment Add authorization.",
-      "Generated source navigation passed for P2. Negative-interest/zero-total errors and default/Undo control visibility remain pending."
+      "Generated source navigation passed for P2. Independent legacy unsaved negative/over-capacity/zero-total/negative-interest cases passed; submitted correction and default/Undo control visibility remain pending."
     ]
   },
-  "publication_status": "Runtime confirmation received; checked checkpoint ready for publication.",
+  "publication_status": "Base184 checkpoint published at68143188; later canceled legacy-form results included in the documentation-only VM-01 handover revision.",
   "release_complete": false,
   "runtime_tests": {
     "generated_source": "SYN-R051-UI-P2",
@@ -73,8 +73,23 @@
     "database_error_tests": 0,
     "pending": [
       "Defaulted parent controls and old/new parent transitions",
-      "Independent legacy repayment validation/corrections",
-      "Negative-interest and zero-total cases"
-    ]
+      "Submitted independent legacy correction/reassignment/deletion"
+    ],
+    "independent_legacy_unsaved_inputs": {
+      "record": "SYN-R051-UI-LEGACY-R",
+      "principal_minus_1": "Negative-principal reason visible",
+      "principal_101": "Principal-capacity reason visible",
+      "principal_0_interest_0": "Zero-total reason visible",
+      "interest_11": "Interest-capacity reason visible",
+      "interest_minus_1": "Supported; error cleared",
+      "Ref Charges picker": "Visible",
+      "restored_values": {
+        "Principal Paid": 0,
+        "Interest Paid": 1
+      },
+      "exit": "Cancel/Discard; unchanged interest1",
+      "submissions": 0,
+      "provenance": "Coordinator supplied browser-worker results after68143188 publication; local addition for next coherent checkpoint."
+    }
   }
 }
