@@ -52,6 +52,8 @@ def run(port,data_directory):
                 for table,keys in pre['plan']['source_keys'].items():
                     assert sorted(fixtures.keys(seeded,table))==sorted(keys),(batch,table)
                 assert not any(r['Auto Charge Enabled'] for r in seeded['Loans'])
+                if batch in ('DAILY','DEFAULT','PREPARED'):
+                    assert all(r['Interest Payment Interval']==1 and r['Interest Schedule Anchor Date'] is None for r in seeded['Loans'])
                 for table,field,plan_key in [('Loans','Loan Date','loan'),('Charges','Charge Date','charge'),('Payments','Payment Date','payment'),('Repayments','Payment Date','repayment'),('Business Expenses','Expense Date','expense')]:
                     if plan_key not in pre['plan']['dates']:continue
                     exact_key=fixtures.ids(batch)['charge'] if table=='Charges' else None

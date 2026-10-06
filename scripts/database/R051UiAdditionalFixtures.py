@@ -170,7 +170,10 @@ def seed(c,batch):
     values={'Row ID':i['loan'],'Ref Borrowers':i['borrower'],'Loan Date':today-timedelta(days=2),
             'Principal Amount':100,'Loan Status':'ยังไม่ปิดยอด','Loan Type':'ดอกเบี้ยรายวัน' if daily else 'กำหนดวันชำระ',
             'Auto Charge Enabled':False,'Ref Disbursed From Cash Account':i['lisa']}
-    if daily: values['Current Daily Interest']=10
+    if daily:
+        values['Current Daily Interest']=10
+        # Match the required AppSheet daily-loan form input. Blank anchor uses Loan Date.
+        values['Interest Payment Interval']=1
     insert(c,'Loans',values)
     insert(c,'Charges',{'Row ID':i['charge'],'Ref Loans':i['loan'],
         'Charge Date':today if batch in ('DEFAULT','PREPARED') else today-timedelta(days=2),
