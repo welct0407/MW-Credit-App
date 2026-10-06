@@ -21,3 +21,5 @@
 
 -- Original GUI fixture seed/cleanup remains compatible with current derived snapshots.
 \ir Test-UiFixtures.sql
+
+\ir Test-DefaultInspection.sql
