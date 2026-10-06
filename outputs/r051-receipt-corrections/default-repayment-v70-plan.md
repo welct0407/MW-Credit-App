@@ -1,6 +1,6 @@
 # V70 candidate — preserve legacy repayments during Default
 
-Candidate prepared and independently reviewed; actual DEV remains V69/checksum245428688 and PROD remains V58 at this checkpoint. The coordinator has authorized a subsequent exclusive DEV window after the corrected regression/helper package passes required local and published checks. Fresh V69 backup with isolated restore verification, pinned application, rollback-only acceptance and independent preservation readback are required before claiming application. R051 stays Open.
+Applied and validated in DEV at V70/checksum124258995 after independent review, exact published checks, fresh V69 backup/isolated restore, rollback-only acceptance and independent preservation readback. See the [actual summary](default-repayment-v70-actual-summary.json). PROD remains V58; R051 stays Open. The implementation and preparation evidence below records the tested design; the exclusive DEV window is now released.
 
 V69 permits an independent legacy repayment to be deleted while its loan is defaulted. A child-first sequence of independently committed requests can therefore remove that payment before later protected charge/loan deletion rejects. Undo cannot recreate an independently deleted payment. The [V69 proof](loans-delete-default-safety.md) records this boundary without claiming an observed AppSheet request order.
 

@@ -1,6 +1,6 @@
 # Loan Delete while defaulted — local V69 proof
 
-Historical V69 proof: the subsequent [V70 local candidate](default-repayment-v70-plan.md) closes the independent repayment UPDATE/DELETE gap. It is not applied to DEV. The local runner now defaults to V70; use `--expected-version 69` explicitly to reproduce the historical behavior below.
+Historical V69 proof: [V70 is now applied/validated in DEV](default-repayment-v70-actual-summary.json), closing the independent repayment UPDATE/DELETE gap described below. Rollback acceptance and independent readback preserved all26 tables and existing fixtures. The UI predicate remains a separate proposed/GUI-unverified guard. The local runner defaults to V70; use `--expected-version 69` explicitly to reproduce the historical behavior below.
 
 The saved OLTP177 predicate, reported by the parent and matching the recorded [Loan Delete action](../../Documents/Data%20Dictionary/systems/appsheet/oltp/actions/loans-delete-e039a9a5.yaml), only checks that the loan has no payment allocations. That is insufficient for a defaulted loan with an independent legacy repayment. This task made no live database or app changes.
 
@@ -47,4 +47,4 @@ python scripts/database/Test-DefaultInspectionLocal.py \
 pwsh -NoProfile -File scripts/database/Test-CI.ps1
 ```
 
-The local server was stopped after testing. The SQL test is included in the maintained statement batch and all three CI routes passed; the separate-request Python proof was run separately locally. This is the local-validation checkpoint; [PR15 checks](https://github.com/welct0407/AppSheet-Loan-Project/pull/15/checks) records remote results for the exact published revision. The proposed predicate remains unapplied and actual GUI validation is pending. R051 stays Open; DEV V69 and PROD V58 are unchanged.
+The local server was stopped after testing. The SQL test is included in the maintained statement batch and all three CI routes passed; the separate-request Python proof was run separately locally. This is the local-validation checkpoint; [PR15 checks](https://github.com/welct0407/AppSheet-Loan-Project/pull/15/checks) records remote results for the exact published revision. The proposed predicate remains unapplied and actual GUI validation is pending. At that historical test checkpoint, DEV V69 and PROD V58 were unchanged. The applied V70 result is linked above; R051 remains Open.
