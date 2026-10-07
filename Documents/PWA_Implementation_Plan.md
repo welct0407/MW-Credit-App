@@ -1,5 +1,7 @@
 # MW Credit OLTP and OLAP implementation plan
 
+**R052 checkpoint 2A, 7 October 2026:** Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent final smoke is in progress. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
+
 Prepared 7 October 2026, Asia/Bangkok. This is the delivery plan for a complete replacement of the current AppSheet OLTP and OLAP applications. We will implement and verify one phase at a time. The final deliverable is the new system operating in production alongside AppSheet, with full required coverage, proven recovery and an executable cutover procedure.
 
 **Target:** mobile provides every current OLTP capability; desktop provides every current OLTP and OLAP capability. Mobile OLAP expansion is optional future scope. Payments require online confirmation; offline viewing and drafts are included. The existing databases, GCS, Metabase, Grafana and retained integrations remain in use.

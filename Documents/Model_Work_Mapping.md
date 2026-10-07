@@ -15,6 +15,8 @@ Owner-maintained routing preferences for Dots, effective **2 October 2026 (Asia/
 
 ## Routing decisions
 
+- **Owner instruction, 7 October 2026:** Agent D uses **GPT-6 Astra / `gpt-6-astra` / Low / `low`** (Astra Light) for all future infrastructure and miscellaneous tasks in the current team. The main conversation manages direction, coordination, review and team issue resolution. A/B/C retain their [PWA responsibilities](PWA_Orchestration.md). This scoped override does not change unrelated chats or persistent services.
+
 - **R051 support override — owner instruction, 6 October 2026, 08:25:52 UTC:** use **GPT-6 Astra / `gpt-6-astra` / Low / `low`** (Astra Light) for this task's supporting verification, evidence and scoped read-only preflight work. This overrides the corresponding defaults only for the R051 continuation; other work categories retain the table above. Follow the same availability disclosure and supported-dispatch rules below.
 
 - This file selects model/effort preferences; it does not authorize delegation or agent contact. Obtain explicit owner approval for each named outside agent before contacting it or delegating work to it. Model names and task categories are not approval for an individual outside agent. Apply all destination-specific permission controls before dispatch.

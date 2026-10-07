@@ -1,5 +1,7 @@
 # Environment inventory
 
+**R052 checkpoint 2A, 7 October 2026:** Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent final smoke is in progress. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change. [Evidence](../outputs/r052-pwa/README.md).
+
 **7 October database source ownership:** canonical tooling moved to MW-Credit-App; live database identities/history are unchanged by this source-only transfer. [Handover](Database_Ownership_Transfer.md).
 
 **R051 production closure, 7 October 2026:** PROD OLTP **3.000270**, OLAP **1.100212**, both Deployed, saved and clear; DEV remains OLTP1.000206 / OLAP1.000056. Both databases are **V77**. Source corrections, retained reimbursement/assessment history, Lisa opening fallback and measured performance refinements are promoted. Native related lists and existing screens remain; the unused trial view is retired. All four RC definitions were deleted after read-only production validation; shared data/files/logos are preserved. R052 is the sole Open development release; independent R051 capture is complete. PR16 was merged into PR15 and its experimental branch retired. See [production evidence](../outputs/r051-production/README.md).

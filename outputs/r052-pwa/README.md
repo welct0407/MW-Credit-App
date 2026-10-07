@@ -2,7 +2,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: checkpoint 1A visually accepted by the owner on 7 October 2026 with “ok, continue the development as per your plan”. Checkpoint 1B implemented and independently verified with the same A/B/C roles; workers stopped for the next owner review. Acceptance covers the synthetic preview, not live authentication, business data or financial correctness.
+Status: Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent final smoke is in progress. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change.
 
 ## Scope
 
@@ -94,3 +94,9 @@ GitHub CI passed for app 3ec1ffc: [Development checks 37608585989](https://githu
 The owner found the record lines too faint. App a3d21d5ffe6219bb4ec1caa78cf7b52e6bfa2952 darkens the existing 1px borders: DEV #b86d32, PROD #b9577f, preserving card fills, typography and layout. A directed the palette, B changed the two CSS tokens and branding reference, C verified both themes at desktop/mobile list/detail. Actual color/contrast checks passed (minimum 3.345:1); no page overflow. Parent visually inspected the results. [Pinned screenshots and report](https://github.com/welct0407/MW-Credit-App/tree/a3d21d5ffe6219bb4ec1caa78cf7b52e6bfa2952/outputs/r052-phase1b). Branch publication verified; no phase advance or live deployment. All workers stopped for review.
 
 Separator revision a3d21d5 passed [GitHub CI 37609641961](https://github.com/welct0407/MW-Credit-App/actions/runs/37609641961). Preview remains available; no deployment or phase advance.
+
+## Checkpoint 2A — DEV authentication and Borrowers read
+
+Checkpoint 1B and darker separators accepted; checkpoint 2A source verified at app 18c3736 (72 unit, 2 mocked UI tests). DEV-only reader grants and separate read service created; owner-approved service-only Firebase authentication is applied; live frontend version c0872b1adcb4006f and corrected read revision00002-ln2 are deployed; independent final smoke is in progress. Real owner Google login/read and UID pin remain pending. Phase 2 is incomplete; no production, financial, schema or AppSheet change.
+
+[Design](checkpoint-2a-design.md). Application source/evidence belongs to MW-Credit-App branch codex/r052-review-shell, draft PR3. Reader has SELECT on seven Borrowers and two Partners columns in DEV only, read-only default and 5-second statement timeout; no PROD column grants. PUBLIC CONNECT remains unchanged. Service mw-credit-app-read-dev is Ready at revision mw-credit-app-read-dev-00001-kmk, with owner-approved service-only Firebase authentication; business routes reject unauthenticated requests. Existing private API is unchanged; live Hosting version c0872b1adcb4006f replaces the synthetic release, whose version 911d3a1e1883b92c is retained for rollback. D owns infrastructure/miscellaneous execution; the parent leads coordination and review.
