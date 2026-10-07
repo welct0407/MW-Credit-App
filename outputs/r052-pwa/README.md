@@ -4,7 +4,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: Checkpoint2C Collection board and borrower-scoped charge reads are implemented/tested/deployed from source168e3a2:92units,9disposable actual PostgreSQL tests,13affected browsers (1intentional skip), CI37641674603 passed. Exact11-column SELECT delta verified DEV37/PROD0/no table-write/schemaCREATE. API00006-kl5 and Hosting1fc4f23a66f185b8 retain persistent owner sign-in/UID pin. Final unsigned API and EN/Thai desktop/mobile smoke passed. Actual owner Collection validation pending. R052 Open, full Phase2 incomplete; stop at2C review.
+Status: Checkpoint2C refinements are deployed: stable header status, compact clickable charge rows/detail and provider-backed Upcoming summaries/details. Built app5efa533; corrected deployment-config validationb94c234 passed CI37646540641 after initial formatting failure.12providerSQL/7unit/4browser+2final checks passed. API00007-st5/Hosting7364ee7db2ffe012 retain owner UID and persistent sign-in. Exact access is37base+19view columns plus pure forecast EXECUTE in DEV, PROD0/no writes. Final unsigned API and EN/Thai desktop/mobile smoke passed; owner three-point review pending. R052 Open, full Phase2 incomplete.
 
 ## Scope
 

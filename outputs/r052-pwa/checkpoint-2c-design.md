@@ -103,3 +103,64 @@ C tests actual query semantics with isolated synthetic PostgreSQL fixtures where
 - EN/Thai desktop/mobile, long Loan Keys, non-overflowing neutral cards, route/parent/logout race protection, available/unavailable/empty/zero/negative displays. Existing persistent-auth behavior remains intact.
 
 No business ambiguity currently requires owner input. Remaining implementation prerequisites are D's final source/provider/privilege review, B's exact query implementation and C's independent checks. Current source semantics are recorded evidence; claim fresh AppSheet parity only if an actual targeted GUI comparison is subsequently performed.
+
+## Owner refinement — stable feedback, compact charges and upcoming summary
+
+This addendum supersedes the earlier exclusion of upcoming reads for this checkpoint only. Owner explicitly requested the addition after the initial 2C preview. Baselines supplied for this batch: application c5f76024730f6b3b181de5b339955fb84ee50167, PM b1a6dba4cce07f55e6ac42ec98bdd69f6d86ae9e. Existing unrelated DNS/layout-plan/progress edits are outside A/B/C ownership and must be preserved. Financial writes, receipt access, standalone portfolio forecast navigation and production remain excluded.
+
+### Presentation fixes
+
+Current OLTP Charges_Inline specifies Charge Date descending, Amount Remaining secondary and **Total Paid** summary. Therefore the compact actual-charge row contains only Charge date, Amount received (existing physical `totalPaid`, lifetime amount), and Amount remaining. Do not substitute `receivedToday`. Clicking the row opens a local detail view containing the already-authorized DTO's Loan Key, dates, payment status, Total paid, Received today and remaining. This introduces no new actual-charge endpoint or privilege. Preserve the page/read timestamp; a local click is not a fresh read. Back restores the charge page and scroll. Clear selected charge on parent/page/refresh/auth/error invalidation. Mobile uses a separate detail page; desktop replaces the detail pane.
+
+Replace the conditional Loading Collection paragraph above the grid with a permanently reserved status slot in the page header/toolbar. Reserve icon/text dimensions in idle/loading/completed/error states. Spinner plus Loading while the current request batch is pending; check plus Updated only after that batch succeeds; a distinct failure indication on error. Never signal payment completion. Use polite live status, aria-busy on the affected region, and a static icon under prefers-reduced-motion. Cancelled/stale responses cannot change the indicator. Selecting a borrower loads charges and upcoming summary within one generation; Updated waits for both, while a partial failure retains successful sibling content and offers a scoped retry. Header insertion/removal must not move the grid. Preserve existing typography, neutral surfaces and branding.
+
+### Current upcoming source, not a new calculation
+
+Latest governing AppSheet layout is R049, reflected in maintained production dictionary objects and `outputs/r049-upcoming-summary/HANDOVER.md`; its historical pre-promotion wording is superseded by current production dictionary evidence. Collection detail shows **Upcoming Charges Summary** after today's charges, then the issue-only note. It no longer displays the superseded R048 flat forecast list by default. The summary has exactly Date / Total Charge; tapping a date opens loan/amount/basis details.
+
+Read existing `public.oltp_upcoming_charge_summary_v2`, `public.oltp_upcoming_charge_events_v1` and `public.oltp_upcoming_charge_coverage_v1`. V54/V56 and the current Borrower Upcoming Summary/Borrower Upcoming 5 Dates slices govern membership:
+
+- First five distinct future due dates across every loan of the borrower, within the earlier of three calendar months and 93 days from the provider's Bangkok reporting date.
+- Include every loan on the fifth date; paginate events, never truncate that date to five loans or one page.
+- Existing recorded residuals take precedence; auto-charge-disabled loans contribute recorded settlement charges only. The existing forecast engine governs projected occurrences, paid amounts and review/unsupported schedule cases. Do not reproduce these rules in the browser or add new financial rows.
+- Summary Total Charge is the existing provider's aggregate, not a sum of the visible detail page. Source decimal precision is retained; upcoming amounts display whole baht, matching AppSheet.
+- Basis is explicit: Recorded / บันทึกแล้ว; Recorded settlement / รายการชำระที่บันทึกแล้ว; Recorded - review status / บันทึกแล้ว - ตรวจสอบสถานะ; Projected / คาดการณ์. Unknown basis is unavailable, never silently projected. The explanation that projected amounts assume scheduled principal is collected on its due date may be a short persistent section description; ordinary coverage diagnostics remain hidden.
+- `Review Loans > 0` yields the existing issue message: “Schedule data is incomplete or loan status needs review.” / “ข้อมูลตารางชำระไม่ครบถ้วนหรือสถานะสินเชื่อต้องตรวจสอบ”. Empty forecasts are allowed and can coexist with this warning. Normal auto-off/empty coverage does not become an error or verbose diagnostic.
+
+D verified DEV V77 metadata and matching V54/V56 history checksums. All three views are owned by postgres with default owner-rights relation permission checks. Their forecast function is pure JSON/date IMMUTABLE SECURITY INVOKER, with no business SQL writes; its pure daily_interest_basis dependency already has effective EXECUTE. olap_reporting_date uses CURRENT_TIMESTAMP in Asia/Bangkok, matching the request transaction date. Nonexistent-parent aggregate execution samples were below five seconds; this is not representative real-borrower latency proof.
+
+### Endpoints, scope and dates
+
+Add `GET /api/collection/:borrowerId/upcoming?businessDate=D` and `GET /api/collection/:borrowerId/upcoming/:dueDate?businessDate=D&limit=25&cursor=...`.
+
+Every request repeats verified owner/UID, unique Partner mapping, exact DEV identity and REPEATABLE READ READ ONLY. Reuse current Collection quality/membership logic for the parent, including hidden borrowers; no general Borrowers-directory bypass. Parent must currently have eligible Collection charges. Missing/nonmember parent returns generic 404, authorization failure clears all business state.
+
+D is required and validated as a real date in 0001..9999; malformed query is 400. Compare it with the current transaction's authoritative Bangkok business date; mismatch is 409 business_date_changed with no rows. Coverage must contain exactly one parent row and a valid horizon; missing/malformed coverage is 503. Coverage/provider As Of Date must match D; mixed dates yield 409 and a Collection refresh. Return current asOf/businessDate metadata. Do not combine yesterday's summary with today's details.
+
+Summary query selects the named summary V2 columns for this parent and D and requires an event with matching parent/date/as-of, Borrower Due Date Rank between 1 and 5, Due Date > D and Due Date <= Horizon End. Sort Due Date ascending. Return all at-most-five dates; if the provider violates that cap, report unavailable rather than silently truncating. No summary cursor is needed.
+
+Date detail first verifies the requested date is in that allowed summary. Query only matching parent, D, due date, rank/horizon event rows and join the existing Loans/Borrowers ownership chain for Loan Key. Order Ref Loan COLLATE C ascending, then event Row ID COLLATE C ascending. Default 25/max100; canonical cursor binds version, resource kind, parent, businessDate, dueDate, last loan ID and event ID. Reject cross-parent/date/kind cursors with 400. Preserve all events across pages. Source reads remain live per request; changing schedules can require a first-page refresh.
+
+Summary DTO: items {internal id, dueDate, totalCharge}, horizonEnd, reviewRequired and standard read metadata. Date-detail DTO: dueDate, totalCharge for the whole date, items {internal id, internal loanId, loanDisplayKey, principalRemaining, interestRemaining, amountRemaining, basis}, nextCursor and metadata. No raw IDs on screen. Null monetary values remain unavailable, never false zero. Unknown/invalid source dates, identifiers, basis or numeric encoding produce sanitized unavailable errors.
+
+Selecting a summary date opens the scoped detail list, with Back restoring borrower summary/scroll. Upcoming requests participate in the existing abort/generation boundary. 401/403 clears all; 409 clears Collection; parent 404 clears selected context; a missing selected future date clears that drilldown and offers summary refresh. A 503 clears failed child data, retains independently authorized sibling data and displays retry. Do not label estimates as booked charges or offer receiving/edit actions.
+
+### Exact additional permission plan
+
+D owns reviewed plan/application/recovery. Existing 37 base-column privileges remain unchanged. Required additional view-column SELECT only:
+
+- summary_v2 (5): Row ID, Ref Borrower, Due Date, Total Charge, As Of Date.
+- events_v1 (10): Row ID, Ref Borrower, Ref Loan, Due Date, Principal Remaining, Interest Remaining, Amount Remaining, Basis, As Of Date, Borrower Due Date Rank.
+- coverage_v1 (4): Ref Borrower, As Of Date, Horizon End, Review Loans.
+
+Also required: EXECUTE on the existing pure `public.forecast_schedule_v1(jsonb,jsonb,date,date)` only. No broader underlying table SELECT, full-view grant, mutating routine EXECUTE, PUBLIC grant, schema change or production access. D must verify effective runtime privileges and preserve exact prior ACL recovery before applying. New view ownership does not permit returning fields outside the DTO.
+
+### Acceptance additions
+
+C independently verifies stable grid/header geometry across loading/success/error and reduced-motion, stale-response suppression, compact actual-charge columns using Total Paid when it differs from receivedToday, local detail/back/page preservation, and mobile/desktop bilingual layouts. SQL tests use the existing providers or disposable migrations/fixtures to prove first-five distinct dates, all loans on the fifth date across multiple pages, exact summary/detail totals, recorded/projected and auto-off behavior, paid-date removal, empty/review coverage and the three-month/93-day boundary. Test hidden Collection parent, foreign parent/date/cursor rejection, denied access before business SQL, mixed/rolled-over Bangkok dates, unsupported basis/source data, nullable money, partial child failures and no writes. Do not claim AppSheet live GUI parity from saved definitions alone.
+
+Stop at this same refined 2C DEV visual checkpoint. D updates PWA_Progress at closeout and publishes only this task's intended files; unrelated pending edits remain excluded. Full Phase 2 completion and production acceptance are not implied.
+
+Coverage validation clarification: Review Loans must be a nonnull integer >= 0; Horizon End must equal the earlier of (D + interval '3 months')::date and D + 93, inclusive. Missing/malformed coverage is unavailable, not a genuine empty forecast. Valid coverage plus zero summary rows is empty; Review Loans > 0 still shows the issue. If a selected date disappears, clear only that drilldown and refresh the summary; a subsequent summary 404 establishes that the parent has left Collection and clears its context.
+
+Source-review refinement: the event view's Horizon End column is not used. Queries use the independently validated coverage horizon for the same transaction business date, so remove that unused privilege. Final delta is 19 view-column SELECT privileges (5 summary + 10 event + 4 coverage), taking 37 existing base columns to 56 total, plus the one pure forecast_schedule_v1 EXECUTE. No underlying table privilege is added. Reviewed source preserves first-five membership, whole-date provider totals, all fifth-date events through keyset pages, and the existing financial engine.

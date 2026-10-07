@@ -35,7 +35,7 @@ No production mutation, financial posting, scheduler switch or AppSheet cutover 
 
 ## Current checkpoint
 
-Checkpoint2A owner sign-in/Borrowers reads and refresh persistence are owner-validated. Owner authorized continuation to2C; Collection board/charge reads are now implemented, tested and deployed. Final unsigned smoke passed; owner Collection validation pending. See [overall progress](PWA_Progress.md) for current phase/review/next steps and [2C design](../outputs/r052-pwa/checkpoint-2c-design.md) for scope. Full Phase2 incomplete; stop at2C review.
+Checkpoint2C owner refinements (stable header status, compact charge detail and governed Upcoming Charges) are tested/deployed. Built5efa533 and corrected validationb94c234 are distinct; CI37646540641 passed. Final unsigned API and EN/Thai desktop/mobile smoke passed; owner three-point review pending. [Overall progress](PWA_Progress.md) owns the current status. Full Phase2 incomplete; stop at this review.
 
 ## Revised reporting order
 
