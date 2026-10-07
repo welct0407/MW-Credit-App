@@ -12,7 +12,8 @@ resource "google_identity_platform_config" "dev" {
   project  = local.project
   authorized_domains = [
     "clever-oasis-508610-n7.firebaseapp.com",
-    "mw-credit-app-dev-737787224638.web.app"
+    "mw-credit-app-dev-737787224638.web.app",
+    "dev-lm.mw-credit.com"
   ]
   sign_in {
     allow_duplicate_emails = false

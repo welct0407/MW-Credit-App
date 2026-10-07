@@ -41,7 +41,7 @@ resource "google_cloud_run_v2_service" "read_api" {
           DB_NAME                  = "loan_manager_dev"
           INSTANCE_CONNECTION_NAME = "${local.project}:${local.region}:${local.instance}"
           DB_USER                  = google_sql_user.read_runtime.name
-          ALLOWED_WEB_ORIGIN       = "https://${google_firebase_hosting_site.dev.site_id}.web.app"
+          ALLOWED_WEB_ORIGINS      = jsonencode(["https://${google_firebase_hosting_site.dev.site_id}.web.app", "https://dev-lm.mw-credit.com"])
           OWNER_IDENTITY_MODE      = var.owner_identity_mode
         }
         content {

@@ -7,10 +7,11 @@ export function createDevReadHandler({ config, verifyPrincipal, store }) {
     res.setHeader('Vary', 'Origin');
     const send = (status, value) => { res.statusCode = status; res.end(JSON.stringify(value)); };
     const origin = req.headers.origin;
-    if (origin && origin !== config.origin) return send(403, { ok: false, code: 'origin_denied' });
-    if (origin === config.origin) res.setHeader('Access-Control-Allow-Origin', config.origin);
+    const allowedOrigin = typeof origin === 'string' && config.origins.includes(origin);
+    if (origin !== undefined && !allowedOrigin) return send(403, { ok: false, code: 'origin_denied' });
+    if (allowedOrigin) res.setHeader('Access-Control-Allow-Origin', origin);
     if (req.method === 'OPTIONS') {
-      if (origin !== config.origin || req.headers['access-control-request-method'] !== 'GET' || (req.headers['access-control-request-headers'] || '').split(',').some(header => header.trim() && header.trim().toLowerCase() !== 'authorization')) return send(403, { ok: false, code: 'origin_denied' });
+      if (!allowedOrigin || req.headers['access-control-request-method'] !== 'GET' || (req.headers['access-control-request-headers'] || '').split(',').some(header => header.trim() && header.trim().toLowerCase() !== 'authorization')) return send(403, { ok: false, code: 'origin_denied' });
       res.setHeader('Access-Control-Allow-Methods', 'GET'); res.setHeader('Access-Control-Allow-Headers', 'Authorization');
       return send(204, undefined);
     }
