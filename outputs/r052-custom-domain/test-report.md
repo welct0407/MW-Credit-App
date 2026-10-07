@@ -21,3 +21,11 @@ One focused browser case passed at1024×900,768×900 and640×900 with touch emul
 C-owned edits: tests/unit/dev-origins.test.mjs (two independent additions), tests/e2e/responsive-gaps.spec.ts and this output folder. B owns its other fixture migrations; D owns infrastructure, DNS/certificate, documentation and publication. No live DNS/grant/API mutation by C. Source is ready for exact-commit CI and deployment checks.
 
 Pending D delivery: confirm new-domain HTTPS/certificate/current release and fallback remains available, exact live CORS and unsigned desktop/mobile EN/Thai UI. Actual owner Google sign-in/read/refresh/sign-out on the new origin is separate owner validation; no token/session copying between hosts.
+
+## Deployed API origin boundary
+
+Exact source838561430faefdbf128ea2e802992e590e6352b6 [CI37660003633 passed](https://github.com/welct0407/MW-Credit-App/actions/runs/37660003633). D deployed paired image/JSON origin configuration as mw-credit-app-read-dev-00009-5x5.
+
+13 bounded live HTTP checks passed: both permitted Origin values receive their own exact CORS echo with unsigned401/invalid synthetic bearer401 and valid GET/Authorization preflight204; null/trailing slash/explicit443/suffixlookalike origins return403 without CORS echo; no-Origin unsigned/invalid bearer remain401; POST returns405. All responses retain Vary:Origin and no-store, with no credential CORS. Evidence: live-api-origins.json.
+
+This establishes API handling of the Origin header only. It does not establish new-host DNS, certificate, HTTPS or authenticated owner access. DNS delivery remains pending. Unchanged fallback Hostingdacf7a53b31f09b0 reuses its preceding fresh signed-out EN/Thai evidence; no duplicate browser run was needed for this API-only delivery. No real token, owner session or business record was accessed. C evidence frozen pending later domain-readiness handoff.

@@ -28,7 +28,7 @@ Required fixed runtime settings:
 | DB_NAME | loan_manager_dev |
 | INSTANCE_CONNECTION_NAME | clever-oasis-508610-n7:asia-southeast1:appsheet-pg-prod-20260914 |
 | DB_USER | mw-credit-app-read-dev@clever-oasis-508610-n7.iam |
-| ALLOWED_WEB_ORIGIN | https://mw-credit-app-dev-737787224638.web.app |
+| ALLOWED_WEB_ORIGINS | JSON array of exact https://mw-credit-app-dev-737787224638.web.app and https://dev-lm.mw-credit.com |
 | OWNER_IDENTITY_MODE | email-bootstrap or uid-pinned |
 | OWNER_FIREBASE_UID | Required nonblank in uid-pinned mode; supplied privately |
 
@@ -100,3 +100,5 @@ Collection refinement (deployed): header status avoids content shifts; compact c
 Compact-shell/latency follow-up (deployed API00008-9fw/Hosting49547c853832dd36): main-header request status, expandable desktop navigation, sticky mobile header and null-payment-date omission preserve the read-only flow. Upcoming source consolidates the snapshot and supplies bounded same-session first-page previews; no business-data persistent cache is introduced. Paired operator source timing showed fresh detail7-to5queries and842-to552ms in one sample; initialsummary491-to483ms, with cache/order caveats and no HTTP/auth/coldstart claim. Existing provider/grant boundaries unchanged.
 
 Mobile navigation frontend refinement (8 October): Hosting dacf7a53b31f09b0 serves exact source d959e6f, verified by CI37656348383. Mobile uses a compact icon-status header, menu account controls and Borrowers/Collection bottom navigation; desktop keeps sidebar navigation. Future five-view selection is deferred. API00008-9fw/auth/database unchanged; rollback Hosting49547c853832dd36. Owner visual acceptance remains pending.
+
+Checkpoint2D: source8385614/CI37660003633 deployed API00009-5x5 with exact two-origin JSON configuration. Legacy singular configuration is rejected, so rollback pairs old image with old environment (or new image with fallback-only JSON). Firebase authDomain remains clever-oasis-508610-n7.firebaseapp.com; new hostname requires its own initial sign-in. Managed domain mapping exists; DNS/TLS awaits privately provisioned Cloudflare zone-DNS token in mw-credit-app-dev-cloudflare-dns-token. Token must be injected transiently, never Terraform state/repo/browser output. Hostingdacf7a53b31f09b0 remains unchanged.
