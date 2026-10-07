@@ -2,7 +2,7 @@
 
 **Last updated:** 7 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. We are at checkpoint 2B within Phase 2. The DEV application can read borrowers and related loans; it cannot yet perform financial transactions. AppSheet continues operating in parallel.
+**Current position:** R052 is Open. The owner authorized continuation to bounded checkpoint 2C within Phase 2; exact Collection read semantics are being designed. The DEV application can read borrowers and related loans; it cannot yet perform financial transactions. AppSheet continues operating in parallel.
 
 [Open DEV app](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
@@ -24,7 +24,7 @@ Business records are fetched afresh and kept in memory. Offline records/drafts, 
 | --- | --- | --- |
 | 0 | Development infrastructure and database ownership | Complete for recorded scope |
 | 1 | Full feature coverage, contracts and acceptance criteria | In progress; initial checkpoints accepted, full parity inventory still open |
-| 2 | Secure application foundation and first read flows | In progress; 2A complete, 2B deployed with visual review pending |
+| 2 | Secure application foundation and first read flows | In progress; 2A complete, 2B deployed, 2C design authorized; separate neutral visual acceptance not recorded |
 | 3 | Production infrastructure and delivery readiness | Not started |
 | 4 | First complete financial workflow in DEV | Not started |
 | 5 | Complete mobile/desktop OLTP, including full loan management | Not started |
@@ -41,9 +41,9 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 ## Review needed and what comes next
 
 - **Owner review now:** confirm the current neutral styling, group headers, desktop pane balance and related-loan navigation. Refresh persistence is already owner-confirmed; that does not accept the whole phase.
-- **Recommended next checkpoint, awaiting go-ahead:** finish the current 2B visual review, then have Agent A define a bounded remaining Phase 2 read slice. Collection eligibility/status formulas must be reconciled before any live Collection implementation; no next slice is authorized by this progress record.
+- **Authorized next checkpoint:** the owner said “ok, continue.” Agent A is defining checkpoint 2C Collection read semantics. Reconcile exact eligibility/status formulas and source/permission boundaries before implementation; grants and deployment wait for reviewed contract and tests. Stop at the next bounded owner checkpoint.
 - **Remaining planning work:** close Phase 1 feature/parity and acceptance gaps alongside agreed slices. Production readiness and financial workflows follow the roadmap dependencies, not completion of this UI review alone.
-- **Current blockers:** no unresolved implementation failure reported for the delivered persistence follow-up. Owner visual review and the next scoped design/go-ahead remain outstanding.
+- **Current blockers:** no unresolved implementation failure reported for the delivered persistence follow-up. The exact 2C contract is pending design review; no new grant or deployment has occurred. Continuation does not imply explicit acceptance of every prior visual detail.
 
 ## Evidence and session updates
 
