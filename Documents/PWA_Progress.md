@@ -2,7 +2,7 @@
 
 **Last updated:** 7 October 2026 (Asia/Bangkok)
 
-**Current position:** R052 is Open. Checkpoint2C compact-shell and Upcoming-preview refinements are tested and deployed; owner visual/perceived-speed review pending. Borrowers, related loans, Collection and Upcoming are read-only; AppSheet continues in parallel.
+**Current position:** R052 is Open. The deployed checkpoint2C shell/Upcoming preview remains available. The owner requested a further UI-only refinement: compact mobile header, icon status, account controls in the menu and bottom navigation for the two current frequent views (Borrowers and Collection). Implementation and 15 relevant browser checks passed (1 intentional skip); source publication/CI and Hosting delivery are pending after GitHub server push errors. Selection of five future frequent views is deferred. Existing read-only flows and AppSheet continue in parallel.
 
 [Open DEV app](https://mw-credit-app-dev-737787224638.web.app) · [Detailed roadmap](PWA_Implementation_Plan.md) · [Checkpoint evidence](../outputs/r052-pwa/README.md)
 
