@@ -1,0 +1,87 @@
+{
+  "mode": "operator EXPLAIN only; not reader impersonation or execution latency",
+  "businessRowsReturned": 0,
+  "scenarios": [
+    "summary",
+    "first detail",
+    "next detail"
+  ],
+  "results": [
+    {
+      "invocation": 1,
+      "planned": true
+    },
+    {
+      "invocation": 2,
+      "planned": true
+    },
+    {
+      "invocation": 3,
+      "planned": true
+    },
+    {
+      "invocation": 4,
+      "planned": true
+    },
+    {
+      "invocation": 5,
+      "planned": true
+    },
+    {
+      "invocation": 6,
+      "planned": true
+    },
+    {
+      "invocation": 7,
+      "planned": true
+    },
+    {
+      "invocation": 8,
+      "planned": true
+    },
+    {
+      "invocation": 9,
+      "planned": true
+    },
+    {
+      "invocation": 10,
+      "planned": true
+    },
+    {
+      "invocation": 11,
+      "planned": true
+    },
+    {
+      "invocation": 12,
+      "planned": true
+    },
+    {
+      "invocation": 13,
+      "planned": true
+    },
+    {
+      "invocation": 14,
+      "planned": true
+    },
+    {
+      "invocation": 15,
+      "planned": true
+    },
+    {
+      "invocation": 16,
+      "planned": true
+    },
+    {
+      "invocation": 17,
+      "planned": true
+    },
+    {
+      "invocation": 18,
+      "planned": true
+    },
+    {
+      "invocation": 19,
+      "planned": true
+    }
+  ]
+}

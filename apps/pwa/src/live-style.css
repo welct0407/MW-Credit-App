@@ -64,3 +64,24 @@
 .collection-charge dl > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 8px 0; }
 .collection-charge dd { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
 .collection-grid .list-panel > .live-freshness { padding: 0 22px; }
+.collection-update { display: flex; align-items: center; gap: 9px; min-width: 180px; min-height: 44px; font-size: 14px; }
+.collection-spinner, .collection-update-icon { display: inline-block; flex: 0 0 18px; width: 18px; height: 18px; line-height: 18px; text-align: center; }
+.collection-spinner { border: 2px solid #aaa; border-top-color: #333; border-radius: 50%; }
+@media (prefers-reduced-motion: no-preference) { .collection-spinner { animation: collection-spin 0.8s linear infinite; } }
+@keyframes collection-spin { to { transform: rotate(360deg); } }
+.collection-charge-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; width: 100%; text-align: left; background: #fff; border: 0; border-bottom: 1px solid var(--border-tint); }
+.collection-charge-row:hover { background: var(--surface-selected); }
+.collection-charge-row > span { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.collection-charge-row span span { font-size: 14px; color: #565656; }
+.collection-charge-row strong { font-size: 16px; overflow-wrap: anywhere; }
+.collection-charge-detail h3 { font-size: 18px; overflow-wrap: anywhere; }
+.collection-charge-detail dl > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-tint); }
+.collection-charge-detail dt { font-size: 14px; color: #565656; }
+.collection-charge-detail dd { margin: 0; font-size: 16px; }
+.upcoming-charges { margin-top: 24px; }
+.upcoming-date-row { display: flex; justify-content: space-between; gap: 20px; width: 100%; padding: 16px 0; border: 0; border-bottom: 1px solid var(--border-tint); background: #fff; text-align: left; }
+.upcoming-date-row:hover { background: var(--surface-selected); }
+.upcoming-date-row > span { display: flex; flex-direction: column; gap: 6px; }
+.upcoming-date-row span span { font-size: 14px; color: #565656; }
+.upcoming-date-row strong { font-size: 16px; }
+.upcoming-refresh { margin-top: 16px; }

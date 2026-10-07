@@ -16,6 +16,13 @@ COLUMNS = {
     'Repayments': ['Ref Charges', 'Payment Date', 'Principal Paid', 'Interest Paid'],
     'Loans': ['Row ID', 'Ref Borrowers', 'Loan Date', 'Due Date', 'Close Date', 'Loan Type', 'Loan Status', 'Principal Amount', 'Outstanding Principal', 'Total Principal Received', 'Total Interest Received', 'Total Amount Received', 'Defaulted', 'Auto Charge Enabled', 'Original Daily Interest Rate'],
 }
+VIEW_COLUMNS = {
+    'oltp_upcoming_charge_summary_v2': ['Row ID', 'Ref Borrower', 'Due Date', 'Total Charge', 'As Of Date'],
+    'oltp_upcoming_charge_events_v1': ['Row ID', 'Ref Borrower', 'Ref Loan', 'Due Date', 'Principal Remaining', 'Interest Remaining', 'Amount Remaining', 'Basis', 'As Of Date', 'Borrower Due Date Rank'],
+    'oltp_upcoming_charge_coverage_v1': ['Ref Borrower', 'As Of Date', 'Horizon End', 'Review Loans'],
+}
+COLUMNS.update(VIEW_COLUMNS)
+FUNCTION = 'public.forecast_schedule_v1(jsonb,jsonb,date,date)'
 PRIVATE = Path(r'C:/Users/MWCredit/Documents/ChatGPT/MW-Credit-App')
 
 def inspect(conn):
@@ -43,7 +50,8 @@ def inspect(conn):
     creates = conn.execute("SELECT count(*) FROM pg_namespace WHERE nspname NOT IN ('pg_catalog','information_schema') AND nspname !~ '^pg_' AND has_schema_privilege(%s,oid,'CREATE')", (ROLE,)).fetchone()[0]
     if writable or column_writes or creates:
         raise RuntimeError('Unexpected write or schema-create privilege')
-    return {'role': ROLE, 'memberships': members, 'readableColumns': readable, 'businessWritePrivileges': 0, 'businessSchemaCreatePrivileges': 0}
+    function_execute = conn.execute("SELECT has_function_privilege(%s,%s,'EXECUTE')", (ROLE, FUNCTION)).fetchone()[0]
+    return {'functionExecute': function_execute, 'role': ROLE, 'memberships': members, 'readableColumns': readable, 'businessWritePrivileges': 0, 'businessSchemaCreatePrivileges': 0}
 
 def recovery_guide(recovery):
     """Operator recovery aid, not an automatic ACL replay or permission to roll back."""
@@ -70,13 +78,14 @@ def recovery_guide(recovery):
             'Open a transaction against the recorded DEV host/database and verify current_database(), inet_server_addr() and the exact existing IAM role. Never replay this snapshot against PROD.',
             'Take a fresh private ACL/settings snapshot and compare it with this pre-change snapshot and the recorded planned statements (the snapshot itself does not establish that apply committed). If unrelated grants, grantors, role membership or settings changed, reconcile them before proceeding; do not overwrite them.',
             'For this role only, undo the added CONNECT on loan_manager_dev, USAGE on public, and SELECT on the listed approved columns only where the corresponding direct privilege did not already exist in this snapshot. Use REVOKE with RESTRICT (never CASCADE). Preserve existing privileges, grant options, grantor provenance, table-level grants and PUBLIC/inherited privileges. Do not restore entire raw ACL arrays or revoke from other roles.',
+            'Undo only function EXECUTE introduced by this batch where prior effective access was false. Revoke only from this reader with RESTRICT; preserve PUBLIC/inherited access and other grantors. Use captured functionAcl/functionEffectiveAcl as evidence, never replay entire ACL arrays.',
             'Execute restoreSettingsSql below only for database-local settings actually changed by this batch (the list is empty when settings were preserved). A missing prior setting means RESET, not ALTER ROLE RESET ALL. Preserve all other settings and global role defaults.',
             'Compare the scoped role privileges and settings with this snapshot, run the same non-elevated-role and no-business-write checks, then commit. On mismatch or failure roll back the transaction. Retain both snapshots and only resume the read service if its required access remains appropriate.'
         ],
         'restoreSettingsSql': setting_sql,
         'privilegeScope': {'database': {'loan_manager_dev': ['CONNECT']},
                            'schema': {'public': ['USAGE']},
-                           'columnSelect': COLUMNS},
+                           'columnSelect': COLUMNS, 'functionExecute': [FUNCTION]},
     }
 
 
@@ -100,6 +109,8 @@ def run(apply):
             missing = [col for col in columns if ('public', table, col) not in existing]
             if missing:
                 statements.append(sql.SQL('GRANT SELECT ({}) ON TABLE public.{} TO {}').format(sql.SQL(', ').join(map(sql.Identifier, missing)), sql.Identifier(table), sql.Identifier(ROLE)))
+        if not before['functionExecute']:
+            statements.append(sql.SQL('GRANT EXECUTE ON FUNCTION public.forecast_schedule_v1(jsonb,jsonb,date,date) TO {}').format(sql.Identifier(ROLE)))
         current_settings = {}
         for row in conn.execute('SELECT setconfig FROM pg_db_role_setting WHERE setrole=(SELECT oid FROM pg_roles WHERE rolname=%s) AND setdatabase=(SELECT oid FROM pg_database WHERE datname=current_database())', (ROLE,)):
             for setting in row[0] or []:
@@ -112,7 +123,7 @@ def run(apply):
         if apply:
             stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
             recovery = dict(before)
-            recovery['formatVersion'] = 1
+            recovery['formatVersion'] = 2
             recovery['capturedAt'] = datetime.now(timezone.utc).isoformat()
             recovery['target'] = {'instance': target['instance'], 'host': target['host'], 'port': target['port'], 'database': target['database']}
             recovery['operator'] = conn.execute('SELECT current_user').fetchone()[0]
@@ -121,6 +132,8 @@ def run(apply):
             recovery['schemaAcl'] = conn.execute("SELECT nspacl::text FROM pg_namespace WHERE nspname='public'").fetchone()[0]
             recovery['columnAcls'] = conn.execute("SELECT c.relname,a.attname,a.attacl::text FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace JOIN pg_attribute a ON a.attrelid=c.oid WHERE n.nspname='public' AND c.relname=ANY(%s) AND a.attnum>0 AND NOT a.attisdropped ORDER BY 1,2", (list(COLUMNS),)).fetchall()
             recovery['tableAcls'] = conn.execute("SELECT relname,relacl::text FROM pg_class WHERE relnamespace='public'::regnamespace AND relname=ANY(%s)", (list(COLUMNS),)).fetchall()
+            recovery['functionAcl'] = conn.execute('SELECT oid::regprocedure::text,pg_get_userbyid(proowner),proacl::text FROM pg_proc WHERE oid=%s::regprocedure', (FUNCTION,)).fetchone()
+            recovery['functionEffectiveAcl'] = conn.execute("SELECT x.grantor,x.grantee,x.privilege_type,x.is_grantable FROM pg_proc p CROSS JOIN LATERAL aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) x WHERE p.oid=%s::regprocedure", (FUNCTION,)).fetchall()
             recovery['settings'] = conn.execute('SELECT setconfig FROM pg_db_role_setting WHERE setrole=(SELECT oid FROM pg_roles WHERE rolname=%s) AND setdatabase=(SELECT oid FROM pg_database WHERE datname=current_database())',(ROLE,)).fetchall()
             recovery['recoveryGuide'] = recovery_guide(recovery)
             PRIVATE.mkdir(parents=True,exist_ok=True)
@@ -130,6 +143,8 @@ def run(apply):
             after=inspect(conn)
             if len(after['readableColumns']) != sum(map(len,COLUMNS.values())):
                 raise RuntimeError('Incomplete column-grant verification')
+            if not after['functionExecute']:
+                raise RuntimeError('Missing approved function EXECUTE')
             result = {'mode':'applied','database':'loan_manager_dev','recoveryPath':str(recovery_path),'verification':after}
         else:
             result = {'mode':'plan','database':'loan_manager_dev','before':before,'statements':[s.as_string(conn) for s in statements]}

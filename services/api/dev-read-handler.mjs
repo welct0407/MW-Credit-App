@@ -22,6 +22,16 @@ export function createDevReadHandler({ config, verifyPrincipal, store }) {
       if (!principal.ok) return send(principal.status, { ok: false, code: principal.code });
       let result;
       if (url.pathname === '/api/session') { result = await store.session(principal.email); if (result.ok) result = { ...result, subject: principal.subject }; }
+      else if (/^\/api\/collection\/[^/]+\/upcoming(?:\/[^/]+)?$/.test(url.pathname)) {
+        const parts = url.pathname.split('/');
+        let borrowerId, dueDate;
+        try { borrowerId = decodeURIComponent(parts[3]); dueDate = parts.length === 6 ? decodeURIComponent(parts[5]) : null; }
+        catch { return send(400, { ok: false, code: 'invalid_request' }); }
+        const allowed = dueDate ? ['businessDate', 'limit', 'cursor'] : ['businessDate'];
+        const rawLimit = url.searchParams.get('limit');
+        if ([...url.searchParams.keys()].some(key => !allowed.includes(key) || url.searchParams.getAll(key).length !== 1) || url.searchParams.getAll('businessDate').length !== 1 || (rawLimit !== null && !/^\d+$/.test(rawLimit))) return send(400, { ok: false, code: 'invalid_request' });
+        result = await store.getCollectionUpcoming(principal.email, borrowerId, { businessDate: url.searchParams.get('businessDate'), dueDate, limit: rawLimit === null ? 25 : Number(rawLimit), cursor: url.searchParams.get('cursor') });
+      }
       else if (url.pathname === '/api/collection' || /^\/api\/collection\/[^/]+\/charges$/.test(url.pathname)) {
         const rawLimit = url.searchParams.get('limit');
         if ([...url.searchParams.keys()].some(key => !['limit', 'cursor'].includes(key)) || url.searchParams.getAll('limit').length > 1 || url.searchParams.getAll('cursor').length > 1 || (rawLimit !== null && !/^\d+$/.test(rawLimit))) return send(400, { ok: false, code: 'invalid_request' });

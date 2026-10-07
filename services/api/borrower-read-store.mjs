@@ -1,3 +1,4 @@
+import { readUpcoming, validUpcomingDate, decodeUpcomingCursor } from './upcoming-read-contract.mjs';
 import { readCollection, decodeCollectionCursor } from './collection-read-contract.mjs';
 import { loanColumns, validLoanId, projectLoan, encodeLoanCursor, decodeLoanCursor, loanRankSql, borrowerDisplayName } from './loan-read-contract.mjs';
 const borrowerRankSql = 'CASE WHEN "Has Active Loan" IS TRUE THEN 0 WHEN "Has Active Loan" IS FALSE THEN 1 ELSE 2 END';
@@ -58,6 +59,16 @@ export function createBorrowerReadStore({ pool, config, now = () => new Date() }
       finally { client?.release(); }
     },
     session: email => run(email, async () => ({ permission: 'oltp.read', scope: 'borrowers-related-loans-and-collection' })),
+    getCollectionUpcoming: (email, borrowerId, { businessDate, dueDate = null, limit = 25, cursor = null } = {}) => {
+      if (!validId(borrowerId)) return Promise.resolve({ ok: false, status: 404, code: 'not_found' });
+      let after;
+      try {
+        if (!validUpcomingDate(businessDate) || (dueDate !== null && !validUpcomingDate(dueDate)) || !Number.isInteger(limit) || limit < 1 || limit > 100 || (!dueDate && cursor)) throw new Error();
+        after = dueDate ? decodeUpcomingCursor(cursor, borrowerId, businessDate, dueDate) : null;
+      } catch { return Promise.resolve({ ok: false, status: 400, code: 'invalid_request' }); }
+      return run(email, client => readUpcoming(client, { borrowerId, businessDate, dueDate, limit, after }), true)
+        .then(result => result.collectionError ? { ok: false, status: result.collectionStatus, code: result.collectionError } : result);
+    },
     listCollection: (email, { limit = 25, cursor = null } = {}) => {
       let after;
       try { after = decodeCollectionCursor(cursor, 'collection'); if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error(); }
