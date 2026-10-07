@@ -29,3 +29,5 @@ C-owned files: tests/e2e/persistence.spec.ts, tests/e2e/fixtures/firebase-test-b
 ## Deployed unsigned verification
 
 Exact source11c91c2f952ade53265f8bc41cf3f5a160399a97 CI passed https://github.com/welct0407/MW-Credit-App/actions/runs/37636993134 . Hosting922b3ab61894b240 passed fresh signed-out1440×900 and390×844 EN/Thai checks, including reload retaining signed-out state. Zero borrower/loan records, API requests or horizontal overflow. Evidence: live-hosting.json and four live signed-out screenshots here. No Google login, actual owner session or backend probe was performed. Real owner remembered-session refresh/browser-reopen confirmation remains pending. Final tester evidence frozen for D publication.
+
+Owner validation received: 'Yes-refresh keeps me signed in' after the deployed sign-in/refresh/borrower-list check. This confirms actual owner refresh persistence only; full browser reopen remains synthetic-SDK evidence. Neutral visual approval and full Phase2 acceptance are not implied. Persistence follow-up complete.

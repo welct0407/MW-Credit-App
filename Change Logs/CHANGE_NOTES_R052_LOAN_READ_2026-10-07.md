@@ -55,3 +55,5 @@ Actual-SDK verification exposed the default IndexedDB-to-LOCAL transition retain
 Persistence deployment: exact11c91c2f952ade53265f8bc41cf3f5a160399a97 passed CI37636993134 and managed-config build. Hosting922b3ab61894b240/release1791383539803000 deployed; rollback e112e2801d7ff306. API00005-wn4/backend/DB/IAM unchanged; no real tokens/auth stores saved. Final unsigned smoke and actual owner refresh confirmation pending.
 
 Final C signed-out desktop/mobile EN/Thai smoke including reload passed on922b3ab61894b240, with zero records/API requests/overflow. No live owner login or backend probes repeated. Evidence outputs/r052-auth-persistence/live-hosting.json and synthetic/unsigned report is complete. Actual owner Google refresh/reopen confirmation remains pending; delivery complete and agents stop.
+
+Owner validation received: 'Yes-refresh keeps me signed in' after the deployed sign-in/refresh/borrower-list check. This confirms actual owner refresh persistence only; full browser reopen remains synthetic-SDK evidence. Neutral visual approval and full Phase2 acceptance are not implied. Persistence follow-up complete.
