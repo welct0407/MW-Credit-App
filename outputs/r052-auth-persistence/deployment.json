@@ -1,0 +1,10 @@
+{
+  "hostingRelease": "1791383539803000",
+  "source": "11c91c2f952ade53265f8bc41cf3f5a160399a97",
+  "ciResult": "success",
+  "backendChanged": false,
+  "rollbackHostingVersion": "e112e2801d7ff306",
+  "hostingVersion": "922b3ab61894b240",
+  "realOwnerRefresh": "pending",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37636993134"
+}

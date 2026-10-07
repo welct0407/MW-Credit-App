@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-10-07T14:33:06.410Z",
+  "hostingVersion": "922b3ab61894b240",
+  "scope": "Fresh unsigned contexts; no owner login/backend probes",
+  "ci": {
+    "source": "11c91c2f952ade53265f8bc41cf3f5a160399a97",
+    "url": "https://github.com/welct0407/MW-Credit-App/actions/runs/37636993134",
+    "conclusion": "success"
+  },
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "apiRequests": 0,
+      "records": 0,
+      "overflow": false,
+      "signedOutAfterReload": true,
+      "englishAndThai": true
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "apiRequests": 0,
+      "records": 0,
+      "overflow": false,
+      "signedOutAfterReload": true,
+      "englishAndThai": true
+    }
+  ]
+}
