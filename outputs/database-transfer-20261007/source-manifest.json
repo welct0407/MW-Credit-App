@@ -1346,6 +1346,10 @@
     {
       "path": "scripts/analysis/verify_matrix_plot.py",
       "sha256": "1c84f9c98f17b0e8d2a1467749ef1a93f1441d0e24015820186ef74961e93b60"
+    },
+    {
+      "path": "scripts/analysis/simulate_schedule_consistency.py",
+      "sha256": "96e5f1be15b6c9e4afc55b668013b799370d1779ea00f526a2028482ac065af2"
     }
   ]
 }

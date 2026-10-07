@@ -2,7 +2,6 @@
   "management_repository_adapters": [
     "scripts/analysis/borrower_matrix_capture.py",
     "scripts/analysis/check_payment_health_promotion.py",
-    "scripts/analysis/simulate_schedule_consistency.py",
     "scripts/analysis/validate_payment_health_sql.py",
     "scripts/analysis/verify_borrower_dependencies.py",
     "scripts/analysis/verify_borrower_health_card.py",
@@ -41,6 +40,7 @@
     "scripts/dictionary/capture_postgresql.py",
     "scripts/analysis/verify_borrower_pages.py",
     "scripts/analysis/verify_schedule_health.py",
-    "scripts/analysis/verify_matrix_plot.py"
+    "scripts/analysis/verify_matrix_plot.py",
+    "scripts/analysis/simulate_schedule_consistency.py"
   ]
 }

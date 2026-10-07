@@ -4,7 +4,7 @@ MW-Credit-App is the sole owner of the shared loan database migrations, promotio
 
 ## Preserved package and interfaces
 
-Transferred 77 migrations (V1–V77), the database configuration/tool pins/runbook, scripts/database, database CI and four directly required database support modules. The source is AppSheet-Loan-Project commit a1cf24ccda21c6dde74edec19e9a792fd5dc2715, which includes the newer R051/V77 closure. The older local design checkout was not used as the database source.
+Transferred 77 migrations (V1–V77), the database configuration/tool pins/runbook, scripts/database, database CI and five directly required database support modules. The source is AppSheet-Loan-Project commit a1cf24ccda21c6dde74edec19e9a792fd5dc2715, which includes the newer R051/V77 closure. The older local design checkout was not used as the database source.
 
 [Source manifest](../outputs/database-transfer-20261007/source-manifest.json) records every imported file's original SHA256. Migration bytes and database/.gitattributes are preserved. Other transferred files may receive documented path/ownership updates. Git history stays available in the original repository; this transfer does not rewrite history.
 
@@ -29,7 +29,7 @@ Existing external credential/backup paths containing AppSheet-Loan-Project are i
 
 ## Retained consumers
 
-Four small compatibility entry points in the old repository forward to the canonical support modules here. Other retained Python/JavaScript helpers use its database_location.py/database-location.mjs adapters to read this database package, while keeping their management outputs in the old repository. Set MW_CREDIT_APP_ROOT to the absolute new checkout when repositories are not adjacent (including managed worktrees). There is no second SQL migration copy or live runner in the management repository.
+Five small compatibility entry points in the old repository forward to the canonical support modules here. Other retained Python/JavaScript helpers use its database_location.py/database-location.mjs adapters to read this database package, while keeping their management outputs in the old repository. Set MW_CREDIT_APP_ROOT to the absolute new checkout when repositories are not adjacent (including managed worktrees). There is no second SQL migration copy or live runner in the management repository.
 
 Release-specific helpers are dated tools, not generally reusable operations. Their historical inputs/outputs remain in the project-management repository or private storage; review their pinned assumptions and paths before reuse. In particular, historical dictionary-generation scripts target frozen artifacts and must not be replayed automatically. No such dated live helper was executed to test the move.
 
