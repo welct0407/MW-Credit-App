@@ -8,9 +8,10 @@
   "priorRecordsPreserved": 12,
   "added": 2,
   "deleted": 0,
-  "tls": "pending initial certificate validation",
+  "tls": "CERT_VALIDATING; normal TLS not ready at2026-10-07T17:47:35Z",
   "managedRecords": [
     "dev-lm.mw-credit.com CNAME",
     "_acme-challenge.dev-lm.mw-credit.com TXT"
-  ]
+  ],
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37661452636"
 }

@@ -1,0 +1,10 @@
+{
+  "checkedUtc": "2026-10-07T17:47:35.6831391Z",
+  "domain": "dev-lm.mw-credit.com",
+  "host": "HOST_UNHOSTED",
+  "ownership": "OWNERSHIP_MISSING",
+  "certificate": "CERT_VALIDATING",
+  "issues": null,
+  "httpsVerified": false,
+  "httpsFailure": "normal TLS handshake not established; validation not bypassed"
+}
