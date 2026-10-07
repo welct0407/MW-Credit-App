@@ -1,0 +1,23 @@
+{
+  "status": "complete",
+  "source_merge": "91120513bed10851baec4660a72a80849b371574",
+  "destination_merge": "17fab31986efd97bae3ebfbd8d75b4df93736400",
+  "source_pr": "https://github.com/welct0407/AppSheet-Loan-Project/pull/18",
+  "destination_pr": "https://github.com/welct0407/MW-Credit-App/pull/1",
+  "database_ci": [
+    "https://github.com/welct0407/MW-Credit-App/actions/runs/37588108890",
+    "https://github.com/welct0407/MW-Credit-App/actions/runs/37588115673"
+  ],
+  "guard_tests": 17,
+  "unchanged_migrations": 77,
+  "local_rebuild": {
+    "migrations": 77,
+    "repeat_migrations": 0,
+    "checksum_tampering_rejected": true,
+    "postgresql": "18.6",
+    "flyway": "13.6.0"
+  },
+  "retained_forwarding_imports_verified": 5,
+  "live_database_operations": 0,
+  "remaining_implementation_move": "explicitly deferred by owner"
+}

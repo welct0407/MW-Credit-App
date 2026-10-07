@@ -4,6 +4,6 @@ $env:PATH=(Join-Path $mwTools 'node-v24.21.0-win-x64')+';'+(Join-Path $mwTools '
 $env:CLOUDSDK_PYTHON='C:/Users/ideaadmin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe'
 Write-Output 'MW Credit development toolchain selected. No secret values loaded.'
 
-$env:PATH='C:/Users/MWCredit/AppData/Local/AppSheetLoanTools/postgresql-18.6-3/pgsql/bin;C:/Users/MWCredit/AppData/Local/AppSheetLoanTools/flyway-13.6.0;'+$env:PATH
+$env:PATH='C:/Users/ideaadmin/AppData/Local/MWCredit/database-tools/postgresql-18.6-3/pgsql/bin;C:/Users/ideaadmin/AppData/Local/MWCredit/database-tools/flyway-13.6.0;'+$env:PATH
 
-$env:MW_DB_TOOL_ROOT='C:/Users/MWCredit/AppData/Local/AppSheetLoanTools'
+$env:MW_DB_TOOL_ROOT='C:/Users/ideaadmin/AppData/Local/MWCredit/database-tools'
