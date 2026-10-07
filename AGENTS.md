@@ -7,7 +7,7 @@ This file governs OLTP, OLAP and Looker Studio work in this repository. AI Colle
 
 ## Working method and task routing
 
-For the PWA rebuild, follow [PWA Implementation Plan](Documents/PWA_Implementation_Plan.md) for phase objectives, dependencies and completion evidence. The plan records future work; it does not itself authorize production operations or AppSheet retirement.
+For the PWA rebuild, follow [PWA Implementation Plan](Documents/PWA_Implementation_Plan.md) for phase objectives, dependencies and completion evidence, and [PWA orchestration](Documents/PWA_Orchestration.md) for the owner-selected agents and mandatory visual review stops. The plan records future work; it does not itself authorize production operations or AppSheet retirement.
 
 - Carry authorized work through implementation, relevant verification, documentation and publication. Reuse decisions and scoped authorization from the conversation; ask only for missing authorization or information that materially affects correctness, scope or recovery. Continue independent work when one path is blocked. Do not add approval gates for routine reversible choices.
 - Start with the task/continuation note and affected files or objects. Use `rg` and bounded reads; expand only for dependencies, conflicting evidence or observed failures. Read applicable instructions once per context and revisit when changed. Do not load every linked document or complete historical logs by default.

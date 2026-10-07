@@ -6,6 +6,8 @@ Prepared 7 October 2026, Asia/Bangkok. This is the delivery plan for a complete 
 
 Completing the plan makes the system **ready for cutover**. Switching the default application and retiring AppSheet remain explicit owner decisions after the final readiness review. AppSheet remains available throughout development and the parallel production period.
 
+**Owner update, 7 October 2026:** use the [orchestration and review workflow](PWA_Orchestration.md). Agent A designs, Agent B implements and Agent C independently tests B's work. Pause at meaningful visual checkpoints and wait for the owner's go-ahead. Phase 7 Metabase integration/enhancement work is deferred until after production go-live; it is not a launch prerequisite. Existing authorized reports remain available, and native OLAP management remains required before go-live.
+
 ## Starting position
 
 | Area | Recorded position | Consequence |
@@ -40,20 +42,22 @@ Every financial command must enforce server-side identity and permissions, prese
 | Phase | Objective | Dependency | Initial status |
 | --- | --- | --- | --- |
 | 0 | Establish development infrastructure and database ownership | Completed setup | Complete for the recorded scope |
-| 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | Next |
+| 1 | Establish full feature coverage, contracts and acceptance criteria | 0 | In progress; checkpoint 1A awaiting owner visual review |
 | 2 | Build the secure application foundation and first read flow | 1 | Not started |
 | 3 | Make production infrastructure and delivery ready | 2 | Not started |
 | 4 | Prove one complete financial workflow in DEV | 2; production setup can proceed alongside it | Not started |
 | 5 | Complete mobile and desktop OLTP | 4 | Not started |
 | 6 | Complete desktop OLAP management | Shared contracts from 4; operational dependencies from 5 | Not started |
-| 7 | Complete analytics, reports and retained-service integration | 5 and 6 contracts | Not started |
-| 8 | Complete automation, notifications and coexistence behavior | Event inventory from 1; relevant commands from 4–7 | Not started |
-| 9 | Verify the complete release and operational recovery | 3–8 | Not started |
+| 7 | Enhance Metabase integration and reporting after go-live | Production go-live; 5 and 6 contracts | Deferred by owner |
+| 8 | Complete automation, notifications and coexistence behavior | Event inventory from 1; relevant commands from 4–6 | Not started |
+| 9 | Verify the complete launch release and operational recovery | 3–6 and 8; retained reporting access | Not started |
 | 10 | Deploy the accepted system to production under containment | 9 and scoped production authorization | Not started |
 | 11 | Operate and validate the parallel production pilot | 10 and approved pilot scope | Not started |
 | 12 | Close readiness gaps and prepare the cutover decision | 11 | Not started |
 
-The default working order is sequential. Infrastructure work in Phase 3 can overlap Phase 4 once Phase 2 is accepted. OLAP, reporting and automation preparation can overlap only where interfaces are settled and shared DEV changes are coordinated. Overlap does not waive any phase dependency or test.
+The launch sequence is **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. Phase numbers stay stable for traceability. Phase 7 is a separate post-go-live workstream, scheduled with the owner after production is operating; it does not block deployment, parallel operation or cutover readiness. Infrastructure work in Phase 3 can overlap Phase 4 once Phase 2 is accepted. Coordinated preparation may overlap where interfaces are settled, but workers must stop at the agreed owner-review checkpoint.
+
+Existing reports, governed calculations, exports and reporting access required by current workflows must remain usable before cutover, using their retained interfaces where appropriate. Deferring Metabase does not defer native OLAP forms, assessments or management actions, nor does it remove required features. New embeds, dashboard changes and report-navigation enhancements belong to Phase 7.
 
 ## Phase 0 Development foundation
 
@@ -73,7 +77,7 @@ This phase does not claim completed application sign-in, financial permissions, 
 - Create one traceable parity matrix. Each row records the current workflow/object, mobile/desktop requirement, SQL and integration dependencies, target module, owning phase, acceptance scenarios and evidence/status. Classify dormant features separately; do not activate them by accident.
 - Agree the role/action/record-access matrix, supported real phones and browsers, Thai/English behavior, timezone/date rules, data-retention boundaries and pilot users.
 - Define measurable acceptance targets for critical response times, expected concurrent use, recovery time and recovery point, alert freshness and reconciliation. Use measured existing behavior and business needs; do not invent promises or thresholds.
-- Settle development/production authentication separation and the production domain plan. Identify constraints on Metabase access/embedding and use authenticated report links where suitable.
+- Settle development/production authentication separation and the production domain plan. Record how existing authorized reports remain accessible; defer embedding design and reporting enhancements to post-go-live Phase 7.
 - Inventory remaining implementation source in the management repository. Prepare its separately authorized move by dependency; keep integration/collection code in its established repositories.
 - Select the first operational workflow and identify required database privileges and any justified schema changes for approval.
 
@@ -158,16 +162,18 @@ Finish offline dataset boundaries, visible freshness, drafts, attachment handlin
 
 **Exit criteria:** every editable OLAP workflow has a tested replacement. Concurrency, over-reservation, historical corrections, permissions and source reconciliation pass. Metabase reporting does not substitute for missing management actions.
 
-## Phase 7 Analytics and retained reporting
+## Phase 7 Metabase enhancements after production go-live
 
-**Objective:** preserve all required analytical capabilities and connect them coherently to the new desktop workspace.
+**Objective:** improve the integrated reporting experience after the operational replacement is live.
+
+**Scheduling:** deferred by the owner on 7 October 2026. This phase is excluded from pre-launch Phase 9, production Phase 10 and cutover Phase 12 prerequisites. Existing authorized reporting interfaces and exports are preserved and verified as dependencies of the launch candidate; enhancements below begin only after production go-live and a subsequent go-ahead.
 
 - Integrate existing Metabase dashboards/questions, governed SQL metrics and the borrower matrix/chart service. Cover portfolio, borrowers/risks/health, income, cashflow, cash/accounts, partners and forecast/planning.
 - Implement authorized navigation and immutable-ID/date drill-through, including return links to the new application.
 - Preserve actual-versus-forecast, live-versus-snapshot, unknown/missing data and freshness semantics. Verify exports and existing approved destinations.
 - Use authenticated report links first where they satisfy the workflow. Adopt embedding only after confirming actual licence, access and export boundaries; never make sensitive reports public to achieve embedding.
 - Measure representative query plans, history-refresh costs and concurrency with operations on the shared database. Add indexes/materialization only when justified and approved.
-- Move required reporting/monitoring implementation source out of the management repository as the separately authorized ownership work is executed. Preserve recovery and keep external runtimes under their proper owners.
+- Move deferred reporting implementation source as its separately authorized ownership work is executed. Preserve recovery and keep external runtimes under their proper owners. Monitoring needed for production remains in Phase 3/9.
 
 **Deliverables:** complete desktop reporting workspace, export parity and measured analytics behavior.
 
@@ -185,7 +191,7 @@ Finish offline dataset boundaries, visible freshness, drafts, attachment handlin
 - Adapt retained receipt/OCR, integration-agent, email and collection references, permissions and deep links through their owning repositories. Preserve reviewer controls and dormant-service states.
 - Test AppSheet-originated and PWA-originated changes against both frontends and downstream effects. Handle in-flight work at transitions without replaying notifications or financial commands.
 
-Complete the separately scoped implementation-source transfers needed by the delivered system. By this phase's exit, active application, database, reporting and monitoring code must have a designated implementation repository; AppSheet-Loan-Project retains project management, historical evidence, permitted immutable references and necessary transition pointers. Remove forwarding adapters only after their consumers have been reconciled.
+Complete the separately scoped implementation-source transfers needed by the delivered system. By this phase's exit, application, database and monitoring code needed for launch must have a designated implementation repository; AppSheet-Loan-Project retains project management, historical evidence, permitted immutable references and necessary transition pointers. Reporting source moves tied to deferred Phase 7 may follow after go-live. Remove forwarding adapters only after their consumers have been reconciled.
 
 **Deliverables:** event/job ownership matrix with verified DEV behavior, operating controls and switch/rollback procedures.
 
@@ -195,7 +201,7 @@ Complete the separately scoped implementation-source transfers needed by the del
 
 **Objective:** accept the complete integrated system before permitting production business use.
 
-- Close the parity matrix across all supported roles, mobile/desktop devices, languages, exports and integrations. Exercise complete borrower-to-loan-to-collection-to-cash/settlement/report lifecycles.
+- Close the launch parity matrix across all supported roles, mobile/desktop devices, languages, exports and integrations. Verify retained reporting access; separately list deferred Phase 7 enhancements without treating them as missing launch features. Exercise complete borrower-to-loan-to-collection-to-cash/settlement/report lifecycles.
 - Test all receiving modes and loan types, partial/selected payments, corrections/deletion requests, default/closure, reimbursement, opening attribution, history and date boundaries.
 - Test authorization bypass attempts, session/account changes, file access, offline freshness, device loss/sign-out limitations, update compatibility and duplicate/uncertain requests.
 - Measure agreed workload/performance targets with realistic synthetic or approved protected test data. Check shared database connection/query pressure and retain evidence limits.
@@ -266,8 +272,8 @@ This is the initial coverage checklist. Phase 1 expands it into actual objects, 
 | Expenses, rebates and reimbursement effects | Current OLTP scope | Full applicable operational/management scope | 5–6 |
 | Partners, contributions, entitlements, allocations and settlements | Current OLTP access only | Full OLAP scope | 6 |
 | Cash holders/accounts, transfers/openings and controlled ledger commands | Current OLTP access only | Full OLAP scope | 6 |
-| Assessments, history controls and management analytics | Later OLAP expansion | Full OLAP scope | 6–7 |
-| Metabase dashboards, governed reporting, matrix and exports | Existing OLTP entry points | Full required OLAP/report scope | 7 |
+| Assessments, history controls and native management analytics | Later OLAP expansion | Full OLAP scope | 6; retained reporting verified in 9 |
+| Existing Metabase dashboards, governed reporting, matrix and exports | Retain existing access | Retain existing access and capabilities | Verify in 9; integration/enhancements in post-go-live 7 |
 | Offline viewing/drafts, installation and safe updates | Required | Required where applicable | 2, 4–5, then 9 |
 | Notifications, device preferences and deep links | Required | Required where supported | 8 |
 | Jobs, retained integrations and cross-client effects | Required effects | Required effects | 8, observed in 11 |
@@ -298,4 +304,4 @@ The final review must establish all of the following:
 - The cutover runbook covers old-client sync drain, access controls, rollback triggers and stabilization.
 - No unresolved required-feature, financial-integrity, access-control or recovery blocker remains.
 
-**Next implementation task:** Phase 1, feature baseline and implementation backlog. No calendar completion date is committed until the current feature inventory, staffing/availability and acceptance targets are agreed.
+**Current implementation task:** Phase 1, feature baseline and implementation backlog, with a synthetic Collection/Borrowers visual checkpoint before further implementation. No calendar completion date is committed until the current feature inventory, staffing/availability and acceptance targets are agreed.
