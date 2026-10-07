@@ -2,7 +2,7 @@
 
 Date: 7 October 2026, Asia/Bangkok.
 
-Status: checkpoint ready for owner visual validation; all agents stopped. The checkpoint stops for owner visual validation; it does not complete Phase 1 or the secure foundation in Phase 2.
+Status: revised checkpoint ready for owner visual validation; all agents stopped; no phase advance. The checkpoint stops for owner visual validation; it does not complete Phase 1 or the secure foundation in Phase 2.
 
 ## Scope
 
@@ -24,14 +24,14 @@ No live AppSheet, SQL, Terraform, credential, scheduler or production change. Th
 
 ## Delivered package and checks
 
-Application commit: d2d6c8389422d02d75c7ed8c05ac142906157baa, published on codex/r052-review-shell. [Draft app PR3](https://github.com/welct0407/MW-Credit-App/pull/3). The deployed Firebase foundation remains unchanged.
+Application commit: 4dfe363f64927720e1ddd03260d0c28e2ffd35fa (owner visual revision), published on codex/r052-review-shell. [Draft app PR3](https://github.com/welct0407/MW-Credit-App/pull/3). The deployed Firebase foundation remains unchanged.
 
 - Agent A (Astra High): 43-row recorded workflow backlog and checkpoint design; source architecture reviewed.
 - Agent B (Astra Medium): responsive synthetic Collection/Borrowers implementation, bilingual navigation, search/filter/detail, clear future-module states.
-- Agent C (Astra Low): clean build, 6 guard tests and 15 browser checks passed; 1 duplicate desktop run of the mobile-only Thai capture intentionally skipped.
+- Agent C (Astra Low): revised clean build, 6 guard tests and 17 browser checks passed; 1 duplicate desktop run of the mobile-only Thai capture intentionally skipped. The final neutral mobile-nav color adjustment passed a clean build and 5 affected visual checks.
 - Parent inspected the desktop/mobile and final Thai screenshots, checked source boundaries, and opened the local review preview.
-- GitHub app CI passed for d2d6c83: [Development checks](https://github.com/welct0407/MW-Credit-App/actions/runs/37598942585), including build/tests/browser checks, runtime dependency audit and Terraform validation.
-- [Pinned test report and screenshots](https://github.com/welct0407/MW-Credit-App/tree/d2d6c8389422d02d75c7ed8c05ac142906157baa/outputs/r052-preview).
+- Initial preview GitHub app CI passed for d2d6c83: [Development checks](https://github.com/welct0407/MW-Credit-App/actions/runs/37598942585), including build/tests/browser checks, runtime dependency audit and Terraform validation.
+- [Pinned test report and screenshots](https://github.com/welct0407/MW-Credit-App/tree/4dfe363f64927720e1ddd03260d0c28e2ffd35fa/outputs/r052-preview).
 
 Final fixes addressed small mobile text/contrast, mobile drawer keyboard focus/Escape, optional follow-up notes, analytics scope wording and two formatter-induced CSS selector errors. Tests were rerun against the final source. Project document links, phase dependencies and Git whitespace/scope checks passed.
 
@@ -42,3 +42,11 @@ Limits: Chromium desktop/mobile emulation only; real-device behavior, authentica
 ## Owner review and continuation
 
 Review mobile/desktop navigation, Collection versus Borrowers layout, search/filter/detail behavior and English/Thai labels. Record requested changes or acceptance in this same checkpoint before continuing. The proposed next slice is Phase 1B: reconcile enabled Collection/Borrower read objects and sign-in/record rules, inspect configured Firebase capability read-only, and define read contracts plus denied-access cases. It starts only after visual go-ahead; payment posting and broad authentication implementation do not start automatically.
+
+## Owner review feedback — 7 October 2026
+
+Remove the aggregate outstanding-principal summary; match OLTP DEV orange #e8710a and PROD pink #d81b60 using White/light surfaces; replace the invented monogram with the exact OLTP logo. Remove the extra pale-green summary-card fill. Per-borrower/loan principal remains in context. Revised source 4dfe363 and independent verification are complete. The exact logo hash/rendering, both accent colors, white summary surfaces, transparent text backgrounds and removed aggregate were verified. Borrower/loan principal remains. The earlier d2d6c83 package is retained historical first-preview evidence.
+
+Visual comparison: http://127.0.0.1:4173/?theme=dev and http://127.0.0.1:4173/?theme=prod are local colors-only previews; neither changes environment or connects to production. Owner review remains pending.
+
+Revision GitHub CI passed for4dfe363: [Development checks37602964498](https://github.com/welct0407/MW-Credit-App/actions/runs/37602964498). No deployment was performed.

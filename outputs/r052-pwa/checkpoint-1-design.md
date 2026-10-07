@@ -14,7 +14,7 @@ Use the current R052 release. The implementation repository is MW-Credit-App. Th
 
 ## Interface design
 
-Use restrained green, warm neutral backgrounds, clear hierarchy, generous whitespace, readable amounts and a consistent component system. The design should feel like a working operational tool. Keep a persistent, compact `Design preview · synthetic data` notice. Every displayed amount, record and date is demonstrative. Sample totals must reconcile to the fixtures; do not invent portfolio performance metrics.
+Use the owner-requested AppSheet OLTP White/light theme: DEV primary #e8710a and PROD primary #d81b60. Reuse the original Loan Manager logo unchanged. Use white card surfaces and neutral supporting colors with clear hierarchy, generous whitespace, readable amounts and a consistent component system. The design should feel like a working operational tool. Keep a persistent, compact `Design preview · synthetic data` notice. Every displayed amount, record and date is demonstrative. Sample totals must reconcile to the fixtures; do not invent portfolio performance metrics.
 
 Desktop uses a left navigation rail, page header and list/detail workspace. Mobile uses a compact header, reachable primary navigation and a full-width list; selection opens a detail screen with an explicit Back control. Avoid squeezing a desktop table onto a phone. Target 1440×900 and 390×844, with a narrow 360px check. These are viewport checks, not proof on real supported devices.
 
@@ -24,7 +24,7 @@ The grouping and emphasis are design proposals for owner review, not frozen copi
 
 ### Collection
 
-Default page: Collection, with clearly labelled sample business date 7 October 2026. Show a fixture-derived due amount and borrower count; define labels so amount due is never confused with outstanding principal. Provide a labelled borrower search and a simple meaningful collection filter, with an explicit empty result and reset option.
+Default page: Collection, with clearly labelled sample business date 7 October 2026. Show a fixture-derived due amount and borrower count; omit the portfolio-wide principal/outstanding total at owner request. Borrower and loan principal context remains distinct from amount due. Provide a labelled borrower search and a simple meaningful collection filter, with an explicit empty result and reset option.
 
 Rows/cards show synthetic borrower name, amount due and a distinct outstanding-principal label. Show only an issue note where relevant, reflecting the recorded collection-note behavior. Selecting a row opens borrower context: principal, current sample loans/charges, upcoming dates and a clearly labelled receipt placeholder. Financial action controls should be omitted or disabled with a plain explanation that transaction entry follows in a later phase. Never show a successful payment or a working Submit/Receive command.
 
@@ -62,3 +62,13 @@ Mark planned modules explicitly. Existing authenticated reporting access must be
 After implementation, independent tests, necessary fixes and documentation/publication, stop all agents. Ask the owner to validate navigation, Collection and borrower detail on desktop/mobile, information hierarchy and language. Await explicit go-ahead before continuing.
 
 Phase 1 remains open for live enabled-object reconciliation, role/action/record policy, supported real devices, authentication/environment decision, performance/recovery/pilot targets and exact first financial contract. See [feature baseline](feature-baseline.md). The next implementation checkpoint should close blocking decisions and provide an authenticated, authorized read slice; do not add payment posting simply because the preview is accepted.
+
+## Owner visual revision — 7 October 2026
+
+Owner requested removal of the total outstanding summary, matching AppSheet OLTP DEV/PROD colors and reuse of the existing OLTP logo. The original green design direction above is superseded.
+
+Recorded evidence: Environment_Inventory.md canonical theme table (DEV #e8710a / PROD #d81b60); current DEV dictionary theme/brand selected_control_values records White, and R051 source-mapping-validation.json branding.OLTP records White/#d81b60. These are repository observations, not a new live theme audit. Original resources/Loan Manager App Logo.png SHA256: 5808EE79D5B6E843C8ED648E8507678EA349297D1CC687A97021C5D396DD2A8D. Use the unchanged pink OLTP asset in both environments per owner instruction; do not recolor the image.
+
+The initial summary container was off-white (#fffefa) while the featured due card was pale green (#edf1e7). Its text rules had no individual background fill. Normalize cards to white and text backgrounds to transparent. This CSS evidence does not establish a cause for any glyph-level rendering fringe.
+
+A temporary DEV/PROD color preview may change presentation only, clearly labelled as colors only. It must never select a backend, identity, database, credential or deployment target. DEV remains the local/default preview; production deployment wiring remains future scope.
