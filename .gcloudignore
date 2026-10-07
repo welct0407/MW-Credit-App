@@ -1,0 +1,11 @@
+.git
+node_modules
+dist
+.terraform
+**/.terraform
+*.tfstate*
+*.tfplan
+.env*
+gha-creds-*.json
+test-results
+playwright-report

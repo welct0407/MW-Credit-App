@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.terraform/
+*.tfstate*
+*.tfplan
+crash.log
+playwright-report/
+test-results/
+*.log
+gha-creds-*.json

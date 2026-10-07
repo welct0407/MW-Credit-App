@@ -1,0 +1,45 @@
+name: Deploy development
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: deploy-development
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment: development
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm audit --omit=dev --audit-level=moderate
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/737787224638/locations/global/workloadIdentityPools/mw-credit-app-github/providers/github
+          service_account: mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Build and publish image
+        run: |
+          gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+          IMAGE=asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api:${GITHUB_SHA}
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          DIGEST=$(gcloud artifacts docker images describe "$IMAGE" --format='value(image_summary.digest)')
+          echo "IMAGE=asia-southeast1-docker.pkg.dev/clever-oasis-508610-n7/mw-credit-app/api@$DIGEST" >> "$GITHUB_ENV"
+      - name: Deploy API artifact
+        run: gcloud run services update mw-credit-app-api-dev --project=clever-oasis-508610-n7 --region=asia-southeast1 --image="$IMAGE" --quiet
+      - name: Verify private API
+        run: |
+          URL=$(gcloud run services describe mw-credit-app-api-dev --project=clever-oasis-508610-n7 --region=asia-southeast1 --format='value(status.url)')
+          TOKEN=$(gcloud auth print-identity-token --impersonate-service-account=mw-credit-app-deploy@clever-oasis-508610-n7.iam.gserviceaccount.com --audiences="$URL")
+          curl --fail --silent --show-error -H "Authorization: Bearer $TOKEN" "$URL/readyz"
+      - name: Deploy synthetic development page
+        run: node scripts/deploy-hosting.mjs
