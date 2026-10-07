@@ -21,3 +21,5 @@ Starting project commit 83d48817d884a29589e2c7102988cf1140646a7a; app baseline 7
 Checkpoint ready for owner review. App commit d2d6c8389422d02d75c7ed8c05ac142906157baa is published in draft MW-Credit-App PR3. Clean build, 6 guards and 15 browser checks passed; one redundant mobile-capture desktop run skipped. Agent A architecture review and parent screenshot/source review passed. All three workers stopped.
 
 Fifteen local document links, preserved phase numbering, revised post-go-live Phase 7 dependencies and Git whitespace/scope checks passed. Evidence and limits are in outputs/r052-pwa/README.md and the pinned app test report. Owner visual acceptance remains pending; R052 stays Open. The next slice requires explicit go-ahead. No live AppSheet, database, infrastructure, credential, notification or scheduler changes are part of this slice.
+
+GitHub app CI run 37598942585 passed for the published d2d6c83 package. This independently confirms the configured CI checks; it does not expand the preview verification scope or deploy the app.
