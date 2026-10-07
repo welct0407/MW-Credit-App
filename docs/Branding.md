@@ -19,7 +19,7 @@ PROD uses this original pink asset unchanged. The owner's subsequent instruction
 
 The synthetic preview defaults to DEV colors independently of Vite's production build mode. The DEV/PROD selector and ?theme=prod query parameter affect CSS presentation only. They never select an API, identity, database, credential or deployment target. Runtime environment wiring is future infrastructure/application work; a PROD color preview is not a production deployment.
 
-Owner refinement: cards share coordinated light theme tints so the environment color is visible beyond the header. DEV surface #fdf1e7, selected/hover #fbe8d8 and border #f9dcc2; PROD surface #fbe8ef, selected/hover #f9dbe6 and border #f5c6d7. Text backgrounds remain transparent and text stays dark. The earlier all-white card preference is superseded; no individual text highlight is introduced. The portfolio outstanding-principal summary is omitted; per-borrower and per-loan principal context remains.
+Owner refinement: cards share coordinated light theme tints so the environment color is visible beyond the header. DEV surface #fdf1e7, selected/hover #fbe8d8 and border #b86d32; PROD surface #fbe8ef, selected/hover #f9dbe6 and border #b9577f. Record separators and existing panel/detail borders use these darker theme-coordinated colors at 1px for clearer separation. Text backgrounds remain transparent and text stays dark. The earlier all-white card preference is superseded; no individual text highlight is introduced. The portfolio outstanding-principal summary is omitted; per-borrower and per-loan principal context remains.
 
 ## DEV logo edit record
 

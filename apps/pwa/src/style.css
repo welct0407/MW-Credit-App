@@ -1018,7 +1018,7 @@ p {
   --brand-primary: #e8710a;
   --surface-tint: #fdf1e7;
   --surface-selected: #fbe8d8;
-  --border-tint: #f9dcc2;
+  --border-tint: #b86d32;
   color: #333;
   background: #f7f7f7;
   color-scheme: light;
@@ -1027,7 +1027,7 @@ p {
   --brand-primary: #d81b60;
   --surface-tint: #fbe8ef;
   --surface-selected: #f9dbe6;
-  --border-tint: #f5c6d7;
+  --border-tint: #b9577f;
 }
 .sidebar { border-right: 1px solid #e1e1e1; background: #fff; color: #333; }
 .brand-logo { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }

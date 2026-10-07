@@ -1,0 +1,198 @@
+[
+  {
+    "theme": "dev",
+    "size": "desktop",
+    "noOverflow": true,
+    "surfaces": [
+      {
+        "selector": "borrower-card ",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "borrower-card ",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "borrower-card selected",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "list-foot",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "detail-amounts",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "loan",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "loan",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      }
+    ]
+  },
+  {
+    "theme": "prod",
+    "size": "desktop",
+    "noOverflow": true,
+    "surfaces": [
+      {
+        "selector": "borrower-card ",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "borrower-card ",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "borrower-card selected",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "list-foot",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "detail-amounts",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "loan",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "loan",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      }
+    ]
+  },
+  {
+    "theme": "dev",
+    "size": "mobile",
+    "noOverflow": true,
+    "surfaces": [
+      {
+        "selector": "borrower-card ",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "borrower-card ",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "borrower-card selected",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.345496925010624
+      },
+      {
+        "selector": "list-foot",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "detail-amounts",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "loan",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      },
+      {
+        "selector": "loan",
+        "border": "rgb(184, 109, 50)",
+        "width": "1px",
+        "ratio": 3.587641998990561
+      }
+    ]
+  },
+  {
+    "theme": "prod",
+    "size": "mobile",
+    "noOverflow": true,
+    "surfaces": [
+      {
+        "selector": "borrower-card ",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "borrower-card ",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "borrower-card selected",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.4448717262753488
+      },
+      {
+        "selector": "list-foot",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "detail-amounts",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "loan",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      },
+      {
+        "selector": "loan",
+        "border": "rgb(185, 87, 127)",
+        "width": "1px",
+        "ratio": 3.780353775641329
+      }
+    ]
+  }
+]

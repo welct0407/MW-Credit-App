@@ -23,3 +23,9 @@
 The six desktop/mobile allowed/denied screenshots in this folder document the new states. dev-desktop-overview.png and dev-mobile-overview.png retain useful full-suite overview captures. Thai mobile denied screenshot visually inspected: no borrower/summary data and readable explanatory copy. Parent preserves historical checkpoint1A screenshots independently.
 
 These tests cover pure injected synthetic policy and adapter behavior, not a cryptographically verified principal or secure live backend. Firebase setup, real sign-in, owner-only DEV grant provisioning, database privileges, financial writes, actual AppSheet parity and production cutover remain unverified/not implemented in this checkpoint. Existing API health/readiness server was not executed by tests. Parent-owned local preview4173 remains running. No Git or infrastructure changes performed by tester. Ready for owner visual review.
+
+## Darker record separators — baseline3ec1ffc
+
+Focused local browser verification passed for DEV/PROD at1440×900 desktop and390×844 mobile, covering list and selected detail. Computed separator colors match DEV#b86d32 and PROD#b9577f; measured contrast against actual adjacent card backgrounds is at least3.345:1 across checked borrower rows, detail amounts, loan sections and list footer. No document overflow in any combination. Existing widths/layout remain unchanged; no broad suite rerun was needed for this color-only adjustment.
+
+New evidence only: lines-{dev,prod}-{desktop,mobile}-{list,detail}.png plus lines-verification.json. DEV desktop list visually inspected: row separators are clearly stronger without changing text or spacing. Historical screenshots were not overwritten. Parent preview server4173 preserved. No new permanent tests, source edits or live operations by tester. Ready for owner visual review.
