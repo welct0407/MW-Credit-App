@@ -61,7 +61,9 @@ class CloudFlywayTests(unittest.TestCase):
             with self.assertRaises(ValueError):f.pending({'migrations':rows},'58')
         with self.assertRaises(ValueError):f.pending({'migrations':[{'state':'Pending','version':'58'}]},None)
     def test_modified_transport_never_connects(self):
-        with patch.object(f,'HELPER_SHA','0'*64),self.assertRaisesRegex(ValueError,'transport changed'):
+        transport = self.repo / 'synthetic-transport'
+        transport.write_bytes(b'synthetic changed helper')
+        with patch.object(f,'ACCESS',transport),patch.object(f,'HELPER_SHA','0'*64),self.assertRaisesRegex(ValueError,'transport changed'):
             f.run(self.repo,'prod','migrate',{})
 
     def test_public_host_or_unowned_tunnel_cannot_use_exception(self):
