@@ -1,0 +1,9 @@
+{
+  "hosting": "deployed after CI passed",
+  "workflowChanged": false,
+  "run": "37664554957",
+  "attempt2": "completed success, same exact source",
+  "source": "dcf4b606c306656c16511164e1298a306036a7a6",
+  "observedLog": "Repeated Ign entries for azure.archive.ubuntu.com noble package/index fetches; Microsoft feed fetched successfully",
+  "attempt1": "cancelled at operational12minute installer bound; not app failure"
+}

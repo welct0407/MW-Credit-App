@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-10-07T18:30:02.605Z",
+  "source": "dcf4b606c306656c16511164e1298a306036a7a6",
+  "hostingVersion": "ccb0af261babf04b",
+  "ci": "https://github.com/welct0407/MW-Credit-App/actions/runs/37664554957",
+  "scope": "Fresh unsigned Chromium contexts only. No login, API or custom-domain probes. Authenticated behavior covered separately with synthetic fixtures.",
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "headerHeight": 60,
+      "headerWidth": 1440,
+      "overflow": false,
+      "apiRequests": 0,
+      "records": 0,
+      "englishAndThaiSignedOut": true,
+      "rootRefreshAbsentSignedOut": true,
+      "removedBlocksAbsent": true
+    },
+    {
+      "name": "mobile",
+      "width": 320,
+      "height": 844,
+      "headerHeight": 56,
+      "headerWidth": 320,
+      "overflow": false,
+      "apiRequests": 0,
+      "records": 0,
+      "englishAndThaiSignedOut": true,
+      "rootRefreshAbsentSignedOut": true,
+      "removedBlocksAbsent": true
+    }
+  ]
+}
