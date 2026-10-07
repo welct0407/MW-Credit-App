@@ -1,0 +1,35 @@
+{
+  "checkedAtUtc": "2026-10-07T11:36:09.461Z",
+  "url": "https://mw-credit-app-dev-737787224638.web.app",
+  "scope": "Fresh signed-out browser only; Google sign-in never clicked",
+  "results": [
+    {
+      "name": "desktop",
+      "status": 200,
+      "signedOut": true,
+      "googleButtonVisible": true,
+      "borrowerRows": 0,
+      "noOverflow": true,
+      "pageErrors": 0,
+      "apiRequests": [],
+      "storage": {
+        "local": 0,
+        "session": 0
+      }
+    },
+    {
+      "name": "mobile",
+      "status": 200,
+      "signedOut": true,
+      "googleButtonVisible": true,
+      "borrowerRows": 0,
+      "noOverflow": true,
+      "pageErrors": 0,
+      "apiRequests": [],
+      "storage": {
+        "local": 0,
+        "session": 0
+      }
+    }
+  ]
+}
