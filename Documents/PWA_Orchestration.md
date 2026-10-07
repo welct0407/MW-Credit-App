@@ -40,3 +40,7 @@ Accepted review: mobile/desktop navigation and layout, Collection versus Borrowe
 ## Revised reporting order
 
 Phase 7 Metabase changes are post-go-live work. Existing reports remain available through their retained authorized interfaces; required native OLAP management and production monitoring stay in the launch scope. The deferral must not create a hidden prerequisite in phases 8–12.
+
+## Checkpoint 2B owner feedback
+
+The owner requested presentation/source-label refinements after the first related-loan preview; checkpoint2B is not accepted yet. A settled exact Loan Key, bilingual borrower label, profit and grouping semantics; B implemented, C verified, and D completed bounded permissions, deployment and publication. The refined page and final smoke passed; owner visual acceptance remains pending. Stay at the same visual checkpoint. Broader field parity remains planned work, not unrestricted database access.

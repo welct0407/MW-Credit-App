@@ -109,3 +109,57 @@ C verifies with synthetic data/injected seams:
 D confirms actual DEV metadata before exact grants, preserves pinned identity configuration and deploys the tested immutable API/frontend artifacts. Verify startup identity, public static health, unauthenticated business denial, old IAM service protection and actual owner borrower-to-loan reads without publishing private record bodies/screenshots. An empty actual borrower list does not by itself prove populated loan detail; label that gap until representative authorized owner validation occurs.
 
 Stop at the deployed DEV related-record checkpoint for owner validation. Remaining Phase 2 includes exact Collection reads and other foundation items; completion of this slice does not silently advance phases or authorize financial writes.
+## Owner refinement addendum — AppSheet presentation and grouped paging
+
+7 October 2026, after owner review of the deployed initial 2B candidate. Starting app `e9281e9075b33995bc51ce4233c977ffe06f1a01`, PM `6c3b6f91d84e54edf5df2c232e121b9eb74400d3`. R052 remains Open. This addendum supersedes the initial ID display and ungrouped pagination presentation above. It remains the same review checkpoint; it adds no financial command, schema, production or subsequent feature slice.
+
+### Exact source labels and profit
+
+The owning OLTP dictionary contains these definitions:
+
+- `Borrowers.Borrower Name TE`: `CONCATENATE([Borrower Name], " - ", [Description])`. The physical Description field is labelled English Name. The user phrase Borrower - TE refers to this display label; there is no new schema field. Preserve both language values and the exact separator in either UI language; do not translate names, drop one name, or substitute Communication Name.
+- `Borrowers.Total Interest Earned`: physical Price field, displayed as `ดอกเบี้ยที่ได้รับทั้งหมด / Total Profit Earned`. The Borrowers deck uses this as its summary. V13 SQL maintains the field from related-loan repayment interest aggregates, including governed corrections; the PWA simply reads this numeric value. It is not a newly calculated economic profit, not outstanding principal, not total received, and not `Active Profit After Principal Coverage`. Show the recorded bilingual label with the source value, null as unavailable and negative values preserved.
+- `Loans.Loan Key`: `CONCATENATE([Borrower Name TE], "-", TEXT([Principal Amount]), "-", TEXT([Loan Date], "DD/MM"), "-", IF(ISBLANK([Original Daily Interest Rate]), "Unavailable", CONCATENATE([Original Daily Interest Rate], "%")))`. This is a presentation label, not the immutable row key.
+
+D verified actual DEV metadata: Borrowers.Description is nullable text, Borrowers.Total Interest Earned nullable numeric, Loans.Original Daily Interest Rate nullable integer. Extend the existing reader by only these three column SELECT privileges (26 allowed columns total), with the same plan/snapshot/effective-audit/recovery process. No schema or function is needed. Preserve all 23 previously accepted column grants.
+
+API borrower results add the exact bilingual display name (suggested `borrowerDisplayName`) and `totalProfitEarned` numeric::text/null. Loan results add the joined parent's current bilingual display name and `originalDailyInterestRate` integer/null. Existing raw source names/IDs may remain internally for compatibility. Never expose raw borrower/loan IDs as visible headings, secondary captions or tooltips; IDs still own routes, React keys, selection, cursor and authorization. Nonunique Loan Key labels must not be treated as record keys.
+
+Principal Amount's saved AppSheet Type Details specify baht symbol, thousands grouping and zero decimal digits. Official [AppSheet TEXT documentation](https://support.google.com/appsheet/answer/10107701?hl=en), checked 7 October 2026, says a one-argument column conversion applies its Type Details. Therefore render the Loan Key's principal segment as grouped whole-baht `฿12,000` using saved en-US punctuation, with DD/MM from the business date and the stored integer rate followed by %. This is supported by the documented formatter and saved configuration, not a new claim of live screenshot comparison. Synthetic example: `สมชาย - Somchai-฿12,000-07/10-2%`.
+
+Treat missing name/Description/principal/date as empty concatenation segments, preserving separators. Missing original rate uses the literal `Unavailable` from the formula; zero is `0%`. Do not recalculate the original rate from today's amounts, dates or a rounded display. Loan Key display rounding does not alter underlying decimal fields. All other currency formatting uses `฿` rather than `THB`, preserving current up-to-two-decimal amount display. Format symbols explicitly or use narrowSymbol consistently in EN and Thai. Unknown source data remains unavailable rather than zero.
+
+### Global groups and cursor order
+
+The existing Borrowers view groups `Borrower Activity Group` ascending and sorts Creation Date ascending. That group formula uses Has Active Loan. Implement the owner's grouping in SQL over the full visible population before LIMIT:
+
+| Resource | Global group rank | Within each group |
+| --- | --- | --- |
+| Borrowers | Has Active Loan true = 0 (Active); false = 1 (Inactive); null = 2 (Unknown) | Creation Date ASC NULLS LAST, Row ID COLLATE C ASC |
+| Related Loans | status ยังไม่ปิดยอด = 0 (Open); ปิดยอดแล้ว = 1 (Closed); null/unrecognized = 2 (Unknown) | Loan Date DESC NULLS LAST, Row ID COLLATE C ASC |
+
+Null/unknown is intentionally separate to preserve uncertainty, never silently inactive or closed. Grouping changes presentation only; every actual query retains parent visibility, exact loan ownership, pinned-owner verification and mapping. Defaulted remains a separate source flag and is not a new ranking/status inference.
+
+Use version 2 canonical cursors carrying group rank, date (nullable), ID, and borrower ID for loan cursors. Validate exact shape, rank 0–2, date/ID and parent binding. A row follows a cursor when its group rank is greater, or its rank is equal and it follows the corresponding date/null/ID order. Null dates come after nonnull dates within the same rank. Do not apply the date condition across ranks. Update the encoded order marker and reject obsolete/invalid cursor shapes explicitly; coordinated API/frontend deployment and first-page refresh recover old open pages without interpreting an ID-only cursor under the new order.
+
+Do not fetch a mixed bounded page then sort/group only in the browser: active/open records outside that page could otherwise follow inactive/closed ones. Render section headings for the globally ordered rows returned. Make clear this is a paginated list; a repeated heading on a later page can say continued. Do not label page counts as full group totals or imply an absent group has no records beyond the page. On unchanged source data, iterating all pages must return each visible record exactly once in rank/date/ID order. Concurrent source changes remain live-paging behavior; refresh begins again.
+
+Inactive borrower and closed-loan cards use a neutral grey surface with readable dark text. They remain clickable and are not visually disabled. Unknown groups retain a clear neutral status, not a false closed style. Active/open keeps the accepted orange treatment. Preserve accessible contrast, keyboard focus, font sizes and touch targets.
+
+### Navigation, scroll and paging repair
+
+Desktop should provide independently scrollable list and detail panels within a viewport-bounded workspace, or an equivalent stable floating detail. Selecting an item near the bottom of the list must immediately show its detail without scrolling the whole document back to the top. Use a bounded CSS layout with min-height:0/overflow handling rather than overlapping fixed panels. Keep mobile as the existing separate list/detail flow; no squeezed desktop columns on mobile. Preserve borrower context when returning from a loan.
+
+Replace ambiguous `Next loans` with clear scoped pagination: `Next page` inside an explicitly titled Loans pager or `Next loan page`. Show the current page number, bounded page size, visible loading/page-change feedback and an explicit end state. Borrower paging uses equivalent controls. First-page reset is explicit; if Previous is implemented, retain cursor history scoped to the current dataset/parent and clear it on refresh/auth/parent change. Increment page counters only after successful response; failed or aborted requests do not advance them. Reset only the relevant list scroll on successful page change, and ensure keyboard users receive a page-change announcement/focus target.
+
+The owner reports Borrower Next page does not work. B's initial static review found the old cursor passed through UI→handler→SQL, but identified retained bottom scroll, no page indicator and no page-change feedback. These observations do not prove the cause of the owner's failure. C must reproduce the pre-fix transition with at least 26 deterministic synthetic borrowers, inspect the outgoing cursor and returned row change, then verify the new path. If a concrete API/state defect appears, repair it and record that cause; do not close the bug with an unsupported claim that it was only scrolling. Final tests must cover both borrower and loan pagers across group/date/null boundaries, including rapid navigation and late responses.
+
+### More borrower information and scope
+
+The roadmap includes fuller borrower details, notes/preferences and related records in Phase 5. Recorded AppSheet Visible Borrowers_Detail also contains Communication Name, Instagram Username, City, Working Location, Address and Ref Referrer, plus governed metrics and Upcoming Charges. These are deferred parity items requiring exact field/access/source review; this refinement does not add those contacts, documents, integrations or every metric. Description/English Name and the existing profit field are added now solely to satisfy the requested labels/summary. Collection remains its separately reconciled Phase 2 read dependency; the next checkpoint after this review will be selected explicitly, not assumed to include every borrower field.
+
+### Refinement acceptance
+
+C tests exact synthetic bilingual/Loan Key strings, missing segments/rate0, baht formatting, raw IDs absent from visible UI, source profit distinct from principal/total received, negative/null amounts, active/inactive/unknown and open/closed/unknown rank across more than one page, ties/null dates, v1/wrong-parent malformed cursors, no duplicated/omitted unchanged rows, and denied direct access. Browser tests cover both pagers, grey-but-clickable closed/inactive records, desktop independent scrolling with bottom-of-list selection, mobile navigation, EN/Thai readability and existing stale-response/auth clearing.
+
+D checks the narrow grant delta and source types, then publishes/deploys only the tested read-only candidate with pinned UID preserved. Owner reviews the same 2B checkpoint again. Neither the refinement nor a passing synthetic suite establishes full Phase 2 completion or new financial/production authority.
