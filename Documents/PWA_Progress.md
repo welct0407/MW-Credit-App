@@ -48,6 +48,6 @@ Launch order: **1 → 2 → 3/4 → 5 → 6 → 8 → 9 → 10 → 11 → 12**. 
 
 ## Evidence and session updates
 
-[Current checkpoint and detailed evidence](../outputs/r052-pwa/README.md) · [Change record](../Change%20Logs/CHANGE_NOTES_R052_CHECKPOINT_2B_2026-10-07.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)
+[Current checkpoint and detailed evidence](../outputs/r052-pwa/README.md) · [Change record](../Change%20Logs/CHANGE_NOTES_R052_CHECKPOINT_2C_2026-10-07.md) · [Release status](Release_Tracker.md) · [Team and closeout rule](PWA_Orchestration.md)
 
 This is the single current owner-facing progress overview. At every development-session closeout, update this page's date, completed/tested/deployed/accepted distinctions, current review, next checkpoint, blockers and evidence links. Keep detailed history in the linked change records and roadmap; do not create competing progress trackers.
