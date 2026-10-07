@@ -14,7 +14,7 @@ Use the current R052 release. The implementation repository is MW-Credit-App. Th
 
 ## Interface design
 
-Use the owner-requested AppSheet OLTP White/light theme: DEV primary #e8710a and PROD primary #d81b60. Reuse the original Loan Manager logo unchanged. Use white card surfaces and neutral supporting colors with clear hierarchy, generous whitespace, readable amounts and a consistent component system. The design should feel like a working operational tool. Keep a persistent, compact `Design preview · synthetic data` notice. Every displayed amount, record and date is demonstrative. Sample totals must reconcile to the fixtures; do not invent portfolio performance metrics.
+Use the owner-requested AppSheet OLTP White/light theme: DEV primary #e8710a and PROD primary #d81b60. Use the original pink Loan Manager logo unchanged for PROD and the owner-requested derived all-orange variant for DEV. Use coordinated light theme-tinted card surfaces and neutral page/navigation colors with clear hierarchy, generous whitespace, readable amounts and a consistent component system. The design should feel like a working operational tool. Keep a persistent, compact `Design preview · synthetic data` notice. Every displayed amount, record and date is demonstrative. Sample totals must reconcile to the fixtures; do not invent portfolio performance metrics.
 
 Desktop uses a left navigation rail, page header and list/detail workspace. Mobile uses a compact header, reachable primary navigation and a full-width list; selection opens a detail screen with an explicit Back control. Avoid squeezing a desktop table onto a phone. Target 1440×900 and 390×844, with a narrow 360px check. These are viewport checks, not proof on real supported devices.
 
@@ -72,3 +72,11 @@ Recorded evidence: Environment_Inventory.md canonical theme table (DEV #e8710a /
 The initial summary container was off-white (#fffefa) while the featured due card was pale green (#edf1e7). Its text rules had no individual background fill. Normalize cards to white and text backgrounds to transparent. This CSS evidence does not establish a cause for any glyph-level rendering fringe.
 
 A temporary DEV/PROD color preview may change presentation only, clearly labelled as colors only. It must never select a backend, identity, database, credential or deployment target. DEV remains the local/default preview; production deployment wiring remains future scope.
+
+## Owner refinement: stronger theme presence
+
+The owner requests cards in the theme color or a similar shade, to feel orange rather than showing only an orange header line. This supersedes the prior all-white-card instruction. Use coherent whole-card tints: DEV surface #fdf1e7 / selection #fbe8d8 / border #f9dcc2; PROD #fbe8ef / #f9dbe6 / #f5c6d7. Keep exact primary accents, dark text with transparent backgrounds, neutral surrounding surfaces and the unchanged OLTP logo. Derived tints are PWA design choices; no claim of exact AppSheet secondary values. Existing functionality and removed aggregate remain unchanged.
+
+The owner subsequently requested an orange-background DEV logo. DEV now uses a separate built-in image-edited variant of the existing OLTP design; PROD retains the byte-identical original pink logo. This supersedes the earlier same-logo-in-both instruction. Variant provenance, prompt and hash are maintained in MW-Credit-App docs/Branding.md. Theme selection changes presentation/assets only, never identity/backend routing.
+
+Final DEV refinement converts all remaining pink decorative surfaces to orange shades, not only the background. PROD remains the original pink. Parent visually reviewed the generated result; C verified rendered asset switching and preserved PROD hash.

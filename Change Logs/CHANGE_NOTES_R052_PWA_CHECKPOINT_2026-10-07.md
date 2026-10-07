@@ -31,3 +31,13 @@ Owner requested removing the portfolio outstanding summary, AppSheet OLTP enviro
 Revision app4dfe363f64927720e1ddd03260d0c28e2ffd35fa published to the existing draft PR3. Clean build,6guards,17browser checks passed (1duplicate skip); final neutral mobile-text adjustment passed5affected checks. Architecture accepted and parent inspected DEV/PROD desktop and DEV mobile images. Logo bytes/rendering, exact accents, white/transparent backgrounds and removal scope verified. All agents stopped; no new phase or live-system change. Owner visual acceptance pending.
 
 GitHub development CI37602964498 passed for revision4dfe363; project whitespace/scope checks passed before publication.
+
+## Theme-colored card refinement
+
+Owner requested theme-colored/similar card surfaces rather than a thin accent line alone. Baselines: projectf99098ec / app4dfe363. A defines cohesive light orange/pink tokens; B implements CSS; C verifies both palettes and affected interactions. This supersedes all-white cards but keeps transparent text backgrounds, original logo and removed aggregate. No phase advance/live changes. Revert the visual/source and record commits for rollback. Verification pending.
+
+Additional owner steering: orange-background DEV logo variant, original pink PROD logo retained. Parent used the built-in image-editing workflow and saved the variant into MW-Credit-App assets; B wired its visual state and C verifies rendered switching. Prompt/hash/provenance are in the app branding document. No backend or environment-selection change.
+
+Final all-orange DEVlogo refinement and themedcards published as appcc0435ac2462f884bbb48c8936ad7f10ba9b5d53. Cleanbuild/6guards/17browserchecks passed for palette and interactions; finalassetchange passed5targetedchecks. Representativecontrast>=4.5:1, originalPRODhash preserved, screenshots refreshed. Allworkersstopped; awaitingvisualacceptance. No phaseadvance or deployment.
+
+Final CI37605487858 passed forcc0435a. Documentation and Git whitespace checks passed before publication.
