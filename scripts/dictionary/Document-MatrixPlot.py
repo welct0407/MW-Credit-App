@@ -1,4 +1,8 @@
 """R029 exact display-view and matrix-question metadata; no financial rows."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import hashlib,json,os,sys,subprocess
 from pathlib import Path
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
@@ -10,7 +14,7 @@ import yaml
 r=Path(__file__).resolve().parents[2];out=r/'outputs/r029-bcg-matrix';dd=r/'Documents/Data Dictionary'
 private=Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/r029-bcg-matrix';private.mkdir(exist_ok=True)
 views=['reporting_borrower_matrix_plot_v1']
-cfg=json.loads((r/'database/environments.json').read_text());captures={}
+cfg=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text());captures={}
 for env in ('production','development'):
  t=cfg[env];expected='loan_manager_prod' if env=='production' else 'loan_manager_dev'
  assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215',expected)

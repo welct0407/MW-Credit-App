@@ -3,6 +3,10 @@
 Compare a separate private fixed-snapshot fixture schema to the offline simulator.
 Neither Cloud SQL environment is written. All rehearsal SQL rolls back.
 """
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import json, os, socket, subprocess, sys, time
 from pathlib import Path
 from decimal import Decimal
@@ -22,7 +26,7 @@ bin_dir=Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/postgresql-18.6-3/pg
 private=Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/borrower-matrix-20260924'
 snapshot=private/'snapshot-20260924T130012708214Z.json'
 source=json.loads(snapshot.read_text(encoding='utf-8'))
-migration=(repo/'database/migrations/V41__borrower_payment_health.sql').read_text(encoding='utf-8')
+migration=(DATABASE_REPO_ROOT / 'database/migrations/V41__borrower_payment_health.sql').read_text(encoding='utf-8')
 with socket.socket() as s:
     s.bind(('127.0.0.1',0));port=s.getsockname()[1]
 def run(args,name):

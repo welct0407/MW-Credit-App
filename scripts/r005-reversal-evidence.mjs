@@ -1,3 +1,4 @@
+import { databaseRoot } from './database-location.mjs';
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -69,4 +70,4 @@ for(const app of ['olap','oltp']){
  const file=`reversal-final-${app}-editor.txt`;
  try {await fs.writeFile(`${out}/${file}`,(await fs.readFile(`${priv}/${file}`,'utf8')).trimEnd()+'\n');} catch(e){if(e.code!=='ENOENT')throw e;}
 }
-console.log(JSON.stringify({guiAssertions:'passed',modelRecords:inventory.length,sqlMigrationSha256:crypto.createHash('sha256').update(await fs.readFile('database/migrations/V21__settlement_delete_reversal.sql')).digest('hex')}));
+console.log(JSON.stringify({guiAssertions:'passed',modelRecords:inventory.length,sqlMigrationSha256:crypto.createHash('sha256').update(await fs.readFile(databaseRoot+'/' + 'database/migrations/V21__settlement_delete_reversal.sql')).digest('hex')}));

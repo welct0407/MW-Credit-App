@@ -1,10 +1,11 @@
+import { databaseRoot } from './database-location.mjs';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 const priv='C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r005-20260917';
 const out='outputs/r005-20260917';
 await fs.mkdir(out,{recursive:true});
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
-const sql=await fs.readFile('database/migrations/V20__cash_custody_ledger.sql','utf8');
+const sql=await fs.readFile(databaseRoot+'/' + 'database/migrations/V20__cash_custody_ledger.sql','utf8');
 const inventory=[];
 for(const name of ['Cash Holders','Cash Ledger']){
  const block=sql.split(`CREATE TABLE public."${name}" (`)[1].split('\n);')[0];

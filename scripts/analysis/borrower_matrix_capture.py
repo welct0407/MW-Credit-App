@@ -3,6 +3,10 @@
 All source rows and definitions stay outside Git. This never alters DB objects/data.
 Run with bundled Python; psycopg is the existing project-managed dependency.
 """
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import argparse
 import datetime as dt
 import hashlib
@@ -25,7 +29,7 @@ def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("--rows", action="store_true")
     args = parser.parse_args()
-    target = json.loads((REPO / "database/environments.json").read_text())["production"]
+    target = json.loads((DATABASE_REPO_ROOT / "database/environments.json").read_text())["production"]
     assert (target["instance"], target["host"], target["database"]) == (
         "appsheet-pg-prod-20260914", "34.21.174.215", "loan_manager_prod")
     secret_path = Path(target["passwordFile"]).resolve()

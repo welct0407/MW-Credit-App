@@ -1,3 +1,4 @@
+import { databaseRoot } from './database-location.mjs';
 import fs from 'node:fs/promises';
 import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
 const file='Documents/AppSheet_Data_Dictionary.xlsx',out='outputs/r008-20260918';
@@ -27,7 +28,7 @@ if(mode==='inspect'){
   }
  }
  records.unshift(['R008 DEV only\nPROD unchanged','Release inventory','Scope and evidence','Production reference rows remain unchanged; promotion and owner acceptance pending.','Cash account master/defaults, 13 new source/request fields, ledger dimensions, balances and three quick-command forms/bots. Exact delta: outputs/r008-20260918/release-delta.json. New objects are absent in PROD; existing PROD reference stays in the baseline sheets and recorded rollback versions. Source bindings remain environment specific. Multi-part text concatenates without separators.']);
- const migration=await fs.readFile('database/migrations/V23__cash_accounts_and_payment_requests.sql','utf8');
+ const migration=await fs.readFile(databaseRoot+'/' + 'database/migrations/V23__cash_accounts_and_payment_requests.sql','utf8');
  for(const table of ['"Cash Accounts"','r008_cash_account_cutover']){
   const start=migration.indexOf('CREATE TABLE public.'+table+' (');
   const ddl=migration.slice(start,migration.indexOf('\n);',start)+3);

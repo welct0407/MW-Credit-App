@@ -115,7 +115,7 @@ R036 DEV extends the Cash Statement's Partner language preference pattern to the
 
 ## Maintenance and evidence
 
-Update this overview only when architecture, relationships, ownership or explained business behavior changes. An exact formula/property change updates the owning dictionary object and the release log; it does not require rewriting unchanged prose. Keep one current explanation, without appending a release narrative. SQL changes remain immutable Flyway migrations under [database procedure](../database/README.md#each-change).
+Update this overview only when architecture, relationships, ownership or explained business behavior changes. An exact formula/property change updates the owning dictionary object and the release log; it does not require rewriting unchanged prose. Keep one current explanation, without appending a release narrative. SQL changes remain immutable Flyway migrations under [database procedure](https://github.com/welct0407/MW-Credit-App/blob/main/database/README.md#each-change).
 
 Detailed prior checkpoints, unique decisions and dated limitations are preserved in the [pre-cleanup overview](archive/2026-09-20/AppSheet_Data_Model_Overview.md) and linked release logs. The dictionary retains dated exact configuration evidence where it is not redundant; latest applicable verified values take precedence. No model recapture or live behavioral validation was performed by this restructuring.
 

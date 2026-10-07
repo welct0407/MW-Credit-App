@@ -1,3 +1,4 @@
+import { databaseRoot } from './database-location.mjs';
 import fs from 'node:fs/promises';
 import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
 const refine=process.argv.includes('--refine');
@@ -79,7 +80,7 @@ for(const name of ['Daily Analytics 7 Days','Daily Analytics 30 Days','Daily Ana
 diff('Database','Flyway','Version','V14','V16');diff('Database','Flyway','Schema version','V14','V16');
 for(const [app,version]of Object.entries(versions))upsert('App Settings',r=>r[0]==='development-'+app.toLowerCase()&&r[1]==='Version',['development-'+app.toLowerCase(),'Version','Saved app version',version,'Chrome saved definition; business expenses DEV; owner acceptance pending']);
 for(const name of ['Notification - First-Day Charge','Notification - New Loan Created','Notification - Loan Closed','Notification - Charge Received'])diff('OLTP',name,'Development enabled state','Production unchanged','Disabled for current DEV test isolation; destinations/templates unchanged');
-const sql=await fs.readFile('database/migrations/V15__business_expenses_and_referrals.sql','utf8');
+const sql=await fs.readFile(databaseRoot+'/' + 'database/migrations/V15__business_expenses_and_referrals.sql','utf8');
 const dbTypes={...Object.fromEntries(names.map(n=>[n,'text'])),'Expense Date':'date',Amount:'money','Gross Profit Basis':'money','Partner A Share':'numeric','Partner B Share':'numeric','Partner A Expense':'money','Partner B Expense':'money','Created At':'timestamp without time zone'};
 const notNull=['Row ID','Expense Date','Expense Category','Amount','Source Type','Allocation Basis','Partner A Share','Partner B Share','Partner A Expense','Partner B Expense','Created At','Created By'];
 for(let i=0;i<names.length;i++){let n=names[i];upsert('DB Columns',r=>r[0]==='DEV Business Expenses'&&r[1]===n,['DEV Business Expenses',n,i+1,dbTypes[n],notNull.includes(n)?'NO':'YES',n==='Source Type'?"'Manual'::text":n==='Created By'?"'SQL'::text":n==='Created At'?"statement_timestamp() AT TIME ZONE 'Asia/Bangkok'":'']);}

@@ -1,3 +1,4 @@
+import { databaseRoot } from './database-location.mjs';
 import fs from 'node:fs/promises';
 import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
 const file='Documents/AppSheet_Data_Dictionary.xlsx',out='outputs/vc-materialization-20260916';
@@ -63,8 +64,8 @@ if(process.argv.includes('--build-evidence')){
  }
  const databaseColumns=(await fs.readFile(out+'/final-parity.jsonl','utf8')).replace(/^\uFEFF/,'').trim().split(/\r?\n/).map(JSON.parse).filter(r=>r.check==='vc_column'&&groups[r.table]?.includes(r.name));
  const logic=[];
- for(const f of (await fs.readdir('database/migrations')).filter(f=>/^V1[234]__/.test(f))){
-  const sql=await fs.readFile('database/migrations/'+f,'utf8'),version=f.match(/^V\d+/)[0];
+ for(const f of (await fs.readdir(databaseRoot+'/' + 'database/migrations')).filter(f=>/^V1[234]__/.test(f))){
+  const sql=await fs.readFile(databaseRoot+'/' + 'database/migrations/'+f,'utf8'),version=f.match(/^V\d+/)[0];
   for(const m of sql.matchAll(/CREATE(?: OR REPLACE)? FUNCTION public\.([a-z_]+)\(/g))logic.push({kind:'function',table:'public',name:m[1],version,description:'See immutable migration '+f+'; derived rollup ownership, refresh and transaction safety.'});
   for(const m of sql.matchAll(/CREATE(?: CONSTRAINT)? TRIGGER ([a-z_]+)[\s\S]*? ON public\."([^"]+)"/g))logic.push({kind:'trigger',table:m[2],name:m[1]+' on '+m[2],version,description:'See immutable migration '+f+'; source or derived-value event.'});
  }

@@ -1,4 +1,8 @@
 """One-time R030 role prerequisite. No schema or financial writes; credentials private."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[2]))
+from database_location import DATABASE_REPO_ROOT
 import hashlib, json, os, secrets, sys
 from pathlib import Path
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
@@ -10,7 +14,7 @@ private=Path('C:/Users/MWCredit/Documents/ChatGPT/AppSheet-Loan-Project/r030-cus
 out=repo/'outputs/r030-custom-matrix'
 backup=json.loads((out/'production-backup.json').read_text())
 assert backup['restore_fingerprints_match'] and hashlib.sha256(Path(backup['backup_file']).read_bytes()).hexdigest()==backup['backup_sha256']
-target=json.loads((repo/'database/environments.json').read_text())['production']
+target=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['production']
 assert (target['instance'],target['host'],target['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_prod')
 credential=private/'service-config.json'
 if credential.exists(): raise RuntimeError('Private configuration already exists; inspect state before retry')

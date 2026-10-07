@@ -1,4 +1,8 @@
 """R047 manual-upload DEV metadata and guarded dictionary checkpoint; no financial writes."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import hashlib,json,os,sys,subprocess
 from pathlib import Path
 sys.path.insert(0,str(Path(os.environ['LOCALAPPDATA'])/'AppSheetLoanTools/python-deps'))
@@ -10,7 +14,7 @@ import yaml
 root=Path(__file__).resolve().parents[2];dd=root/'Documents/Data Dictionary';out=root/'outputs/r047-receipt-upload'
 evidence='outputs/r047-receipt-upload/HANDOVER.md'
 private=Path.home()/'Documents/ChatGPT/AppSheet-Loan-Project/r047-receipt-upload/dictionary-patches';private.mkdir(parents=True,exist_ok=True)
-t=json.loads((root/'database/environments.json').read_text())['development']
+t=json.loads((DATABASE_REPO_ROOT / 'database/environments.json').read_text())['development']
 assert (t['instance'],t['host'],t['database'])==('appsheet-pg-prod-20260914','34.21.174.215','loan_manager_dev')
 with psycopg.connect(host=t['host'],dbname=t['database'],user=t['user'],password=Path(t['passwordFile']).read_text().strip(),sslmode='require',row_factory=dict_row) as c:
  c.execute('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')

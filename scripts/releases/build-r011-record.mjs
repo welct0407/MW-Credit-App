@@ -1,3 +1,4 @@
+import { databaseRoot } from '../database-location.mjs';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 const dir='outputs/r011-20260920';
@@ -13,7 +14,7 @@ Object.assign(manifest.apps.OLTP.prod,{id:'93844270-6aa5-420b-a960-bcdf08abd357'
 Object.assign(manifest.apps.OLAP,{disposition:'unchanged',reason:'Read-only SQL analytical view contract unchanged'});
 Object.assign(manifest.apps.OLAP.dev,{id:'9f3422be-bc87-4a5a-a42a-67528ee80393',internalName:'MW-OLAP-DEV-20260919-578763613',version:'1.000017',evidence:`${dir}/test-results.md`});
 Object.assign(manifest.apps.OLAP.prod,{id:'e74dd368-654f-44d7-bccf-83cf361d1cdb',internalName:'LoanBusinessInsights-975338008',baselineVersion:'1.100183'});
-const migration='database/migrations/V28__borrower_collection_note.sql';
+const migration=databaseRoot+'/' + 'database/migrations/V28__borrower_collection_note.sql';
 Object.assign(manifest.database,{disposition:'additive-column',devVersion:'28',prodBeforeMigration:'27',targetVersion:'28',migrations:[{file:migration,sha256:crypto.createHash('sha256').update(await fs.readFile(migration)).digest('hex')}],backupEvidence:'Private DEV dump and hash recorded in release log; PROD backup pending',compatibilityEvidence:`${dir}/test-results.md`});
 manifest.deploymentOrder=['Owner acceptance and scoped production authorization','Pin tested package; prepare contained RC','Verify PROD backup/drift; migrate compatible V28','Validate/freeze PROD-mapped OLTP RC','App Upgrade existing PROD OLTP; OLAP unchanged','Limited PROD validation and documentation closure'];
 manifest.validation.A_devIntegrated='passed';manifest.timestamps.started='2026-09-20';

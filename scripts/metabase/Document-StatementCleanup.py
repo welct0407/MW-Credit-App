@@ -1,4 +1,8 @@
 """Document only the affected live objects, using guarded dictionary updates."""
+from pathlib import Path as _DatabasePath
+import sys as _database_sys
+_database_sys.path.insert(0, str(_DatabasePath(__file__).resolve().parents[1]))
+from database_location import DATABASE_REPO_ROOT
 import json,sys
 from pathlib import Path
 repo=Path(__file__).resolve().parents[2]
@@ -32,8 +36,8 @@ new('systems/metabase/models/income-events.yaml','metabase','model','Income Even
 new('systems/metabase/dashboards/loan-reports.yaml','metabase','dashboard','Loan Reports / 3',{'dashboard_id':3,'database_id':2,'collection_id':5,'tabs':plan['tabs'],'parameters':plan['parameters'],'cash_pages':{'layout':plan['layout'],'question_definitions':plan['questions'],'source_policy':plan['source_policy'],'retired':retired['retired']},'unaffected_pages':'Existing pages 1,3–8 and Cash Position placements preserved; their individual query definitions are outside this scoped dictionary reconciliation.'})
 for name,id,file in [('Income statement period',2,'live-income-period.sql'),('Cashflow statement period',3,'live-cashflow-period.sql')]:
  new('systems/metabase/snippets/'+file.replace('.sql','.yaml'),'metabase','snippet',name,{'id':id,'definition_file':'scripts/metabase/'+file,'content':(repo/'scripts/metabase'/file).read_text(encoding='utf-8'),'source_policy':'Live for current and past periods; no snapshot seeding or FIFO allocations.'})
-sql38=(repo/'database/migrations/V38__focused_live_statements.sql').read_text(encoding='utf-8')
-sql39=(repo/'database/migrations/V39__statement_transfer_label_encoding.sql').read_text(encoding='utf-8')
+sql38=(DATABASE_REPO_ROOT / 'database/migrations/V38__focused_live_statements.sql').read_text(encoding='utf-8')
+sql39=(DATABASE_REPO_ROOT / 'database/migrations/V39__statement_transfer_label_encoding.sql').read_text(encoding='utf-8')
 for name in ['reporting_cash_scopes','reporting_cash_entries','reporting_income_events','reporting_statement_calendar']:
  source=sql39 if name=='reporting_cash_entries' else sql38
  marker=('CREATE OR REPLACE VIEW' if name=='reporting_cash_entries' else 'CREATE VIEW')+' public.'+name+' AS'

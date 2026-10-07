@@ -1,3 +1,4 @@
+import { databaseRoot } from '../database-location.mjs';
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const dir='outputs/r014-20260921', evidence=`${dir}/production-report.md`;
@@ -26,10 +27,10 @@ await edit('Documents/Release_Tracker.md','Recorded PROD baseline: **R013**','Re
 await edit('Documents/Release_Tracker.md','DEV complete — awaiting owner acceptance; not promoted | 2026-09-21: DEV V32 / OLTP 1.000075 / OLAP 1.000031; AI Reviewer added, both editors clear','Released | 2026-09-21: PROD V32 / OLTP 3.000245 / OLAP 1.100194; reviewer runtime installed, both editors clear');
 await edit('Documents/Release_Tracker.md','[DEV report](../outputs/r014-20260921/REPORT.md)','[Production report](../outputs/r014-20260921/production-report.md) · [checklist](../outputs/r014-20260921/promotion-checklist.md)');
 await edit('database/README.md','## Current checkpoint — R014 DEV complete, R013 in PROD, 21 September 2026','## Current checkpoint — R014 in DEV and PROD, 21 September 2026');
-const db=(await fs.readFile('database/README.md','utf8')).replaceAll('\r\n','\n');
+const db=(await fs.readFile(databaseRoot+'/' + 'database/README.md','utf8')).replaceAll('\r\n','\n');
 const start=db.indexOf('DEV is **V32**;'),end=db.indexOf('\n\n## Setup',start);
 assert(start>0&&end>start);
-await fs.writeFile('database/README.md',db.slice(0,start)+'DEV and PROD are **V32**. V32 adds Partners.AI Reviewer (NOT NULL, false default), selecting Tommy initially; OLAP owns administration and OLTP reads the field. The coordinated reviewer-only integration-agent policy is deployed. V31 adds the read-only Cash Dashboard and FIFO settlement helper without changing financial posting. Production OLTP 3.000245 / OLAP 1.100194 and DEV 1.000075 / 1.000031 have zero editor issues. The exact tested V31/V32 package passed production migration and 33-entry history validation after a verified restored backup. The next migration must be V33 or higher. [R014 production verification](../outputs/r014-20260921/production-report.md). V30 source-payment timestamps remain unchanged. DEV-only fixtures and recipient data must not be copied to PROD.'+db.slice(end));
+await fs.writeFile(databaseRoot+'/' + 'database/README.md',db.slice(0,start)+'DEV and PROD are **V32**. V32 adds Partners.AI Reviewer (NOT NULL, false default), selecting Tommy initially; OLAP owns administration and OLTP reads the field. The coordinated reviewer-only integration-agent policy is deployed. V31 adds the read-only Cash Dashboard and FIFO settlement helper without changing financial posting. Production OLTP 3.000245 / OLAP 1.100194 and DEV 1.000075 / 1.000031 have zero editor issues. The exact tested V31/V32 package passed production migration and 33-entry history validation after a verified restored backup. The next migration must be V33 or higher. [R014 production verification](../outputs/r014-20260921/production-report.md). V30 source-payment timestamps remain unchanged. DEV-only fixtures and recipient data must not be copied to PROD.'+db.slice(end));
 await edit(evidence,'Status: In progress.','Status: Released.');
 await edit(evidence,'## Remaining\n\nApply App Upgrade into existing production IDs, verify basic production entry points and API access, deploy pinned Integration Agent `83e1b56afef56a660aeff518ec32a09eee520790`, close documentation and publish final R014 evidence/tag.',`## Production results
 

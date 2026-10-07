@@ -1,3 +1,4 @@
+import { databaseRoot } from './database-location.mjs';
 // Generates the reviewed R007 migration from explicit, saved-formula translations.
 // Never execute against a database. Applied migration files must not be regenerated.
 import fs from 'node:fs/promises';
@@ -256,5 +257,5 @@ a AS (SELECT s."Row ID",s."Statistics ID",rr.profit "Total Profit",lr.principal 
  FROM public."Statistics" s CROSS JOIN ctx CROSS JOIN lr CROSS JOIN rr CROSS JOIN cr CROSS JOIN br CROSS JOIN top3 CROSS JOIN pool CROSS JOIN settled CROSS JOIN earned CROSS JOIN er CROSS JOIN peak CROSS JOIN peakdate),
 final AS (SELECT a.*,CASE WHEN "Forecast Average Daily Outstanding Principal">0 THEN "Projected Monthly Profit"/"Forecast Average Daily Outstanding Principal" ELSE 0 END "Forecast Monthly Return on ADO" FROM a)
 `,contract.columns.Statistics.filter(x=>x.r007Move).map(x=>x['Column name']));
-await fs.writeFile('database/migrations/V22__olap_analytics_views.sql',sql,{flag:'wx'});
+await fs.writeFile(databaseRoot+'/' + 'database/migrations/V22__olap_analytics_views.sql',sql,{flag:'wx'});
 console.log('Wrote V22 candidate; do not regenerate after application.');
